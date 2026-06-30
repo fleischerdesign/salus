@@ -26,6 +26,9 @@ RECORD_SKIP_KEYS = {
     "created_at", "updated_at",
 }
 
+NUMERIC_KEYS = ("value", "count", "bpm", "kilograms", "calories",
+                "duration_seconds", "distance_meters")
+
 
 @runtime_checkable
 class RecordParser(Protocol):
@@ -48,6 +51,22 @@ def _safe_json(value_str: str) -> str:
         return value_str
 
 
+def _extract_value_numeric(item: dict) -> float | None:
+    for key in NUMERIC_KEYS:
+        v = item.get(key)
+        if isinstance(v, (int, float)):
+            return float(v)
+    return None
+
+
+def _extract_single_numeric(item: dict) -> float | None:
+    """Fallback: take the first numeric value found in the item."""
+    for v in item.values():
+        if isinstance(v, (int, float)):
+            return float(v)
+    return None
+
+
 class HealthConnectWebhookParser:
     def can_handle(self, payload: dict | list) -> bool:
         if not isinstance(payload, dict):
@@ -62,6 +81,10 @@ class HealthConnectWebhookParser:
             return []
         records: list[Measurement] = []
         data_type_keys = [k for k in payload if k not in METADATA_KEYS]
+
+        logger.info("HealthConnectWebhookParser | data_type_keys=%s | record_counts=%s",
+                     data_type_keys, {k: len(payload[k]) for k in data_type_keys
+                                      if isinstance(payload.get(k), list)})
 
         for dtype in data_type_keys:
             items = payload[dtype]
@@ -80,6 +103,10 @@ class HealthConnectWebhookParser:
                 end_time = item.get("end_time") or item.get("endTime") or ""
                 rec_id = item.get("id") or item.get("uuid") or ""
 
+                value_numeric = _extract_value_numeric(item)
+                if value_numeric is None:
+                    value_numeric = _extract_single_numeric(item)
+
                 value = {k: v for k, v in item.items() if k not in RECORD_SKIP_KEYS}
                 if "stages" in item:
                     value["stages"] = item["stages"]
@@ -89,9 +116,13 @@ class HealthConnectWebhookParser:
                 )
                 value_json = json.dumps(value, ensure_ascii=False)
 
+                logger.debug("HC record | dtype=%s | value_numeric=%s | external_id=%s | keys_in_value=%s",
+                             dtype, value_numeric, external_id, list(value.keys()))
+
                 records.append(Measurement(
                     data_type=dtype,
                     source="samsung_health",
+                    value_numeric=value_numeric,
                     value_json=value_json,
                     start_time=_to_dt(start_time),
                     end_time=_to_dt(end_time) if end_time else None,
@@ -145,9 +176,14 @@ class FlatArrayParser:
                 "flat_array", data_type, start_time
             )
 
+            value_numeric = _extract_value_numeric(item)
+            if value_numeric is None:
+                value_numeric = _extract_single_numeric(item)
+
             records.append(Measurement(
                 data_type=data_type,
                 source="flat_array",
+                value_numeric=value_numeric,
                 value_json=value_json,
                 start_time=_to_dt(start_time),
                 end_time=_to_dt(end_time) if end_time else None,
@@ -176,6 +212,7 @@ class FlexiblePayloadParser:
 
         for parser in self._parsers:
             if parser.can_handle(payload):
+                logger.info("FlexiblePayloadParser | selected=%s", type(parser).__name__)
                 result = parser.parse(payload)
                 if result:
                     return result
