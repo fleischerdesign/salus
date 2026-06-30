@@ -26,7 +26,7 @@
 <div class="card" id="entry-{{ entry.id }}">
     <div class="flex-between flex-wrap gap-md">
         <div>
-            <strong>{{ entry.value_text }}</strong>
+            <strong>{{ entry.display_value }}</strong>
             <span class="text-muted ml-sm">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
             {% if entry.notes %}<span class="text-muted"> — {{ entry.notes }}</span>{% endif %}
         </div>
