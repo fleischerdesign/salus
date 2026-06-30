@@ -45,4 +45,5 @@ uv.lock
 
 # External bundled
 /health-bridge-server/
+/design/
 /data/
