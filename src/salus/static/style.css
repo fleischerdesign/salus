@@ -359,10 +359,7 @@ button {
 }
 
 .top-app-bar-menu-user {
-    display: flex;
-    align-items: center;
-    gap: var(--space-stack-sm);
-    margin-left: auto;
+    display: none;
 }
 
 .top-app-bar-menu-divider {
@@ -1702,7 +1699,37 @@ button {
 
     .top-app-bar-menu-user {
         margin-left: 0;
-        padding: 8px 24px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .top-app-bar-menu-user .top-app-bar-link {
+        display: flex;
+        padding: 14px 24px;
+        width: 100%;
+        border-bottom: none;
+        border-left: 3px solid transparent;
+        border-radius: 0;
+    }
+
+    .top-app-bar-menu-user .top-app-bar-link:hover {
+        background: var(--color-slate-50);
+        color: var(--color-primary);
+    }
+
+    .top-app-bar-menu-user .top-app-bar-link.active {
+        border-bottom-color: transparent;
+        border-left-color: var(--color-primary);
+        background: var(--color-primary-fixed);
+    }
+
+    .top-app-bar-menu-user hr.top-app-bar-menu-divider {
+        display: block;
+        height: 1px;
+        background: var(--color-slate-200);
+        margin: 4px 0;
+        border: none;
     }
 
     .page-header h1 {
@@ -1827,6 +1854,147 @@ button {
 
     .modal-backdrop {
         background: rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* ---- User Menu Dropdown ---- */
+.user-menu-desktop {
+    position: relative;
+    z-index: 200;
+    flex-shrink: 0;
+}
+
+.user-menu-toggle {
+    display: none;
+}
+
+.user-menu-trigger {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: 50%;
+    transition: box-shadow 0.15s;
+}
+
+.user-menu-trigger:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+    user-select: none;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.avatar:hover {
+    opacity: 0.85;
+}
+
+.avatar-lg {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.user-menu-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: -8px;
+    width: 256px;
+    background: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 4px 0;
+    overflow: hidden;
+}
+
+.user-menu-toggle:checked ~ .user-menu-dropdown {
+    display: block;
+}
+
+.user-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.user-menu-header strong {
+    font: var(--font-body-md);
+    font-weight: 600;
+    color: var(--color-slate-900);
+}
+
+.user-menu-header .user-menu-email {
+    font: var(--font-body-sm);
+    color: var(--color-slate-500);
+    display: block;
+    margin-top: 2px;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    font: var(--font-label-md);
+    letter-spacing: 0.05em;
+    color: var(--color-slate-600);
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    border-left: 3px solid transparent;
+    background: none;
+    text-align: left;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.user-menu-item:hover {
+    color: var(--color-primary);
+}
+
+.user-menu-logout:hover {
+    color: var(--color-danger) !important;
+}
+
+.user-menu-item .material-symbols-outlined {
+    font-size: 20px;
+    color: inherit;
+}
+
+.user-menu-divider {
+    height: 1px;
+    background: var(--color-slate-200);
+    margin: 4px 0;
+}
+
+.user-menu-logout {
+    color: var(--color-danger) !important;
+}
+
+/* Hide desktop user menu on mobile — use burger menu items instead */
+@media (max-width: 600px) {
+    .user-menu-desktop {
+        display: none;
     }
 }
 }

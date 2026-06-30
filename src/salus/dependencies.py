@@ -3,13 +3,14 @@ from sqlmodel import Session
 
 from salus.config import settings
 from salus.database import get_session
-from salus.exceptions import AuthenticationError
+from salus.exceptions import AuthenticationError, ForbiddenError
 from salus.models.user import User
 from salus.repositories.api_token import ApiTokenRepository
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.goal import GoalRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
 from salus.services.analytics.activity import ActivityAnalysisService
@@ -18,6 +19,8 @@ from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.orchestrator import AnalyticsService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
+from salus.services.admin import AdminService
+from salus.services.config import ConfigService
 from salus.services.api_token import ApiTokenService
 from salus.services.auth.providers import LdapAuthProvider, LocalAuthProvider, OidcAuthProvider
 from salus.services.auth.service import AuthService
@@ -289,6 +292,37 @@ def get_current_user(
     if user is None:
         raise AuthenticationError("Invalid or expired token")
     return user
+
+
+def require_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not current_user.is_admin:
+        raise ForbiddenError("Admin access required")
+    return current_user
+
+
+def get_admin_service(
+    user_repo: UserRepository = Depends(get_user_repo),
+    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
+    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    api_token_repo: ApiTokenRepository = Depends(
+        lambda session=Depends(get_session): ApiTokenRepository(session)
+    ),
+    goal_repo: GoalRepository = Depends(get_goal_repo),
+    dashboard_widget_repo: DashboardWidgetRepository = Depends(get_dashboard_widget_repo),
+) -> AdminService:
+    return AdminService(user_repo, metric_type_repo, measurement_repo, api_token_repo, goal_repo, dashboard_widget_repo)
+
+
+def get_system_config_repo(session: Session = Depends(get_session)) -> SystemConfigRepository:
+    return SystemConfigRepository(session)
+
+
+def get_config_service(
+    repo: SystemConfigRepository = Depends(get_system_config_repo),
+) -> ConfigService:
+    return ConfigService(repo)
 
 
 def get_current_user_optional(

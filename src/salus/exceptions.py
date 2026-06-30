@@ -20,3 +20,9 @@ class InvalidCredentialsError(Exception):
     def __init__(self, message: str = "Invalid username or password") -> None:
         self.message = message
         super().__init__(message)
+
+
+class ForbiddenError(Exception):
+    def __init__(self, message: str = "Forbidden") -> None:
+        self.message = message
+        super().__init__(message)

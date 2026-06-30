@@ -21,6 +21,10 @@ class UserService:
         self.identity_repo = identity_repo
         self._metric_type_repo = metric_type_repo
 
+    def _is_first_user(self) -> bool:
+        all_users = self.repo.list_all()
+        return len(all_users) == 0
+
     def _seed_default_metric_types(self, user_id: int) -> None:
         for name, unit, data_type, color, source_data_type, icon, widget_size, widget_enabled in DEFAULT_METRIC_TYPES:
             existing = self._metric_type_repo.find_by_name_and_user(name, user_id)
@@ -72,6 +76,7 @@ class UserService:
             password_hash=hash_password(password),
             email=email,
             display_name=display_name or username,
+            is_admin=self._is_first_user(),
         )
         user = self.repo.create(user)
 
@@ -118,6 +123,7 @@ class UserService:
             password_hash=None,
             email=email,
             display_name=derived_display,
+            is_admin=self._is_first_user(),
         )
         user = self.repo.create(user)
 

@@ -1,5 +1,6 @@
 from sqlmodel import select
 
+from salus.exceptions import NotFoundError
 from salus.models.user import User
 from salus.repositories.base import Repository
 
@@ -21,3 +22,20 @@ class UserRepository(Repository[User]):
         return self.session.exec(
             select(User).where(User.is_admin).limit(1)
         ).first()
+
+    def list_all(self) -> list[User]:
+        return list(self.session.exec(select(User)).all())
+
+    def toggle_admin(self, user_id: int) -> User:
+        user = self.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError(f"User {user_id} not found")
+        user.is_admin = not user.is_admin
+        return self.update(user)
+
+    def toggle_active(self, user_id: int) -> User:
+        user = self.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError(f"User {user_id} not found")
+        user.is_active = not user.is_active
+        return self.update(user)

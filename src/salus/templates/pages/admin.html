@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}salus — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Admin Panel</h1>
+</div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">System Statistics</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
+            <div class="data-box" style="text-align:center;">
+                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_users }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">Total Users</div>
+            </div>
+            <div class="data-box" style="text-align:center;">
+                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_measurements }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">Total Measurements</div>
+            </div>
+            <div class="data-box" style="text-align:center;">
+                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_metric_types }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">Metric Types</div>
+            </div>
+            <div class="data-box" style="text-align:center;">
+                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_goals }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">Total Goals</div>
+            </div>
+            <div class="data-box" style="text-align:center;">
+                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ storage.db_size }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">Database Size</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Users</h3>
+        </div>
+        {% include "components/admin/user_table.html" %}
+        <div id="admin-user-detail"></div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">System Configuration</h3>
+        </div>
+        {% for cat in config_categories %}
+        {% set cat_items = config_by_cat.get(cat, []) %}
+        {% if cat_items %}
+        <div style="margin-bottom:16px;">
+            <h4 style="font:var(--font-label-sm);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-slate-500);margin-bottom:8px;padding:0 4px;">{{ cat }}</h4>
+            <div id="admin-config-{{ cat }}">
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th>Setting</th>
+                            <th>Value</th>
+                            <th>Source</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cat_items %}
+                        <tr>
+                            <td>
+                                <div style="font:var(--font-body-sm);font-weight:600;">{{ item.description }}</div>
+                                <div class="text-muted" style="font:var(--font-label-sm);">{{ item.key }}</div>
+                            </td>
+                            <td>
+                                {% if item.is_secret %}
+                                <span style="font:var(--font-body-sm);">••••••••</span>
+                                <button class="btn-ghost btn-sm"
+                                        hx-get="/admin/config/{{ item.key }}/reveal"
+                                        hx-target="closest td"
+                                        hx-swap="innerHTML"
+                                        title="Reveal value">
+                                    <span class="material-symbols-outlined" style="font-size:16px;">visibility</span>
+                                </button>
+                                {% else %}
+                                <span style="font:var(--font-body-sm);{% if item.is_env_override %}color:var(--color-slate-400);{% endif %}">{{ item.value }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.is_env_override %}
+                                <span class="chip chip-warning" style="font-size:11px;" title="Set via {{ item.env_var_name }}">ENV</span>
+                                {% else %}
+                                <span class="chip chip-neutral" style="font-size:11px;">DB</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not item.is_env_override %}
+                                <button class="btn-sm"
+                                        hx-get="/admin/config/{{ item.key }}/edit"
+                                        hx-target="#admin-config-{{ cat }}"
+                                        hx-swap="outerHTML">
+                                    Edit
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        <p class="text-muted" style="font:var(--font-label-sm);margin-top:8px;">
+            Settings marked <span class="chip chip-warning" style="font-size:11px;">ENV</span> are controlled by environment variables and cannot be edited here.
+        </p>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">API Tokens</h3>
+        </div>
+        {% include "components/admin/token_table.html" %}
+    </div>
+</div>
+{% endblock %}

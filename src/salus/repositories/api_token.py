@@ -16,10 +16,20 @@ class ApiTokenRepository(Repository[ApiToken]):
         ).order_by(desc(ApiToken.created_at))  # type: ignore[arg-type]
         return list(self.session.exec(stmt).all())
 
+    def find_all_by_user(self, user_id: int) -> list[ApiToken]:
+        stmt = select(ApiToken).where(
+            ApiToken.user_id == user_id
+        )
+        return list(self.session.exec(stmt).all())
+
     def find_by_prefix(self, token_prefix: str) -> list[ApiToken]:
         stmt = select(ApiToken).where(
             ApiToken.token_prefix == token_prefix, ApiToken.is_active
         )
+        return list(self.session.exec(stmt).all())
+
+    def list_all_active(self) -> list[ApiToken]:
+        stmt = select(ApiToken).where(ApiToken.is_active).order_by(desc(ApiToken.created_at))  # type: ignore[arg-type]
         return list(self.session.exec(stmt).all())
 
     def record_usage(self, token: ApiToken) -> None:

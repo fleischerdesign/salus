@@ -1,0 +1,110 @@
+<div class="admin-detail" style="margin-top:16px;padding:16px;border:1px solid var(--color-slate-200);border-radius:var(--radius-default);background:var(--color-slate-50);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+            <strong style="font:var(--font-title-sm);">{{ detail.display_name or detail.username }}</strong>
+            <span class="text-muted ml-sm" style="font:var(--font-body-sm);">{{ detail.email or 'No email' }}</span>
+        </div>
+        <button class="btn-ghost btn-sm" onclick="this.closest('.admin-detail').remove()">
+            <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+        </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+        <div>
+            <span class="text-muted" style="font:var(--font-label-sm);">Joined</span>
+            <div style="font:var(--font-body-sm);">{{ detail.created_at.strftime('%Y-%m-%d') if detail.created_at else '-' }}</div>
+        </div>
+        <div>
+            <span class="text-muted" style="font:var(--font-label-sm);">Metrics</span>
+            <div style="font:var(--font-body-sm);">{{ detail.metrics|length }}</div>
+        </div>
+        <div>
+            <span class="text-muted" style="font:var(--font-label-sm);">Entries</span>
+            <div style="font:var(--font-body-sm);">{{ detail.recent_entries|length }}</div>
+        </div>
+        <div>
+            <span class="text-muted" style="font:var(--font-label-sm);">Goals</span>
+            <div style="font:var(--font-body-sm);">{{ detail.goals|length }}</div>
+        </div>
+    </div>
+
+    {% if detail.identities %}
+    <div style="margin-top:12px;">
+        <span class="text-muted" style="font:var(--font-label-sm);">Connected Accounts</span>
+        <div class="flex gap-sm" style="flex-wrap:wrap;margin-top:4px;">
+            {% for ident in detail.identities %}
+            <span class="chip chip-neutral" style="font-size:11px;">{{ ident.provider.title() }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if detail.metrics %}
+    <div style="margin-top:12px;">
+        <span class="text-muted" style="font:var(--font-label-sm);">Metric Types</span>
+        <table class="data-grid" style="margin-top:4px;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Unit</th>
+                    <th>Type</th>
+                    <th>System</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mt in detail.metrics %}
+                <tr>
+                    <td style="font:var(--font-body-sm);">{{ mt.name }}</td>
+                    <td style="font:var(--font-body-sm);">{{ mt.unit or '-' }}</td>
+                    <td><span class="chip chip-neutral" style="font-size:11px;">{{ mt.data_type.value if mt.data_type else mt.data_type }}</span></td>
+                    <td><span class="chip {% if mt.is_system %}chip-success{% else %}chip-neutral{% endif %}" style="font-size:11px;">{{ 'System' if mt.is_system else 'Custom' }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if detail.recent_entries %}
+    <div style="margin-top:12px;">
+        <span class="text-muted" style="font:var(--font-label-sm);">Recent Entries</span>
+        <table class="data-grid" style="margin-top:4px;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Source</th>
+                    <th>Data Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in detail.recent_entries %}
+                <tr>
+                    <td style="font:var(--font-body-sm);">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') if entry.start_time else '-' }}</td>
+                    <td><span class="chip chip-neutral" style="font-size:11px;">{{ entry.source }}</span></td>
+                    <td style="font:var(--font-body-sm);">{{ entry.data_type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if detail.tokens %}
+    <div style="margin-top:12px;">
+        <span class="text-muted" style="font:var(--font-label-sm);">API Tokens</span>
+        <div class="flex-column gap-sm" style="margin-top:4px;">
+            {% for t in detail.tokens %}
+            <div style="font:var(--font-body-sm);display:flex;justify-content:space-between;align-items:center;">
+                <span>{{ t.label }} <span class="text-muted">{{ t.token_prefix }}...</span></span>
+                <button class="btn-danger btn-sm"
+                        hx-delete="/admin/tokens/{{ t.id }}"
+                        hx-target="#admin-token-table"
+                        hx-swap="outerHTML">
+                    Revoke
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>

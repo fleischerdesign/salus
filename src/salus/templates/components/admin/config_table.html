@@ -1,0 +1,62 @@
+<div id="admin-config-{{ category }}">
+    <table class="data-grid">
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+                <th>Source</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in config_items %}
+            <tr>
+                <td>
+                    <div style="font:var(--font-body-sm);font-weight:600;">{{ item.description }}</div>
+                    <div class="text-muted" style="font:var(--font-label-sm);">{{ item.key }}</div>
+                </td>
+                <td>
+                    {% if item.is_secret and not item.editing %}
+                    <span style="font:var(--font-body-sm);">••••••••</span>
+                    <button class="btn-ghost btn-sm"
+                            hx-get="/admin/config/{{ item.key }}/reveal"
+                            hx-target="closest td"
+                            hx-swap="innerHTML"
+                            title="Reveal value">
+                        <span class="material-symbols-outlined" style="font-size:16px;">visibility</span>
+                    </button>
+                    {% elif item.editing %}
+                    <input type="text" name="value" form="config-edit-{{ category }}" value="{{ item.value }}" style="font-size:13px;padding:4px 8px;width:200px;" autofocus>
+                    {% else %}
+                    <span style="font:var(--font-body-sm);{% if item.is_env_override %}color:var(--color-slate-400);{% endif %}">{{ item.value }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.is_env_override %}
+                    <span class="chip chip-warning" style="font-size:11px;" title="Set via {{ item.env_var_name }}">ENV</span>
+                    {% else %}
+                    <span class="chip chip-neutral" style="font-size:11px;">DB</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not item.is_env_override %}
+                    {% if item.editing %}
+                    <form id="config-edit-{{ category }}" hx-put="/admin/config/{{ item.key }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML" style="display:inline;">
+                        <button type="submit" class="btn-sm">Save</button>
+                    </form>
+                    <button type="button" class="btn-ghost btn-sm" hx-get="/admin/config/{{ category }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML">Cancel</button>
+                    {% else %}
+                    <button class="btn-sm"
+                            hx-get="/admin/config/{{ item.key }}/edit"
+                            hx-target="#admin-config-{{ category }}"
+                            hx-swap="outerHTML">
+                        Edit
+                    </button>
+                    {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

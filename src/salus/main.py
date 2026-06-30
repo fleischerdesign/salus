@@ -9,9 +9,12 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import SQLModel
 
 from salus.config import settings as app_settings
-from salus.database import engine
-from salus.exceptions import AuthenticationError, ConflictError, NotFoundError
-from salus.routers import analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
+from salus.database import Session, engine
+from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError, NotFoundError
+from salus.models import system_config  # noqa: F401 — register table
+from salus.repositories.system_config import SystemConfigRepository
+from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
+from salus.services.config import ConfigService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -22,6 +25,11 @@ templates.env.globals["settings"] = app_settings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
+    session = Session(engine)
+    try:
+        ConfigService(SystemConfigRepository(session)).seed_defaults()
+    finally:
+        session.close()
     app.state.templates = templates
     yield
 
@@ -46,6 +54,7 @@ app.include_router(analytics.router)
 app.include_router(goals.router, prefix="/goals")
 app.include_router(api.router)
 app.include_router(export.router)
+app.include_router(admin.router)
 
 
 @app.exception_handler(NotFoundError)
@@ -61,6 +70,11 @@ async def conflict_handler(request: Request, exc: ConflictError) -> HTMLResponse
 @app.exception_handler(AuthenticationError)
 async def auth_error_handler(request: Request, exc: AuthenticationError) -> RedirectResponse:
     return RedirectResponse(url="/auth/login", status_code=303)
+
+
+@app.exception_handler(ForbiddenError)
+async def forbidden_handler(request: Request, exc: ForbiddenError) -> RedirectResponse:
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.exception_handler(404)

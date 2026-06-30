@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 from salus.database import get_session
 from salus.main import app, templates
 from salus.models.user import User
+from salus.repositories.system_config import SystemConfigRepository
+from salus.services.config import ConfigService
 from salus.services.password import hash_password
 
 
@@ -38,6 +40,12 @@ def client():
     app.state.templates = templates
 
     _seed_admin(Session(engine))
+
+    session = Session(engine)
+    try:
+        ConfigService(SystemConfigRepository(session)).seed_defaults()
+    finally:
+        session.close()
 
     with TestClient(app) as test_client:
         yield test_client

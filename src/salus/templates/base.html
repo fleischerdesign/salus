@@ -34,9 +34,44 @@
                 </nav>
                 <hr class="top-app-bar-menu-divider">
                 <div class="top-app-bar-menu-user">
-                    <a href="/settings" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link">{{ current_user.display_name or current_user.username }}</a>
-                    <form method="post" action="/auth/logout" style="display:inline;">
-                        <button type="submit" class="btn-ghost">Logout</button>
+                    <a href="/settings" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/settings') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">settings</span>Settings</a>
+                    {% if current_user.is_admin %}
+                    <a href="/admin" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/admin') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">admin_panel_settings</span>Admin</a>
+                    {% endif %}
+                    <hr class="top-app-bar-menu-divider" style="display:block;">
+                    <form method="post" action="/auth/logout" style="width:100%;">
+                        <button type="submit" class="top-app-bar-link" style="background:none;border:none;cursor:pointer;"><span class="material-symbols-outlined top-app-bar-icon">logout</span>Logout</button>
+                    </form>
+                </div>
+            </div>
+            <div class="user-menu-desktop">
+                <input type="checkbox" id="user-menu-toggle" class="user-menu-toggle" />
+                <label for="user-menu-toggle" class="user-menu-trigger" title="Account menu" aria-label="Open account menu">
+                    <span class="avatar">{{ (current_user.display_name or current_user.username)[:1].upper() }}</span>
+                </label>
+                <div class="user-menu-dropdown" id="user-menu-dropdown">
+                    <div class="user-menu-header">
+                        <span class="avatar avatar-lg">{{ (current_user.display_name or current_user.username)[:1].upper() }}</span>
+                        <div>
+                            <strong>{{ current_user.display_name or current_user.username }}</strong>
+                            {% if current_user.email %}
+                            <span class="user-menu-email">{{ current_user.email }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="/settings" class="user-menu-item" onclick="document.getElementById('user-menu-toggle').checked=false">
+                        <span class="material-symbols-outlined">settings</span>
+                        Settings
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="/admin" class="user-menu-item" onclick="document.getElementById('user-menu-toggle').checked=false">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        Admin
+                    </a>
+                    {% endif %}
+                    <div class="user-menu-divider"></div>
+                    <form method="post" action="/auth/logout">
+                        <button type="submit" class="user-menu-item user-menu-logout">Logout</button>
                     </form>
                 </div>
             </div>
@@ -49,5 +84,17 @@
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+    <script>
+    document.addEventListener('click', function(e) {
+        var menu = document.getElementById('user-menu-dropdown');
+        var toggle = document.getElementById('user-menu-toggle');
+        if (!menu || !toggle) return;
+        var label = toggle.labels[0];
+        var insideToggle = e.target === toggle || (label && label.contains(e.target));
+        if (!menu.contains(e.target) && !insideToggle) {
+            toggle.checked = false;
+        }
+    });
+    </script>
 </body>
 </html>

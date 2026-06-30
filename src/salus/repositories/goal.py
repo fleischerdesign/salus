@@ -13,3 +13,6 @@ class GoalRepository(Repository[Goal]):
                 select(Goal).where(Goal.user_id == user_id, Goal.is_active)
             ).all()
         )
+
+    def find_all_goals(self) -> list[Goal]:
+        return list(self.session.exec(select(Goal)).all())

@@ -1,0 +1,39 @@
+<div id="admin-token-table">
+    <table class="data-grid">
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Prefix</th>
+                <th>Scopes</th>
+                <th>Created</th>
+                <th>Last Used</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tokens %}
+            <tr id="admin-token-{{ t.id }}">
+                <td><strong>{{ t.label }}</strong></td>
+                <td class="text-muted">{{ t.token_prefix }}...</td>
+                <td>
+                    <div class="flex gap-sm" style="flex-wrap:wrap;">
+                        {% for scope in t.scopes.split() %}
+                        <span class="chip chip-neutral" style="font-size:11px;">{{ scope }}</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="text-muted">{{ t.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-muted">{{ t.last_used_at.strftime('%Y-%m-%d %H:%M') if t.last_used_at else 'Never' }}</td>
+                <td>
+                    <button class="btn-danger btn-sm"
+                            hx-delete="/admin/tokens/{{ t.id }}"
+                            hx-target="#admin-token-table"
+                            hx-swap="outerHTML">
+                        Revoke
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
