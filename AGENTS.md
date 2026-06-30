@@ -326,6 +326,8 @@ chore/*  ← maintenance (deps, ci, etc.)
 
 **Merge flow**: PR → develop → CI (ruff + pyright + pytest) → merge → **auto merge-back** syncs main → develop.
 
+**IMPORTANT**: Pushing to `main` triggers a release (release-please + Docker publish + Nix build). During active development, push **only to `develop`**. Only merge develop → main when you explicitly want a release.
+
 ## CI/CD
 
 | Workflow | Trigger | File |
