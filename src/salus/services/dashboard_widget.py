@@ -159,14 +159,14 @@ class DashboardWidgetService:
         elif sd == "heart_rate":
             hr = self._activity.heart_rate_summary(user_id=user_id, date_str=target)
             if hr:
-                ctx["value"] = f"{hr.resting_bpm:.0f}"
+                ctx["value"] = f"{hr.avg_bpm:.0f}"
                 ctx["unit"] = "bpm"
-                ctx["sub"] = f"Avg {hr.avg_bpm:.0f} &middot; {hr.min_bpm}–{hr.max_bpm}"
+                ctx["sub"] = f"Resting {hr.resting_bpm:.0f} &middot; {hr.min_bpm}–{hr.max_bpm}"
 
                 yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                 yesterday_hr = self._activity.heart_rate_summary(user_id=user_id, date_str=yesterday_date)
                 ctx["delta"] = _delta_str(
-                    hr.resting_bpm, yesterday_hr.resting_bpm if yesterday_hr else None,
+                    hr.avg_bpm, yesterday_hr.avg_bpm if yesterday_hr else None,
                     unit=" bpm", is_integer=True, up_is_good=False,
                 )
             else:
@@ -197,7 +197,7 @@ class DashboardWidgetService:
                     ctx["protein_pct"] = n.protein_g / total * 100
                     ctx["carbs_pct"] = n.carbs_g / total * 100
                     ctx["fat_pct"] = n.fat_g / total * 100
-                    ctx["sub"] = f"P:{n.protein_g:.0f}g C:{n.carbs_g:.0f}g F:{n.fat_g:.0f}g"
+                    ctx["sub"] = f"{n.protein_g:.0f}g Protein &middot; {n.carbs_g:.0f}g Carbs &middot; {n.fat_g:.0f}g Fat"
 
                     yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                     yesterday_n = self._nutrition.today(user_id=user_id, date_str=yesterday_date)
@@ -215,7 +215,6 @@ class DashboardWidgetService:
             if w:
                 ctx["value"] = f"{w.weight_kg:.1f}"
                 ctx["unit"] = "kg"
-                ctx["sub"] = w.date
 
                 yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                 yesterday_w = self._weight.current(user_id=user_id, date_str=yesterday_date)
@@ -227,17 +226,34 @@ class DashboardWidgetService:
                 ctx["value"] = "—"
 
         elif sd == "exercise":
-            sessions = self._activity.exercise_history(days=7, user_id=user_id, limit=5)
+            sessions = self._activity.exercise_history(days=7, user_id=user_id, limit=10)
             target_sessions = [
                 s for s in sessions
                 if s.date == target
             ]
             if target_sessions:
                 total_min = sum(s.duration_seconds for s in target_sessions) / 60
+                total_cal = sum(s.calories for s in target_sessions)
+                total_dist = sum(s.distance_meters for s in target_sessions)
                 ctx["value"] = f"{total_min:.0f}"
                 ctx["unit"] = "min"
-                names = set(s.type_name for s in target_sessions)
-                ctx["sub"] = ", ".join(names)
+
+                parts = []
+                if total_cal > 0:
+                    parts.append(f"{total_cal:.0f} kcal")
+                if total_dist > 0:
+                    km = total_dist / 1000
+                    parts.append(f"{km:.1f} km")
+                if parts:
+                    ctx["sub"] = " &middot; ".join(parts)
+
+                yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+                yesterday_sessions = [s for s in sessions if s.date == yesterday_date]
+                yesterday_min = sum(s.duration_seconds for s in yesterday_sessions) / 60 if yesterday_sessions else None
+                ctx["delta"] = _delta_str(
+                    total_min, yesterday_min,
+                    unit=" min", is_integer=True,
+                )
             else:
                 ctx["value"] = "—"
 
