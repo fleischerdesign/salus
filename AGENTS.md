@@ -266,7 +266,6 @@ All config lives in `config.py` via `pydantic-settings.BaseSettings` with `SALUS
 |---|---|---|---|
 | `app_name` | `"salus"` | `SALUS_APP_NAME` |
 | `database_url` | `"sqlite:///salus.db"` | `SALUS_DATABASE_URL` |
-| `hermes_home` | `"data"` (or `$HERMES_HOME`) | `SALUS_HERMES_HOME` |
 | `api_token` | `"s3ns0r-h34lth-t0k3n-2026"` | `SALUS_API_TOKEN` |
 | `jwt_secret_key` | `"change-me-in-production-salus-2026"` | `SALUS_JWT_SECRET_KEY` |
 | `jwt_algorithm` | `"HS256"` | `SALUS_JWT_ALGORITHM` |

@@ -1,5 +1,3 @@
-import os
-
 from pydantic_settings import BaseSettings
 
 
@@ -7,7 +5,6 @@ class Settings(BaseSettings):
     app_name: str = "salus"
     database_url: str = "sqlite:///salus.db"
 
-    hermes_home: str = os.getenv("HERMES_HOME", "data")
     api_token: str = "s3ns0r-h34lth-t0k3n-2026"
 
     jwt_secret_key: str = "change-me-in-production-salus-2026"

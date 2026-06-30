@@ -68,7 +68,6 @@
             Volumes = { "/data" = { }; };
             Env = [
               "SALUS_DATABASE_URL=sqlite:///data/salus.db"
-              "SALUS_HERMES_HOME=data"
             ];
           };
         };
@@ -117,11 +116,6 @@
               default = "sqlite:///var/lib/salus/salus.db";
               description = "Database connection URL (SQLite or PostgreSQL).";
             };
-            hermesHome = lib.mkOption {
-              type = lib.types.str;
-              default = "/var/lib/salus/data";
-              description = "Data directory path.";
-            };
             jwtSecretFile = lib.mkOption {
               type = lib.types.nullOr lib.types.path;
               default = null;
@@ -152,7 +146,6 @@
                 Environment = [
                   "PORT=${toString cfg.port}"
                   "SALUS_DATABASE_URL=${cfg.databaseUrl}"
-                  "SALUS_HERMES_HOME=${cfg.hermesHome}"
                 ];
               } // lib.optionalAttrs (cfg.jwtSecretFile != null) {
                 EnvironmentFile = cfg.jwtSecretFile;
@@ -183,10 +176,6 @@
               type = lib.types.str;
               default = "sqlite:///var/lib/salus/salus.db";
             };
-            hermesHome = lib.mkOption {
-              type = lib.types.str;
-              default = "/var/lib/salus/data";
-            };
           };
 
           config = lib.mkIf cfg.enable {
@@ -207,7 +196,7 @@
               config = {
                 services.salus = {
                   enable = true;
-                  inherit (cfg) package port databaseUrl hermesHome;
+                  inherit (cfg) package port databaseUrl;
                 };
               };
             };
