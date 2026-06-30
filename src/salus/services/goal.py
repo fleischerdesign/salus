@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from salus.exceptions import NotFoundError
 from salus.models.analytics import GoalProgress
@@ -72,12 +72,12 @@ class GoalService:
 
 
 def _filter_today(entries: list[Measurement]) -> list[Measurement]:
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     return [e for e in entries if e.start_time.date() == today]
 
 
 def _filter_this_week(entries: list[Measurement]) -> list[Measurement]:
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     monday = today - timedelta(days=today.weekday())
     return [e for e in entries if e.start_time.date() >= monday]
 

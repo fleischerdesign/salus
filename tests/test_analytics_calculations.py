@@ -4,7 +4,6 @@ from salus.services.analytics.calculations import (
     calc_tdee,
     map_exercise_type,
     map_sleep_stage,
-    day_boundary,
 )
 
 
@@ -71,10 +70,3 @@ class TestTDEECalculation:
         assert result is not None
         _, _, hrr = result
         assert hrr <= 0.85
-
-
-class TestDayBoundary:
-    def test_returns_22_00_boundary(self):
-        start, end = day_boundary("2026-06-24")
-        assert start == "2026-06-23T22:00:01"
-        assert end == "2026-06-24T22:00:01"

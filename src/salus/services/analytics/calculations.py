@@ -124,20 +124,6 @@ def calc_tdee(
     return tdee, round(pal, 3), round(hrr_pct, 3)
 
 
-def day_boundary(date_str: str) -> tuple[str, str]:
-    """Return a 22:00–22:00 day boundary range for the given date.
-
-    Health Connect data may span across midnight boundaries; this helper
-    normalizes a date into the 22:00 previous day to 22:00 target day window.
-    Returns (start_inclusive, end_exclusive).
-    """
-    from datetime import datetime, timedelta
-
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    prev = dt - timedelta(days=1)
-    return prev.strftime("%Y-%m-%dT22:00:01"), date_str + "T22:00:01"
-
-
 def compute_goal_progress(
     current_value: float | None,
     target_value: float,
