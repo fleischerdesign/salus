@@ -112,7 +112,7 @@ class HealthConnectWebhookParser:
                     value["stages"] = item["stages"]
 
                 external_id = rec_id if rec_id else make_external_id(
-                    "samsung_health", dtype, start_time
+                    "health_connect", dtype, start_time
                 )
                 value_json = json.dumps(value, ensure_ascii=False)
 
@@ -121,7 +121,7 @@ class HealthConnectWebhookParser:
 
                 records.append(Measurement(
                     data_type=dtype,
-                    source="samsung_health",
+                    source="health_connect",
                     value_numeric=value_numeric,
                     value_json=value_json,
                     start_time=_to_dt(start_time),

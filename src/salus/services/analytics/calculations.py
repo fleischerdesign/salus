@@ -124,9 +124,12 @@ def calc_tdee(
     return tdee, round(pal, 3), round(hrr_pct, 3)
 
 
-def samsung_day_boundary(date_str: str) -> tuple[str, str]:
-    """Samsung Health day boundary is 22:00–22:00 (not midnight).
-    Returns (start_inclusive, end_exclusive) for SQL range queries.
+def day_boundary(date_str: str) -> tuple[str, str]:
+    """Return a 22:00–22:00 day boundary range for the given date.
+
+    Health Connect data may span across midnight boundaries; this helper
+    normalizes a date into the 22:00 previous day to 22:00 target day window.
+    Returns (start_inclusive, end_exclusive).
     """
     from datetime import datetime, timedelta
 

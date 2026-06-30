@@ -18,7 +18,7 @@ class TestHealthConnectWebhookParser:
         records = parser.parse(payload)
         assert len(records) == 1
         assert records[0].data_type == "steps"
-        assert records[0].source == "samsung_health"
+        assert records[0].source == "health_connect"
         assert "8500" in records[0].value_json
 
     def test_generates_external_id(self):
