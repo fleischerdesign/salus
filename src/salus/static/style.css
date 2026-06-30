@@ -1199,11 +1199,11 @@ button {
 }
 
 /* ---- Edit Mode ---- */
-.dashboard-grid:not(.edit-mode) .widget-chrome {
+.dashboard-grid:not(.edit-mode) .widget-drag-handle {
     display: none;
 }
 
-.dashboard-grid:not(.edit-mode) .widget-drag-handle {
+.dashboard-grid:not(.edit-mode) .widget-chrome-actions {
     display: none;
 }
 

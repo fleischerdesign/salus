@@ -39,7 +39,7 @@ def _compute_sparkline(values: list[float]) -> str:
     return " ".join(points)
 
 
-def _delta_str(current: float | None, previous: float | None, unit: str = "", is_integer: bool = False) -> str | None:
+def _delta_str(current: float | None, previous: float | None, unit: str = "", is_integer: bool = False, up_is_good: bool = True) -> str | None:
     if current is None or previous is None or previous == 0:
         return None
     diff = current - previous
@@ -49,7 +49,10 @@ def _delta_str(current: float | None, previous: float | None, unit: str = "", is
         diff_str = f"{abs(diff):.1f}"
     pct = abs(diff) / abs(previous) * 100
     direction = "&#8593;" if diff > 0 else "&#8595;" if diff < 0 else ""
-    css_class = "positive" if diff > 0 else "negative" if diff < 0 else ""
+    if up_is_good:
+        css_class = "positive" if diff > 0 else "negative" if diff < 0 else ""
+    else:
+        css_class = "positive" if diff < 0 else "negative" if diff > 0 else ""
     if unit:
         return f'<span class="widget-delta widget-delta--{css_class}">{direction} {diff_str}{unit}</span>'
     if diff > 0 and pct >= 1:
@@ -141,10 +144,8 @@ class DashboardWidgetService:
             today = trend[-1] if trend else None
             if today and today.count > 0:
                 ctx["value"] = f"{today.count:,}"
+                ctx["unit"] = "steps"
                 ctx["sub"] = "today"
-                ctx["goal"] = 10000
-                ctx["percent"] = min(int(today.count / 10000 * 100), 100)
-                ctx["sparkline"] = _compute_sparkline([float(d.count) for d in trend])
 
                 yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                 yesterday_trend = self._activity.steps_trend(days=1, user_id=user_id, date=yesterday_date)
@@ -166,7 +167,7 @@ class DashboardWidgetService:
                 yesterday_hr = self._activity.heart_rate_summary(user_id=user_id, date_str=yesterday_date)
                 ctx["delta"] = _delta_str(
                     hr.resting_bpm, yesterday_hr.resting_bpm if yesterday_hr else None,
-                    unit=" bpm", is_integer=True,
+                    unit=" bpm", is_integer=True, up_is_good=False,
                 )
             else:
                 ctx["value"] = "—"
@@ -220,7 +221,7 @@ class DashboardWidgetService:
                 yesterday_w = self._weight.current(user_id=user_id, date_str=yesterday_date)
                 ctx["delta"] = _delta_str(
                     w.weight_kg, yesterday_w.weight_kg if yesterday_w else None,
-                    unit=" kg",
+                    unit=" kg", up_is_good=False,
                 )
             else:
                 ctx["value"] = "—"
