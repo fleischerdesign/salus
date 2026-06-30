@@ -1,0 +1,52 @@
+<div class="widget-body">
+    {% if empty %}
+    <div class="widget-empty">
+        <span class="material-symbols-outlined widget-empty-icon"
+              style="color:{{ metric.color }};">{{ metric.icon }}</span>
+        <span class="widget-empty-text">{{ empty_text }}</span>
+    </div>
+    {% else %}
+    <div class="widget-data">
+        {% if metric.widget_size == "large" %}
+        <div class="widget-large-layout">
+            <div class="widget-icon-wrap" style="background:{{ metric.color }}20;">
+                <span class="material-symbols-outlined" style="color:{{ metric.color }};">{{ metric.icon }}</span>
+            </div>
+            <div class="widget-main">
+                <span class="widget-value-large">{{ value }}{% if unit %} <span class="widget-unit">{{ unit }}</span>{% endif %}</span>
+                {% if sub %}<span class="widget-sub">{{ sub | safe }}</span>{% endif %}
+                {% if percent is defined %}
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:{{ percent }}%;background:{{ metric.color }};"></div>
+                </div>
+                {% endif %}
+            </div>
+            {% if sparkline %}
+            <svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polyline fill="none" stroke="{{ metric.color }}" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    points="{{ sparkline }}"/>
+            </svg>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="widget-compact-layout">
+            <div class="widget-icon-wrap" style="background:{{ metric.color }}20;">
+                <span class="material-symbols-outlined" style="color:{{ metric.color }};">{{ metric.icon }}</span>
+            </div>
+            <div class="widget-main">
+                <span class="widget-value-compact">{{ value }}{% if unit %} <span class="widget-unit">{{ unit }}</span>{% endif %}</span>
+                {% if sub %}<span class="widget-sub">{{ sub | safe }}</span>{% endif %}
+                {% if protein_pct is defined %}
+                <div class="macro-bar">
+                    <div class="macro-segment macro-protein" style="width:{{ protein_pct }}%"></div>
+                    <div class="macro-segment macro-carbs" style="width:{{ carbs_pct }}%"></div>
+                    <div class="macro-segment macro-fat" style="width:{{ fat_pct }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

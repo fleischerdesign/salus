@@ -46,11 +46,12 @@ async def create_metric(
     unit: Annotated[str, Form()] = "",
     data_type: Annotated[str, Form()] = "number",
     color: Annotated[str, Form()] = "#4f46e5",
+    icon: Annotated[str, Form()] = "monitoring",
     current_user: User = Depends(get_current_user),
     metric_service: MetricTypeService = Depends(get_metric_type_service),
 ):
     metric_service.create(
-        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color),
+        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color, icon=icon),
         user_id=uid(current_user),
     )
     return RedirectResponse(url="/metrics", status_code=303)
@@ -78,13 +79,14 @@ async def update_metric(
     unit: Annotated[str, Form()] = "",
     data_type: Annotated[str, Form()] = "number",
     color: Annotated[str, Form()] = "#4f46e5",
+    icon: Annotated[str, Form()] = "monitoring",
     current_user: User = Depends(get_current_user),
     metric_service: MetricTypeService = Depends(get_metric_type_service),
 ):
     metric_service.update(
         metric_type_id,
         uid(current_user),
-        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color),
+        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color, icon=icon),
     )
     return RedirectResponse(url="/metrics", status_code=303)
 

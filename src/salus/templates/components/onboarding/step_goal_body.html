@@ -1,0 +1,28 @@
+<div class="onboarding-step-body" id="onboarding-step-{{ step_index }}-body">
+    <form hx-post="/onboarding/goal"
+          hx-target="closest .onboarding-step-body"
+          hx-swap="innerHTML"
+          class="form-stack">
+        <div class="input-group">
+            <label for="ob-goal-metric-{{ step_index }}">Metric</label>
+            <select id="ob-goal-metric-{{ step_index }}" name="metric_type_id" required>
+                <option value="">— Select Metric —</option>
+                {% for m in metrics %}
+                <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="ob-goal-target-{{ step_index }}">Target Value</label>
+            <input type="number" id="ob-goal-target-{{ step_index }}" name="target_value" step="any" required placeholder="e.g. 80">
+        </div>
+        <div class="input-group">
+            <label for="ob-goal-direction-{{ step_index }}">Direction</label>
+            <select id="ob-goal-direction-{{ step_index }}" name="direction">
+                <option value="increase">Increase</option>
+                <option value="decrease">Decrease</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-sm">Create Goal</button>
+    </form>
+</div>

@@ -1,7 +1,9 @@
 <div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
     <div class="modal-content">
         <div class="card">
-            <h3 class="card-title mb-md">New Goal</h3>
+            <div class="card-header">
+                <h3 class="card-title">New Goal</h3>
+            </div>
             <form hx-post="/goals" hx-target="body" class="form-stack">
                 <div class="input-group">
                     <label for="goal-metric">Metric</label>
@@ -12,7 +14,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="form-row" style="display:flex;gap:var(--space-stack-md);">
+                <div class="form-row">
                     <div class="input-group" style="flex:1;">
                         <label for="goal-target">Target</label>
                         <input id="goal-target" name="target_value" type="number" step="any" required placeholder="e.g. 80">

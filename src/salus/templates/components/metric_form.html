@@ -24,6 +24,24 @@
                         </select>
                     </div>
                     <div class="input-group">
+                        <label for="metric-icon">Icon</label>
+                        <select id="metric-icon" name="icon">
+                            <option value="monitoring" {% if metric and metric.icon == 'monitoring' %}selected{% endif %}>Monitoring (default)</option>
+                            <option value="directions_walk" {% if metric and metric.icon == 'directions_walk' %}selected{% endif %}>Directions Walk</option>
+                            <option value="monitor_heart" {% if metric and metric.icon == 'monitor_heart' %}selected{% endif %}>Monitor Heart</option>
+                            <option value="bedtime" {% if metric and metric.icon == 'bedtime' %}selected{% endif %}>Bedtime</option>
+                            <option value="restaurant" {% if metric and metric.icon == 'restaurant' %}selected{% endif %}>Restaurant</option>
+                            <option value="monitor_weight" {% if metric and metric.icon == 'monitor_weight' %}selected{% endif %}>Monitor Weight</option>
+                            <option value="exercise" {% if metric and metric.icon == 'exercise' %}selected{% endif %}>Exercise</option>
+                            <option value="water_drop" {% if metric and metric.icon == 'water_drop' %}selected{% endif %}>Water Drop</option>
+                            <option value="psychology" {% if metric and metric.icon == 'psychology' %}selected{% endif %}>Psychology</option>
+                            <option value="checklist" {% if metric and metric.icon == 'checklist' %}selected{% endif %}>Checklist</option>
+                            <option value="bloodtype" {% if metric and metric.icon == 'bloodtype' %}selected{% endif %}>Blood Type</option>
+                            <option value="vital_signs" {% if metric and metric.icon == 'vital_signs' %}selected{% endif %}>Vital Signs</option>
+                            <option value="body_fat" {% if metric and metric.icon == 'body_fat' %}selected{% endif %}>Body Fat</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
                         <label for="metric-color">Color</label>
                         <input type="color" id="metric-color" name="color" value="{{ metric.color if metric else '#4f46e5' }}">
                     </div>

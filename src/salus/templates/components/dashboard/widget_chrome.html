@@ -1,0 +1,31 @@
+<div class="dashboard-widget widget-{{ widget.size.value }}"
+     data-widget-id="{{ widget.id }}"
+     id="widget-{{ widget.id }}"
+     hx-get="/dashboard/widgets/{{ widget.id }}"
+     hx-trigger="widgetRefresh-{{ widget.id }} from:body"
+     hx-swap="outerHTML">
+    <div class="widget-chrome">
+        <span class="material-symbols-outlined widget-drag-handle">drag_indicator</span>
+        <span class="widget-chrome-title">{{ metric.name if metric else "Widget" }}</span>
+        <div class="widget-chrome-actions">
+            <button class="btn-icon"
+                    hx-get="/dashboard/widgets/{{ widget.id }}/edit"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                    title="Edit size">
+                <span class="material-symbols-outlined">tune</span>
+            </button>
+            <button class="btn-icon"
+                    hx-delete="/dashboard/widgets/{{ widget.id }}"
+                    hx-target="#widget-{{ widget.id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="Remove this widget?"
+                    title="Remove">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </div>
+    {% if metric %}
+    {% include "components/dashboard/widget_card.html" %}
+    {% endif %}
+</div>

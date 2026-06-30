@@ -16,3 +16,8 @@ class UserRepository(Repository[User]):
         return self.session.exec(
             select(User).where(User.email == email)
         ).first()
+
+    def find_first_admin(self) -> User | None:
+        return self.session.exec(
+            select(User).where(User.is_admin).limit(1)
+        ).first()

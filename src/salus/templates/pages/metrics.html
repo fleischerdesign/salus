@@ -18,7 +18,10 @@
 {% for metric in metrics %}
 <div class="card" id="metric-{{ metric.id }}">
     <div class="card-header">
-        <h3 class="card-title" style="color: {{ metric.color }}">{{ metric.name }}</h3>
+        <div class="flex-center gap-sm">
+            <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:24px;">{{ metric.icon }}</span>
+            <h3 class="card-title" style="color: {{ metric.color }}">{{ metric.name }}</h3>
+        </div>
         <div class="flex-center gap-sm">
             <span class="chip chip-neutral">{{ metric.unit or '-' }}</span>
             <span class="chip chip-neutral">{{ metric.data_type.value }}</span>

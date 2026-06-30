@@ -1,16 +1,43 @@
 from salus.exceptions import ConflictError, NotFoundError
+from salus.models import MetricType
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
+from salus.repositories.metric_type import MetricTypeRepository
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
 from salus.services._helpers import uid
+from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
 from salus.services.password import hash_password, verify_password
 
 
 class UserService:
-    def __init__(self, repo: UserRepository, identity_repo: UserIdentityRepository) -> None:
+    def __init__(
+        self,
+        repo: UserRepository,
+        identity_repo: UserIdentityRepository,
+        metric_type_repo: MetricTypeRepository,
+    ) -> None:
         self.repo = repo
         self.identity_repo = identity_repo
+        self._metric_type_repo = metric_type_repo
+
+    def _seed_default_metric_types(self, user_id: int) -> None:
+        for name, unit, data_type, color, source_data_type, icon, widget_size, widget_enabled in DEFAULT_METRIC_TYPES:
+            existing = self._metric_type_repo.find_by_name_and_user(name, user_id)
+            if existing is None:
+                mt = MetricType(
+                    name=name,
+                    unit=unit,
+                    data_type=data_type,
+                    color=color,
+                    user_id=user_id,
+                    is_system=True,
+                    source_data_type=source_data_type,
+                    icon=icon,
+                    widget_size=widget_size,
+                    widget_enabled=widget_enabled,
+                )
+                self._metric_type_repo.create(mt)
 
     def get_by_id(self, user_id: int) -> User:
         user = self.repo.get_by_id(user_id)
@@ -55,6 +82,7 @@ class UserService:
                 provider_user_id=username,
             )
         )
+        self._seed_default_metric_types(uid(user))
         return user
 
     def register_with_identity(
@@ -79,6 +107,7 @@ class UserService:
                         provider_user_id=provider_user_id,
                     )
                 )
+                self._seed_default_metric_types(uid(user_by_email))
                 return user_by_email
 
         derived_username = username or f"{provider}_{provider_user_id}"
@@ -99,6 +128,7 @@ class UserService:
                 provider_user_id=provider_user_id,
             )
         )
+        self._seed_default_metric_types(uid(user))
         return user
 
     def change_password(self, user_id: int, old_password: str, new_password: str) -> User:

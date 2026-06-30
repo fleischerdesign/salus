@@ -19,6 +19,7 @@ class User(SQLModel, table=True):
     email: str | None = Field(default=None, unique=True)
     display_name: str | None = Field(default=None)
     is_admin: bool = Field(default=False)
+    onboarding_dismissed: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

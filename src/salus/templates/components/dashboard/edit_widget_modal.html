@@ -1,0 +1,30 @@
+<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+    <div class="modal-content">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Edit Widget</h3>
+                <button class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form hx-put="/dashboard/widgets/{{ widget.id }}"
+                  hx-on::afterRequest="this.closest('.modal-backdrop').remove()">
+                <div class="form-stack">
+                    <div class="input-group">
+                        <label for="edit-widget-size">Size</label>
+                        <select name="size" id="edit-widget-size">
+                            <option value="small" {% if widget.size.value == 'small' %}selected{% endif %}>Small (1 column)</option>
+                            <option value="medium" {% if widget.size.value == 'medium' %}selected{% endif %}>Medium (2 columns)</option>
+                            <option value="large" {% if widget.size.value == 'large' %}selected{% endif %}>Large (4 columns)</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Save</button>
+                        <button type="button" class="btn-ghost"
+                                onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

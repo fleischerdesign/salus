@@ -1,0 +1,53 @@
+<form hx-post="/settings/api-tokens" hx-target="#token-generate-container" hx-swap="innerHTML">
+    <div class="form-stack">
+        <div class="input-group">
+            <label for="token-label">Label</label>
+            <input type="text" id="token-label" name="label" placeholder="e.g. Samsung Health" required autofocus>
+        </div>
+        <fieldset style="border:1px solid var(--color-slate-200);border-radius:var(--radius-default);padding:12px 16px;">
+            <legend style="font:var(--font-label-sm);color:var(--color-slate-500);padding:0 8px;">Scopes</legend>
+            <div class="flex-column gap-sm" style="font:var(--font-body-sm);">
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="ingest:write" checked>
+                    <span><strong>ingest:write</strong> — Webhook data ingestion</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="entries:read">
+                    <span><strong>entries:read</strong> — Read manual entries</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="entries:write">
+                    <span><strong>entries:write</strong> — Create/edit/delete entries</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="metrics:read">
+                    <span><strong>metrics:read</strong> — Read metric types</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="metrics:write">
+                    <span><strong>metrics:write</strong> — Create/edit/delete metrics</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="goals:read">
+                    <span><strong>goals:read</strong> — Read goals</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="goals:write">
+                    <span><strong>goals:write</strong> — Create/edit/delete goals</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="health:read">
+                    <span><strong>health:read</strong> — Query health data</span>
+                </label>
+                <label class="flex-center gap-sm" style="cursor:pointer;">
+                    <input type="checkbox" name="scopes" value="admin">
+                    <span><strong>admin</strong> — Full access (grants all scopes)</span>
+                </label>
+            </div>
+        </fieldset>
+        <div class="form-actions">
+            <button type="submit" class="btn">Generate</button>
+            <button type="button" class="btn-ghost" onclick="this.closest('form').remove()">Cancel</button>
+        </div>
+    </div>
+</form>

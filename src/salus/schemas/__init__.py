@@ -8,3 +8,4 @@ class MetricTypeCreate(BaseModel):
     unit: str = ""
     data_type: DataType = DataType.NUMBER
     color: str = "#4f46e5"
+    icon: str = "monitoring"

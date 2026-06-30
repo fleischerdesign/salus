@@ -1,0 +1,41 @@
+<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+    <div class="modal-content">
+        <div class="card onboarding-wizard onboarding-wizard-single">
+            <button class="btn-icon modal-close"
+                    onclick="this.closest('.modal-backdrop').remove()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <span class="material-symbols-outlined onboarding-step-icon">{{ icon }}</span>
+            <h2 class="onboarding-step-title">{{ title }}</h2>
+            <p class="onboarding-step-desc">{{ description }}</p>
+
+            {% set step_index = step_index | default(0) %}
+            {% include step_body_template %}
+
+            <div class="onboarding-footer" style="justify-content:center;">
+                <button class="btn onboarding-step-done-btn" id="onboarding-step-done-btn"
+                        style="display:none;"
+                        onclick="this.closest('.modal-backdrop').remove()">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var modal = document.currentScript.closest('.modal-backdrop');
+    if (!modal) return;
+    var body = modal.querySelector('.onboarding-step-body');
+    var done = modal.querySelector('.onboarding-step-done-btn');
+    if (!body || !done) return;
+    if (body.querySelector('.onboarding-success')) {
+        done.style.display = '';
+    }
+    body.addEventListener('htmx:afterSwap', function() {
+        if (body.querySelector('.onboarding-success')) {
+            done.style.display = '';
+        }
+    });
+})();
+</script>

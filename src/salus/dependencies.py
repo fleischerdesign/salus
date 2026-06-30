@@ -5,6 +5,8 @@ from salus.config import settings
 from salus.database import get_session
 from salus.exceptions import AuthenticationError
 from salus.models.user import User
+from salus.repositories.api_token import ApiTokenRepository
+from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.goal import GoalRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
@@ -16,20 +18,30 @@ from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.orchestrator import AnalyticsService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
+from salus.services.api_token import ApiTokenService
 from salus.services.auth.providers import LdapAuthProvider, LocalAuthProvider, OidcAuthProvider
 from salus.services.auth.service import AuthService
+from salus.services.dashboard_widget import DashboardWidgetService
 from salus.services.export import ExportService
 from salus.services.goal import GoalService
 from salus.services.jwt import JwtService
 from salus.services.measurement import MeasurementService
 from salus.services.metric_type import MetricTypeService
+from salus.services.metric_type_mapping import MetricTypeMappingService
+from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
+from salus.services.webhook_ingestion import WebhookIngestionService
 
 
 async def verify_webhook_token(
     x_api_token: str | None = Header(None, alias="X-API-Token"),
     authorization: str | None = Header(None),
-) -> None:
+    api_token_svc: ApiTokenService = Depends(
+        lambda session=Depends(get_session): ApiTokenService(
+            ApiTokenRepository(session), UserRepository(session)
+        )
+    ),
+) -> User:
     token: str | None = None
 
     if x_api_token:
@@ -37,8 +49,24 @@ async def verify_webhook_token(
     elif authorization and authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()
 
-    if token != settings.api_token:
-        raise HTTPException(status_code=401, detail="Invalid webhook token")
+    if token is None:
+        raise HTTPException(status_code=401, detail="Missing webhook token")
+
+    result = api_token_svc.resolve(token)
+    if result is not None:
+        user, api_token = result
+        if not api_token.has_scope("ingest:write"):
+            raise HTTPException(status_code=403, detail="Token lacks ingest:write scope")
+        return user
+
+    if token == settings.api_token:
+        repo = api_token_svc._user_repo
+        admin = repo.find_first_admin()
+        if admin is not None:
+            return admin
+        raise HTTPException(status_code=401, detail="No admin user configured")
+
+    raise HTTPException(status_code=401, detail="Invalid webhook token")
 
 
 TOKEN_COOKIE_NAME = "salus_session"
@@ -78,8 +106,16 @@ def get_measurement_repo(session: Session = Depends(get_session)) -> Measurement
 def get_user_service(
     repo: UserRepository = Depends(get_user_repo),
     identity_repo: UserIdentityRepository = Depends(get_user_identity_repo),
+    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
 ) -> UserService:
-    return UserService(repo, identity_repo)
+    return UserService(repo, identity_repo, metric_type_repo)
+
+
+def get_api_token_service(
+    session: Session = Depends(get_session),
+    user_repo: UserRepository = Depends(get_user_repo),
+) -> ApiTokenService:
+    return ApiTokenService(ApiTokenRepository(session), user_repo)
 
 
 def _build_oidc_providers(user_svc: UserService) -> dict[str, OidcAuthProvider]:
@@ -149,6 +185,20 @@ def get_measurement_service(
     return MeasurementService(repo)
 
 
+def get_metric_type_mapping_service(
+    repo: MetricTypeRepository = Depends(get_metric_type_repo),
+) -> MetricTypeMappingService:
+    return MetricTypeMappingService(repo)
+
+
+def get_webhook_ingestion_service(
+    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    mapping_service: MetricTypeMappingService = Depends(get_metric_type_mapping_service),
+) -> WebhookIngestionService:
+    parser = FlexiblePayloadParser()
+    return WebhookIngestionService(parser, measurement_repo, mapping_service)
+
+
 def get_goal_repo(session: Session = Depends(get_session)) -> GoalRepository:
     return GoalRepository(session)
 
@@ -206,6 +256,25 @@ def get_analytics_service(
     nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
 ) -> AnalyticsService:
     return AnalyticsService(sleep_svc, activity_svc, weight_svc, nutrition_svc)
+
+
+def get_dashboard_widget_repo(session: Session = Depends(get_session)) -> DashboardWidgetRepository:
+    return DashboardWidgetRepository(session)
+
+
+def get_dashboard_widget_service(
+    widget_repo: DashboardWidgetRepository = Depends(get_dashboard_widget_repo),
+    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
+    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    activity_svc: ActivityAnalysisService = Depends(get_activity_analysis_service),
+    sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
+    nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
+    weight_svc: WeightAnalysisService = Depends(get_weight_analysis_service),
+) -> DashboardWidgetService:
+    return DashboardWidgetService(
+        widget_repo, metric_type_repo, measurement_repo,
+        activity_svc, sleep_svc, nutrition_svc, weight_svc,
+    )
 
 
 def get_current_user(

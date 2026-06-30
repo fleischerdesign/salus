@@ -1,6 +1,6 @@
 # AGENTS.md — salus
 
-Health data tracker. FastAPI + Jinja2 + HTMX + SQLite + raw sqlite3 ingestion pipeline.
+Health data tracker. FastAPI + Jinja2 + HTMX + SQLite.
 This file is written for LLM agents. Follow these rules exactly.
 
 ## Stack
@@ -10,8 +10,8 @@ This file is written for LLM agents. Follow these rules exactly.
 | Web framework | FastAPI |
 | Templates | Jinja2 via `starlette.templating.Jinja2Templates` (NOT `fastapi.templating`) |
 | Interactivity | HTMX 2.x (loaded via CDN in `base.html`) |
-| ORM layer | SQLModel for `metric_type`, `entry`, `user`, `user_identity`; raw sqlite3 for `health_records` ingestion |
-| Database files | `salus.db` (SQLModel engine), `health.db` (separate raw sqlite3) |
+| ORM layer | SQLModel for all tables (`metric_type`, `measurement`, `user`, `user_identity`, `goal`) |
+| Database | `salus.db` — single database, single SQLModel engine |
 | Package manager | uv via `pyproject.toml` |
 | Dev environment | Nix flake (`nix develop`) providing python313, uv, ruff, pyright |
 | Password hashing | `bcrypt` directly (NOT passlib — incompatible with bcrypt 5.x on Python 3.13) |
@@ -27,7 +27,7 @@ This file is written for LLM agents. Follow these rules exactly.
 src/salus/
 ├── models/          ← Dataclasses + SQLModel tables (DB structure)
 ├── schemas/         ← Pydantic API request/response models (API contract)
-├── repositories/    ← Data access — Repository[T] base for SQLModel, raw sqlite3 class for health
+├── repositories/    ← Data access — Repository[T] base for SQLModel
 ├── services/        ← Business logic — receives repos via constructor injection
 ├── routers/         ← FastAPI route handlers — THIN: parse input, call service, return template/redirect
 ├── templates/       ← Jinja2 (base.html, pages/, components/)
@@ -45,7 +45,7 @@ src/salus/
 |---|---|---|
 | `models/` | Dataclasses, SQLModel `table=True` classes | API schemas, request/response DTOs |
 | `schemas/` | Pydantic `BaseModel` for request/response | DB models, dataclasses, internal DTOs |
-| `repositories/` | Classes that wrap data access (SQLModel Session or raw sqlite3) | Business logic, validation |
+| `repositories/` | Classes that wrap data access (SQLModel Session) | Business logic, validation |
 | `services/` | Business logic classes (injected repos via `__init__`) | HTTP concerns, route handlers |
 | `routers/` | FastAPI `APIRouter` instances, route handler functions | Business logic, DB access |
 
@@ -99,14 +99,7 @@ async def list_metrics(request: Request, session: Session = Depends(get_session)
 Router functions do: parse input → call service → return template/redirect.
 No business logic. No raw SQL. No data transformation beyond simple dict unpacking.
 
-### 4. health_records table is RAW SQLITE3 ONLY
-The `health_records` table lives in a SEPARATE database (`health.db`) managed by `HealthRecordRepository` using raw `sqlite3`. It is NOT part of `SQLModel.metadata`. It does NOT use the SQLModel engine.
-
-NEVER use SQLModel or `Session` to access `health_records`.
-NEVER register `health_records` with `SQLModel.metadata`.
-The `HealthRecord` and `ParsedRecord` classes in `models/health_record.py` are plain `@dataclass`, NOT SQLModel tables.
-
-### 5. TemplateResponse signature
+### 4. TemplateResponse signature
 The Starlette `Jinja2Templates.TemplateResponse` requires `request` as the FIRST positional argument:
 
 ```python
@@ -126,7 +119,7 @@ return request.app.state.templates.TemplateResponse(
 
 Jinja2 context automatically includes `{{ request }}` — do NOT pass it manually in the context dict.
 
-### 6. Cross-module relationship annotations
+### 5. Cross-module relationship annotations
 
 Models that reference types from other model files must use **string forward references** on
 the *outer* annotation so that Python's runtime type evaluation does not resolve the name
@@ -153,7 +146,7 @@ Rules:
 - The annotation itself remains a string literal or a `list["Type"]` generic — Python never resolves it at class-body time.
 - NEVER use `from __future__ import annotations` in ``models/*.py`` — it turns `list[MetricType]` into a string that SQLAlchemy's mapper cannot decode.
 
-### 7. Narrowing ``int | None`` from SQLModel pk fields
+### 6. Narrowing ``int | None`` from SQLModel pk fields
 
 SQLModel declares primary-key fields as ``int | None`` because they are absent before
 the first INSERT.  After a successful `Repository.create()` (which calls `session.commit()` /
@@ -170,7 +163,7 @@ service.create(data, user_id=uid(current_user))
 The helper raises ``ValueError`` if the id is ``None``, which serves as an explicit
 debugging aid if a pre-persist object leaks through.
 
-### 8. Authentication architecture (Strategy Pattern)
+### 7. Authentication architecture (Strategy Pattern)
 - `LocalAuthProvider` — bcrypt password verification
 - `LdapAuthProvider` — LDAP bind via `ldap3`
 - `OidcAuthProvider` — OAuth2/OIDC via `authlib` (Google, GitHub, generic OIDC)
@@ -186,11 +179,11 @@ router → AuthService → Provider → UserService → UserRepository
        get_current_user (dependencies.py) → verify cookie → User
 ```
 
-### 9. JWT cookie name
+### 8. JWT cookie name
 
 The auth cookie is `salus_session` (defined as `TOKEN_COOKIE_NAME` in `dependencies.py`). Always use the constant, never hardcode the string.
 
-### 10. SQLite engine configuration
+### 9. SQLite engine configuration
 The SQLAlchemy engine for SQLite MUST include `connect_args={"check_same_thread": False}`.
 If you create a new engine (e.g. for tests), use `poolclass=StaticPool` for in-memory databases.
 
@@ -202,7 +195,7 @@ engine = create_engine("sqlite:///salus.db", connect_args={"check_same_thread": 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 ```
 
-### 11. Absolute imports only
+### 10. Absolute imports only
 Always use absolute imports starting from `salus.`. Never use relative imports (`from .models import ...`).
 
 ## Adding a new entity (checklist)
@@ -211,51 +204,50 @@ When adding a new domain entity (e.g. `Goal`, `Tag`), create all of these:
 
 1. `models/<name>.py` — `@dataclass` or `SQLModel(table=True)` class
 2. `schemas/<name>.py` or add to `schemas/__init__.py` — Pydantic `BaseModel` for Create/Response
-3. `repositories/<name>.py` — class extending `Repository[T]` (SQLModel) or standalone (raw sqlite3)
+3. `repositories/<name>.py` — class extending `Repository[T]` (SQLModel)
 4. `services/<name>.py` — business logic class, receives repo via `__init__`
 5. `routers/<name>.py` — `APIRouter` with route functions
 6. `tests/test_<name>.py` — pytest tests
 7. `dependencies.py` — add `get_<name>_repo()` and `get_<name>_service()` factories
 8. `main.py` — `app.include_router(<name>.router)`
 
-## Database separation
-
-| Database | Engine | Tables | Access pattern |
-|---|---|---|---|
-| `salus.db` | SQLModel in `database.py` | `metric_type`, `entry`, future CRUD tables | SQLModel Session via `get_session()` → Repository |
-| `health.db` | raw sqlite3 in `HealthRecordRepository` | `health_records` | `sqlite3.connect()` direct, upsert + nutrition cleanup |
-
 ## Webhook ingestion flow
 
 ```
-POST /webhook (Bearer token)
+POST /webhook (Bearer token or X-API-Token header)
   → verify_webhook_token (dependencies.py)
-  → HealthIngestionService.parse(payload) 
+  → WebhookIngestionService.ingest(payload)
     → FlexiblePayloadParser.parse(payload)
-      → HealthConnectWebhookParser  (format: top-level keys with arrays)
-      → FlatArrayParser             (format: array of record objects)
-      → recurses into records/data wrappers
-  → HealthRecordRepository.upsert_many(parsed_records)
-    → Nutrition cleanup (delete same day + meal_name)
-    → INSERT ON CONFLICT(id) DO UPDATE
+    → MetricTypeMappingService.resolve(data_type) → metric_type_id
+    → MeasurementRepository.upsert_all(records)
+      → dedup by external_id + source
   → return {"status": "ok", "inserted": N, "duplicates": N}
 ```
 
 ## Parser architecture
 
-`RecordParser` is a Protocol in `services/parser.py`. Two implementations exist:
+`RecordParser` is a Protocol in `services/parser.py`. Built-in implementations:
 
 | Parser | Input format |
 |---|---|
 | `HealthConnectWebhookParser` | Dict with data-type keys → arrays of records |
 | `FlatArrayParser` | List of record dicts with id/type/startTime/value fields |
 
+Additional source-specific parsers live in `services/parsers/`:
+
+| Parser | Source | File |
+|---|---|---|
+| `AppleHealthExportParser` | `apple_health` | `services/parsers/apple_health.py` |
+| `GoogleFitParser` | `google_fit` | `services/parsers/google_fit.py` |
+| `FitbitParser` | `fitbit` | `services/parsers/fitbit.py` |
+| `OuraParser` | `oura` | `services/parsers/oura.py` |
+
 `FlexiblePayloadParser` is the orchestrator — it auto-detects the format and delegates.
-To add a new format: implement `RecordParser`, add detection logic in `FlexiblePayloadParser.parse()`.
+To add a new source: implement `RecordParser`, register in `FlexiblePayloadParser`.
 
 Payload auto-detection order:
 1. List → `FlatArrayParser`
-2. Dict with data-type arrays → `HealthConnectWebhookParser`
+2. Dict with data-type arrays → source-specific parsers, then `HealthConnectWebhookParser`
 3. Dict with `"records"` key → recurse
 4. Dict with `"data"` key → recurse
 5. Dict with `"type"`/`"dataType"`/`"id"` → wrap in list → `FlatArrayParser`
@@ -271,7 +263,6 @@ All config lives in `config.py` via `pydantic-settings.BaseSettings` with `SALUS
 | `database_url` | `"sqlite:///salus.db"` | `SALUS_DATABASE_URL` |
 | `hermes_home` | `"data"` (or `$HERMES_HOME`) | `SALUS_HERMES_HOME` |
 | `api_token` | `"s3ns0r-h34lth-t0k3n-2026"` | `SALUS_API_TOKEN` |
-| `health_db_path` | `hermes_home/health-bridge/health.db` (computed property) | — |
 
 ## Commands
 

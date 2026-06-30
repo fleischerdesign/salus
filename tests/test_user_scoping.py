@@ -1,13 +1,13 @@
 def test_user_data_scoped(authenticated_client, client):
-    """Alice creates metrics & entries. Bob logs in and sees none of them."""
+    """Alice creates custom metrics & entries. Bob logs in and sees none of them."""
     authenticated_client.post(
         "/metrics",
-        data={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
+        data={"name": "AliceCustom", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )
     authenticated_client.post(
         "/entries",
-        data={"value": "80.5", "metric_type_id": "1"},
+        data={"value": "80.5", "metric_type_id": "13"},
         follow_redirects=True,
     )
 
@@ -20,7 +20,7 @@ def test_user_data_scoped(authenticated_client, client):
 
     response = client.get("/metrics")
     assert response.status_code == 200
-    assert "Weight" not in response.text
+    assert "AliceCustom" not in response.text
 
     response = client.get("/")
     assert response.status_code == 200

@@ -13,33 +13,41 @@ class TestApiAuth:
 
 
 class TestApiMetrics:
-    def test_list_metrics_empty(self, authenticated_client):
+    def test_list_metrics_has_pre_seeded(self, authenticated_client):
         """Uses cookie auth from authenticated_client, not API key."""
         response = authenticated_client.get("/api/metrics")
         assert response.status_code == 200
-        assert response.json() == []
+        data = response.json()
+        assert len(data) >= 12
+        names = {m["name"] for m in data}
+        assert "Steps" in names
+        assert "Heart Rate" in names
+        assert "Weight" in names
 
     def test_create_and_list(self, authenticated_client):
         response = authenticated_client.post(
             "/api/metrics",
-            json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ff0000"},
+            json={"name": "CustomMetric", "unit": "kg", "data_type": "number", "color": "#ff0000"},
         )
         assert response.status_code == 201
         data = response.json()
-        assert data["name"] == "Weight"
+        assert data["name"] == "CustomMetric"
         metric_id = data["id"]
 
         response = authenticated_client.get("/api/metrics")
         assert response.status_code == 200
-        assert len(response.json()) == 1
-        assert response.json()[0]["id"] == metric_id
+        metrics = response.json()
+        assert len(metrics) == 13
+        names = [m["name"] for m in metrics]
+        assert "CustomMetric" in names
 
     def test_get_metric(self, authenticated_client):
-        authenticated_client.post(
+        response = authenticated_client.post(
             "/api/metrics",
             json={"name": "HR", "unit": "bpm", "data_type": "number", "color": "#ff0000"},
         )
-        response = authenticated_client.get("/api/metrics/1")
+        metric_id = response.json()["id"]
+        response = authenticated_client.get(f"/api/metrics/{metric_id}")
         assert response.status_code == 200
         assert response.json()["name"] == "HR"
 
@@ -48,25 +56,27 @@ class TestApiMetrics:
         assert response.status_code == 404
 
     def test_delete_metric(self, authenticated_client):
-        authenticated_client.post(
+        response = authenticated_client.post(
             "/api/metrics",
-            json={"name": "Steps", "unit": "steps", "data_type": "number"},
+            json={"name": "ToDelete", "unit": "steps", "data_type": "number"},
         )
-        response = authenticated_client.delete("/api/metrics/1")
+        metric_id = response.json()["id"]
+        response = authenticated_client.delete(f"/api/metrics/{metric_id}")
         assert response.status_code == 204
 
 
 class TestApiEntries:
     def test_list_entries_by_metric(self, authenticated_client):
-        authenticated_client.post(
+        response = authenticated_client.post(
             "/api/metrics",
-            json={"name": "Weight", "unit": "kg", "data_type": "number"},
+            json={"name": "CustomWeight", "unit": "kg", "data_type": "number"},
         )
+        metric_id = response.json()["id"]
         authenticated_client.post(
-            "/api/entries?metric_type_id=1",
+            f"/api/entries?metric_type_id={metric_id}",
             json={"value": "80.5"},
         )
-        response = authenticated_client.get("/api/entries?metric_type_id=1")
+        response = authenticated_client.get(f"/api/entries?metric_type_id={metric_id}")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1

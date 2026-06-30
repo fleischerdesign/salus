@@ -15,21 +15,33 @@
 <body>
     <header class="top-app-bar">
         <div class="top-app-bar-content">
+            {% if current_user %}
+            <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+            {% endif %}
             <a href="/" class="top-app-bar-logo">salus</a>
             {% if current_user %}
-            <a href="/" class="top-app-bar-link {% if request.url.path == '/' %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">dashboard</span>Dashboard</a>
-            <a href="/analytics" class="top-app-bar-link {% if request.url.path.startswith('/analytics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">analytics</span>Analytics</a>
-            <a href="/goals" class="top-app-bar-link {% if request.url.path.startswith('/goals') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">track_changes</span>Goals</a>
-            <a href="/metrics" class="top-app-bar-link {% if request.url.path.startswith('/metrics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">label</span>Metrics</a>
-            <a href="/entries" class="top-app-bar-link {% if request.url.path.startswith('/entries') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">description</span>Entries</a>
-            {% endif %}
-            <span class="flex-1"></span>
-            {% if current_user %}
-            <a href="/settings" class="top-app-bar-link">{{ current_user.display_name or current_user.username }}</a>
-            <form method="post" action="/auth/logout" style="display:inline;">
-                <button type="submit" class="btn-ghost">Logout</button>
-            </form>
+            <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle navigation menu">
+                <span class="material-symbols-outlined nav-toggle-icon-open">menu</span>
+                <span class="material-symbols-outlined nav-toggle-icon-close">close</span>
+            </label>
+            <div class="top-app-bar-menu">
+                <nav class="top-app-bar-menu-nav">
+                    <a href="/" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path == '/' %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">dashboard</span>Dashboard</a>
+                    <a href="/analytics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/analytics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">analytics</span>Analytics</a>
+                    <a href="/goals" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/goals') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">track_changes</span>Goals</a>
+                    <a href="/metrics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/metrics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">label</span>Metrics</a>
+                    <a href="/entries" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/entries') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">description</span>Entries</a>
+                </nav>
+                <hr class="top-app-bar-menu-divider">
+                <div class="top-app-bar-menu-user">
+                    <a href="/settings" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link">{{ current_user.display_name or current_user.username }}</a>
+                    <form method="post" action="/auth/logout" style="display:inline;">
+                        <button type="submit" class="btn-ghost">Logout</button>
+                    </form>
+                </div>
+            </div>
             {% else %}
+            <span class="flex-1"></span>
             <a href="/auth/login" class="btn">Sign In</a>
             {% endif %}
         </div>

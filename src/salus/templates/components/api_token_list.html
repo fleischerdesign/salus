@@ -1,0 +1,47 @@
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">API Tokens</h3>
+            <button class="btn-sm"
+                    hx-get="/settings/api-tokens/new"
+                    hx-target="#token-generate-container"
+                    hx-swap="innerHTML">
+                + Generate New Token
+            </button>
+        </div>
+        <p class="text-muted" style="font:var(--font-body-sm);">Personal access tokens for webhook ingestion and API access.</p>
+        <div id="token-generate-container"></div>
+        <div id="token-list">
+            {% if api_tokens %}
+            {% for t in api_tokens %}
+            <div class="identity-card" id="token-{{ t.id }}" style="flex-direction:column;align-items:flex-start;gap:4px;">
+                <div class="flex-between" style="width:100%;">
+                    <strong style="font:var(--font-body-sm);">{{ t.label }}</strong>
+                    <button class="btn-danger btn-sm"
+                            hx-delete="/settings/api-tokens/{{ t.id }}"
+                            hx-target="#token-{{ t.id }}"
+                            hx-swap="outerHTML">
+                        Revoke
+                    </button>
+                </div>
+                <span class="text-muted" style="font:var(--font-label-sm);">{{ t.token_prefix }}...</span>
+                {% if t.scopes %}
+                <div class="flex gap-sm" style="flex-wrap:wrap;">
+                    {% for scope in t.scopes.split() %}
+                    <span class="chip chip-neutral" style="font-size:11px;">{{ scope }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if t.last_used_at %}
+                <span class="text-muted" style="font:var(--font-label-sm);">Last used: {{ t.last_used_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                {% else %}
+                <span class="text-muted" style="font:var(--font-label-sm);">Never used</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted" style="font:var(--font-body-sm);">No API tokens created yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

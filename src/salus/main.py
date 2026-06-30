@@ -11,7 +11,7 @@ from sqlmodel import SQLModel
 from salus.config import settings as app_settings
 from salus.database import engine
 from salus.exceptions import AuthenticationError, ConflictError, NotFoundError
-from salus.routers import analytics, api, auth, dashboard, entries, export, goals, metrics, settings, webhook
+from salus.routers import analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -39,6 +39,7 @@ app.include_router(dashboard.router)
 app.include_router(metrics.router, prefix="/metrics")
 app.include_router(entries.router, prefix="/entries")
 app.include_router(webhook.router)
+app.include_router(onboarding.router)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(settings.router, prefix="/settings")
 app.include_router(analytics.router)

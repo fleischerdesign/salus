@@ -1,0 +1,120 @@
+<div class="modal-backdrop" id="onboarding-overlay">
+    <div class="modal-content">
+        <div class="card onboarding-wizard">
+            <button class="btn-icon modal-close" title="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <!-- Step 0: Connect Data Source -->
+            <div class="onboarding-step" data-step="0">
+                <span class="material-symbols-outlined onboarding-step-icon">sync</span>
+                <h2 class="onboarding-step-title">Connect a Data Source</h2>
+                <p class="onboarding-step-desc">Generate an API token. Share the webhook URL with your wearables and apps to stream data into salus.</p>
+                {% with step_index=0 %}{% include "components/onboarding/step_token_body.html" %}{% endwith %}
+            </div>
+
+            <!-- Step 1: Log First Entry -->
+            <div class="onboarding-step" data-step="1">
+                <span class="material-symbols-outlined onboarding-step-icon">edit_note</span>
+                <h2 class="onboarding-step-title">Log Your First Entry</h2>
+                <p class="onboarding-step-desc">Manually track a metric — weight, mood, blood pressure, or whatever matters to you.</p>
+                {% with step_index=1 %}{% include "components/onboarding/step_entry_body.html" %}{% endwith %}
+            </div>
+
+            <!-- Step 2: Set First Goal -->
+            <div class="onboarding-step" data-step="2">
+                <span class="material-symbols-outlined onboarding-step-icon">track_changes</span>
+                <h2 class="onboarding-step-title">Set Your First Goal</h2>
+                <p class="onboarding-step-desc">Define a target — walk 10,000 steps per day, sleep 8 hours, or reach 80 kg.</p>
+                {% with step_index=2 %}{% include "components/onboarding/step_goal_body.html" %}{% endwith %}
+            </div>
+
+            <div class="onboarding-footer">
+                <div class="onboarding-dots">
+                    <span class="onboarding-dot active" data-dot="0"></span>
+                    <span class="onboarding-dot" data-dot="1"></span>
+                    <span class="onboarding-dot" data-dot="2"></span>
+                </div>
+                <div class="onboarding-actions">
+                    <button class="btn-ghost onboarding-skip">Skip</button>
+                    <button class="btn-ghost onboarding-back" style="display:none;">Back</button>
+                    <button class="btn onboarding-next">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var overlay = document.getElementById('onboarding-overlay');
+    if (!overlay) return;
+    var steps = overlay.querySelectorAll('.onboarding-step');
+    var dots = overlay.querySelectorAll('.onboarding-dot');
+    var nextBtn = overlay.querySelector('.onboarding-next');
+    var backBtn = overlay.querySelector('.onboarding-back');
+    var skipBtn = overlay.querySelector('.onboarding-skip');
+    var closeBtn = overlay.querySelector('.modal-close');
+    var current = 0;
+
+    function showStep(n) {
+        steps.forEach(function(s, i) { s.style.display = i === n ? '' : 'none'; });
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === n); });
+        nextBtn.textContent = n === steps.length - 1 ? 'Done' : 'Next';
+        backBtn.style.display = n === 0 ? 'none' : '';
+    }
+
+    function stepDone() {
+        var body = steps[current].querySelector('.onboarding-step-body');
+        return body && body.querySelector('.onboarding-success');
+    }
+
+    function allStepsDone() {
+        for (var i = 0; i < steps.length; i++) {
+            var body = steps[i].querySelector('.onboarding-step-body');
+            if (!body || !body.querySelector('.onboarding-success')) return false;
+        }
+        return true;
+    }
+
+    function dismiss() {
+        overlay.remove();
+        htmx.ajax('POST', '/onboarding/dismiss', {swap: 'none'});
+        var card = document.getElementById('onboarding-card');
+        if (card) card.remove();
+    }
+
+    function closeWithoutDismiss() {
+        document.cookie = 'onboarding_modal_closed=1; path=/';
+        overlay.remove();
+        var card = document.getElementById('onboarding-card');
+        if (card) card.style.display = '';
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (current === steps.length - 1) {
+            if (allStepsDone()) {
+                dismiss();
+            } else {
+                closeWithoutDismiss();
+            }
+            return;
+        }
+        current++;
+        showStep(current);
+    });
+
+    backBtn.addEventListener('click', function() {
+        if (current > 0) {
+            current--;
+            showStep(current);
+        }
+    });
+
+    skipBtn.addEventListener('click', closeWithoutDismiss);
+    closeBtn.addEventListener('click', closeWithoutDismiss);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeWithoutDismiss(); });
+
+    showStep(0);
+})();
+</script>

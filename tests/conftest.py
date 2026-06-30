@@ -5,6 +5,20 @@ from sqlalchemy.pool import StaticPool
 
 from salus.database import get_session
 from salus.main import app, templates
+from salus.models.user import User
+from salus.services.password import hash_password
+
+
+def _seed_admin(session: Session) -> None:
+    admin = User(
+        username="admin",
+        password_hash=hash_password("admin"),
+        email="admin@salus.local",
+        display_name="Admin",
+        is_admin=True,
+    )
+    session.add(admin)
+    session.commit()
 
 
 @pytest.fixture
@@ -22,6 +36,8 @@ def client():
 
     app.dependency_overrides[get_session] = override_get_session
     app.state.templates = templates
+
+    _seed_admin(Session(engine))
 
     with TestClient(app) as test_client:
         yield test_client
