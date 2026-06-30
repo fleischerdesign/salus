@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@v22
       - uses: DeterminateSystems/magic-nix-cache-action@v14
-      - run: nix develop --command ruff check src/
+      - run: nix develop --command uv run ruff check src/
 
   pyright:
     name: Pyright
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@v22
       - uses: DeterminateSystems/magic-nix-cache-action@v14
-      - run: nix develop --command pyright src/
+      - run: nix develop --command uv run pyright src/
 
   test:
     name: Test
