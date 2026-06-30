@@ -9,8 +9,13 @@ class WeightAnalysisService:
     def __init__(self, repo: MeasurementRepository) -> None:
         self._repo = repo
 
-    def current(self) -> WeightPoint | None:
-        rec = self._repo.find_latest("weight")
+    def current(self, user_id: int | None = None, date_str: str | None = None) -> WeightPoint | None:
+        if date_str is not None:
+            until = datetime.strptime(date_str + "T23:59:59", "%Y-%m-%dT%H:%M:%S")
+            records = self._repo.find_all(data_types=["weight"], user_id=user_id, until=until, limit=1)
+            rec = records[0] if records else None
+        else:
+            rec = self._repo.find_latest("weight", user_id=user_id)
         if rec is None:
             return None
         d = json.loads(rec.value_json) if rec.value_json else {}
@@ -19,9 +24,9 @@ class WeightAnalysisService:
             weight_kg=d.get("kilograms", rec.value_numeric or 0),
         )
 
-    def trend(self, days: int = 30) -> WeightTrend:
+    def trend(self, days: int = 30, user_id: int | None = None) -> WeightTrend:
         since = datetime.today() - timedelta(days=days)
-        records = self._repo.find_all(data_types=["weight"], since=since)
+        records = self._repo.find_all(data_types=["weight"], user_id=user_id, since=since)
         seen: dict[str, float] = {}
         for rec in records:
             date = rec.start_time.strftime("%Y-%m-%d")

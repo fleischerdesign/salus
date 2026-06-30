@@ -782,6 +782,56 @@ button {
     gap: var(--space-stack-sm);
 }
 
+/* ---- Day Navigator ---- */
+.day-navigator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-stack-sm);
+    position: relative;
+    background: var(--color-slate-50);
+    border-radius: var(--radius-default);
+    padding: 4px 12px;
+}
+
+.day-navigator__date {
+    font: var(--font-label-md);
+    font-weight: 600;
+    color: var(--color-on-surface);
+    white-space: nowrap;
+    min-width: 160px;
+    text-align: center;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--radius-default);
+}
+
+.day-navigator__date:hover {
+    color: var(--color-primary);
+}
+
+/* ---- Widget Delta Indicator ---- */
+.widget-delta-row {
+    display: block;
+    font: var(--font-label-sm);
+    margin-top: 2px;
+}
+
+.widget-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.widget-delta--positive {
+    color: var(--color-success);
+}
+
+.widget-delta--negative {
+    color: var(--color-error);
+}
+
 /* ---- Analytics Grid ---- */
 /* ---- Analytics Exercise Detail ---- */
 .exercise-date {
@@ -1857,6 +1907,139 @@ button {
     }
 }
 
+/* ---- Manual Theme Override ---- */
+[data-theme="dark"] {
+    --color-surface: #0f172a;
+    --color-surface-dim: #1e293b;
+    --color-surface-bright: #1a2332;
+    --color-surface-container-lowest: #111827;
+    --color-surface-container-low: #1e293b;
+    --color-surface-container: #1e3a5f;
+    --color-surface-container-high: #233554;
+    --color-surface-container-highest: #2a3f5e;
+    --color-on-surface: #e2e8f0;
+    --color-on-surface-variant: #94a3b8;
+    --color-inverse-surface: #e2e8f0;
+    --color-inverse-on-surface: #1e293b;
+    --color-outline: #64748b;
+    --color-outline-variant: #334155;
+    --color-surface-tint: #818cf8;
+    --color-background: #0f172a;
+    --color-on-background: #e2e8f0;
+    --color-primary: #818cf8;
+    --color-on-primary: #0f0069;
+    --color-primary-container: #312e81;
+    --color-on-primary-container: #c7d2fe;
+    --color-inverse-primary: #4f46e5;
+    --color-primary-fixed: #1e1b4b;
+    --color-primary-fixed-dim: #312e81;
+    --color-on-primary-fixed: #c7d2fe;
+    --color-on-primary-fixed-variant: #a5b4fc;
+    --color-secondary: #38bdf8;
+    --color-on-secondary: #001e2f;
+    --color-secondary-container: #0c4a6e;
+    --color-on-secondary-container: #89ceff;
+    --color-secondary-fixed: #082f49;
+    --color-secondary-fixed-dim: #0c4a6e;
+    --color-on-secondary-fixed: #bae6fd;
+    --color-on-secondary-fixed-variant: #7dd3fc;
+    --color-tertiary: #34d399;
+    --color-on-tertiary: #002113;
+    --color-tertiary-container: #064e3b;
+    --color-on-tertiary-container: #6ee7b7;
+    --color-tertiary-fixed: #022c22;
+    --color-tertiary-fixed-dim: #064e3b;
+    --color-on-tertiary-fixed: #a7f3d0;
+    --color-on-tertiary-fixed-variant: #6ee7b7;
+    --color-error: #f87171;
+    --color-on-error: #450a0a;
+    --color-error-container: #7f1d1d;
+    --color-on-error-container: #fecaca;
+    --color-slate-50: #0f172a;
+    --color-slate-100: #1e293b;
+    --color-slate-200: #334155;
+    --color-slate-300: #475569;
+    --color-slate-400: #64748b;
+    --color-slate-500: #94a3b8;
+    --color-slate-600: #cbd5e1;
+    --color-slate-700: #e2e8f0;
+    --color-slate-800: #f1f5f9;
+    --color-slate-900: #f8fafc;
+    --level-0-bg: #0f172a;
+    --level-1-card: #111827;
+    --level-2-hover-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    --level-3-body: #1e293b;
+    --level-3-modal-shadow: 0px 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+    --color-surface: #f8f9ff;
+    --color-surface-dim: #cbdbf5;
+    --color-surface-bright: #f8f9ff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container: #e5eeff;
+    --color-surface-container-high: #dce9ff;
+    --color-surface-container-highest: #d3e4fe;
+    --color-on-surface: #0b1c30;
+    --color-on-surface-variant: #464555;
+    --color-inverse-surface: #213145;
+    --color-inverse-on-surface: #eaf1ff;
+    --color-outline: #777587;
+    --color-outline-variant: #c7c4d8;
+    --color-surface-tint: #4d44e3;
+    --color-background: #f8f9ff;
+    --color-on-background: #0b1c30;
+    --color-primary: #4d44e3;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #e0dcff;
+    --color-on-primary-container: #13005c;
+    --color-inverse-primary: #c3c0ff;
+    --color-primary-fixed: #e0dcff;
+    --color-primary-fixed-dim: #c3c0ff;
+    --color-on-primary-fixed: #13005c;
+    --color-on-primary-fixed-variant: #3328b8;
+    --color-secondary: #0369a1;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #bae6fd;
+    --color-on-secondary-container: #001e2f;
+    --color-secondary-fixed: #bae6fd;
+    --color-secondary-fixed-dim: #7dd3fc;
+    --color-on-secondary-fixed: #001e2f;
+    --color-on-secondary-fixed-variant: #0369a1;
+    --color-tertiary: #059669;
+    --color-on-tertiary: #ffffff;
+    --color-tertiary-container: #a7f3d0;
+    --color-on-tertiary-container: #002113;
+    --color-tertiary-fixed: #a7f3d0;
+    --color-tertiary-fixed-dim: #6ee7b7;
+    --color-on-tertiary-fixed: #002113;
+    --color-on-tertiary-fixed-variant: #047857;
+    --color-error: #e11d48;
+    --color-on-error: #ffffff;
+    --color-error-container: #fecdd3;
+    --color-on-error-container: #450a0a;
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --level-0-bg: #f8f9ff;
+    --level-1-card: #ffffff;
+    --level-2-hover-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+    --level-3-body: #f8fafc;
+    --level-3-modal-shadow: 0px 12px 24px rgba(0, 0, 0, 0.08);
+}
+
 /* ---- User Menu Dropdown ---- */
 .user-menu-desktop {
     position: relative;
@@ -1996,5 +2179,4 @@ button {
     .user-menu-desktop {
         display: none;
     }
-}
 }

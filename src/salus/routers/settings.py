@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from salus.dependencies import (
     get_api_token_service,
@@ -112,3 +112,13 @@ async def revoke_api_token(
 ):
     api_token_svc.revoke(token_id, uid(current_user))
     return HTMLResponse(status_code=200)
+
+
+@router.post("/theme")
+async def set_theme(
+    theme: Annotated[str, Form()],
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+):
+    user_svc.set_theme(uid(current_user), theme)
+    return RedirectResponse(url="/settings", status_code=303)

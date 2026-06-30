@@ -98,7 +98,7 @@ class TestActivityAnalysisService:
         today = datetime.today().strftime("%Y-%m-%d")
         _insert(repo, data_type="heart_rate", source="test", start_time=f"{today}T08:00:00", value_numeric=72)
         _insert(repo, data_type="heart_rate", source="test", start_time=f"{today}T08:01:00", value_numeric=68)
-        summary = svc.heart_rate_summary(today)
+        summary = svc.heart_rate_summary(date_str=today)
         assert summary is not None
         assert summary.measurement_count == 2
         assert summary.avg_bpm == 70.0

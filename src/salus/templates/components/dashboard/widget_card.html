@@ -14,6 +14,7 @@
             </div>
             <div class="widget-main">
                 <span class="widget-value-large">{{ value }}{% if unit %} <span class="widget-unit">{{ unit }}</span>{% endif %}</span>
+                {% if delta %}<span class="widget-delta-row">{{ delta | safe }}</span>{% endif %}
                 {% if sub %}<span class="widget-sub">{{ sub | safe }}</span>{% endif %}
                 {% if percent is defined %}
                 <div class="progress-bar">
@@ -36,6 +37,7 @@
             </div>
             <div class="widget-main">
                 <span class="widget-value-compact">{{ value }}{% if unit %} <span class="widget-unit">{{ unit }}</span>{% endif %}</span>
+                {% if delta %}<span class="widget-delta-row">{{ delta | safe }}</span>{% endif %}
                 {% if sub %}<span class="widget-sub">{{ sub | safe }}</span>{% endif %}
                 {% if protein_pct is defined %}
                 <div class="macro-bar">

@@ -24,6 +24,29 @@
                 <span class="text-muted">{{ current_user.email or 'No email set' }}</span>
             </div>
         </div>
+        <form method="post" action="/settings/theme" style="margin-top:12px;">
+            <label style="font:var(--font-label-sm);color:var(--color-slate-600);display:block;margin-bottom:8px;">Theme</label>
+            <div class="flex gap-sm" style="flex-wrap:wrap;">
+                <label class="btn-sm {{ 'active' if current_user.theme == 'system' else '' }}" style="cursor:pointer;">
+                    <input type="radio" name="theme" value="system" style="display:none;" onchange="this.form.submit()"
+                           {{ 'checked' if current_user.theme == 'system' else '' }}>
+                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">brightness_auto</span>
+                    System
+                </label>
+                <label class="btn-sm {{ 'active' if current_user.theme == 'light' else '' }}" style="cursor:pointer;">
+                    <input type="radio" name="theme" value="light" style="display:none;" onchange="this.form.submit()"
+                           {{ 'checked' if current_user.theme == 'light' else '' }}>
+                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">light_mode</span>
+                    Light
+                </label>
+                <label class="btn-sm {{ 'active' if current_user.theme == 'dark' else '' }}" style="cursor:pointer;">
+                    <input type="radio" name="theme" value="dark" style="display:none;" onchange="this.form.submit()"
+                           {{ 'checked' if current_user.theme == 'dark' else '' }}>
+                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">dark_mode</span>
+                    Dark
+                </label>
+            </div>
+        </form>
     </div>
 </div>
 

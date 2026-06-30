@@ -521,3 +521,68 @@ class TestAdminConfig:
         response = client.get("/admin/config/security", follow_redirects=False)
         assert response.status_code == 303
         assert response.headers["location"] == "/"
+
+
+class TestTheme:
+    def test_default_theme_is_system(self, client):
+        client.post(
+            "/auth/login",
+            data={"username": "admin", "password": "admin"},
+            follow_redirects=True,
+        )
+        response = client.get("/settings")
+        assert response.status_code == 200
+        assert 'value="system"' in response.text
+        assert "checked" in response.text
+        assert 'data-theme="system"' in response.text
+
+    def test_set_theme_to_dark(self, client):
+        client.post(
+            "/auth/login",
+            data={"username": "admin", "password": "admin"},
+            follow_redirects=True,
+        )
+        response = client.post(
+            "/settings/theme",
+            data={"theme": "dark"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert 'value="dark"' in response.text
+        assert "checked" in response.text
+        assert 'data-theme="dark"' in response.text
+
+    def test_set_theme_to_light(self, client):
+        client.post(
+            "/auth/login",
+            data={"username": "admin", "password": "admin"},
+            follow_redirects=True,
+        )
+        response = client.post(
+            "/settings/theme",
+            data={"theme": "light"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert 'value="light"' in response.text
+        assert "checked" in response.text
+        assert 'data-theme="light"' in response.text
+
+    def test_theme_persists_across_requests(self, client):
+        client.post(
+            "/auth/login",
+            data={"username": "admin", "password": "admin"},
+            follow_redirects=True,
+        )
+        client.post(
+            "/settings/theme",
+            data={"theme": "dark"},
+            follow_redirects=True,
+        )
+        response = client.get("/")
+        assert 'data-theme="dark"' in response.text
+
+    def test_theme_requires_auth(self, client):
+        response = client.post("/settings/theme", data={"theme": "dark"}, follow_redirects=False)
+        assert response.status_code == 303
+        assert "/auth/login" in response.headers["location"]

@@ -9,20 +9,23 @@ class SleepAnalysisService:
     def __init__(self, repo: MeasurementRepository) -> None:
         self._repo = repo
 
-    def last_night(self) -> SleepSummary | None:
-        today = datetime.today()
+    def last_night(self, user_id: int | None = None, date_str: str | None = None) -> SleepSummary | None:
+        if date_str is None:
+            today = datetime.today()
+        else:
+            today = datetime.strptime(date_str, "%Y-%m-%d")
         since = today.replace(hour=0, minute=0, second=0, microsecond=0)
         until = today.replace(hour=23, minute=59, second=59, microsecond=0)
         records = self._repo.find_all(
-            data_types=["sleep"], since=since, until=until, limit=1
+            data_types=["sleep"], user_id=user_id, since=since, until=until, limit=1
         )
         if not records:
             return None
         return self._build_summary(records[0])
 
-    def trend(self, days: int = 7) -> list[SleepSummary]:
+    def trend(self, days: int = 7, user_id: int | None = None) -> list[SleepSummary]:
         since = datetime.today() - timedelta(days=days)
-        records = self._repo.find_all(data_types=["sleep"], since=since)
+        records = self._repo.find_all(data_types=["sleep"], user_id=user_id, since=since)
         summaries: list[SleepSummary] = []
         seen_dates: set[str] = set()
         for rec in records:

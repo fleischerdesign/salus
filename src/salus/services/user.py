@@ -147,3 +147,8 @@ class UserService:
 
     def list_identities(self, user_id: int) -> list[UserIdentity]:
         return self.identity_repo.list_by_user(user_id)
+
+    def set_theme(self, user_id: int, theme: str) -> User:
+        user = self.get_by_id(user_id)
+        user.theme = theme
+        return self.repo.update(user)
