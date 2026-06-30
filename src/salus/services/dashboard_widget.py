@@ -161,7 +161,10 @@ class DashboardWidgetService:
             if hr:
                 ctx["value"] = f"{hr.avg_bpm:.0f}"
                 ctx["unit"] = "bpm"
-                ctx["sub"] = f"Resting {hr.resting_bpm:.0f} &middot; {hr.min_bpm}–{hr.max_bpm}"
+                hr_parts = [f"Resting {hr.resting_bpm:.0f}"]
+                if hr.min_bpm != hr.max_bpm:
+                    hr_parts.append(f"{hr.min_bpm}–{hr.max_bpm}")
+                ctx["sub"] = " &middot; ".join(hr_parts)
 
                 yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                 yesterday_hr = self._activity.heart_rate_summary(user_id=user_id, date_str=yesterday_date)
@@ -197,7 +200,14 @@ class DashboardWidgetService:
                     ctx["protein_pct"] = n.protein_g / total * 100
                     ctx["carbs_pct"] = n.carbs_g / total * 100
                     ctx["fat_pct"] = n.fat_g / total * 100
-                    ctx["sub"] = f"{n.protein_g:.0f}g Protein &middot; {n.carbs_g:.0f}g Carbs &middot; {n.fat_g:.0f}g Fat"
+                    ctx["sub"] = (
+                        f'<span class="macro-dot" style="background:#e06c75;"></span> '
+                        f'{n.protein_g:.0f}g Protein &middot; '
+                        f'<span class="macro-dot" style="background:#60a5fa;"></span> '
+                        f'{n.carbs_g:.0f}g Carbs &middot; '
+                        f'<span class="macro-dot" style="background:#fbbf24;"></span> '
+                        f'{n.fat_g:.0f}g Fat'
+                    )
 
                     yesterday_date = (datetime.strptime(target, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
                     yesterday_n = self._nutrition.today(user_id=user_id, date_str=yesterday_date)
