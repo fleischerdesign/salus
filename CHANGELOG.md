@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.1](https://github.com/fleischerdesign/salus/compare/v0.1.0...v0.1.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* display_value fallback for webhook entries + goal tracking ([1cc6b15](https://github.com/fleischerdesign/salus/commit/1cc6b157507a92a6276a0bd24d71287bddd43ee1))
+* revert CI to uv run for pyright/ruff (venv resolution) ([92cbbdf](https://github.com/fleischerdesign/salus/commit/92cbbdf80f5a6d83db91607dbf3809c66709c854))
+* webhook logging + value_numeric extraction + steps_trend SQL filter ([d338ef3](https://github.com/fleischerdesign/salus/commit/d338ef343106827c84b594dd16f31a2dd2ca609f))
+
+
+### Documentation
+
+* update AGENTS.md — PostgreSQL, CI/CD, git flow, release process, deployment ([3789916](https://github.com/fleischerdesign/salus/commit/378991688b34324c5b580a53a9eab49890886da9))
+
 ## 0.1.0 (2026-06-30)
 
 
