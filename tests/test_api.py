@@ -32,7 +32,6 @@ class TestApiMetrics:
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == "CustomMetric"
-        metric_id = data["id"]
 
         response = authenticated_client.get("/api/metrics")
         assert response.status_code == 200

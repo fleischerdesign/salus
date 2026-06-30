@@ -195,7 +195,7 @@ class TestAdminTokens:
             },
             follow_redirects=True,
         )
-        resp = client.post(
+        client.post(
             "/settings/api-tokens",
             data={
                 "label": "test-token",
