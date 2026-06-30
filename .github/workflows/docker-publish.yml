@@ -1,0 +1,56 @@
+name: Build and Publish Docker
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v14
+
+      - name: Build Docker image with Nix
+        run: |
+          nix build .#dockerImage --out-link result
+          docker load < result
+
+      - name: Set image tags
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "VERSION_TAG=$(date +%Y%m%d)-${SHORT_SHA}" >> $GITHUB_ENV
+          echo "IMAGE=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
+
+      - name: Tag images
+        run: |
+          docker tag ghcr.io/fleischerdesign/salus:latest ${{ env.IMAGE }}:latest
+          docker tag ghcr.io/fleischerdesign/salus:latest ${{ env.IMAGE }}:${{ env.VERSION_TAG }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to GHCR
+        run: |
+          docker push ${{ env.IMAGE }}:latest
+          docker push ${{ env.IMAGE }}:${{ env.VERSION_TAG }}
