@@ -1,6 +1,6 @@
 # AGENTS.md — salus
 
-Health data tracker. FastAPI + Jinja2 + HTMX + SQLite.
+Health data tracker. FastAPI + Jinja2 + HTMX + SQLite / PostgreSQL.
 This file is written for LLM agents. Follow these rules exactly.
 
 ## Stack
@@ -11,7 +11,7 @@ This file is written for LLM agents. Follow these rules exactly.
 | Templates | Jinja2 via `starlette.templating.Jinja2Templates` (NOT `fastapi.templating`) |
 | Interactivity | HTMX 2.x (loaded via CDN in `base.html`) |
 | ORM layer | SQLModel for all tables (`metric_type`, `measurement`, `user`, `user_identity`, `goal`) |
-| Database | `salus.db` — single database, single SQLModel engine |
+| Database | `salus.db` (SQLite default) or PostgreSQL via `SALUS_DATABASE_URL` |
 | Package manager | uv via `pyproject.toml` |
 | Dev environment | Nix flake (`nix develop`) providing python313, uv, ruff, pyright |
 | Password hashing | `bcrypt` directly (NOT passlib — incompatible with bcrypt 5.x on Python 3.13) |
@@ -183,17 +183,22 @@ router → AuthService → Provider → UserService → UserRepository
 
 The auth cookie is `salus_session` (defined as `TOKEN_COOKIE_NAME` in `dependencies.py`). Always use the constant, never hardcode the string.
 
-### 9. SQLite engine configuration
-The SQLAlchemy engine for SQLite MUST include `connect_args={"check_same_thread": False}`.
-If you create a new engine (e.g. for tests), use `poolclass=StaticPool` for in-memory databases.
+### 9. Database engine configuration
+
+The engine is built in `database.py` via `_build_engine()` which detects the URL scheme:
 
 ```python
-# Production
+# SQLite — requires check_same_thread=False
 engine = create_engine("sqlite:///salus.db", connect_args={"check_same_thread": False})
+
+# PostgreSQL — no special connect_args needed
+engine = create_engine("postgresql://user:pass@host/salus")
 
 # Test
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 ```
+
+`SALUS_DATABASE_URL` accepts any scheme SQLAlchemy supports. `psycopg2-binary` is included for PostgreSQL.
 
 ### 10. Absolute imports only
 Always use absolute imports starting from `salus.`. Never use relative imports (`from .models import ...`).
@@ -258,11 +263,26 @@ Payload auto-detection order:
 All config lives in `config.py` via `pydantic-settings.BaseSettings` with `SALUS_` env prefix.
 
 | Setting | Default | Env var |
-|---|---|---|
+|---|---|---|---|
 | `app_name` | `"salus"` | `SALUS_APP_NAME` |
 | `database_url` | `"sqlite:///salus.db"` | `SALUS_DATABASE_URL` |
 | `hermes_home` | `"data"` (or `$HERMES_HOME`) | `SALUS_HERMES_HOME` |
 | `api_token` | `"s3ns0r-h34lth-t0k3n-2026"` | `SALUS_API_TOKEN` |
+| `jwt_secret_key` | `"change-me-in-production-salus-2026"` | `SALUS_JWT_SECRET_KEY` |
+| `jwt_algorithm` | `"HS256"` | `SALUS_JWT_ALGORITHM` |
+| `jwt_expire_minutes` | `1440` (24h) | `SALUS_JWT_EXPIRE_MINUTES` |
+| `google_client_id` | `None` | `SALUS_GOOGLE_CLIENT_ID` |
+| `google_client_secret` | `None` | `SALUS_GOOGLE_CLIENT_SECRET` |
+| `github_client_id` | `None` | `SALUS_GITHUB_CLIENT_ID` |
+| `github_client_secret` | `None` | `SALUS_GITHUB_CLIENT_SECRET` |
+| `oidc_issuer_url` | `None` | `SALUS_OIDC_ISSUER_URL` |
+| `oidc_client_id` | `None` | `SALUS_OIDC_CLIENT_ID` |
+| `oidc_client_secret` | `None` | `SALUS_OIDC_CLIENT_SECRET` |
+| `oauth_redirect_base` | `"http://localhost:8000"` | `SALUS_OAUTH_REDIRECT_BASE` |
+| `ldap_server_uri` | `None` | `SALUS_LDAP_SERVER_URI` |
+| `ldap_base_dn` | `None` | `SALUS_LDAP_BASE_DN` |
+| `ldap_user_dn_template` | `"uid={username},{base_dn}"` | `SALUS_LDAP_USER_DN_TEMPLATE` |
+| `ldap_use_tls` | `False` | `SALUS_LDAP_USE_TLS` |
 
 ## Commands
 
@@ -284,7 +304,72 @@ uv run pyright src/
 
 # Install after adding dependencies
 uv sync
+
+# Nix checks
+nix flake check               # verify devShell + packages + modules
+nix build .#default           # build the Python package
+nix build .#dockerImage       # build the Docker image
+docker load < result          # load into local Docker
 ```
+
+## Git workflow
+
+```
+main     ← default branch, production mirror (always deployable)
+develop  ← integration branch, all PRs target this
+feat/*   ← feature branches off develop
+fix/*    ← bug fix branches
+chore/*  ← maintenance (deps, ci, etc.)
+```
+
+**Conventional Commits**: `feat:`, `fix:`, `chore:`, `refactor:`, `test:` — used by release-please for automatic SemVer.
+
+**Merge flow**: PR → develop → CI (ruff + pyright + pytest) → merge → **auto merge-back** syncs main → develop.
+
+## CI/CD
+
+| Workflow | Trigger | File |
+|---|---|---|
+| CI | PR → main, develop | `.github/workflows/ci.yml` |
+| Merge-Back | push → main | `.github/workflows/merge-back.yml` |
+| Docker Publish | push → main | `.github/workflows/docker-publish.yml` |
+| Release Please | push → main | `.github/workflows/release-please.yml` |
+| Flake Update | weekly cron | `.github/workflows/update-flake.yml` |
+| Dependabot | weekly | `.github/dependabot.yml` |
+
+## Release process
+
+Push to `main` with conventional commit → release-please creates/updates a release PR.
+Merge it → Git tag + GitHub Release + CHANGELOG.md update.
+
+Release-please uses the PAT stored in `RELEASE_PLEASE_TOKEN` repo secret.
+
+## Deployment
+
+### Docker
+
+```bash
+docker run -p 8000:8000 -v ./data:/data ghcr.io/fleischerdesign/salus:latest
+```
+
+Image is built via `dockerTools.buildLayeredImage` in `flake.nix`. Published to `ghcr.io/fleischerdesign/salus` on every push to main.
+
+### NixOS module
+
+```nix
+{
+  nixpkgs.overlays = [ inputs.salus.overlays.default ];
+  imports = [ inputs.salus.nixosModules.default ];
+  services.salus = {
+    enable = true;
+    port = 8200;
+    databaseUrl = "sqlite:///var/lib/salus/salus.db";
+    openFirewall = true;
+  };
+}
+```
+
+Also available: `nixosModules.container` for systemd-nspawn isolation.
 
 ## Pre-commit checklist
 
