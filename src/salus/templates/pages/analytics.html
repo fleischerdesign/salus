@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}salus — Analytics{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Analytics</h1>
+    <p class="text-muted">Metabolic &amp; Activity Trends</p>
+</div>
+
+<div class="range-selector mb-lg">
+    {% for value, label in range_buttons %}
+    <button
+        class="btn-sm {% if active_range == value %}active{% endif %}"
+        hx-get="/analytics/data?range={{ value }}"
+        hx-target="#analytics-grid"
+        hx-swap="outerHTML"
+    >{{ label }}</button>
+    {% endfor %}
+</div>
+
+<div id="analytics-grid">
+    {% include "components/analytics/grid.html" %}
+</div>
+{% endblock %}

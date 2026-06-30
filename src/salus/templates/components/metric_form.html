@@ -1,0 +1,38 @@
+<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+    <div class="modal-content">
+        <div class="card">
+            <form
+                {% if metric %}hx-put="/metrics/{{ metric.id }}"{% else %}hx-post="/metrics"{% endif %}
+                hx-target="body"
+                hx-push-url="true"
+            >
+                <div class="form-stack">
+                    <div class="input-group">
+                        <label for="metric-name">Name</label>
+                        <input type="text" id="metric-name" name="name" value="{{ metric.name if metric else '' }}" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="metric-unit">Unit</label>
+                        <input type="text" id="metric-unit" name="unit" value="{{ metric.unit if metric else '' }}">
+                    </div>
+                    <div class="input-group">
+                        <label for="metric-data-type">Data Type</label>
+                        <select id="metric-data-type" name="data_type">
+                            <option value="number" {% if metric and metric.data_type.value == 'number' %}selected{% endif %}>Number</option>
+                            <option value="text" {% if metric and metric.data_type.value == 'text' %}selected{% endif %}>Text</option>
+                            <option value="boolean" {% if metric and metric.data_type.value == 'boolean' %}selected{% endif %}>Boolean</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="metric-color">Color</label>
+                        <input type="color" id="metric-color" name="color" value="{{ metric.color if metric else '#4f46e5' }}">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Save</button>
+                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

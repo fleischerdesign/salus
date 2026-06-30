@@ -1,0 +1,92 @@
+from datetime import datetime
+
+from sqlalchemy import desc
+from sqlmodel import select
+
+from salus.models.measurement import Measurement
+from salus.repositories.base import Repository
+
+
+class MeasurementRepository(Repository[Measurement]):
+    model = Measurement
+
+    def find_by_metric_type(
+        self, metric_type_id: int, user_id: int | None = None
+    ) -> list[Measurement]:
+        stmt = select(Measurement).where(
+            Measurement.metric_type_id == metric_type_id
+        )
+        if user_id is not None:
+            stmt = stmt.where(Measurement.user_id == user_id)
+        stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
+        return list(self.session.exec(stmt).all())
+
+    def find_all(
+        self,
+        user_id: int | None = None,
+        data_types: list[str] | None = None,
+        sources: list[str] | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        limit: int | None = None,
+    ) -> list[Measurement]:
+        stmt = select(Measurement)
+        if user_id is not None:
+            stmt = stmt.where(Measurement.user_id == user_id)
+        if data_types:
+            stmt = stmt.where(Measurement.data_type.in_(data_types))  # pyright: ignore[reportAttributeAccessIssue]
+        if sources:
+            stmt = stmt.where(Measurement.source.in_(sources))  # pyright: ignore[reportAttributeAccessIssue]
+        if since is not None:
+            stmt = stmt.where(Measurement.start_time >= since)
+        if until is not None:
+            stmt = stmt.where(Measurement.start_time < until)
+        stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
+        if limit:
+            stmt = stmt.limit(limit)
+        return list(self.session.exec(stmt).all())
+
+    def find_latest(self, data_type: str, user_id: int | None = None) -> Measurement | None:
+        results = self.find_all(user_id=user_id, data_types=[data_type], limit=1)
+        return results[0] if results else None
+
+    def upsert_all(self, records: list[Measurement]) -> tuple[int, int]:
+        inserted = 0
+        duplicates = 0
+        for rec in records:
+            existing = None
+            if rec.external_id:
+                existing = self.session.exec(
+                    select(Measurement).where(
+                        Measurement.external_id == rec.external_id,
+                        Measurement.source == rec.source,
+                    )
+                ).first()
+            if existing is not None:
+                existing.value_numeric = rec.value_numeric
+                existing.value_text = rec.value_text
+                existing.value_json = rec.value_json
+                existing.start_time = rec.start_time
+                existing.end_time = rec.end_time
+                self.update(existing)
+                duplicates += 1
+            else:
+                self.create(rec)
+                inserted += 1
+        return inserted, duplicates
+
+    def find_by_date_range(
+        self, user_id: int, data_types: list[str], since: datetime, until: datetime
+    ) -> list[Measurement]:
+        return self.find_all(user_id=user_id, data_types=data_types, since=since, until=until)
+
+    def find_recent_entries(
+        self, user_id: int, limit: int = 20
+    ) -> list[Measurement]:
+        stmt = (
+            select(Measurement)
+            .where(Measurement.user_id == user_id, Measurement.source == "manual")
+            .order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
+            .limit(limit)
+        )
+        return list(self.session.exec(stmt).all())

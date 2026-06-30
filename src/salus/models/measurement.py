@@ -1,0 +1,29 @@
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from salus.models import MetricType  # noqa: F401
+    from salus.models.user import User  # noqa: F401
+
+
+class Measurement(SQLModel, table=True):
+    __tablename__ = "measurement"  # pyright: ignore[reportAssignmentType]
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int | None = Field(default=None, foreign_key="user.id")
+    metric_type_id: int | None = Field(default=None, foreign_key="metric_type.id")
+    data_type: str = Field(default="")
+    source: str = Field(default="manual")
+    value_numeric: float | None = Field(default=None)
+    value_text: str | None = Field(default=None)
+    value_json: str | None = Field(default=None)
+    start_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    end_time: datetime | None = Field(default=None)
+    notes: str | None = Field(default=None)
+    external_id: str | None = Field(default=None)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    user: "User" = Relationship(back_populates="measurements")
+    metric_type: "MetricType" = Relationship(back_populates="measurements")  # pyright: ignore[reportAssignmentType]

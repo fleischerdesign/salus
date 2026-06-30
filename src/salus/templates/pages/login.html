@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}salus — Sign In{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Sign In</h2>
+        <p class="auth-subtitle">Access your health data dashboard</p>
+
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        {% if ldap_mode %}
+        <form method="post" action="/auth/ldap">
+            <div class="form-stack">
+                <div class="input-group">
+                    <label for="login-username">LDAP Username</label>
+                    <input type="text" id="login-username" name="username" required autofocus>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Sign In with LDAP</button>
+            </div>
+        </form>
+        <div class="mt-md text-center">
+            <a href="/auth/login" class="text-primary" style="font: var(--font-body-sm);">Local login</a>
+        </div>
+        {% else %}
+        <form method="post" action="/auth/login">
+            <div class="form-stack">
+                <div class="input-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" name="username" required autofocus>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+            </div>
+        </form>
+        {% endif %}
+
+        {% if not ldap_mode and settings.ldap_server_uri %}
+        <div class="mt-sm text-center">
+            <a href="/auth/ldap" class="text-primary" style="font: var(--font-body-sm);">Sign in with LDAP</a>
+        </div>
+        {% endif %}
+
+        <div class="auth-divider"><span>or</span></div>
+
+        {% if settings.google_client_id %}
+        <a href="/auth/oidc/google" class="provider-btn">
+            <span>Sign in with Google</span>
+        </a>
+        {% endif %}
+        {% if settings.github_client_id %}
+        <a href="/auth/oidc/github" class="provider-btn">
+            <span>Sign in with GitHub</span>
+        </a>
+        {% endif %}
+        {% if settings.oidc_client_id %}
+        <a href="/auth/oidc/oidc" class="provider-btn">
+            <span>Sign in with OIDC</span>
+        </a>
+        {% endif %}
+
+        <div class="mt-md text-center">
+            <span style="font: var(--font-body-sm); color: var(--color-slate-500);">Don't have an account?</span>
+            <a href="/auth/register" class="text-primary" style="font: var(--font-body-sm);">Create one</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

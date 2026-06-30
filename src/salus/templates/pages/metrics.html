@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}salus — Metrics{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Metrics</h1>
+    <div class="page-header-actions">
+        <button class="btn"
+            hx-get="/metrics/new"
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+            New Metric
+        </button>
+    </div>
+</div>
+
+<div id="modal-container"></div>
+
+{% for metric in metrics %}
+<div class="card" id="metric-{{ metric.id }}">
+    <div class="card-header">
+        <h3 class="card-title" style="color: {{ metric.color }}">{{ metric.name }}</h3>
+        <div class="flex-center gap-sm">
+            <span class="chip chip-neutral">{{ metric.unit or '-' }}</span>
+            <span class="chip chip-neutral">{{ metric.data_type.value }}</span>
+        </div>
+    </div>
+    <div class="flex gap-sm">
+        <button class="btn-sm"
+            hx-get="/metrics/{{ metric.id }}/edit"
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+            Edit
+        </button>
+        <button
+            hx-delete="/metrics/{{ metric.id }}"
+            hx-target="#metric-{{ metric.id }}"
+            hx-swap="outerHTML"
+            class="btn-danger">
+            Delete
+        </button>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

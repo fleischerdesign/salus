@@ -1,0 +1,43 @@
+<div class="card goal-card goal-card-{{ card.progress.status }}">
+    <div class="goal-card-header">
+        <div class="goal-card-icon">
+            <span class="material-symbols-outlined">track_changes</span>
+        </div>
+        <div>
+            <h3 class="card-title" style="margin-bottom:2px;">{{ card.metric_name }}</h3>
+            <span class="goal-card-frequency">{{ card.goal.frequency }}</span>
+        </div>
+    </div>
+
+    <div class="goal-card-value">
+        <span class="goal-current">{{ card.progress.current_value|default("—", true) }}{% if card.progress.current_value is not none and card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
+        <span class="goal-target">/ {{ "%.0f"|format(card.goal.target_value) }}{% if card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill progress-fill-{{ card.progress.status }}" style="width:{{ card.progress.percent }}%"></div>
+    </div>
+
+    <div class="goal-card-footer">
+        <span class="goal-status goal-status-{{ card.progress.status }}">
+            {{ card.progress.status }}
+        </span>
+        <span class="goal-deadline">
+            {% if card.goal.frequency == "once" and card.goal.deadline %}
+            {{ card.goal.deadline }}
+            {% elif card.goal.frequency == "daily" %}
+            daily reset
+            {% else %}
+            weekly reset
+            {% endif %}
+        </span>
+    </div>
+
+    <button class="goal-card-delete"
+        hx-delete="/goals/{{ card.goal.id }}"
+        hx-target="#goal-cards"
+        hx-swap="outerHTML"
+        title="Delete goal">
+        <span class="material-symbols-outlined">close</span>
+    </button>
+</div>

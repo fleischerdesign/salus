@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}salus{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="top-app-bar">
+        <div class="top-app-bar-content">
+            <a href="/" class="top-app-bar-logo">salus</a>
+            {% if current_user %}
+            <a href="/" class="top-app-bar-link {% if request.url.path == '/' %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">dashboard</span>Dashboard</a>
+            <a href="/analytics" class="top-app-bar-link {% if request.url.path.startswith('/analytics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">analytics</span>Analytics</a>
+            <a href="/goals" class="top-app-bar-link {% if request.url.path.startswith('/goals') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">track_changes</span>Goals</a>
+            <a href="/metrics" class="top-app-bar-link {% if request.url.path.startswith('/metrics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">label</span>Metrics</a>
+            <a href="/entries" class="top-app-bar-link {% if request.url.path.startswith('/entries') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">description</span>Entries</a>
+            {% endif %}
+            <span class="flex-1"></span>
+            {% if current_user %}
+            <a href="/settings" class="top-app-bar-link">{{ current_user.display_name or current_user.username }}</a>
+            <form method="post" action="/auth/logout" style="display:inline;">
+                <button type="submit" class="btn-ghost">Logout</button>
+            </form>
+            {% else %}
+            <a href="/auth/login" class="btn">Sign In</a>
+            {% endif %}
+        </div>
+    </header>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

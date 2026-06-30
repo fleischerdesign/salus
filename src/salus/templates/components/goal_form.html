@@ -1,0 +1,53 @@
+<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+    <div class="modal-content">
+        <div class="card">
+            <h3 class="card-title mb-md">New Goal</h3>
+            <form hx-post="/goals" hx-target="body" class="form-stack">
+                <div class="input-group">
+                    <label for="goal-metric">Metric</label>
+                    <select id="goal-metric" name="metric_type_id" required>
+                        <option value="">— Select —</option>
+                        {% for m in all_metrics %}
+                        <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row" style="display:flex;gap:var(--space-stack-md);">
+                    <div class="input-group" style="flex:1;">
+                        <label for="goal-target">Target</label>
+                        <input id="goal-target" name="target_value" type="number" step="any" required placeholder="e.g. 80">
+                    </div>
+                    <div class="input-group" style="flex:1;">
+                        <label for="goal-direction">Direction</label>
+                        <select id="goal-direction" name="direction">
+                            <option value="increase">Increase</option>
+                            <option value="decrease">Decrease</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Frequency</label>
+                    <div class="chip-row">
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="radio" name="frequency" value="daily" checked> Daily
+                        </label>
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="radio" name="frequency" value="weekly"> Weekly
+                        </label>
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="radio" name="frequency" value="once"> Once
+                        </label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="goal-deadline">Deadline (only for "once")</label>
+                    <input id="goal-deadline" name="deadline" type="date">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">Create Goal</button>
+                    <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

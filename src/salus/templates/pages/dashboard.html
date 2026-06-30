@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}salus — Dashboard{% endblock %}
+{% block content %}
+<div class="hero-card">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-headline">Good Morning, {{ current_user.display_name or current_user.username }}</h1>
+            <p class="hero-sub">Your health at a glance</p>
+        </div>
+        <div class="activity-ring">
+            <svg viewBox="0 0 120 120" class="ring-svg">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--color-slate-100)" stroke-width="8"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--color-primary)" stroke-width="8"
+                    stroke-dasharray="{{ [dashboard.steps.count / dashboard.steps_goal * 327, 325]|min if dashboard.steps else 0 }} 327"
+                    stroke-dashoffset="0" stroke-linecap="round"
+                    transform="rotate(-90 60 60)" class="ring-progress"/>
+            </svg>
+            <div class="ring-center">
+                {% if dashboard.steps %}
+                <span class="ring-value">{{ "{:,}".format(dashboard.steps.count) }}</span>
+                <span class="ring-label">steps today</span>
+                {% else %}
+                <span class="ring-value">—</span>
+                <span class="ring-label">no data</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card widget-card widget-card-steps">
+        <div class="widget-icon"><span class="material-symbols-outlined">directions_walk</span></div>
+        <div class="widget-content">
+            <span class="widget-label">Steps</span>
+            {% if dashboard.steps %}
+            <span class="widget-value">{{ "{:,}".format(dashboard.steps.count) }}</span>
+            <span class="widget-sub">/ {{ "{:,}".format(dashboard.steps_goal) }} goal</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:{{ [dashboard.steps.count / dashboard.steps_goal * 100, 100]|min|int }}%"></div>
+            </div>
+            {% else %}
+            <span class="widget-value">—</span>
+            <span class="widget-sub">No data synced</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card widget-card widget-card-hr">
+        <div class="widget-icon"><span class="material-symbols-outlined">monitor_heart</span></div>
+        <div class="widget-content">
+            <span class="widget-label">Resting Heart Rate</span>
+            {% if dashboard.heart_rate %}
+            <span class="widget-value">{{ dashboard.heart_rate.resting_bpm|int }} <span class="widget-unit">bpm</span></span>
+            <span class="widget-sub">Avg {{ dashboard.heart_rate.avg_bpm|int }} &middot; {{ dashboard.heart_rate.min_bpm }}–{{ dashboard.heart_rate.max_bpm }}</span>
+            {% else %}
+            <span class="widget-value">—</span>
+            <span class="widget-sub">No data synced</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card widget-card widget-card-sleep">
+        <div class="widget-icon"><span class="material-symbols-outlined">bedtime</span></div>
+        <div class="widget-content">
+            <span class="widget-label">Sleep Duration</span>
+            {% if dashboard.sleep %}
+            <span class="widget-value">{{ "%.1f"|format(dashboard.sleep.duration_hours) }}h</span>
+            <span class="widget-sub">{{ dashboard.sleep.deep_pct|int }}% Deep &middot; {{ dashboard.sleep.rem_pct|int }}% REM</span>
+            {% else %}
+            <span class="widget-value">—</span>
+            <span class="widget-sub">No data synced</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card widget-card widget-card-nutrition">
+        <div class="widget-icon"><span class="material-symbols-outlined">restaurant</span></div>
+        <div class="widget-content">
+            <span class="widget-label">Nutrition Intake</span>
+            {% if dashboard.nutrition %}
+            <span class="widget-value">{{ dashboard.nutrition.total_kcal|int }} <span class="widget-unit">kcal</span></span>
+            {% if dashboard.nutrition.protein_g + dashboard.nutrition.carbs_g + dashboard.nutrition.fat_g > 0 %}
+            <div class="macro-bar">
+                <div class="macro-segment macro-protein" style="width:{{ [dashboard.nutrition.protein_g * 4 / (dashboard.nutrition.protein_g * 4 + dashboard.nutrition.carbs_g * 4 + dashboard.nutrition.fat_g * 9) * 100, 100]|min|int }}%" title="Protein {{ dashboard.nutrition.protein_g|int }}g"></div>
+                <div class="macro-segment macro-carbs" style="width:{{ [dashboard.nutrition.carbs_g * 4 / (dashboard.nutrition.protein_g * 4 + dashboard.nutrition.carbs_g * 4 + dashboard.nutrition.fat_g * 9) * 100, 100]|min|int }}%" title="Carbs {{ dashboard.nutrition.carbs_g|int }}g"></div>
+                <div class="macro-segment macro-fat" style="width:{{ [dashboard.nutrition.fat_g * 9 / (dashboard.nutrition.protein_g * 4 + dashboard.nutrition.carbs_g * 4 + dashboard.nutrition.fat_g * 9) * 100, 100]|min|int }}%" title="Fat {{ dashboard.nutrition.fat_g|int }}g"></div>
+            </div>
+            {% endif %}
+            {% else %}
+            <span class="widget-value">—</span>
+            <span class="widget-sub">No data synced</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if metrics %}
+<section class="card mt-lg">
+    <h2 class="card-title mb-md">Recent Entries</h2>
+    <table class="data-grid">
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Timestamp</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for metric in metrics %}
+            {% for entry in entries_by_metric[metric.id] %}
+            <tr>
+                <td><span style="color:{{ metric.color }}">{{ metric.name }}</span></td>
+                <td>{{ entry.value_text }}{% if metric.unit %} {{ metric.unit }}{% endif %}</td>
+                <td>{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ entry.notes or '—' }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+{% if not metrics %}
+<div class="card">
+    <p>No metrics defined yet. <a href="/metrics" class="text-primary">Create your first metric</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

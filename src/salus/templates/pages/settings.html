@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}salus — Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Account Settings</h1>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+{% if success %}
+<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Profile</h3>
+        </div>
+        <div class="identity-card">
+            <div>
+                <strong>{{ current_user.display_name or current_user.username }}</strong>
+                <br>
+                <span class="text-muted">{{ current_user.email or 'No email set' }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Connected Accounts</h3>
+        </div>
+        {% for identity in identities %}
+        <div class="identity-card">
+            <span class="chip {% if identity.provider == 'local' %}chip-neutral{% elif identity.provider == 'ldap' %}chip-warning{% else %}chip-success{% endif %}">
+                {{ identity.provider.title() }}
+            </span>
+            <span class="text-muted">{{ identity.provider_user_id }}</span>
+        </div>
+        {% endfor %}
+
+        {% if settings.google_client_id and 'google' not in connected_providers %}
+        <div class="identity-card">
+            <span class="text-muted">Google</span>
+            <a href="/auth/oidc/google" class="btn-sm">Connect</a>
+        </div>
+        {% endif %}
+        {% if settings.github_client_id and 'github' not in connected_providers %}
+        <div class="identity-card">
+            <span class="text-muted">GitHub</span>
+            <a href="/auth/oidc/github" class="btn-sm">Connect</a>
+        </div>
+        {% endif %}
+        {% if settings.oidc_client_id and 'oidc' not in connected_providers %}
+        <div class="identity-card">
+            <span class="text-muted">OIDC</span>
+            <a href="/auth/oidc/oidc" class="btn-sm">Connect</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_user.password_hash %}
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Change Password</h3>
+        </div>
+        <form method="post" action="/settings/change-password">
+            <div class="form-stack">
+                <div class="input-group">
+                    <label for="settings-current-password">Current Password</label>
+                    <input type="password" id="settings-current-password" name="current_password" required>
+                </div>
+                <div class="input-group">
+                    <label for="settings-new-password">New Password</label>
+                    <input type="password" id="settings-new-password" name="new_password" required minlength="6">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">Change Password</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Data Management</h3>
+        </div>
+        <div class="data-management-grid">
+            <div class="data-box">
+                <div class="flex-center gap-sm mb-sm">
+                    <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary);">download</span>
+                    <h4 style="font:var(--font-body-md);font-weight:600;">Export Data</h4>
+                </div>
+                <p class="text-muted mb-md" style="font:var(--font-body-sm);">Download all your health records and custom metrics.</p>
+                <div class="flex gap-sm">
+                    <a href="/export/download?format=csv" class="btn-sm">CSV</a>
+                    <a href="/export/download?format=json" class="btn-sm">JSON</a>
+                </div>
+            </div>
+            <div class="data-box">
+                <div class="flex-center gap-sm mb-sm">
+                    <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary);">sync</span>
+                    <h4 style="font:var(--font-body-md);font-weight:600;">Connected Sources</h4>
+                </div>
+                <p class="text-muted mb-md" style="font:var(--font-body-sm);">Health data syncs automatically from connected wearables.</p>
+                <div class="sources-list">
+                    <div class="source-row">
+                        <span>🏃 Samsung Health</span>
+                        <span class="chip chip-success">Active</span>
+                    </div>
+                    <div class="source-row">
+                        <span>🫀 Apple Health</span>
+                        <span class="chip chip-neutral">Available</span>
+                    </div>
+                    <div class="source-row">
+                        <span>⌚ Oura Ring</span>
+                        <span class="chip chip-neutral">Available</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

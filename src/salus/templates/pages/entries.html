@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}salus — Entries{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Entries</h1>
+</div>
+
+<div class="flex-wrap gap-sm mb-md">
+    <button class="btn"
+        hx-get="/entries/new{% if selected_metric_id %}?metric_type_id={{ selected_metric_id }}{% endif %}"
+        hx-target="#modal-container"
+        hx-swap="innerHTML">
+        New Entry
+    </button>
+    {% for metric in metrics %}
+    <a href="/entries?metric_type_id={{ metric.id }}"
+       class="btn-sm {% if selected_metric_id == metric.id %}active{% endif %}">
+        {{ metric.name }}
+    </a>
+    {% endfor %}
+</div>
+
+<div id="modal-container"></div>
+
+{% for entry in entries %}
+<div class="card" id="entry-{{ entry.id }}">
+    <div class="flex-between flex-wrap gap-md">
+        <div>
+            <strong>{{ entry.value_text }}</strong>
+            <span class="text-muted ml-sm">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
+            {% if entry.notes %}<span class="text-muted"> — {{ entry.notes }}</span>{% endif %}
+        </div>
+        <div class="flex gap-sm">
+            <button class="btn-sm"
+                hx-get="/entries/{{ entry.id }}/edit"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+                Edit
+            </button>
+            <button
+                hx-delete="/entries/{{ entry.id }}"
+                hx-target="#entry-{{ entry.id }}"
+                hx-swap="outerHTML"
+                class="btn-danger">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if not entries and selected_metric_id %}
+<p class="text-muted mt-md">No entries for this metric yet.</p>
+{% endif %}
+{% endblock %}
