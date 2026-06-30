@@ -36,12 +36,12 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           echo "VERSION_TAG=$(date +%Y%m%d)-${SHORT_SHA}" >> $GITHUB_ENV
-          echo "IMAGE=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
 
       - name: Tag images
         run: |
-          docker tag ghcr.io/fleischerdesign/salus:latest ${{ env.IMAGE }}:latest
-          docker tag ghcr.io/fleischerdesign/salus:latest ${{ env.IMAGE }}:${{ env.VERSION_TAG }}
+          IMAGE=ghcr.io/${{ github.repository }}
+          docker tag ghcr.io/fleischerdesign/salus:latest ${IMAGE}:latest
+          docker tag ghcr.io/fleischerdesign/salus:latest ${IMAGE}:${{ env.VERSION_TAG }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -52,5 +52,6 @@ jobs:
 
       - name: Push to GHCR
         run: |
-          docker push ${{ env.IMAGE }}:latest
-          docker push ${{ env.IMAGE }}:${{ env.VERSION_TAG }}
+          IMAGE=ghcr.io/${{ github.repository }}
+          docker push ${IMAGE}:latest
+          docker push ${IMAGE}:${{ env.VERSION_TAG }}
