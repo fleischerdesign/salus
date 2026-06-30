@@ -89,6 +89,8 @@ def _extract_current_value(
         return None
     try:
         values = [float(e.value_text) for e in entries if e.value_text]
+        values += [float(e.value_numeric) for e in entries
+                   if e.value_numeric is not None and e.value_text is None]
     except (ValueError, TypeError):
         return None
     if not values:

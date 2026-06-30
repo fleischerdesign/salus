@@ -27,3 +27,13 @@ class Measurement(SQLModel, table=True):
 
     user: "User" = Relationship(back_populates="measurements")
     metric_type: "MetricType" = Relationship(back_populates="measurements")  # pyright: ignore[reportAssignmentType]
+
+    @property
+    def display_value(self) -> str:
+        if self.value_text is not None:
+            return self.value_text
+        if self.value_numeric is not None:
+            return str(self.value_numeric)
+        if self.value_json is not None:
+            return self.value_json
+        return ""

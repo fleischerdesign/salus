@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -16,7 +17,9 @@ from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
 from salus.services.config import ConfigService
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=getattr(logging, log_level),
+                    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 templates = Jinja2Templates(directory="src/salus/templates")
 templates.env.globals["settings"] = app_settings

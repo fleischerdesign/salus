@@ -3,10 +3,7 @@ import json
 
 from salus.models.analytics import ExerciseSession, HRSummary, StepDay
 from salus.repositories.measurement import MeasurementRepository
-from salus.services.analytics.calculations import (
-    map_exercise_type,
-    samsung_day_boundary,
-)
+from salus.services.analytics.calculations import map_exercise_type
 
 
 class ActivityAnalysisService:
@@ -18,15 +15,17 @@ class ActivityAnalysisService:
         anchor = datetime.today() if date is None else datetime.strptime(date, "%Y-%m-%d")
         for i in range(days):
             d = (anchor - timedelta(days=i)).strftime("%Y-%m-%d")
-            day_start, day_end = samsung_day_boundary(d)
-            records = self._repo.find_all(data_types=["steps"], user_id=user_id)
+            since = datetime.fromisoformat(d + "T00:00:00")
+            until = datetime.fromisoformat(d + "T23:59:59")
+            records = self._repo.find_all(
+                data_types=["steps"], user_id=user_id, since=since, until=until
+            )
             count = 0
             for rec in records:
-                if rec.end_time and day_start <= rec.end_time.strftime("%Y-%m-%dT%H:%M:%S") < day_end:
-                    if rec.value_numeric is not None:
-                        c = int(rec.value_numeric)
-                        if c > count:
-                            count = c
+                if rec.value_numeric is not None:
+                    c = int(rec.value_numeric)
+                    if c > count:
+                        count = c
             result.append(StepDay(date=d, count=count))
         result.sort(key=lambda s: s.date)
         return result
