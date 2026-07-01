@@ -36,8 +36,27 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: salus_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@v22
       - uses: DeterminateSystems/magic-nix-cache-action@v14
-      - run: nix develop --command uv run pytest -v
+      - name: Run tests (SQLite)
+        run: nix develop --command uv run pytest -v
+      - name: Run tests (PostgreSQL)
+        run: nix develop --command uv run pytest -v
+        env:
+          SALUS_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/salus_test

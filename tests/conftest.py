@@ -1,3 +1,4 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, Session, create_engine
@@ -25,12 +26,18 @@ def _seed_admin(session: Session) -> None:
 
 @pytest.fixture
 def client():
-    engine = create_engine(
-        "sqlite://",
-        echo=False,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    db_url = os.environ.get("SALUS_TEST_DATABASE_URL", "sqlite://")
+    if db_url.startswith("sqlite"):
+        engine = create_engine(
+            db_url,
+            echo=False,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+    else:
+        engine = create_engine(db_url, echo=False)
+
+    SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
 
     def override_get_session():

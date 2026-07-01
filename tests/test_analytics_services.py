@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime, timedelta
 
@@ -15,7 +16,12 @@ from salus.services.analytics.weight import WeightAnalysisService
 
 @pytest.fixture
 def repo():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
+    db_url = os.environ.get("SALUS_TEST_DATABASE_URL", "sqlite://")
+    if db_url.startswith("sqlite"):
+        engine = create_engine(db_url, connect_args={"check_same_thread": False})
+    else:
+        engine = create_engine(db_url)
+    SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         yield MeasurementRepository(session)

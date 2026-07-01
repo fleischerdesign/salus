@@ -42,8 +42,8 @@ This document serves as the central log of completed architectural refactorings 
 ## Phase 3: CI/CD & Database Divergence Testing
 * **Objective:** Ensure dialect compatibility between the SQLite development environment and PostgreSQL production database.
 * **Tasks:**
-  * [ ] Update GitHub Actions workflow (`ci.yml`) to run a PostgreSQL service container.
-  * [ ] Run the pytest suite against both SQLite (in-memory) and the PostgreSQL container to detect syntax or locking differences before pull requests are merged.
+  * [x] Update GitHub Actions workflow (`ci.yml`) to run a PostgreSQL service container.
+  * [x] Run the pytest suite against both SQLite (in-memory) and the PostgreSQL container to detect syntax or locking differences before pull requests are merged.
 
 ---
 
