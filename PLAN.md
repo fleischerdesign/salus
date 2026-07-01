@@ -146,6 +146,19 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Export medical-grade, clean PDF summaries of specific health logs (e.g., a 3-month blood pressure or blood glucose diary) that the user can print out or hand directly to their physician.
 * **Architecture:** Implement print-specific styles via CSS media queries (`@media print`) and vector-based SVG rendering. Users can print directly from the browser's native print handler (or save as PDF) with zero server-side compilation dependencies.
 
+### 18. Privacy-Preserving Federated Learning (Collaborative Research)
+* **Concept:** Train medical anomaly prediction models (e.g. sleep apnea or arrhythmia detection) collectively across decentralized Salus nodes without ever pooling raw, private user data.
+* **Architecture:** Utilize a federated learning framework (such as Flower or PySyft). Instances train a shared model on local data and only transmit encrypted model parameter updates (gradients) using Secure Multi-Party Computation (SMPC) or Homomorphic Encryption.
+
+### 19. Smart Medication Safety & Interaction Logger
+* **Concept:** Log medication intake alongside vitals, with an offline-first interaction warnings checker.
+* **Architecture:** Download local, lightweight drug-interaction tables (such as OpenFDA mappings). The app automatically alerts the user if a food log (e.g., grapefruit juice) or a biometric alert (e.g., resting heart rate falling below 50 bpm while taking beta-blockers) poses a contraindication risk.
+
+### 20. Verifiable Health Credentials (W3C Decoupled Passes)
+* **Concept:** Store cryptographically verifiable health proofs (such as vaccination status, PCR tests, or lab reports) locally on Salus, sharing them via a QR code with third parties without revealing any other medical history.
+* **Architecture:** Implement the W3C Verifiable Credentials (VC) standard, verifying signatures using DID (Decentralized Identifier) registries.
+
+
 
 
 
