@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% block title %}salus — Settings{% endblock %}
 {% block content %}
+{% from "components/ui/input.html" import input %}
+{% from "components/ui/alert.html" import alert %}
 <div class="page-header">
     <h1>{{ _("Account Settings") }}</h1>
 </div>
 
 {% if error %}
-<div class="alert alert-error">{{ error }}</div>
+{{ alert(type="error", message=error) }}
 {% endif %}
 {% if success %}
-<div class="alert alert-success">{{ success }}</div>
+{{ alert(type="success", message=success) }}
 {% endif %}
 
 <div class="settings-section">
@@ -110,14 +112,8 @@
         </div>
         <form method="post" action="/settings/change-password">
             <div class="form-stack">
-                <div class="input-group">
-                    <label for="settings-current-password">Current Password</label>
-                    <input type="password" id="settings-current-password" name="current_password" required>
-                </div>
-                <div class="input-group">
-                    <label for="settings-new-password">New Password</label>
-                    <input type="password" id="settings-new-password" name="new_password" required minlength="6">
-                </div>
+                {{ input(name="current_password", label="Current Password", type="password", required=True, id="settings-current-password") }}
+                {{ input(name="new_password", label="New Password", type="password", required=True, id="settings-new-password") }}
                 <div class="form-actions">
                     <button type="submit" class="btn">Change Password</button>
                 </div>

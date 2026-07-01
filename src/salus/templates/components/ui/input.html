@@ -1,0 +1,13 @@
+{% macro input(name, label=None, value="", type="text", required=False, placeholder="", id=None, error=None) %}
+<div class="input-group">
+    {% if label %}
+    <label for="{{ id or name }}">{{ label }}</label>
+    {% endif %}
+    <input type="{{ type }}" id="{{ id or name }}" name="{{ name }}" value="{{ value }}" 
+           {% if required %}required{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           class="{% if error %}is-invalid{% endif %}">
+    {% if error %}
+    <span class="error-text">{{ error }}</span>
+    {% endif %}
+</div>
+{% endmacro %}

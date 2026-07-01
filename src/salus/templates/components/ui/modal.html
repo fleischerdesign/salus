@@ -1,0 +1,16 @@
+{% macro modal(title=None, id=None) %}
+<div class="modal-backdrop" onclick="if(event.target===this)this.remove()" {% if id %}id="{{ id }}"{% endif %}>
+    <div class="modal-content">
+        <div class="card">
+            {% if title %}
+            <div class="card-header">
+                <h3 class="card-title">{{ title }}</h3>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                {{ caller() }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

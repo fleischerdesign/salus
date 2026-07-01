@@ -1,26 +1,22 @@
 {% extends "base.html" %}
 {% block title %}salus — {{ _("Sign In") }}{% endblock %}
 {% block content %}
+{% from "components/ui/input.html" import input %}
+{% from "components/ui/alert.html" import alert %}
 <div class="auth-container">
     <div class="auth-card">
         <h2>{{ _("Sign In") }}</h2>
         <p class="auth-subtitle">{{ _("Access your health data dashboard") }}</p>
 
         {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
+        {{ alert(type="error", message=error) }}
         {% endif %}
 
         {% if ldap_mode %}
         <form method="post" action="/auth/ldap">
             <div class="form-stack">
-                <div class="input-group">
-                    <label for="login-username">{{ _("LDAP Username") }}</label>
-                    <input type="text" id="login-username" name="username" required autofocus>
-                </div>
-                <div class="input-group">
-                    <label for="login-password">{{ _("Password") }}</label>
-                    <input type="password" id="login-password" name="password" required>
-                </div>
+                {{ input(name="username", label=_("LDAP Username"), required=True, id="login-username") }}
+                {{ input(name="password", label=_("Password"), type="password", required=True, id="login-password") }}
                 <button type="submit" class="btn">{{ _("Sign In with LDAP") }}</button>
             </div>
         </form>
@@ -30,14 +26,8 @@
         {% else %}
         <form method="post" action="/auth/login">
             <div class="form-stack">
-                <div class="input-group">
-                    <label for="login-username">{{ _("Username") }}</label>
-                    <input type="text" id="login-username" name="username" required autofocus>
-                </div>
-                <div class="input-group">
-                    <label for="login-password">{{ _("Password") }}</label>
-                    <input type="password" id="login-password" name="password" required>
-                </div>
+                {{ input(name="username", label=_("Username"), required=True, id="login-username") }}
+                {{ input(name="password", label=_("Password"), type="password", required=True, id="login-password") }}
                 <button type="submit" class="btn">{{ _("Sign In") }}</button>
             </div>
         </form>

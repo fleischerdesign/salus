@@ -1,39 +1,28 @@
-<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
-    <div class="modal-content">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ _("Add Widget") }}</h3>
-                <button class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <form hx-post="/dashboard/widgets/add"
-                  hx-target="closest .modal-backdrop"
-                  hx-swap="outerHTML">
-                <div class="form-stack">
-                    <div class="input-group">
-                        <label for="add-widget-metric">{{ _("Metric") }}</label>
-                        <select name="metric_type_id" id="add-widget-metric">
-                            {% for m in metrics %}
-                            <option value="{{ m.id }}">{{ m.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="add-widget-size">{{ _("Size") }}</label>
-                        <select name="size" id="add-widget-size">
-                            <option value="small">{{ _("Small (1 column)") }}</option>
-                            <option value="medium" selected>{{ _("Medium (2 columns)") }}</option>
-                            <option value="large">{{ _("Large (4 columns)") }}</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn">{{ _("Add") }}</button>
-                        <button type="button" class="btn-ghost"
-                                onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
-                    </div>
-                </div>
-            </form>
+{% from "components/ui/modal.html" import modal %}
+{% from "components/ui/select.html" import select %}
+
+{% call modal(title=_("Add Widget")) %}
+<form hx-post="/dashboard/widgets/add"
+      hx-target="closest .modal-backdrop"
+      hx-swap="outerHTML">
+    <div class="form-stack">
+        {% call select(name="metric_type_id", label=_("Metric"), id="add-widget-metric") %}
+            {% for m in metrics %}
+            <option value="{{ m.id }}">{{ m.name }}</option>
+            {% endfor %}
+        {% endcall %}
+
+        {% call select(name="size", label=_("Size"), id="add-widget-size") %}
+            <option value="small">{{ _("Small (1 column)") }}</option>
+            <option value="medium" selected>{{ _("Medium (2 columns)") }}</option>
+            <option value="large">{{ _("Large (4 columns)") }}</option>
+        {% endcall %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn">{{ _("Add") }}</button>
+            <button type="button" class="btn-ghost"
+                    onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
         </div>
     </div>
-</div>
+</form>
+{% endcall %}

@@ -1,33 +1,23 @@
 {% extends "base.html" %}
 {% block title %}salus — {{ _("Register") }}{% endblock %}
 {% block content %}
+{% from "components/ui/input.html" import input %}
+{% from "components/ui/alert.html" import alert %}
 <div class="auth-container">
     <div class="auth-card">
         <h2>{{ _("Create Account") }}</h2>
         <p class="auth-subtitle">{{ _("Start tracking your health data") }}</p>
 
         {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
+        {{ alert(type="error", message=error) }}
         {% endif %}
 
         <form method="post" action="/auth/register">
             <div class="form-stack">
-                <div class="input-group">
-                    <label for="reg-username">{{ _("Username") }}</label>
-                    <input type="text" id="reg-username" name="username" required minlength="2" autofocus>
-                </div>
-                <div class="input-group">
-                    <label for="reg-email">{{ _("Email (optional)") }}</label>
-                    <input type="email" id="reg-email" name="email">
-                </div>
-                <div class="input-group">
-                    <label for="reg-display-name">{{ _("Display Name (optional)") }}</label>
-                    <input type="text" id="reg-display-name" name="display_name">
-                </div>
-                <div class="input-group">
-                    <label for="reg-password">{{ _("Password") }}</label>
-                    <input type="password" id="reg-password" name="password" required minlength="6">
-                </div>
+                {{ input(name="username", label=_("Username"), required=True, id="reg-username") }}
+                {{ input(name="email", label=_("Email (optional)"), type="email", id="reg-email") }}
+                {{ input(name="display_name", label=_("Display Name (optional)"), id="reg-display-name") }}
+                {{ input(name="password", label=_("Password"), type="password", required=True, id="reg-password") }}
                 <button type="submit" class="btn">{{ _("Create Account") }}</button>
             </div>
         </form>

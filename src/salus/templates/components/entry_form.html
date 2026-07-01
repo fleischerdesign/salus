@@ -1,43 +1,36 @@
-<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
-    <div class="modal-content">
-        <div class="card">
-            <form
-                {% if entry %}hx-put="/entries/{{ entry.id }}"{% else %}hx-post="/entries"{% endif %}
-                hx-target="body"
-                hx-push-url="true"
-            >
-                <div class="form-stack">
-                    <div class="input-group">
-                        <label for="entry-metric">{{ _("Metric") }}</label>
-                        <select id="entry-metric" name="metric_type_id" required>
-                            {% for m in metrics %}
-                            <option value="{{ m.id }}"
-                                {% if entry and entry.metric_type_id == m.id %}selected{% endif %}
-                                {% if not entry and selected_metric_id == m.id %}selected{% endif %}>
-                                {{ m.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="entry-value">{{ _("Value") }}</label>
-                <input type="text" id="entry-value" name="value" value="{{ entry.display_value if entry else '' }}" required>
-            </div>
-            <div class="input-group">
-                <label for="entry-timestamp">{{ _("Timestamp") }}</label>
-                <input type="datetime-local" id="entry-timestamp" name="timestamp"
-                       value="{{ entry.start_time.strftime('%Y-%m-%dT%H:%M') if entry and entry.start_time else '' }}">
-                    </div>
-                    <div class="input-group">
-                        <label for="entry-notes">{{ _("Notes") }}</label>
-                        <input type="text" id="entry-notes" name="notes" value="{{ entry.notes if entry else '' }}">
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn">{{ _("Save") }}</button>
-                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
-                    </div>
-                </div>
-            </form>
+{% from "components/ui/modal.html" import modal %}
+{% from "components/ui/select.html" import select %}
+{% from "components/ui/input.html" import input %}
+
+{% call modal(title=_("Edit Entry") if entry else _("New Entry")) %}
+<form
+    {% if entry %}hx-put="/entries/{{ entry.id }}"{% else %}hx-post="/entries"{% endif %}
+    hx-target="body"
+    hx-push-url="true"
+>
+    <div class="form-stack">
+        {% call select(name="metric_type_id", label=_("Metric"), required=True, id="entry-metric") %}
+            {% for m in metrics %}
+            <option value="{{ m.id }}"
+                {% if entry and entry.metric_type_id == m.id %}selected{% endif %}
+                {% if not entry and selected_metric_id == m.id %}selected{% endif %}>
+                {{ m.name }}
+            </option>
+            {% endfor %}
+        {% endcall %}
+
+        {{ input(name="value", label=_("Value"), value=entry.display_value if entry else '', required=True, id="entry-value") }}
+        
+        {{ input(name="timestamp", label=_("Timestamp"), type="datetime-local", 
+                    value=entry.start_time.strftime('%Y-%m-%dT%H:%M') if entry and entry.start_time else '', 
+                    id="entry-timestamp") }}
+        
+        {{ input(name="notes", label=_("Notes"), value=entry.notes if entry else '', id="entry-notes") }}
+
+        <div class="form-actions">
+            <button type="submit" class="btn">{{ _("Save") }}</button>
+            <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
         </div>
     </div>
-</div>
+</form>
+{% endcall %}

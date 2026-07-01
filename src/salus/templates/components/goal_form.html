@@ -1,55 +1,48 @@
-<div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
-    <div class="modal-content">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ _("New Goal") }}</h3>
-            </div>
-            <form hx-post="/goals" hx-target="body" class="form-stack">
-                <div class="input-group">
-                    <label for="goal-metric">{{ _("Metric") }}</label>
-                    <select id="goal-metric" name="metric_type_id" required>
-                        <option value="">— {{ _("Select") }} —</option>
-                        {% for m in all_metrics %}
-                        <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="input-group" style="flex:1;">
-                        <label for="goal-target">{{ _("Target") }}</label>
-                        <input id="goal-target" name="target_value" type="number" step="any" required placeholder="e.g. 80">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label for="goal-direction">{{ _("Direction") }}</label>
-                        <select id="goal-direction" name="direction">
-                            <option value="increase">{{ _("Increase") }}</option>
-                            <option value="decrease">{{ _("Decrease") }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>{{ _("Frequency") }}</label>
-                    <div class="chip-row">
-                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                            <input type="radio" name="frequency" value="daily" checked> {{ _("Daily") }}
-                        </label>
-                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                            <input type="radio" name="frequency" value="weekly"> {{ _("Weekly") }}
-                        </label>
-                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                            <input type="radio" name="frequency" value="once"> {{ _("Once") }}
-                        </label>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label for="goal-deadline">{{ _("Deadline (only for \"once\")") }}</label>
-                    <input id="goal-deadline" name="deadline" type="date">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn">{{ _("Create Goal") }}</button>
-                    <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
-                </div>
-            </form>
+{% from "components/ui/modal.html" import modal %}
+{% from "components/ui/select.html" import select %}
+{% from "components/ui/input.html" import input %}
+
+{% call modal(title=_("New Goal")) %}
+<form hx-post="/goals" hx-target="body" class="form-stack">
+    {% call select(name="metric_type_id", label=_("Metric"), required=True, id="goal-metric") %}
+        <option value="">— {{ _("Select") }} —</option>
+        {% for m in all_metrics %}
+        <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
+        {% endfor %}
+    {% endcall %}
+
+    <div class="form-row">
+        <div style="flex:1;">
+            {{ input(name="target_value", label=_("Target"), type="number", required=True, placeholder="e.g. 80", id="goal-target") }}
+        </div>
+        <div style="flex:1;">
+            {% call select(name="direction", label=_("Direction"), id="goal-direction") %}
+                <option value="increase">{{ _("Increase") }}</option>
+                <option value="decrease">{{ _("Decrease") }}</option>
+            {% endcall %}
         </div>
     </div>
-</div>
+
+    <div class="input-group">
+        <label>{{ _("Frequency") }}</label>
+        <div class="chip-row">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="radio" name="frequency" value="daily" checked> {{ _("Daily") }}
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="radio" name="frequency" value="weekly"> {{ _("Weekly") }}
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="radio" name="frequency" value="once"> {{ _("Once") }}
+            </label>
+        </div>
+    </div>
+
+    {{ input(name="deadline", label=_("Deadline (only for \"once\")"), type="date", id="goal-deadline") }}
+
+    <div class="form-actions">
+        <button type="submit" class="btn">{{ _("Create Goal") }}</button>
+        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
+    </div>
+</form>
+{% endcall %}

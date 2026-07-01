@@ -1,0 +1,9 @@
+{% macro textarea(name, label=None, value="", required=False, placeholder="", id=None, rows=3) %}
+<div class="input-group">
+    {% if label %}
+    <label for="{{ id or name }}">{{ label }}</label>
+    {% endif %}
+    <textarea id="{{ id or name }}" name="{{ name }}" {% if required %}required{% endif %} 
+              {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} rows="{{ rows }}">{{ value }}</textarea>
+</div>
+{% endmacro %}

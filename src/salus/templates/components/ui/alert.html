@@ -1,0 +1,8 @@
+{% macro alert(type="info", message="") %}
+<div class="alert alert-{{ type }} flex-center gap-sm" style="padding: 12px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
+    <span class="material-symbols-outlined">
+        {% if type == "error" %}error{% elif type == "success" %}check_circle{% else %}info{% endif %}
+    </span>
+    <span>{{ message }}</span>
+</div>
+{% endmacro %}
