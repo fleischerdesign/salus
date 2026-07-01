@@ -15,18 +15,14 @@
 
 <div id="modal-container"></div>
 
+{% from "components/ui/card.html" import card %}
 {% for metric in metrics %}
-<div class="card" id="metric-{{ metric.id }}">
-    <div class="card-header">
-        <div class="flex-center gap-sm">
-            <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:24px;">{{ metric.icon }}</span>
-            <h3 class="card-title" style="color: {{ metric.color }}">{{ metric.name }}</h3>
-        </div>
-        <div class="flex-center gap-sm">
-            <span class="chip chip-neutral">{{ metric.unit or '-' }}</span>
-            <span class="chip chip-neutral">{{ metric.data_type.value }}</span>
-        </div>
-    </div>
+{% set header_right %}
+    <span class="chip chip-neutral">{{ metric.unit or '-' }}</span>
+    <span class="chip chip-neutral">{{ metric.data_type.value }}</span>
+{% endset %}
+
+{% call card(title=metric.name, icon=metric.icon, id="metric-" ~ metric.id, title_style="color: " ~ metric.color, header_right=header_right) %}
     <div class="flex gap-sm">
         <button class="btn-sm"
             hx-get="/metrics/{{ metric.id }}/edit"
@@ -42,6 +38,6 @@
             {{ _("Delete") }}
         </button>
     </div>
-</div>
+{% endcall %}
 {% endfor %}
 {% endblock %}

@@ -3,6 +3,7 @@
 {% block content %}
 {% from "components/ui/input.html" import input %}
 {% from "components/ui/alert.html" import alert %}
+{% from "components/ui/card.html" import card %}
 <div class="page-header">
     <h1>{{ _("Account Settings") }}</h1>
 </div>
@@ -15,10 +16,7 @@
 {% endif %}
 
 <div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Profile</h3>
-        </div>
+    {% call card(title="Profile") %}
         <div class="identity-card">
             <div>
                 <strong>{{ current_user.display_name or current_user.username }}</strong>
@@ -64,14 +62,11 @@
                 </label>
             </div>
         </form>
-    </div>
+    {% endcall %}
 </div>
 
 <div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Connected Accounts") }}</h3>
-        </div>
+    {% call card(title=_("Connected Accounts")) %}
         {% for identity in identities %}
         <div class="identity-card">
             <span class="chip {% if identity.provider == 'local' %}chip-neutral{% elif identity.provider == 'ldap' %}chip-warning{% else %}chip-success{% endif %}">
@@ -99,17 +94,14 @@
             <a href="/auth/oidc/oidc" class="btn-sm">Connect</a>
         </div>
         {% endif %}
-    </div>
+    {% endcall %}
 </div>
 
 {% include "components/api_token_list.html" %}
 
 {% if current_user.password_hash %}
 <div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Change Password") }}</h3>
-        </div>
+    {% call card(title=_("Change Password")) %}
         <form method="post" action="/settings/change-password">
             <div class="form-stack">
                 {{ input(name="current_password", label="Current Password", type="password", required=True, id="settings-current-password") }}
@@ -119,15 +111,12 @@
                 </div>
             </div>
         </form>
-    </div>
+    {% endcall %}
 </div>
 {% endif %}
 
 <div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Data Management") }}</h3>
-        </div>
+    {% call card(title=_("Data Management")) %}
         <div class="data-management-grid">
             <div class="data-box">
                 <div class="flex-center gap-sm mb-sm">
@@ -162,6 +151,6 @@
                 </div>
             </div>
         </div>
-    </div>
+    {% endcall %}
 </div>
 {% endblock %}
