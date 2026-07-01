@@ -51,6 +51,17 @@ class SleepSummary:
 
 
 @dataclass
+class HROHLC:
+    date: str
+    label: str
+    open_bpm: float
+    high_bpm: float
+    low_bpm: float
+    close_bpm: float
+    count: int
+
+
+@dataclass
 class HRSummary:
     date: str
     measurement_count: int

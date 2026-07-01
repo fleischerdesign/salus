@@ -1427,6 +1427,146 @@ button {
     margin-top: 4px;
 }
 
+/* ---- Viz Components (Widget Body) ---- */
+.viz-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.viz-primary-label {
+    font: var(--font-label-sm);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.viz-primary-value {
+    font: var(--font-headline-md);
+    color: var(--color-on-surface);
+}
+
+.viz-unit {
+    font: var(--font-body-sm);
+    color: var(--color-slate-400);
+    margin-left: 2px;
+}
+
+.viz-sub {
+    font: var(--font-body-sm);
+    color: var(--color-slate-400);
+    margin-top: 2px;
+}
+
+.viz-stats {
+    font: var(--font-label-sm);
+    color: var(--color-slate-500);
+    display: block;
+    margin-top: 2px;
+}
+
+/* ---- Viz: Number ---- */
+.viz-number {
+    display: flex;
+    align-items: center;
+    gap: var(--space-stack-md);
+}
+
+/* ---- Viz: Candlestick ---- */
+.viz-candlestick {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-sm);
+}
+
+.viz-candlestick-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.viz-top-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cs-chart {
+    width: 100%;
+    height: 80px;
+    margin-top: 2px;
+}
+
+/* ---- Viz: Sparkline ---- */
+.viz-sparkline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-sm);
+}
+
+.viz-sparkline-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-stack-sm);
+}
+
+/* ---- Viz: Bar ---- */
+.viz-bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-sm);
+}
+
+.viz-bar-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-stack-sm);
+}
+
+.viz-segments-bar {
+    display: flex;
+    height: 8px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.viz-segment {
+    height: 100%;
+}
+
+.viz-segments-legend {
+    display: flex;
+    gap: var(--space-stack-md);
+    flex-wrap: wrap;
+}
+
+.viz-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font: var(--font-label-sm);
+    color: var(--color-slate-500);
+}
+
+.viz-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Segment colours */
+.segment-deep { background: #818cf8; }
+.segment-rem { background: #a78bfa; }
+.segment-light { background: #38bdf8; }
+.segment-awake { background: #fbbf24; }
+.segment-protein { background: #f43f5e; }
+.segment-carbs { background: #60a5fa; }
+.segment-fat { background: #fbbf24; }
+
 /* ---- Progress Bar ---- */
 .progress-bar {
     width: 100%;

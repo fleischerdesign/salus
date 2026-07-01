@@ -43,7 +43,7 @@
 <div id="dashboard-content">
     <div class="dashboard-grid" id="dashboard-grid">
         {% for ctx in widget_contexts %}
-        {% set widget = ctx.widget %}{% set metric = ctx.metric %}{% set empty = ctx.empty %}{% set empty_text = ctx.empty_text %}{% set value = ctx.value %}{% set unit = ctx.unit %}{% set sub = ctx.sub %}{% set sparkline = ctx.sparkline %}{% set percent = ctx.percent %}{% set protein_pct = ctx.get('protein_pct') %}{% set carbs_pct = ctx.get('carbs_pct') %}{% set fat_pct = ctx.get('fat_pct') %}{% set delta = ctx.delta %}
+        {% set widget = ctx.widget %}{% set metric = ctx.metric %}{% set empty = ctx.empty %}{% set empty_text = ctx.empty_text %}{% set viz = ctx.get('viz') %}
         {% include "components/dashboard/widget_chrome.html" %}
         {% endfor %}
     </div>

@@ -1,0 +1,30 @@
+<div class="viz-candlestick">
+    <div class="viz-candlestick-header">
+        <div class="viz-top-row">
+            <span class="viz-primary-label">{{ viz.primary_label }}</span>
+            <span class="viz-primary-value">{{ viz.primary_value }}<span class="viz-unit">{{ viz.primary_unit }}</span></span>
+            {% if viz.delta %}<span class="widget-delta-row">{{ viz.delta | safe }}</span>{% endif %}
+        </div>
+        {% if viz.stats_line %}
+        <span class="viz-sub">{{ viz.stats_line | safe }}</span>
+        {% endif %}
+    </div>
+    <svg class="cs-chart" viewBox="0 0 {{ viz.chart.chart_w }} {{ viz.chart.chart_h }}" preserveAspectRatio="xMidYMid meet">
+        {% for c in viz.chart.candles %}
+        {% if not c.empty %}
+        <line x1="{{ c.cx }}" y1="{{ c.high_y }}"
+              x2="{{ c.cx }}" y2="{{ c.low_y }}"
+              stroke="{{ viz.color }}" stroke-width="1.5" opacity="0.6"/>
+        <rect x="{{ c.cx - c.half_w }}" y="{{ c.body_y }}"
+              width="{{ c.half_w * 2 }}" height="{{ c.body_h }}"
+              fill="{{ c.fill }}" rx="1.5" opacity="0.85"/>
+        {% endif %}
+        <text x="{{ c.cx }}" y="{{ viz.chart.chart_h - 4 }}" text-anchor="middle"
+              font-size="9" fill="var(--color-slate-400)">{{ c.label }}</text>
+        {% endfor %}
+        {% if viz.chart.reference_y is not none %}
+        <line x1="0" y1="{{ viz.chart.reference_y }}" x2="{{ viz.chart.chart_w }}" y2="{{ viz.chart.reference_y }}"
+              stroke="{{ viz.color }}" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+        {% endif %}
+    </svg>
+</div>

@@ -1,0 +1,24 @@
+<div class="viz-sparkline">
+    <div class="viz-sparkline-header">
+        <div class="viz-icon-wrap" style="background:{{ viz.color }}20;">
+            <span class="material-symbols-outlined" style="color:{{ viz.color }};">{{ metric.icon }}</span>
+        </div>
+        <div class="viz-main">
+            <span class="viz-primary-value">{{ viz.primary_value }}{% if viz.primary_unit %} <span class="viz-unit">{{ viz.primary_unit }}</span>{% endif %}</span>
+            {% if viz.delta %}<span class="widget-delta-row">{{ viz.delta | safe }}</span>{% endif %}
+            {% if viz.sub %}<span class="viz-sub">{{ viz.sub | safe }}</span>{% endif %}
+            {% if viz.percent is not none %}
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:{{ viz.percent }}%;background:{{ viz.color }};"></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if viz.sparkline_points %}
+    <svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+        <polyline fill="none" stroke="{{ viz.color }}" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            points="{{ viz.sparkline_points }}"/>
+    </svg>
+    {% endif %}
+</div>

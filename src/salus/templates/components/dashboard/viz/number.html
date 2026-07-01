@@ -1,0 +1,10 @@
+<div class="viz-number">
+    <div class="viz-icon-wrap" style="background:{{ viz.color }}20;">
+        <span class="material-symbols-outlined" style="color:{{ viz.color }};">{{ metric.icon }}</span>
+    </div>
+    <div class="viz-main">
+        <span class="viz-primary-value">{{ viz.primary_value }}{% if viz.primary_unit %} <span class="viz-unit">{{ viz.primary_unit }}</span>{% endif %}</span>
+        {% if viz.delta %}<span class="widget-delta-row">{{ viz.delta | safe }}</span>{% endif %}
+        {% if viz.sub %}<span class="viz-sub">{{ viz.sub | safe }}</span>{% endif %}
+    </div>
+</div>
