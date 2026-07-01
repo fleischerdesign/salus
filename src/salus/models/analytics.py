@@ -51,6 +51,12 @@ class SleepSummary:
 
 
 @dataclass
+class HRTimelinePoint:
+    time: str
+    bpm: float
+
+
+@dataclass
 class HROHLC:
     date: str
     label: str

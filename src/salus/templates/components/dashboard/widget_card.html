@@ -8,6 +8,8 @@
     {% elif viz %}
     {% if viz.type == "candlestick" %}
         {% include "components/dashboard/viz/candlestick.html" %}
+    {% elif viz.type == "pills" %}
+        {% include "components/dashboard/viz/pills.html" %}
     {% elif viz.type == "sparkline" %}
         {% include "components/dashboard/viz/sparkline.html" %}
     {% elif viz.type == "bar" %}

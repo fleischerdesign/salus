@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import json
 
-from salus.models.analytics import ExerciseSession, HROHLC, HRSummary, StepDay
+from salus.models.analytics import ExerciseSession, HROHLC, HRSummary, HRTimelinePoint, StepDay
 from salus.repositories.measurement import MeasurementRepository
 from salus.services.analytics.calculations import map_exercise_type
 
@@ -55,6 +55,27 @@ class ActivityAnalysisService:
             min_bpm=int(min(bpms)),
             max_bpm=int(max(bpms)),
         )
+
+    def heart_rate_timeline(
+        self, user_id: int | None = None, date_str: str | None = None
+    ) -> list[HRTimelinePoint]:
+        if date_str is None:
+            date_str = datetime.today().strftime("%Y-%m-%d")
+        since = datetime.fromisoformat(date_str + "T00:00:00")
+        until = datetime.fromisoformat(date_str + "T23:59:59")
+        records = self._repo.find_all(
+            data_types=["heart_rate"], user_id=user_id, since=since, until=until
+        )
+        points: list[HRTimelinePoint] = []
+        for rec in reversed(records):
+            if rec.value_numeric is not None and rec.value_numeric > 0:
+                points.append(
+                    HRTimelinePoint(
+                        time=rec.start_time.strftime("%H:%M"),
+                        bpm=float(rec.value_numeric),
+                    )
+                )
+        return points
 
     _OHLC_DAY_LABELS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 

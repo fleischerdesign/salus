@@ -1,0 +1,33 @@
+<div class="viz-pills">
+    <div class="viz-pills-header">
+        <span class="viz-primary-label">{{ viz.primary_label }}</span>
+        <div class="viz-top-row">
+            <span class="viz-primary-value">{{ viz.primary_value }}<span class="viz-unit">{{ viz.primary_unit }}</span></span>
+            {% if viz.delta %}<span class="widget-delta-row">{{ viz.delta | safe }}</span>{% endif %}
+        </div>
+        {% if viz.stats_line %}
+        <span class="viz-sub">{{ viz.stats_line | safe }}</span>
+        {% endif %}
+    </div>
+    <svg class="pill-chart" viewBox="0 0 {{ viz.chart.chart_w }} {{ viz.chart.chart_h }}" preserveAspectRatio="xMidYMid meet">
+        {% if viz.chart.reference_y is not none %}
+        <line x1="6" y1="{{ viz.chart.reference_y }}" x2="{{ viz.chart.chart_w - 6 }}" y2="{{ viz.chart.reference_y }}"
+              stroke="{{ viz.color }}" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+        {% endif %}
+        {% for p in viz.chart.pills %}
+        <line x1="{{ p.cx }}" y1="{{ p.cy - 2.5 }}" x2="{{ p.cx }}" y2="{{ p.cy + 2.5 }}"
+              stroke="{{ p.color }}" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+        {% endfor %}
+        {% for tl in viz.chart.time_labels %}
+        <text x="{{ tl.x }}" y="{{ viz.chart.chart_h - 8 }}" text-anchor="middle"
+              font-size="9" fill="var(--color-slate-400)" font-family="inherit">{{ tl.label }}</text>
+        {% endfor %}
+    </svg>
+    <div class="pill-legend">
+        {% for z in viz.chart.zones %}
+        <span class="pill-legend-item">
+            <span class="pill-legend-dot" style="background:{{ z.color }}"></span>{{ z.label }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
