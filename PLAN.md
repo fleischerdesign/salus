@@ -218,6 +218,27 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Log measurements, water intake, or foods hands-free using voice commands (e.g., "I just drank a glass of water and ran 5 kilometers"), processed entirely locally.
 * **Architecture:** Package a lightweight Speech-to-Text and Named Entity Recognition (NER) pipeline (such as Whisper-tiny and a custom transformer compiled to WASM/ONNX). Extraction happens locally on device, creating structured log records immediately.
 
+### 36. Citizen Science Study Execution (Decentralized Trials)
+* **Concept:** Allow users to opt into health and epidemiological studies run by public universities or researchers, where raw data never leaves the user's host.
+* **Architecture:** Researchers publish queries mapping specific metrics. The cohort results are aggregated using Local Differential Privacy (LDP) or Secure Multi-Party Computation (SMPC), returning only the anonymized, aggregated cohort stats to the study authors.
+
+### 37. Local Computer Vision Posture & Gait Analyzer
+* **Concept:** Analyze squat form, workout execution, running gait, or daily sitting posture via device camera video feeds without sending any video data to the cloud.
+* **Architecture:** Implement browser-side body-tracking networks (e.g., MediaPipe or TensorFlow.js Pose Detection). Video feeds are processed entirely in local RAM and discarded immediately, logging only posture angle trends.
+
+### 38. Real-Time HRV Resonance Biofeedback
+* **Concept:** Guide users through resonant breathing exercises to achieve optimal autonomic nervous system balance (heart coherence) using real-time pulse data.
+* **Architecture:** Establish a local Web Bluetooth connection with a chest strap or pulse oximeter. Render real-time HRV spectral shifts and breathing pacing cues, graphing heart coherence metrics dynamically on the dashboard.
+
+### 39. Cross-Border Sovereign Medical Passport (DID-Compliant)
+* **Concept:** Present an internationally recognized, cryptographically secure digital medical travel pass containing verified translations of vaccinations, chronic conditions, and active prescriptions.
+* **Architecture:** Format credentials to be fully compliant with decentralized identity standards (such as W3C DIDs and verifiable credentials), signed by accredited medical institutions and readable via standardized offline QR code scans.
+
+### 40. Local Private Genomic Risk Engine (Genomic Privacy)
+* **Concept:** Calculate polygenic risk scores for lifestyle-modifiable conditions (e.g., cardiovascular disease risk, type-2 diabetes) by matching raw DNA data files (such as 23andMe exports) against open scientific databases, without uploading genetic code to any server.
+* **Architecture:** Process raw genomic text files entirely in-browser/on-device, cross-referencing SNPs (Single Nucleotide Polymorphisms) with local indexes of scientific risk publications.
+
+
 
 
 
