@@ -1661,6 +1661,10 @@ button {
     flex-wrap: wrap;
 }
 
+.widget-small .viz-segments-legend {
+    display: none;
+}
+
 .viz-legend-item {
     display: flex;
     align-items: center;
