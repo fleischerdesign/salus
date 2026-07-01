@@ -51,9 +51,7 @@ async def dashboard(
         target_date = today_str
 
     widgets = widget_svc.ensure_defaults(user_id)
-    widget_contexts = [widget_svc.widget_data(w, user_id=user_id, date=target_date) for w in widgets]
     metrics = metric_svc.find_all(user_id)
-
     nav = _date_nav_context(target_date)
 
     return request.app.state.templates.TemplateResponse(
@@ -61,9 +59,9 @@ async def dashboard(
         "pages/dashboard.html",
         {
             "current_user": current_user,
-            "widget_contexts": widget_contexts,
+            "widgets": widgets,
+            "metrics": {m.id: m for m in metrics if m.id is not None},
             "show_onboarding": not current_user.onboarding_dismissed,
-            "metrics": metrics,
             **nav,
         },
     )
@@ -75,6 +73,7 @@ async def dashboard_grid(
     date: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
     user_id = uid(current_user)
     today_str = datetime.today().strftime("%Y-%m-%d")
@@ -85,13 +84,17 @@ async def dashboard_grid(
         target_date = today_str
 
     widgets = widget_svc.ensure_defaults(user_id)
-    widget_contexts = [widget_svc.widget_data(w, user_id=user_id, date=target_date) for w in widgets]
+    metrics = metric_svc.find_all(user_id)
     nav = _date_nav_context(target_date)
 
     return request.app.state.templates.TemplateResponse(
         request,
         "components/dashboard/day_navigator_block.html",
-        {"widget_contexts": widget_contexts, **nav},
+        {
+            "widgets": widgets,
+            "metrics": {m.id: m for m in metrics if m.id is not None},
+            **nav,
+        },
     )
 
 
@@ -132,11 +135,13 @@ async def add_widget(
 async def get_widget(
     widget_id: int,
     request: Request,
+    date: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
 ):
-    widget = widget_svc.get_widget(widget_id, uid(current_user))
-    ctx = widget_svc.widget_data(widget, user_id=uid(current_user))
+    user_id = uid(current_user)
+    widget = widget_svc.get_widget(widget_id, user_id)
+    ctx = widget_svc.widget_data(widget, user_id=user_id, date=date)
     return request.app.state.templates.TemplateResponse(
         request,
         "components/dashboard/widget_chrome.html",

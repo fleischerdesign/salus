@@ -1,7 +1,7 @@
 <div class="dashboard-widget widget-{{ widget.size.value }}"
      data-widget-id="{{ widget.id }}"
      id="widget-{{ widget.id }}"
-     hx-get="/dashboard/widgets/{{ widget.id }}"
+     hx-get="/dashboard/widgets/{{ widget.id }}{% if display_date %}?date={{ display_date }}{% endif %}"
      hx-trigger="widgetRefresh-{{ widget.id }} from:body"
      hx-swap="outerHTML">
     <div class="widget-chrome">

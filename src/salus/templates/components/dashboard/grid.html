@@ -1,0 +1,26 @@
+<div class="dashboard-grid" id="dashboard-grid">
+    {% for widget in widgets %}
+    {% set metric = metrics.get(widget.metric_type_id) %}
+    <div class="dashboard-widget widget-{{ widget.size.value }} skeleton-card-wrap"
+         data-widget-id="{{ widget.id }}"
+         id="widget-{{ widget.id }}"
+         hx-get="/dashboard/widgets/{{ widget.id }}?date={{ display_date }}"
+         hx-trigger="load"
+         hx-swap="outerHTML">
+        
+        <!-- Skeleton Card Layout -->
+        <div class="widget-chrome" style="border: none;">
+            <div class="widget-chrome-title" style="color: var(--color-slate-300);">{{ metric.name if metric else "Widget" }}</div>
+        </div>
+        <div class="widget-body" style="padding-top: 0;">
+            <div class="skeleton-pulse" style="width: 50px; height: 32px; border-radius: 6px; background: var(--color-slate-100);"></div>
+            <div class="skeleton-pulse" style="width: 100%; height: 60px; border-radius: 8px; background: var(--color-slate-100); margin-top: 16px; min-height: 80px;"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% if not widgets %}
+<div class="card">
+    <p>No widgets yet. Add one to get started.</p>
+</div>
+{% endif %}

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from salus.models.analytics import HROHLC, HRTimelinePoint
 from salus.models.dashboard import DashboardWidget, WidgetSize
 from salus.models.goal import Goal
+from salus.models import MetricType
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
@@ -261,6 +262,10 @@ class DashboardWidgetService:
         self._weight = weight_svc
         self._goal = goal_svc
 
+        # Request-level caches to optimize N+1 query patterns
+        self._goals_cache: list[Goal] | None = None
+        self._metrics_cache: dict[int, MetricType] = {}
+
     def ensure_defaults(self, user_id: int) -> list[DashboardWidget]:
         existing = self._widget_repo.find_by_user(user_id)
         if existing:
@@ -327,10 +332,10 @@ class DashboardWidgetService:
         if metric is None:
             return {"widget": widget, "metric": None, "empty": True, "empty_text": "Unknown metric"}
 
-        ctx: dict = {"widget": widget, "metric": metric}
         sd = metric.source_data_type
         today_str = datetime.today().strftime("%Y-%m-%d")
         target = date if date else today_str
+        ctx: dict = {"widget": widget, "metric": metric, "display_date": target}
 
         try:
             config = json.loads(widget.config_json)
@@ -371,11 +376,18 @@ class DashboardWidgetService:
         return None
 
     def _resolve_goal(self, user_id: int, source_data_type: str) -> Goal | None:
+        if self._goals_cache is None:
+            self._goals_cache = self._goal.find_all(user_id)
+        if not self._metrics_cache:
+            for mt in self._metric_type_repo.find_all(user_id):
+                if mt.id is not None:
+                    self._metrics_cache[mt.id] = mt
+
         daily_goals: list[Goal] = []
-        for g in self._goal.find_all(user_id):
+        for g in self._goals_cache:
             if g.frequency.value != "daily":
                 continue
-            mt = self._metric_type_repo.get_by_id(g.metric_type_id)
+            mt = self._metrics_cache.get(g.metric_type_id)
             if mt and mt.source_data_type == source_data_type:
                 daily_goals.append(g)
         daily_goals.sort(key=lambda g: g.created_at, reverse=True)

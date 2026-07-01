@@ -41,18 +41,7 @@
 </div>
 
 <div id="dashboard-content">
-    <div class="dashboard-grid" id="dashboard-grid">
-        {% for ctx in widget_contexts %}
-        {% set widget = ctx.widget %}{% set metric = ctx.metric %}{% set empty = ctx.empty %}{% set empty_text = ctx.empty_text %}{% set viz = ctx.get('viz') %}
-        {% include "components/dashboard/widget_chrome.html" %}
-        {% endfor %}
-    </div>
-
-    {% if not widget_contexts %}
-    <div class="card">
-        <p>No widgets yet. Add one to get started.</p>
-    </div>
-    {% endif %}
+    {% include "components/dashboard/grid.html" %}
 </div>
 
 <script>
