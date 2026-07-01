@@ -122,3 +122,12 @@ async def set_theme(
 ):
     user_svc.set_theme(uid(current_user), theme)
     return RedirectResponse(url="/settings", status_code=303)
+
+
+@router.post("/locale")
+async def set_locale(
+    locale: Annotated[str, Form()],
+):
+    response = RedirectResponse(url="/settings", status_code=303)
+    response.set_cookie("salus_locale", locale, max_age=31536000, httponly=True)
+    return response

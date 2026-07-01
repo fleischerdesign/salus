@@ -36,7 +36,7 @@ def test_webhook_accepts_x_api_token_header(client):
 
     client.headers = {"Authorization": f"Bearer {settings.api_token}"}
     
-    entries_resp = client.get("/api/entries?metric_type_id=1")
+    entries_resp = client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
     entries = entries_resp.json()
     assert len(entries) == 1
@@ -53,7 +53,7 @@ def test_webhook_inserts_health_records(webhook_client):
     assert response.status_code == 202
     assert response.json()["status"] == "accepted"
 
-    entries_resp = webhook_client.get("/api/entries?metric_type_id=1")
+    entries_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
     entries = entries_resp.json()
     assert len(entries) == 1
@@ -72,7 +72,7 @@ def test_webhook_deduplicates(webhook_client):
     response = webhook_client.post("/webhook", json=payload)
     assert response.status_code == 202
 
-    entries_resp = webhook_client.get("/api/entries?metric_type_id=1")
+    entries_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
     assert len(entries_resp.json()) == 1
 
@@ -95,11 +95,11 @@ def test_webhook_handles_multiple_records(webhook_client):
     assert response.status_code == 202
     assert response.json()["status"] == "accepted"
 
-    steps_resp = webhook_client.get("/api/entries?metric_type_id=1")
+    steps_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
     assert len(steps_resp.json()) == 1
 
-    hr_resp = webhook_client.get("/api/entries?metric_type_id=2")
+    hr_resp = webhook_client.get("/api/v1/entries?metric_type_id=2")
     assert len(hr_resp.json()) == 2
 
-    weight_resp = webhook_client.get("/api/entries?metric_type_id=4")
+    weight_resp = webhook_client.get("/api/v1/entries?metric_type_id=4")
     assert len(weight_resp.json()) == 1

@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from starlette.templating import Jinja2Templates
 
 from salus.config import settings as app_settings
 from salus.database import Session, engine
@@ -15,12 +15,27 @@ from salus.models import system_config  # noqa: F401 — register table
 from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
 from salus.services.config import ConfigService
+from salus.services.i18n import translate
 
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level),
                     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
-templates = Jinja2Templates(directory="src/salus/templates")
+
+def get_translation_context(request: Request):
+    locale = request.cookies.get("salus_locale")
+    if not locale:
+        accept_lang = request.headers.get("Accept-Language", "")
+        locale = "de" if "de" in accept_lang.lower() else "en"
+    return {
+        "_": lambda text: translate(text, locale),
+        "current_locale": locale
+    }
+
+templates = Jinja2Templates(
+    directory="src/salus/templates",
+    context_processors=[get_translation_context]
+)
 templates.env.globals["settings"] = app_settings
 
 

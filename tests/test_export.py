@@ -4,11 +4,11 @@ import json
 class TestExportService:
     def test_csv_download(self, authenticated_client):
         authenticated_client.post(
-            "/api/metrics",
+            "/api/v1/metrics",
             json={"name": "Weight", "unit": "kg", "data_type": "number"},
         )
         authenticated_client.post(
-            "/api/entries?metric_type_id=1",
+            "/api/v1/entries?metric_type_id=1",
             json={"value": "80.5"},
         )
         response = authenticated_client.get("/export/download?format=csv")
@@ -19,11 +19,11 @@ class TestExportService:
 
     def test_json_download(self, authenticated_client):
         authenticated_client.post(
-            "/api/metrics",
+            "/api/v1/metrics",
             json={"name": "Weight", "unit": "kg", "data_type": "number"},
         )
         authenticated_client.post(
-            "/api/entries?metric_type_id=1",
+            "/api/v1/entries?metric_type_id=1",
             json={"value": "80.5"},
         )
         response = authenticated_client.get("/export/download?format=json")
@@ -34,7 +34,7 @@ class TestExportService:
 
     def test_export_on_settings_page(self, authenticated_client):
         authenticated_client.post(
-            "/api/metrics",
+            "/api/v1/metrics",
             json={"name": "Weight", "unit": "kg", "data_type": "number"},
         )
         response = authenticated_client.get("/settings")

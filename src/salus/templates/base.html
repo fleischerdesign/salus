@@ -26,21 +26,21 @@
             </label>
             <div class="top-app-bar-menu">
                 <nav class="top-app-bar-menu-nav">
-                    <a href="/" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path == '/' %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">dashboard</span>Dashboard</a>
-                    <a href="/analytics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/analytics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">analytics</span>Analytics</a>
-                    <a href="/goals" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/goals') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">track_changes</span>Goals</a>
-                    <a href="/metrics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/metrics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">label</span>Metrics</a>
-                    <a href="/entries" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/entries') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">description</span>Entries</a>
+                    <a href="/" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path == '/' %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">dashboard</span>{{ _("Dashboard") }}</a>
+                    <a href="/analytics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/analytics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">analytics</span>{{ _("Analytics") }}</a>
+                    <a href="/goals" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/goals') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">track_changes</span>{{ _("Goals") }}</a>
+                    <a href="/metrics" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/metrics') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">label</span>{{ _("Metrics") }}</a>
+                    <a href="/entries" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/entries') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">description</span>{{ _("Entries") }}</a>
                 </nav>
                 <hr class="top-app-bar-menu-divider">
                 <div class="top-app-bar-menu-user">
-                    <a href="/settings" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/settings') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">settings</span>Settings</a>
+                    <a href="/settings" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/settings') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">settings</span>{{ _("Settings") }}</a>
                     {% if current_user.is_admin %}
-                    <a href="/admin" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/admin') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">admin_panel_settings</span>Admin</a>
+                    <a href="/admin" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if request.url.path.startswith('/admin') %}active{% endif %}"><span class="material-symbols-outlined top-app-bar-icon">admin_panel_settings</span>{{ _("Admin") }}</a>
                     {% endif %}
                     <hr class="top-app-bar-menu-divider" style="display:block;">
                     <form method="post" action="/auth/logout" style="width:100%;">
-                        <button type="submit" class="top-app-bar-link" style="background:none;border:none;cursor:pointer;"><span class="material-symbols-outlined top-app-bar-icon">logout</span>Logout</button>
+                        <button type="submit" class="top-app-bar-link" style="background:none;border:none;cursor:pointer;"><span class="material-symbols-outlined top-app-bar-icon">logout</span>{{ _("Logout") }}</button>
                     </form>
                 </div>
             </div>
@@ -61,17 +61,17 @@
                     </div>
                     <a href="/settings" class="user-menu-item" onclick="document.getElementById('user-menu-toggle').checked=false">
                         <span class="material-symbols-outlined">settings</span>
-                        Settings
+                        {{ _("Settings") }}
                     </a>
                     {% if current_user.is_admin %}
                     <a href="/admin" class="user-menu-item" onclick="document.getElementById('user-menu-toggle').checked=false">
                         <span class="material-symbols-outlined">admin_panel_settings</span>
-                        Admin
+                        {{ _("Admin") }}
                     </a>
                     {% endif %}
                     <div class="user-menu-divider"></div>
                     <form method="post" action="/auth/logout">
-                        <button type="submit" class="user-menu-item user-menu-logout">Logout</button>
+                        <button type="submit" class="user-menu-item user-menu-logout">{{ _("Logout") }}</button>
                     </form>
                 </div>
             </div>

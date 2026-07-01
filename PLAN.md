@@ -58,8 +58,8 @@ This document serves as the central log of completed architectural refactorings 
 ## Phase 5: API Versioning & UI i18n
 * **Objective:** Future-proof custom user integrations and prepare UI layouts for multi-language support.
 * **Tasks:**
-  * [ ] Separate developer and app integrations onto a versioned router structure (e.g., `/api/v1/metrics`, `/api/v1/entries`).
-  * [ ] Integrate a translation helper (like `Babel` / `gettext`) to manage English and German localization strings.
+  * [x] Separate developer and app integrations onto a versioned router structure (e.g., `/api/v1/metrics`, `/api/v1/entries`).
+  * [x] Integrate a translation helper (like `Babel` / `gettext`) to manage English and German localization strings.
 
 ---
 

@@ -16,7 +16,7 @@ from salus.services._helpers import uid
 from salus.services.measurement import MeasurementService
 from salus.services.metric_type import MetricTypeService
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api/v1")
 
 
 @router.get("/metrics", response_model=list[MetricTypeResponse])
