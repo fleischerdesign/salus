@@ -90,6 +90,24 @@ def _yesterday(date_str: str) -> str:
     return (datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
+def _rounded_segments(stages: list[tuple[str, float, str]]) -> list[dict]:
+    total = sum(v for _, v, _ in stages)
+    if total <= 0:
+        return [{"label": label, "pct": 0, "css_class": css} for label, _, css in stages]
+    raw = [v / total * 100 for _, v, _ in stages]
+    pcts = [round(r) for r in raw]
+    diff = 100 - sum(pcts)
+    if diff != 0:
+        fractions = [(raw[i] - pcts[i], i) for i in range(len(stages))]
+        fractions.sort(key=lambda x: x[0], reverse=(diff > 0))
+        for k in range(abs(diff)):
+            pcts[fractions[k % len(fractions)][1]] += 1 if diff > 0 else -1
+    return [
+        {"label": label, "pct": pcts[i], "css_class": css}
+        for i, (label, _, css) in enumerate(stages)
+    ]
+
+
 def _compute_candlestick_chart(ohlc_list: list[HROHLC], reference_bpm: float) -> dict:
     valid = [c for c in ohlc_list if c.count > 0]
     if not valid:
@@ -446,12 +464,14 @@ class DashboardWidgetService:
         yesterday_sleep = self._sleep.last_night(
             user_id=user_id, date_str=_yesterday(target)
         )
-        segments = [
-            {"label": "Deep", "pct": round(sl.deep_pct), "css_class": "segment-deep"},
-            {"label": "REM", "pct": round(sl.rem_pct), "css_class": "segment-rem"},
-            {"label": "Light", "pct": round(sl.light_pct), "css_class": "segment-light"},
-            {"label": "Awake", "pct": round(sl.awake_pct), "css_class": "segment-awake"},
-        ]
+        segments = _rounded_segments(
+            [
+                ("Deep", sl.deep_seconds, "segment-deep"),
+                ("REM", sl.rem_seconds, "segment-rem"),
+                ("Light", sl.light_seconds, "segment-light"),
+                ("Awake", sl.awake_seconds, "segment-awake"),
+            ]
+        )
         return {
             "primary_label": "Schlaf",
             "primary_value": f"{sl.duration_hours:.1f}",
@@ -475,14 +495,13 @@ class DashboardWidgetService:
             user_id=user_id, date_str=_yesterday(target)
         )
         total = n.protein_g + n.carbs_g + n.fat_g
-        segments = [
-            {"label": "Protein", "pct": round(n.protein_g / total * 100) if total > 0 else 0,
-             "css_class": "segment-protein"},
-            {"label": "Carbs", "pct": round(n.carbs_g / total * 100) if total > 0 else 0,
-             "css_class": "segment-carbs"},
-            {"label": "Fat", "pct": round(n.fat_g / total * 100) if total > 0 else 0,
-             "css_class": "segment-fat"},
-        ]
+        segments = _rounded_segments(
+            [
+                ("Protein", n.protein_g, "segment-protein"),
+                ("Carbs", n.carbs_g, "segment-carbs"),
+                ("Fat", n.fat_g, "segment-fat"),
+            ]
+        ) if total > 0 else []
         return {
             "primary_label": "Ernährung",
             "primary_value": f"{n.total_kcal:.0f}",
