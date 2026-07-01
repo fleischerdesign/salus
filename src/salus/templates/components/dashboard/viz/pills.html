@@ -1,4 +1,4 @@
-<div class="viz-pills">
+<div class="viz-pills" id="pill-widget-{{ widget.id }}">
     <div class="viz-pills-header">
         <span class="viz-primary-label">{{ viz.primary_label }}</span>
         <div class="viz-top-row">
@@ -12,11 +12,12 @@
     <svg class="pill-chart" data-primary-color="{{ viz.color }}"></svg>
     <div class="pill-legend" data-legend-data='{{ viz.chart.zones | tojson }}'></div>
 </div>
-<script data-viz="pill-chart">
+<script>
 (function () {
-    var svg = document.currentScript.previousElementSibling;
-    var legend = svg.previousElementSibling;
-    var target = svg.closest(".pill-chart") || svg;
+    var root = document.getElementById("pill-widget-{{ widget.id }}");
+    if (!root) return;
+    var svg = root.querySelector(".pill-chart");
+    var legend = root.querySelector(".pill-legend");
 
     var data = {{ viz.chart | tojson }};
 
@@ -26,7 +27,7 @@
     var PAD_BOT = 26;
 
     function render() {
-        var w = target.clientWidth || 220;
+        var w = svg.clientWidth || 220;
         var pw = w - 2 * PAD_X;
         var ph = CHART_H - PAD_TOP - PAD_BOT;
 
@@ -86,7 +87,7 @@
     render();
     renderLegend();
 
-    new ResizeObserver(render).observe(target);
-    new MutationObserver(render).observe(target, { attributeFilter: ["style", "class"], attributes: true });
+    new ResizeObserver(render).observe(svg);
+    new MutationObserver(render).observe(svg, { attributeFilter: ["style", "class"], attributes: true });
 })();
 </script>
