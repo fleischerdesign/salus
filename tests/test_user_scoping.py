@@ -66,3 +66,43 @@ def test_change_password(authenticated_client):
     )
     assert response.status_code == 200
     assert "Password changed" in response.text
+
+
+def test_analytics_user_scoped(authenticated_client, client):
+    """Alice creates steps. Bob logs in and sees no steps in analytics."""
+    from sqlmodel import Session, select
+    from salus.models.measurement import Measurement
+    from salus.models.user import User
+    from datetime import datetime, timezone
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        alice = session.exec(select(User).where(User.username == "alice")).first()
+        assert alice is not None
+        alice_id = alice.id
+
+        m = Measurement(
+            user_id=alice_id,
+            metric_type_id=1,  # Steps
+            data_type="steps",
+            source="manual",
+            value_numeric=12345.0,
+            value_text="12345",
+            start_time=datetime.now(timezone.utc),
+        )
+        session.add(m)
+        session.commit()
+
+    response_alice = authenticated_client.get("/analytics/data?range=7d")
+    assert "12345" in response_alice.text
+
+    client.post("/auth/logout", follow_redirects=True)
+    client.post(
+        "/auth/register",
+        data={"username": "bob", "password": "secret456"},
+        follow_redirects=True,
+    )
+
+    response_bob = client.get("/analytics/data?range=7d")
+    assert "12345" not in response_bob.text
+

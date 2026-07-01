@@ -23,6 +23,16 @@ logging.basicConfig(level=getattr(logging, log_level),
                     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 
+NAV_ITEMS = [
+    {"path": "/", "icon": "dashboard", "label": "Dashboard", "exact": True},
+    {"path": "/analytics", "icon": "analytics", "label": "Analytics"},
+    {"path": "/insights", "icon": "psychology", "label": "AI Coach"},
+    {"path": "/goals", "icon": "track_changes", "label": "Goals"},
+    {"path": "/metrics", "icon": "label", "label": "Metrics"},
+    {"path": "/entries", "icon": "description", "label": "Entries"},
+]
+
+
 def get_translation_context(request: Request):
     locale = request.cookies.get("salus_locale")
     if not locale:
@@ -33,9 +43,26 @@ def get_translation_context(request: Request):
         "current_locale": locale
     }
 
+
+def get_nav_context(request: Request):
+    current_path = request.url.path
+    items = []
+    for item in NAV_ITEMS:
+        is_active = (
+            current_path == item["path"]
+            if item.get("exact")
+            else current_path.startswith(item["path"])
+        )
+        items.append({
+            **item,
+            "active": is_active
+        })
+    return {"nav_items": items}
+
+
 templates = Jinja2Templates(
     directory="src/salus/templates",
-    context_processors=[get_translation_context]
+    context_processors=[get_translation_context, get_nav_context]
 )
 templates.env.globals["settings"] = app_settings
 

@@ -30,16 +30,16 @@ class AnalyticsService:
         self._weight = weight_svc
         self._nutrition = nutrition_svc
 
-    def build_context(self, range_key: str = "30d") -> dict:
+    def build_context(self, user_id: int, range_key: str = "30d") -> dict:
         days = _RANGE_DAYS.get(range_key, 30)
 
-        steps = self._activity.steps_trend(days=days)
-        sleep_list = self._sleep.trend(days=days)
-        weight_trend = self._weight.trend(days=days)
-        nutrition_list = self._nutrition.daily_totals(days=days)
-        exercise_sessions = self._activity.exercise_history(days=days, limit=5)
+        steps = self._activity.steps_trend(days=days, user_id=user_id)
+        sleep_list = self._sleep.trend(days=days, user_id=user_id)
+        weight_trend = self._weight.trend(days=days, user_id=user_id)
+        nutrition_list = self._nutrition.daily_totals(days=days, user_id=user_id)
+        exercise_sessions = self._activity.exercise_history(days=days, user_id=user_id, limit=5)
 
-        tdee = self._compute_tdee(weight_trend)
+        tdee = self._compute_tdee(user_id=user_id, weight_trend=weight_trend)
 
         steps_labels = [s.date[-5:] for s in steps]
         steps_data = [s.count for s in steps]
@@ -62,17 +62,17 @@ class AnalyticsService:
             "range_buttons": _RANGE_BUTTONS,
         }
 
-    def _compute_tdee(self, weight_trend) -> TDEEResult | None:
+    def _compute_tdee(self, user_id: int, weight_trend) -> TDEEResult | None:
         weight_kg = weight_trend.current
         if not weight_kg:
             return None
 
         bmr = calc_bmr_cunningham(weight_kg)
-        hr_summary = self._activity.heart_rate_summary()
+        hr_summary = self._activity.heart_rate_summary(user_id=user_id)
         hr_rest = hr_summary.resting_bpm if hr_summary else 60.0
         hr_awake = hr_summary.avg_bpm if hr_summary else 75.0
 
-        nutrition_today = self._nutrition.today()
+        nutrition_today = self._nutrition.today(user_id=user_id)
         tef = 0.0
         if nutrition_today:
             tef = calc_tef(
