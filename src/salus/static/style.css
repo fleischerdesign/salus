@@ -1476,7 +1476,7 @@ button {
 
 .viz-number-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-stack-md);
 }
 
