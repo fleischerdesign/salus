@@ -12,7 +12,7 @@
     {% if viz.segments %}
     <div class="viz-segments-bar">
         {% for seg in viz.segments %}
-        <div class="viz-segment {{ seg.css_class }}" style="width:{{ seg.pct }}%;" title="{{ seg.label }}: {{ seg.value }}{{ viz.primary_unit }}"></div>
+        <div class="viz-segment {{ seg.css_class }}" style="width:{{ seg.pct }}%;" data-tooltip="{{ seg.label }}"></div>
         {% endfor %}
     </div>
     <div class="viz-segments-legend">

@@ -89,6 +89,40 @@
             initSortable();
         }
     });
+
+    // Global Tooltip Management
+    var tooltip = document.getElementById('chart-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'chart-tooltip';
+        document.body.appendChild(tooltip);
+    }
+
+    document.addEventListener('mouseover', function(e) {
+        var trigger = e.target.closest('[data-tooltip]');
+        if (!trigger) return;
+        
+        tooltip.innerHTML = trigger.getAttribute('data-tooltip');
+        tooltip.classList.add('visible');
+        positionTooltip(e);
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        var trigger = e.target.closest('[data-tooltip]');
+        if (!trigger) return;
+        positionTooltip(e);
+    });
+
+    document.addEventListener('mouseout', function(e) {
+        var trigger = e.target.closest('[data-tooltip]');
+        if (!trigger) return;
+        tooltip.classList.remove('visible');
+    });
+
+    function positionTooltip(e) {
+        tooltip.style.left = e.pageX + 'px';
+        tooltip.style.top = e.pageY + 'px';
+    }
 })();
 </script>
 

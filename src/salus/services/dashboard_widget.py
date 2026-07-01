@@ -206,12 +206,22 @@ def _compute_pill_chart(
             continue
         min_b = min(bpms_in_bucket)
         max_b = max(bpms_in_bucket)
+
+        h1 = (idx * 15) // 60
+        m1 = (idx * 15) % 60
+        h2 = (idx * 15 + 15) // 60
+        m2 = (idx * 15 + 15) % 60
+        if h2 == 24:
+            h2 = 0
+        time_str = f"{h1:02d}:{m1:02d} - {h2:02d}:{m2:02d}"
+
         pills.append(
             {
                 "min_bpm": int(min_b),
                 "max_bpm": int(max_b),
                 "color": color,
                 "x_fraction": round((idx * 15) / 1440, 4),
+                "tooltip": f"{time_str} &middot; {int(min_b)} - {int(max_b)} bpm",
             }
         )
 
