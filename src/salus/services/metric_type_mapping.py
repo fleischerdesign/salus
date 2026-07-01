@@ -42,8 +42,18 @@ DATA_TYPE_KEYWORD_TO_METRIC: dict[str, str] = {
 class MetricTypeMappingService:
     def __init__(self, metric_type_repo: MetricTypeRepository) -> None:
         self._repo = metric_type_repo
+        self._cache: dict[tuple[str, int], int | None] = {}
 
     def resolve(self, data_type: str, user_id: int) -> int | None:
+        cache_key = (data_type, user_id)
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
+        resolved_id = self._resolve_uncached(data_type, user_id)
+        self._cache[cache_key] = resolved_id
+        return resolved_id
+
+    def _resolve_uncached(self, data_type: str, user_id: int) -> int | None:
         name = DATA_TYPE_KEYWORD_TO_METRIC.get(data_type)
         if name is not None:
             mt = self._repo.find_by_name_and_user(name, user_id)

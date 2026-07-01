@@ -11,17 +11,28 @@ class ActivityAnalysisService:
         self._repo = repo
 
     def steps_trend(self, days: int = 7, user_id: int | None = None, date: str | None = None) -> list[StepDay]:
-        result: list[StepDay] = []
         anchor = datetime.today() if date is None else datetime.strptime(date, "%Y-%m-%d")
+        
+        # Query the entire range in a single database lookup
+        start_date_str = (anchor - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+        since = datetime.fromisoformat(start_date_str + "T00:00:00")
+        until = datetime.fromisoformat(anchor.strftime("%Y-%m-%d") + "T23:59:59")
+        records = self._repo.find_all(
+            data_types=["steps"], user_id=user_id, since=since, until=until
+        )
+
+        # Group records by date in memory
+        by_date: dict[str, list] = {}
+        for rec in records:
+            d_str = rec.start_time.strftime("%Y-%m-%d")
+            by_date.setdefault(d_str, []).append(rec)
+
+        result: list[StepDay] = []
         for i in range(days):
             d = (anchor - timedelta(days=i)).strftime("%Y-%m-%d")
-            since = datetime.fromisoformat(d + "T00:00:00")
-            until = datetime.fromisoformat(d + "T23:59:59")
-            records = self._repo.find_all(
-                data_types=["steps"], user_id=user_id, since=since, until=until
-            )
+            day_records = by_date.get(d, [])
             count = 0
-            for rec in records:
+            for rec in day_records:
                 if rec.value_numeric is not None:
                     c = int(rec.value_numeric)
                     if c > count:
@@ -85,18 +96,29 @@ class ActivityAnalysisService:
         if date is None:
             date = datetime.today().strftime("%Y-%m-%d")
         anchor = datetime.strptime(date, "%Y-%m-%d")
+
+        # Query the entire range in a single database lookup
+        start_date_str = (anchor - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+        since = datetime.fromisoformat(start_date_str + "T00:00:00")
+        until = datetime.fromisoformat(anchor.strftime("%Y-%m-%d") + "T23:59:59")
+        records = self._repo.find_all(
+            data_types=["heart_rate"], user_id=user_id, since=since, until=until
+        )
+
+        # Group records by date in memory
+        by_date: dict[str, list] = {}
+        for rec in records:
+            d_str = rec.start_time.strftime("%Y-%m-%d")
+            by_date.setdefault(d_str, []).append(rec)
+
         result: list[HROHLC] = []
         for i in range(days - 1, -1, -1):
             d = (anchor - timedelta(days=i))
             d_str = d.strftime("%Y-%m-%d")
-            since = datetime.fromisoformat(d_str + "T00:00:00")
-            until = datetime.fromisoformat(d_str + "T23:59:59")
-            records = self._repo.find_all(
-                data_types=["heart_rate"], user_id=user_id, since=since, until=until
-            )
+            day_records = by_date.get(d_str, [])
             bpms = [
                 float(r.value_numeric)
-                for r in records
+                for r in day_records
                 if r.value_numeric is not None and r.value_numeric > 0
             ]
             if not bpms:

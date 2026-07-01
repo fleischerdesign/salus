@@ -36,14 +36,25 @@ from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
 
 
+def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
+    return UserRepository(session)
+
+
+def get_api_token_repo(session: Session = Depends(get_session)) -> ApiTokenRepository:
+    return ApiTokenRepository(session)
+
+
+def get_api_token_service(
+    api_token_repo: ApiTokenRepository = Depends(get_api_token_repo),
+    user_repo: UserRepository = Depends(get_user_repo),
+) -> ApiTokenService:
+    return ApiTokenService(api_token_repo, user_repo)
+
+
 async def verify_webhook_token(
     x_api_token: str | None = Header(None, alias="X-API-Token"),
     authorization: str | None = Header(None),
-    api_token_svc: ApiTokenService = Depends(
-        lambda session=Depends(get_session): ApiTokenService(
-            ApiTokenRepository(session), UserRepository(session)
-        )
-    ),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
 ) -> User:
     token: str | None = None
 
@@ -90,10 +101,6 @@ def get_jwt_service() -> JwtService:
     )
 
 
-def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
-    return UserRepository(session)
-
-
 def get_user_identity_repo(session: Session = Depends(get_session)) -> UserIdentityRepository:
     return UserIdentityRepository(session)
 
@@ -113,12 +120,6 @@ def get_user_service(
 ) -> UserService:
     return UserService(repo, identity_repo, metric_type_repo)
 
-
-def get_api_token_service(
-    session: Session = Depends(get_session),
-    user_repo: UserRepository = Depends(get_user_repo),
-) -> ApiTokenService:
-    return ApiTokenService(ApiTokenRepository(session), user_repo)
 
 
 def _build_oidc_providers(user_svc: UserService) -> dict[str, OidcAuthProvider]:
@@ -307,9 +308,7 @@ def get_admin_service(
     user_repo: UserRepository = Depends(get_user_repo),
     metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
-    api_token_repo: ApiTokenRepository = Depends(
-        lambda session=Depends(get_session): ApiTokenRepository(session)
-    ),
+    api_token_repo: ApiTokenRepository = Depends(get_api_token_repo),
     goal_repo: GoalRepository = Depends(get_goal_repo),
     dashboard_widget_repo: DashboardWidgetRepository = Depends(get_dashboard_widget_repo),
 ) -> AdminService:

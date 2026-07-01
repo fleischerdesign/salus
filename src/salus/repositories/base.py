@@ -29,3 +29,16 @@ class Repository(Generic[T]):
     def delete(self, obj: T) -> None:
         self.session.delete(obj)
         self.session.commit()
+
+    def add(self, obj: T) -> None:
+        """Add an entity to the session without committing immediately."""
+        self.session.add(obj)
+
+    def add_all(self, objs: list[T]) -> None:
+        """Add multiple entities to the session without committing immediately."""
+        for obj in objs:
+            self.session.add(obj)
+
+    def commit(self) -> None:
+        """Commit the current transaction."""
+        self.session.commit()
