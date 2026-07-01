@@ -102,4 +102,21 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Provide automated, encrypted backups to user-owned storage providers (Nextcloud, Proton Drive, WebDAV, or local backups).
 * **Architecture:** Encrypt SQL dumps on the fly with user-provided AES keys before uploading, ensuring the hosting provider has zero knowledge of the raw health data.
 
+### 7. Asymmetric Encrypted Doctor Sharing (GP Integration)
+* **Concept:** Allow users to temporarily and securely share specific health dashboards directly with their general practitioner (GP) or personal trainer.
+* **Architecture:** Use public/private key cryptography (Web Crypto API directly in the browser). The user encrypts selected date ranges using the recipient's public key. The recipient decrypts it locally. No unencrypted data is ever visible on the server.
+
+### 8. Statistical Data Synthesizer (Open Science)
+* **Concept:** Enable users to donate their health data to medical research anonymously.
+* **Architecture:** Build an in-memory generation pipeline that synthesizes data matching the user's exact trends and distributions (using differential privacy), allowing researchers to use the statistical properties without accessing personal metrics.
+
+### 9. Circadian Rhythm & Light Advisor
+* **Concept:** Provide optimal sleep window, meal timing, and wind-down advice based on geographical sunrise/sunset calculations, ambient light measurements, and core biometric logs.
+* **Architecture:** Build a mathematical model analyzing sleep depth offsets relative to light exposure patterns.
+
+### 10. Zero-Knowledge Peer Challenges (ZKP Gamification)
+* **Concept:** Engage in fitness challenges (e.g. "Who hits 15k steps first") without uploading raw logs to a central tracker.
+* **Architecture:** Generate cryptographically signed step receipts on device, and use Zero-Knowledge Proofs (ZKP) to prove compliance with a threshold (e.g., proving "steps > 15,000" without revealing the exact step count, GPS location, or timeframe).
+
+
 
