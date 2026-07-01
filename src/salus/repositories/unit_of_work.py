@@ -5,12 +5,14 @@ from sqlmodel import Session
 from salus.repositories.api_token import ApiTokenRepository
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.goal import GoalRepository
+from salus.repositories.insight import InsightRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
 from salus.repositories.protocols import (
     IApiTokenRepository,
     IDashboardWidgetRepository,
     IGoalRepository,
+    IInsightRepository,
     IMeasurementRepository,
     IMetricTypeRepository,
     ISystemConfigRepository,
@@ -31,6 +33,7 @@ class IUnitOfWork(Protocol):
     api_tokens: IApiTokenRepository
     system_configs: ISystemConfigRepository
     dashboard_widgets: IDashboardWidgetRepository
+    insights: IInsightRepository
 
     def __enter__(self) -> "IUnitOfWork":
         ...
@@ -54,6 +57,7 @@ class SqlUnitOfWork:
     api_tokens: IApiTokenRepository
     system_configs: ISystemConfigRepository
     dashboard_widgets: IDashboardWidgetRepository
+    insights: IInsightRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -65,6 +69,7 @@ class SqlUnitOfWork:
         self.api_tokens = ApiTokenRepository(session)
         self.system_configs = SystemConfigRepository(session)
         self.dashboard_widgets = DashboardWidgetRepository(session)
+        self.insights = InsightRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

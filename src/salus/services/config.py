@@ -22,9 +22,13 @@ CONFIG_DEFINITIONS = [
     ("ldap_base_dn", "LDAP base DN", "ldap", False),
     ("ldap_user_dn_template", "LDAP user DN template", "ldap", False),
     ("ldap_use_tls", "LDAP use TLS", "ldap", False),
+    ("llm_provider", "LLM Provider (ollama/openai/anthropic/deepseek/openrouter)", "llm", False),
+    ("llm_api_key", "LLM API Key", "llm", True),
+    ("llm_api_url", "LLM API Base URL (optional)", "llm", False),
+    ("llm_model", "LLM Model name", "llm", False),
 ]
 
-CATEGORY_ORDER = ["general", "security", "oidc", "ldap"]
+CATEGORY_ORDER = ["general", "security", "oidc", "ldap", "llm"]
 
 
 class ConfigService:

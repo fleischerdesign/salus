@@ -4,6 +4,7 @@ from typing import Protocol, TypeVar, runtime_checkable
 from salus.models.api_token import ApiToken
 from salus.models.dashboard import DashboardWidget
 from salus.models.goal import Goal
+from salus.models.insight import Insight
 from salus.models.measurement import Measurement
 from salus.models import MetricType
 from salus.models.system_config import SystemConfig
@@ -165,4 +166,13 @@ class IDashboardWidgetRepository(IRepository[DashboardWidget], Protocol):
         ...
 
     def find_by_user_and_metric(self, user_id: int, metric_type_id: int) -> DashboardWidget | None:
+        ...
+
+
+@runtime_checkable
+class IInsightRepository(IRepository[Insight], Protocol):
+    def find_by_user_and_date(self, user_id: int, query_date: str) -> Insight | None:
+        ...
+
+    def list_by_user(self, user_id: int, limit: int = 30) -> list[Insight]:
         ...

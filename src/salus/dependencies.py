@@ -35,6 +35,10 @@ from salus.services.metric_type_mapping import MetricTypeMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
+from salus.repositories.insight import InsightRepository
+from salus.repositories.protocols import IInsightRepository
+from salus.services.insight.factory import LlmProviderFactory
+from salus.services.insight.service import InsightService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -378,3 +382,18 @@ async def get_current_user_or_api(
     if user is None:
         raise AuthenticationError("Invalid or expired token")
     return user
+
+
+def get_insight_repo(session: Session = Depends(get_session)) -> IInsightRepository:
+    return InsightRepository(session)
+
+
+def get_insight_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> InsightService:
+    provider = LlmProviderFactory.create_provider(
+        provider_name=settings.llm_provider,
+        api_key=settings.llm_api_key,
+        api_url=settings.llm_api_url,
+    )
+    return InsightService(uow=uow, provider=provider, model=settings.llm_model)

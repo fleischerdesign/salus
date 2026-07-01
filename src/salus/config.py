@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     ldap_user_dn_template: str = "uid={username},{base_dn}"
     ldap_use_tls: bool = False
 
+    llm_provider: str = "ollama"
+    llm_api_key: str | None = None
+    llm_api_url: str | None = None
+    llm_model: str = "llama3"
+
     model_config = {"env_prefix": "SALUS_"}
 
 

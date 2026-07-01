@@ -13,7 +13,7 @@ from salus.database import Session, engine
 from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError, NotFoundError
 from salus.models import system_config  # noqa: F401 — register table
 from salus.repositories.system_config import SystemConfigRepository
-from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, metrics, onboarding, settings, webhook
+from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
 
@@ -84,6 +84,7 @@ app.include_router(goals.router, prefix="/goals")
 app.include_router(api.router)
 app.include_router(export.router)
 app.include_router(admin.router)
+app.include_router(insight.router, prefix="/insights")
 
 
 def is_api_request(request: Request) -> bool:

@@ -5,6 +5,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from salus.models.insight import Insight  # noqa: F401
     from salus.models.measurement import Measurement  # noqa: F401
     from salus.models.user import User  # noqa: F401
 

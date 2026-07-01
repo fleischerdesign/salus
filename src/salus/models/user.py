@@ -6,6 +6,7 @@ from sqlmodel import Field, Relationship, SQLModel
 if TYPE_CHECKING:
     from salus.models import MetricType  # noqa: F401
     from salus.models.goal import Goal  # noqa: F401
+    from salus.models.insight import Insight  # noqa: F401
     from salus.models.measurement import Measurement  # noqa: F401
     from salus.models.user_identity import UserIdentity  # noqa: F401
 
@@ -29,3 +30,4 @@ class User(SQLModel, table=True):
     measurements: list["Measurement"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     identities: list["UserIdentity"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     goals: list["Goal"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    insights: list["Insight"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
