@@ -158,6 +158,23 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Store cryptographically verifiable health proofs (such as vaccination status, PCR tests, or lab reports) locally on Salus, sharing them via a QR code with third parties without revealing any other medical history.
 * **Architecture:** Implement the W3C Verifiable Credentials (VC) standard, verifying signatures using DID (Decentralized Identifier) registries.
 
+### 21. Zero-Knowledge Proofs for Health Insurance Compliance
+* **Concept:** Prove to health insurance providers or corporate wellness programs that you meet activity thresholds (e.g. "average > 8,000 steps per day over 90 days") without disclosing actual raw logs, location coordinates, or time-series data.
+* **Architecture:** Generate a Zero-Knowledge Range Proof (ZK-SNARK) locally in the client browser or app, validating the statement against the database hash. The provider verifies the cryptographic proof signature in milliseconds without accessing raw metrics.
+
+### 22. Hardware-Attested Vitals (Anti-Spoofing Protocol)
+* **Concept:** Prevent users from manually falsifying data (e.g. scripts forging 10,000 steps to trick insurance programs) in clinical trials or challenges.
+* **Architecture:** Support cryptographically signed sensor packets at the hardware level (using Secure Enclaves on wearables). Salus validates the hardware key attestation before committing the data.
+
+### 23. Biometric Cryptographic Seed Phrase Generation
+* **Concept:** Use unique, stable physiological metrics (like heart rate variability signatures, EEG profiles, or micro-combinations of immutable biometric characteristics) to generate or recover cryptographic wallets/identities.
+* **Architecture:** Utilize a fuzzy extractor algorithm to derive stable cryptographic key pairs from noisy biometric measurements.
+
+### 24. Private Data Leasing Marketplaces (Micro-Monetization)
+* **Concept:** Optionally monetize your health history by leasing it to clinical trials or pharmaceutical research, without selling or transferring the actual files.
+* **Architecture:** Researchers dispatch containerized SQL queries to users' local Salus nodes. The query executes locally (in-situ compute), returns only the aggregated statistical result, and triggers a cryptocurrency micropayment (e.g., via the Lightning Network) directly to the user.
+
+
 
 
 
