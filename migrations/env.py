@@ -26,6 +26,7 @@ from salus.models.goal import Goal
 from salus.models.dashboard import DashboardWidget
 from salus.models.api_token import ApiToken
 from salus.models.system_config import SystemConfig
+from salus.models.insight import Insight
 
 target_metadata = SQLModel.metadata
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("AI Coach") }} - salus{% endblock %}
+{% block title %}salus — {{ _("AI Coach") }}{% endblock %}
 
 {% block head %}
 <!-- Load Marked.js to parse markdown client-side -->
@@ -78,10 +78,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex-between align-center" style="margin-bottom: 8px;">
+<div class="page-header">
     <div>
-        <h1 style="font: var(--font-title-lg); margin: 0;">{{ _("AI Coach & Biometric Insights") }}</h1>
-        <p class="text-muted" style="margin: 4px 0 0 0; font: var(--font-body-sm);">{{ _("Physician-grade daily health recommendations powered by LLMs") }}</p>
+        <h1>{{ _("AI Coach") }}</h1>
+        <p class="text-muted">{{ _("Physician-grade daily health recommendations powered by LLMs") }}</p>
     </div>
 </div>
 

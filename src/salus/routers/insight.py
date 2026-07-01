@@ -48,6 +48,7 @@ async def list_insights(
             "display_date": date,
             "display_date_formatted": display_date_formatted,
             "history": history,
+            "current_user": current_user,
         },
     )
 

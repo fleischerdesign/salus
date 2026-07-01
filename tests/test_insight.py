@@ -115,3 +115,8 @@ class TestInsightService:
         assert "Failed" in res.content or "fehler" in res.content.lower()
         # Verify it still persists the fallback so we don't spam failed queries
         assert res.id is not None
+
+    def test_insights_page_loads_authenticated(self, authenticated_client):
+        response = authenticated_client.get("/insights")
+        assert response.status_code == 200
+

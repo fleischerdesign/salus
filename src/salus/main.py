@@ -11,7 +11,8 @@ from starlette.templating import Jinja2Templates
 from salus.config import settings as app_settings
 from salus.database import Session, engine
 from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError, NotFoundError
-from salus.models import system_config  # noqa: F401 — register table
+from salus.models import system_config  # noqa: F401
+from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook
 from salus.services.config import ConfigService
