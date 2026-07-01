@@ -1055,9 +1055,15 @@ button {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 8px 6px 4px;
-    border-bottom: 1px solid var(--color-slate-100);
+    padding: 16px 16px 0px 16px;
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.dashboard-grid.edit-mode .widget-chrome {
     background: var(--color-slate-50);
+    border-bottom: 1px solid var(--color-slate-100);
+    padding: 6px 8px 6px 8px;
 }
 
 .widget-drag-handle {
@@ -1072,7 +1078,9 @@ button {
 
 .widget-chrome-title {
     font: var(--font-label-sm);
-    color: var(--color-slate-500);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     flex: 1;
     white-space: nowrap;
     overflow: hidden;
@@ -1107,7 +1115,7 @@ button {
 
 /* ---- Widget Body ---- */
 .widget-body {
-    padding: var(--space-stack-md);
+    padding: 8px 16px 16px 16px;
 }
 
 .widget-steps {
@@ -1199,11 +1207,11 @@ button {
 }
 
 /* ---- Edit Mode ---- */
-.dashboard-grid:not(.edit-mode) .widget-chrome {
+.dashboard-grid:not(.edit-mode) .widget-drag-handle {
     display: none;
 }
 
-.dashboard-grid:not(.edit-mode) .widget-drag-handle {
+.dashboard-grid:not(.edit-mode) .widget-chrome-actions {
     display: none;
 }
 

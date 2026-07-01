@@ -12,17 +12,17 @@ class Measurement(SQLModel, table=True):
     __tablename__ = "measurement"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
-    user_id: int | None = Field(default=None, foreign_key="user.id")
+    user_id: int | None = Field(default=None, foreign_key="user.id", index=True)
     metric_type_id: int | None = Field(default=None, foreign_key="metric_type.id")
-    data_type: str = Field(default="")
+    data_type: str = Field(default="", index=True)
     source: str = Field(default="manual")
     value_numeric: float | None = Field(default=None)
     value_text: str | None = Field(default=None)
     value_json: str | None = Field(default=None)
-    start_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
     end_time: datetime | None = Field(default=None)
     notes: str | None = Field(default=None)
-    external_id: str | None = Field(default=None)
+    external_id: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     user: "User" = Relationship(back_populates="measurements")

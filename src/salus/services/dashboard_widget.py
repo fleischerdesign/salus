@@ -172,30 +172,17 @@ def _compute_candlestick_chart(ohlc_list: list[HROHLC], reference_bpm: float) ->
     }
 
 
-_ZONE_THRESHOLDS: list[tuple[float, str, str]] = [
-    (100, "Peak", "#ef4444"),
-    (85, "Intense", "#f97316"),
-    (70, "Cardio", "#eab308"),
-    (60, "Fat Burn", "#22c55e"),
-    (0, "Resting", "#94a3b8"),
-]
-
-
-def _pill_zone(bpm: float) -> tuple[str, str]:
-    for threshold, name, color in _ZONE_THRESHOLDS:
-        if bpm >= threshold:
-            return name, color
-    return "Resting", "#94a3b8"
-
-
 def _compute_pill_chart(
-    timeline: list[HRTimelinePoint], resting_bpm: float, target_bpm: float | None = None
+    timeline: list[HRTimelinePoint],
+    resting_bpm: float,
+    color: str,
+    target_bpm: float | None = None,
 ) -> dict:
     if not timeline:
         return {"empty": True}
 
     bpms = [p.bpm for p in timeline]
-    y_min = max(0, resting_bpm - 10)
+    y_min = max(0, min(min(bpms) - 10, resting_bpm - 10))
     y_max = max(max(bpms) + 15, resting_bpm + 15)
     if target_bpm is not None and target_bpm > y_max:
         y_max = target_bpm + 5
@@ -203,26 +190,30 @@ def _compute_pill_chart(
         y_max = y_min + 20
     y_range = y_max - y_min
 
-    pills: list[dict] = []
+    # Group timeline points into 15-minute buckets (96 intervals)
+    buckets: dict[int, list[float]] = {i: [] for i in range(96)}
     for p in timeline:
         parts = p.time.split(":")
-        minutes = int(parts[0]) * 60 + int(parts[1])
-        _zone, zone_color = _pill_zone(p.bpm)
+        m = int(parts[0]) * 60 + int(parts[1])
+        bucket_idx = m // 15
+        if bucket_idx in buckets:
+            buckets[bucket_idx].append(p.bpm)
+
+    pills: list[dict] = []
+    for idx in sorted(buckets.keys()):
+        bpms_in_bucket = buckets[idx]
+        if not bpms_in_bucket:
+            continue
+        min_b = min(bpms_in_bucket)
+        max_b = max(bpms_in_bucket)
         pills.append(
             {
-                "bpm": int(p.bpm),
-                "color": zone_color,
-                "x_fraction": round(minutes / 1440, 4),
-                "time": p.time,
+                "min_bpm": int(min_b),
+                "max_bpm": int(max_b),
+                "color": color,
+                "x_fraction": round((idx * 15) / 1440, 4),
             }
         )
-
-    zones: list[dict] = []
-    seen: set[str] = set()
-    for _, name, color in reversed(_ZONE_THRESHOLDS):
-        if name not in seen:
-            zones.append({"color": color, "label": name})
-            seen.add(name)
 
     def _y_frac(bpm: float) -> float:
         return 1 - (bpm - y_min) / y_range
@@ -235,7 +226,6 @@ def _compute_pill_chart(
         "target_bpm": round(target_bpm) if target_bpm is not None else None,
         "y_min": y_min,
         "y_max": y_max,
-        "zones": zones,
         "empty": False,
     }
 
@@ -425,7 +415,7 @@ class DashboardWidgetService:
 
         goal = self._resolve_goal(user_id, "heart_rate")
         target_bpm = goal.target_value if goal and goal.direction.value == "decrease" else None
-        chart = _compute_pill_chart(timeline, hr.resting_bpm, target_bpm)
+        chart = _compute_pill_chart(timeline, hr.resting_bpm, color, target_bpm)
 
         base: dict = {
             "primary_value": f"{hr.resting_bpm:.0f}",

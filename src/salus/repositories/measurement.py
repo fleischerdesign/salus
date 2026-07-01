@@ -53,26 +53,46 @@ class MeasurementRepository(Repository[Measurement]):
     def upsert_all(self, records: list[Measurement]) -> tuple[int, int]:
         inserted = 0
         duplicates = 0
+        
+        # 1. Gather all external IDs to query existing records in chunks
+        external_ids = [rec.external_id for rec in records if rec.external_id]
+        existing_map: dict[tuple[str, str], Measurement] = {}
+        
+        if external_ids:
+            # Chunking to avoid SQLite parameter limit (usually 999)
+            chunk_size = 900
+            for i in range(0, len(external_ids), chunk_size):
+                chunk = external_ids[i:i + chunk_size]
+                stmt = select(Measurement).where(
+                    Measurement.external_id.in_(chunk)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+                )
+                chunk_existing = self.session.exec(stmt).all()
+                for ext in chunk_existing:
+                    if ext.external_id:
+                        existing_map[(ext.external_id, ext.source)] = ext
+                        
+        # 2. Match and update/insert
         for rec in records:
             existing = None
             if rec.external_id:
-                existing = self.session.exec(
-                    select(Measurement).where(
-                        Measurement.external_id == rec.external_id,
-                        Measurement.source == rec.source,
-                    )
-                ).first()
+                existing = existing_map.get((rec.external_id, rec.source))
+                
             if existing is not None:
                 existing.value_numeric = rec.value_numeric
                 existing.value_text = rec.value_text
                 existing.value_json = rec.value_json
                 existing.start_time = rec.start_time
                 existing.end_time = rec.end_time
-                self.update(existing)
+                self.session.add(existing)
                 duplicates += 1
             else:
-                self.create(rec)
+                self.session.add(rec)
+                if rec.external_id:
+                    existing_map[(rec.external_id, rec.source)] = rec
                 inserted += 1
+                
+        # 3. Commit the transaction once at the end
+        self.session.commit()
         return inserted, duplicates
 
     def find_by_date_range(

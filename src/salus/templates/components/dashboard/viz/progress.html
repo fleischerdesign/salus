@@ -3,7 +3,6 @@
         {% include "components/dashboard/viz/number.html" %}
     {% elif widget.size.value == "small" %}
     <div class="viz-progress-ring-wrap">
-        {% if viz.primary_label %}<span class="viz-primary-label">{{ viz.primary_label }}</span>{% endif %}
         <svg class="progress-ring" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" fill="none" stroke="var(--color-slate-100)" stroke-width="8"/>
             <circle cx="50" cy="50" r="40" fill="none" stroke="{{ viz.color }}" stroke-width="8"
@@ -17,7 +16,6 @@
     </div>
     {% else %}
     <div class="viz-progress-bar-wrap">
-        {% if viz.primary_label %}<span class="viz-primary-label">{{ viz.primary_label }}</span>{% endif %}
         <div class="viz-progress-bar-header">
             <span class="viz-primary-value">{{ viz.primary_value }}<span class="viz-unit"> {{ viz.primary_unit }}</span></span>
             {% if viz.delta %}<span class="widget-delta-row">{{ viz.delta | safe }}</span>{% endif %}
