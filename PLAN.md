@@ -70,3 +70,36 @@ This document serves as the central log of completed architectural refactorings 
   * [ ] **Unit of Work Pattern (Transactional Atomicity):** Implement a Unit of Work context manager that orchestrates repositories and manages commit/rollback boundaries across multiple tables. This prevents inconsistent states (e.g. creating a user but failing to save their credentials leaving orphaned rows).
   * [ ] **Request-Aware Exception Handling:** Refactor custom exception handlers in `main.py` to dynamically inspect incoming headers. Return structured `JSONResponse` payloads for `/api/...` endpoints and standard `HTMLResponse` or HTTP redirects for browser/HTMX requests.
 
+---
+
+# Visionary Product Roadmap: The Sovereign Health Platform
+
+Salus is designed to give users complete sovereignty over their health data. Unlike proprietary silos, Salus prioritizes open APIs, decentralized communication, and user privacy.
+
+## Phase 7: Sovereign Features & Ecosystem
+
+### 1. Developer Sandbox & Plugin System
+* **Concept:** Create a plugin architecture allowing third-party developers to package custom data sources, parse custom export types, and render custom dashboard widgets.
+* **Architecture:** Use a dynamic loader (or a sandboxed WASM runtime like `wasmtime`) to execute plugins without compromising core database safety. Expose a unified Python hook registry for extension registration.
+
+### 2. Private, Local LLM Integration (Health Insights)
+* **Concept:** Run a private health coach directly on the user's system to generate insights based on logged sleep, nutrition, and workout metrics.
+* **Architecture:** Integrate with local runtimes (e.g., Ollama or in-browser WebLLM) using local APIs. **Zero health data ever leaves the user's local infrastructure.**
+
+### 3. Instance Federation (Peer-to-Peer Sync)
+* **Concept:** Allow decentralized instances of Salus to communicate. Users can sync data across devices (e.g. laptop and server) or securely share anonymized metrics (like step-challenge rankings) with friends across different self-hosted servers.
+* **Architecture:** Implement an E2E-encrypted sync protocol (using WebDAV or custom HTTPS endpoints) and a lightweight federated protocol (inspired by ActivityPub or WebSub) to securely transmit metrics.
+
+### 4. Offline-First Mobile/Desktop App
+* **Concept:** Build a cross-platform companion app (e.g., using Tauri, Flutter, or React Native) that runs offline-first.
+* **Architecture:** Keep a local SQLite database on the client device that auto-syncs securely with the primary Salus instance when connected to the local Wi-Fi or internet.
+
+### 5. Smart Workout & Training Planner
+* **Concept:** Implement a workout generator and tracker that dynamically adjusts sets, reps, and target weights based on logged recovery metrics (e.g. sleep duration, resting heart rate, and steps trend).
+* **Architecture:** Build an exercise registry model and a custom service that maps workouts, tracking fatigue indexes in-memory.
+
+### 6. Zero-Knowledge E2E Encrypted Backups
+* **Concept:** Provide automated, encrypted backups to user-owned storage providers (Nextcloud, Proton Drive, WebDAV, or local backups).
+* **Architecture:** Encrypt SQL dumps on the fly with user-provided AES keys before uploading, ensuring the hosting provider has zero knowledge of the raw health data.
+
+
