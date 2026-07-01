@@ -1515,6 +1515,69 @@ button {
     flex-shrink: 0;
 }
 
+/* ---- Viz: Progress ---- */
+.viz-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-sm);
+}
+
+.viz-progress-ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-stack-sm);
+}
+
+.progress-ring {
+    width: 90px;
+    height: 90px;
+}
+
+.viz-progress-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.viz-progress-bar-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.viz-progress-track {
+    position: relative;
+    height: 22px;
+    background: var(--color-slate-100);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.viz-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.6s ease;
+}
+
+.viz-progress-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: var(--font-label-sm);
+    font-weight: 700;
+    color: var(--color-on-surface);
+    pointer-events: none;
+}
+
+.viz-progress-target {
+    text-align: center;
+    margin-top: 0;
+}
+
 /* ---- Viz: Candlestick ---- */
 .viz-candlestick {
     display: flex;

@@ -273,10 +273,11 @@ def get_dashboard_widget_service(
     sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
     nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
     weight_svc: WeightAnalysisService = Depends(get_weight_analysis_service),
+    goal_svc: GoalService = Depends(get_goal_service),
 ) -> DashboardWidgetService:
     return DashboardWidgetService(
         widget_repo, metric_type_repo, measurement_repo,
-        activity_svc, sleep_svc, nutrition_svc, weight_svc,
+        activity_svc, sleep_svc, nutrition_svc, weight_svc, goal_svc,
     )
 
 

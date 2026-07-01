@@ -14,6 +14,8 @@
         {% include "components/dashboard/viz/sparkline.html" %}
     {% elif viz.type == "bar" %}
         {% include "components/dashboard/viz/bar.html" %}
+    {% elif viz.type == "progress" %}
+        {% include "components/dashboard/viz/progress.html" %}
     {% else %}
         {% include "components/dashboard/viz/number.html" %}
     {% endif %}

@@ -12,6 +12,7 @@ from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
+from salus.services.goal import GoalService
 
 _EMPTY_TEXTS: dict[str, str] = {
     "steps": "No step data yet. Connect a health source to get started.",
@@ -29,7 +30,7 @@ _EMPTY_TEXTS: dict[str, str] = {
 }
 
 _VIZ_TYPE_DEFAULTS: dict[str, str] = {
-    "steps": "sparkline",
+    "steps": "progress",
     "heart_rate": "pills",
     "sleep": "bar",
     "weight": "number",
@@ -225,6 +226,7 @@ class DashboardWidgetService:
         sleep_svc: SleepAnalysisService,
         nutrition_svc: NutritionAnalysisService,
         weight_svc: WeightAnalysisService,
+        goal_svc: GoalService,
     ) -> None:
         self._widget_repo = widget_repo
         self._metric_type_repo = metric_type_repo
@@ -233,6 +235,7 @@ class DashboardWidgetService:
         self._sleep = sleep_svc
         self._nutrition = nutrition_svc
         self._weight = weight_svc
+        self._goal = goal_svc
 
     def ensure_defaults(self, user_id: int) -> list[DashboardWidget]:
         existing = self._widget_repo.find_by_user(user_id)
@@ -343,8 +346,15 @@ class DashboardWidgetService:
             return self._build_exercise_viz(user_id, target, color)
         return None
 
+    def _resolve_goal(self, user_id: int, source_data_type: str) -> float | None:
+        for g in self._goal.find_all(user_id):
+            mt = self._metric_type_repo.get_by_id(g.metric_type_id)
+            if mt and mt.source_data_type == source_data_type and g.frequency.value == "daily":
+                return g.target_value
+        return None
+
     def _build_steps_viz(self, user_id: int, target: str, color: str) -> dict | None:
-        trend = self._activity.steps_trend(days=7, user_id=user_id, date=target)
+        trend = self._activity.steps_trend(days=1, user_id=user_id, date=target)
         today = trend[-1] if trend else None
         if not today or today.count <= 0:
             return None
@@ -354,18 +364,24 @@ class DashboardWidgetService:
         )
         yesterday = yesterday_trend[-1] if yesterday_trend else None
 
-        goal = 10000
-        percent = min(int(today.count / goal * 100), 100)
-        return {
+        goal_val = self._resolve_goal(user_id, "steps")
+        base: dict = {
             "primary_value": f"{today.count:,}",
             "primary_unit": "steps",
             "sub": "today",
-            "delta": _delta_str(today.count, yesterday.count if yesterday else None, is_integer=True),
-            "sparkline_points": _compute_sparkline([float(d.count) for d in trend]),
-            "goal": goal,
-            "percent": percent,
+            "delta": _delta_str(
+                today.count, yesterday.count if yesterday else None, is_integer=True
+            ),
             "color": color,
         }
+        if goal_val is not None:
+            base["has_goal"] = True
+            base["goal"] = int(goal_val)
+            base["target_label"] = f"Ziel: {int(goal_val):,} / Tag"
+            base["percent"] = min(int(today.count / goal_val * 100), 100)
+        else:
+            base["has_goal"] = False
+        return base
 
     def _build_heart_rate_viz(self, user_id: int, target: str, color: str) -> dict | None:
         hr = self._activity.heart_rate_summary(user_id=user_id, date_str=target)
