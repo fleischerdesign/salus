@@ -198,6 +198,27 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Participate in clinical trials without enrolling in centralized patient databases.
 * **Architecture:** Clinical researchers publish trial criteria (e.g., "resting HR > 80 bpm, age 30-40, sleep efficiency < 75%"). The matching algorithm runs entirely on the user's local instance. If a match is found, the user receives an alert and can opt-in to establish direct encrypted contact.
 
+### 31. SMPC Cohort Challenges (Zero-Sharing leaderboards)
+* **Concept:** Host fitness leaderboards or challenges with friends, without any participant sharing their daily step counts or activity details with anyone else.
+* **Architecture:** Implement Secure Multi-Party Computation (SMPC) protocols. The group's instances cooperatively compute the winner, averages, and rankings in-browser or on-node, revealing only the final leaderboard order without revealing the underlying raw metrics of any single user.
+
+### 32. HL7 FHIR Patient Record Ingest
+* **Concept:** Import medical records directly from hospital patient portals or laboratory exports (e.g., blood test panels, imaging summaries, vaccination schedules) and visualize them alongside lifestyle vitals.
+* **Architecture:** Implement a local HL7 FHIR JSON schema parser. The app maps standard FHIR resource models (like Observation and DiagnosticReport) to Salus measurement types.
+
+### 33. Local HRV Spectral Analysis (ANS Autonomic Nervous System Mapping)
+* **Concept:** Map your autonomic nervous system stress response (sympathetic fight-or-flight vs. parasympathetic rest-and-digest balance) over time using heart rate variability.
+* **Architecture:** Implement local frequency-domain spectral analysis (RMSSD, SDNN, LF/HF ratio calculations) on raw inter-beat interval (IBI) data. Provide localized recommendations (e.g., box-breathing prompts) when rolling sympathetic dominance rises.
+
+### 34. Social Recovery of Encryption Keys (Shamir's Secret Sharing)
+* **Concept:** Recover your private Salus encryption key if you lose your password/device, without relying on a centralized cloud recovery database.
+* **Architecture:** Split the master decryption key into cryptographic shares using Shamir's Secret Sharing Scheme (e.g., 3-out-of-5 shares). Distribute the shares to trusted guardians (friends' Salus instances or secondary devices). Reconstruct the master key when a threshold of guardians approve.
+
+### 35. Voice-to-Metrics Local AI Intake (Speech-to-Log)
+* **Concept:** Log measurements, water intake, or foods hands-free using voice commands (e.g., "I just drank a glass of water and ran 5 kilometers"), processed entirely locally.
+* **Architecture:** Package a lightweight Speech-to-Text and Named Entity Recognition (NER) pipeline (such as Whisper-tiny and a custom transformer compiled to WASM/ONNX). Extraction happens locally on device, creating structured log records immediately.
+
+
 
 
 
