@@ -462,11 +462,15 @@ class DashboardWidgetService:
                 ("Awake", sl.awake_seconds, "segment-awake"),
             ]
         )
+        for seg in segments:
+            label = seg["label"]
+            pct = seg["pct"]
+            seg["label"] = f"{label}: {pct:.0f}%"
+
         return {
             "primary_label": "Schlaf",
             "primary_value": f"{sl.duration_hours:.1f}",
             "primary_unit": "h",
-            "sub": f"{sl.deep_pct:.0f}% Deep &middot; {sl.rem_pct:.0f}% REM",
             "delta": _delta_str(
                 sl.duration_hours,
                 yesterday_sleep.duration_hours if yesterday_sleep else None,
@@ -492,11 +496,19 @@ class DashboardWidgetService:
                 ("Fat", n.fat_g, "segment-fat"),
             ]
         ) if total > 0 else []
+        for seg in segments:
+            label = seg["label"]
+            if label == "Protein":
+                seg["label"] = f"Protein: {n.protein_g:.0f}g"
+            elif label == "Carbs":
+                seg["label"] = f"Carbs: {n.carbs_g:.0f}g"
+            elif label == "Fat":
+                seg["label"] = f"Fat: {n.fat_g:.0f}g"
+
         return {
             "primary_label": "Ernährung",
             "primary_value": f"{n.total_kcal:.0f}",
             "primary_unit": "kcal",
-            "sub": f"P:{n.protein_g:.0f}g C:{n.carbs_g:.0f}g F:{n.fat_g:.0f}g" if total > 0 else "No macros",
             "delta": _delta_str(
                 n.total_kcal,
                 yesterday_n.total_kcal if yesterday_n else None,
@@ -519,7 +531,6 @@ class DashboardWidgetService:
             "primary_label": "Gewicht",
             "primary_value": f"{w.weight_kg:.1f}",
             "primary_unit": "kg",
-            "sub": w.date,
             "delta": _delta_str(
                 w.weight_kg,
                 yesterday_w.weight_kg if yesterday_w else None,
