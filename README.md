@@ -1,6 +1,6 @@
 # salus
 
-**Personal Health Data Tracker — self-hosted, privacy-first, Nix-native.**
+**Personal Health Data Tracker: self-hosted, privacy-first, Nix-native.**
 
 [![CI](https://github.com/fleischerdesign/salus/actions/workflows/ci.yml/badge.svg)](https://github.com/fleischerdesign/salus/actions/workflows/ci.yml)
 [![Docker](https://img.shields.io/badge/ghcr.io-fleischerdesign%2Fsalus-086dd7)](https://github.com/fleischerdesign/salus/pkgs/container/salus)
@@ -10,20 +10,20 @@
 
 salus gives you a private, self-hosted dashboard for your health data. It ingests metrics from wearables and health platforms via a simple webhook API, displays them on a clean HTMX-powered dashboard, and tracks your goals over time.
 
-It runs anywhere — a single binary, a Docker container, or a native NixOS module. Your data stays on your machine.
+It runs anywhere: a Docker container, or a native NixOS module. Your data stays on your machine.
 
 ## Features
 
-- **Dashboard** — Configurable widget grid with day navigation. Steps, heart rate, sleep, weight, exercise, nutrition, and more.
-- **Webhook Ingestion** — `POST /webhook` with Bearer token or API key. Auto-detects Samsung Health Connect, flat arrays, and source-specific formats (Apple Health, Google Fit, Fitbit, Oura). Deduplicates by external ID.
-- **Manual Entry** — Log weight, blood pressure, or any custom metric manually through the UI.
-- **Goal Tracking** — Set daily, weekly, or one-time targets with directional goals (increase/decrease). Visual progress bars and streak indicators.
-- **Analytics** — Per-metric detail pages with trend charts and statistics.
-- **Authentication** — Local bcrypt accounts, OAuth2/OIDC (Google, GitHub, generic), and LDAP. JWT stored in HTTP-only cookies.
-- **Multi-Tenant** — Full user isolation. Every record, metric, widget, and goal is user-scoped.
-- **Dark Mode** — System, light, and dark themes via `data-theme` CSS variables. Persisted per user.
-- **Admin Panel** — User management, system configuration, API token administration, storage statistics.
-- **Onboarding Wizard** — Guided setup for new users: first metric, first entry, first goal, webhook token generation.
+- **Dashboard:** Configurable widget grid with day navigation. Steps, heart rate, sleep, weight, exercise, nutrition, and more.
+- **Webhook Ingestion:** `POST /webhook` with Bearer token or API key. Auto-detects Health Connect, flat arrays, and source-specific formats (Apple Health, Google Fit, Fitbit, Oura). Deduplicates by external ID.
+- **Manual Entry:** Log weight, blood pressure, or any custom metric manually through the UI.
+- **Goal Tracking:** Set daily, weekly, or one-time targets with directional goals (increase/decrease). Visual progress bars and streak indicators.
+- **Analytics:** Per-metric detail pages with trend charts and statistics.
+- **Authentication:** Local bcrypt accounts, OAuth2/OIDC (Google, GitHub, generic), and LDAP. JWT stored in HTTP-only cookies.
+- **Multi-Tenant:** Full user isolation. Every record, metric, widget, and goal is user-scoped.
+- **Dark Mode:** System, light, and dark themes via `data-theme` CSS variables. Persisted per user.
+- **Admin Panel:** User management, system configuration, API token administration, storage statistics.
+- **Onboarding Wizard:** Guided setup for new users: first metric, first entry, first goal, webhook token generation.
 
 ## Tech Stack
 
@@ -77,14 +77,13 @@ All settings are environment variables prefixed with `SALUS_`.
 | `SALUS_JWT_ALGORITHM` | `HS256` | JWT signing algorithm. |
 | `SALUS_JWT_EXPIRE_MINUTES` | `1440` | Session duration (24 hours). |
 | `SALUS_OAUTH_REDIRECT_BASE` | `http://localhost:8000` | Base URL for OAuth redirects. |
-| `SALUS_GOOGLE_CLIENT_ID` | — | Google OAuth client ID (optional). |
-| `SALUS_GOOGLE_CLIENT_SECRET` | — | Google OAuth client secret (optional). |
-| `SALUS_GITHUB_CLIENT_ID` | — | GitHub OAuth client ID (optional). |
-| `SALUS_GITHUB_CLIENT_SECRET` | — | GitHub OAuth client secret (optional). |
-| `SALUS_OIDC_ISSUER_URL` | — | Generic OIDC provider URL (optional). |
-| `SALUS_LDAP_SERVER_URI` | — | LDAP server URI (optional). |
-| `SALUS_LDAP_BASE_DN` | — | LDAP base DN (optional). |
-| `SALUS_HERMES_HOME` | `data` | Data directory for exports and assets. |
+| `SALUS_GOOGLE_CLIENT_ID` | - | Google OAuth client ID (optional). |
+| `SALUS_GOOGLE_CLIENT_SECRET` | - | Google OAuth client secret (optional). |
+| `SALUS_GITHUB_CLIENT_ID` | - | GitHub OAuth client ID (optional). |
+| `SALUS_GITHUB_CLIENT_SECRET` | - | GitHub OAuth client secret (optional). |
+| `SALUS_OIDC_ISSUER_URL` | - | Generic OIDC provider URL (optional). |
+| `SALUS_LDAP_SERVER_URI` | - | LDAP server URI (optional). |
+| `SALUS_LDAP_BASE_DN` | - | LDAP base DN (optional). |
 | `LOG_LEVEL` | `INFO` | Python logging level. Set to `DEBUG` for verbose webhook logging. |
 
 See `src/salus/config.py` for the full list.
@@ -109,7 +108,7 @@ uv sync        # installs project + dev dependencies
 
 ```bash
 uv run uvicorn src.salus.main:app --reload   # dev server
-uv run pytest -v                              # 181 tests
+uv run pytest -v                              # 180 tests
 uv run ruff check src/                        # lint
 uv run pyright src/                           # type check
 
@@ -157,10 +156,10 @@ src/salus/
 
 ### Architecture Principles
 
-- **Dependency Inversion** — Services receive repositories via constructor injection. All wiring lives in `dependencies.py`.
-- **Thin Routers** — Route handlers parse input, call a service, return a template or redirect.
-- **Absolute Imports** — Always `from salus.models import ...`, never relative.
-- **Auth Flow** — `router → AuthService → Provider → UserService → JwtService → HttpOnly cookie`.
+- **Dependency Inversion:** Services receive repositories via constructor injection. All wiring lives in `dependencies.py`.
+- **Thin Routers:** Route handlers parse input, call a service, return a template or redirect.
+- **Absolute Imports:** Always `from salus.models import ...`, never relative.
+- **Auth Flow:** `router → AuthService → Provider → UserService → JwtService → HttpOnly cookie`.
 
 See `AGENTS.md` for the complete architecture reference.
 
@@ -262,8 +261,8 @@ The parser auto-detects the payload format and maps known data types to metric w
 | `blood_glucose` | Blood Glucose | mmol/L |
 | `body_fat` | Body Fat | % |
 | `water` | Water | L |
-| `stress` | Stress | — |
-| `readiness` | Readiness | — |
+| `stress` | Stress | - |
+| `readiness` | Readiness | - |
 
 More data types are recognized and stored even if no default widget exists for them. Scoped `sls_*` API tokens with `ingest:write` scope can be generated per device in Settings → API Tokens.
 
@@ -280,7 +279,7 @@ More data types are recognized and stored even if no default widget exists for t
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 ---
 
