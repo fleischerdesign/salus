@@ -60,3 +60,13 @@ This document serves as the central log of completed architectural refactorings 
 * **Tasks:**
   * [ ] Separate developer and app integrations onto a versioned router structure (e.g., `/api/v1/metrics`, `/api/v1/entries`).
   * [ ] Integrate a translation helper (like `Babel` / `gettext`) to manage English and German localization strings.
+
+---
+
+## Phase 6: Advanced Clean Architecture & SOLID Abstractions
+* **Objective:** Elevate codebase patterns to support enterprise-grade isolation, testability, and transactional safety.
+* **Tasks:**
+  * [ ] **Repository Protocol Abstraction (DIP):** Define `typing.Protocol` interfaces for all repositories (e.g. `IUserRepository`). Services must type-hint against these interfaces rather than concrete SQLModel implementations, enabling database-agnostic operations.
+  * [ ] **Unit of Work Pattern (Transactional Atomicity):** Implement a Unit of Work context manager that orchestrates repositories and manages commit/rollback boundaries across multiple tables. This prevents inconsistent states (e.g. creating a user but failing to save their credentials leaving orphaned rows).
+  * [ ] **Request-Aware Exception Handling:** Refactor custom exception handlers in `main.py` to dynamically inspect incoming headers. Return structured `JSONResponse` payloads for `/api/...` endpoints and standard `HTMLResponse` or HTTP redirects for browser/HTMX requests.
+
