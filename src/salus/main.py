@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
@@ -86,26 +86,40 @@ app.include_router(export.router)
 app.include_router(admin.router)
 
 
+def is_api_request(request: Request) -> bool:
+    return request.url.path.startswith("/api/") or request.url.path.startswith("/webhook")
+
+
 @app.exception_handler(NotFoundError)
-async def not_found_handler(request: Request, exc: NotFoundError) -> HTMLResponse:
+async def not_found_handler(request: Request, exc: NotFoundError):
+    if is_api_request(request):
+        return JSONResponse(status_code=404, content={"error": exc.message})
     return HTMLResponse(status_code=404, content=exc.message)
 
 
 @app.exception_handler(ConflictError)
-async def conflict_handler(request: Request, exc: ConflictError) -> HTMLResponse:
+async def conflict_handler(request: Request, exc: ConflictError):
+    if is_api_request(request):
+        return JSONResponse(status_code=409, content={"error": exc.message})
     return HTMLResponse(status_code=409, content=exc.message)
 
 
 @app.exception_handler(AuthenticationError)
-async def auth_error_handler(request: Request, exc: AuthenticationError) -> RedirectResponse:
+async def auth_error_handler(request: Request, exc: AuthenticationError):
+    if is_api_request(request):
+        return JSONResponse(status_code=401, content={"error": exc.message})
     return RedirectResponse(url="/auth/login", status_code=303)
 
 
 @app.exception_handler(ForbiddenError)
-async def forbidden_handler(request: Request, exc: ForbiddenError) -> RedirectResponse:
+async def forbidden_handler(request: Request, exc: ForbiddenError):
+    if is_api_request(request):
+        return JSONResponse(status_code=403, content={"error": exc.message})
     return RedirectResponse(url="/", status_code=303)
 
 
 @app.exception_handler(404)
-async def not_found_fallback(request: Request, exc: Exception) -> RedirectResponse:
+async def not_found_fallback(request: Request, exc: Exception):
+    if is_api_request(request):
+        return JSONResponse(status_code=404, content={"error": "Not Found"})
     return RedirectResponse(url="/", status_code=303)

@@ -7,9 +7,11 @@ from salus.models.analytics import HROHLC, HRTimelinePoint
 from salus.models.dashboard import DashboardWidget, WidgetSize
 from salus.models.goal import Goal
 from salus.models import MetricType
-from salus.repositories.dashboard import DashboardWidgetRepository
-from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.protocols import (
+    IDashboardWidgetRepository,
+    IMeasurementRepository,
+    IMetricTypeRepository,
+)
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
@@ -244,9 +246,9 @@ def _compute_pill_chart(
 class DashboardWidgetService:
     def __init__(
         self,
-        widget_repo: DashboardWidgetRepository,
-        metric_type_repo: MetricTypeRepository,
-        measurement_repo: MeasurementRepository,
+        widget_repo: IDashboardWidgetRepository,
+        metric_type_repo: IMetricTypeRepository,
+        measurement_repo: IMeasurementRepository,
         activity_svc: ActivityAnalysisService,
         sleep_svc: SleepAnalysisService,
         nutrition_svc: NutritionAnalysisService,

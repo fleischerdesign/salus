@@ -2,12 +2,12 @@ from datetime import datetime, timedelta
 import json
 
 from salus.models.analytics import ExerciseSession, HROHLC, HRSummary, HRTimelinePoint, StepDay
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 from salus.services.analytics.calculations import map_exercise_type
 
 
 class ActivityAnalysisService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
     def steps_trend(self, days: int = 7, user_id: int | None = None, date: str | None = None) -> list[StepDay]:

@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 import json
 
 from salus.models.analytics import NutritionDay
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 
 
 class NutritionAnalysisService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
     def daily_totals(self, days: int = 7, user_id: int | None = None) -> list[NutritionDay]:

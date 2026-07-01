@@ -4,14 +4,13 @@ from salus.exceptions import NotFoundError
 from salus.models.analytics import GoalProgress
 from salus.models.goal import Goal, GoalDirection, GoalFrequency
 from salus.models.measurement import Measurement
-from salus.repositories.goal import GoalRepository
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IGoalRepository, IMeasurementRepository
 from salus.schemas.goal import GoalCreate
 from salus.services.analytics.calculations import compute_goal_progress
 
 
 class GoalService:
-    def __init__(self, repo: GoalRepository, measurement_repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IGoalRepository, measurement_repo: IMeasurementRepository) -> None:
         self._repo = repo
         self._measurement_repo = measurement_repo
 

@@ -1,7 +1,7 @@
 import json
 import logging
 
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 from salus.services.metric_type_mapping import MetricTypeMappingService
 from salus.services.parser import FlexiblePayloadParser
 
@@ -12,7 +12,7 @@ class WebhookIngestionService:
     def __init__(
         self,
         parser: FlexiblePayloadParser,
-        measurement_repo: MeasurementRepository,
+        measurement_repo: IMeasurementRepository,
         mapping_service: MetricTypeMappingService,
     ) -> None:
         self._parser = parser

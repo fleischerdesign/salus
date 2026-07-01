@@ -11,6 +11,7 @@ from salus.repositories.goal import GoalRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
 from salus.repositories.system_config import SystemConfigRepository
+from salus.repositories.unit_of_work import IUnitOfWork, SqlUnitOfWork
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
 from salus.services.analytics.activity import ActivityAnalysisService
@@ -319,6 +320,10 @@ def get_system_config_repo(session: Session = Depends(get_session)) -> SystemCon
     return SystemConfigRepository(session)
 
 
+def get_unit_of_work(session: Session = Depends(get_session)) -> IUnitOfWork:
+    return SqlUnitOfWork(session)
+
+
 def get_config_service(
     repo: SystemConfigRepository = Depends(get_system_config_repo),
 ) -> ConfigService:
@@ -349,15 +354,21 @@ async def get_current_user_or_api(
     elif authorization and authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()
 
-    if token and token == settings.api_token:
-        from sqlmodel import select
-        from salus.models.user import User as UserModel
+    if token:
+        if token == settings.api_token:
+            from sqlmodel import select
+            from salus.models.user import User as UserModel
 
-        user = session.exec(
-            select(UserModel).where(UserModel.is_admin)
-        ).first()
+            user = session.exec(
+                select(UserModel).where(UserModel.is_admin)
+            ).first()
+            if user is not None:
+                return user
+
+        user = auth_svc.get_user_from_token(token)
         if user is not None:
             return user
+        raise AuthenticationError("Invalid or expired token")
 
     token = _extract_token_from_request(request)
     if token is None:

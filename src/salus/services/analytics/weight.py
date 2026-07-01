@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 import json
 
 from salus.models.analytics import WeightPoint, WeightTrend
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 
 
 class WeightAnalysisService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
     def current(self, user_id: int | None = None, date_str: str | None = None) -> WeightPoint | None:

@@ -1,5 +1,5 @@
 from salus.models import DataType
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.protocols import IMetricTypeRepository
 
 DEFAULT_METRIC_TYPES: list[tuple[str, str, DataType, str, str | None, str, str, bool]] = [
     ("Steps", "steps", DataType.NUMBER, "#f59e0b", "steps", "directions_walk", "large", True),
@@ -40,7 +40,7 @@ DATA_TYPE_KEYWORD_TO_METRIC: dict[str, str] = {
 
 
 class MetricTypeMappingService:
-    def __init__(self, metric_type_repo: MetricTypeRepository) -> None:
+    def __init__(self, metric_type_repo: IMetricTypeRepository) -> None:
         self._repo = metric_type_repo
         self._cache: dict[tuple[str, int], int | None] = {}
 

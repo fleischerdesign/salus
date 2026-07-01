@@ -3,11 +3,11 @@ import io
 import json
 from datetime import datetime
 
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 
 
 class ExportService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
     def export_all(

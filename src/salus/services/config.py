@@ -3,7 +3,7 @@ import os
 from salus.config import settings as app_settings
 from salus.exceptions import ConflictError
 from salus.models.system_config import SystemConfig
-from salus.repositories.system_config import SystemConfigRepository
+from salus.repositories.protocols import ISystemConfigRepository
 
 CONFIG_DEFINITIONS = [
     ("app_name", "Application name", "general", False),
@@ -28,7 +28,7 @@ CATEGORY_ORDER = ["general", "security", "oidc", "ldap"]
 
 
 class ConfigService:
-    def __init__(self, repo: SystemConfigRepository) -> None:
+    def __init__(self, repo: ISystemConfigRepository) -> None:
         self._repo = repo
 
     def seed_defaults(self) -> int:

@@ -1,15 +1,17 @@
 class TestApiAuth:
-    def test_api_no_key_returns_redirect(self, client):
+    def test_api_no_key_returns_unauthorized(self, client):
         response = client.get("/api/v1/metrics", follow_redirects=False)
-        assert response.status_code in (303, 302)
+        assert response.status_code == 401
+        assert response.json() == {"error": "Not authenticated"}
 
-    def test_api_wrong_key_returns_redirect(self, client):
+    def test_api_wrong_key_returns_unauthorized(self, client):
         response = client.get(
             "/api/v1/metrics",
             headers={"X-API-Key": "wrong-key"},
             follow_redirects=False,
         )
-        assert response.status_code in (303, 302)
+        assert response.status_code == 401
+        assert response.json() == {"error": "Invalid or expired token"}
 
 
 class TestApiMetrics:

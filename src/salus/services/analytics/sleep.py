@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
 from salus.models.analytics import SleepSummary
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 from salus.services.analytics.calculations import map_sleep_stage
 
 
 class SleepAnalysisService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
     def last_night(self, user_id: int | None = None, date_str: str | None = None) -> SleepSummary | None:

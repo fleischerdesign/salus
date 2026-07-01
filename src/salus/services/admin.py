@@ -4,24 +4,26 @@ from salus.config import settings as app_settings
 from salus.exceptions import ConflictError, NotFoundError
 from salus.models.api_token import ApiToken
 from salus.models.user import User
-from salus.repositories.api_token import ApiTokenRepository
-from salus.repositories.dashboard import DashboardWidgetRepository
-from salus.repositories.goal import GoalRepository
-from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
-from salus.repositories.user import UserRepository
+from salus.repositories.protocols import (
+    IApiTokenRepository,
+    IDashboardWidgetRepository,
+    IGoalRepository,
+    IMeasurementRepository,
+    IMetricTypeRepository,
+    IUserRepository,
+)
 from salus.services._helpers import uid
 
 
 class AdminService:
     def __init__(
         self,
-        user_repo: UserRepository,
-        metric_type_repo: MetricTypeRepository,
-        measurement_repo: MeasurementRepository,
-        api_token_repo: ApiTokenRepository,
-        goal_repo: GoalRepository,
-        dashboard_widget_repo: DashboardWidgetRepository,
+        user_repo: IUserRepository,
+        metric_type_repo: IMetricTypeRepository,
+        measurement_repo: IMeasurementRepository,
+        api_token_repo: IApiTokenRepository,
+        goal_repo: IGoalRepository,
+        dashboard_widget_repo: IDashboardWidgetRepository,
     ) -> None:
         self._user_repo = user_repo
         self._metric_type_repo = metric_type_repo

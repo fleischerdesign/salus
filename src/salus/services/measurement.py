@@ -2,12 +2,12 @@ from datetime import datetime, timezone
 
 from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
-from salus.repositories.measurement import MeasurementRepository
+from salus.repositories.protocols import IMeasurementRepository
 from salus.schemas.measurement import MeasurementCreate
 
 
 class MeasurementService:
-    def __init__(self, repo: MeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository) -> None:
         self.repo = repo
 
     def get(self, measurement_id: int, user_id: int) -> Measurement:

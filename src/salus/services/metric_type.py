@@ -1,11 +1,11 @@
 from salus.exceptions import ConflictError, NotFoundError
 from salus.models import MetricType
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.protocols import IMetricTypeRepository
 from salus.schemas import MetricTypeCreate
 
 
 class MetricTypeService:
-    def __init__(self, repo: MetricTypeRepository) -> None:
+    def __init__(self, repo: IMetricTypeRepository) -> None:
         self.repo = repo
 
     def get(self, metric_type_id: int, user_id: int) -> MetricType:

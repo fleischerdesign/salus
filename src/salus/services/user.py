@@ -2,9 +2,7 @@ from salus.exceptions import ConflictError, NotFoundError
 from salus.models import MetricType
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
-from salus.repositories.metric_type import MetricTypeRepository
-from salus.repositories.user import UserRepository
-from salus.repositories.user_identity import UserIdentityRepository
+from salus.repositories.protocols import IUserRepository, IUserIdentityRepository, IMetricTypeRepository
 from salus.services._helpers import uid
 from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
 from salus.services.password import hash_password, verify_password
@@ -13,9 +11,9 @@ from salus.services.password import hash_password, verify_password
 class UserService:
     def __init__(
         self,
-        repo: UserRepository,
-        identity_repo: UserIdentityRepository,
-        metric_type_repo: MetricTypeRepository,
+        repo: IUserRepository,
+        identity_repo: IUserIdentityRepository,
+        metric_type_repo: IMetricTypeRepository,
     ) -> None:
         self.repo = repo
         self.identity_repo = identity_repo

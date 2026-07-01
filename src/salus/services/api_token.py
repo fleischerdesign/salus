@@ -4,8 +4,7 @@ import bcrypt
 
 from salus.models.api_token import ApiToken
 from salus.models.user import User
-from salus.repositories.api_token import ApiTokenRepository
-from salus.repositories.user import UserRepository
+from salus.repositories.protocols import IApiTokenRepository, IUserRepository
 
 _TOKEN_PREFIX = "sls_"
 
@@ -16,7 +15,7 @@ def _generate_token() -> str:
 
 
 class ApiTokenService:
-    def __init__(self, repo: ApiTokenRepository, user_repo: UserRepository) -> None:
+    def __init__(self, repo: IApiTokenRepository, user_repo: IUserRepository) -> None:
         self._repo = repo
         self._user_repo = user_repo
 
