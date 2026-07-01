@@ -1470,6 +1470,12 @@ button {
 /* ---- Viz: Number ---- */
 .viz-number {
     display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.viz-number-row {
+    display: flex;
     align-items: center;
     gap: var(--space-stack-md);
 }

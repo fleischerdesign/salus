@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from salus.models.analytics import HROHLC, HRTimelinePoint
 from salus.models.dashboard import DashboardWidget, WidgetSize
+from salus.models.goal import Goal
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
@@ -170,7 +171,7 @@ def _pill_zone(bpm: float) -> tuple[str, str]:
 
 
 def _compute_pill_chart(
-    timeline: list[HRTimelinePoint], resting_bpm: float
+    timeline: list[HRTimelinePoint], resting_bpm: float, target_bpm: float | None = None
 ) -> dict:
     if not timeline:
         return {"empty": True}
@@ -178,6 +179,8 @@ def _compute_pill_chart(
     bpms = [p.bpm for p in timeline]
     y_min = max(0, resting_bpm - 10)
     y_max = max(max(bpms) + 15, resting_bpm + 15)
+    if target_bpm is not None and target_bpm > y_max:
+        y_max = target_bpm + 5
     if y_max <= y_min:
         y_max = y_min + 20
     y_range = y_max - y_min
@@ -209,6 +212,9 @@ def _compute_pill_chart(
     return {
         "pills": pills,
         "resting_y_fraction": round(_y_frac(resting_bpm), 3),
+        "resting_bpm": round(resting_bpm),
+        "target_y_fraction": round(_y_frac(target_bpm), 3) if target_bpm is not None else None,
+        "target_bpm": round(target_bpm) if target_bpm is not None else None,
         "y_min": y_min,
         "y_max": y_max,
         "zones": zones,
@@ -346,12 +352,16 @@ class DashboardWidgetService:
             return self._build_exercise_viz(user_id, target, color)
         return None
 
-    def _resolve_goal(self, user_id: int, source_data_type: str) -> float | None:
+    def _resolve_goal(self, user_id: int, source_data_type: str) -> Goal | None:
+        daily_goals: list[Goal] = []
         for g in self._goal.find_all(user_id):
+            if g.frequency.value != "daily":
+                continue
             mt = self._metric_type_repo.get_by_id(g.metric_type_id)
-            if mt and mt.source_data_type == source_data_type and g.frequency.value == "daily":
-                return g.target_value
-        return None
+            if mt and mt.source_data_type == source_data_type:
+                daily_goals.append(g)
+        daily_goals.sort(key=lambda g: g.created_at, reverse=True)
+        return daily_goals[0] if daily_goals else None
 
     def _build_steps_viz(self, user_id: int, target: str, color: str) -> dict | None:
         trend = self._activity.steps_trend(days=1, user_id=user_id, date=target)
@@ -364,8 +374,9 @@ class DashboardWidgetService:
         )
         yesterday = yesterday_trend[-1] if yesterday_trend else None
 
-        goal_val = self._resolve_goal(user_id, "steps")
+        goal = self._resolve_goal(user_id, "steps")
         base: dict = {
+            "primary_label": "Schritte",
             "primary_value": f"{today.count:,}",
             "primary_unit": "steps",
             "sub": "today",
@@ -374,11 +385,12 @@ class DashboardWidgetService:
             ),
             "color": color,
         }
-        if goal_val is not None:
+        if goal is not None:
+            progress = self._goal.progress(goal)
             base["has_goal"] = True
-            base["goal"] = int(goal_val)
-            base["target_label"] = f"Ziel: {int(goal_val):,} / Tag"
-            base["percent"] = min(int(today.count / goal_val * 100), 100)
+            base["goal"] = int(goal.target_value)
+            base["target_label"] = f"Ziel: {int(goal.target_value):,} / Tag"
+            base["percent"] = progress.percent
         else:
             base["has_goal"] = False
         return base
@@ -392,12 +404,15 @@ class DashboardWidgetService:
             user_id=user_id, date_str=_yesterday(target)
         )
         timeline = self._activity.heart_rate_timeline(user_id=user_id, date_str=target)
-        chart = _compute_pill_chart(timeline, hr.resting_bpm)
 
-        return {
+        goal = self._resolve_goal(user_id, "heart_rate")
+        target_bpm = goal.target_value if goal and goal.direction.value == "decrease" else None
+        chart = _compute_pill_chart(timeline, hr.resting_bpm, target_bpm)
+
+        base: dict = {
             "primary_value": f"{hr.resting_bpm:.0f}",
             "primary_unit": "bpm",
-            "primary_label": "Ruhepuls",
+            "primary_label": "Puls",
             "delta": _delta_str(
                 hr.resting_bpm,
                 yesterday_hr.resting_bpm if yesterday_hr else None,
@@ -412,6 +427,16 @@ class DashboardWidgetService:
             "chart": chart,
             "color": color,
         }
+        if goal is not None:
+            progress = self._goal.progress(goal)
+            base["has_goal"] = True
+            base["goal"] = int(goal.target_value)
+            base["target_label"] = f"Ziel: <{int(goal.target_value)} bpm"
+            base["percent"] = progress.percent
+            base["goal_direction"] = goal.direction.value
+        else:
+            base["has_goal"] = False
+        return base
 
     def _build_sleep_viz(self, user_id: int, target: str, color: str) -> dict | None:
         sl = self._sleep.last_night(user_id=user_id, date_str=target)
@@ -428,6 +453,7 @@ class DashboardWidgetService:
             {"label": "Awake", "pct": round(sl.awake_pct), "css_class": "segment-awake"},
         ]
         return {
+            "primary_label": "Schlaf",
             "primary_value": f"{sl.duration_hours:.1f}",
             "primary_unit": "h",
             "sub": f"{sl.deep_pct:.0f}% Deep &middot; {sl.rem_pct:.0f}% REM",
@@ -458,6 +484,7 @@ class DashboardWidgetService:
              "css_class": "segment-fat"},
         ]
         return {
+            "primary_label": "Ernährung",
             "primary_value": f"{n.total_kcal:.0f}",
             "primary_unit": "kcal",
             "sub": f"P:{n.protein_g:.0f}g C:{n.carbs_g:.0f}g F:{n.fat_g:.0f}g" if total > 0 else "No macros",
@@ -480,6 +507,7 @@ class DashboardWidgetService:
             user_id=user_id, date_str=_yesterday(target)
         )
         return {
+            "primary_label": "Gewicht",
             "primary_value": f"{w.weight_kg:.1f}",
             "primary_unit": "kg",
             "sub": w.date,
@@ -501,6 +529,7 @@ class DashboardWidgetService:
         total_min = sum(s.duration_seconds for s in target_sessions) / 60
         names = set(s.type_name for s in target_sessions)
         return {
+            "primary_label": "Training",
             "primary_value": f"{total_min:.0f}",
             "primary_unit": "min",
             "sub": ", ".join(names),

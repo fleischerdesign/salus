@@ -1,4 +1,5 @@
 <div class="viz-bar">
+    {% if viz.primary_label %}<span class="viz-primary-label">{{ viz.primary_label }}</span>{% endif %}
     <div class="viz-bar-header">
         <div class="widget-icon-wrap" style="background:{{ viz.color }}20;">
             <span class="material-symbols-outlined" style="color:{{ viz.color }};">{{ metric.icon }}</span>
