@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlmodel import SQLModel
 
 from salus.config import settings as app_settings
 from salus.database import Session, engine
@@ -27,7 +26,18 @@ templates.env.globals["settings"] = app_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    SQLModel.metadata.create_all(engine)
+    # Run programmatic migrations on startup
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import inspect
+
+    alembic_cfg = Config("alembic.ini")
+    inspector = inspect(engine)
+    if "user" in inspector.get_table_names() and "alembic_version" not in inspector.get_table_names():
+        command.stamp(alembic_cfg, "head")
+    else:
+        command.upgrade(alembic_cfg, "head")
+
     session = Session(engine)
     try:
         ConfigService(SystemConfigRepository(session)).seed_defaults()

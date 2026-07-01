@@ -31,11 +31,11 @@ This document serves as the central log of completed architectural refactorings 
 ## Phase 2: Schema Migrations (Alembic)
 * **Objective:** Introduce versioned database migrations to protect user data and manage schema changes over time.
 * **Tasks:**
-  * [ ] Install Alembic: `uv add alembic`.
-  * [ ] Initialize migration files: `alembic init migrations`.
-  * [ ] Configure autogenerate metadata to map `SQLModel.metadata` and read the connection string from `settings.database_url`.
-  * [ ] Generate the initial schema migration script.
-  * [ ] Configure the startup script / Docker runner to execute `alembic upgrade head`.
+  * [x] Install Alembic: `uv add alembic`.
+  * [x] Initialize migration files: `alembic init migrations`.
+  * [x] Configure autogenerate metadata to map `SQLModel.metadata` and read the connection string from `settings.database_url`.
+  * [x] Generate the initial schema migration script.
+  * [x] Configure the startup script / Docker runner to execute `alembic upgrade head`.
 
 ---
 
