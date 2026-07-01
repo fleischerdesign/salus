@@ -8,7 +8,7 @@
             >
                 <div class="form-stack">
                     <div class="input-group">
-                        <label for="entry-metric">Metric</label>
+                        <label for="entry-metric">{{ _("Metric") }}</label>
                         <select id="entry-metric" name="metric_type_id" required>
                             {% for m in metrics %}
                             <option value="{{ m.id }}"
@@ -20,21 +20,21 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="entry-value">Value</label>
+                        <label for="entry-value">{{ _("Value") }}</label>
                 <input type="text" id="entry-value" name="value" value="{{ entry.display_value if entry else '' }}" required>
             </div>
             <div class="input-group">
-                <label for="entry-timestamp">Timestamp</label>
+                <label for="entry-timestamp">{{ _("Timestamp") }}</label>
                 <input type="datetime-local" id="entry-timestamp" name="timestamp"
                        value="{{ entry.start_time.strftime('%Y-%m-%dT%H:%M') if entry and entry.start_time else '' }}">
                     </div>
                     <div class="input-group">
-                        <label for="entry-notes">Notes</label>
+                        <label for="entry-notes">{{ _("Notes") }}</label>
                         <input type="text" id="entry-notes" name="notes" value="{{ entry.notes if entry else '' }}">
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn">Save</button>
-                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                        <button type="submit" class="btn">{{ _("Save") }}</button>
+                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
                     </div>
                 </div>
             </form>

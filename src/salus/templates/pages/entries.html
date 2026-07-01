@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}salus — Entries{% endblock %}
+{% block title %}salus — {{ _("Entries") }}{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h1>Entries</h1>
+    <h1>{{ _("Entries") }}</h1>
 </div>
 
 <div class="flex-wrap gap-sm mb-md">
@@ -10,7 +10,7 @@
         hx-get="/entries/new{% if selected_metric_id %}?metric_type_id={{ selected_metric_id }}{% endif %}"
         hx-target="#modal-container"
         hx-swap="innerHTML">
-        New Entry
+        {{ _("New Entry") }}
     </button>
     {% for metric in metrics %}
     <a href="/entries?metric_type_id={{ metric.id }}"
@@ -35,14 +35,14 @@
                 hx-get="/entries/{{ entry.id }}/edit"
                 hx-target="#modal-container"
                 hx-swap="innerHTML">
-                Edit
+                {{ _("Edit") }}
             </button>
             <button
                 hx-delete="/entries/{{ entry.id }}"
                 hx-target="#entry-{{ entry.id }}"
                 hx-swap="outerHTML"
                 class="btn-danger">
-                Delete
+                {{ _("Delete") }}
             </button>
         </div>
     </div>
@@ -50,6 +50,6 @@
 {% endfor %}
 
 {% if not entries and selected_metric_id %}
-<p class="text-muted mt-md">No entries for this metric yet.</p>
+<p class="text-muted mt-md">{{ _("No entries for this metric yet.") }}</p>
 {% endif %}
 {% endblock %}

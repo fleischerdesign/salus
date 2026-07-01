@@ -35,3 +35,11 @@ def test_set_locale_cookie(authenticated_client):
     assert response.status_code == 200
     assert "Account Settings" in response.text
     assert "Kontoeinstellungen" not in response.text
+
+
+def test_translate_function():
+    from salus.services.i18n import translate
+    assert translate("fulfilled", "de") == "Erreicht"
+    assert translate("partial", "de") == "Teilweise"
+    assert translate("pending", "de") == "Ausstehend"
+    assert translate("non-existent-key", "de") == "non-existent-key"

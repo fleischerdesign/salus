@@ -1,11 +1,11 @@
 <div class="card onboarding-card">
     <div class="card-header">
-        <h3 class="card-title">Getting Started</h3>
+        <h3 class="card-title">{{ _("Getting Started") }}</h3>
         <button class="btn-icon onboarding-card-close"
                 hx-post="/onboarding/dismiss"
                 hx-target="#onboarding-card"
                 hx-swap="outerHTML"
-                title="Dismiss">
+                title="{{ _("Dismiss") }}">
             <span class="material-symbols-outlined">close</span>
         </button>
     </div>
@@ -15,30 +15,30 @@
              hx-target="body"
              hx-swap="beforeend">
             <span class="material-symbols-outlined onboarding-check-icon">sync</span>
-            <span class="onboarding-check-title">Connect a data source</span>
-            <span class="onboarding-check-desc">Generate an API token for webhook ingestion.</span>
+            <span class="onboarding-check-title">{{ _("Connect a data source") }}</span>
+            <span class="onboarding-check-desc">{{ _("Generate an API token for webhook ingestion.") }}</span>
         </div>
         <div class="onboarding-checklist-item"
              hx-get="/onboarding/step/1/modal"
              hx-target="body"
              hx-swap="beforeend">
             <span class="material-symbols-outlined onboarding-check-icon">edit_note</span>
-            <span class="onboarding-check-title">Log your first entry</span>
-            <span class="onboarding-check-desc">Track weight, mood, or any custom metric.</span>
+            <span class="onboarding-check-title">{{ _("Log your first entry") }}</span>
+            <span class="onboarding-check-desc">{{ _("Track weight, mood, or any custom metric.") }}</span>
         </div>
         <div class="onboarding-checklist-item"
              hx-get="/onboarding/step/2/modal"
              hx-target="body"
              hx-swap="beforeend">
             <span class="material-symbols-outlined onboarding-check-icon">track_changes</span>
-            <span class="onboarding-check-title">Set your first goal</span>
-            <span class="onboarding-check-desc">E.g. walk 10,000 steps or sleep 8 hours.</span>
+            <span class="onboarding-check-title">{{ _("Set your first goal") }}</span>
+            <span class="onboarding-check-desc">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</span>
         </div>
     </div>
     <button class="btn-ghost onboarding-card-dismiss"
             hx-post="/onboarding/dismiss"
             hx-target="#onboarding-card"
             hx-swap="outerHTML">
-        Dismiss
+        {{ _("Dismiss") }}
     </button>
 </div>

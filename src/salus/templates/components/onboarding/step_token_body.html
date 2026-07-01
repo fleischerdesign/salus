@@ -4,10 +4,10 @@
           hx-swap="innerHTML"
           class="form-stack">
         <div class="input-group">
-            <label for="ob-token-label-{{ step_index }}">Token Label</label>
+            <label for="ob-token-label-{{ step_index }}">{{ _("Token Label") }}</label>
             <input type="text" id="ob-token-label-{{ step_index }}" name="label" placeholder="e.g. Samsung Health" required autofocus>
         </div>
         <input type="hidden" name="scopes" value="ingest:write">
-        <button type="submit" class="btn btn-sm">Generate Token</button>
+        <button type="submit" class="btn btn-sm">{{ _("Generate Token") }}</button>
     </form>
 </div>

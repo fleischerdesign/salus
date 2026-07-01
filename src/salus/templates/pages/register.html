@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}salus — Register{% endblock %}
+{% block title %}salus — {{ _("Register") }}{% endblock %}
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
-        <h2>Create Account</h2>
-        <p class="auth-subtitle">Start tracking your health data</p>
+        <h2>{{ _("Create Account") }}</h2>
+        <p class="auth-subtitle">{{ _("Start tracking your health data") }}</p>
 
         {% if error %}
         <div class="alert alert-error">{{ error }}</div>
@@ -13,28 +13,28 @@
         <form method="post" action="/auth/register">
             <div class="form-stack">
                 <div class="input-group">
-                    <label for="reg-username">Username</label>
+                    <label for="reg-username">{{ _("Username") }}</label>
                     <input type="text" id="reg-username" name="username" required minlength="2" autofocus>
                 </div>
                 <div class="input-group">
-                    <label for="reg-email">Email (optional)</label>
+                    <label for="reg-email">{{ _("Email (optional)") }}</label>
                     <input type="email" id="reg-email" name="email">
                 </div>
                 <div class="input-group">
-                    <label for="reg-display-name">Display Name (optional)</label>
+                    <label for="reg-display-name">{{ _("Display Name (optional)") }}</label>
                     <input type="text" id="reg-display-name" name="display_name">
                 </div>
                 <div class="input-group">
-                    <label for="reg-password">Password</label>
+                    <label for="reg-password">{{ _("Password") }}</label>
                     <input type="password" id="reg-password" name="password" required minlength="6">
                 </div>
-                <button type="submit" class="btn">Create Account</button>
+                <button type="submit" class="btn">{{ _("Create Account") }}</button>
             </div>
         </form>
 
         <div class="mt-md text-center">
-            <span style="font: var(--font-body-sm); color: var(--color-slate-500);">Already have an account?</span>
-            <a href="/auth/login" class="text-primary" style="font: var(--font-body-sm);">Sign in</a>
+            <span style="font: var(--font-body-sm); color: var(--color-slate-500);">{{ _("Already have an account?") }}</span>
+            <a href="/auth/login" class="text-primary" style="font: var(--font-body-sm);">{{ _("Sign In") }}</a>
         </div>
     </div>
 </div>

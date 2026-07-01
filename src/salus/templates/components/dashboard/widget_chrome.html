@@ -6,21 +6,21 @@
      hx-swap="outerHTML">
     <div class="widget-chrome">
         <span class="material-symbols-outlined widget-drag-handle">drag_indicator</span>
-        <span class="widget-chrome-title">{{ metric.name if metric else "Widget" }}</span>
+        <span class="widget-chrome-title">{{ metric.name if metric else _("Widget") }}</span>
         <div class="widget-chrome-actions">
             <button class="btn-icon"
                     hx-get="/dashboard/widgets/{{ widget.id }}/edit"
                     hx-target="#modal-container"
                     hx-swap="innerHTML"
-                    title="Edit size">
+                    title="{{ _("Edit size") }}">
                 <span class="material-symbols-outlined">tune</span>
             </button>
             <button class="btn-icon"
                     hx-delete="/dashboard/widgets/{{ widget.id }}"
                     hx-target="#widget-{{ widget.id }}"
                     hx-swap="outerHTML"
-                    hx-confirm="Remove this widget?"
-                    title="Remove">
+                    hx-confirm="{{ _("Remove this widget?") }}"
+                    title="{{ _("Remove") }}">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>

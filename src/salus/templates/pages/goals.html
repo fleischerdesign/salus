@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}salus — Goals{% endblock %}
+{% block title %}salus — {{ _("Goals") }}{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1>Active Goals</h1>
-        <p class="text-muted">Track targets for your health metrics.</p>
+        <h1>{{ _("Active Goals") }}</h1>
+        <p class="text-muted">{{ _("Track targets for your health metrics.") }}</p>
     </div>
     <button class="btn"
         hx-get="/goals/new"
         hx-target="#modal-container"
         hx-swap="innerHTML">
-        New Goal
+        {{ _("New Goal") }}
     </button>
 </div>
 
@@ -24,10 +24,10 @@
 </div>
 {% else %}
 <div class="card">
-    <p>No goals yet. <button class="btn-ghost" style="padding:0;font:inherit;"
+    <p>{{ _("No goals yet.") }} <button class="btn-ghost" style="padding:0;font:inherit;"
         hx-get="/goals/new"
         hx-target="#modal-container"
-        hx-swap="innerHTML">Create your first goal</button>.</p>
+        hx-swap="innerHTML">{{ _("Create your first goal") }}</button>.</p>
 </div>
 {% endif %}
 {% endblock %}

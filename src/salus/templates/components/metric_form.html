@@ -8,46 +8,46 @@
             >
                 <div class="form-stack">
                     <div class="input-group">
-                        <label for="metric-name">Name</label>
+                        <label for="metric-name">{{ _("Name") }}</label>
                         <input type="text" id="metric-name" name="name" value="{{ metric.name if metric else '' }}" required>
                     </div>
                     <div class="input-group">
-                        <label for="metric-unit">Unit</label>
+                        <label for="metric-unit">{{ _("Unit") }}</label>
                         <input type="text" id="metric-unit" name="unit" value="{{ metric.unit if metric else '' }}">
                     </div>
                     <div class="input-group">
-                        <label for="metric-data-type">Data Type</label>
+                        <label for="metric-data-type">{{ _("Data Type") }}</label>
                         <select id="metric-data-type" name="data_type">
-                            <option value="number" {% if metric and metric.data_type.value == 'number' %}selected{% endif %}>Number</option>
-                            <option value="text" {% if metric and metric.data_type.value == 'text' %}selected{% endif %}>Text</option>
-                            <option value="boolean" {% if metric and metric.data_type.value == 'boolean' %}selected{% endif %}>Boolean</option>
+                            <option value="number" {% if metric and metric.data_type.value == 'number' %}selected{% endif %}>{{ _("Number") }}</option>
+                            <option value="text" {% if metric and metric.data_type.value == 'text' %}selected{% endif %}>{{ _("Text") }}</option>
+                            <option value="boolean" {% if metric and metric.data_type.value == 'boolean' %}selected{% endif %}>{{ _("Boolean") }}</option>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="metric-icon">Icon</label>
+                        <label for="metric-icon">{{ _("Icon") }}</label>
                         <select id="metric-icon" name="icon">
-                            <option value="monitoring" {% if metric and metric.icon == 'monitoring' %}selected{% endif %}>Monitoring (default)</option>
-                            <option value="directions_walk" {% if metric and metric.icon == 'directions_walk' %}selected{% endif %}>Directions Walk</option>
-                            <option value="monitor_heart" {% if metric and metric.icon == 'monitor_heart' %}selected{% endif %}>Monitor Heart</option>
-                            <option value="bedtime" {% if metric and metric.icon == 'bedtime' %}selected{% endif %}>Bedtime</option>
-                            <option value="restaurant" {% if metric and metric.icon == 'restaurant' %}selected{% endif %}>Restaurant</option>
-                            <option value="monitor_weight" {% if metric and metric.icon == 'monitor_weight' %}selected{% endif %}>Monitor Weight</option>
-                            <option value="exercise" {% if metric and metric.icon == 'exercise' %}selected{% endif %}>Exercise</option>
-                            <option value="water_drop" {% if metric and metric.icon == 'water_drop' %}selected{% endif %}>Water Drop</option>
-                            <option value="psychology" {% if metric and metric.icon == 'psychology' %}selected{% endif %}>Psychology</option>
-                            <option value="checklist" {% if metric and metric.icon == 'checklist' %}selected{% endif %}>Checklist</option>
-                            <option value="bloodtype" {% if metric and metric.icon == 'bloodtype' %}selected{% endif %}>Blood Type</option>
-                            <option value="vital_signs" {% if metric and metric.icon == 'vital_signs' %}selected{% endif %}>Vital Signs</option>
-                            <option value="body_fat" {% if metric and metric.icon == 'body_fat' %}selected{% endif %}>Body Fat</option>
+                            <option value="monitoring" {% if metric and metric.icon == 'monitoring' %}selected{% endif %}>{{ _("Monitoring (default)") }}</option>
+                            <option value="directions_walk" {% if metric and metric.icon == 'directions_walk' %}selected{% endif %}>{{ _("Directions Walk") }}</option>
+                            <option value="monitor_heart" {% if metric and metric.icon == 'monitor_heart' %}selected{% endif %}>{{ _("Monitor Heart") }}</option>
+                            <option value="bedtime" {% if metric and metric.icon == 'bedtime' %}selected{% endif %}>{{ _("Bedtime") }}</option>
+                            <option value="restaurant" {% if metric and metric.icon == 'restaurant' %}selected{% endif %}>{{ _("Restaurant") }}</option>
+                            <option value="monitor_weight" {% if metric and metric.icon == 'monitor_weight' %}selected{% endif %}>{{ _("Monitor Weight") }}</option>
+                            <option value="exercise" {% if metric and metric.icon == 'exercise' %}selected{% endif %}>{{ _("Exercise") }}</option>
+                            <option value="water_drop" {% if metric and metric.icon == 'water_drop' %}selected{% endif %}>{{ _("Water Drop") }}</option>
+                            <option value="psychology" {% if metric and metric.icon == 'psychology' %}selected{% endif %}>{{ _("Psychology") }}</option>
+                            <option value="checklist" {% if metric and metric.icon == 'checklist' %}selected{% endif %}>{{ _("Checklist") }}</option>
+                            <option value="bloodtype" {% if metric and metric.icon == 'bloodtype' %}selected{% endif %}>{{ _("Blood Type") }}</option>
+                            <option value="vital_signs" {% if metric and metric.icon == 'vital_signs' %}selected{% endif %}>{{ _("Vital Signs") }}</option>
+                            <option value="body_fat" {% if metric and metric.icon == 'body_fat' %}selected{% endif %}>{{ _("Body Fat") }}</option>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="metric-color">Color</label>
+                        <label for="metric-color">{{ _("Color") }}</label>
                         <input type="color" id="metric-color" name="color" value="{{ metric.color if metric else '#4f46e5' }}">
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn">Save</button>
-                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                        <button type="submit" class="btn">{{ _("Save") }}</button>
+                        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
                     </div>
                 </div>
             </form>

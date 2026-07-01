@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}salus — Dashboard{% endblock %}
+{% block title %}salus — {{ _("Dashboard") }}{% endblock %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 {% endblock %}
@@ -14,7 +14,7 @@
 {% endif %}
 
 <div class="page-header">
-    <h1>Dashboard</h1>
+    <h1>{{ _("Dashboard") }}</h1>
     <div id="day-navigator">
         {% include "components/dashboard/day_navigator.html" %}
     </div>
@@ -23,19 +23,19 @@
                 onclick="document.getElementById('dashboard-grid').classList.add('edit-mode');
                          this.style.display='none';
                          document.getElementById('done-layout-btn').style.display='';">
-            Edit Layout
+            {{ _("Edit Layout") }}
         </button>
         <button id="done-layout-btn" class="btn-sm active" style="display:none;"
                 onclick="document.getElementById('dashboard-grid').classList.remove('edit-mode');
                          this.style.display='none';
                          document.getElementById('edit-layout-btn').style.display='';">
-            Done
+            {{ _("Done") }}
         </button>
         <button class="btn-sm edit-layout-only"
                 hx-get="/dashboard/widgets/add-modal"
                 hx-target="body"
                 hx-swap="beforeend">
-            + Add Widget
+            + {{ _("Add Widget") }}
         </button>
     </div>
 </div>

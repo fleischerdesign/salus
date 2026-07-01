@@ -3,11 +3,11 @@
             hx-get="/dashboard/grid?date={{ prev_date }}"
             hx-target="#dashboard-content"
             hx-swap="outerHTML"
-            aria-label="Previous day">
+            aria-label="{{ _("Previous day") }}">
         <span class="material-symbols-outlined">chevron_left</span>
     </button>
 
-    <button class="day-navigator__date" type="button" id="day-navigator-date" title="Pick a date"
+    <button class="day-navigator__date" type="button" id="day-navigator-date" title="{{ _("Pick a date") }}"
             onclick="document.getElementById('day-picker').showPicker()">
         {{ display_date_formatted }}
     </button>
@@ -20,7 +20,7 @@
             hx-get="/dashboard/grid?date={{ next_date }}"
             hx-target="#dashboard-content"
             hx-swap="outerHTML"
-            aria-label="Next day">
+            aria-label="{{ _("Next day") }}">
         <span class="material-symbols-outlined">chevron_right</span>
     </button>
     {% else %}
@@ -34,7 +34,7 @@
             hx-get="/dashboard/grid"
             hx-target="#dashboard-content"
             hx-swap="outerHTML">
-        Today
+        {{ _("Today") }}
     </button>
     {% endif %}
 </div>

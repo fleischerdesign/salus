@@ -1,13 +1,13 @@
 <div class="onboarding-success">
     <span class="material-symbols-outlined onboarding-success-icon">check_circle</span>
-    <p class="onboarding-success-msg">Token created.</p>
+    <p class="onboarding-success-msg">{{ _("Token created.") }}</p>
     <div class="onboarding-token-display">
         <code class="onboarding-token-value">{{ plaintext_token }}</code>
-        <p class="onboarding-token-hint">Copy this now — it won't be shown again.</p>
+        <p class="onboarding-token-hint">{{ _("Copy this now — it won't be shown again.") }}</p>
     </div>
     <div class="onboarding-webhook-url">
         <span class="material-symbols-outlined onboarding-url-icon">link</span>
         <code>{{ webhook_url }}</code>
-        <p class="onboarding-url-hint">POST your health data to this URL with the token as <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+        <p class="onboarding-url-hint">{{ _("POST your health data to this URL with the token as") }} <code>Authorization: Bearer &lt;token&gt;</code> {{ _("header.") }}</p>
     </div>
 </div>

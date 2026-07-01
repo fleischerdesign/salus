@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}salus — Metrics{% endblock %}
+{% block title %}salus — {{ _("Metrics") }}{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h1>Metrics</h1>
+    <h1>{{ _("Metrics") }}</h1>
     <div class="page-header-actions">
         <button class="btn"
             hx-get="/metrics/new"
             hx-target="#modal-container"
             hx-swap="innerHTML">
-            New Metric
+            {{ _("New Metric") }}
         </button>
     </div>
 </div>
@@ -32,14 +32,14 @@
             hx-get="/metrics/{{ metric.id }}/edit"
             hx-target="#modal-container"
             hx-swap="innerHTML">
-            Edit
+            {{ _("Edit") }}
         </button>
         <button
             hx-delete="/metrics/{{ metric.id }}"
             hx-target="#metric-{{ metric.id }}"
             hx-swap="outerHTML"
             class="btn-danger">
-            Delete
+            {{ _("Delete") }}
         </button>
     </div>
 </div>

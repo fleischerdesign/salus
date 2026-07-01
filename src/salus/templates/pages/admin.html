@@ -1,35 +1,35 @@
 {% extends "base.html" %}
-{% block title %}salus — Admin{% endblock %}
+{% block title %}salus — {{ _("Admin") }}{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h1>Admin Panel</h1>
+    <h1>{{ _("Admin Panel") }}</h1>
 </div>
 
 <div class="settings-section">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">System Statistics</h3>
+            <h3 class="card-title">{{ _("System Statistics") }}</h3>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
             <div class="data-box" style="text-align:center;">
                 <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_users }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">Total Users</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Users") }}</div>
             </div>
             <div class="data-box" style="text-align:center;">
                 <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_measurements }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">Total Measurements</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Measurements") }}</div>
             </div>
             <div class="data-box" style="text-align:center;">
                 <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_metric_types }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">Metric Types</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Metric Types") }}</div>
             </div>
             <div class="data-box" style="text-align:center;">
                 <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_goals }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">Total Goals</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Goals") }}</div>
             </div>
             <div class="data-box" style="text-align:center;">
                 <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ storage.db_size }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">Database Size</div>
+                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Database Size") }}</div>
             </div>
         </div>
     </div>
@@ -38,7 +38,7 @@
 <div class="settings-section">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Users</h3>
+            <h3 class="card-title">{{ _("Users") }}</h3>
         </div>
         {% include "components/admin/user_table.html" %}
         <div id="admin-user-detail"></div>
@@ -48,7 +48,7 @@
 <div class="settings-section">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">System Configuration</h3>
+            <h3 class="card-title">{{ _("System Configuration") }}</h3>
         </div>
         {% for cat in config_categories %}
         {% set cat_items = config_by_cat.get(cat, []) %}
@@ -59,9 +59,9 @@
                 <table class="data-grid">
                     <thead>
                         <tr>
-                            <th>Setting</th>
-                            <th>Value</th>
-                            <th>Source</th>
+                            <th>{{ _("Setting") }}</th>
+                            <th>{{ _("Value") }}</th>
+                            <th>{{ _("Source") }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -99,7 +99,7 @@
                                         hx-get="/admin/config/{{ item.key }}/edit"
                                         hx-target="#admin-config-{{ cat }}"
                                         hx-swap="outerHTML">
-                                    Edit
+                                    {{ _("Edit") }}
                                 </button>
                                 {% endif %}
                             </td>
@@ -112,7 +112,7 @@
         {% endif %}
         {% endfor %}
         <p class="text-muted" style="font:var(--font-label-sm);margin-top:8px;">
-            Settings marked <span class="chip chip-warning" style="font-size:11px;">ENV</span> are controlled by environment variables and cannot be edited here.
+            {{ _("Settings marked ENV are controlled by environment variables and cannot be edited here.") }}
         </p>
     </div>
 </div>
@@ -120,7 +120,7 @@
 <div class="settings-section">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">API Tokens</h3>
+            <h3 class="card-title">{{ _("API Tokens") }}</h3>
         </div>
         {% include "components/admin/token_table.html" %}
     </div>

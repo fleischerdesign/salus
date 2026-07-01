@@ -2,7 +2,7 @@
     <div class="modal-content">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Add Widget</h3>
+                <h3 class="card-title">{{ _("Add Widget") }}</h3>
                 <button class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -12,7 +12,7 @@
                   hx-swap="outerHTML">
                 <div class="form-stack">
                     <div class="input-group">
-                        <label for="add-widget-metric">Metric</label>
+                        <label for="add-widget-metric">{{ _("Metric") }}</label>
                         <select name="metric_type_id" id="add-widget-metric">
                             {% for m in metrics %}
                             <option value="{{ m.id }}">{{ m.name }}</option>
@@ -20,17 +20,17 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="add-widget-size">Size</label>
+                        <label for="add-widget-size">{{ _("Size") }}</label>
                         <select name="size" id="add-widget-size">
-                            <option value="small">Small (1 column)</option>
-                            <option value="medium" selected>Medium (2 columns)</option>
-                            <option value="large">Large (4 columns)</option>
+                            <option value="small">{{ _("Small (1 column)") }}</option>
+                            <option value="medium" selected>{{ _("Medium (2 columns)") }}</option>
+                            <option value="large">{{ _("Large (4 columns)") }}</option>
                         </select>
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn">Add</button>
+                        <button type="submit" class="btn">{{ _("Add") }}</button>
                         <button type="button" class="btn-ghost"
-                                onclick="this.closest('.modal-backdrop').remove()">Cancel</button>
+                                onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
                     </div>
                 </div>
             </form>
