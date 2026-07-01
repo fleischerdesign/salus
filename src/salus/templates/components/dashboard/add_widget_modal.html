@@ -3,8 +3,7 @@
 
 {% call modal(title=_("Add Widget")) %}
 <form hx-post="/dashboard/widgets/add"
-      hx-target="closest .modal-backdrop"
-      hx-swap="outerHTML">
+      hx-on::afterRequest="this.closest('.modal-backdrop').remove()">
     <div class="form-stack">
         {% call select(name="metric_type_id", label=_("Metric"), id="add-widget-metric") %}
             {% for m in metrics %}

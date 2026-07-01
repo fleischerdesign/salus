@@ -2,9 +2,9 @@
     <table class="data-grid">
         <thead>
             <tr>
-                <th>Setting</th>
-                <th>Value</th>
-                <th>Source</th>
+                <th>{{ _("Setting") }}</th>
+                <th>{{ _("Value") }}</th>
+                <th>{{ _("Source") }}</th>
                 <th></th>
             </tr>
         </thead>
@@ -33,24 +33,24 @@
                 </td>
                 <td>
                     {% if item.is_env_override %}
-                    <span class="chip chip-warning" style="font-size:11px;" title="Set via {{ item.env_var_name }}">ENV</span>
+                    <span class="chip chip-warning" style="font-size:11px;" title="Set via {{ item.env_var_name }}">{{ _("ENV") }}</span>
                     {% else %}
-                    <span class="chip chip-neutral" style="font-size:11px;">DB</span>
+                    <span class="chip chip-neutral" style="font-size:11px;">{{ _("DB") }}</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if not item.is_env_override %}
                     {% if item.editing %}
                     <form id="config-edit-{{ category }}" hx-put="/admin/config/{{ item.key }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML" style="display:inline;">
-                        <button type="submit" class="btn-sm">Save</button>
+                        <button type="submit" class="btn-sm">{{ _("Save") }}</button>
                     </form>
-                    <button type="button" class="btn-ghost btn-sm" hx-get="/admin/config/{{ category }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML">Cancel</button>
+                    <button type="button" class="btn-ghost btn-sm" hx-get="/admin/config/{{ category }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML">{{ _("Cancel") }}</button>
                     {% else %}
                     <button class="btn-sm"
                             hx-get="/admin/config/{{ item.key }}/edit"
                             hx-target="#admin-config-{{ category }}"
                             hx-swap="outerHTML">
-                        Edit
+                        {{ _("Edit") }}
                     </button>
                     {% endif %}
                     {% endif %}

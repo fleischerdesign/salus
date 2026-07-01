@@ -1,7 +1,7 @@
-{% import "components/ui/index.html" as ui %}
+{% from "components/ui/input.html" import input %}
 <form hx-post="/settings/api-tokens" hx-target="#token-generate-container" hx-swap="innerHTML">
     <div class="form-stack">
-        {{ ui.input(name="label", label=_("Label"), placeholder="e.g. Samsung Health", required=True, id="token-label") }}
+        {{ input(name="label", label=_("Label"), placeholder="e.g. Samsung Health", required=True, id="token-label") }}
         <fieldset style="border:1px solid var(--color-slate-200);border-radius:var(--radius-default);padding:12px 16px;">
             <legend style="font:var(--font-label-sm);color:var(--color-slate-500);padding:0 8px;">{{ _("Scopes") }}</legend>
             <div class="flex-column gap-sm" style="font:var(--font-body-sm);">

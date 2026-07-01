@@ -10,7 +10,7 @@
     </div>
 
     <div class="goal-card-value">
-        <span class="goal-current">{{ card.progress.current_value|default("—", true) }}{% if card.progress.current_value is not none and card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
+        <span class="goal-current">{{ card.progress.current_value if card.progress.current_value is not none else "—" }}{% if card.progress.current_value is not none and card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
         <span class="goal-target">/ {{ "%.0f"|format(card.goal.target_value) }}{% if card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
     </div>
 

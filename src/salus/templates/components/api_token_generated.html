@@ -1,7 +1,8 @@
+{% from "components/ui/alert.html" import alert %}
 <div class="form-stack">
-    <div class="alert alert-success" style="word-break:break-all;">
+    {% call alert(type="success") -%}
         <strong>{{ _("Copy this token now — it won't be shown again.") }}</strong>
         <br>
         <code id="new-token-value">{{ plaintext_token }}</code>
-    </div>
+    {%- endcall %}
 </div>

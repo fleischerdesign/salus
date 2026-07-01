@@ -1,8 +1,12 @@
 {% macro alert(type="info", message="") %}
-<div class="alert alert-{{ type }} flex-center gap-sm" style="padding: 12px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
+<div class="alert alert-{{ type }}" style="padding: 12px; border-radius: var(--border-radius-md); margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;">
     <span class="material-symbols-outlined">
-        {% if type == "error" %}error{% elif type == "success" %}check_circle{% else %}info{% endif %}
+        {%- if type == "error" %}error{% elif type == "success" %}check_circle{% else %}info{% endif -%}
     </span>
-    <span>{{ message }}</span>
+    {% if caller %}
+        <div>{{ caller() }}</div>
+    {% else %}
+        <span>{{ message }}</span>
+    {% endif %}
 </div>
 {% endmacro %}
