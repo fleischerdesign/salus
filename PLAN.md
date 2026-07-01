@@ -238,6 +238,27 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Calculate polygenic risk scores for lifestyle-modifiable conditions (e.g., cardiovascular disease risk, type-2 diabetes) by matching raw DNA data files (such as 23andMe exports) against open scientific databases, without uploading genetic code to any server.
 * **Architecture:** Process raw genomic text files entirely in-browser/on-device, cross-referencing SNPs (Single Nucleotide Polymorphisms) with local indexes of scientific risk publications.
 
+### 41. Metabolic Digital Twin (Local Predictive Simulation)
+* **Concept:** Build a local metabolic simulator that projects how weight, biological age, and cardiorespiratory health will adapt under hypothetical changes (e.g., shifts in caloric macros or activity levels).
+* **Architecture:** Implement rolling mathematical models (differential equations using SciPy) that fit historical biometrics to metabolic curves.
+
+### 42. Decentralized ZK Organ Donor Registry
+* **Concept:** Express and store organ donor preferences locally, generating a verifiable token that emergency responders can inspect without storing your preferences in a centralized government database.
+* **Architecture:** Generate a ZK-proof of registration signed by the user's DID, readable offline via QR scans.
+
+### 43. ZK Sports & Event Clearance (Doctor Certificates)
+* **Concept:** Register for sports events (e.g. marathons) proving you have medical cardiac clearance and are of required age, without revealing your actual medical records or date of birth.
+* **Architecture:** Generate client-side ZK-proofs verifying "age > 18" and "certified cardiac clearance within 6 months" based on lab-signed credentials.
+
+### 44. Local Private Vaccine & Immunization Scheduler
+* **Concept:** Track immunizations and receive optimal booster alerts offline, based on national vaccination rules, without registering with external trackers.
+* **Architecture:** Package an offline rules engine cross-referencing user ages and immunization histories.
+
+### 45. Blinded Vitals Auditing (Anonymized Compliance Proofs)
+* **Concept:** Prove compliance with physical rehabilitation or medication schedules to auditors (e.g. employers or insurers) using cryptographically blinded vitals reports.
+* **Architecture:** Apply blinding factor keys to database records so auditors verify signature authenticity without identifying the user.
+
+
 
 
 
