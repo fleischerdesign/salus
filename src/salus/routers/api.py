@@ -96,7 +96,7 @@ async def api_list_entries(
         EntryResponse(
             id=e.id or 0,
             metric_type_id=e.metric_type_id or 0,
-            value=e.value_text or "",
+            value=e.display_value,
             timestamp=e.start_time,
             notes=e.notes,
         )
@@ -116,7 +116,7 @@ async def api_create_entry(
     return EntryResponse(
         id=result.id,
         metric_type_id=result.metric_type_id or 0,
-        value=result.value_text or "",
+        value=result.display_value,
         timestamp=result.start_time,
         notes=result.notes,
     )

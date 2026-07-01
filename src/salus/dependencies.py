@@ -340,6 +340,7 @@ async def get_current_user_or_api(
     auth_svc: AuthService = Depends(get_auth_service),
     x_api_key: str | None = Header(None, alias="X-API-Key"),
     authorization: str | None = Header(None),
+    session: Session = Depends(get_session),
 ) -> User:
     token: str | None = None
 
@@ -350,19 +351,13 @@ async def get_current_user_or_api(
 
     if token and token == settings.api_token:
         from sqlmodel import select
-
-        from salus.database import get_session
         from salus.models.user import User as UserModel
 
-        session = next(get_session())
-        try:
-            user = session.exec(
-                select(UserModel).where(UserModel.is_admin)
-            ).first()
-            if user is not None:
-                return user
-        finally:
-            session.close()
+        user = session.exec(
+            select(UserModel).where(UserModel.is_admin)
+        ).first()
+        if user is not None:
+            return user
 
     token = _extract_token_from_request(request)
     if token is None:

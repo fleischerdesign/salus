@@ -24,7 +24,9 @@ def test_create_and_list_metric(authenticated_client):
 
 
 def test_delete_system_metric_rejected(authenticated_client):
-    response = authenticated_client.delete("/metrics/1")
+    metrics = authenticated_client.get("/api/metrics").json()
+    system_metric_id = next(m["id"] for m in metrics if m["name"] == "Steps")
+    response = authenticated_client.delete(f"/metrics/{system_metric_id}")
     assert response.status_code == 409
 
 
@@ -41,5 +43,7 @@ def test_delete_custom_metric(authenticated_client):
         data={"name": "CustomToDelete", "unit": "x", "data_type": "number", "color": "#000000"},
         follow_redirects=True,
     )
-    response = authenticated_client.delete("/metrics/13")
+    metrics = authenticated_client.get("/api/metrics").json()
+    custom_metric_id = next(m["id"] for m in metrics if m["name"] == "CustomToDelete")
+    response = authenticated_client.delete(f"/metrics/{custom_metric_id}")
     assert response.status_code == 200

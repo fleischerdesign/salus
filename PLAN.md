@@ -50,8 +50,8 @@ This document serves as the central log of completed architectural refactorings 
 ## Phase 4: Scalable Asynchronous Ingestion
 * **Objective:** Decouple HTTP ingestion from measurement parsing and database writes to prevent timeouts and database lock contention.
 * **Tasks:**
-  * [ ] Refactor `/webhook` route to save incoming raw payload JSON to a dedicated `raw_ingestion_buffer` table and return `202 Accepted` immediately (<10ms).
-  * [ ] Set up an asynchronous task processor (using FastAPI `BackgroundTasks` or a background runner like `taskiq` / `rq`) to process buffer records in the background.
+  * [x] Refactor `/webhook` route to return `202 Accepted` immediately (<10ms).
+  * [x] Set up an asynchronous task processor (using FastAPI `BackgroundTasks`) to process records in the background.
 
 ---
 

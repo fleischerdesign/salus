@@ -48,6 +48,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="salus", lifespan=lifespan)
+app.state.engine = engine
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

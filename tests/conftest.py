@@ -23,6 +23,25 @@ def _seed_admin(session: Session) -> None:
     session.add(admin)
     session.commit()
 
+    # Seed default metric types for the admin user to enable correct webhook mapping
+    from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
+    from salus.models import MetricType
+    for name, unit, data_type, color, source_data_type, icon, widget_size, widget_enabled in DEFAULT_METRIC_TYPES:
+        mt = MetricType(
+            name=name,
+            unit=unit,
+            data_type=data_type,
+            color=color,
+            user_id=admin.id,
+            is_system=True,
+            source_data_type=source_data_type,
+            icon=icon,
+            widget_size=widget_size,
+            widget_enabled=widget_enabled,
+        )
+        session.add(mt)
+    session.commit()
+
 
 @pytest.fixture
 def client():
@@ -45,6 +64,7 @@ def client():
 
     app.dependency_overrides[get_session] = override_get_session
     app.state.templates = templates
+    app.state.engine = engine
 
     _seed_admin(Session(engine))
 
