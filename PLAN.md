@@ -174,6 +174,31 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Optionally monetize your health history by leasing it to clinical trials or pharmaceutical research, without selling or transferring the actual files.
 * **Architecture:** Researchers dispatch containerized SQL queries to users' local Salus nodes. The query executes locally (in-situ compute), returns only the aggregated statistical result, and triggers a cryptocurrency micropayment (e.g., via the Lightning Network) directly to the user.
 
+### 25. Epigenetic & Microbiome Tracking (Advanced Lab Data)
+* **Concept:** Import and model raw DNA methylation data, epigenetic biological age indicators, and gut microbiome taxonomic sequencing reports locally.
+* **Architecture:** Define database schemas for genomics and microbiome taxonomies. Build a local analytical service correlating daily lifestyle metrics (sleep, stress, nutrition) with biological clock offsets or bacterial diversity changes over time.
+
+### 26. Homomorphic Encryption Queries (Cloud-Assisted Vitals Analytics)
+* **Concept:** Compare individual health parameters against massive global cohort datasets (e.g., "compare my heart rate variability distribution with 1 million users") without revealing personal metrics to any cloud server.
+* **Architecture:** Encrypt local datasets using homomorphic encryption schemas (like BGV or CKKS). A cloud node performs the aggregate calculations directly on the *encrypted data* without ever decrypting it, returning an encrypted result that only the user's private key can unlock.
+
+### 27. Offline Emergency Medical NFC Pass (First Responder Attestation)
+* **Concept:** Share critical emergency medical information (blood type, severe allergies, active prescriptions) securely with first responders offline, even if your phone is locked or out of battery.
+* **Architecture:** Sync emergency profile subsets to passive NFC tags (wearables/cards) or static lock screen QR codes, signed with the user's private key and verifiable via a public first-responder app.
+
+### 28. Smart Home Circadian Loop (Matter/Hue Actuation)
+* **Concept:** Automatically tune home lighting (brightness, color temperature) dynamically in real-time based on your biological logs (sleep latency, wakefulness, logged stress indicators).
+* **Architecture:** Build a service adapter communicating with local home automation hubs (like Home Assistant or Matter controllers) over local network sockets to actuate lights based on biometric state changes.
+
+### 29. Zero-Knowledge Allergy Proofs for Restaurants
+* **Concept:** Present proof of severe food allergies or medical dietary requirements (like celiac disease) to dining venues without exposing other private medical documents or identity details.
+* **Architecture:** Generate a ZK-proof of allergy verification (signed originally by a certified laboratory) displayed via QR code, allowing the restaurant to verify the validity of the lab certificate signature without revealing user identity.
+
+### 30. Local Clinical Trial Matching (Zero-Surveillance Recruitment)
+* **Concept:** Participate in clinical trials without enrolling in centralized patient databases.
+* **Architecture:** Clinical researchers publish trial criteria (e.g., "resting HR > 80 bpm, age 30-40, sleep efficiency < 75%"). The matching algorithm runs entirely on the user's local instance. If a match is found, the user receives an alert and can opt-in to establish direct encrypted contact.
+
+
 
 
 
