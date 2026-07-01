@@ -175,41 +175,25 @@ def _compute_pill_chart(
         return {"empty": True}
 
     bpms = [p.bpm for p in timeline]
-    y_min = max(0, resting_bpm - 20)
-    y_max = max(max(bpms) + 10, resting_bpm + 15)
+    y_min = max(0, resting_bpm - 10)
+    y_max = max(max(bpms) + 15, resting_bpm + 15)
     if y_max <= y_min:
         y_max = y_min + 20
     y_range = y_max - y_min
-
-    pad_top = 8
-    pad_bottom = 24
-    pad_x = 6
-    chart_w = 300
-    chart_h = 130
-    plot_w = chart_w - 2 * pad_x
-    plot_h = chart_h - pad_top - pad_bottom
-
-    def _scale(bpm: float) -> float:
-        return pad_top + plot_h * (1 - (bpm - y_min) / y_range)
 
     pills: list[dict] = []
     for p in timeline:
         parts = p.time.split(":")
         minutes = int(parts[0]) * 60 + int(parts[1])
-        cx = pad_x + (minutes / 1440) * plot_w
         _zone, zone_color = _pill_zone(p.bpm)
         pills.append(
             {
-                "cx": round(cx, 1),
-                "cy": round(_scale(p.bpm), 1),
+                "bpm": int(p.bpm),
                 "color": zone_color,
+                "x_fraction": round(minutes / 1440, 4),
+                "time": p.time,
             }
         )
-
-    time_labels: list[dict] = []
-    for h in range(0, 24, 3):
-        x = pad_x + (h * 60 / 1440) * plot_w
-        time_labels.append({"x": round(x, 1), "label": f"{h:02d}:00"})
 
     zones: list[dict] = []
     seen: set[str] = set()
@@ -218,15 +202,15 @@ def _compute_pill_chart(
             zones.append({"color": color, "label": name})
             seen.add(name)
 
+    def _y_frac(bpm: float) -> float:
+        return 1 - (bpm - y_min) / y_range
+
     return {
         "pills": pills,
-        "reference_y": round(_scale(resting_bpm), 1),
-        "time_labels": time_labels,
-        "zones": zones,
+        "resting_y_fraction": round(_y_frac(resting_bpm), 3),
         "y_min": y_min,
         "y_max": y_max,
-        "chart_w": chart_w,
-        "chart_h": chart_h,
+        "zones": zones,
         "empty": False,
     }
 

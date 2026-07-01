@@ -9,25 +9,84 @@
         <span class="viz-sub">{{ viz.stats_line | safe }}</span>
         {% endif %}
     </div>
-    <svg class="pill-chart" viewBox="0 0 {{ viz.chart.chart_w }} {{ viz.chart.chart_h }}" preserveAspectRatio="xMidYMid meet">
-        {% if viz.chart.reference_y is not none %}
-        <line x1="6" y1="{{ viz.chart.reference_y }}" x2="{{ viz.chart.chart_w - 6 }}" y2="{{ viz.chart.reference_y }}"
-              stroke="{{ viz.color }}" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
-        {% endif %}
-        {% for p in viz.chart.pills %}
-        <line x1="{{ p.cx }}" y1="{{ p.cy - 2.5 }}" x2="{{ p.cx }}" y2="{{ p.cy + 2.5 }}"
-              stroke="{{ p.color }}" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
-        {% endfor %}
-        {% for tl in viz.chart.time_labels %}
-        <text x="{{ tl.x }}" y="{{ viz.chart.chart_h - 8 }}" text-anchor="middle"
-              font-size="9" fill="var(--color-slate-400)" font-family="inherit">{{ tl.label }}</text>
-        {% endfor %}
-    </svg>
-    <div class="pill-legend">
-        {% for z in viz.chart.zones %}
-        <span class="pill-legend-item">
-            <span class="pill-legend-dot" style="background:{{ z.color }}"></span>{{ z.label }}
-        </span>
-        {% endfor %}
-    </div>
+    <svg class="pill-chart" data-primary-color="{{ viz.color }}"></svg>
+    <div class="pill-legend" data-legend-data='{{ viz.chart.zones | tojson }}'></div>
 </div>
+<script data-viz="pill-chart">
+(function () {
+    var svg = document.currentScript.previousElementSibling;
+    var legend = svg.previousElementSibling;
+    var target = svg.closest(".pill-chart") || svg;
+
+    var data = {{ viz.chart | tojson }};
+
+    var CHART_H = 110;
+    var PAD_X = 12;
+    var PAD_TOP = 8;
+    var PAD_BOT = 26;
+
+    function render() {
+        var w = target.clientWidth || 220;
+        var pw = w - 2 * PAD_X;
+        var ph = CHART_H - PAD_TOP - PAD_BOT;
+
+        svg.setAttribute("viewBox", "0 0 " + w + " " + CHART_H);
+
+        var parts = [];
+
+        if (data.resting_y_fraction != null) {
+            var ry = PAD_TOP + data.resting_y_fraction * ph;
+            var rc = svg.dataset.primaryColor;
+            parts.push(
+                '<line x1="' + PAD_X + '" y1="' + ry + '" x2="' + (w - PAD_X) + '" y2="' + ry + '"',
+                'stroke="' + rc + '" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.35" vector-effect="non-scaling-stroke"/>'
+            );
+        }
+
+        var yd = data.y_max - data.y_min;
+        for (var i = 0; i < data.pills.length; i++) {
+            var p = data.pills[i];
+            var cx = PAD_X + p.x_fraction * pw;
+            var fy = 1 - (p.bpm - data.y_min) / yd;
+            var cy = PAD_TOP + fy * ph;
+            parts.push(
+                '<line x1="' + cx + '" y1="' + (cy - 6) + '" x2="' + cx + '" y2="' + (cy + 6) + '"',
+                'stroke="' + p.color + '" stroke-width="5" stroke-linecap="round" opacity="0.85" vector-effect="non-scaling-stroke"/>'
+            );
+        }
+
+        var interval = w < 280 ? 6 : w < 560 ? 3 : 2;
+        var fs = w < 280 ? 9 : 10;
+        for (var h = 0; h < 24; h += interval) {
+            var lx = PAD_X + (h / 24) * pw;
+            parts.push(
+                '<text x="' + lx + '" y="' + (CHART_H - 7) + '" text-anchor="middle"',
+                'font-size="' + fs + '" fill="var(--color-slate-400)">' +
+                (h < 10 ? "0" : "") + h + ":00</text>"
+            );
+        }
+
+        svg.innerHTML = parts.join("");
+    }
+
+    function renderLegend() {
+        var zones = JSON.parse(legend.dataset.legendData);
+        var items = [];
+        for (var i = 0; i < zones.length; i++) {
+            items.push(
+                '<span class="pill-legend-item">',
+                '<span class="pill-legend-dot" style="background:' + zones[i].color + '"></span>',
+                zones[i].label,
+                '</span>'
+            );
+        }
+        legend.innerHTML = items.join("");
+    }
+
+    render();
+    renderLegend();
+
+    new ResizeObserver(render).observe(target);
+    new MutationObserver(render).observe(target, { attributeFilter: ["style", "class"], attributes: true });
+})();
+</script>
