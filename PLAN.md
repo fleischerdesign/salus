@@ -118,5 +118,22 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Engage in fitness challenges (e.g. "Who hits 15k steps first") without uploading raw logs to a central tracker.
 * **Architecture:** Generate cryptographically signed step receipts on device, and use Zero-Knowledge Proofs (ZKP) to prove compliance with a threshold (e.g., proving "steps > 15,000" without revealing the exact step count, GPS location, or timeframe).
 
+### 11. Multi-Device Sync CRDTs (Conflict Resolution)
+* **Concept:** Keep data completely consistent when the user logs health metrics offline on multiple devices (e.g., laptop and smartphone) and syncs later.
+* **Architecture:** Implement Conflict-Free Replicated Data Types (CRDTs), specifically LWW-Element-Set (Last-Write-Wins-Element-Set) or delta-state CRDTs. This resolves merge conflicts deterministically without requiring a central server coordinator or losing historical log changes.
+
+### 12. Local AI Food Photo Parser (Private Nutritionist)
+* **Concept:** Log meals and calculate macronutrients (carbs, protein, fats) automatically by taking a photo of a meal, without sending the image to proprietary cloud vision APIs.
+* **Architecture:** Embed lightweight image-classification and object-detection models (like YOLOv8 or MobileNet-V3) compiled to WebAssembly (WASM) or executed locally on-device using ONNX Runtime. All image processing is fully local.
+
+### 13. Environmental & Biometric Correlation (Local OpenData)
+* **Concept:** Correlate cardiorespiratory and recovery vitals (resting heart rate, blood oxygen saturation, sleep stages) with external environmental parameters (pollen counts, particulate matter PM2.5/PM10, temperature, and humidity).
+* **Architecture:** Fetch environmental metrics from public, open-source APIs (such as Open-Meteo) based on user-defined regional coordinates, calculating Pearson correlation coefficients locally.
+
+### 14. Biometric Anomaly Detection (Early Warning System)
+* **Concept:** Automatically detect and notify the user of statistical anomalies in their recovery vitals, serving as an early indicator of viral infection, acute physical strain, or overtraining.
+* **Architecture:** Implement local statistical modeling (e.g., standard deviation thresholding or rolling Z-scores) on resting heart rate, HRV, and sleep depth to flag abnormal deviation spikes over 3+ consecutive days.
+
+
 
 
