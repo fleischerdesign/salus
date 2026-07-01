@@ -134,6 +134,19 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Automatically detect and notify the user of statistical anomalies in their recovery vitals, serving as an early indicator of viral infection, acute physical strain, or overtraining.
 * **Architecture:** Implement local statistical modeling (e.g., standard deviation thresholding or rolling Z-scores) on resting heart rate, HRV, and sleep depth to flag abnormal deviation spikes over 3+ consecutive days.
 
+### 15. Decoupled Data Storage (Solid Pod Integration)
+* **Concept:** Decouple Salus entirely from a local SQLite/PostgreSQL database. Users can store all their health logs in a personal, decentralized "Solid Pod" (compliant with the W3C Social Linked Data specification).
+* **Architecture:** Implement a WebID-OIDC login flow and write measurements using RDF graphs directly to the user's Solid Pod. Salus becomes a thin visualization/analytics app, while the user maintains absolute control over where the physical data files reside.
+
+### 16. Direct BLE Device Ingestion (No Cloud Bridge)
+* **Concept:** Ingest data directly from physical health devices (e.g. smart scales, blood pressure monitors, continuous glucose monitors - CGMs) over Bluetooth Low Energy (BLE), without registering accounts on manufacturers' proprietary clouds.
+* **Architecture:** Utilize the browser's Web Bluetooth API (or native BLE APIs in the companion app) to connect, parse standard BLE GATT service profiles (like Pulse Oximeter, Weight Scale, and Heart Rate profiles), and save metrics directly.
+
+### 17. High-Resolution Print-Ready PDF Reports
+* **Concept:** Export medical-grade, clean PDF summaries of specific health logs (e.g., a 3-month blood pressure or blood glucose diary) that the user can print out or hand directly to their physician.
+* **Architecture:** Implement print-specific styles via CSS media queries (`@media print`) and vector-based SVG rendering. Users can print directly from the browser's native print handler (or save as PDF) with zero server-side compilation dependencies.
+
+
 
 
 
