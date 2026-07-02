@@ -1,0 +1,45 @@
+from salus.services.plugin.base import BasePlugin
+from salus.services.plugin.context import PluginContext
+from salus.services.plugin.hooks import (
+    HookRegistry,
+    HookParser,
+    HookWidget,
+    HookApiRouter,
+    HookEventSubscriber,
+    HookAiCoachContext,
+    HookBackgroundTask,
+    HookExporter,
+    HookAuthProvider,
+    HookIngestionInterceptor,
+    HookNavigation,
+    HookTranslation,
+    HookSchemaExtension,
+    HookApplicationLifecycle,
+    HookGoalValidator,
+    HookMetricSynthesizer,
+    HookCustomStyle,
+)
+from salus.services.plugin.manager import PluginManager
+
+__all__ = [
+    "BasePlugin",
+    "PluginContext",
+    "HookRegistry",
+    "HookParser",
+    "HookWidget",
+    "HookApiRouter",
+    "HookEventSubscriber",
+    "HookAiCoachContext",
+    "HookBackgroundTask",
+    "HookExporter",
+    "HookAuthProvider",
+    "HookIngestionInterceptor",
+    "HookNavigation",
+    "HookTranslation",
+    "HookSchemaExtension",
+    "HookApplicationLifecycle",
+    "HookGoalValidator",
+    "HookMetricSynthesizer",
+    "HookCustomStyle",
+    "PluginManager",
+]

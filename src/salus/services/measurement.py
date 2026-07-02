@@ -1,14 +1,19 @@
+import logging
 from datetime import datetime, timezone
 
 from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
 from salus.repositories.protocols import IMeasurementRepository
 from salus.schemas.measurement import MeasurementCreate
+from salus.services.plugin.hooks import HookRegistry
+
+logger = logging.getLogger("salus.services.measurement")
 
 
 class MeasurementService:
-    def __init__(self, repo: IMeasurementRepository) -> None:
+    def __init__(self, repo: IMeasurementRepository, registry: HookRegistry | None = None) -> None:
         self.repo = repo
+        self._registry = registry
 
     def get(self, measurement_id: int, user_id: int) -> Measurement:
         obj = self.repo.get_by_id(measurement_id)
@@ -38,7 +43,14 @@ class MeasurementService:
             start_time=data.timestamp or datetime.now(timezone.utc),
             notes=data.notes,
         )
-        return self.repo.create(obj)
+        res = self.repo.create(obj)
+        if self._registry:
+            for sub in self._registry.event_subscribers:
+                try:
+                    sub.on_measurement_created(res)
+                except Exception as e:
+                    logger.error(f"Error notifying event subscriber on measurement creation: {e}")
+        return res
 
     def update(
         self, measurement_id: int, user_id: int, data: MeasurementCreate

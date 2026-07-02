@@ -47,7 +47,16 @@ def get_translation_context(request: Request):
 def get_nav_context(request: Request):
     current_path = request.url.path
     items = []
-    for item in NAV_ITEMS:
+    
+    all_items = list(NAV_ITEMS)
+    if hasattr(request.app, "state") and hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+        for nav_hook in request.app.state.plugin_manager.registry.navigations:
+            try:
+                all_items.extend(nav_hook.get_navigation_items())
+            except Exception as e:
+                logging.error(f"Error fetching navigation items from plugin: {e}")
+
+    for item in all_items:
         is_active = (
             current_path == item["path"]
             if item.get("exact")
@@ -60,16 +69,67 @@ def get_nav_context(request: Request):
     return {"nav_items": items}
 
 
+def get_plugin_assets_context(request: Request):
+    custom_css = []
+    custom_js = []
+    if hasattr(request.app, "state") and hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+        for style_hook in request.app.state.plugin_manager.registry.custom_styles:
+            try:
+                css = style_hook.get_custom_css()
+                if css:
+                    custom_css.append(css)
+                js = style_hook.get_custom_js()
+                if js:
+                    custom_js.append(js)
+            except Exception as e:
+                logging.error(f"Error fetching style/js from plugin: {e}")
+    return {
+        "plugin_custom_css": "\n".join(custom_css),
+        "plugin_custom_js": "\n".join(custom_js),
+    }
+
+
 templates = Jinja2Templates(
     directory="src/salus/templates",
-    context_processors=[get_translation_context, get_nav_context]
+    context_processors=[get_translation_context, get_nav_context, get_plugin_assets_context]
 )
 templates.env.globals["settings"] = app_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Run programmatic migrations on startup
+    # Load plugins first to register translations, lifecycle hooks, routes, and schemas
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+    from salus.services.plugin.manager import PluginManager
+    from salus.services.i18n import register_plugin_translations
+    from fastapi import APIRouter
+
+    startup_session = Session(engine)
+    uow = SqlUnitOfWork(startup_session)
+    plugin_manager = PluginManager(plugins_dir="src/salus/plugins", uow=uow)
+    
+    try:
+        plugin_manager.discover_and_load_all()
+    except Exception as e:
+        logging.error(f"Error loading plugins: {e}", exc_info=True)
+    
+    app.state.plugin_manager = plugin_manager
+
+    # Register translations from HookTranslation
+    for trans_hook in plugin_manager.registry.translations:
+        try:
+            register_plugin_translations(trans_hook.get_translations())
+        except Exception as e:
+            logging.error(f"Error registering plugin translations: {e}")
+
+    # Trigger HookApplicationLifecycle.on_startup
+    for lifecycle_hook in plugin_manager.registry.lifecycles:
+        try:
+            lifecycle_hook.on_startup()
+        except Exception as e:
+            logging.error(f"Error in plugin startup hook: {e}")
+
+    # Run programmatic migrations
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import inspect
@@ -86,8 +146,28 @@ async def lifespan(app: FastAPI):
         ConfigService(SystemConfigRepository(session)).seed_defaults()
     finally:
         session.close()
+        startup_session.close()
+
+    # Register dynamic API routes
+    plugin_router = APIRouter(prefix="/api/plugins")
+    for pr in plugin_manager.registry.api_routers:
+        try:
+            pr.register_routes(plugin_router)
+        except Exception as e:
+            logging.error(f"Error registering API routes for plugin: {e}")
+    app.include_router(plugin_router)
+
     app.state.templates = templates
     yield
+
+    # Trigger HookApplicationLifecycle.on_shutdown
+    for lifecycle_hook in plugin_manager.registry.lifecycles:
+        try:
+            lifecycle_hook.on_shutdown()
+        except Exception as e:
+            logging.error(f"Error in plugin shutdown hook: {e}")
+
+    plugin_manager.unload_all()
 
 
 app = FastAPI(title="salus", lifespan=lifespan)

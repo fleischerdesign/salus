@@ -14,6 +14,8 @@ from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.unit_of_work import IUnitOfWork, SqlUnitOfWork
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
+from salus.services.plugin.hooks import HookRegistry
+from salus.services.plugin.manager import PluginManager
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.dashboard import DashboardService
 from salus.services.analytics.nutrition import NutritionAnalysisService
@@ -114,8 +116,20 @@ def get_metric_type_repo(session: Session = Depends(get_session)) -> MetricTypeR
     return MetricTypeRepository(session)
 
 
-def get_measurement_repo(session: Session = Depends(get_session)) -> MeasurementRepository:
-    return MeasurementRepository(session)
+def get_plugin_manager(request: Request) -> PluginManager | None:
+    return getattr(request.app.state, "plugin_manager", None)
+
+
+def get_plugin_registry(request: Request) -> HookRegistry | None:
+    manager = get_plugin_manager(request)
+    return manager.registry if manager else None
+
+
+def get_measurement_repo(
+    session: Session = Depends(get_session),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
+) -> MeasurementRepository:
+    return MeasurementRepository(session, registry=registry)
 
 
 def get_user_service(
@@ -203,9 +217,10 @@ def get_metric_type_mapping_service(
 def get_webhook_ingestion_service(
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
     mapping_service: MetricTypeMappingService = Depends(get_metric_type_mapping_service),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> WebhookIngestionService:
     parser = FlexiblePayloadParser()
-    return WebhookIngestionService(parser, measurement_repo, mapping_service)
+    return WebhookIngestionService(parser, measurement_repo, mapping_service, registry=registry)
 
 
 def get_goal_repo(session: Session = Depends(get_session)) -> GoalRepository:
@@ -215,8 +230,9 @@ def get_goal_repo(session: Session = Depends(get_session)) -> GoalRepository:
 def get_goal_service(
     repo: GoalRepository = Depends(get_goal_repo),
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> GoalService:
-    return GoalService(repo, measurement_repo)
+    return GoalService(repo, measurement_repo, registry=registry)
 
 
 def get_export_service(
@@ -390,10 +406,11 @@ def get_insight_repo(session: Session = Depends(get_session)) -> IInsightReposit
 
 def get_insight_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> InsightService:
     provider = LlmProviderFactory.create_provider(
         provider_name=settings.llm_provider,
         api_key=settings.llm_api_key,
         api_url=settings.llm_api_url,
     )
-    return InsightService(uow=uow, provider=provider, model=settings.llm_model)
+    return InsightService(uow=uow, provider=provider, model=settings.llm_model, registry=registry)

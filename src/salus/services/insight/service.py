@@ -4,15 +4,23 @@ from datetime import datetime, timedelta
 from salus.models.insight import Insight
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.insight.providers.base import ILlmProvider
+from salus.services.plugin.hooks import HookRegistry
 
 logger = logging.getLogger("salus.services.insight")
 
 
 class InsightService:
-    def __init__(self, uow: IUnitOfWork, provider: ILlmProvider, model: str) -> None:
+    def __init__(
+        self,
+        uow: IUnitOfWork,
+        provider: ILlmProvider,
+        model: str,
+        registry: HookRegistry | None = None,
+    ) -> None:
         self._uow = uow
         self._provider = provider
         self._model = model
+        self._registry = registry
 
     def get_insight_for_date(self, user_id: int, date_str: str) -> Insight | None:
         """Retrieves a previously cached insight if it exists."""
@@ -106,8 +114,24 @@ class InsightService:
             f"Here is my biometric and health log history leading up to {date_str}:\n\n"
             f"### Active Goals:\n{goals_context}\n\n"
             f"### Measurement History (Last 7 days):\n{history_context}\n\n"
-            "Analyze my data and generate the daily health insight."
         )
+
+        # Collect additional context from plugins
+        plugin_contexts = []
+        if self._registry:
+            for hook in self._registry.ai_coach_contexts:
+                try:
+                    p_ctx = hook.get_additional_prompt_context(user_id, date_str)
+                    if p_ctx:
+                        plugin_contexts.append(p_ctx)
+                except Exception as e:
+                    logger.error("Error fetching AI Coach Context from plugin: %s", str(e), exc_info=True)
+
+        if plugin_contexts:
+            plugin_context_str = "\n\n".join(plugin_contexts)
+            user_prompt += f"### Additional Context:\n{plugin_context_str}\n\n"
+
+        user_prompt += "Analyze my data and generate the daily health insight."
 
         # 6. Generate content from provider
         try:

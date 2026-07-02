@@ -1,13 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
 
-from salus.dependencies import require_admin, get_admin_service, get_config_service
+from salus.dependencies import require_admin, get_admin_service, get_config_service, get_plugin_manager
 from salus.models.user import User
 from salus.services._helpers import uid
 from salus.services.admin import AdminService
 from salus.services.config import CATEGORY_ORDER, ConfigService
+from salus.services.plugin import PluginManager
 
 router = APIRouter()
 
@@ -18,6 +19,7 @@ async def admin_dashboard(
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
     config_svc: ConfigService = Depends(get_config_service),
+    plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
 ):
     stats = admin_svc.get_system_stats()
     storage = admin_svc.get_storage_stats()
@@ -26,6 +28,8 @@ async def admin_dashboard(
     config_by_cat: dict[str, list[dict]] = {}
     for item in config_svc.get_all():
         config_by_cat.setdefault(item["category"], []).append(item)
+
+    plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -38,6 +42,7 @@ async def admin_dashboard(
             "tokens": tokens,
             "config_categories": CATEGORY_ORDER,
             "config_by_cat": config_by_cat,
+            "plugins": plugins,
         },
     )
 
@@ -193,4 +198,72 @@ async def admin_config_update(
         request,
         "components/admin/config_table.html",
         {"config_items": items, "category": category},
+    )
+
+
+@router.get("/admin/plugins/upload-modal", response_class=HTMLResponse)
+async def admin_upload_modal(
+    request: Request,
+    current_user: User = Depends(require_admin),
+):
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/admin/upload_modal.html",
+        {}
+    )
+
+
+@router.post("/admin/plugins/{plugin_id}/toggle", response_class=HTMLResponse)
+async def admin_toggle_plugin(
+    plugin_id: str,
+    request: Request,
+    enable: bool = Form(False),
+    current_user: User = Depends(require_admin),
+    plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
+):
+    if plugin_mgr:
+        plugin_mgr.toggle_plugin(plugin_id, enable)
+    plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/admin/plugin_table.html",
+        {"plugins": plugins}
+    )
+
+
+@router.post("/admin/plugins/upload", response_class=HTMLResponse)
+async def admin_upload_plugin(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_admin),
+    plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
+):
+    if plugin_mgr:
+        try:
+            content = await file.read()
+            plugin_mgr.install_plugin(content)
+        except Exception:
+            pass
+    plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/admin/plugin_table.html",
+        {"plugins": plugins}
+    )
+
+
+@router.delete("/admin/plugins/{plugin_id}", response_class=HTMLResponse)
+async def admin_uninstall_plugin(
+    plugin_id: str,
+    request: Request,
+    current_user: User = Depends(require_admin),
+    plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
+):
+    if plugin_mgr:
+        plugin_mgr.uninstall_plugin(plugin_id)
+    plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/admin/plugin_table.html",
+        {"plugins": plugins}
     )

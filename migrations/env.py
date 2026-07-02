@@ -28,6 +28,22 @@ from salus.models.api_token import ApiToken
 from salus.models.system_config import SystemConfig
 from salus.models.insight import Insight
 
+# Dynamically load plugins to register custom tables/models in SQLModel.metadata
+try:
+    from salus.services.plugin.manager import PluginManager
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+    from sqlalchemy import create_engine
+    from sqlmodel import Session
+    
+    dummy_engine = create_engine("sqlite://")
+    dummy_session = Session(dummy_engine)
+    dummy_uow = SqlUnitOfWork(dummy_session)
+    pm = PluginManager(plugins_dir="src/salus/plugins", uow=dummy_uow)
+    pm.discover_and_load_all()
+except Exception as e:
+    import logging
+    logging.warning(f"Could not load plugins during migrations environment setup: {e}")
+
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -1,4 +1,6 @@
+import logging
 from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import desc
 from sqlmodel import select
@@ -6,9 +8,18 @@ from sqlmodel import select
 from salus.models.measurement import Measurement
 from salus.repositories.base import Repository
 
+if TYPE_CHECKING:
+    from salus.services.plugin.hooks import HookRegistry
+
+logger = logging.getLogger("salus.repositories.measurement")
+
 
 class MeasurementRepository(Repository[Measurement]):
     model = Measurement
+
+    def __init__(self, session, registry: Optional["HookRegistry"] = None) -> None:
+        super().__init__(session)
+        self.registry = registry
 
     def find_by_metric_type(
         self, metric_type_id: int, user_id: int | None = None
@@ -19,7 +30,18 @@ class MeasurementRepository(Repository[Measurement]):
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
         stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
-        return list(self.session.exec(stmt).all())
+        results = list(self.session.exec(stmt).all())
+
+        if self.registry and user_id is not None:
+            for synth in self.registry.metric_synthesizers:
+                try:
+                    synth_records = synth.synthesize(user_id, results)
+                    if synth_records:
+                        # Filter to only return the ones matching the requested metric type if needed
+                        results.extend([r for r in synth_records if r.metric_type_id == metric_type_id])
+                except Exception as e:
+                    logger.error(f"Error in metric synthesizer: {e}")
+        return results
 
     def find_all(
         self,
@@ -44,7 +66,20 @@ class MeasurementRepository(Repository[Measurement]):
         stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
         if limit:
             stmt = stmt.limit(limit)
-        return list(self.session.exec(stmt).all())
+        results = list(self.session.exec(stmt).all())
+
+        if self.registry and user_id is not None:
+            for synth in self.registry.metric_synthesizers:
+                try:
+                    synth_records = synth.synthesize(user_id, results)
+                    if synth_records:
+                        filtered = synth_records
+                        if data_types:
+                            filtered = [r for r in filtered if r.data_type in data_types]
+                        results.extend(filtered)
+                except Exception as e:
+                    logger.error(f"Error in metric synthesizer: {e}")
+        return results
 
     def find_latest(self, data_type: str, user_id: int | None = None) -> Measurement | None:
         results = self.find_all(user_id=user_id, data_types=[data_type], limit=1)

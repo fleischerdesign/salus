@@ -78,11 +78,11 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 
 ## Phase 7: Sovereign Features & Ecosystem
 
-### 1. Developer Sandbox & Plugin System
+### 1. Developer Sandbox & Plugin System [x]
 * **Concept:** Create a plugin architecture allowing third-party developers to package custom data sources, parse custom export types, and render custom dashboard widgets.
 * **Architecture:** Use a dynamic loader (or a sandboxed WASM runtime like `wasmtime`) to execute plugins without compromising core database safety. Expose a unified Python hook registry for extension registration.
 
-### 2. Private, Local LLM Integration (Health Insights)
+### 2. Private, Local LLM Integration (Health Insights) [x]
 * **Concept:** Run a private health coach directly on the user's system to generate insights based on logged sleep, nutrition, and workout metrics.
 * **Architecture:** Integrate with local runtimes (e.g., Ollama or in-browser WebLLM) using local APIs. **Zero health data ever leaves the user's local infrastructure.**
 

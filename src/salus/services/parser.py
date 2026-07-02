@@ -193,15 +193,37 @@ class FlatArrayParser:
         return records
 
 
+EXTRA_PARSERS: list[RecordParser] = []
+
+
+def register_parser(parser: RecordParser) -> None:
+    if parser not in EXTRA_PARSERS:
+        EXTRA_PARSERS.append(parser)
+
+
 class FlexiblePayloadParser:
     def __init__(self, parsers: list[RecordParser] | None = None) -> None:
         if parsers is not None:
             self._parsers = list(parsers)
         else:
-            self._parsers: list[RecordParser] = [
-                HealthConnectWebhookParser(),
-                FlatArrayParser(),
-            ]
+            try:
+                from salus.services.parsers.apple_health import AppleHealthExportParser
+                from salus.services.parsers.fitbit import FitbitParser
+                from salus.services.parsers.google_fit import GoogleFitParser
+                from salus.services.parsers.oura import OuraParser
+                self._parsers = [
+                    AppleHealthExportParser(),
+                    GoogleFitParser(),
+                    FitbitParser(),
+                    OuraParser(),
+                    HealthConnectWebhookParser(),
+                    FlatArrayParser(),
+                ]
+            except ImportError:
+                self._parsers = [
+                    HealthConnectWebhookParser(),
+                    FlatArrayParser(),
+                ]
 
     def can_handle(self, payload: dict | list) -> bool:
         return isinstance(payload, (dict, list))
@@ -210,7 +232,8 @@ class FlexiblePayloadParser:
         if not isinstance(payload, (dict, list)):
             return []
 
-        for parser in self._parsers:
+        all_parsers = self._parsers + EXTRA_PARSERS
+        for parser in all_parsers:
             if parser.can_handle(payload):
                 logger.info("FlexiblePayloadParser | selected=%s", type(parser).__name__)
                 result = parser.parse(payload)

@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime, timedelta, timezone
 
 from salus.exceptions import NotFoundError
@@ -7,12 +8,21 @@ from salus.models.measurement import Measurement
 from salus.repositories.protocols import IGoalRepository, IMeasurementRepository
 from salus.schemas.goal import GoalCreate
 from salus.services.analytics.calculations import compute_goal_progress
+from salus.services.plugin.hooks import HookRegistry
+
+logger = logging.getLogger("salus.services.goal")
 
 
 class GoalService:
-    def __init__(self, repo: IGoalRepository, measurement_repo: IMeasurementRepository) -> None:
+    def __init__(
+        self,
+        repo: IGoalRepository,
+        measurement_repo: IMeasurementRepository,
+        registry: HookRegistry | None = None,
+    ) -> None:
         self._repo = repo
         self._measurement_repo = measurement_repo
+        self._registry = registry
 
     def get(self, goal_id: int, user_id: int) -> Goal:
         goal = self._repo.get_by_id(goal_id)
@@ -44,6 +54,18 @@ class GoalService:
         entries = self._measurement_repo.find_by_metric_type(
             goal.metric_type_id, goal.user_id
         )
+
+        plugin_fulfilled = None
+        if self._registry:
+            goal_type = str(goal.frequency.value)
+            for validator in self._registry.goal_validators:
+                try:
+                    if validator.can_evaluate(goal_type):
+                        plugin_fulfilled = validator.evaluate(goal, entries)
+                        break
+                except Exception as e:
+                    logger.error(f"Error executing plugin goal validator: {e}")
+
         if goal.frequency == GoalFrequency.DAILY:
             entries = _filter_today(entries)
         elif goal.frequency == GoalFrequency.WEEKLY:
@@ -60,11 +82,23 @@ class GoalService:
             deadline_passed=deadline_passed,
         )
 
+        if plugin_fulfilled is not None:
+            fulfilled = plugin_fulfilled
+            status = "fulfilled" if fulfilled else "pending"
+            percent = 100 if fulfilled else 0
+
+        if fulfilled and self._registry:
+            for sub in self._registry.event_subscribers:
+                try:
+                    sub.on_goal_achieved(goal)
+                except Exception as e:
+                    logger.error(f"Error notifying event subscriber on goal achieved: {e}")
+
         return GoalProgress(
             goal_id=goal.id or 0,
             current_value=current,
             target_value=goal.target_value,
-            percent=percent,
+            percent=int(percent),
             status=status,
             is_fulfilled=fulfilled,
         )

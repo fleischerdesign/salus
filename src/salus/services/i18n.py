@@ -225,7 +225,24 @@ TRANSLATIONS = {
 }
 
 
+PLUGIN_TRANSLATIONS: dict[str, dict[str, str]] = {}
+
+
+def register_plugin_translations(translations: dict[str, dict[str, str]]) -> None:
+    for lang, mapping in translations.items():
+        if lang not in PLUGIN_TRANSLATIONS:
+            PLUGIN_TRANSLATIONS[lang] = {}
+        PLUGIN_TRANSLATIONS[lang].update(mapping)
+
+
 def translate(text: str, locale: str = "en") -> str:
     if locale == "en":
+        # Check if plugin translated English (can override English text or add new English keys)
+        plugin_val = PLUGIN_TRANSLATIONS.get("en", {}).get(text)
+        if plugin_val is not None:
+            return plugin_val
         return text
+    plugin_val = PLUGIN_TRANSLATIONS.get(locale, {}).get(text)
+    if plugin_val is not None:
+        return plugin_val
     return TRANSLATIONS.get(locale, {}).get(text, text)

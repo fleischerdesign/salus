@@ -54,6 +54,10 @@ async def dashboard(
     metrics = metric_svc.find_all(user_id)
     nav = _date_nav_context(target_date)
 
+    plugin_widgets = []
+    if hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+        plugin_widgets = request.app.state.plugin_manager.registry.widgets
+
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/dashboard.html",
@@ -62,6 +66,7 @@ async def dashboard(
             "widgets": widgets,
             "metrics": {m.id: m for m in metrics if m.id is not None},
             "show_onboarding": not current_user.onboarding_dismissed,
+            "plugin_widgets": plugin_widgets,
             **nav,
         },
     )
@@ -87,12 +92,18 @@ async def dashboard_grid(
     metrics = metric_svc.find_all(user_id)
     nav = _date_nav_context(target_date)
 
+    plugin_widgets = []
+    if hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+        plugin_widgets = request.app.state.plugin_manager.registry.widgets
+
     return request.app.state.templates.TemplateResponse(
         request,
         "components/dashboard/day_navigator_block.html",
         {
+            "current_user": current_user,
             "widgets": widgets,
             "metrics": {m.id: m for m in metrics if m.id is not None},
+            "plugin_widgets": plugin_widgets,
             **nav,
         },
     )

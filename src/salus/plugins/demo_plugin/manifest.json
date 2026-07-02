@@ -1,0 +1,20 @@
+{
+  "id": "demo_plugin",
+  "name": "Demo System Extension",
+  "version": "1.0.0",
+  "author": "Salus Team",
+  "description": "A demo plugin implementing dynamic widgets, custom API routes, event subscribers, translation overrides, and visual customization.",
+  "entrypoint": "main.DemoPlugin",
+  "permissions": [
+    "measurements:read"
+  ],
+  "hooks": [
+    "parser",
+    "widget",
+    "api_router",
+    "event_subscriber",
+    "ai_coach_context",
+    "custom_style",
+    "translation"
+  ]
+}
