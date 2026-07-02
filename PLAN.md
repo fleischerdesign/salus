@@ -102,9 +102,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Provide automated, encrypted backups to user-owned storage providers (Nextcloud, Proton Drive, WebDAV, or local backups).
 * **Architecture:** Developed a database-agnostic backup service supporting SQLite (via non-locking `VACUUM INTO`) and PostgreSQL (via streaming `pg_dump` subprocess). Backups are encrypted locally using AES-GCM-256 with keys derived via PBKDF2-HMAC-SHA256 from a master backup password. Integrates with WebDAV and local directory storage strategies (Strategy Pattern), enforces file retention policies, and provides admin-panel actions to run or delete backups.
 
-### 7. Asymmetric Encrypted Doctor Sharing (GP Integration)
+### 7. Asymmetric Encrypted Doctor Sharing (GP Integration) [x]
 * **Concept:** Allow users to temporarily and securely share specific health dashboards directly with their general practitioner (GP) or personal trainer.
-* **Architecture:** Use public/private key cryptography (Web Crypto API directly in the browser). The user encrypts selected date ranges using the recipient's public key. The recipient decrypts it locally. No unencrypted data is ever visible on the server.
+* **Architecture:** Developed a client-side Zero-Knowledge sharing system utilizing the native W3C Web Crypto API. Recipients generate an RSA-OAEP 2048-bit keypair; the private key is downloaded locally as a JWK JSON file (never touches the server) and the public key is registered in Salus. Sharing is performed by generating a cryptographically secure random 256-bit AES key, encrypting the patient's daily vital analytics payload via AES-GCM-256, encrypting the AES key with the recipient's RSA public key, and storing it on the server. The GP views the share page, uploads their local private key file, and decrypts and renders the interactive diagnostic report entirely client-side. Enforces timezone-aware link expiration.
 
 ### 8. Statistical Data Synthesizer (Open Science)
 * **Concept:** Enable users to donate their health data to medical research anonymously.
