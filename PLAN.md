@@ -94,9 +94,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Build a cross-platform companion app (e.g., using Tauri, Flutter, or React Native) that runs offline-first.
 * **Architecture:** Keep a local SQLite database on the client device that auto-syncs securely with the primary Salus instance when connected to the local Wi-Fi or internet.
 
-### 5. Smart Workout & Training Planner
-* **Concept:** Implement a workout generator and tracker that dynamically adjusts sets, reps, and target weights based on logged recovery metrics (e.g. sleep duration, resting heart rate, and steps trend).
-* **Architecture:** Build an exercise registry model and a custom service that maps workouts, tracking fatigue indexes in-memory.
+### 5. Smart Workout & Training Planner [x]
+* **Concept:** Implement a workout generator and tracker that dynamically adjusts sets, reps, and target weights based on logged recovery metrics (e.g. sleep duration, resting heart rate, and steps trend) while supporting manual overrides and rich exercise metadata.
+* **Architecture:** Implemented SQLModel tables for Exercises, WorkoutPlans, WorkoutPlanExercises, WorkoutSessions, and WorkoutLogEntries. Developed an `AutoregulationService` that computes a recovery score relative to 7-day user baselines (Sleep, RHR, steps). Built atomic target muscle mapping to automatically deload legs during high-activity periods while leaving chest/upper-body exercises unaffected. Created HTML views with live Javascript-based 1RM estimation, HTMX logging actions, and a manual Lock 🔒 vs Auto ✨ override option for intermediate/pro athletes.
 
 ### 6. Zero-Knowledge E2E Encrypted Backups
 * **Concept:** Provide automated, encrypted backups to user-owned storage providers (Nextcloud, Proton Drive, WebDAV, or local backups).
