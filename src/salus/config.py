@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     llm_api_url: str | None = None
     llm_model: str = "llama3"
 
+    backup_password: str | None = None
+    backup_provider: str = "local"
+    backup_local_dir: str = "data/backups"
+    backup_webdav_url: str | None = None
+    backup_webdav_username: str | None = None
+    backup_webdav_password: str | None = None
+    backup_retention_days: int = 14
+
     model_config = {"env_prefix": "SALUS_"}
 
 

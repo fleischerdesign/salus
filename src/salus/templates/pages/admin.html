@@ -144,4 +144,15 @@
         {% include "components/admin/token_table.html" %}
     </div>
 </div>
+
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Encrypted Backups (Zero-Knowledge)") }}</h3>
+        </div>
+        <div id="admin-backups-container">
+            {% include "components/admin/backup_table.html" %}
+        </div>
+    </div>
+</div>
 {% endblock %}

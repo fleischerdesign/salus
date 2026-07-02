@@ -44,6 +44,8 @@ from salus.services.insight.factory import LlmProviderFactory
 from salus.services.insight.service import InsightService
 from salus.services.workout.autoregulation import AutoregulationService
 from salus.services.workout.planner import WorkoutService
+from salus.services.backup.providers import IBackupStorageProvider
+from salus.services.backup.service import BackupService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -437,3 +439,29 @@ def get_workout_service(
     autoreg_svc: AutoregulationService = Depends(get_autoregulation_service),
 ) -> WorkoutService:
     return WorkoutService(uow, autoreg_svc)
+
+
+def get_backup_provider() -> IBackupStorageProvider:
+    from salus.services.backup.providers import LocalBackupProvider, WebdavBackupProvider
+    if settings.backup_provider == "webdav":
+        if not settings.backup_webdav_url:
+            raise ValueError("SALUS_BACKUP_WEBDAV_URL must be configured for WebDAV backup provider.")
+        return WebdavBackupProvider(
+            url=settings.backup_webdav_url,
+            username=settings.backup_webdav_username,
+            password=settings.backup_webdav_password,
+        )
+    return LocalBackupProvider(directory=settings.backup_local_dir)
+
+
+def get_backup_service(
+    provider: IBackupStorageProvider = Depends(get_backup_provider),
+) -> BackupService:
+    from salus.database import engine
+    return BackupService(
+        engine=engine,
+        database_url=settings.database_url,
+        password=settings.backup_password,
+        provider=provider,
+        retention_days=settings.backup_retention_days,
+    )

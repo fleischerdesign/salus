@@ -1,0 +1,57 @@
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div>
+        <h4 style="margin:0;font-size:15px;color:var(--color-slate-700);">
+            Provider: <span style="text-transform:capitalize;font-weight:700;color:var(--color-primary-700);">{{ settings.backup_provider }}</span>
+        </h4>
+        <span class="text-muted" style="font-size:11px;">
+            {% if settings.backup_password %}
+            E2E Authenticated Encryption Enabled (AES-GCM-256) 🛡️
+            {% else %}
+            ⚠️ Backups Disabled (SALUS_BACKUP_PASSWORD is not set)
+            {% endif %}
+        </span>
+    </div>
+    {% if settings.backup_password %}
+    <button class="btn btn-sm"
+            hx-post="/admin/backups/run"
+            hx-target="#admin-backups-container"
+            hx-swap="innerHTML"
+            hx-indicator="#backup-indicator">
+        <span id="backup-indicator" class="htmx-indicator" style="margin-right:6px;">⌛</span>
+        Create Backup Now
+    </button>
+    {% endif %}
+</div>
+
+<table class="data-grid">
+    <thead>
+        <tr>
+            <th>{{ _("Backup Filename") }}</th>
+            <th>{{ _("Actions") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for fname in backups %}
+        <tr>
+            <td>
+                <div style="font-family:monospace;font-weight:600;font-size:13px;color:var(--color-slate-800);">{{ fname }}</div>
+            </td>
+            <td>
+                <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);border-color:transparent;"
+                        hx-delete="/admin/backups/{{ fname }}"
+                        hx-confirm="Are you sure you want to delete this backup file?"
+                        hx-target="#admin-backups-container"
+                        hx-swap="innerHTML">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" class="text-muted" style="text-align:center;padding:24px;">
+                No backups found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
