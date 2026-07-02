@@ -10,6 +10,7 @@ from salus.models import MetricType
 from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
+from salus.models.sharing import SharingRelationship
 
 T = TypeVar("T")
 
@@ -176,3 +177,18 @@ class IInsightRepository(IRepository[Insight], Protocol):
 
     def list_by_user(self, user_id: int, limit: int = 30) -> list[Insight]:
         ...
+
+
+@runtime_checkable
+class ISharingRepository(IRepository[SharingRelationship], Protocol):
+    def find_by_owner(self, owner_id: int) -> list[SharingRelationship]:
+        ...
+
+    def find_by_grantee(self, grantee_handle: str) -> list[SharingRelationship]:
+        ...
+
+    def get_active_relationship(
+        self, owner_id: int, grantee_handle: str, metric_type_id: int
+    ) -> SharingRelationship | None:
+        ...
+

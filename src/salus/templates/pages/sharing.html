@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Sharing") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Health Data Sharing") }}</h1>
+        <p class="text-muted">{{ _("Securely share your health vitals with family members, friends, or doctors.") }}</p>
+    </div>
+</div>
+
+{% if error %}
+<div class="card" style="background:var(--color-danger-50);border-color:var(--color-danger-200);color:var(--color-danger-800);margin-bottom:24px;padding:12px 16px;border-radius:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--color-danger-600);">error</span>
+        <span style="font-weight:500;">{{ error }}</span>
+    </div>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:start;">
+    
+    <!-- Share Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Create New Share") }}</h3>
+        </div>
+        <form method="post" action="/sharing" style="display:flex;flex-direction:column;gap:16px;padding-top:8px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+                
+                <div>
+                    <label for="grantee_handle" style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">{{ _("Share With (User Handle)") }}</label>
+                    <input type="text" id="grantee_handle" name="grantee_handle" placeholder="@username" required 
+                           style="width:100%;padding:8px 12px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;">
+                    <span class="text-muted" style="font-size:11px;margin-top:4px;display:block;">
+                        Use <code>@username</code> for local users, or <code>@username:domain</code> for remote servers.
+                    </span>
+                </div>
+                
+                <div style="grid-column: 1 / -1;">
+                    <label style="display:block;font-weight:600;margin-bottom:8px;font-size:13px;">{{ _("Select Metric Types to Share") }}</label>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;">
+                        {% for metric in metrics %}
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid var(--color-slate-200);border-radius:8px;background:#fff;gap:12px;">
+                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex-grow:1;margin:0;">
+                                <input type="checkbox" name="metric_type_ids" value="{{ metric.id }}" style="width:16px;height:16px;cursor:pointer;">
+                                <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:20px;">{{ metric.icon }}</span>
+                                <div style="display:flex;flex-direction:column;">
+                                    <span style="font-weight:600;font-size:13px;color:var(--color-slate-800);">{{ metric.name }}</span>
+                                    <span class="text-muted" style="font-size:11px;">{{ metric.unit or 'no unit' }}</span>
+                                </div>
+                            </label>
+                            <select name="aggregation_level_{{ metric.id }}" style="padding:4px 8px;font-size:12px;border:1px solid var(--color-slate-200);border-radius:4px;background:#fff;cursor:pointer;max-width:120px;">
+                                <option value="daily_summary">Summary</option>
+                                <option value="raw">Raw Logs</option>
+                            </select>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+                
+                <div>
+                    <label for="expiration_days" style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">{{ _("Expiration (Optional Days)") }}</label>
+                    <input type="number" id="expiration_days" name="expiration_days" placeholder="e.g. 30" min="1"
+                           style="width:100%;padding:8px 12px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;">
+                </div>
+                
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button type="submit" class="btn">
+                    {{ _("Start Sharing") }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Shares List Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Active Shares") }}</h3>
+        </div>
+        <div id="sharing-relationship-container" style="padding-top:8px;">
+            {% include "components/sharing/relationship_list.html" %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

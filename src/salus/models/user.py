@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from salus.models.insight import Insight  # noqa: F401
     from salus.models.measurement import Measurement  # noqa: F401
     from salus.models.user_identity import UserIdentity  # noqa: F401
+    from salus.models.sharing import SharingRelationship  # noqa: F401
 
 
 class User(SQLModel, table=True):
@@ -31,3 +32,4 @@ class User(SQLModel, table=True):
     identities: list["UserIdentity"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     goals: list["Goal"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     insights: list["Insight"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    sharing_relationships: list["SharingRelationship"] = Relationship(back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete-orphan"})

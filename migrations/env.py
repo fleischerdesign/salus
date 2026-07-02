@@ -27,6 +27,8 @@ from salus.models.dashboard import DashboardWidget
 from salus.models.api_token import ApiToken
 from salus.models.system_config import SystemConfig
 from salus.models.insight import Insight
+from salus.models.sharing import SharingRelationship
+
 
 # Dynamically load plugins to register custom tables/models in SQLModel.metadata
 try:
@@ -36,6 +38,7 @@ try:
     from sqlmodel import Session
     
     dummy_engine = create_engine("sqlite://")
+    SQLModel.metadata.create_all(dummy_engine)
     dummy_session = Session(dummy_engine)
     dummy_uow = SqlUnitOfWork(dummy_session)
     pm = PluginManager(plugins_dir="src/salus/plugins", uow=dummy_uow)

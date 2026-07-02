@@ -18,10 +18,12 @@ from salus.repositories.protocols import (
     ISystemConfigRepository,
     IUserIdentityRepository,
     IUserRepository,
+    ISharingRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
+from salus.repositories.sharing import SharingRepository
 
 
 class IUnitOfWork(Protocol):
@@ -34,6 +36,7 @@ class IUnitOfWork(Protocol):
     system_configs: ISystemConfigRepository
     dashboard_widgets: IDashboardWidgetRepository
     insights: IInsightRepository
+    sharing_relationships: ISharingRepository
 
     def __enter__(self) -> "IUnitOfWork":
         ...
@@ -58,6 +61,7 @@ class SqlUnitOfWork:
     system_configs: ISystemConfigRepository
     dashboard_widgets: IDashboardWidgetRepository
     insights: IInsightRepository
+    sharing_relationships: ISharingRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -70,6 +74,7 @@ class SqlUnitOfWork:
         self.system_configs = SystemConfigRepository(session)
         self.dashboard_widgets = DashboardWidgetRepository(session)
         self.insights = InsightRepository(session)
+        self.sharing_relationships = SharingRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

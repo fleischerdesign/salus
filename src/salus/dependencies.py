@@ -38,6 +38,7 @@ from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.repositories.insight import InsightRepository
+from salus.services.sharing import SharingService
 from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LlmProviderFactory
 from salus.services.insight.service import InsightService
@@ -414,3 +415,9 @@ def get_insight_service(
         api_url=settings.llm_api_url,
     )
     return InsightService(uow=uow, provider=provider, model=settings.llm_model, registry=registry)
+
+
+def get_sharing_service(
+    uow: SqlUnitOfWork = Depends(get_unit_of_work),
+) -> SharingService:
+    return SharingService(uow)
