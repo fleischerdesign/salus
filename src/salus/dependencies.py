@@ -47,6 +47,7 @@ from salus.services.workout.planner import WorkoutService
 from salus.services.backup.providers import IBackupStorageProvider
 from salus.services.backup.service import BackupService
 from salus.services.asymmetric_share import AsymmetricShareService
+from salus.services.open_science import OpenScienceService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -472,3 +473,9 @@ def get_asymmetric_share_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> AsymmetricShareService:
     return AsymmetricShareService(uow)
+
+
+def get_open_science_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> OpenScienceService:
+    return OpenScienceService(uow)
