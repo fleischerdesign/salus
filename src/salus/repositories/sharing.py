@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlmodel import select
 from salus.models.sharing import SharingRelationship
 from salus.repositories.base import Repository
@@ -22,10 +23,13 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
     def get_active_relationship(
         self, owner_id: int, grantee_handle: str, metric_type_id: int
     ) -> SharingRelationship | None:
+        now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id,
             SharingRelationship.grantee_handle == grantee_handle,
             SharingRelationship.metric_type_id == metric_type_id,
-            SharingRelationship.is_active
+            SharingRelationship.is_active,
+            (SharingRelationship.expiration_date == None) | (SharingRelationship.expiration_date > now)  # type: ignore  # noqa: E711
         )
         return self.session.exec(stmt).first()
+

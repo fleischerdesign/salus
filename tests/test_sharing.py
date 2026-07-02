@@ -307,3 +307,92 @@ def test_sharing_post_route():
 
     app.dependency_overrides.clear()
 
+
+def test_sharing_expiration_and_invalid_date(session: Session):
+    from datetime import timedelta
+    uow = SqlUnitOfWork(session)
+    service = SharingService(uow)
+
+    with uow:
+        # Create users
+        owner = UserModel(username="owner", password_hash="hash")
+        grantee = UserModel(username="grantee", password_hash="hash")
+        uow.users.add(owner)
+        uow.users.add(grantee)
+        uow.commit()
+        owner_id = owner.id
+        grantee_id = grantee.id
+
+        # Seed metric
+        metric = MetricType(
+            name="Steps",
+            unit="steps",
+            data_type=DataType.NUMBER,
+            user_id=owner_id,
+            is_system=True,
+            source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        metric_id = metric.id
+
+        # Seed measurement on current date
+        m = Measurement(
+            user_id=owner_id,
+            metric_type_id=metric_id,
+            data_type="steps",
+            value_numeric=12000.0,
+            start_time=datetime.now(timezone.utc),
+            source="manual",
+            external_id="m-exp"
+        )
+        uow.measurements.add(m)
+        uow.commit()
+
+    # 1. Share with negative expiration days (already expired in the past)
+    rel = service.create_relationship(
+        owner_id=owner_id,
+        grantee_handle="@grantee",
+        metric_type_id=metric_id,
+        expiration_days=-1,  # Expired yesterday
+    )
+
+    # Access should raise PermissionError due to expiration
+    with pytest.raises(PermissionError):
+        service.resolve_and_fetch(
+            requester_id=grantee_id,
+            owner_handle="@owner",
+            data_type="steps",
+            date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        )
+
+    # Reactivate relationship by removing expiration date
+    with uow:
+        db_rel = uow.sharing_relationships.get_by_id(rel.id)
+        assert db_rel is not None
+        db_rel.expiration_date = None
+        uow.sharing_relationships.update(db_rel)
+        uow.commit()
+
+    # Access should succeed now
+    res = service.resolve_and_fetch(
+        requester_id=grantee_id,
+        owner_handle="@owner",
+        data_type="steps",
+        date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    )
+    assert len(res) == 1
+    assert res[0]["value_numeric"] == 12000.0
+
+    # 2. Test invalid date fallback (e.g. passing "invalid-date-string")
+    # It should fall back to current date and find the measurement
+    res_fallback = service.resolve_and_fetch(
+        requester_id=grantee_id,
+        owner_handle="@owner",
+        data_type="steps",
+        date_str="invalid-date-string"
+    )
+    assert len(res_fallback) == 1
+    assert res_fallback[0]["value_numeric"] == 12000.0
+
+

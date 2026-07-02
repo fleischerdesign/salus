@@ -140,7 +140,7 @@ class SharingService:
                 try:
                     target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
                 except ValueError:
-                    target_date = datetime.utcnow().date()
+                    target_date = datetime.now(timezone.utc).date()
 
                 day_measurements = [
                     m for m in raw_measurements 

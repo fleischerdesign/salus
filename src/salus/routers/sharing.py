@@ -144,12 +144,15 @@ async def federated_shared_data(
         if not metric:
             raise HTTPException(status_code=404, detail="Metric type not found")
 
-        # Look up active sharing relationship matching the api_token_hash
+        # Look up active sharing relationship matching the api_token_hash and not expired
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner.id,
             SharingRelationship.metric_type_id == metric.id,
             SharingRelationship.api_token_hash == token,
-            SharingRelationship.is_active
+            SharingRelationship.is_active,
+            (SharingRelationship.expiration_date == None) | (SharingRelationship.expiration_date > now)  # type: ignore  # noqa: E711
         )
         from salus.repositories.unit_of_work import SqlUnitOfWork
         relationship = None
