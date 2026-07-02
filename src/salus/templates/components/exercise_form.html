@@ -1,0 +1,37 @@
+{% from "components/ui/modal.html" import modal %}
+{% from "components/ui/input.html" import input %}
+{% from "components/ui/select.html" import select %}
+
+{% call modal(title=_("New Exercise")) %}
+<form hx-post="/workouts/exercises" hx-target="body" class="form-stack">
+    {{ input(name="name", label=_("Exercise Name"), type="text", required=True, placeholder="e.g. Incline Bench Press") }}
+    
+    <div class="form-row">
+        <div style="flex:1;">
+            {% call select(name="equipment", label=_("Equipment"), required=True) %}
+                <option value="barbell">Barbell</option>
+                <option value="dumbbell">Dumbbell</option>
+                <option value="machine">Machine</option>
+                <option value="bodyweight">Bodyweight</option>
+                <option value="kettlebell">Kettlebell</option>
+            {% endcall %}
+        </div>
+    </div>
+
+    {{ input(name="primary_muscles", label=_("Primary Muscles (comma-separated)"), type="text", required=True, placeholder="e.g. pectoralis_major,anterior_deltoid") }}
+    {{ input(name="secondary_muscles", label=_("Secondary Muscles (comma-separated, optional)"), type="text", required=False, placeholder="e.g. triceps_brachii") }}
+    {{ input(name="description", label=_("Description"), type="text", placeholder="e.g. Incline press set at 30 degrees.") }}
+    
+    <div class="input-group">
+        <label for="instructions">{{ _("Instructions") }}</label>
+        <textarea id="instructions" name="instructions" placeholder="Step-by-step instructions..." rows="3" style="width:100%;padding:8px 12px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
+    </div>
+
+    {{ input(name="video_url", label=_("Tutorial Video URL (YouTube/Vimeo)"), type="url", placeholder="e.g. https://youtube.com/watch?v=...") }}
+
+    <div class="form-actions">
+        <button type="submit" class="btn">{{ _("Add Exercise") }}</button>
+        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
+    </div>
+</form>
+{% endcall %}

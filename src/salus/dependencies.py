@@ -42,6 +42,8 @@ from salus.services.sharing import SharingService
 from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LlmProviderFactory
 from salus.services.insight.service import InsightService
+from salus.services.workout.autoregulation import AutoregulationService
+from salus.services.workout.planner import WorkoutService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -421,3 +423,17 @@ def get_sharing_service(
     uow: SqlUnitOfWork = Depends(get_unit_of_work),
 ) -> SharingService:
     return SharingService(uow)
+
+
+def get_autoregulation_service(
+    sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
+    activity_svc: ActivityAnalysisService = Depends(get_activity_analysis_service),
+) -> AutoregulationService:
+    return AutoregulationService(sleep_svc, activity_svc)
+
+
+def get_workout_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+    autoreg_svc: AutoregulationService = Depends(get_autoregulation_service),
+) -> WorkoutService:
+    return WorkoutService(uow, autoreg_svc)

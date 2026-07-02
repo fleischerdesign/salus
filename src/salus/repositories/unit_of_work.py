@@ -19,11 +19,19 @@ from salus.repositories.protocols import (
     IUserIdentityRepository,
     IUserRepository,
     ISharingRepository,
+    IExerciseRepository,
+    IWorkoutPlanRepository,
+    IWorkoutSessionRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
 from salus.repositories.user_identity import UserIdentityRepository
 from salus.repositories.sharing import SharingRepository
+from salus.repositories.workout import (
+    ExerciseRepository,
+    WorkoutPlanRepository,
+    WorkoutSessionRepository,
+)
 
 
 class IUnitOfWork(Protocol):
@@ -37,6 +45,9 @@ class IUnitOfWork(Protocol):
     dashboard_widgets: IDashboardWidgetRepository
     insights: IInsightRepository
     sharing_relationships: ISharingRepository
+    exercises: IExerciseRepository
+    workout_plans: IWorkoutPlanRepository
+    workout_sessions: IWorkoutSessionRepository
 
     def __enter__(self) -> "IUnitOfWork":
         ...
@@ -62,6 +73,9 @@ class SqlUnitOfWork:
     dashboard_widgets: IDashboardWidgetRepository
     insights: IInsightRepository
     sharing_relationships: ISharingRepository
+    exercises: IExerciseRepository
+    workout_plans: IWorkoutPlanRepository
+    workout_sessions: IWorkoutSessionRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -75,6 +89,9 @@ class SqlUnitOfWork:
         self.dashboard_widgets = DashboardWidgetRepository(session)
         self.insights = InsightRepository(session)
         self.sharing_relationships = SharingRepository(session)
+        self.exercises = ExerciseRepository(session)
+        self.workout_plans = WorkoutPlanRepository(session)
+        self.workout_sessions = WorkoutSessionRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Active Session") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Active Workout Session") }}</h1>
+        <p class="text-muted">{{ _("Log your sets. Dynamic autoregulated targets are shown below.") }}</p>
+    </div>
+    {% if session.recovery_score %}
+    <div style="padding:8px 16px;border-radius:20px;background:var(--color-primary-50);border:1px solid var(--color-primary-200);color:var(--color-primary-800);font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:20px;">bolt</span>
+        {{ _("Recovery Score") }}: {{ session.recovery_score|round(0) }}%
+    </div>
+    {% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:start;">
+
+    <!-- Active logging grid -->
+    <div class="card">
+        <div style="display:flex;flex-direction:column;gap:24px;">
+            {% for target in targets %}
+            <div style="padding:16px;border:1px solid var(--color-slate-200);border-radius:8px;background:#fff;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid var(--color-slate-100);padding-bottom:10px;margin-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--color-slate-800);display:flex;align-items:center;gap:8px;">
+                            {{ target.name }}
+                            {% if target.is_autoreg_exempt %}
+                            <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-slate-400);" title="Autoregulation disabled for this exercise">lock</span>
+                            {% else %}
+                            <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-primary-500);" title="Autoregulated targets active">auto_awesome</span>
+                            {% endif %}
+                        </h3>
+                        <p style="margin:4px 0 0 0;font-size:12px;" class="text-muted">
+                            Target: {{ target.suggested_sets }} sets x {{ target.suggested_reps }} reps @ RPE {{ target.suggested_rpe }}
+                            {% if target.weight_multiplier != 1.0 %}
+                            (Weight: {{ (target.weight_multiplier * 100)|round(0) }}%)
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if not target.is_autoreg_exempt %}
+                    <span style="font-size:11px;background:var(--color-slate-100);color:var(--color-slate-700);padding:4px 8px;border-radius:4px;font-weight:500;max-width:250px;text-align:right;">
+                        {{ target.reason }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Sets Logging Rows -->
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    {% for set_num in range(1, target.suggested_sets + 1) %}
+                    <div id="row-{{ target.exercise_id }}-{{ set_num }}" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--color-slate-50);padding:8px 12px;border-radius:6px;">
+                        <span style="font-weight:700;font-size:14px;color:var(--color-slate-500);width:40px;">Set {{ set_num }}</span>
+                        
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <label style="font-size:12px;font-weight:600;color:var(--color-slate-600);">Weight:</label>
+                            <input type="number" id="weight-{{ target.exercise_id }}-{{ set_num }}" step="0.5" placeholder="kg" style="width:80px;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;">
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <label style="font-size:12px;font-weight:600;color:var(--color-slate-600);">Reps:</label>
+                            <input type="number" id="reps-{{ target.exercise_id }}-{{ set_num }}" placeholder="reps" style="width:70px;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <label style="font-size:12px;font-weight:600;color:var(--color-slate-600);">RPE:</label>
+                            <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" placeholder="RPE" style="width:70px;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;">
+                        </div>
+
+                        <!-- Est 1RM display -->
+                        <span id="est1rm-{{ target.exercise_id }}-{{ set_num }}" style="font-size:12px;font-weight:600;color:var(--color-slate-500);margin-left:auto;">
+                            Est. 1RM: --
+                        </span>
+
+                        <button id="btn-{{ target.exercise_id }}-{{ set_num }}" class="btn btn-sm" style="display:flex;align-items:center;gap:4px;"
+                                onclick="logSet({{ session.id }}, {{ target.exercise_id }}, {{ set_num }})">
+                            <span class="material-symbols-outlined" style="font-size:16px;">check</span>
+                            {{ _("Log Set") }}
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Finish Session Panel -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Finish Workout Session") }}</h3>
+        </div>
+        <form method="post" action="/workouts/sessions/complete" style="display:flex;flex-direction:column;gap:16px;padding-top:8px;">
+            <input type="hidden" name="session_id" value="{{ session.id }}">
+            <div>
+                <label for="notes" style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">{{ _("Session Notes / Feedback") }}</label>
+                <textarea id="notes" name="notes" placeholder="How did it feel today? Any pain or outstanding form?" rows="3"
+                          style="width:100%;padding:10px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="submit" class="btn btn-lg">
+                    {{ _("Complete Workout") }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+function update1RM(exId, setNum) {
+    const weightVal = parseFloat(document.getElementById(`weight-${exId}-${setNum}`).value);
+    const repsVal = parseInt(document.getElementById(`reps-${exId}-${setNum}`).value);
+    const display = document.getElementById(`est1rm-${exId}-${setNum}`);
+    
+    if (!isNaN(weightVal) && !isNaN(repsVal) && repsVal > 0) {
+        // Brzycki formula
+        const est1rm = weightVal / (1.0278 - (0.0278 * repsVal));
+        display.innerText = `Est. 1RM: ${est1rm.toFixed(1)} kg`;
+    } else {
+        display.innerText = "Est. 1RM: --";
+    }
+}
+
+async function logSet(sessionId, exerciseId, setNumber) {
+    const weight = parseFloat(document.getElementById(`weight-${exerciseId}-${setNumber}`).value);
+    const reps = parseInt(document.getElementById(`reps-${exerciseId}-${setNumber}`).value);
+    const rpeInput = document.getElementById(`rpe-${exerciseId}-${setNumber}`).value;
+    const rpe = rpeInput ? parseFloat(rpeInput) : null;
+    const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
+    const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
+
+    if (isNaN(weight) || isNaN(reps)) {
+        alert("Please enter a valid weight and reps count.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                exercise_id: exerciseId,
+                set_number: setNumber,
+                weight: weight,
+                reps: reps,
+                rpe: rpe
+            })
+        });
+
+        if (response.ok) {
+            btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;color:#fff;">done_all</span> Logged`;
+            btn.style.background = "#10b981";
+            btn.disabled = true;
+            row.style.opacity = "0.75";
+        } else {
+            const err = await response.json();
+            alert("Failed to log set: " + (err.detail || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Error connecting to server.");
+    }
+}
+</script>
+{% endblock %}

@@ -14,7 +14,7 @@ from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError,
 from salus.models import system_config  # noqa: F401
 from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
-from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing
+from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
 
@@ -31,6 +31,7 @@ NAV_ITEMS = [
     {"path": "/metrics", "icon": "label", "label": "Metrics"},
     {"path": "/entries", "icon": "description", "label": "Entries"},
     {"path": "/sharing", "icon": "share", "label": "Sharing"},
+    {"path": "/workouts", "icon": "fitness_center", "label": "Workouts"},
 ]
 
 
@@ -195,6 +196,7 @@ app.include_router(export.router)
 app.include_router(admin.router)
 app.include_router(insight.router, prefix="/insights")
 app.include_router(sharing.router)
+app.include_router(workout.router)
 
 
 

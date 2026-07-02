@@ -11,6 +11,7 @@ from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.models.sharing import SharingRelationship
+from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
 
 T = TypeVar("T")
 
@@ -190,5 +191,29 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     def get_active_relationship(
         self, owner_id: int, grantee_handle: str, metric_type_id: int
     ) -> SharingRelationship | None:
+        ...
+
+
+@runtime_checkable
+class IExerciseRepository(IRepository[Exercise], Protocol):
+    def find_all_catalog(self, user_id: int) -> list[Exercise]:
+        ...
+
+    def find_by_name(self, name: str) -> Exercise | None:
+        ...
+
+
+@runtime_checkable
+class IWorkoutPlanRepository(IRepository[WorkoutPlan], Protocol):
+    def find_by_user(self, user_id: int) -> list[WorkoutPlan]:
+        ...
+
+
+@runtime_checkable
+class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
+    def find_recent_by_user(self, user_id: int, limit: int = 10) -> list[WorkoutSession]:
+        ...
+
+    def get_last_session_for_plan(self, user_id: int, plan_id: int) -> WorkoutSession | None:
         ...
 

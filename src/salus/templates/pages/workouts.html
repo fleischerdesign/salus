@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Workouts") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Workout Planner") }}</h1>
+        <p class="text-muted">{{ _("Create plans, track sets, and get dynamic recovery-aware intensity suggestions.") }}</p>
+    </div>
+    <div style="display:flex;gap:12px;">
+        <button class="btn"
+                hx-get="/workouts/plans/new"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            {{ _("New Plan") }}
+        </button>
+        <button class="btn btn-secondary"
+                hx-get="/workouts/exercises/new"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            {{ _("New Exercise") }}
+        </button>
+    </div>
+</div>
+
+<div id="modal-container"></div>
+
+{% if active_session %}
+<div class="card" style="background:var(--color-primary-50);border-color:var(--color-primary-200);margin-bottom:24px;padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span class="material-symbols-outlined" style="color:var(--color-primary-600);font-size:28px;">fitness_center</span>
+        <div>
+            <h3 style="margin:0;font-size:16px;font-weight:700;">{{ _("Active Workout Session in Progress") }}</h3>
+            <p style="margin:4px 0 0 0;font-size:13px;" class="text-muted">Started at {{ active_session.started_at.strftime('%H:%M:%S') }}</p>
+        </div>
+    </div>
+    <a href="/workouts/sessions/active" class="btn" style="text-decoration:none;">{{ _("Resume Session") }}</a>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:start;">
+    
+    <!-- Plans Section -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Training Plans") }}</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px;padding-top:12px;">
+            {% for plan in plans %}
+            <div style="padding:16px;border:1.5px solid var(--color-slate-200);border-radius:8px;background:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
+                <div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <h4 style="margin:0;font-size:16px;font-weight:700;color:var(--color-slate-800);">{{ plan.name }}</h4>
+                        <span style="font-size:11px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;
+                              background:{% if plan.autoreg_mode == 'disabled' %}var(--color-slate-100){% else %}var(--color-primary-100){% endif %};
+                              color:{% if plan.autoreg_mode == 'disabled' %}var(--color-slate-700){% else %}var(--color-primary-700){% endif %};">
+                            {{ plan.autoreg_mode }}
+                        </span>
+                    </div>
+                    {% if plan.description %}
+                    <p class="text-muted" style="margin:8px 0 0 0;font-size:13px;">{{ plan.description }}</p>
+                    {% endif %}
+                    
+                    <div style="margin-top:12px;">
+                        <span style="font-size:12px;font-weight:600;color:var(--color-slate-600);">Exercises ({{ plan.plan_exercises|length }}):</span>
+                        <ul style="margin:4px 0 0 0;padding-left:16px;font-size:12px;" class="text-muted">
+                            {% for pe in plan.plan_exercises %}
+                            <li>{{ pe.exercise.name }} ({{ pe.target_sets }}x{{ pe.target_reps }} @ RPE {{ pe.target_rpe or 'N/A' }}){% if pe.is_autoreg_exempt %} 🔒{% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                    <form method="post" action="/workouts/sessions/start?plan_id={{ plan.id }}">
+                        <button type="submit" class="btn btn-sm">
+                            {{ _("Start Workout") }}
+                        </button>
+                    </form>
+                    <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);"
+                            hx-delete="/api/v1/workouts/plans/{{ plan.id }}"
+                            hx-confirm="{{ _('Are you sure you want to delete this plan?') }}"
+                            hx-swap="none"
+                            onclick="setTimeout(() => window.location.reload(), 200)">
+                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column:1/-1;text-align:center;padding:24px;" class="text-muted">
+                <span class="material-symbols-outlined" style="font-size:48px;">fitness_center</span>
+                <p style="margin:8px 0 0 0;">{{ _("No training plans created yet.") }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Sessions & Exercises -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px;">
+        
+        <!-- Exercises Catalog -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ _("Exercise Library") }}</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;max-height:400px;overflow-y:auto;">
+                {% for ex in exercises %}
+                <div style="padding:10px 14px;border:1px solid var(--color-slate-150);border-radius:6px;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                    <div>
+                        <div style="font-weight:600;font-size:14px;color:var(--color-slate-800);">{{ ex.name }}</div>
+                        <div style="font-size:11px;" class="text-muted">
+                            <span style="text-transform:capitalize;">{{ ex.equipment }}</span> &bull; 
+                            Target: <span style="text-transform:capitalize;color:var(--color-primary-700);">{{ ex.primary_muscles.replace(',', ', ') }}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:4px;">
+                        {% if ex.video_url %}
+                        <a href="{{ ex.video_url }}" target="_blank" class="btn-ghost btn-sm" title="Watch tutorial">
+                            <span class="material-symbols-outlined" style="font-size:18px;">smart_display</span>
+                        </a>
+                        {% endif %}
+                        {% if ex.user_id %}
+                        <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);"
+                                hx-delete="/api/v1/workouts/exercises/{{ ex.id }}"
+                                hx-swap="none"
+                                onclick="setTimeout(() => window.location.reload(), 200)">
+                            <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted" style="text-align:center;">{{ _("No exercises cataloged.") }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Logs -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ _("Recent Workouts") }}</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
+                {% for sess in recent_sessions %}
+                <div style="padding:12px;border:1px solid var(--color-slate-150);border-radius:6px;background:#fff;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;" class="text-muted">
+                        <span>{{ sess.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        {% if sess.recovery_score %}
+                        <span style="font-weight:600;color:var(--color-primary-700);">Recovery: {{ sess.recovery_score|round(0) }}%</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-weight:600;font-size:14px;color:var(--color-slate-800);margin-top:4px;">
+                        {% if sess.plan %}{{ sess.plan.name }}{% else %}{{ _("Quick Workout") }}{% endif %}
+                    </div>
+                    {% if sess.notes %}
+                    <p style="margin:4px 0 0 0;font-size:12px;font-style:italic;" class="text-muted">"{{ sess.notes }}"</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-muted" style="text-align:center;">{{ _("No workout history recorded yet.") }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+    </div>
+
+</div>
+{% endblock %}
