@@ -86,9 +86,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Run a private health coach directly on the user's system to generate insights based on logged sleep, nutrition, and workout metrics.
 * **Architecture:** Integrate with local runtimes (e.g., Ollama or in-browser WebLLM) using local APIs. **Zero health data ever leaves the user's local infrastructure.**
 
-### 3. Instance Federation (Peer-to-Peer Sync)
-* **Concept:** Allow decentralized instances of Salus to communicate. Users can sync data across devices (e.g. laptop and server) or securely share anonymized metrics (like step-challenge rankings) with friends across different self-hosted servers.
-* **Architecture:** Implement an E2E-encrypted sync protocol (using WebDAV or custom HTTPS endpoints) and a lightweight federated protocol (inspired by ActivityPub or WebSub) to securely transmit metrics.
+### 3. Instance Federation & User Sharing [x]
+* **Concept:** Allow decentralized instances of Salus and local multi-tenancy users to communicate. Users can securely share health metrics (e.g. daily steps or raw logs) with family members, friends, or doctors.
+* **Architecture:** Developed a multi-tenant aware user-to-user sharing system. Local users are resolved directly via `@username`, and remote users via `@username:domain`. Implemented the `SharingRelationship` database schema, a granular sharing policy service, dynamic HTML checkboxes dashboard with inline policy options, and a secure bearer-token federated API.
 
 ### 4. Offline-First Mobile/Desktop App
 * **Concept:** Build a cross-platform companion app (e.g., using Tauri, Flutter, or React Native) that runs offline-first.
