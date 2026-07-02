@@ -106,9 +106,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Allow users to temporarily and securely share specific health dashboards directly with their general practitioner (GP) or personal trainer.
 * **Architecture:** Developed a client-side Zero-Knowledge sharing system utilizing the native W3C Web Crypto API. Recipients generate an RSA-OAEP 2048-bit keypair; the private key is downloaded locally as a JWK JSON file (never touches the server) and the public key is registered in Salus. Sharing is performed by generating a cryptographically secure random 256-bit AES key, encrypting the patient's daily vital analytics payload via AES-GCM-256, encrypting the AES key with the recipient's RSA public key, and storing it on the server. The GP views the share page, uploads their local private key file, and decrypts and renders the interactive diagnostic report entirely client-side. Enforces timezone-aware link expiration.
 
-### 8. Statistical Data Synthesizer (Open Science)
+### 8. Statistical Data Synthesizer (Open Science) [x]
 * **Concept:** Enable users to donate their health data to medical research anonymously.
-* **Architecture:** Build an in-memory generation pipeline that synthesizes data matching the user's exact trends and distributions (using differential privacy), allowing researchers to use the statistical properties without accessing personal metrics.
+* **Architecture:** Developed a Local Differential Privacy (LDP) data synthesis engine. Weekly health metrics (steps, sleep, heart rate, active energy) are aggregated; demographic variables (birth year, body weight) are generalized using demographic binning (e.g. age-decade bins, 5kg weight intervals). Privacy budget parameter epsilon (&epsilon;) controls the scale of a custom, dependency-free Laplace noise generator based on inverse transform sampling. Output is rendered dynamically in an interactive preview and can be exported as CSV/JSON or donated to research APIs.
 
 ### 9. Circadian Rhythm & Light Advisor
 * **Concept:** Provide optimal sleep window, meal timing, and wind-down advice based on geographical sunrise/sunset calculations, ambient light measurements, and core biometric logs.
