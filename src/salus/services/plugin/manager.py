@@ -23,29 +23,33 @@ class PluginManager:
         self.loaded_plugins: dict[str, BasePlugin] = {}
 
     def _get_enabled_plugin_ids(self) -> set[str]:
-        with self.uow:
-            config = self.uow.system_configs.get_by_key("enabled_plugins")
-            if not config:
-                # First run: enable all discovered plugins on disk by default
-                all_ids = set()
-                if self.plugins_dir.exists():
-                    for path in self.plugins_dir.iterdir():
-                        if path.is_dir() and not path.name.startswith("__"):
-                            manifest_path = path / "manifest.json"
-                            if manifest_path.exists():
-                                try:
-                                    with open(manifest_path, "r", encoding="utf-8") as f:
-                                        m = json.load(f)
-                                        if m.get("id"):
-                                            all_ids.add(m["id"])
-                                except Exception:
-                                    pass
-                self.uow.system_configs.upsert("enabled_plugins", json.dumps(list(all_ids)))
-                return all_ids
-            try:
+        # 1. Discover all plugins on disk
+        all_ids = set()
+        if self.plugins_dir.exists():
+            for path in self.plugins_dir.iterdir():
+                if path.is_dir() and not path.name.startswith("__"):
+                    manifest_path = path / "manifest.json"
+                    if manifest_path.exists():
+                        try:
+                            with open(manifest_path, "r", encoding="utf-8") as f:
+                                m = json.load(f)
+                                if m.get("id"):
+                                    all_ids.add(m["id"])
+                        except Exception:
+                            pass
+
+        # 2. Try to query database configs
+        from sqlalchemy.exc import OperationalError
+        try:
+            with self.uow:
+                config = self.uow.system_configs.get_by_key("enabled_plugins")
+                if not config:
+                    self.uow.system_configs.upsert("enabled_plugins", json.dumps(list(all_ids)))
+                    return all_ids
                 return set(json.loads(config.value))
-            except Exception:
-                return set()
+        except (OperationalError, Exception):
+            logger.info("Database or system_config table not yet initialized. Defaulting to loading all discovered plugins on disk.")
+            return all_ids
 
     def discover_and_load_all(self) -> None:
         """Scans the plugins directory and loads plugins that are enabled in config."""

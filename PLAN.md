@@ -110,9 +110,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Enable users to donate their health data to medical research anonymously.
 * **Architecture:** Developed a Local Differential Privacy (LDP) data synthesis engine. Weekly health metrics (steps, sleep, heart rate, active energy) are aggregated; demographic variables (birth year, body weight) are generalized using demographic binning (e.g. age-decade bins, 5kg weight intervals). Privacy budget parameter epsilon (&epsilon;) controls the scale of a custom, dependency-free Laplace noise generator based on inverse transform sampling. Output is rendered dynamically in an interactive preview and can be exported as CSV/JSON or donated to research APIs.
 
-### 9. Circadian Rhythm & Light Advisor
+### 9. Circadian Rhythm & Light Advisor [x]
 * **Concept:** Provide optimal sleep window, meal timing, and wind-down advice based on geographical sunrise/sunset calculations, ambient light measurements, and core biometric logs.
-* **Architecture:** Build a mathematical model analyzing sleep depth offsets relative to light exposure patterns.
+* **Architecture:** Implemented the mathematical NOAA Solar Calculator locally in pure Python to compute Julian Day, Solar Declination, Equation of Time, and precise solar phases (Sunrise, Sunset, Dawn, Dusk, Solar Noon) based on user-configured latitude/longitude. Developed an advisory rule engine mapping sleep metrics (onset/offset offset from solar midnight) to an alignment score, predicting bright morning light windows, and defining circadian eating boundaries (metabolic windows). Added interactive 24-hour visual progress timelines and chronotype preferences.
 
 ### 10. Zero-Knowledge Peer Challenges (ZKP Gamification)
 * **Concept:** Engage in fitness challenges (e.g. "Who hits 15k steps first") without uploading raw logs to a central tracker.
