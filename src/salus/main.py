@@ -14,9 +14,10 @@ from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError,
 from salus.models import system_config  # noqa: F401
 from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
-from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science
+from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science, circadian
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
+
 
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level),
@@ -32,6 +33,7 @@ NAV_ITEMS = [
     {"path": "/entries", "icon": "description", "label": "Entries"},
     {"path": "/sharing", "icon": "share", "label": "Sharing"},
     {"path": "/workouts", "icon": "fitness_center", "label": "Workouts"},
+    {"path": "/circadian", "icon": "light_mode", "label": "Circadian Advisor"},
 ]
 
 
@@ -199,6 +201,7 @@ app.include_router(sharing.router)
 app.include_router(workout.router)
 app.include_router(asymmetric_share.router)
 app.include_router(open_science.router)
+app.include_router(circadian.router)
 
 
 

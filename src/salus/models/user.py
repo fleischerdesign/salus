@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from salus.models.sharing import SharingRelationship  # noqa: F401
     from salus.models.workout import WorkoutPlan, WorkoutSession  # noqa: F401
     from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare  # noqa: F401
+    from salus.models.circadian import CircadianProfile  # noqa: F401
 
 
 class User(SQLModel, table=True):
@@ -39,3 +40,4 @@ class User(SQLModel, table=True):
     workout_sessions: list["WorkoutSession"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     share_recipients: list["ShareRecipient"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     asymmetric_shares: list["AsymmetricShare"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    circadian_profile: Optional["CircadianProfile"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan", "uselist": False})

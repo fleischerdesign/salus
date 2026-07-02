@@ -48,6 +48,7 @@ from salus.services.backup.providers import IBackupStorageProvider
 from salus.services.backup.service import BackupService
 from salus.services.asymmetric_share import AsymmetricShareService
 from salus.services.open_science import OpenScienceService
+from salus.services.circadian import CircadianService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -479,3 +480,9 @@ def get_open_science_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> OpenScienceService:
     return OpenScienceService(uow)
+
+
+def get_circadian_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> CircadianService:
+    return CircadianService(uow)

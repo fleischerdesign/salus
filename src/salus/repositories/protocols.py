@@ -13,6 +13,7 @@ from salus.models.user_identity import UserIdentity
 from salus.models.sharing import SharingRelationship
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
+from salus.models.circadian import CircadianProfile
 
 T = TypeVar("T")
 
@@ -231,5 +232,11 @@ class IAsymmetricShareRepository(IRepository[AsymmetricShare], Protocol):
         ...
 
     def get_by_id_secure(self, share_id: int) -> AsymmetricShare | None:
+        ...
+
+
+@runtime_checkable
+class ICircadianProfileRepository(IRepository[CircadianProfile], Protocol):
+    def find_by_user(self, user_id: int) -> CircadianProfile | None:
         ...
 
