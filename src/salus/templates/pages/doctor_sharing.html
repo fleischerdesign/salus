@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Secure Doctor Share") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Secure GP & Doctor Sharing") }}</h1>
+        <p class="text-muted">{{ _("Share encrypted health profiles using Zero-Knowledge Asymmetric Cryptography.") }}</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:start;">
+
+    <!-- Left: Recipient management -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px;">
+        
+        <!-- Generate Recipient Keys Form -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ _("1. Register Recipient / GP") }}</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
+                <p class="text-muted" style="font-size:12px;">
+                    Generate a key pair for your doctor or trainer. The **Private Key** will be downloaded as a file and must be kept secret by them. The **Public Key** is uploaded to Salus to encrypt your data.
+                </p>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="generateKeyPair()">
+                        Generate Key Pair 🔑
+                    </button>
+                </div>
+                
+                <form id="recipient-form" style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Recipient Name</label>
+                        <input type="text" id="recipient-name" placeholder="e.g. Dr. Mueller" required
+                               style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Public Key (auto-filled on generate)</label>
+                        <textarea id="recipient-pubkey" rows="6" readonly required placeholder="Generate keys above to fill this"
+                                  style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:11px;font-family:monospace;background:var(--color-slate-50);"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm">Save Recipient</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recipients List -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ _("Registered Recipients") }}</h3>
+            </div>
+            <div id="recipients-list" style="display:flex;flex-direction:column;gap:12px;padding-top:12px;max-height:350px;overflow-y:auto;">
+                {% for r in recipients %}
+                <div style="padding:10px;border:1px solid var(--color-slate-150);border-radius:6px;background:#fff;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong style="font-size:14px;color:var(--color-slate-800);">{{ r.name }}</strong>
+                        <div class="text-muted" style="font-size:11px;">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
+                    </div>
+                    <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);" onclick="deleteRecipient({{ r.id }})">
+                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                    </button>
+                </div>
+                {% else %}
+                <p class="text-muted" style="text-align:center;">No recipients registered yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right: Create Share Link -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("2. Encrypt & Share Data") }}</h3>
+        </div>
+        <form id="share-form" style="display:flex;flex-direction:column;gap:16px;padding-top:12px;">
+            <div>
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">Choose Recipient</label>
+                <select id="share-recipient-id" required style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;background:#fff;">
+                    <option value="">— Select —</option>
+                    {% for r in recipients %}
+                    <option value="{{ r.id }}" data-pubkey="{{ r.public_key }}">{{ r.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Days to Share</label>
+                    <input type="number" id="share-days" value="30" min="1" max="365"
+                           style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Expiration (Hours, optional)</label>
+                    <input type="number" id="share-expire-hours" value="24" min="1"
+                           style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                </div>
+            </div>
+
+            <button type="button" class="btn" onclick="createAsymmetricShare()">Encrypt and Generate Shareable Link 🔒</button>
+        </form>
+
+        <div id="share-result-container" style="display:none;margin-top:20px;padding:16px;background:var(--color-primary-50);border:1.5px solid var(--color-primary-200);border-radius:8px;">
+            <strong style="color:var(--color-primary-800);display:block;margin-bottom:6px;font-size:14px;">Secure Share Link Generated:</strong>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="share-link-url" readonly style="flex:1;padding:8px;border:1px solid var(--color-primary-300);border-radius:4px;font-size:13px;font-family:monospace;background:#fff;">
+                <button class="btn btn-sm" onclick="copyShareLink()">Copy</button>
+            </div>
+            <span class="text-muted" style="font-size:11px;margin-top:6px;display:block;">Give this link and the downloaded private key file to your doctor.</span>
+        </div>
+    </div>
+
+    <!-- Active Shares List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Active Encrypted Share Links") }}</h3>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
+            {% for s in shares %}
+            <div style="padding:12px;border:1px solid var(--color-slate-150);border-radius:6px;background:#fff;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-weight:600;color:var(--color-slate-800);font-size:14px;">Share Link for {{ s.recipient.name }}</div>
+                    <div class="text-muted" style="font-size:11px;">
+                        Created: {{ s.created_at.strftime('%Y-%m-%d %H:%M') }} | 
+                        Expires: {% if s.expires_at %}{{ s.expires_at.strftime('%Y-%m-%d %H:%M') }}{% else %}Never{% endif %}
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="copyDirectShareLink({{ s.id }})">Copy Link</button>
+                    <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);" onclick="deleteShare({{ s.id }})">
+                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted" style="text-align:center;">No active encrypted shares.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Web Crypto API helpers
+async function generateKeyPair() {
+    try {
+        const keyPair = await window.crypto.subtle.generateKey(
+            {
+                name: "RSA-OAEP",
+                modulusLength: 2048,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256"
+            },
+            true,
+            ["encrypt", "decrypt"]
+        );
+
+        // Export Public Key to PEM
+        const exportedPublic = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
+        const publicKeyPem = formatAsPem(exportedPublic, "PUBLIC KEY");
+        document.getElementById("recipient-pubkey").value = publicKeyPem;
+
+        // Export Private Key to JWK (JSON)
+        const exportedPrivate = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+        
+        // Trigger file download
+        const blob = new Blob([JSON.stringify(exportedPrivate, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `salus_gp_key_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        alert("Keys generated successfully!\n\n1. Public Key is filled in the form.\n2. Private Key JSON file has been downloaded. Deliver this file securely to the doctor.");
+    } catch (e) {
+        alert("Failed to generate keys: " + e.message);
+    }
+}
+
+function formatAsPem(binary, label) {
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(binary)));
+    const chunks = base64.match(/.{1,64}/g).join("\n");
+    return `-----BEGIN ${label}-----\n${chunks}\n-----END ${label}-----`;
+}
+
+// Recipient Form submit
+document.getElementById("recipient-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("recipient-name").value;
+    const pubkey = document.getElementById("recipient-pubkey").value;
+
+    const response = await fetch("/api/v1/shares/asymmetric/recipients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name: name, public_key: pubkey})
+    });
+
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        alert("Error saving recipient.");
+    }
+});
+
+async function deleteRecipient(id) {
+    if (confirm("Delete this recipient? All associated shares will also be deleted.")) {
+        const response = await fetch(`/api/v1/shares/asymmetric/recipients/${id}`, {method: "DELETE"});
+        if (response.ok) window.location.reload();
+    }
+}
+
+async function deleteShare(id) {
+    if (confirm("Revoke/Delete this share link?")) {
+        const response = await fetch(`/api/v1/shares/asymmetric/${id}`, {method: "DELETE"});
+        if (response.ok) window.location.reload();
+    }
+}
+
+function copyShareLink() {
+    const input = document.getElementById("share-link-url");
+    input.select();
+    document.execCommand("copy");
+    alert("Link copied to clipboard!");
+}
+
+function copyDirectShareLink(id) {
+    const url = `${window.location.origin}/share/doctor/${id}`;
+    navigator.clipboard.writeText(url);
+    alert("Link copied: " + url);
+}
+
+// Create Encrypted Share logic
+async function createAsymmetricShare() {
+    const recipientSelect = document.getElementById("share-recipient-id");
+    const recipientId = parseInt(recipientSelect.value);
+    const pubKeyPem = recipientSelect.options[recipientSelect.selectedIndex].getAttribute("data-pubkey");
+    const days = parseInt(document.getElementById("share-days").value);
+    const expireHoursInput = document.getElementById("share-expire-hours").value;
+    const expireHours = expireHoursInput ? parseInt(expireHoursInput) : null;
+
+    if (!recipientId || !pubKeyPem) {
+        alert("Please select a recipient.");
+        return;
+    }
+
+    try {
+        // 1. Fetch raw data from Salus (e.g. Sleep / Activity / Weight metrics)
+        // For simplicity and richness, we share daily aggregates from analytics
+        const response = await fetch(`/api/v1/analytics/daily?days=${days}`);
+        if (!response.ok) throw new Error("Failed to fetch analytics data.");
+        const rawData = await response.json();
+
+        // 2. Import recipient public key
+        const spkiBinary = pemToBinary(pubKeyPem);
+        const pubKey = await window.crypto.subtle.importKey(
+            "spki",
+            spkiBinary,
+            {
+                name: "RSA-OAEP",
+                hash: "SHA-256"
+            },
+            false,
+            ["encrypt"]
+        );
+
+        // 3. Generate symmetric AES key
+        const aesKey = await window.crypto.subtle.generateKey(
+            {
+                name: "AES-GCM",
+                length: 256
+            },
+            true,
+            ["encrypt"]
+        );
+
+        // 4. Encrypt raw data with AES-GCM
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const encoder = new TextEncoder();
+        const encodedData = encoder.encode(JSON.stringify(rawData));
+        
+        const encryptedDataBuffer = await window.crypto.subtle.encrypt(
+            {
+                name: "AES-GCM",
+                iv: iv
+            },
+            aesKey,
+            encodedData
+        );
+
+        // 5. Encrypt AES Key with RSA Public Key
+        const rawAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
+        const encryptedKeyBuffer = await window.crypto.subtle.encrypt(
+            {
+                name: "RSA-OAEP"
+            },
+            pubKey,
+            rawAesKey
+        );
+
+        // Package AES payload: IV (12 bytes) + Ciphertext (which includes tag)
+        const aesPayload = new Uint8Array(12 + encryptedDataBuffer.byteLength);
+        aesPayload.set(iv, 0);
+        aesPayload.set(new Uint8Array(encryptedDataBuffer), 12);
+
+        // Convert to Base64
+        const base64Data = arrayBufferToBase64(aesPayload);
+        const base64Key = arrayBufferToBase64(encryptedKeyBuffer);
+
+        // 6. Submit to backend
+        const submitResponse = await fetch("/api/v1/shares/asymmetric", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                recipient_id: recipientId,
+                encrypted_data: base64Data,
+                encrypted_key: base64Key,
+                expires_in_hours: expireHours
+            })
+        });
+
+        if (submitResponse.ok) {
+            const share = await submitResponse.json();
+            const shareUrl = `${window.location.origin}/share/doctor/${share.id}`;
+            document.getElementById("share-link-url").value = shareUrl;
+            document.getElementById("share-result-container").style.display = "block";
+        } else {
+            alert("Error submitting encrypted payload to server.");
+        }
+    } catch (e) {
+        alert("Encryption failed: " + e.message);
+    }
+}
+
+function pemToBinary(pem) {
+    const lines = pem.split("\n");
+    let encoded = "";
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim() && !lines[i].includes("BEGIN") && !lines[i].includes("END")) {
+            encoded += lines[i].trim();
+        }
+    }
+    return base64ToArrayBuffer(encoded);
+}
+
+function base64ToArrayBuffer(base64) {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+</script>
+{% endblock %}

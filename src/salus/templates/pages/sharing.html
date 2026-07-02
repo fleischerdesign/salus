@@ -6,6 +6,12 @@
         <h1>{{ _("Health Data Sharing") }}</h1>
         <p class="text-muted">{{ _("Securely share your health vitals with family members, friends, or doctors.") }}</p>
     </div>
+    <div>
+        <a href="/share/doctor" class="btn" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined" style="font-size:20px;">lock</span>
+            {{ _("Asymmetric GP Sharing") }}
+        </a>
+    </div>
 </div>
 
 {% if error %}

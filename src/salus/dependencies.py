@@ -46,6 +46,7 @@ from salus.services.workout.autoregulation import AutoregulationService
 from salus.services.workout.planner import WorkoutService
 from salus.services.backup.providers import IBackupStorageProvider
 from salus.services.backup.service import BackupService
+from salus.services.asymmetric_share import AsymmetricShareService
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -465,3 +466,9 @@ def get_backup_service(
         provider=provider,
         retention_days=settings.backup_retention_days,
     )
+
+
+def get_asymmetric_share_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> AsymmetricShareService:
+    return AsymmetricShareService(uow)

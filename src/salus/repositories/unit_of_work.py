@@ -22,6 +22,8 @@ from salus.repositories.protocols import (
     IExerciseRepository,
     IWorkoutPlanRepository,
     IWorkoutSessionRepository,
+    IShareRecipientRepository,
+    IAsymmetricShareRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -31,6 +33,10 @@ from salus.repositories.workout import (
     ExerciseRepository,
     WorkoutPlanRepository,
     WorkoutSessionRepository,
+)
+from salus.repositories.asymmetric_share import (
+    ShareRecipientRepository,
+    AsymmetricShareRepository,
 )
 
 
@@ -48,6 +54,8 @@ class IUnitOfWork(Protocol):
     exercises: IExerciseRepository
     workout_plans: IWorkoutPlanRepository
     workout_sessions: IWorkoutSessionRepository
+    share_recipients: IShareRecipientRepository
+    asymmetric_shares: IAsymmetricShareRepository
 
     def __enter__(self) -> "IUnitOfWork":
         ...
@@ -76,6 +84,8 @@ class SqlUnitOfWork:
     exercises: IExerciseRepository
     workout_plans: IWorkoutPlanRepository
     workout_sessions: IWorkoutSessionRepository
+    share_recipients: IShareRecipientRepository
+    asymmetric_shares: IAsymmetricShareRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -92,6 +102,8 @@ class SqlUnitOfWork:
         self.exercises = ExerciseRepository(session)
         self.workout_plans = WorkoutPlanRepository(session)
         self.workout_sessions = WorkoutSessionRepository(session)
+        self.share_recipients = ShareRecipientRepository(session)
+        self.asymmetric_shares = AsymmetricShareRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

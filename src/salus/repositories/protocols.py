@@ -12,6 +12,7 @@ from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.models.sharing import SharingRelationship
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
+from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 
 T = TypeVar("T")
 
@@ -215,5 +216,20 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
         ...
 
     def get_last_session_for_plan(self, user_id: int, plan_id: int) -> WorkoutSession | None:
+        ...
+
+
+@runtime_checkable
+class IShareRecipientRepository(IRepository[ShareRecipient], Protocol):
+    def find_by_user(self, user_id: int) -> list[ShareRecipient]:
+        ...
+
+
+@runtime_checkable
+class IAsymmetricShareRepository(IRepository[AsymmetricShare], Protocol):
+    def find_by_user(self, user_id: int) -> list[AsymmetricShare]:
+        ...
+
+    def get_by_id_secure(self, share_id: int) -> AsymmetricShare | None:
         ...
 

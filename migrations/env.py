@@ -29,6 +29,7 @@ from salus.models.system_config import SystemConfig
 from salus.models.insight import Insight
 from salus.models.sharing import SharingRelationship
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, WorkoutSession, WorkoutLogEntry
+from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 
 
 # Dynamically load plugins to register custom tables/models in SQLModel.metadata
