@@ -98,9 +98,9 @@ Salus is designed to give users complete sovereignty over their health data. Unl
 * **Concept:** Implement a workout generator and tracker that dynamically adjusts sets, reps, and target weights based on logged recovery metrics (e.g. sleep duration, resting heart rate, and steps trend) while supporting manual overrides and rich exercise metadata.
 * **Architecture:** Implemented SQLModel tables for Exercises, WorkoutPlans, WorkoutPlanExercises, WorkoutSessions, and WorkoutLogEntries. Developed an `AutoregulationService` that computes a recovery score relative to 7-day user baselines (Sleep, RHR, steps). Built atomic target muscle mapping to automatically deload legs during high-activity periods while leaving chest/upper-body exercises unaffected. Created HTML views with live Javascript-based 1RM estimation, HTMX logging actions, and a manual Lock 🔒 vs Auto ✨ override option for intermediate/pro athletes.
 
-### 6. Zero-Knowledge E2E Encrypted Backups
+### 6. Zero-Knowledge E2E Encrypted Backups [x]
 * **Concept:** Provide automated, encrypted backups to user-owned storage providers (Nextcloud, Proton Drive, WebDAV, or local backups).
-* **Architecture:** Encrypt SQL dumps on the fly with user-provided AES keys before uploading, ensuring the hosting provider has zero knowledge of the raw health data.
+* **Architecture:** Developed a database-agnostic backup service supporting SQLite (via non-locking `VACUUM INTO`) and PostgreSQL (via streaming `pg_dump` subprocess). Backups are encrypted locally using AES-GCM-256 with keys derived via PBKDF2-HMAC-SHA256 from a master backup password. Integrates with WebDAV and local directory storage strategies (Strategy Pattern), enforces file retention policies, and provides admin-panel actions to run or delete backups.
 
 ### 7. Asymmetric Encrypted Doctor Sharing (GP Integration)
 * **Concept:** Allow users to temporarily and securely share specific health dashboards directly with their general practitioner (GP) or personal trainer.
