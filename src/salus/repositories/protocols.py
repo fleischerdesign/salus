@@ -195,6 +195,12 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     ) -> SharingRelationship | None:
         ...
 
+    def find_pending_by_grantee(self, grantee_handle: str) -> list[SharingRelationship]:
+        ...
+
+    def find_active_by_grantee(self, grantee_handle: str) -> list[SharingRelationship]:
+        ...
+
 
 @runtime_checkable
 class IExerciseRepository(IRepository[Exercise], Protocol):

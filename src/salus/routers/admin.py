@@ -210,6 +210,8 @@ async def admin_config_category(
     config_svc: ConfigService = Depends(get_config_service),
 ):
     items = [i for i in config_svc.get_all() if i["category"] == category]
+    for i in items:
+        i.setdefault("editing", False)
     return request.app.state.templates.TemplateResponse(
         request,
         "components/admin/config_table.html",
@@ -270,6 +272,8 @@ async def admin_config_update(
         return HTMLResponse(status_code=404)
     category = item["category"]
     items = [i for i in all_items if i["category"] == category]
+    for i in items:
+        i.setdefault("editing", False)
     return request.app.state.templates.TemplateResponse(
         request,
         "components/admin/config_table.html",

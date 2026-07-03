@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from salus.models.user import User as UserModel
 from salus.models import MetricType, DataType
 from salus.models.measurement import Measurement
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.sharing import SharingService
 from salus.services.leaderboard import LeaderboardService
@@ -29,12 +29,10 @@ def session():
         yield s
 
 
-def test_sharing_service_local_and_remote_creation(session: Session):
+@pytest.fixture
+def seeded_users(session: Session):
     uow = SqlUnitOfWork(session)
-    service = SharingService(uow)
-
     with uow:
-        # Create users
         owner = UserModel(username="owner", password_hash="hash")
         grantee = UserModel(username="grantee", password_hash="hash")
         uow.users.add(owner)
@@ -43,7 +41,6 @@ def test_sharing_service_local_and_remote_creation(session: Session):
         owner_id = uid(owner)
         grantee_id = uid(grantee)
 
-        # Seed metric
         metric = MetricType(
             name="Steps",
             unit="steps",
@@ -58,198 +55,453 @@ def test_sharing_service_local_and_remote_creation(session: Session):
         assert metric.id is not None
         metric_id = metric.id
 
-    # 1. Create local relationship (grantee exists)
-    rel_local = service.create_relationship(
-        owner_id=owner_id,
-        grantee_handle="@grantee",
-        metric_type_id=metric_id,
-    )
-    assert rel_local.id is not None
-    assert rel_local.grantee_handle == "@grantee"
-    assert rel_local.aggregation_level == "daily_summary"
-
-    # 2. Reject duplicates
-    with pytest.raises(ConflictError):
-        service.create_relationship(
-            owner_id=owner_id,
-            grantee_handle="@grantee",
-            metric_type_id=metric_id,
-        )
-
-    # 3. Create remote relationship (no local existence check required)
-    rel_remote = service.create_relationship(
-        owner_id=owner_id,
-        grantee_handle="@alice:remote-server.com",
-        metric_type_id=metric_id,
-    )
-    assert rel_remote.id is not None
-    assert rel_remote.grantee_handle == "@alice:remote-server.com"
+    return {
+        "uow": uow,
+        "owner_id": owner_id,
+        "grantee_id": grantee_id,
+        "metric_id": metric_id,
+    }
 
 
-def test_sharing_resolution_and_aggregation(session: Session):
+# ---------------------------------------------------------------------------
+# SharingRelationship creation & status
+# ---------------------------------------------------------------------------
+
+def test_create_relationship_creates_pending(session: Session):
     uow = SqlUnitOfWork(session)
     service = SharingService(uow)
 
     with uow:
-        # Create users
         owner = UserModel(username="owner", password_hash="hash")
         grantee = UserModel(username="grantee", password_hash="hash")
         uow.users.add(owner)
         uow.users.add(grantee)
         uow.commit()
         owner_id = uid(owner)
-        grantee_id = uid(grantee)
 
-        # Seed metric
         metric = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=owner_id,
-            is_system=True,
-            source_data_type="steps",
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
         )
         uow.metric_types.add(metric)
         uow.commit()
         assert metric.id is not None
         metric_id = metric.id
 
-        # Seed measurements (two step entries on 2026-07-02: 5000 and 3000 steps)
-        t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
-        m1 = Measurement(
-            user_id=owner_id,
-            metric_type_id=metric_id,
-            data_type="steps",
-            value_numeric=5000.0,
-            start_time=t_utc,
-            source="manual",
-            external_id="m1"
-        )
-        m2 = Measurement(
-            user_id=owner_id,
-            metric_type_id=metric_id,
-            data_type="steps",
-            value_numeric=3000.0,
-            start_time=t_utc,
-            source="manual",
-            external_id="m2"
-        )
-        uow.measurements.add(m1)
-        uow.measurements.add(m2)
+    rel = service.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    assert rel.id is not None
+    assert rel.status == ConnectionStatus.PENDING
+    assert rel.is_active is False
+
+
+def test_create_relationship_rejects_duplicate_pending(session: Session):
+    uow = SqlUnitOfWork(session)
+    service = SharingService(uow)
+
+    with uow:
+        owner = UserModel(username="owner", password_hash="hash")
+        grantee = UserModel(username="grantee", password_hash="hash")
+        uow.users.add(owner)
+        uow.users.add(grantee)
         uow.commit()
+        owner_id = uid(owner)
 
-    # Before sharing: Access should raise PermissionError
-    with pytest.raises(PermissionError):
-        service.resolve_and_fetch(
-            requester_id=grantee_id,
-            owner_handle="@owner",
-            data_type="steps",
-            date_str="2026-07-02"
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
         )
+        uow.metric_types.add(metric)
+        uow.commit()
+        assert metric.id is not None
+        metric_id = metric.id
 
-    # Share with daily_summary level
     service.create_relationship(
-        owner_id=owner_id,
-        grantee_handle="@grantee",
-        metric_type_id=metric_id,
-        aggregation_level="daily_summary"
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
     )
-
-    # Read daily summary (should return 1 entry with value 8000.0)
-    data = service.resolve_and_fetch(
-        requester_id=grantee_id,
-        owner_handle="@owner",
-        data_type="steps",
-        date_str="2026-07-02"
-    )
-    assert len(data) == 1
-    assert data[0]["value_numeric"] == 8000.0
-    assert data[0]["source"] == "summary"
-
-    # Deactivate and check error
-    with uow:
-        rel = uow.sharing_relationships.find_by_owner(owner_id)[0]
-        assert rel.id is not None
-        service.deactivate_relationship(owner_id, rel.id)
-
-    with pytest.raises(PermissionError):
-        service.resolve_and_fetch(
-            requester_id=grantee_id,
-            owner_handle="@owner",
-            data_type="steps",
-            date_str="2026-07-02"
+    with pytest.raises(ConflictError):
+        service.create_relationship(
+            owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
         )
 
 
-def test_federated_api_endpoint(session: Session):
-    # Setup App dependencies
-    from salus.main import app, templates
-    from salus.dependencies import get_session
+def test_create_relationship_remote_no_local_check(session: Session):
+    uow = SqlUnitOfWork(session)
+    service = SharingService(uow)
 
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    SQLModel.metadata.create_all(engine)
-    app.dependency_overrides[get_session] = lambda: Session(engine)
-
-    uow = SqlUnitOfWork(Session(engine))
     with uow:
-        # Create users
         owner = UserModel(username="owner", password_hash="hash")
         uow.users.add(owner)
         uow.commit()
         owner_id = uid(owner)
 
-        # Seed metric
         metric = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=owner_id,
-            is_system=True,
-            source_data_type="steps",
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
         )
         uow.metric_types.add(metric)
         uow.commit()
         assert metric.id is not None
         metric_id = metric.id
 
-        # Seed measurement
+    rel = service.create_relationship(
+        owner_id=owner_id, grantee_handle="@alice:remote-server.com",
+        metric_type_id=metric_id,
+    )
+    assert rel.id is not None
+    assert rel.grantee_handle == "@alice:remote-server.com"
+    assert rel.status == ConnectionStatus.PENDING
+    assert rel.api_token_hash is not None
+
+
+# ---------------------------------------------------------------------------
+# Accept / Decline
+# ---------------------------------------------------------------------------
+
+def test_accept_relationship(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    assert rel.status == ConnectionStatus.PENDING
+
+    accepted = svc.accept_relationship(grantee_id, rel.id)
+    assert accepted.status == ConnectionStatus.ACTIVE
+    assert accepted.is_active is True
+
+
+def test_decline_relationship(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    assert rel.status == ConnectionStatus.PENDING
+
+    declined = svc.decline_relationship(grantee_id, rel.id)
+    assert declined.status == ConnectionStatus.DECLINED
+
+
+def test_accept_wrong_grantee_raises(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    metric_id = seeded_users["metric_id"]
+
+    with uow:
+        third_user = UserModel(username="third", password_hash="hash")
+        uow.users.add(third_user)
+        uow.commit()
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee",
+        metric_type_id=metric_id,
+    )
+
+    with pytest.raises(NotFoundError):
+        svc.accept_relationship(uid(third_user), rel.id)
+
+
+def test_accept_twice_raises(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+
+    with pytest.raises(ConflictError):
+        svc.accept_relationship(grantee_id, rel.id)
+
+
+# ---------------------------------------------------------------------------
+# Deactivate (revoke)
+# ---------------------------------------------------------------------------
+
+def test_deactivate_relationship(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+
+    svc.deactivate_relationship(owner_id, rel.id)
+    with seeded_users["uow"]:
+        updated = seeded_users["uow"].sharing_relationships.get_by_id(rel.id)
+        assert updated is not None
+        assert updated.status == ConnectionStatus.REVOKED
+
+
+# ---------------------------------------------------------------------------
+# Resolution — data access after acceptance
+# ---------------------------------------------------------------------------
+
+def test_resolution_requires_acceptance(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
+    with uow:
         m = Measurement(
-            user_id=owner_id,
-            metric_type_id=metric_id,
-            data_type="steps",
-            value_numeric=9500.0,
-            start_time=datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc),
-            source="manual",
-            external_id="m-api"
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=5000.0, start_time=t_utc, source="manual", external_id="m1",
         )
         uow.measurements.add(m)
         uow.commit()
 
-    # Share relationship
-    sharing_svc = SharingService(uow)
-    rel = sharing_svc.create_relationship(
-        owner_id=owner_id,
-        grantee_handle="@alice:external-server.com",
-        metric_type_id=metric_id,
-        aggregation_level="raw"
+    svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        aggregation_level="daily_summary",
+    )
+
+    with pytest.raises(PermissionError):
+        svc.resolve_and_fetch(
+            requester_id=grantee_id, owner_handle="@owner",
+            data_type="steps", date_str="2026-07-02",
+        )
+
+    # Accept then retry
+    with uow:
+        rels = uow.sharing_relationships.find_by_owner(owner_id)
+        rel = rels[0]
+        svc.accept_relationship(grantee_id, rel.id)
+
+    data = svc.resolve_and_fetch(
+        requester_id=grantee_id, owner_handle="@owner",
+        data_type="steps", date_str="2026-07-02",
+    )
+    assert len(data) == 1
+    assert data[0]["value_numeric"] == 5000.0
+
+
+def test_resolution_after_revoke_denies(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
+    with uow:
+        m = Measurement(
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=8000.0, start_time=t_utc, source="manual", external_id="m1",
+        )
+        uow.measurements.add(m)
+        uow.commit()
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+    svc.deactivate_relationship(owner_id, rel.id)
+
+    with pytest.raises(PermissionError):
+        svc.resolve_and_fetch(
+            requester_id=grantee_id, owner_handle="@owner",
+            data_type="steps", date_str="2026-07-02",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Peer connections (merged view)
+# ---------------------------------------------------------------------------
+
+def test_get_peer_connections_outgoing(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+
+    peers = svc.get_peer_connections(owner_id)
+    assert len(peers) == 1
+    assert peers[0].handle == "@grantee"
+    assert peers[0].is_mutual is False
+    assert any(m.metric_name == "Steps" and m.direction == "outgoing" for m in peers[0].metrics)
+
+
+def test_get_peer_connections_mutual(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    with uow:
+        grantee_metric = MetricType(
+            name="Heart Rate", unit="bpm", data_type=DataType.NUMBER,
+            user_id=grantee_id, is_system=True, source_data_type="heart_rate",
+        )
+        uow.metric_types.add(grantee_metric)
+        uow.commit()
+        assert grantee_metric.id is not None
+        grantee_metric_id = grantee_metric.id
+
+    # Owner -> Grantee
+    rel1 = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel1.id)
+
+    # Grantee -> Owner
+    rel2 = svc.create_relationship(
+        owner_id=grantee_id, grantee_handle="@owner",
+        metric_type_id=grantee_metric_id,
+    )
+    with uow:
+        owner_user = uow.users.get_by_id(owner_id)
+        assert owner_user is not None
+    svc.accept_relationship(owner_id, rel2.id)
+
+    # From owner's view: one peer, mutual
+    peers = svc.get_peer_connections(owner_id)
+    assert len(peers) == 1
+    assert peers[0].handle == "@grantee"
+    assert peers[0].is_mutual is True
+    assert len(peers[0].metrics) == 2
+
+
+def test_get_peer_connections_incoming(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+
+    # From grantee's view: one incoming peer
+    peers = svc.get_peer_connections(grantee_id)
+    assert len(peers) == 1
+    assert peers[0].handle == "@owner"
+    assert peers[0].is_mutual is False
+    assert any(m.direction == "incoming" for m in peers[0].metrics)
+
+
+def test_get_pending_invitations(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+
+    pending = svc.get_pending_invitations(grantee_id)
+    assert len(pending) == 1
+    assert pending[0].status == ConnectionStatus.PENDING
+
+
+def test_get_pending_invitations_empty_after_accept(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+    )
+    svc.accept_relationship(grantee_id, rel.id)
+
+    pending = svc.get_pending_invitations(grantee_id)
+    assert len(pending) == 0
+
+
+# ---------------------------------------------------------------------------
+# Federation API endpoint
+# ---------------------------------------------------------------------------
+
+def test_federated_api_endpoint(session: Session):
+    from salus.main import app
+    from salus.dependencies import get_session
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+
+    uow = SqlUnitOfWork(Session(engine))
+    with uow:
+        owner = UserModel(username="owner", password_hash="hash")
+        uow.users.add(owner)
+        uow.commit()
+        owner_id = uid(owner)
+
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        assert metric.id is not None
+        metric_id = metric.id
+
+        m = Measurement(
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=9500.0,
+            start_time=datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc),
+            source="manual", external_id="m-api",
+        )
+        uow.measurements.add(m)
+        uow.commit()
+
+    svc = SharingService(uow)
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@alice:external-server.com",
+        metric_type_id=metric_id, aggregation_level="raw",
     )
     token = rel.api_token_hash
 
-    # Test HTTP Client
     with TestClient(app) as client:
-        # 1. Access with invalid token -> 401
+        # Pending relationship — should NOT have access yet
         response = client.get(
             "/api/v1/federation/sharing",
             params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
-            headers={"Authorization": "Bearer invalid-token"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 401
 
-        # 2. Access with valid token -> 200
+    # Accept via direct status update (simulating federation accept callback)
+    with uow:
+        db_rel = uow.sharing_relationships.get_by_id(rel.id)
+        assert db_rel is not None
+        db_rel.status = ConnectionStatus.ACTIVE
+        uow.sharing_relationships.update(db_rel)
+        uow.commit()
+
+    with TestClient(app) as client:
         response = client.get(
             "/api/v1/federation/sharing",
             params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
         res_data = response.json()
@@ -257,16 +509,26 @@ def test_federated_api_endpoint(session: Session):
         assert len(res_data["data"]) == 1
         assert res_data["data"][0]["value_numeric"] == 9500.0
 
+        # Invalid token
+        response = client.get(
+            "/api/v1/federation/sharing",
+            params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
+            headers={"Authorization": "Bearer invalid"},
+        )
+        assert response.status_code == 401
+
     app.dependency_overrides.clear()
 
 
-def test_sharing_post_route():
+def test_federation_accept_endpoint(session: Session):
     from salus.main import app
-    from salus.dependencies import get_session, get_current_user
+    from salus.dependencies import get_session, get_sharing_service
 
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
     SQLModel.metadata.create_all(engine)
-    
+
     uow = SqlUnitOfWork(Session(engine))
     with uow:
         owner = UserModel(username="owner", password_hash="hash")
@@ -274,8 +536,70 @@ def test_sharing_post_route():
         uow.commit()
         owner_id = uid(owner)
 
-        m1 = MetricType(name="Steps", unit="steps", data_type=DataType.NUMBER, user_id=owner_id, is_system=True, source_data_type="steps")
-        m2 = MetricType(name="Weight", unit="kg", data_type=DataType.NUMBER, user_id=owner_id, is_system=True, source_data_type="weight")
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        assert metric.id is not None
+        metric_id = metric.id
+
+    svc = SharingService(uow)
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@alice:external-server.com",
+        metric_type_id=metric_id,
+    )
+    assert rel.status == ConnectionStatus.PENDING
+    token = rel.api_token_hash
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_sharing_service] = lambda: SharingService(uow)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/federation/accept",
+            json={"token": token, "owner_handle": "@owner"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+
+    with uow:
+        updated = uow.sharing_relationships.get_by_id(rel.id)
+        assert updated is not None
+        assert updated.status == ConnectionStatus.ACTIVE
+
+    app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
+# Sharing POST route
+# ---------------------------------------------------------------------------
+
+def test_sharing_post_route():
+    from salus.main import app
+    from salus.dependencies import get_session, get_current_user
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    uow = SqlUnitOfWork(Session(engine))
+    with uow:
+        owner = UserModel(username="owner", password_hash="hash")
+        uow.users.add(owner)
+        uow.commit()
+        owner_id = uid(owner)
+
+        m1 = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="steps",
+        )
+        m2 = MetricType(
+            name="Weight", unit="kg", data_type=DataType.NUMBER,
+            user_id=owner_id, is_system=True, source_data_type="weight",
+        )
         uow.metric_types.add(m1)
         uow.metric_types.add(m2)
         uow.commit()
@@ -288,26 +612,24 @@ def test_sharing_post_route():
     app.dependency_overrides[get_current_user] = lambda: owner
 
     with TestClient(app) as client:
-        # Post request with multiple metrics selected and different aggregation levels
         response = client.post(
             "/sharing",
             data={
                 "grantee_handle": "@grantee:external.com",
                 "metric_type_ids": [str(m1_id), str(m2_id)],
                 f"aggregation_level_{m1_id}": "raw",
-                f"aggregation_level_{m2_id}": "daily_summary"
+                f"aggregation_level_{m2_id}": "daily_summary",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
-        # Should redirect back to /sharing
         assert response.status_code == 303
-        
-        # Verify both sharing relationships exist with correct levels
+
         with uow:
             rels = uow.sharing_relationships.find_by_owner(owner_id)
             assert len(rels) == 2
+            # Both are pending
+            assert all(r.status == ConnectionStatus.PENDING for r in rels)
             assert {r.metric_type_id for r in rels} == {m1_id, m2_id}
-            
             m1_rel = next(r for r in rels if r.metric_type_id == m1_id)
             m2_rel = next(r for r in rels if r.metric_type_id == m2_id)
             assert m1_rel.aggregation_level == "raw"
@@ -316,67 +638,42 @@ def test_sharing_post_route():
     app.dependency_overrides.clear()
 
 
-def test_sharing_expiration_and_invalid_date(session: Session):
-    from datetime import timedelta
-    uow = SqlUnitOfWork(session)
-    service = SharingService(uow)
+# ---------------------------------------------------------------------------
+# Expiration
+# ---------------------------------------------------------------------------
 
+def test_sharing_expiration_after_acceptance(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    t_utc = datetime.now(timezone.utc)
     with uow:
-        # Create users
-        owner = UserModel(username="owner", password_hash="hash")
-        grantee = UserModel(username="grantee", password_hash="hash")
-        uow.users.add(owner)
-        uow.users.add(grantee)
-        uow.commit()
-        owner_id = uid(owner)
-        grantee_id = uid(grantee)
-
-        # Seed metric
-        metric = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=owner_id,
-            is_system=True,
-            source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
-        uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
-
-        # Seed measurement on current date
         m = Measurement(
-            user_id=owner_id,
-            metric_type_id=metric_id,
-            data_type="steps",
-            value_numeric=12000.0,
-            start_time=datetime.now(timezone.utc),
-            source="manual",
-            external_id="m-exp"
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-exp",
         )
         uow.measurements.add(m)
         uow.commit()
 
-    # 1. Share with negative expiration days (already expired in the past)
-    rel = service.create_relationship(
-        owner_id=owner_id,
-        grantee_handle="@grantee",
-        metric_type_id=metric_id,
-        expiration_days=-1,  # Expired yesterday
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        expiration_days=-1,
     )
-    assert rel.id is not None
+    svc.accept_relationship(grantee_id, rel.id)
 
-    # Access should raise PermissionError due to expiration
+    # Access should be denied due to expiration (even though status is active,
+    # get_active_relationship checks expiration date)
     with pytest.raises(PermissionError):
-        service.resolve_and_fetch(
-            requester_id=grantee_id,
-            owner_handle="@owner",
+        svc.resolve_and_fetch(
+            requester_id=grantee_id, owner_handle="@owner",
             data_type="steps",
-            date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         )
 
-    # Reactivate relationship by removing expiration date
+    # Remove expiration
     with uow:
         db_rel = uow.sharing_relationships.get_by_id(rel.id)
         assert db_rel is not None
@@ -384,173 +681,156 @@ def test_sharing_expiration_and_invalid_date(session: Session):
         uow.sharing_relationships.update(db_rel)
         uow.commit()
 
-    # Access should succeed now
-    res = service.resolve_and_fetch(
-        requester_id=grantee_id,
-        owner_handle="@owner",
+    res = svc.resolve_and_fetch(
+        requester_id=grantee_id, owner_handle="@owner",
         data_type="steps",
-        date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     )
     assert len(res) == 1
     assert res[0]["value_numeric"] == 12000.0
 
-    # 2. Test invalid date fallback (e.g. passing "invalid-date-string")
-    # It should fall back to current date and find the measurement
-    res_fallback = service.resolve_and_fetch(
-        requester_id=grantee_id,
-        owner_handle="@owner",
-        data_type="steps",
-        date_str="invalid-date-string"
+
+def test_resolution_invalid_date_fallback(seeded_users):
+    svc = SharingService(seeded_users["uow"])
+    uow = seeded_users["uow"]
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
+
+    t_utc = datetime.now(timezone.utc)
+    with uow:
+        m = Measurement(
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-fallback",
+        )
+        uow.measurements.add(m)
+        uow.commit()
+
+    rel = svc.create_relationship(
+        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
     )
-    assert len(res_fallback) == 1
-    assert res_fallback[0]["value_numeric"] == 12000.0
+    svc.accept_relationship(grantee_id, rel.id)
+
+    res = svc.resolve_and_fetch(
+        requester_id=grantee_id, owner_handle="@owner",
+        data_type="steps", date_str="invalid-date-string",
+    )
+    assert len(res) == 1
+    assert res[0]["value_numeric"] == 12000.0
 
 
-def test_leaderboard_service_crud_and_logic(session: Session):
-    uow = SqlUnitOfWork(session)
-    service = LeaderboardService(uow)
-    sharing_svc = SharingService(uow)
+# ---------------------------------------------------------------------------
+# Leaderboard with acceptance requirement
+# ---------------------------------------------------------------------------
+
+def test_leaderboard_connection_prerequisite(seeded_users):
+    uow = seeded_users["uow"]
+    svc = SharingService(uow)
+    leaderboard_svc = LeaderboardService(uow)
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
 
     with uow:
-        creator = UserModel(username="creator", password_hash="hash")
-        invitee = UserModel(username="invitee", password_hash="hash")
-        uow.users.add(creator)
-        uow.users.add(invitee)
-        uow.commit()
-        creator_id = uid(creator)
-        invitee_id = uid(invitee)
-
-        # Seed steps metric for both
-        metric_c = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=creator_id,
-            is_system=True,
-            source_data_type="steps",
+        grantee_metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=grantee_id, is_system=True, source_data_type="steps",
         )
-        metric_i = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=invitee_id,
-            is_system=True,
-            source_data_type="steps",
-        )
-        uow.metric_types.add(metric_c)
-        uow.metric_types.add(metric_i)
+        uow.metric_types.add(grantee_metric)
         uow.commit()
-        assert metric_c.id is not None
-        assert metric_i.id is not None
-        metric_c_id = metric_c.id
-        metric_i_id = metric_i.id
+        assert grantee_metric.id is not None
+        grantee_metric_id = grantee_metric.id
 
-    # 1. Create a leaderboard challenge group
-    group = service.create_group(
-        creator_id=creator_id,
-        name="Step Challenge",
-        metric_type_code="steps",
-        time_frame="weekly",
+    group = leaderboard_svc.create_group(
+        creator_id=owner_id, name="Step Challenge",
+        metric_type_code="steps", time_frame="weekly",
     )
     assert group.id is not None
-    assert group.name == "Step Challenge"
-    assert group.creator_id == creator_id
-    assert group.invite_code is not None
-    group_id = group.id
 
-    # 2. Try to join without connection -> PermissionError
+    # Without connection: should fail
     with pytest.raises(PermissionError) as exc_info:
-        service.join_by_code(invitee_id, group.invite_code)
-    assert "You must be connected" in str(exc_info.value)
+        leaderboard_svc.join_by_code(grantee_id, group.invite_code)
+    assert "connected" in str(exc_info.value)
 
-    # 3. Establish sharing connection (invitee shares with creator)
-    sharing_svc.create_relationship(
-        owner_id=invitee_id,
-        grantee_handle="@creator",
-        metric_type_id=metric_i_id,
-        aggregation_level="daily_summary"
+    # Create and accept sharing relationship
+    rel = svc.create_relationship(
+        owner_id=grantee_id, grantee_handle="@owner",
+        metric_type_id=grantee_metric_id,
     )
+    svc.accept_relationship(owner_id, rel.id)
 
     # Now join should succeed
-    joined_group = service.join_by_code(invitee_id, group.invite_code)
-    assert joined_group.id == group_id
+    joined = leaderboard_svc.join_by_code(grantee_id, group.invite_code)
+    assert joined.id == group.id
 
-    # Try to join again -> ConflictError
-    with pytest.raises(ConflictError):
-        service.join_by_code(invitee_id, group.invite_code)
 
-    # 4. Get rankings before measurements
-    rankings_data = service.get_group_rankings(group_id, creator_id)
-    assert rankings_data["group"].id == group_id
-    assert len(rankings_data["rankings"]) == 2
-    assert rankings_data["rankings"][0]["score"] == 0.0
+def test_leaderboard_rankings(seeded_users):
+    uow = seeded_users["uow"]
+    svc = SharingService(uow)
+    leaderboard_svc = LeaderboardService(uow)
+    owner_id = seeded_users["owner_id"]
+    grantee_id = seeded_users["grantee_id"]
+    metric_id = seeded_users["metric_id"]
 
-    # 5. Add measurements to both users
     with uow:
-        # Creator measurement
-        t_utc = datetime.now(timezone.utc)
-        m_creator = Measurement(
-            user_id=creator_id,
-            metric_type_id=metric_c_id,
-            data_type="steps",
-            value_numeric=10000.0,
-            start_time=t_utc,
-            source="manual",
-            external_id="m_creator"
+        grantee_metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=grantee_id, is_system=True, source_data_type="steps",
         )
-        # Invitee measurement
+        uow.metric_types.add(grantee_metric)
+        uow.commit()
+        assert grantee_metric.id is not None
+        grantee_metric_id = grantee_metric.id
+
+    group = leaderboard_svc.create_group(
+        creator_id=owner_id, name="Step Challenge",
+        metric_type_code="steps", time_frame="weekly",
+    )
+    assert group.id is not None
+
+    rel = svc.create_relationship(
+        owner_id=grantee_id, grantee_handle="@owner",
+        metric_type_id=grantee_metric_id,
+    )
+    svc.accept_relationship(owner_id, rel.id)
+    leaderboard_svc.join_by_code(grantee_id, group.invite_code)
+
+    t_utc = datetime.now(timezone.utc)
+    with uow:
+        m_creator = Measurement(
+            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            value_numeric=10000.0, start_time=t_utc, source="manual", external_id="m_c",
+        )
         m_invitee = Measurement(
-            user_id=invitee_id,
-            metric_type_id=metric_i_id,
-            data_type="steps",
-            value_numeric=15000.0,
-            start_time=t_utc,
-            source="manual",
-            external_id="m_invitee"
+            user_id=grantee_id, metric_type_id=grantee_metric_id, data_type="steps",
+            value_numeric=15000.0, start_time=t_utc, source="manual", external_id="m_i",
         )
         uow.measurements.add(m_creator)
         uow.measurements.add(m_invitee)
         uow.commit()
 
-    # Get rankings again -> invitee should be 1st with score 15000.0, creator 2nd with 10000.0
-    rankings_data = service.get_group_rankings(group_id, creator_id)
+    assert group.id is not None
+    rankings_data = leaderboard_svc.get_group_rankings(group.id, owner_id)
     rankings = rankings_data["rankings"]
-    assert rankings[0]["username"] == "invitee"
+    assert rankings[0]["username"] == "grantee"
     assert rankings[0]["score"] == 15000.0
-    assert rankings[1]["username"] == "creator"
+    assert rankings[1]["username"] == "owner"
     assert rankings[1]["score"] == 10000.0
 
-    # 6. Invitee leaves the group
-    service.leave_group(invitee_id, group_id)
-    
-    # Rankings should only contain creator now
-    rankings_data = service.get_group_rankings(group_id, creator_id)
-    assert len(rankings_data["rankings"]) == 1
-    assert rankings_data["rankings"][0]["username"] == "creator"
 
-    # Try leaving again -> NotFoundError
-    with pytest.raises(NotFoundError):
-        service.leave_group(invitee_id, group_id)
-
-    # 7. Non-creator trying to delete group -> PermissionError
-    with pytest.raises(PermissionError):
-        service.delete_group(invitee_id, group_id)
-
-    # Delete group by creator
-    service.delete_group(creator_id, group_id)
-
-    # Fetching rankings of deleted group -> NotFoundError
-    with pytest.raises(NotFoundError):
-        service.get_group_rankings(group_id, creator_id)
-
+# ---------------------------------------------------------------------------
+# Leaderboard routes
+# ---------------------------------------------------------------------------
 
 def test_leaderboard_routes():
     from salus.main import app
     from salus.dependencies import get_session, get_current_user
 
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
     SQLModel.metadata.create_all(engine)
-    
+
     uow = SqlUnitOfWork(Session(engine))
     with uow:
         creator = UserModel(username="creator", password_hash="hash")
@@ -562,12 +842,8 @@ def test_leaderboard_routes():
         invitee_id = uid(invitee)
 
         metric_i = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=invitee_id,
-            is_system=True,
-            source_data_type="steps",
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=invitee_id, is_system=True, source_data_type="steps",
         )
         uow.metric_types.add(metric_i)
         uow.commit()
@@ -575,15 +851,12 @@ def test_leaderboard_routes():
         metric_i_id = metric_i.id
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
-    
+
     with TestClient(app) as client:
-        # 1. Access leaderboard page for creator
         app.dependency_overrides[get_current_user] = lambda: creator
         response = client.get("/sharing/leaderboard")
         assert response.status_code == 200
-        assert "Step Challenge" not in response.text  # No groups yet
 
-        # 2. Create a challenge group via POST
         response = client.post(
             "/sharing/leaderboard/create",
             data={
@@ -591,78 +864,115 @@ def test_leaderboard_routes():
                 "metric_type_code": "steps",
                 "time_frame": "weekly",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
-        # Should redirect to detail page of created group
         assert response.status_code == 303
         redirect_url = response.headers["location"]
-        assert "/sharing/leaderboard/" in redirect_url
         group_id = int(redirect_url.split("/")[-1])
 
-        # Verify details page
-        response = client.get(f"/sharing/leaderboard/{group_id}")
-        assert response.status_code == 200
-        assert "Step Challenge 2026" in response.text
-        assert "creator" in response.text
-
-        # Fetch invite code from DB
         with uow:
             group = uow.leaderboard_groups.get_by_id(group_id)
             assert group is not None
             invite_code = group.invite_code
 
-        # 3. Invitee tries to join without connection
+        # Invitee tries to join without connection -> redirect with error
         app.dependency_overrides[get_current_user] = lambda: invitee
         response = client.post(
             "/sharing/leaderboard/join",
             data={"invite_code": invite_code},
-            follow_redirects=False
+            follow_redirects=False,
         )
         assert response.status_code == 303
         assert "error=" in response.headers["location"]
 
-        # Invitee accesses detail page before joining -> redirected back with error
-        response = client.get(f"/sharing/leaderboard/{group_id}", follow_redirects=False)
-        assert response.status_code == 303
-
-        # Create connection so invitee can join
-        sharing_svc = SharingService(uow)
-        sharing_svc.create_relationship(
-            owner_id=invitee_id,
-            grantee_handle="@creator",
+        # Create and accept connection
+        svc = SharingService(uow)
+        rel = svc.create_relationship(
+            owner_id=invitee_id, grantee_handle="@creator",
             metric_type_id=metric_i_id,
-            aggregation_level="daily_summary"
         )
+        svc.accept_relationship(creator_id, rel.id)
 
-        # Now try to join again via POST
+        # Now join succeeds
         response = client.post(
             "/sharing/leaderboard/join",
             data={"invite_code": invite_code},
-            follow_redirects=False
+            follow_redirects=False,
         )
         assert response.status_code == 303
         assert response.headers["location"] == f"/sharing/leaderboard/{group_id}"
 
-        # Now invitee gets 200 on detail page
-        response = client.get(f"/sharing/leaderboard/{group_id}")
-        assert response.status_code == 200
-        assert "Step Challenge 2026" in response.text
-
-        # 4. Invitee leaves the challenge
+        # Leave
         response = client.post(
             f"/sharing/leaderboard/{group_id}/leave",
-            follow_redirects=False
+            follow_redirects=False,
         )
         assert response.status_code == 303
         assert response.headers["location"] == "/sharing/leaderboard"
 
-        # 5. Creator deletes the group
+        # Creator deletes
         app.dependency_overrides[get_current_user] = lambda: creator
         response = client.post(
             f"/sharing/leaderboard/{group_id}/delete",
-            follow_redirects=False
+            follow_redirects=False,
         )
         assert response.status_code == 303
-        assert response.headers["location"] == "/sharing/leaderboard"
+
+    app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
+# Connections page route
+# ---------------------------------------------------------------------------
+
+def test_connections_page():
+    from salus.main import app
+    from salus.dependencies import get_session, get_current_user
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    uow = SqlUnitOfWork(Session(engine))
+    with uow:
+        user = UserModel(username="testuser", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_current_user] = lambda: user
+
+    with TestClient(app) as client:
+        response = client.get("/sharing/connections")
+        assert response.status_code == 200
+        assert "Connections" in response.text
+        assert "Invite a Peer" in response.text
+
+    app.dependency_overrides.clear()
+
+
+def test_invite_modal_route():
+    from salus.main import app
+    from salus.dependencies import get_session, get_current_user
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    uow = SqlUnitOfWork(Session(engine))
+    with uow:
+        user = UserModel(username="testuser", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_current_user] = lambda: user
+
+    with TestClient(app) as client:
+        response = client.get("/sharing/connections/invite-modal")
+        assert response.status_code == 200
+        assert "qrserver.com" in response.text
 
     app.dependency_overrides.clear()

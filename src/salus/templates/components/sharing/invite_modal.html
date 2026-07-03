@@ -1,0 +1,23 @@
+{% from "components/ui/modal.html" import modal %}
+{% call modal(title=_("Your Invite Link")) %}
+<div class="qr-modal-content">
+    <p class="text-muted qr-modal-desc">
+        {{ _("Share this QR code or link with a peer to let them connect with you.") }}
+    </p>
+    <div class="qr-image-wrapper">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ connect_url|urlencode }}"
+             alt="QR Invitation Code"
+             class="qr-image">
+    </div>
+    <div class="flex gap-sm mt-md">
+        <input type="text" readonly value="{{ connect_url }}"
+               id="connect-link-input" class="connect-link-input"
+               onclick="this.select()">
+        <button class="btn btn-secondary"
+                onclick="const el=document.getElementById('connect-link-input');navigator.clipboard.writeText(el.value);const orig=this.innerHTML;this.innerHTML='{{ _("Copied!") }}';setTimeout(()=>this.innerHTML=orig,2000)">
+            <span class="material-symbols-outlined" style="font-size:16px">content_copy</span>
+            {{ _("Copy") }}
+        </button>
+    </div>
+</div>
+{% endcall %}

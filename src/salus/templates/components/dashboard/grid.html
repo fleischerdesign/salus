@@ -1,6 +1,6 @@
 <div class="dashboard-grid" id="dashboard-grid">
     {% for widget in widgets %}
-    {% set metric = metrics.get(widget.metric_type_id) %}
+    {% set metric = metrics_by_id.get(widget.metric_type_id) %}
     <div class="dashboard-widget widget-{{ widget.size.value }} skeleton-card-wrap"
          data-widget-id="{{ widget.id }}"
          id="widget-{{ widget.id }}"

@@ -51,7 +51,7 @@ async def dashboard(
         target_date = today_str
 
     widgets = widget_svc.ensure_defaults(user_id)
-    metrics = metric_svc.find_all(user_id)
+    metrics_list = metric_svc.find_all(user_id)
     nav = _date_nav_context(target_date)
 
     plugin_widgets = []
@@ -64,7 +64,8 @@ async def dashboard(
         {
             "current_user": current_user,
             "widgets": widgets,
-            "metrics": {m.id: m for m in metrics if m.id is not None},
+            "metrics": metrics_list,
+            "metrics_by_id": {m.id: m for m in metrics_list if m.id is not None},
             "show_onboarding": not current_user.onboarding_dismissed,
             "plugin_widgets": plugin_widgets,
             **nav,
@@ -89,7 +90,7 @@ async def dashboard_grid(
         target_date = today_str
 
     widgets = widget_svc.ensure_defaults(user_id)
-    metrics = metric_svc.find_all(user_id)
+    metrics_list = metric_svc.find_all(user_id)
     nav = _date_nav_context(target_date)
 
     plugin_widgets = []
@@ -102,7 +103,8 @@ async def dashboard_grid(
         {
             "current_user": current_user,
             "widgets": widgets,
-            "metrics": {m.id: m for m in metrics if m.id is not None},
+            "metrics": metrics_list,
+            "metrics_by_id": {m.id: m for m in metrics_list if m.id is not None},
             "plugin_widgets": plugin_widgets,
             **nav,
         },

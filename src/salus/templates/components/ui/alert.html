@@ -3,7 +3,7 @@
     <span class="material-symbols-outlined">
         {%- if type == "error" %}error{% elif type == "success" %}check_circle{% else %}info{% endif -%}
     </span>
-    {% if caller %}
+    {% if caller is defined %}
         <div>{{ caller() }}</div>
     {% else %}
         <span>{{ message }}</span>

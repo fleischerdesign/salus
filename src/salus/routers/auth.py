@@ -33,7 +33,7 @@ def _redirect_if_authenticated(current_user: User | None) -> RedirectResponse | 
 
 
 def _render_login_template(request: Request, extra: dict | None = None) -> HTMLResponse:
-    context = {"error": None, "current_user": None}
+    context = {"error": None, "current_user": None, "ldap_mode": False}
     if extra:
         context.update(extra)
     return request.app.state.templates.TemplateResponse(

@@ -1,0 +1,83 @@
+<div class="peer-card" id="peer-{{ peer.handle | replace('@', '') | replace(':', '-') }}">
+    <div class="flex-between">
+        <div class="flex-center gap-sm">
+            <span class="peer-avatar">{{ peer.handle[1:2].upper() }}</span>
+            <div>
+                <h3 class="peer-name">{{ peer.handle }}
+                    {% if peer.is_remote %}
+                    <span class="chip chip-neutral peer-remote-tag">🌐 {{ _("Remote") }}</span>
+                    {% endif %}
+                </h3>
+            </div>
+        </div>
+        <span class="peer-badge
+            {% if peer.is_pending %}peer-badge--pending
+            {% elif peer.is_mutual %}peer-badge--mutual
+            {% elif peer.metrics and peer.metrics[0].direction == 'outgoing' %}peer-badge--outgoing
+            {% else %}peer-badge--incoming{% endif %}
+        ">
+            {% if peer.is_pending %}{{ _("Pending") }}
+            {% elif peer.is_mutual %}{{ _("Mutual") }}
+            {% elif peer.metrics and peer.metrics[0].direction == 'outgoing' %}{{ _("Sharing") }}
+            {% else %}{{ _("Reading") }}{% endif %}
+        </span>
+    </div>
+
+    {% if peer.metrics %}
+    <div class="peer-metrics">
+        {% for metric in peer.metrics %}
+        <div class="metric-row">
+            <div class="flex-center gap-sm">
+                <span class="material-symbols-outlined metric-row-icon" style="color:{{ metric.color }}">{{ metric.icon }}</span>
+                <span class="metric-row-name">{{ metric.metric_name }}</span>
+                <span class="chip chip-neutral metric-row-agg">
+                    {{ _("Summary") if metric.aggregation == 'daily_summary' else _("Raw") }}
+                </span>
+                <span class="metric-row-direction {% if metric.direction == 'outgoing' %}metric-row-direction--out{% else %}metric-row-direction--in{% endif %}">
+                    {{ "↗" if metric.direction == 'outgoing' else "↙" }}
+                    {{ _("You share") if metric.direction == 'outgoing' else _("shares with you") }}
+                </span>
+            </div>
+            {% if metric.direction == 'outgoing' %}
+            <button class="btn-ghost btn-sm metric-revoke-btn"
+                    hx-delete="/sharing/{{ metric.relationship_id }}"
+                    hx-confirm="{{ _('Stop sharing this metric?') }}"
+                    hx-target="closest .metric-row"
+                    hx-swap="outerHTML"
+                    title="{{ _('Revoke this metric') }}">
+                <span class="material-symbols-outlined" style="font-size:16px">close</span>
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="peer-footer">
+        {% if peer.expiration %}
+        <span class="peer-expiry text-muted">
+            <span class="material-symbols-outlined" style="font-size:14px">schedule</span>
+            {{ _("Expires") }} {{ peer.expiration.strftime('%Y-%m-%d') }}
+        </span>
+        {% endif %}
+        {% if peer.api_token and peer.is_remote %}
+        <span class="peer-token">
+            <code class="peer-token-value" id="token-{{ peer.handle | replace('@', '') | replace(':', '-') }}">{{ peer.api_token[:12] }}&hellip;</code>
+            <button class="btn-ghost btn-sm"
+                    onclick="navigator.clipboard.writeText('{{ peer.api_token }}')"
+                    title="{{ _('Copy API token') }}">
+                <span class="material-symbols-outlined" style="font-size:14px">content_copy</span>
+            </button>
+        </span>
+        {% endif %}
+        {% if not peer.is_pending and peer.is_mutual or (peer.metrics and peer.metrics[0].direction == 'outgoing') %}
+        <button class="btn-ghost btn-sm peer-revoke-all"
+                hx-delete="/sharing/{{ peer.metrics[0].relationship_id }}"
+                hx-confirm="{{ _('Revoke all sharing with') }} {{ peer.handle }}?"
+                hx-target="closest .peer-card"
+                hx-swap="outerHTML">
+            {{ _("Revoke All") }}
+        </button>
+        {% endif %}
+    </div>
+</div>

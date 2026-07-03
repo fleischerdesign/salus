@@ -35,7 +35,7 @@ async def new_metric_form(
     return request.app.state.templates.TemplateResponse(
         request,
         "components/metric_form.html",
-        {"current_user": current_user},
+        {"current_user": current_user, "metric": None},
     )
 
 

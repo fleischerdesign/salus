@@ -7,7 +7,7 @@ from sqlmodel import select
 
 from salus.dependencies import get_current_user, get_sharing_service, get_metric_type_service, get_leaderboard_service
 from salus.models.user import User
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.services._helpers import uid
 from salus.services.sharing import SharingService
 from salus.services.metric_type import MetricTypeService
@@ -23,6 +23,10 @@ async def sharing_base_redirect(request: Request):
     return RedirectResponse("/sharing/feed", status_code=303)
 
 
+# ---------------------------------------------------------------------------
+# Feed
+# ---------------------------------------------------------------------------
+
 @router.get("/sharing/feed", response_class=HTMLResponse)
 async def sharing_feed_page(
     request: Request,
@@ -31,39 +35,40 @@ async def sharing_feed_page(
 ):
     today = datetime.now(timezone.utc).date()
     activities = []
-    
-    # 1. Get incoming relationships (other users sharing with current user)
+
     with sharing_svc.uow:
         stmt = select(SharingRelationship).where(
             SharingRelationship.grantee_handle == f"@{current_user.username}",
-            SharingRelationship.is_active
+            SharingRelationship.status == ConnectionStatus.ACTIVE,
         )
         incoming = sharing_svc.uow.session.exec(stmt).all()
-        
-        friends_dict = {}
+
+        friends_dict: dict[int, dict] = {}
         for rel in incoming:
             if rel.owner_id not in friends_dict:
                 friends_dict[rel.owner_id] = {
                     "user": rel.owner,
-                    "metrics": []
+                    "metrics": [],
                 }
             friends_dict[rel.owner_id]["metrics"].append(rel.metric_type.source_data_type)
 
-        # 2. Fetch achievements dynamically
         for friend_id, friend_data in friends_dict.items():
             friend_user = friend_data["user"]
             shared_types = friend_data["metrics"]
-            
-            # Fetch workouts completed in the last 3 days
+
             three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
             from salus.models.workout import WorkoutSession
-            stmt_sessions = select(WorkoutSession).where(
-                WorkoutSession.user_id == friend_id,
-                WorkoutSession.completed_at.is_not(None),  # type: ignore
-                WorkoutSession.completed_at >= three_days_ago  # type: ignore
-            ).order_by(WorkoutSession.completed_at.desc())  # type: ignore
+            stmt_sessions = (
+                select(WorkoutSession)
+                .where(
+                    WorkoutSession.user_id == friend_id,
+                    WorkoutSession.completed_at.is_not(None),  # type: ignore
+                    WorkoutSession.completed_at >= three_days_ago,  # type: ignore
+                )
+                .order_by(WorkoutSession.completed_at.desc())  # type: ignore
+            )
             sessions = sharing_svc.uow.session.exec(stmt_sessions).all()
-            
+
             for sess in sessions:
                 activities.append({
                     "type": "workout",
@@ -71,38 +76,50 @@ async def sharing_feed_page(
                     "time": sess.completed_at,
                     "title": sess.plan.name if sess.plan else "Workout Session",
                     "notes": sess.notes,
-                    "id": f"workout-{sess.id}"
+                    "id": f"workout-{sess.id}",
                 })
-                
-            # Fetch step counts for today
+
             if "steps" in shared_types:
-                raw_steps = sharing_svc.uow.measurements.find_all(user_id=friend_id, data_types=["steps"])
-                today_steps = sum(m.value_numeric for m in raw_steps if m.start_time.date() == today and m.value_numeric is not None)
+                raw_steps = sharing_svc.uow.measurements.find_all(
+                    user_id=friend_id, data_types=["steps"]
+                )
+                today_steps = sum(
+                    m.value_numeric
+                    for m in raw_steps
+                    if m.start_time.date() == today and m.value_numeric is not None
+                )
                 if today_steps > 0:
                     activities.append({
                         "type": "steps",
                         "friend_name": friend_user.username,
                         "time": datetime.now(timezone.utc),
                         "value": int(today_steps),
-                        "id": f"steps-{friend_id}-{today.isoformat()}"
+                        "id": f"steps-{friend_id}-{today.isoformat()}",
                     })
-                    
-            # Fetch weight for today
+
             if "weight" in shared_types:
-                raw_weight = sharing_svc.uow.measurements.find_all(user_id=friend_id, data_types=["weight"])
-                today_weights = [m.value_numeric for m in raw_weight if m.start_time.date() == today and m.value_numeric is not None]
+                raw_weight = sharing_svc.uow.measurements.find_all(
+                    user_id=friend_id, data_types=["weight"]
+                )
+                today_weights = [
+                    m.value_numeric
+                    for m in raw_weight
+                    if m.start_time.date() == today and m.value_numeric is not None
+                ]
                 if today_weights:
                     activities.append({
                         "type": "weight",
                         "friend_name": friend_user.username,
                         "time": datetime.now(timezone.utc),
                         "value": today_weights[-1],
-                        "id": f"weight-{friend_id}-{today.isoformat()}"
+                        "id": f"weight-{friend_id}-{today.isoformat()}",
                     })
-    
-    # Sort activities by time desc
-    activities.sort(key=lambda x: x["time"] if isinstance(x["time"], datetime) else datetime.now(timezone.utc), reverse=True)
-    
+
+    activities.sort(
+        key=lambda x: x["time"] if isinstance(x["time"], datetime) else datetime.now(timezone.utc),
+        reverse=True,
+    )
+
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/sharing_feed.html",
@@ -113,6 +130,10 @@ async def sharing_feed_page(
     )
 
 
+# ---------------------------------------------------------------------------
+# Leaderboard
+# ---------------------------------------------------------------------------
+
 @router.get("/sharing/leaderboard", response_class=HTMLResponse)
 async def sharing_leaderboard_page(
     request: Request,
@@ -122,7 +143,7 @@ async def sharing_leaderboard_page(
 ):
     user_id = uid(current_user)
     groups = leaderboard_svc.list_my_groups(user_id)
-    
+
     group_infos = []
     for g in groups:
         try:
@@ -140,7 +161,7 @@ async def sharing_leaderboard_page(
             my_rank = None
             my_score = 0.0
             rankings = []
-            
+
         group_infos.append({
             "group": g,
             "rankings": rankings,
@@ -194,7 +215,7 @@ async def sharing_leaderboard_create(
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
     user_id = uid(current_user)
-    
+
     dt_start = None
     dt_end = None
     if time_frame == "custom":
@@ -208,7 +229,7 @@ async def sharing_leaderboard_create(
                 dt_end = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
             except ValueError:
                 pass
-                
+
     try:
         group = leaderboard_svc.create_group(
             creator_id=user_id,
@@ -236,7 +257,7 @@ async def sharing_leaderboard_detail_page(
         rankings_data = leaderboard_svc.get_group_rankings(group_id, user_id)
     except Exception as e:
         return RedirectResponse(f"/sharing/leaderboard?error={str(e)}", status_code=303)
-        
+
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/sharing_leaderboard_detail.html",
@@ -278,6 +299,33 @@ async def sharing_leaderboard_delete(
     return RedirectResponse("/sharing/leaderboard", status_code=303)
 
 
+# ---------------------------------------------------------------------------
+# Connections
+# ---------------------------------------------------------------------------
+
+def _build_connections_context(
+    request: Request,
+    current_user: User,
+    sharing_svc: SharingService,
+    metric_svc: MetricTypeService,
+) -> dict:
+    owner_id = uid(current_user)
+    peers = sharing_svc.get_peer_connections(owner_id)
+    pending_invitations = sharing_svc.get_pending_invitations(owner_id)
+    metrics = metric_svc.find_all(owner_id)
+    connect_url = (
+        f"{request.base_url}sharing/connections?connect_to=@{current_user.username}"
+    )
+    return {
+        "current_user": current_user,
+        "peers": peers,
+        "pending_invitations": pending_invitations,
+        "metrics": metrics,
+        "connect_url": connect_url,
+        "connect_to_prefill": "",
+        "error": None,
+    }
+
 
 @router.get("/sharing/connections", response_class=HTMLResponse)
 async def sharing_connections_page(
@@ -287,60 +335,10 @@ async def sharing_connections_page(
     sharing_svc: SharingService = Depends(get_sharing_service),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
-    owner_id = uid(current_user)
-    relationships = sharing_svc.list_relationships(owner_id)
-    metrics = metric_svc.find_all(owner_id)
-    
-    # 1. Fetch incoming relationships
-    with sharing_svc.uow:
-        stmt = select(SharingRelationship).where(
-            SharingRelationship.grantee_handle == f"@{current_user.username}",
-            SharingRelationship.is_active
-        )
-        incoming_relationships = sharing_svc.uow.session.exec(stmt).all()
-        
-    # 2. Group outbound by handle
-    outbound_groups = {}
-    for rel in relationships:
-        if not rel.is_active:
-            continue
-        handle = rel.grantee_handle
-        if handle not in outbound_groups:
-            outbound_groups[handle] = {
-                "handle": handle,
-                "metrics": [],
-                "rel_ids": []
-            }
-        outbound_groups[handle]["metrics"].append(rel.metric_type.name)
-        outbound_groups[handle]["rel_ids"].append(rel.id)
-
-    # 3. Group inbound by owner
-    inbound_groups = {}
-    for rel in incoming_relationships:
-        username = rel.owner.username
-        handle = f"@{username}"
-        if handle not in inbound_groups:
-            inbound_groups[handle] = {
-                "handle": handle,
-                "metrics": [],
-                "rel_ids": []
-            }
-        inbound_groups[handle]["metrics"].append(rel.metric_type.name)
-        inbound_groups[handle]["rel_ids"].append(rel.id)
-        
-    connect_url = f"{request.base_url}sharing/connections?connect_to=@{current_user.username}"
-    
+    ctx = _build_connections_context(request, current_user, sharing_svc, metric_svc)
+    ctx["connect_to_prefill"] = connect_to or ""
     return request.app.state.templates.TemplateResponse(
-        request,
-        "pages/sharing_connections.html",
-        {
-            "current_user": current_user,
-            "outbound_groups": outbound_groups.values(),
-            "inbound_groups": inbound_groups.values(),
-            "metrics": metrics,
-            "connect_to": connect_to,
-            "connect_url": connect_url,
-        },
+        request, "pages/sharing_connections.html", ctx
     )
 
 
@@ -348,7 +346,7 @@ async def sharing_connections_page(
 async def create_sharing(
     request: Request,
     grantee_handle: Annotated[str, Form()],
-    metric_type_ids: list[int] = Form(default=[]),
+    metric_type_ids: Annotated[list[int], Form()] = [],
     expiration_days: Annotated[Optional[int], Form()] = None,
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
@@ -356,110 +354,79 @@ async def create_sharing(
 ):
     owner_id = uid(current_user)
     if not metric_type_ids:
-        # Load data to render the connections page with error
-        relationships = sharing_svc.list_relationships(owner_id)
-        metrics = metric_svc.find_all(owner_id)
-        with sharing_svc.uow:
-            stmt = select(SharingRelationship).where(
-                SharingRelationship.grantee_handle == f"@{current_user.username}",
-                SharingRelationship.is_active
-            )
-            incoming = sharing_svc.uow.session.exec(stmt).all()
-        
-        # Groupings
-        outbound_groups = {}
-        for rel in relationships:
-            if not rel.is_active:
-                continue
-            handle = rel.grantee_handle
-            if handle not in outbound_groups:
-                outbound_groups[handle] = {"handle": handle, "metrics": [], "rel_ids": []}
-            outbound_groups[handle]["metrics"].append(rel.metric_type.name)
-            outbound_groups[handle]["rel_ids"].append(rel.id)
-
-        inbound_groups = {}
-        for rel in incoming:
-            username = rel.owner.username
-            handle = f"@{username}"
-            if handle not in inbound_groups:
-                inbound_groups[handle] = {"handle": handle, "metrics": [], "rel_ids": []}
-            inbound_groups[handle]["metrics"].append(rel.metric_type.name)
-            inbound_groups[handle]["rel_ids"].append(rel.id)
-            
-        connect_url = f"{request.base_url}sharing/connections?connect_to=@{current_user.username}"
-        
+        ctx = _build_connections_context(request, current_user, sharing_svc, metric_svc)
+        ctx["error"] = "Please select at least one metric type to share"
         return request.app.state.templates.TemplateResponse(
-            request,
-            "pages/sharing_connections.html",
-            {
-                "current_user": current_user,
-                "outbound_groups": outbound_groups.values(),
-                "inbound_groups": inbound_groups.values(),
-                "metrics": metrics,
-                "error": "Please select at least one metric type to share",
-                "connect_url": connect_url,
-            },
+            request, "pages/sharing_connections.html", ctx
         )
 
     form_data = await request.form()
+    errors: list[str] = []
 
-    try:
-        for m_id in metric_type_ids:
-            agg_level = str(form_data.get(f"aggregation_level_{m_id}", "daily_summary"))
-            try:
-                sharing_svc.create_relationship(
-                    owner_id=owner_id,
-                    grantee_handle=grantee_handle,
-                    metric_type_id=m_id,
-                    aggregation_level=agg_level,
-                    expiration_days=expiration_days,
-                )
-            except ConflictError:
-                continue
-    except NotFoundError as e:
-        relationships = sharing_svc.list_relationships(owner_id)
-        metrics = metric_svc.find_all(owner_id)
-        with sharing_svc.uow:
-            stmt = select(SharingRelationship).where(
-                SharingRelationship.grantee_handle == f"@{current_user.username}",
-                SharingRelationship.is_active
+    for m_id in metric_type_ids:
+        agg_level = str(form_data.get(f"aggregation_level_{m_id}", "daily_summary"))
+        try:
+            sharing_svc.create_relationship(
+                owner_id=owner_id,
+                grantee_handle=grantee_handle,
+                metric_type_id=m_id,
+                aggregation_level=agg_level,
+                expiration_days=expiration_days,
             )
-            incoming = sharing_svc.uow.session.exec(stmt).all()
-        
-        outbound_groups = {}
-        for rel in relationships:
-            if not rel.is_active:
-                continue
-            handle = rel.grantee_handle
-            if handle not in outbound_groups:
-                outbound_groups[handle] = {"handle": handle, "metrics": [], "rel_ids": []}
-            outbound_groups[handle]["metrics"].append(rel.metric_type.name)
-            outbound_groups[handle]["rel_ids"].append(rel.id)
+        except ConflictError:
+            continue
+        except NotFoundError as e:
+            errors.append(str(e))
 
-        inbound_groups = {}
-        for rel in incoming:
-            username = rel.owner.username
-            handle = f"@{username}"
-            if handle not in inbound_groups:
-                inbound_groups[handle] = {"handle": handle, "metrics": [], "rel_ids": []}
-            inbound_groups[handle]["metrics"].append(rel.metric_type.name)
-            inbound_groups[handle]["rel_ids"].append(rel.id)
-            
-        connect_url = f"{request.base_url}sharing/connections?connect_to=@{current_user.username}"
-        
+    if errors:
+        ctx = _build_connections_context(request, current_user, sharing_svc, metric_svc)
+        ctx["error"] = "; ".join(errors)
         return request.app.state.templates.TemplateResponse(
-            request,
-            "pages/sharing_connections.html",
-            {
-                "current_user": current_user,
-                "outbound_groups": outbound_groups.values(),
-                "inbound_groups": inbound_groups.values(),
-                "metrics": metrics,
-                "error": str(e),
-                "connect_url": connect_url,
-            },
+            request, "pages/sharing_connections.html", ctx
         )
-    
+
+    return RedirectResponse("/sharing/connections", status_code=303)
+
+
+@router.post("/sharing/{relationship_id}/accept")
+async def accept_sharing(
+    relationship_id: int,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    sharing_svc: SharingService = Depends(get_sharing_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+):
+    try:
+        sharing_svc.accept_relationship(uid(current_user), relationship_id)
+    except (NotFoundError, ConflictError) as e:
+        ctx = _build_connections_context(
+            request, current_user, sharing_svc, metric_svc
+        )
+        ctx["error"] = str(e)
+        return request.app.state.templates.TemplateResponse(
+            request, "pages/sharing_connections.html", ctx
+        )
+    return RedirectResponse("/sharing/connections", status_code=303)
+
+
+@router.post("/sharing/{relationship_id}/decline")
+async def decline_sharing(
+    relationship_id: int,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    sharing_svc: SharingService = Depends(get_sharing_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+):
+    try:
+        sharing_svc.decline_relationship(uid(current_user), relationship_id)
+    except (NotFoundError, ConflictError) as e:
+        ctx = _build_connections_context(
+            request, current_user, sharing_svc, metric_svc
+        )
+        ctx["error"] = str(e)
+        return request.app.state.templates.TemplateResponse(
+            request, "pages/sharing_connections.html", ctx
+        )
     return RedirectResponse("/sharing/connections", status_code=303)
 
 
@@ -479,105 +446,125 @@ async def delete_sharing(
     return request.app.state.templates.TemplateResponse(
         request,
         "components/sharing/relationship_list.html",
-        {"relationships": relationships},
+        {
+            "relationships": relationships,
+        },
     )
 
 
-# --------------------------------------------------------------------------
-# Federation Endpoint: Shared Data Fetch (Token Authorized)
-# --------------------------------------------------------------------------
+@router.get("/sharing/connections/invite-modal", response_class=HTMLResponse)
+async def invite_modal(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    connect_url = (
+        f"{request.base_url}sharing/connections?connect_to=@{current_user.username}"
+    )
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/sharing/invite_modal.html",
+        {
+            "connect_url": connect_url,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Federation API
+# ---------------------------------------------------------------------------
 
 @router.get("/api/v1/federation/sharing", response_class=JSONResponse)
 async def federated_shared_data(
-    owner_username: str = Query(...),
-    data_type: str = Query(...),
-    date: str = Query(...),
-    credentials: HTTPAuthorizationCredentials = Security(security),
+    owner_username: Annotated[str, Query()],
+    data_type: Annotated[str, Query()],
+    date: Annotated[str, Query()],
+    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     token = credentials.credentials
-    # Fetch from unit of work
-    uow = sharing_svc.uow
-    with uow:
-        # Resolve owner user
-        owner = uow.users.get_by_username(owner_username)
+
+    with sharing_svc.uow:
+        owner = sharing_svc.uow.users.get_by_username(owner_username)
         if not owner:
-            raise HTTPException(status_code=404, detail="Owner user not found")
+            raise HTTPException(status_code=404, detail="Owner not found")
 
-        # Resolve metric type
-        metric_types = uow.metric_types.find_all(owner.id)
+        metric_types = sharing_svc.uow.metric_types.find_all(owner.id)
         metric = next((m for m in metric_types if m.source_data_type == data_type), None)
-        if not metric:
-            raise HTTPException(status_code=404, detail="Metric type not found")
+        if not metric or metric.id is None:
+            return JSONResponse({"status": "ok", "data": []})
 
-        # Look up active sharing relationship matching the api_token_hash and not expired
-        from datetime import datetime, timezone
-        now = datetime.now(timezone.utc)
-        stmt = select(SharingRelationship).where(
+        ctx = select(SharingRelationship).where(
+            SharingRelationship.api_token_hash == token,
             SharingRelationship.owner_id == owner.id,
             SharingRelationship.metric_type_id == metric.id,
-            SharingRelationship.api_token_hash == token,
-            SharingRelationship.is_active,
-            (SharingRelationship.expiration_date == None) | (SharingRelationship.expiration_date > now)  # type: ignore  # noqa: E711
+            SharingRelationship.status == ConnectionStatus.ACTIVE,
         )
-        from salus.repositories.unit_of_work import SqlUnitOfWork
-        relationship = None
-        if isinstance(uow, SqlUnitOfWork):
-            relationship = uow.session.exec(stmt).first()
-        
-    if not relationship:
-        raise HTTPException(status_code=401, detail="Unauthorized: invalid or inactive sharing token")
+        rel = sharing_svc.uow.session.exec(ctx).first()
+        if not rel:
+            raise HTTPException(status_code=401, detail="Invalid or inactive token")
 
-    # Access verified: Fetch & return data
-    # Resolve and aggregate using SharingService
-    try:
-        # Since resolve_and_fetch expects a requester_id, we can map requester_id
-        # based on the relationship grantee_handle. If grantee is local, get their user.
-        # But wait! For API calls, requester_id is just used to obtain the requester's username
-        # to cross-validate relationship.get_active_relationship.
-        # Let's write a simple query directly to avoid needing requester_id for remote requests.
-        with uow:
-            raw_measurements = uow.measurements.find_all(
-                user_id=owner.id,
-                data_types=[data_type]
+        raw_measurements = sharing_svc.uow.measurements.find_all(
+            user_id=owner.id, data_types=[data_type]
+        )
+
+        try:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            target_date = datetime.now(timezone.utc).date()
+
+        day_measurements = [
+            m for m in raw_measurements if m.start_time.date() == target_date
+        ]
+
+        if rel.aggregation_level == "daily_summary":
+            if not day_measurements:
+                return JSONResponse({"status": "ok", "data": []})
+            values = [
+                m.value_numeric for m in day_measurements if m.value_numeric is not None
+            ]
+            val = (
+                sum(values)
+                if data_type in ("steps", "water")
+                else (sum(values) / len(values) if values else None)
             )
-            from datetime import datetime
-            try:
-                target_date = datetime.strptime(date, "%Y-%m-%d").date()
-            except ValueError:
-                target_date = datetime.utcnow().date()
-
-            day_measurements = [
-                m for m in raw_measurements 
-                if m.start_time.date() == target_date
+            result = [
+                {
+                    "data_type": data_type,
+                    "value_numeric": val,
+                    "start_time": date,
+                    "source": "summary",
+                    "external_id": f"summary-{owner_username}-{data_type}-{date}",
+                }
+            ]
+        else:
+            result = [
+                {
+                    "data_type": m.data_type,
+                    "value_numeric": m.value_numeric,
+                    "value_json": m.value_json,
+                    "start_time": m.start_time.isoformat(),
+                    "source": m.source,
+                    "external_id": m.external_id,
+                }
+                for m in day_measurements
             ]
 
-            if relationship.aggregation_level == "daily_summary":
-                if not day_measurements:
-                    results = []
-                else:
-                    values = [m.value_numeric for m in day_measurements if m.value_numeric is not None]
-                    val = sum(values) if data_type in ("steps", "water") else (sum(values)/len(values) if values else None)
-                    results = [{
-                        "data_type": data_type,
-                        "value_numeric": val,
-                        "start_time": date,
-                        "source": "summary",
-                        "external_id": f"summary-{owner_username}-{data_type}-{date}"
-                    }]
-            else:
-                results = [
-                    {
-                        "data_type": m.data_type,
-                        "value_numeric": m.value_numeric,
-                        "value_json": m.value_json,
-                        "start_time": m.start_time.isoformat(),
-                        "source": m.source,
-                        "external_id": m.external_id
-                    }
-                    for m in day_measurements
-                ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse({"status": "ok", "data": result})
 
-    return {"status": "ok", "data": results}
+
+@router.post("/api/v1/federation/accept", response_class=JSONResponse)
+async def federated_accept(
+    request: Request,
+    sharing_svc: SharingService = Depends(get_sharing_service),
+):
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    token = body.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Missing token")
+
+    sharing_svc.process_federation_accept(token, body.get("owner_handle", ""))
+    return JSONResponse({"status": "ok"})

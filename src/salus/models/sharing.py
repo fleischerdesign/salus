@@ -1,3 +1,4 @@
+from enum import Enum
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
@@ -5,6 +6,13 @@ from sqlmodel import Field, Relationship, SQLModel
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
     from salus.models import MetricType  # noqa: F401
+
+
+class ConnectionStatus(str, Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    DECLINED = "declined"
+    REVOKED = "revoked"
 
 
 class SharingRelationship(SQLModel, table=True):
@@ -16,10 +24,14 @@ class SharingRelationship(SQLModel, table=True):
     metric_type_id: int = Field(foreign_key="metric_type.id")
     aggregation_level: str = Field(default="daily_summary")  # "raw" or "daily_summary"
     expiration_date: Optional[datetime] = Field(default=None)
-    is_active: bool = Field(default=True)
+    status: str = Field(default=ConnectionStatus.PENDING.value)
     api_token_hash: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @property
+    def is_active(self) -> bool:
+        return self.status == ConnectionStatus.ACTIVE
 
     # Relationships
     owner: "User" = Relationship(back_populates="sharing_relationships")
@@ -55,4 +67,3 @@ class LeaderboardMember(SQLModel, table=True):
 
     # Relationships
     group: "LeaderboardGroup" = Relationship(back_populates="members")
-

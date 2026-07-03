@@ -63,7 +63,7 @@ async def new_entry_form(
     return request.app.state.templates.TemplateResponse(
         request,
         "components/entry_form.html",
-        {"metrics": metrics, "selected_metric_id": metric_type_id, "current_user": current_user},
+        {"metrics": metrics, "selected_metric_id": metric_type_id, "current_user": current_user, "entry": None},
     )
 
 

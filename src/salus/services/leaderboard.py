@@ -5,7 +5,7 @@ from typing import Optional
 from sqlmodel import select
 
 from salus.exceptions import NotFoundError, ConflictError
-from salus.models.sharing import LeaderboardGroup, LeaderboardMember, SharingRelationship
+from salus.models.sharing import ConnectionStatus, LeaderboardGroup, LeaderboardMember, SharingRelationship
 from salus.models.workout import WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
@@ -89,7 +89,7 @@ class LeaderboardService:
             stmt1 = select(SharingRelationship).where(
                 SharingRelationship.owner_id == user_id,
                 SharingRelationship.grantee_handle == creator_handle,
-                SharingRelationship.is_active
+                SharingRelationship.status == ConnectionStatus.ACTIVE,
             )
             rel1 = self.uow.session.exec(stmt1).first()
 
@@ -97,7 +97,7 @@ class LeaderboardService:
             stmt2 = select(SharingRelationship).where(
                 SharingRelationship.owner_id == creator.id,
                 SharingRelationship.grantee_handle == user_handle,
-                SharingRelationship.is_active
+                SharingRelationship.status == ConnectionStatus.ACTIVE,
             )
             rel2 = self.uow.session.exec(stmt2).first()
 

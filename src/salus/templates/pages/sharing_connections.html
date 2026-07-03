@@ -3,174 +3,101 @@
 {% block content %}
 <div class="page-header">
     <div>
-        <h1>{{ _("Manage Connections") }}</h1>
-        <p class="text-muted">{{ _("Securely manage your data sharing connections, generate invite QR codes, or invite new peers.") }}</p>
+        <h1>{{ _("Connections") }}</h1>
+        <p class="text-muted">{{ _("Manage your data sharing connections and invite new peers.") }}</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-secondary"
+                hx-get="/sharing/connections/invite-modal"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            <span class="material-symbols-outlined" style="font-size:18px">qr_code_2</span>
+            {{ _("Invite Link") }}
+        </button>
     </div>
 </div>
 
+<div id="modal-container"></div>
+
 {% if error %}
-<div class="card" style="background:var(--color-danger-50);border-color:var(--color-danger-200);color:var(--color-danger-800);margin-bottom:24px;padding:12px 16px;border-radius:8px;">
-    <div style="display:flex;align-items:center;gap:8px;">
-        <span class="material-symbols-outlined" style="color:var(--color-danger-600);">error</span>
-        <span style="font-weight:500;">{{ error }}</span>
-    </div>
+<div class="alert alert-error" role="alert">
+    <span class="material-symbols-outlined" style="font-size:18px">error</span>
+    <span>{{ error }}</span>
 </div>
 {% endif %}
 
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
-    
-    <!-- Left: Add Connection -->
-    <div style="display:flex; flex-direction:column; gap:24px;">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ _("Invite / Add Connection") }}</h3>
-            </div>
-            <form method="post" action="/sharing" class="form-stack" style="padding-top:8px;">
-                <div class="input-group">
-                    <label for="grantee_handle">{{ _("Peer Handle") }}</label>
-                    <input type="text" id="grantee_handle" name="grantee_handle" placeholder="@username" 
-                           value="{{ connect_to or '' }}" required>
-                    <span class="text-muted" style="font-size:11px;margin-top:4px;display:block;">
-                        Use <code>@username</code> for local users, or <code>@username:domain</code> for remote servers.
-                    </span>
-                </div>
-                
-                <div class="input-group">
-                    <label style="margin-bottom:4px;">{{ _("Metrics to Share") }}</label>
-                    <div style="display:flex; flex-direction:column; gap:8px;">
-                        {% for metric in metrics %}
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--color-outline-variant);border-radius:var(--radius-default);background:var(--color-surface-container-lowest);gap:12px;">
-                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex-grow:1;margin:0;">
-                                <input type="checkbox" name="metric_type_ids" value="{{ metric.id }}" style="width:16px;height:16px;cursor:pointer;">
-                                <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:20px;">{{ metric.icon }}</span>
-                                <div style="display:flex;flex-direction:column;">
-                                    <span style="font-weight:600;font-size:13px;color:var(--color-on-surface);">{{ metric.name }}</span>
-                                </div>
-                            </label>
-                            <select name="aggregation_level_{{ metric.id }}" style="padding:4px 8px;font-size:12px;border:1px solid var(--color-outline-variant);border-radius:var(--radius-sm);background:var(--color-surface-container-low);color:var(--color-on-surface);cursor:pointer;">
-                                <option value="daily_summary">Summary</option>
-                                <option value="raw">Raw Logs</option>
-                            </select>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
+{% include "components/sharing/pending_invitations.html" %}
 
-                <div class="input-group">
-                    <label for="expiration_days">{{ _("Expiration (Optional Days)") }}</label>
-                    <input type="number" id="expiration_days" name="expiration_days" placeholder="e.g. 30" min="1">
-                </div>
-
-                <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-                    <button type="submit" class="btn">
-                        {{ _("Share & Connect") }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Right: QR Code Profile Invite -->
-    <div style="display:flex; flex-direction:column; gap:24px;">
-        <div class="card" style="text-align:center;">
-            <div class="card-header" style="justify-content:center;">
-                <h3 class="card-title">{{ _("My Invite QR Code") }}</h3>
-            </div>
-            <p class="text-muted" style="font-size:13px; margin: 4px 0 16px 0;">
-                {{ _("Let a peer scan this QR code or share your connection link to connect instantly.") }}
-            </p>
-            <div style="display:inline-block; margin-bottom:16px;">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ connect_url|urlencode }}" 
-                     alt="QR Connection Code" 
-                     style="border: 1px solid var(--color-slate-200); border-radius: 8px; padding: 8px; background:#fff;">
-            </div>
-            
-            <div style="display:flex; gap:8px;">
-                <input type="text" readonly value="{{ connect_url }}" id="connect-link-input"
-                       style="flex:1; padding:8px 12px; font-size:12px; font-family:var(--font-family-mono); border:1px solid var(--color-outline-variant); border-radius:var(--radius-default); background:var(--color-surface-container-low); color:var(--color-on-surface); -webkit-text-fill-color: var(--color-on-surface); opacity: 1;">
-                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('connect-link-input').value); const original = this.innerText; this.innerText='{{ _("Copied!") }}'; setTimeout(() => this.innerText=original, 2000)">
-                    {{ _("Copy") }}
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Full Width: Active Connections -->
-    <div style="grid-column: 1 / -1;" class="card">
+<div class="connections-layout" id="peer-list">
+    <div class="card">
         <div class="card-header">
-            <h3 class="card-title">{{ _("Active Connections") }}</h3>
+            <h3 class="card-title">{{ _("Invite a Peer") }}</h3>
         </div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px; padding-top:12px;">
-            <!-- Grouped Outbound Shares -->
-            {% for peer in outbound_groups %}
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:var(--radius-default); background:var(--color-surface-container-lowest); display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-                <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin:0; font-size:15px; font-weight:700; color:var(--color-on-surface);">{{ peer.handle }}</h4>
-                        <span style="font-size:10px; font-weight:700; background:var(--color-surface-container-high); color:var(--color-on-surface-variant); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                            {{ _("Outgoing") }}
-                        </span>
+        <form method="post" action="/sharing" class="form-stack">
+            <div class="input-group">
+                <label for="grantee_handle">{{ _("Peer Handle") }}</label>
+                <input type="text" id="grantee_handle" name="grantee_handle"
+                       placeholder="@username"
+                       value="{{ connect_to_prefill or '' }}" required>
+                <span class="input-hint">
+                    {{ _("Use <code>@username</code> for local users, or <code>@username:domain</code> for remote servers.") }}
+                </span>
+            </div>
+
+            <div class="input-group">
+                <label>{{ _("Metrics to Share") }}</label>
+                <div class="metric-select-list">
+                    {% for metric in metrics %}
+                    <div class="metric-select-row">
+                        <label class="metric-select-label">
+                            <input type="checkbox" name="metric_type_ids" value="{{ metric.id }}">
+                            <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:20px">{{ metric.icon }}</span>
+                            <span class="metric-select-name">{{ metric.name }}</span>
+                        </label>
+                        <select name="aggregation_level_{{ metric.id }}" class="metric-select-agg">
+                            <option value="daily_summary">{{ _("Summary") }}</option>
+                            <option value="raw">{{ _("Raw Logs") }}</option>
+                        </select>
                     </div>
-                    <p style="margin:8px 0 4px 0; font-size:12px; font-weight:600;" class="text-muted">{{ _("Shared metrics:") }}</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                        {% for metric_name in peer.metrics %}
-                        <span style="font-size:11px; background:var(--color-primary-fixed); color:var(--color-on-primary-fixed); padding:2px 8px; border-radius:4px; font-weight:500;">
-                            {{ metric_name }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <div style="display:flex; justify-content:flex-end;">
-                    {% for rel_id in peer.rel_ids %}
-                    {% if loop.first %}
-                    <button class="btn btn-secondary btn-sm" style="color:var(--color-danger-600);"
-                            hx-delete="/sharing/{{ rel_id }}"
-                            hx-confirm="{{ _('Are you sure you want to stop sharing with this connection?') }}"
-                            hx-swap="none"
-                            onclick="setTimeout(() => window.location.reload(), 200)">
-                        {{ _("Revoke Connection") }}
-                    </button>
-                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
-            {% endfor %}
 
-            <!-- Grouped Inbound Shares -->
-            {% for peer in inbound_groups %}
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:var(--radius-default); background:var(--color-surface-container-lowest); display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-                <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin:0; font-size:15px; font-weight:700; color:var(--color-on-surface);">{{ peer.handle }}</h4>
-                        <span style="font-size:10px; font-weight:700; background:var(--color-primary-fixed); color:var(--color-on-primary-fixed); padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                            {{ _("Incoming") }}
-                        </span>
-                    </div>
-                    <p style="margin:8px 0 4px 0; font-size:12px; font-weight:600;" class="text-muted">{{ _("Visible metrics:") }}</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                        {% for metric_name in peer.metrics %}
-                        <span style="font-size:11px; background:var(--color-surface-container-high); color:var(--color-on-surface-variant); padding:2px 8px; border-radius:4px; font-weight:500;">
-                            {{ metric_name }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <div style="display:flex; justify-content:flex-end;">
-                    <span style="font-size:12px; font-style:italic;" class="text-muted">{{ _("Reading via API") }}</span>
-                </div>
+            <div class="input-group">
+                <label for="expiration_days">{{ _("Expiration (Optional)") }}</label>
+                <input type="number" id="expiration_days" name="expiration_days"
+                       placeholder="{{ _('e.g. 30 days') }}" min="1">
             </div>
-            {% endfor %}
 
-            {% if not outbound_groups and not inbound_groups %}
-            <div style="grid-column:1/-1; text-align:center; padding:24px;" class="text-muted">
-                <span class="material-symbols-outlined" style="font-size:48px; color:var(--color-slate-300);">contacts</span>
-                <p style="margin:8px 0 0 0;">{{ _("No active connections.") }}</p>
+            <div class="form-actions">
+                <button type="submit" class="btn">
+                    <span class="material-symbols-outlined" style="font-size:18px">share</span>
+                    {{ _("Share & Invite") }}
+                </button>
             </div>
-            {% endif %}
-        </div>
+        </form>
     </div>
 
+    {% if peers %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("Active Connections") }}</h3>
+            <span class="chip chip-neutral">{{ peers|length }}</span>
+        </div>
+        <div class="peer-grid">
+            {% for peer in peers %}
+                {% include "components/sharing/peer_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card empty-state-card">
+        <span class="material-symbols-outlined empty-state-icon">contacts</span>
+        <h3 class="empty-state-title">{{ _("No Connections Yet") }}</h3>
+        <p class="text-muted empty-state-text">
+            {{ _("Invite a peer using the form to start sharing your health data.") }}
+        </p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,11 +1,13 @@
 import logging
 import os
+import traceback
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from jinja2 import StrictUndefined
 from starlette.templating import Jinja2Templates
 
 from salus.config import settings as app_settings
@@ -118,7 +120,8 @@ def get_nav_context(request: Request):
             )
             items.append({
                 **item,
-                "active": is_active
+                "active": is_active,
+                "children": None,
             })
     return {"nav_items": items}
 
@@ -147,6 +150,7 @@ templates = Jinja2Templates(
     directory="src/salus/templates",
     context_processors=[get_translation_context, get_nav_context, get_plugin_assets_context]
 )
+templates.env.undefined = StrictUndefined
 templates.env.globals["settings"] = app_settings
 
 
@@ -292,3 +296,16 @@ async def not_found_fallback(request: Request, exc: Exception):
     if is_api_request(request):
         return JSONResponse(status_code=404, content={"error": "Not Found"})
     return RedirectResponse(url="/", status_code=303)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logging.error(
+        "Unhandled exception on %s %s:\n%s",
+        request.method,
+        request.url.path,
+        "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
+    )
+    if is_api_request(request):
+        return JSONResponse(status_code=500, content={"error": "Internal Server Error"})
+    return HTMLResponse(status_code=500, content="<h1>500 — Internal Server Error</h1>")
