@@ -396,17 +396,14 @@ async def accept_sharing(
     sharing_svc: SharingService = Depends(get_sharing_service),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
+    redirect_url = "/sharing/connections"
     try:
         sharing_svc.accept_relationship(uid(current_user), relationship_id)
     except (NotFoundError, ConflictError) as e:
-        ctx = _build_connections_context(
-            request, current_user, sharing_svc, metric_svc
-        )
-        ctx["error"] = str(e)
-        return request.app.state.templates.TemplateResponse(
-            request, "pages/sharing_connections.html", ctx
-        )
-    return RedirectResponse("/sharing/connections", status_code=303)
+        redirect_url = f"/sharing/connections?error={str(e)}"
+    response = RedirectResponse(redirect_url, status_code=303)
+    response.headers["HX-Redirect"] = redirect_url
+    return response
 
 
 @router.post("/sharing/{relationship_id}/decline")
@@ -417,17 +414,14 @@ async def decline_sharing(
     sharing_svc: SharingService = Depends(get_sharing_service),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
+    redirect_url = "/sharing/connections"
     try:
         sharing_svc.decline_relationship(uid(current_user), relationship_id)
     except (NotFoundError, ConflictError) as e:
-        ctx = _build_connections_context(
-            request, current_user, sharing_svc, metric_svc
-        )
-        ctx["error"] = str(e)
-        return request.app.state.templates.TemplateResponse(
-            request, "pages/sharing_connections.html", ctx
-        )
-    return RedirectResponse("/sharing/connections", status_code=303)
+        redirect_url = f"/sharing/connections?error={str(e)}"
+    response = RedirectResponse(redirect_url, status_code=303)
+    response.headers["HX-Redirect"] = redirect_url
+    return response
 
 
 @router.delete("/sharing/{relationship_id}", response_class=HTMLResponse)
@@ -437,19 +431,11 @@ async def delete_sharing(
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
-    owner_id = uid(current_user)
     try:
-        sharing_svc.deactivate_relationship(owner_id, relationship_id)
+        sharing_svc.deactivate_relationship(uid(current_user), relationship_id)
     except NotFoundError:
         pass
-    relationships = sharing_svc.list_relationships(owner_id)
-    return request.app.state.templates.TemplateResponse(
-        request,
-        "components/sharing/relationship_list.html",
-        {
-            "relationships": relationships,
-        },
-    )
+    return HTMLResponse(content="")
 
 
 @router.get("/sharing/connections/invite-modal", response_class=HTMLResponse)
