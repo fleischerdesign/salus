@@ -1,0 +1,29 @@
+<div class="settings-section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ _("System Statistics") }}</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;padding-top:12px;">
+            <div class="data-box" style="text-align:center;padding:16px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant);">
+                <div style="font:var(--font-headline-lg);color:var(--color-primary);margin-bottom:4px;">{{ stats.total_users }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);text-transform:uppercase;">{{ _("Total Users") }}</div>
+            </div>
+            <div class="data-box" style="text-align:center;padding:16px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant);">
+                <div style="font:var(--font-headline-lg);color:var(--color-primary);margin-bottom:4px;">{{ stats.total_measurements }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);text-transform:uppercase;">{{ _("Total Measurements") }}</div>
+            </div>
+            <div class="data-box" style="text-align:center;padding:16px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant);">
+                <div style="font:var(--font-headline-lg);color:var(--color-primary);margin-bottom:4px;">{{ stats.total_metric_types }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);text-transform:uppercase;">{{ _("Metric Types") }}</div>
+            </div>
+            <div class="data-box" style="text-align:center;padding:16px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant);">
+                <div style="font:var(--font-headline-lg);color:var(--color-primary);margin-bottom:4px;">{{ stats.total_goals }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);text-transform:uppercase;">{{ _("Total Goals") }}</div>
+            </div>
+            <div class="data-box" style="text-align:center;padding:16px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant);">
+                <div style="font:var(--font-headline-lg);color:var(--color-primary);margin-bottom:4px;">{{ storage.db_size }}</div>
+                <div class="text-muted" style="font:var(--font-label-sm);text-transform:uppercase;">{{ _("Database Size") }}</div>
+            </div>
+        </div>
+    </div>
+</div>

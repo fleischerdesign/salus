@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from salus.dependencies import get_current_user, get_open_science_service
 from salus.models.user import User
@@ -11,17 +11,8 @@ router = APIRouter(tags=["Open Science"])
 
 
 @router.get("/open-science", response_class=HTMLResponse)
-async def open_science_page(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-):
-    return request.app.state.templates.TemplateResponse(
-        request,
-        "pages/open_science.html",
-        {
-            "current_user": current_user,
-        },
-    )
+async def open_science_page(request: Request):
+    return RedirectResponse(url="/settings/shares", status_code=307)
 
 
 @router.post("/api/v1/open-science/synthesize", response_class=JSONResponse)

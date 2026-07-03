@@ -5,13 +5,17 @@
     <h1>{{ _("Entries") }}</h1>
 </div>
 
-<div class="flex-wrap gap-sm mb-md">
+<div class="flex-wrap gap-sm mb-md" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
     <button class="btn"
         hx-get="/entries/new{% if selected_metric_id %}?metric_type_id={{ selected_metric_id }}{% endif %}"
         hx-target="#modal-container"
         hx-swap="innerHTML">
         {{ _("New Entry") }}
     </button>
+    <a href="/metrics" class="btn btn-secondary flex-center gap-xs" style="display:inline-flex; align-items:center; gap:4px; text-decoration:none;">
+        <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">settings</span>
+        {{ _("Configure Metrics") }}
+    </a>
     {% for metric in metrics %}
     <a href="/entries?metric_type_id={{ metric.id }}"
        class="btn-sm {% if selected_metric_id == metric.id %}active{% endif %}">

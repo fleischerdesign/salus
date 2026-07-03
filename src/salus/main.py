@@ -26,14 +26,27 @@ logging.basicConfig(level=getattr(logging, log_level),
 
 NAV_ITEMS = [
     {"path": "/", "icon": "dashboard", "label": "Dashboard", "exact": True},
-    {"path": "/analytics", "icon": "analytics", "label": "Analytics"},
-    {"path": "/insights", "icon": "psychology", "label": "AI Coach"},
-    {"path": "/goals", "icon": "track_changes", "label": "Goals"},
-    {"path": "/metrics", "icon": "label", "label": "Metrics"},
-    {"path": "/entries", "icon": "description", "label": "Entries"},
-    {"path": "/sharing", "icon": "share", "label": "Sharing"},
-    {"path": "/workouts", "icon": "fitness_center", "label": "Workouts"},
-    {"path": "/circadian", "icon": "light_mode", "label": "Circadian Advisor"},
+    {"path": "/entries", "icon": "description", "label": "Logbook"},
+    {"path": "/analytics", "icon": "bar_chart", "label": "Analytics"},
+    {
+        "label": "Workouts",
+        "icon": "fitness_center",
+        "children": [
+            {"path": "/workouts", "icon": "assignment", "label": "Plans"},
+            {"path": "/workouts/exercises/new", "icon": "list", "label": "Exercises"},
+            {"path": "/workouts/sessions/active", "icon": "play_circle", "label": "Active"},
+        ]
+    },
+    {
+        "label": "Coach",
+        "icon": "psychology",
+        "children": [
+            {"path": "/circadian", "icon": "light_mode", "label": "Circadian"},
+            {"path": "/insights", "icon": "chat", "label": "Chat"},
+            {"path": "/goals", "icon": "track_changes", "label": "Goals"},
+        ]
+    },
+    {"path": "/sharing", "icon": "group", "label": "Community"}
 ]
 
 
@@ -53,23 +66,52 @@ def get_nav_context(request: Request):
     items = []
     
     all_items = list(NAV_ITEMS)
+    plugin_items = []
     if hasattr(request.app, "state") and hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
         for nav_hook in request.app.state.plugin_manager.registry.navigations:
             try:
-                all_items.extend(nav_hook.get_navigation_items())
+                plugin_items.extend(nav_hook.get_navigation_items())
             except Exception as e:
                 logging.error(f"Error fetching navigation items from plugin: {e}")
+                
+    if plugin_items:
+        all_items.append({
+            "label": "Plugins",
+            "icon": "extension",
+            "children": plugin_items
+        })
 
     for item in all_items:
-        is_active = (
-            current_path == item["path"]
-            if item.get("exact")
-            else current_path.startswith(item["path"])
-        )
-        items.append({
-            **item,
-            "active": is_active
-        })
+        if "children" in item:
+            children_with_active = []
+            parent_active = False
+            for child in item["children"]:
+                is_active = (
+                    current_path == child["path"]
+                    if child.get("exact")
+                    else current_path.startswith(child["path"])
+                )
+                if is_active:
+                    parent_active = True
+                children_with_active.append({
+                    **child,
+                    "active": is_active
+                })
+            items.append({
+                **item,
+                "children": children_with_active,
+                "active": parent_active
+            })
+        else:
+            is_active = (
+                current_path == item["path"]
+                if item.get("exact")
+                else current_path.startswith(item["path"])
+            )
+            items.append({
+                **item,
+                "active": is_active
+            })
     return {"nav_items": items}
 
 

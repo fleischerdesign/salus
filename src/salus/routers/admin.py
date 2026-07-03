@@ -21,15 +21,14 @@ from salus.services.backup.service import BackupService
 router = APIRouter()
 
 
-@router.get("/admin", response_class=HTMLResponse)
-async def admin_dashboard(
+def _admin_context(
     request: Request,
-    current_user: User = Depends(require_admin),
-    admin_svc: AdminService = Depends(get_admin_service),
-    config_svc: ConfigService = Depends(get_config_service),
-    plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
-    backup_svc: BackupService = Depends(get_backup_service),
-):
+    current_user: User,
+    admin_svc: AdminService,
+    config_svc: ConfigService,
+    plugin_mgr: PluginManager | None,
+    backup_svc: BackupService,
+) -> dict:
     stats = admin_svc.get_system_stats()
     storage = admin_svc.get_storage_stats()
     users = admin_svc.list_users_with_stats()
@@ -47,22 +46,81 @@ async def admin_dashboard(
         except Exception:
             pass
 
+    return {
+        "current_user": current_user,
+        "stats": stats,
+        "storage": storage,
+        "users": users,
+        "tokens": tokens,
+        "config_categories": CATEGORY_ORDER,
+        "config_by_cat": config_by_cat,
+        "plugins": plugins,
+        "backups": backups,
+        "settings": settings,
+    }
+
+
+def _render_admin_tab(request: Request, tab_name: str, context: dict):
+    context["active_tab"] = tab_name
+    if request.headers.get("HX-Request"):
+        return request.app.state.templates.TemplateResponse(
+            request, f"pages/admin_tabs/{tab_name}.html", context
+        )
     return request.app.state.templates.TemplateResponse(
-        request,
-        "pages/admin.html",
-        {
-            "current_user": current_user,
-            "stats": stats,
-            "storage": storage,
-            "users": users,
-            "tokens": tokens,
-            "config_categories": CATEGORY_ORDER,
-            "config_by_cat": config_by_cat,
-            "plugins": plugins,
-            "backups": backups,
-            "settings": settings,
-        },
+        request, "pages/admin.html", context
     )
+
+
+@router.get("/admin", response_class=HTMLResponse)
+async def admin_general_page(
+    request: Request,
+    current_user: User = Depends(require_admin),
+    admin_svc: AdminService = Depends(get_admin_service),
+    config_svc: ConfigService = Depends(get_config_service),
+    plugin_mgr: PluginManager = Depends(get_plugin_manager),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    return _render_admin_tab(request, "general", context)
+
+
+@router.get("/admin/users", response_class=HTMLResponse)
+async def admin_users_page(
+    request: Request,
+    current_user: User = Depends(require_admin),
+    admin_svc: AdminService = Depends(get_admin_service),
+    config_svc: ConfigService = Depends(get_config_service),
+    plugin_mgr: PluginManager = Depends(get_plugin_manager),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    return _render_admin_tab(request, "users", context)
+
+
+@router.get("/admin/stats", response_class=HTMLResponse)
+async def admin_stats_page(
+    request: Request,
+    current_user: User = Depends(require_admin),
+    admin_svc: AdminService = Depends(get_admin_service),
+    config_svc: ConfigService = Depends(get_config_service),
+    plugin_mgr: PluginManager = Depends(get_plugin_manager),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    return _render_admin_tab(request, "stats", context)
+
+
+@router.get("/admin/plugins", response_class=HTMLResponse)
+async def admin_plugins_page(
+    request: Request,
+    current_user: User = Depends(require_admin),
+    admin_svc: AdminService = Depends(get_admin_service),
+    config_svc: ConfigService = Depends(get_config_service),
+    plugin_mgr: PluginManager = Depends(get_plugin_manager),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    return _render_admin_tab(request, "plugins", context)
 
 
 @router.post("/admin/users/{user_id}/toggle-admin")

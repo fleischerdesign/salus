@@ -5,154 +5,34 @@
     <h1>{{ _("Admin Panel") }}</h1>
 </div>
 
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("System Statistics") }}</h3>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
-            <div class="data-box" style="text-align:center;">
-                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_users }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Users") }}</div>
-            </div>
-            <div class="data-box" style="text-align:center;">
-                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_measurements }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Measurements") }}</div>
-            </div>
-            <div class="data-box" style="text-align:center;">
-                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_metric_types }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Metric Types") }}</div>
-            </div>
-            <div class="data-box" style="text-align:center;">
-                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ stats.total_goals }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Total Goals") }}</div>
-            </div>
-            <div class="data-box" style="text-align:center;">
-                <div style="font:var(--font-title-lg);color:var(--color-primary);">{{ storage.db_size }}</div>
-                <div class="text-muted" style="font:var(--font-label-sm);">{{ _("Database Size") }}</div>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="tabbed-layout">
+    <!-- Left Sidebar Sub-Navigation -->
+    <aside class="tabbed-sidebar">
+        <a hx-get="/admin" hx-target="#admin-content" hx-push-url="true"
+           class="tabbed-sidebar-link {% if active_tab == 'general' %}active{% endif %}">
+            <span class="material-symbols-outlined">settings</span>
+            {{ _("General") }}
+        </a>
+        <a hx-get="/admin/users" hx-target="#admin-content" hx-push-url="true"
+           class="tabbed-sidebar-link {% if active_tab == 'users' %}active{% endif %}">
+            <span class="material-symbols-outlined">group</span>
+            {{ _("Users") }}
+        </a>
+        <a hx-get="/admin/stats" hx-target="#admin-content" hx-push-url="true"
+           class="tabbed-sidebar-link {% if active_tab == 'stats' %}active{% endif %}">
+            <span class="material-symbols-outlined">monitoring</span>
+            {{ _("Statistics") }}
+        </a>
+        <a hx-get="/admin/plugins" hx-target="#admin-content" hx-push-url="true"
+           class="tabbed-sidebar-link {% if active_tab == 'plugins' %}active{% endif %}">
+            <span class="material-symbols-outlined">extension</span>
+            {{ _("Plugins") }}
+        </a>
+    </aside>
 
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Users") }}</h3>
-        </div>
-        {% include "components/admin/user_table.html" %}
-        <div id="admin-user-detail"></div>
-    </div>
-</div>
-
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("System Configuration") }}</h3>
-        </div>
-        {% for cat in config_categories %}
-        {% set cat_items = config_by_cat.get(cat, []) %}
-        {% if cat_items %}
-        <div style="margin-bottom:16px;">
-            <h4 style="font:var(--font-label-sm);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-slate-500);margin-bottom:8px;padding:0 4px;">{{ cat }}</h4>
-            <div id="admin-config-{{ cat }}">
-                <table class="data-grid">
-                    <thead>
-                        <tr>
-                            <th>{{ _("Setting") }}</th>
-                            <th>{{ _("Value") }}</th>
-                            <th>{{ _("Source") }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in cat_items %}
-                        <tr>
-                            <td>
-                                <div style="font:var(--font-body-sm);font-weight:600;">{{ item.description }}</div>
-                                <div class="text-muted" style="font:var(--font-label-sm);">{{ item.key }}</div>
-                            </td>
-                            <td>
-                                {% if item.is_secret %}
-                                <span style="font:var(--font-body-sm);">••••••••</span>
-                                <button class="btn-ghost btn-sm"
-                                        hx-get="/admin/config/{{ item.key }}/reveal"
-                                        hx-target="closest td"
-                                        hx-swap="innerHTML"
-                                        title="Reveal value">
-                                    <span class="material-symbols-outlined" style="font-size:16px;">visibility</span>
-                                </button>
-                                {% else %}
-                                <span style="font:var(--font-body-sm);{% if item.is_env_override %}color:var(--color-slate-400);{% endif %}">{{ item.value }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.is_env_override %}
-                                <span class="chip chip-warning" style="font-size:11px;" title="Set via {{ item.env_var_name }}">ENV</span>
-                                {% else %}
-                                <span class="chip chip-neutral" style="font-size:11px;">DB</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if not item.is_env_override %}
-                                <button class="btn-sm"
-                                        hx-get="/admin/config/{{ item.key }}/edit"
-                                        hx-target="#admin-config-{{ cat }}"
-                                        hx-swap="outerHTML">
-                                    {{ _("Edit") }}
-                                </button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-        <p class="text-muted" style="font:var(--font-label-sm);margin-top:8px;">
-            {{ _("Settings marked ENV are controlled by environment variables and cannot be edited here.") }}
-        </p>
-    </div>
-</div>
-
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);">
-            <h3 class="card-title">{{ _("Developer Plugins") }}</h3>
-            <button class="btn btn-sm"
-                    hx-get="/admin/plugins/upload-modal"
-                    hx-target="#modal-container"
-                    hx-swap="innerHTML">
-                {{ _("Install Plugin") }}
-            </button>
-        </div>
-        <div id="admin-plugins-container" style="padding-top:12px;">
-            {% include "components/admin/plugin_table.html" %}
-        </div>
-    </div>
-</div>
-
-<div id="modal-container"></div>
-
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("API Tokens") }}</h3>
-        </div>
-        {% include "components/admin/token_table.html" %}
-    </div>
-</div>
-
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Encrypted Backups (Zero-Knowledge)") }}</h3>
-        </div>
-        <div id="admin-backups-container">
-            {% include "components/admin/backup_table.html" %}
-        </div>
+    <!-- Right Panel Content -->
+    <div id="admin-content" class="flex-1">
+        {% include "pages/admin_tabs/" + active_tab + ".html" %}
     </div>
 </div>
 {% endblock %}

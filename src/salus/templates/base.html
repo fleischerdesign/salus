@@ -32,10 +32,28 @@
             <div class="top-app-bar-menu">
                 <nav class="top-app-bar-menu-nav">
                     {% for item in nav_items %}
-                    <a href="{{ item.path }}" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if item.active %}active{% endif %}">
-                        <span class="material-symbols-outlined top-app-bar-icon">{{ item.icon }}</span>
-                        {{ _(item.label) }}
-                    </a>
+                        {% if item.children %}
+                        <div class="nav-dropdown">
+                            <a href="javascript:void(0)" class="top-app-bar-link nav-dropdown-trigger {% if item.active %}active{% endif %}">
+                                <span class="material-symbols-outlined top-app-bar-icon">{{ item.icon }}</span>
+                                {{ _(item.label) }}
+                                <span class="material-symbols-outlined dropdown-arrow">arrow_drop_down</span>
+                            </a>
+                            <div class="nav-dropdown-content">
+                                {% for child in item.children %}
+                                <a href="{{ child.path }}" onclick="document.getElementById('nav-toggle').checked=false" class="nav-dropdown-link {% if child.active %}active{% endif %}">
+                                    <span class="material-symbols-outlined nav-dropdown-icon">{{ child.icon }}</span>
+                                    {{ _(child.label) }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <a href="{{ item.path }}" onclick="document.getElementById('nav-toggle').checked=false" class="top-app-bar-link {% if item.active %}active{% endif %}">
+                            <span class="material-symbols-outlined top-app-bar-icon">{{ item.icon }}</span>
+                            {{ _(item.label) }}
+                        </a>
+                        {% endif %}
                     {% endfor %}
                 </nav>
                 <hr class="top-app-bar-menu-divider">

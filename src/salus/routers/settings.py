@@ -8,6 +8,7 @@ from salus.dependencies import (
     get_current_user,
     get_metric_type_service,
     get_user_service,
+    get_asymmetric_share_service,
 )
 from salus.exceptions import ConflictError
 from salus.models.user import User
@@ -15,6 +16,7 @@ from salus.services._helpers import uid
 from salus.services.api_token import ApiTokenService
 from salus.services.metric_type import MetricTypeService
 from salus.services.user import UserService
+from salus.services.asymmetric_share import AsymmetricShareService
 
 router = APIRouter()
 
@@ -25,6 +27,7 @@ def _settings_context(
     user_svc: UserService,
     metric_svc: MetricTypeService,
     api_token_svc: ApiTokenService | None = None,
+    share_svc: AsymmetricShareService | None = None,
     **extra,
 ) -> dict:
     user_id = uid(current_user)
@@ -32,16 +35,36 @@ def _settings_context(
     metrics = metric_svc.find_all(user_id)
     connected_providers = [i.provider for i in identities]
     api_tokens = api_token_svc.list_tokens(user_id) if api_token_svc else []
+    
+    recipients = []
+    shares = []
+    if share_svc:
+        recipients = share_svc.list_recipients(user_id)
+        shares = share_svc.list_shares(user_id)
+        
     return {
         "current_user": current_user,
         "identities": identities,
         "connected_providers": connected_providers,
         "metrics": metrics,
         "api_tokens": api_tokens,
+        "recipients": recipients,
+        "shares": shares,
         "error": None,
         "success": None,
         **extra,
     }
+
+
+def _render_settings_tab(request: Request, tab_name: str, context: dict):
+    context["active_tab"] = tab_name
+    if request.headers.get("HX-Request"):
+        return request.app.state.templates.TemplateResponse(
+            request, f"pages/settings_tabs/{tab_name}.html", context
+        )
+    return request.app.state.templates.TemplateResponse(
+        request, "pages/settings.html", context
+    )
 
 
 @router.get("", response_class=HTMLResponse)
@@ -53,7 +76,32 @@ async def settings_page(
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
 ):
     context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc)
-    return request.app.state.templates.TemplateResponse(request, "pages/settings.html", context)
+    return _render_settings_tab(request, "account", context)
+
+
+@router.get("/privacy", response_class=HTMLResponse)
+async def settings_privacy_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+):
+    context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc)
+    return _render_settings_tab(request, "privacy", context)
+
+
+@router.get("/shares", response_class=HTMLResponse)
+async def settings_shares_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    share_svc: AsymmetricShareService = Depends(get_asymmetric_share_service),
+):
+    context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc, share_svc)
+    return _render_settings_tab(request, "shares", context)
 
 
 @router.post("/change-password")
@@ -73,13 +121,13 @@ async def change_password(
             request, current_user, user_svc, metric_svc, api_token_svc,
             error=exc.message,
         )
-        return request.app.state.templates.TemplateResponse(request, "pages/settings.html", context)
+        return _render_settings_tab(request, "account", context)
 
     context = _settings_context(
         request, current_user, user_svc, metric_svc, api_token_svc,
         success="Password changed successfully.",
     )
-    return request.app.state.templates.TemplateResponse(request, "pages/settings.html", context)
+    return _render_settings_tab(request, "account", context)
 
 
 @router.get("/api-tokens/new", response_class=HTMLResponse)

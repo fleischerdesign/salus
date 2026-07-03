@@ -37,8 +37,10 @@ class TestExportService:
             "/api/v1/metrics",
             json={"name": "Weight", "unit": "kg", "data_type": "number"},
         )
-        response = authenticated_client.get("/settings")
-        assert response.status_code == 200
-        assert "Data Management" in response.text
-        assert "Export Data" in response.text
-        assert "Connected Sources" in response.text
+        response_acc = authenticated_client.get("/settings")
+        assert response_acc.status_code == 200
+        assert "Connected Sources" in response_acc.text
+
+        response_shares = authenticated_client.get("/settings/shares")
+        assert response_shares.status_code == 200
+        assert "Data Export" in response_shares.text

@@ -32,7 +32,7 @@ class TestAdminPanel:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/stats")
         assert response.status_code == 200
         html = response.text
         assert "System Statistics" in html
@@ -57,7 +57,7 @@ class TestAdminPanel:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert response.status_code == 200
         html = response.text
         assert "admin" in html
@@ -111,7 +111,7 @@ class TestAdminUserManagement:
             follow_redirects=True,
         )
 
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert "Make Admin" in response.text
 
         response = client.post("/admin/users/2/toggle-admin")
@@ -135,7 +135,7 @@ class TestAdminUserManagement:
             follow_redirects=True,
         )
 
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert "Deactivate" in response.text
 
         response = client.post("/admin/users/2/toggle-active")
@@ -180,7 +180,7 @@ class TestAdminTokens:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert response.status_code == 200
         assert "API Tokens" in response.text
 
@@ -207,7 +207,7 @@ class TestAdminTokens:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert "test-token" in response.text
 
         response = client.delete("/admin/tokens/1")
@@ -252,7 +252,7 @@ class TestAdminStatsAccuracy:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/stats")
         assert "Total Users" in response.text
         assert response.status_code == 200
 
@@ -369,7 +369,7 @@ class TestAdminUserDelete:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/users")
         assert "deleteme" in response.text
 
         response = client.delete("/admin/users/2")
@@ -437,7 +437,7 @@ class TestAdminStorageStats:
             data={"username": "admin", "password": "admin"},
             follow_redirects=True,
         )
-        response = client.get("/admin")
+        response = client.get("/admin/stats")
         assert response.status_code == 200
         assert "Database Size" in response.text
 

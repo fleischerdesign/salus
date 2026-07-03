@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from salus.dependencies import get_current_user, get_asymmetric_share_service
 from salus.models.user import User
@@ -19,23 +19,8 @@ router = APIRouter(tags=["Asymmetric Sharing"])
 # --------------------------------------------------------------------------
 
 @router.get("/share/doctor", response_class=HTMLResponse)
-async def doctor_sharing_page(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    service: AsymmetricShareService = Depends(get_asymmetric_share_service),
-):
-    user_id = uid(current_user)
-    recipients = service.list_recipients(user_id)
-    shares = service.list_shares(user_id)
-    return request.app.state.templates.TemplateResponse(
-        request,
-        "pages/doctor_sharing.html",
-        {
-            "current_user": current_user,
-            "recipients": recipients,
-            "shares": shares,
-        },
-    )
+async def doctor_sharing_page(request: Request):
+    return RedirectResponse(url="/settings/shares", status_code=307)
 
 
 @router.get("/share/doctor/{share_id}", response_class=HTMLResponse)
