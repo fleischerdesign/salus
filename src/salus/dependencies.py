@@ -39,6 +39,7 @@ from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.repositories.insight import InsightRepository
 from salus.services.sharing import SharingService
+from salus.services.leaderboard import LeaderboardService
 from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LlmProviderFactory
 from salus.services.insight.service import InsightService
@@ -486,3 +487,9 @@ def get_circadian_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> CircadianService:
     return CircadianService(uow)
+
+
+def get_leaderboard_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> LeaderboardService:
+    return LeaderboardService(uow)

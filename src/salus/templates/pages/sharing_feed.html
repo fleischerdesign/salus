@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Activity Feed") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Community Activity Feed") }}</h1>
+        <p class="text-muted">{{ _("Stay updated on your health connections' daily progress, workouts, and achievements.") }}</p>
+    </div>
+</div>
+
+<div style="max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+    {% for act in activities %}
+    <div class="card" id="activity-card-{{ act.id }}" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span class="material-symbols-outlined" style="font-size:32px; padding:8px; background:var(--color-primary-50); color:var(--color-primary); border-radius:50%;">
+                    {% if act.type == 'workout' %}fitness_center{% elif act.type == 'steps' %}directions_walk{% else %}monitor_weight{% endif %}
+                </span>
+                <div>
+                    <h3 style="margin:0; font-size:15px; font-weight:700;">{{ act.friend_name }}</h3>
+                    <p style="margin:2px 0 0 0; font-size:12px;" class="text-muted">
+                        {% if act.type == 'workout' %}{{ _("Completed a Workout") }}{% elif act.type == 'steps' %}{{ _("Hit Steps Goal") }}{% else %}{{ _("Logged Weight") }}{% endif %} &bull; {{ act.time.strftime('%H:%M') if act.time else '' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding-left: 60px;">
+            {% if act.type == 'workout' %}
+                <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:600; color:var(--color-slate-800);">{{ act.title }}</h4>
+                {% if act.notes %}
+                    <p style="margin:0; font-size:13px; font-style:italic;" class="text-muted">"{{ act.notes }}"</p>
+                {% endif %}
+            {% elif act.type == 'steps' %}
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                    <span style="font-size:28px; font-weight:800; color:var(--color-primary); font-family:var(--font-family-mono);">{{ act.value }}</span>
+                    <span style="font-size:14px; font-weight:600;" class="text-muted">{{ _("steps today") }}</span>
+                </div>
+                <div style="margin-top:8px; background:var(--color-slate-100); height:8px; border-radius:4px; overflow:hidden;">
+                    <div style="background:var(--color-primary); height:100%; width:{{ (act.value / 10000 * 100)|min(100) }}%;"></div>
+                </div>
+            {% elif act.type == 'weight' %}
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                    <span style="font-size:28px; font-weight:800; color:var(--color-secondary); font-family:var(--font-family-mono);">{{ act.value }}</span>
+                    <span style="font-size:14px; font-weight:600;" class="text-muted">kg</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--color-slate-200); margin: 0;">
+
+        <!-- Actions (Interactive Kudos) -->
+        <div style="display:flex; align-items:center; gap:16px; padding-left: 60px;">
+            <button class="btn-ghost btn-sm" style="display:flex; align-items:center; gap:6px; font-weight:600; transition:all 0.15s ease;"
+                    onclick="const countEl = this.querySelector('.kudos-count'); let count = parseInt(countEl.innerText); if (this.classList.toggle('kudos-active')) { count++; this.style.color='var(--color-primary)'; this.querySelector('.material-symbols-outlined').style.fontVariationSettings='\'FILL\' 1'; } else { count--; this.style.color=''; this.querySelector('.material-symbols-outlined').style.fontVariationSettings=''; } countEl.innerText = count;">
+                <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+                {{ _("Kudos") }} (<span class="kudos-count">0</span>)
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="text-align:center; padding:48px 24px;" class="text-muted">
+        <span class="material-symbols-outlined" style="font-size:64px; color:var(--color-slate-300);">feed</span>
+        <h3 style="margin:16px 0 8px 0; font-size:18px; font-weight:700;">{{ _("Your Feed is Quiet") }}</h3>
+        <p style="margin:0 0 24px 0; font-size:14px;" class="text-muted">
+            {{ _("Connect with peers in your connections tab to see their workouts and steps here.") }}
+        </p>
+        <a href="/sharing/connections" class="btn" style="text-decoration:none;">{{ _("Manage Connections") }}</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

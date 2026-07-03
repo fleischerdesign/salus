@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ group.name }}{% endblock %}
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; display:flex; flex-direction:column; gap:24px;">
+    
+    <!-- Header with Back Button and Quick Stats -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--color-slate-100); padding-bottom:16px;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+            <a href="/sharing/leaderboard" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--color-primary); text-decoration:none; margin-bottom:4px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+                {{ _("Back to Challenges") }}
+            </a>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:32px;">
+                    {% if group.metric_type_code == 'steps' %}footprint
+                    {% elif group.metric_type_code == 'workouts' %}fitness_center
+                    {% elif group.metric_type_code == 'sleep' %}bedtime
+                    {% elif group.metric_type_code == 'water' %}local_drink
+                    {% else %}leaderboard{% endif %}
+                </span>
+                <h1 style="margin:0; font-size:24px; font-weight:800; color:var(--color-slate-900);">{{ group.name }}</h1>
+            </div>
+            <p class="text-muted" style="margin:0; font-size:13px; display:flex; align-items:center; gap:6px;">
+                <span style="text-transform: capitalize;">{{ group.time_frame }} {{ _("Challenge") }}</span> •
+                <span>{{ _("Active From") }} {{ start_date.strftime('%b %d, %Y') }} {{ _("to") }} {{ end_date.strftime('%b %d, %Y') }}</span>
+            </p>
+        </div>
+        
+        <!-- Invite Code Widget -->
+        <div class="card" style="padding:12px 16px; margin:0; display:flex; align-items:center; gap:12px; background:var(--color-slate-50); border-color:var(--color-slate-200);">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--color-slate-400); letter-spacing:0.5px;">{{ _("Challenge Invite Code") }}</span>
+                <span style="font-size:14px; font-weight:800; font-family:var(--font-family-mono); color:var(--color-slate-800);">{{ group.invite_code }}</span>
+            </div>
+            <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="navigator.clipboard.writeText('{{ group.invite_code }}'); const original=this.innerText; this.innerText='{{ _("Copied!") }}'; setTimeout(()=>this.innerText=original, 2000)">
+                {{ _("Copy") }}
+            </button>
+        </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+        <div style="padding:16px 24px; border-bottom:1px solid var(--color-slate-200); background:var(--color-slate-50); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--color-slate-800);">{{ _("Leaderboard Standings") }}</h3>
+            <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--color-primary); letter-spacing:0.5px;">{{ group.metric_type_code }}</span>
+        </div>
+        
+        <div style="display:flex; flex-direction:column;">
+            {% for r in rankings %}
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid var(--color-slate-100);
+                        {% if r.is_me %}background:var(--color-primary-fixed);{% endif %}">
+                
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <!-- Rank Column -->
+                    <div style="width:32px; display:flex; justify-content:center; align-items:center; font-weight:800; font-size:16px;">
+                        {% if loop.index == 1 %}
+                            <span class="material-symbols-outlined" style="color:#d4af37; font-size:26px; font-variation-settings:'FILL' 1;">workspace_premium</span>
+                        {% elif loop.index == 2 %}
+                            <span class="material-symbols-outlined" style="color:#aaa9ad; font-size:26px; font-variation-settings:'FILL' 1;">workspace_premium</span>
+                        {% elif loop.index == 3 %}
+                            <span class="material-symbols-outlined" style="color:#b08d57; font-size:26px; font-variation-settings:'FILL' 1;">workspace_premium</span>
+                        {% else %}
+                            <span style="color:var(--color-slate-400);">{{ loop.index }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Username / Handle Info -->
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-weight:700; font-size:14px; color:var(--color-slate-800);">
+                            {{ r.username }}
+                        </span>
+                        {% if r.is_me %}
+                            <span style="font-size:10px; font-weight:700; background:var(--color-primary); color:#fff; padding:2px 6px; border-radius:10px; text-transform:uppercase;">
+                                {{ _("You") }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Score Formatting -->
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px; font-weight:800; color:var(--color-slate-800); font-family:var(--font-family-mono);">
+                        {% if group.metric_type_code == 'steps' %}
+                            {{ "{:,}".format(r.score|int) }}
+                        {% elif group.metric_type_code == 'workouts' %}
+                            {{ r.score|int }}
+                        {% elif group.metric_type_code == 'sleep' %}
+                            {{ "%.1f"|format(r.score) }}
+                        {% elif group.metric_type_code == 'water' %}
+                            {{ "%.0f"|format(r.score) }}
+                        {% else %}
+                            {{ r.score }}
+                        {% endif %}
+                    </span>
+                    <span style="font-size:12px; font-weight:600;" class="text-muted">
+                        {% if group.metric_type_code == 'steps' %}{{ _("steps") }}
+                        {% elif group.metric_type_code == 'workouts' %}{{ _("workouts") }}
+                        {% elif group.metric_type_code == 'sleep' %}{{ _("hours avg") }}
+                        {% elif group.metric_type_code == 'water' %}{{ _("ml") }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Action Footer -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <span style="font-size:12px; font-weight:500;" class="text-muted">
+            {{ _("Created by") }} <strong>@{{ group.creator.username }}</strong>
+        </span>
+        
+        <div style="display:flex; gap:12px;">
+            {% if group.creator_id == current_user.id %}
+            <form method="post" action="/sharing/leaderboard/{{ group.id }}/delete" onsubmit="return confirm('{{ _("Are you absolutely sure you want to delete and disband this challenge?") }}');">
+                <button type="submit" class="btn btn-danger" style="display:flex; align-items:center; gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                    {{ _("Disband Challenge") }}
+                </button>
+            </form>
+            {% else %}
+            <form method="post" action="/sharing/leaderboard/{{ group.id }}/leave" onsubmit="return confirm('{{ _("Are you sure you want to leave this challenge?") }}');">
+                <button type="submit" class="btn btn-secondary" style="display:flex; align-items:center; gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">logout</span>
+                    {{ _("Leave Challenge") }}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

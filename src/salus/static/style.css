@@ -13,6 +13,7 @@
    -------------------------------------------------------------------------- */
 
 :root {
+    color-scheme: light;
     /* ---- Colors ---- */
     --color-surface: #f8f9ff;
     --color-surface-dim: #cbdbf5;
@@ -2099,6 +2100,7 @@ button {
 /* ---- Dark Mode ---- */
 @media (prefers-color-scheme: dark) {
     :root {
+        color-scheme: dark;
         /* Surface / Background */
         --color-surface: #0f172a;
         --color-surface-dim: #1e293b;
@@ -2182,6 +2184,7 @@ button {
 
 /* ---- Manual Theme Override ---- */
 [data-theme="dark"] {
+    color-scheme: dark;
     --color-surface: #0f172a;
     --color-surface-dim: #1e293b;
     --color-surface-bright: #1a2332;
@@ -2250,6 +2253,7 @@ button {
 }
 
 [data-theme="light"] {
+    color-scheme: light;
     --color-surface: #f8f9ff;
     --color-surface-dim: #cbdbf5;
     --color-surface-bright: #f8f9ff;

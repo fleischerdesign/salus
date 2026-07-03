@@ -27,7 +27,7 @@ from salus.models.dashboard import DashboardWidget
 from salus.models.api_token import ApiToken
 from salus.models.system_config import SystemConfig
 from salus.models.insight import Insight
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import SharingRelationship, LeaderboardGroup, LeaderboardMember
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, WorkoutSession, WorkoutLogEntry
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile

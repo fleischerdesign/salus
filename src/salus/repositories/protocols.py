@@ -10,7 +10,7 @@ from salus.models import MetricType
 from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import SharingRelationship, LeaderboardGroup, LeaderboardMember
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
@@ -240,3 +240,23 @@ class ICircadianProfileRepository(IRepository[CircadianProfile], Protocol):
     def find_by_user(self, user_id: int) -> CircadianProfile | None:
         ...
 
+
+@runtime_checkable
+class ILeaderboardGroupRepository(IRepository[LeaderboardGroup], Protocol):
+    def find_by_creator(self, creator_id: int) -> list[LeaderboardGroup]:
+        ...
+
+    def find_by_invite_code(self, code: str) -> LeaderboardGroup | None:
+        ...
+
+    def find_joined_by_user(self, user_handle: str) -> list[LeaderboardGroup]:
+        ...
+
+
+@runtime_checkable
+class ILeaderboardMemberRepository(IRepository[LeaderboardMember], Protocol):
+    def find_by_group_id(self, group_id: int) -> list[LeaderboardMember]:
+        ...
+
+    def get_member(self, group_id: int, user_handle: str) -> LeaderboardMember | None:
+        ...

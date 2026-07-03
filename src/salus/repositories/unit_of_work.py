@@ -25,6 +25,8 @@ from salus.repositories.protocols import (
     IShareRecipientRepository,
     IAsymmetricShareRepository,
     ICircadianProfileRepository,
+    ILeaderboardGroupRepository,
+    ILeaderboardMemberRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -40,9 +42,11 @@ from salus.repositories.asymmetric_share import (
     AsymmetricShareRepository,
 )
 from salus.repositories.circadian import CircadianProfileRepository
+from salus.repositories.leaderboard import LeaderboardGroupRepository, LeaderboardMemberRepository
 
 
 class IUnitOfWork(Protocol):
+    session: Session
     users: IUserRepository
     identities: IUserIdentityRepository
     metric_types: IMetricTypeRepository
@@ -59,6 +63,8 @@ class IUnitOfWork(Protocol):
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
     circadian_profiles: ICircadianProfileRepository
+    leaderboard_groups: ILeaderboardGroupRepository
+    leaderboard_members: ILeaderboardMemberRepository
 
     def __enter__(self) -> "IUnitOfWork":
         ...
@@ -90,6 +96,8 @@ class SqlUnitOfWork:
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
     circadian_profiles: ICircadianProfileRepository
+    leaderboard_groups: ILeaderboardGroupRepository
+    leaderboard_members: ILeaderboardMemberRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -109,6 +117,8 @@ class SqlUnitOfWork:
         self.share_recipients = ShareRecipientRepository(session)
         self.asymmetric_shares = AsymmetricShareRepository(session)
         self.circadian_profiles = CircadianProfileRepository(session)
+        self.leaderboard_groups = LeaderboardGroupRepository(session)
+        self.leaderboard_members = LeaderboardMemberRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

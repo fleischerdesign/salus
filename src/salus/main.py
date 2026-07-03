@@ -46,7 +46,15 @@ NAV_ITEMS = [
             {"path": "/insights", "icon": "chat", "label": "Chat"},
         ]
     },
-    {"path": "/sharing", "icon": "group", "label": "Community"}
+    {
+        "label": "Community",
+        "icon": "group",
+        "children": [
+            {"path": "/sharing/feed", "icon": "feed", "label": "Feed"},
+            {"path": "/sharing/leaderboard", "icon": "leaderboard", "label": "Leaderboard"},
+            {"path": "/sharing/connections", "icon": "contacts", "label": "Connections"},
+        ]
+    }
 ]
 
 
