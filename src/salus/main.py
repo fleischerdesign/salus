@@ -33,7 +33,7 @@ NAV_ITEMS = [
         "label": "Workouts",
         "icon": "fitness_center",
         "children": [
-            {"path": "/workouts", "icon": "assignment", "label": "Plans"},
+            {"path": "/workouts/plans", "icon": "assignment", "label": "Plans"},
             {"path": "/workouts/exercises", "icon": "list", "label": "Exercises"},
             {"path": "/workouts/sessions/active", "icon": "play_circle", "label": "Active"},
         ]

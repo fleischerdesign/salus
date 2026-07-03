@@ -24,6 +24,11 @@ router = APIRouter(tags=["Workouts"])
 # --------------------------------------------------------------------------
 
 @router.get("/workouts", response_class=HTMLResponse)
+async def workouts_redirect(request: Request):
+    return RedirectResponse("/workouts/plans", status_code=303)
+
+
+@router.get("/workouts/plans", response_class=HTMLResponse)
 async def workouts_page(
     request: Request,
     current_user: User = Depends(get_current_user),
@@ -103,7 +108,7 @@ async def workouts_create_plan_post(
         exercises=exercises
     )
     service.create_plan(user_id=uid(current_user), data=plan_data)
-    return RedirectResponse("/workouts", status_code=303)
+    return RedirectResponse("/workouts/plans", status_code=303)
 
 @router.get("/workouts/exercises", response_class=HTMLResponse)
 async def list_exercises_page(
@@ -163,7 +168,7 @@ async def workouts_create_exercise_post(
         service.create_exercise(user_id=uid(current_user), data=ex_data)
     except ValueError:
         pass
-    return RedirectResponse("/workouts", status_code=303)
+    return RedirectResponse("/workouts/exercises", status_code=303)
 
 
 @router.post("/workouts/sessions/start", response_class=HTMLResponse)
@@ -185,7 +190,7 @@ async def active_session_page(
     user_id = uid(current_user)
     active_session = service.get_active_session(user_id)
     if not active_session:
-        return RedirectResponse("/workouts", status_code=303)
+        return RedirectResponse("/workouts/plans", status_code=303)
         
     targets = []
     if active_session.plan_id:
@@ -210,7 +215,7 @@ async def complete_session_post(
     service: WorkoutService = Depends(get_workout_service),
 ):
     service.complete_session(user_id=uid(current_user), session_id=session_id, notes=notes)
-    return RedirectResponse("/workouts", status_code=303)
+    return RedirectResponse("/workouts/plans", status_code=303)
 
 
 # --------------------------------------------------------------------------
