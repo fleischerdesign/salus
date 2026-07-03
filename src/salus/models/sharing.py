@@ -28,6 +28,7 @@ class SharingRelationship(SQLModel, table=True):
     api_token_hash: Optional[str] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_sync_at: Optional[datetime] = Field(default=None)
 
     @property
     def is_active(self) -> bool:

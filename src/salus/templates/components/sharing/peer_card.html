@@ -8,6 +8,17 @@
                     <span class="chip chip-neutral peer-remote-tag"><span class="material-symbols-outlined" style="font-size:14px">public</span> {{ _("Remote") }}</span>
                     {% endif %}
                 </h3>
+                {% if peer.is_remote and peer.last_sync %}
+                <div style="font-size:11px;color:var(--color-slate-500);margin-top:2px;display:flex;align-items:center;gap:4px;">
+                    <span class="material-symbols-outlined" style="font-size:12px">sync</span>
+                    {{ _("Last sync") }}: {{ peer.last_sync }}
+                </div>
+                {% elif peer.is_remote %}
+                <div style="font-size:11px;color:var(--color-slate-400);margin-top:2px;display:flex;align-items:center;gap:4px;">
+                    <span class="material-symbols-outlined" style="font-size:12px">sync_disabled</span>
+                    {{ _("Not synced yet") }}
+                </div>
+                {% endif %}
             </div>
         </div>
         <span class="peer-badge

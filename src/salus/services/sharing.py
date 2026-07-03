@@ -37,6 +37,22 @@ class SharingService:
     def _is_remote(handle: str) -> bool:
         return ":" in handle
 
+    @staticmethod
+    def _format_sync_age(sync_time: datetime) -> str:
+        delta = datetime.now(timezone.utc) - sync_time
+        seconds = int(delta.total_seconds())
+        if seconds < 60:
+            return "just now"
+        elif seconds < 3600:
+            mins = seconds // 60
+            return f"{mins} min ago"
+        elif seconds < 86400:
+            hours = seconds // 3600
+            return f"{hours}h ago"
+        else:
+            days = seconds // 86400
+            return f"{days}d ago"
+
     # ------------------------------------------------------------------
     # Relationship CRUD
     # ------------------------------------------------------------------
@@ -187,6 +203,8 @@ class SharingService:
             all_outgoing = self.uow.sharing_relationships.find_by_owner(user_id)
             all_incoming = self.uow.sharing_relationships.find_by_grantee(user_handle)
 
+            peer_sync_times: dict[str, datetime] = {}
+
             for rel in all_outgoing:
                 handle = rel.grantee_handle
                 peer = _ensure_peer(handle, self._is_remote(handle))
@@ -212,6 +230,10 @@ class SharingService:
                 if (rel_is_active or rel_is_pending) and rel.api_token_hash and self._is_remote(handle):
                     # We do not expose the hashed API token in the peer list for security (G4)
                     peer.api_token = None
+                if rel.last_sync_at:
+                    key = _peer_key(handle)
+                    if key not in peer_sync_times or rel.last_sync_at > peer_sync_times[key]:
+                        peer_sync_times[key] = rel.last_sync_at
 
             for rel in all_incoming:
                 if not rel.owner:
@@ -243,6 +265,9 @@ class SharingService:
             has_out = any(m.direction == "outgoing" for m in peer.metrics)
             has_in = any(m.direction == "incoming" for m in peer.metrics)
             peer.is_mutual = has_out and has_in
+            if peer.is_remote:
+                sync_time = peer_sync_times.get(_peer_key(peer.handle))
+                peer.last_sync = self._format_sync_age(sync_time) if sync_time else None
 
         return list(peers.values())
 
@@ -979,10 +1004,14 @@ class SharingService:
             )
             relationships = self.uow.session.exec(stmt).all()
 
+            now = datetime.now(timezone.utc)
             remote_grantees = []
             for rel in relationships:
                 if self._is_remote(rel.grantee_handle):
+                    rel.last_sync_at = now
+                    self.uow.sharing_relationships.update(rel)
                     remote_grantees.append((rel.grantee_handle, rel.api_token_hash))
+            self.uow.commit()
 
         import threading
         for handle, token_hash in remote_grantees:

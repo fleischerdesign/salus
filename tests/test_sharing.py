@@ -623,7 +623,7 @@ def test_sharing_post_route():
             follow_redirects=False,
         )
         assert response.status_code == 200
-        assert "Sharing Invitation Created!" in response.text
+        assert "Sharing Invitation Created for" in response.text
 
         with uow:
             rels = uow.sharing_relationships.find_by_owner(owner_id)
