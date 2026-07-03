@@ -1,14 +1,15 @@
+import io
 import logging
 from datetime import datetime, timezone
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Form, Request, HTTPException, Security, Query
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import select
 
 from salus.dependencies import get_current_user, get_sharing_service, get_metric_type_service, get_leaderboard_service
 from salus.models.user import User
-from salus.models.sharing import ConnectionStatus, SharingRelationship
+from salus.models.sharing import ConnectionStatus, FederatedAccessLog, SharingRelationship
 from salus.services._helpers import uid
 from salus.services.sharing import SharingService
 from salus.services.metric_type import MetricTypeService
@@ -244,6 +245,25 @@ def _build_connections_context(
     }
 
 
+@router.get("/sharing/access-log", response_class=HTMLResponse)
+async def sharing_access_log_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    sharing_svc: SharingService = Depends(get_sharing_service),
+):
+    with sharing_svc.uow:
+        stmt = select(FederatedAccessLog).where(
+            FederatedAccessLog.owner_id == uid(current_user)
+        ).order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        logs = sharing_svc.uow.session.exec(stmt).all()
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "pages/sharing_access_log.html",
+        {"current_user": current_user, "logs": logs},
+    )
+
+
 @router.get("/sharing/connections", response_class=HTMLResponse)
 async def sharing_connections_page(
     request: Request,
@@ -367,7 +387,9 @@ async def delete_sharing(
         sharing_svc.deactivate_relationship(uid(current_user), relationship_id)
     except NotFoundError:
         pass
-    return HTMLResponse(content="")
+    response = HTMLResponse(content="")
+    response.headers["HX-Refresh"] = "true"
+    return response
 
 
 @router.get("/sharing/connections/invite-modal", response_class=HTMLResponse)
@@ -385,6 +407,19 @@ async def invite_modal(
             "connect_url": connect_url,
         },
     )
+
+
+@router.get("/sharing/connections/invite-qr", response_class=StreamingResponse)
+async def invite_qr(
+    url: str = Query(...),
+):
+    import qrcode
+
+    img = qrcode.make(url, border=2)
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="image/png")
 
 
 # ---------------------------------------------------------------------------

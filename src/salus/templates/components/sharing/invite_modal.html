@@ -5,7 +5,7 @@
         {{ _("Share this QR code or link with a peer to let them connect with you.") }}
     </p>
     <div class="qr-image-wrapper">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ connect_url|urlencode }}"
+        <img src="/sharing/connections/invite-qr?url={{ connect_url|urlencode }}"
              alt="QR Invitation Code"
              class="qr-image">
     </div>

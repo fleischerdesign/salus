@@ -121,4 +121,13 @@
     </div>
     {% endif %}
 </div>
+
+{% if peers %}
+<div style="margin-top:16px;text-align:right;">
+    <a href="/sharing/access-log" class="btn btn-secondary btn-sm">
+        <span class="material-symbols-outlined" style="font-size:16px">visibility</span>
+        {{ _("View Access Log") }}
+    </a>
+</div>
+{% endif %}
 {% endblock %}

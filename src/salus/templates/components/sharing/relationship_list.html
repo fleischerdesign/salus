@@ -5,7 +5,7 @@
             <th>{{ _("Metric") }}</th>
             <th>{{ _("Aggregation") }}</th>
             <th>{{ _("Expiration") }}</th>
-            <th>{{ _("Security Token") }}</th>
+            <th>{{ _("Status") }}</th>
             <th></th>
         </tr>
     </thead>
@@ -45,7 +45,7 @@
                         hx-target="#sharing-relationship-container"
                         hx-swap="innerHTML"
                         style="color:var(--color-danger-600);border-color:transparent;">
-                    Revoke
+                    {{ _("Revoke") }}
                 </button>
                 {% endif %}
             </td>
@@ -53,7 +53,7 @@
         {% else %}
         <tr>
             <td colspan="6" class="text-muted" style="text-align:center;padding:24px;">
-                You are not sharing any metrics yet.
+                {{ _("You are not sharing any metrics yet.") }}
             </td>
         </tr>
         {% endfor %}

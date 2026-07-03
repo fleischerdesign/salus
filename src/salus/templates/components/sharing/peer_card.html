@@ -5,7 +5,7 @@
             <div>
                 <h3 class="peer-name">{{ peer.handle }}
                     {% if peer.is_remote %}
-                    <span class="chip chip-neutral peer-remote-tag">🌐 {{ _("Remote") }}</span>
+                    <span class="chip chip-neutral peer-remote-tag"><span class="material-symbols-outlined" style="font-size:14px">public</span> {{ _("Remote") }}</span>
                     {% endif %}
                 </h3>
             </div>
@@ -70,7 +70,7 @@
             </button>
         </span>
         {% endif %}
-        {% if not peer.is_pending and peer.is_mutual or (peer.metrics and peer.metrics[0].direction == 'outgoing') %}
+        {% if not peer.is_pending and (peer.is_mutual or (peer.metrics and peer.metrics[0].direction == 'outgoing')) %}
         <button class="btn-ghost btn-sm peer-revoke-all"
                 hx-delete="/sharing/{{ peer.metrics[0].relationship_id }}"
                 hx-confirm="{{ _('Revoke all sharing with') }} {{ peer.handle }}?"

@@ -974,7 +974,7 @@ def test_invite_modal_route():
     with TestClient(app) as client:
         response = client.get("/sharing/connections/invite-modal")
         assert response.status_code == 200
-        assert "qrserver.com" in response.text
+        assert "/sharing/connections/invite-qr" in response.text
 
     app.dependency_overrides.clear()
 

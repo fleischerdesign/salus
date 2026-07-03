@@ -55,6 +55,7 @@ NAV_ITEMS = [
             {"path": "/sharing/feed", "icon": "feed", "label": "Feed"},
             {"path": "/sharing/leaderboard", "icon": "leaderboard", "label": "Leaderboard"},
             {"path": "/sharing/connections", "icon": "contacts", "label": "Connections"},
+            {"path": "/sharing/access-log", "icon": "visibility", "label": "Access Log"},
         ]
     }
 ]

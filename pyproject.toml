@@ -20,6 +20,7 @@ dependencies = [
     "psycopg2-binary>=2.9",
     "bcrypt>=4.0",
     "alembic>=1.18.5",
+    "qrcode[pil]>=7.0",
 ]
 
 [project.scripts]
