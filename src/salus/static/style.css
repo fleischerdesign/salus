@@ -2619,9 +2619,9 @@ button {
 }
 
 .tabbed-sidebar {
-    background: var(--color-surface-container-low, #eff4ff);
-    border-radius: 12px;
-    border: 1px solid var(--color-outline-variant, #c7c4d8);
+    background: var(--level-1-card);
+    border-radius: var(--radius-default);
+    border: 1px solid var(--color-slate-200);
     padding: 16px;
     display: flex;
     flex-direction: column;

@@ -28,12 +28,13 @@ NAV_ITEMS = [
     {"path": "/", "icon": "dashboard", "label": "Dashboard", "exact": True},
     {"path": "/entries", "icon": "description", "label": "Logbook"},
     {"path": "/analytics", "icon": "bar_chart", "label": "Analytics"},
+    {"path": "/goals", "icon": "track_changes", "label": "Goals"},
     {
         "label": "Workouts",
         "icon": "fitness_center",
         "children": [
             {"path": "/workouts", "icon": "assignment", "label": "Plans"},
-            {"path": "/workouts/exercises/new", "icon": "list", "label": "Exercises"},
+            {"path": "/workouts/exercises", "icon": "list", "label": "Exercises"},
             {"path": "/workouts/sessions/active", "icon": "play_circle", "label": "Active"},
         ]
     },
@@ -43,7 +44,6 @@ NAV_ITEMS = [
         "children": [
             {"path": "/circadian", "icon": "light_mode", "label": "Circadian"},
             {"path": "/insights", "icon": "chat", "label": "Chat"},
-            {"path": "/goals", "icon": "track_changes", "label": "Goals"},
         ]
     },
     {"path": "/sharing", "icon": "group", "label": "Community"}

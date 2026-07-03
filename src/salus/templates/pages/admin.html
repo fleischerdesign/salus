@@ -7,7 +7,7 @@
 
 <div class="tabbed-layout">
     <!-- Left Sidebar Sub-Navigation -->
-    <aside class="tabbed-sidebar">
+    <aside class="tabbed-sidebar" onclick="const a = event.target.closest('.tabbed-sidebar-link'); if(a){ this.querySelectorAll('.tabbed-sidebar-link').forEach(el => el.classList.remove('active')); a.classList.add('active'); }">
         <a hx-get="/admin" hx-target="#admin-content" hx-push-url="true"
            class="tabbed-sidebar-link {% if active_tab == 'general' %}active{% endif %}">
             <span class="material-symbols-outlined">settings</span>

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ _("Exercises") }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ _("Exercise Library") }}</h1>
+        <p class="text-muted">{{ _("Browse cataloged movements or add custom exercises to use in your training plans.") }}</p>
+    </div>
+    <div>
+        <button class="btn"
+                hx-get="/workouts/exercises/new"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            {{ _("New Exercise") }}
+        </button>
+    </div>
+</div>
+
+<div id="modal-container"></div>
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
+            {% for ex in exercises %}
+            <div style="padding:10px 14px;border:1px solid var(--color-slate-150);border-radius:6px;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                <div>
+                    <div style="font-weight:600;font-size:14px;color:var(--color-slate-800);">{{ ex.name }}</div>
+                    <div style="font-size:11px;" class="text-muted">
+                        <span style="text-transform:capitalize;">{{ ex.equipment }}</span> &bull; 
+                        Target: <span style="text-transform:capitalize;color:var(--color-primary-700);">{{ ex.primary_muscles.replace(',', ', ') }}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:4px;">
+                    {% if ex.video_url %}
+                    <a href="{{ ex.video_url }}" target="_blank" class="btn-ghost btn-sm" title="Watch tutorial">
+                        <span class="material-symbols-outlined" style="font-size:18px;">smart_display</span>
+                    </a>
+                    {% endif %}
+                    {% if ex.user_id %}
+                    <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);"
+                            hx-delete="/api/v1/workouts/exercises/{{ ex.id }}"
+                            hx-swap="none"
+                            onclick="setTimeout(() => window.location.reload(), 200)">
+                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted" style="text-align:center;">{{ _("No exercises cataloged.") }}</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

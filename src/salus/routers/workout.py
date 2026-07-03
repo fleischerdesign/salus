@@ -105,6 +105,24 @@ async def workouts_create_plan_post(
     service.create_plan(user_id=uid(current_user), data=plan_data)
     return RedirectResponse("/workouts", status_code=303)
 
+@router.get("/workouts/exercises", response_class=HTMLResponse)
+async def list_exercises_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    user_id = uid(current_user)
+    exercises = service.get_exercise_catalog(user_id)
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "pages/exercises.html",
+        {
+            "current_user": current_user,
+            "exercises": exercises,
+        },
+    )
+
+
 
 @router.get("/workouts/exercises/new", response_class=HTMLResponse)
 async def new_exercise_modal(
