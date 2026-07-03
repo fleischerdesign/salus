@@ -25,7 +25,7 @@ class SharingRelationship(SQLModel, table=True):
     aggregation_level: str = Field(default="daily_summary")  # "raw" or "daily_summary"
     expiration_date: Optional[datetime] = Field(default=None)
     status: str = Field(default=ConnectionStatus.PENDING.value)
-    api_token_hash: Optional[str] = Field(default=None)
+    api_token_hash: Optional[str] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -67,3 +67,26 @@ class LeaderboardMember(SQLModel, table=True):
 
     # Relationships
     group: "LeaderboardGroup" = Relationship(back_populates="members")
+
+
+class FederatedMeasurementCache(SQLModel, table=True):
+    __tablename__ = "federated_measurement_cache"  # pyright: ignore[reportAssignmentType]
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    owner_handle: str = Field(index=True)  # e.g. @alice:domain
+    data_type: str = Field(index=True)      # e.g. steps, weight
+    date_str: str = Field(index=True)       # e.g. 2026-07-03
+    value_numeric: Optional[float] = Field(default=None)
+    value_json: Optional[str] = Field(default=None)
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class FederatedAccessLog(SQLModel, table=True):
+    __tablename__ = "federated_access_log"  # pyright: ignore[reportAssignmentType]
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    owner_id: int = Field(foreign_key="user.id")
+    requester_handle: str
+    data_type: str
+    target_date: str
+    accessed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

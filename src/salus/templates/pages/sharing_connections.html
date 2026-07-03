@@ -19,6 +19,27 @@
 
 <div id="modal-container"></div>
 
+{% if new_tokens %}
+<div class="alert alert-success" role="alert" style="display:block; margin-bottom: 24px; padding: 16px; border-radius: 8px;">
+    <h4 style="margin-top:0; margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:8px;">
+        <span class="material-symbols-outlined" style="color:var(--color-success-600)">check_circle</span>
+        {{ _("Sharing Invitation Created!") }}
+    </h4>
+    <p>{{ _("Please copy these security token(s) now. For security reasons, you will not be able to see them again once you leave this page.") }}</p>
+    <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+        {% for item in new_tokens %}
+        <div style="display:flex; align-items:center; gap:8px; background:var(--color-slate-50); padding:8px 12px; border-radius:6px; border:1px solid var(--color-slate-200);">
+            <span class="chip chip-neutral" style="margin:0;">{{ item.metric }}</span>
+            <code id="raw-token-{{ loop.index }}" style="font-size:13px; background:var(--color-slate-100); padding:4px 8px; border-radius:4px; font-family:monospace; flex:1; overflow-x:auto;">{{ item.token }}</code>
+            <button class="btn btn-sm btn-secondary" onclick="navigator.clipboard.writeText('{{ item.token }}'); this.innerText='{{ _("Copied!") }}'; setTimeout(()=>this.innerText='{{ _("Copy") }}', 2000)">
+                {{ _("Copy") }}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 {% if error %}
 <div class="alert alert-error" role="alert">
     <span class="material-symbols-outlined" style="font-size:18px">error</span>

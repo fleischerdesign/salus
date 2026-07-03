@@ -478,7 +478,7 @@ def test_federated_api_endpoint(session: Session):
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
         metric_type_id=metric_id, aggregation_level="raw",
     )
-    token = rel.api_token_hash
+    token = rel.raw_token
 
     with TestClient(app) as client:
         # Pending relationship — should NOT have access yet
@@ -551,7 +551,7 @@ def test_federation_accept_endpoint(session: Session):
         metric_type_id=metric_id,
     )
     assert rel.status == ConnectionStatus.PENDING
-    token = rel.api_token_hash
+    token = rel.raw_token
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
     app.dependency_overrides[get_sharing_service] = lambda: SharingService(uow)
@@ -622,7 +622,8 @@ def test_sharing_post_route():
             },
             follow_redirects=False,
         )
-        assert response.status_code == 303
+        assert response.status_code == 200
+        assert "Sharing Invitation Created!" in response.text
 
         with uow:
             rels = uow.sharing_relationships.find_by_owner(owner_id)
@@ -974,5 +975,368 @@ def test_invite_modal_route():
         response = client.get("/sharing/connections/invite-modal")
         assert response.status_code == 200
         assert "qrserver.com" in response.text
+
+    app.dependency_overrides.clear()
+
+
+def test_federated_measurement_cache_and_ttl():
+    from salus.models.sharing import FederatedMeasurementCache
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    uow = SqlUnitOfWork(Session(engine))
+
+    with uow:
+        user = UserModel(username="bob", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        bob_id = uid(user)
+
+    svc = SharingService(uow)
+
+    # Pre-populate cache for @alice:remote.com
+    with uow:
+        cache_entry = FederatedMeasurementCache(
+            owner_handle="@alice:remote.com",
+            data_type="steps",
+            date_str="2026-07-03",
+            value_json='[{"value_numeric": 8200.0, "data_type": "steps"}]',
+            fetched_at=datetime.now(timezone.utc),
+        )
+        uow.session.add(cache_entry)
+        uow.commit()
+
+    called_remote = False
+    def mock_fetch_remote(handle, data_type, date_str):
+        nonlocal called_remote
+        called_remote = True
+        return []
+    svc._fetch_remote = mock_fetch_remote
+
+    data = svc.resolve_and_fetch(bob_id, "@alice:remote.com", "steps", "2026-07-03")
+    assert len(data) == 1
+    assert data[0]["value_numeric"] == 8200.0
+    assert not called_remote
+
+    # Expire cache (set fetched_at to 20 minutes ago)
+    with uow:
+        from sqlmodel import select
+        from datetime import timedelta
+        entry = uow.session.exec(select(FederatedMeasurementCache)).first()
+        assert entry is not None
+        entry.fetched_at = datetime.now(timezone.utc) - timedelta(minutes=20)
+        uow.session.add(entry)
+        uow.commit()
+
+    svc.resolve_and_fetch(bob_id, "@alice:remote.com", "steps", "2026-07-03")
+    assert called_remote
+
+
+def test_federated_notify_update_route():
+    from salus.main import app
+    from salus.dependencies import get_session, get_sharing_service
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    uow = SqlUnitOfWork(Session(engine))
+
+    with uow:
+        user = UserModel(username="bob", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        bob_id = uid(user)
+
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=bob_id, is_system=True, source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        metric_id = metric.id
+
+    svc = SharingService(uow)
+    rel = svc.create_relationship(
+        owner_id=bob_id, grantee_handle="@alice:remote.com",
+        metric_type_id=metric_id,
+    )
+
+    with uow:
+        db_rel = uow.sharing_relationships.get_by_id(rel.id)
+        assert db_rel is not None
+        db_rel.status = ConnectionStatus.ACTIVE
+        uow.sharing_relationships.update(db_rel)
+        uow.commit()
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_sharing_service] = lambda: svc
+
+    token_hash = rel.api_token_hash
+
+    def mock_fetch_remote(handle, data_type, date_str):
+        return [{"value_numeric": 12000.0}]
+    svc._fetch_remote = mock_fetch_remote
+
+    with TestClient(app) as client:
+        resp = client.post(
+            "/api/v1/federation/notify-update",
+            json={"owner_handle": "@alice:remote.com", "data_type": "steps", "date": "2026-07-03"},
+            headers={"Authorization": "Bearer invalid_hash"},
+        )
+        assert resp.status_code == 401
+
+        resp = client.post(
+            "/api/v1/federation/notify-update",
+            json={"owner_handle": "@alice:remote.com", "data_type": "steps", "date": "2026-07-03"},
+            headers={"Authorization": f"Bearer {token_hash}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
+
+    app.dependency_overrides.clear()
+
+
+def test_webfinger_and_actor_discovery():
+    from salus.main import app
+    from salus.dependencies import get_session, get_sharing_service
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    uow = SqlUnitOfWork(Session(engine))
+
+    with uow:
+        user = UserModel(username="bob", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        bob_id = uid(user)
+
+    svc = SharingService(uow)
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_sharing_service] = lambda: svc
+
+    with TestClient(app) as client:
+        # Invalid resource scheme
+        resp = client.get("/.well-known/webfinger", params={"resource": "invalid_scheme"})
+        assert resp.status_code == 400
+
+        # Non-existing user
+        resp = client.get("/.well-known/webfinger", params={"resource": "acct:alice@testserver"})
+        assert resp.status_code == 404
+
+        # Valid user
+        resp = client.get("/.well-known/webfinger", params={"resource": "acct:bob@testserver"})
+        assert resp.status_code == 200
+        jrd = resp.json()
+        assert jrd["subject"] == "acct:bob@testserver"
+        assert len(jrd["links"]) == 1
+        assert jrd["links"][0]["rel"] == "self"
+        actor_url = jrd["links"][0]["href"]
+        assert "/api/v1/federation/actors/bob" in actor_url
+
+        # Fetch actor profile
+        resp = client.get("/api/v1/federation/actors/bob")
+        assert resp.status_code == 200
+        profile = resp.json()
+        assert profile["preferredUsername"] == "bob"
+        assert profile["endpoints"]["sharing"].endswith("/api/v1/federation/sharing")
+
+        # Non-existing profile
+        resp = client.get("/api/v1/federation/actors/alice")
+        assert resp.status_code == 404
+
+    called_webfinger = False
+    called_actor = False
+
+    def mock_httpx_get(url, *args, **kwargs):
+        nonlocal called_webfinger, called_actor
+        if "/.well-known/webfinger" in url:
+            called_webfinger = True
+            class MockResponse:
+                status_code = 200
+                def json(self):
+                    return {
+                        "subject": "acct:alice@remote.com",
+                        "links": [{"rel": "self", "href": "http://remote.com/api/v1/federation/actors/alice"}]
+                    }
+                def raise_for_status(self):
+                    pass
+            return MockResponse()
+        elif "/actors/alice" in url:
+            called_actor = True
+            class MockResponse:
+                status_code = 200
+                def json(self):
+                    return {
+                        "preferredUsername": "alice",
+                        "endpoints": {
+                            "sharing": "http://remote.com/custom/sharing",
+                            "accept": "http://remote.com/custom/accept",
+                            "notify": "http://remote.com/custom/notify"
+                        }
+                    }
+                def raise_for_status(self):
+                    pass
+            return MockResponse()
+        raise ValueError(f"Unmocked URL: {url}")
+
+    import httpx
+    original_get = httpx.get
+    httpx.get = mock_httpx_get
+
+    try:
+        endpoints = svc._resolve_remote_endpoints("@alice:remote.com")
+        assert called_webfinger
+        assert called_actor
+        assert endpoints["sharing"] == "http://remote.com/custom/sharing"
+        assert endpoints["accept"] == "http://remote.com/custom/accept"
+        assert endpoints["notify"] == "http://remote.com/custom/notify"
+    finally:
+        httpx.get = original_get
+
+    app.dependency_overrides.clear()
+
+
+def test_federated_access_log():
+    from salus.main import app
+    from salus.dependencies import get_session, get_sharing_service, get_current_user
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    uow = SqlUnitOfWork(Session(engine))
+
+    with uow:
+        bob = UserModel(username="bob", password_hash="hash")
+        uow.users.add(bob)
+        uow.commit()
+        bob_id = uid(bob)
+
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=bob_id, is_system=True, source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        metric_id = metric.id
+
+    svc = SharingService(uow)
+    rel = svc.create_relationship(
+        owner_id=bob_id, grantee_handle="@alice:remote.com",
+        metric_type_id=metric_id,
+    )
+
+    with uow:
+        db_rel = uow.sharing_relationships.get_by_id(rel.id)
+        assert db_rel is not None
+        db_rel.status = ConnectionStatus.ACTIVE
+        uow.sharing_relationships.update(db_rel)
+        uow.commit()
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_sharing_service] = lambda: svc
+    app.dependency_overrides[get_current_user] = lambda: bob
+
+    with TestClient(app) as client:
+        import hashlib
+        raw_token = "some_raw_token"
+        with uow:
+            db_rel = uow.sharing_relationships.get_by_id(rel.id)
+            assert db_rel is not None
+            db_rel.api_token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+            uow.sharing_relationships.update(db_rel)
+            uow.commit()
+
+        resp = client.get(
+            "/api/v1/federation/sharing",
+            params={"owner_username": "bob", "data_type": "steps", "date": "2026-07-03"},
+            headers={"Authorization": f"Bearer {raw_token}"},
+        )
+        assert resp.status_code == 200
+
+        resp = client.get("/api/v1/federation/access-log")
+        assert resp.status_code == 200
+        logs = resp.json()["logs"]
+        assert len(logs) == 1
+        assert logs[0]["requester_handle"] == "@alice:remote.com"
+        assert logs[0]["data_type"] == "steps"
+        assert logs[0]["target_date"] == "2026-07-03"
+
+    app.dependency_overrides.clear()
+
+
+def test_federated_http_message_signatures():
+    from salus.main import app
+    from salus.dependencies import get_session, get_sharing_service
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    uow = SqlUnitOfWork(Session(engine))
+
+    with uow:
+        bob = UserModel(username="bob", password_hash="hash")
+        uow.users.add(bob)
+        uow.commit()
+        bob_id = uid(bob)
+
+        metric = MetricType(
+            name="Steps", unit="steps", data_type=DataType.NUMBER,
+            user_id=bob_id, is_system=True, source_data_type="steps",
+        )
+        uow.metric_types.add(metric)
+        uow.commit()
+        metric_id = metric.id
+
+    svc = SharingService(uow)
+    rel = svc.create_relationship(
+        owner_id=bob_id, grantee_handle="@alice:remote.com",
+        metric_type_id=metric_id,
+    )
+
+    with uow:
+        db_rel = uow.sharing_relationships.get_by_id(rel.id)
+        assert db_rel is not None
+        db_rel.status = ConnectionStatus.ACTIVE
+        uow.sharing_relationships.update(db_rel)
+        uow.commit()
+
+    priv, pub = svc.get_instance_keys()
+    assert priv.startswith("-----BEGIN PRIVATE KEY-----")
+    assert pub.startswith("-----BEGIN PUBLIC KEY-----")
+
+    def mock_resolve_actor_public_key(sender_handle):
+        return pub
+    svc.resolve_actor_public_key = mock_resolve_actor_public_key
+
+    url = "http://testserver/api/v1/federation/sharing?owner_username=bob&data_type=steps&date=2026-07-03"
+    sig_headers = svc.sign_request(
+        sender_handle="@alice:remote.com",
+        method="GET",
+        url_str=url
+    )
+
+    assert "Signature" in sig_headers
+    assert "Signature-Input" in sig_headers
+    assert "X-Salus-Nonce" in sig_headers
+    assert "X-Salus-Timestamp" in sig_headers
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_sharing_service] = lambda: svc
+
+    with TestClient(app) as client:
+        resp = client.get(
+            "/api/v1/federation/sharing",
+            params={"owner_username": "bob", "data_type": "steps", "date": "2026-07-03"},
+            headers=sig_headers
+        )
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
 
     app.dependency_overrides.clear()

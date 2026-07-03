@@ -260,7 +260,11 @@ app.include_router(circadian.router)
 
 
 def is_api_request(request: Request) -> bool:
-    return request.url.path.startswith("/api/") or request.url.path.startswith("/webhook")
+    return (
+        request.url.path.startswith("/api/")
+        or request.url.path.startswith("/webhook")
+        or request.url.path.startswith("/.well-known/")
+    )
 
 
 @app.exception_handler(NotFoundError)

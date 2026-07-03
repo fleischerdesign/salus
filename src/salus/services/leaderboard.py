@@ -1,6 +1,9 @@
 import secrets
 from datetime import datetime, timezone, timedelta
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from salus.services.sharing import SharingService
 
 from sqlmodel import select
 
@@ -12,8 +15,9 @@ from salus.services._helpers import uid
 
 
 class LeaderboardService:
-    def __init__(self, uow: IUnitOfWork) -> None:
+    def __init__(self, uow: IUnitOfWork, sharing_svc: Optional["SharingService"] = None) -> None:
         self.uow = uow
+        self.sharing_svc = sharing_svc
 
     def create_group(
         self,
@@ -204,8 +208,36 @@ class LeaderboardService:
                                 else:
                                     score = float(sum(day_values) / len(day_values))
                 else:
-                    # Remote User query (federation stub / simulation)
+                    # Remote User query
                     score = 0.0
+                    if self.sharing_svc:
+                        try:
+                            day_values = []
+                            curr_date = start_date
+                            while curr_date <= end_date:
+                                date_str = curr_date.strftime("%Y-%m-%d")
+                                try:
+                                    data = self.sharing_svc.resolve_and_fetch(
+                                        requester_id=current_user_id,
+                                        owner_handle=handle,
+                                        data_type=group.metric_type_code,
+                                        date_str=date_str,
+                                    )
+                                    for item in data:
+                                        val = item.get("value_numeric")
+                                        if val is not None:
+                                            day_values.append(val)
+                                except Exception:
+                                    pass
+                                curr_date += timedelta(days=1)
+
+                            if day_values:
+                                if group.metric_type_code in ("steps", "water"):
+                                    score = float(sum(day_values))
+                                else:
+                                    score = float(sum(day_values) / len(day_values))
+                        except Exception:
+                            score = 0.0
 
                 rankings.append({
                     "username": handle[1:],

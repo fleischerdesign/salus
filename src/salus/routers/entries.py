@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -7,12 +7,14 @@ from salus.dependencies import (
     get_current_user,
     get_measurement_service,
     get_metric_type_service,
+    get_sharing_service,
 )
 from salus.models.user import User
 from salus.schemas.measurement import MeasurementCreate
 from salus.services._helpers import uid
 from salus.services.measurement import MeasurementService
 from salus.services.metric_type import MetricTypeService
+from salus.services.sharing import SharingService
 
 router = APIRouter()
 
@@ -76,12 +78,23 @@ async def create_entry(
     notes: str | None = Form(None),
     current_user: User = Depends(get_current_user),
     measurement_service: MeasurementService = Depends(get_measurement_service),
+    sharing_svc: SharingService = Depends(get_sharing_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
     measurement_service.create(
         _form_to_create(value, timestamp, notes),
         metric_type_id,
         uid(current_user),
     )
+    try:
+        metric = metric_svc.get(metric_type_id, uid(current_user))
+        if metric and metric.source_data_type:
+            dt = datetime.fromisoformat(timestamp) if timestamp else datetime.now(timezone.utc)
+            date_str = dt.date().strftime("%Y-%m-%d")
+            sharing_svc.notify_peers_of_update(uid(current_user), metric.source_data_type, date_str)
+    except Exception:
+        pass
+
     return RedirectResponse(
         url=f"/entries?metric_type_id={metric_type_id}", status_code=303
     )

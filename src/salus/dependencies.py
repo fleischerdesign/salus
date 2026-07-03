@@ -491,5 +491,6 @@ def get_circadian_service(
 
 def get_leaderboard_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
+    sharing_svc: SharingService = Depends(get_sharing_service),
 ) -> LeaderboardService:
-    return LeaderboardService(uow)
+    return LeaderboardService(uow, sharing_svc)
