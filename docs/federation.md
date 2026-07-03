@@ -404,7 +404,7 @@ token, invalid JSON body on `/accept`.
 
 ---
 
-## Sequence Diagram: Full Federation Flow (Target State)
+## Sequence Diagram: Phase 1 Flow (Current Implementation)
 
 ```
 Alice (Server A)                    Bob (Server B)
@@ -418,27 +418,486 @@ Alice (Server A)                    Bob (Server B)
    https://server-a.com/s/invite?token=T&from=@alice
 
 3. Alice sends URL to Bob (QR, email, etc.)
-                                    ─────────────────
+                                     ─────────────────
 
-                                    4. Bob opens invite URL
-                                    → Bob validates token
-                                    → Bob sees "@alice wants to share Steps, HR"
+                                     4. Bob opens invite URL
+                                     → Bob validates token
+                                     → Bob sees "@alice wants to share Steps, HR"
 
-                                    5. Bob accepts
-                                    → POST /api/v1/federation/accept
-                                      {token: T, owner_handle: "@alice"}
-                                       │
+                                     5. Bob accepts
+                                     → POST /api/v1/federation/accept
+                                       {token: T, owner_handle: "@alice"}
+                                        │
 6. Server A receives accept ─────────┘
    → status=active
 
-                                    7. Bob's feed queries Server A:
-                                    → GET /api/v1/federation/sharing
-                                      ?owner_username=bob
-                                      &data_type=steps
-                                      &date=2026-07-02
-                                      Authorization: Bearer T
-                                       │
+                                     7. Bob's feed queries Server A:
+                                     → GET /api/v1/federation/sharing
+                                       ?owner_username=bob
+                                       &data_type=steps
+                                       &date=2026-07-02
+                                       Authorization: Bearer T
+                                        │
 8. Server A returns data ────────────┘
    → Aggregation applied
    → Permission verified (status=active, not expired)
 ```
+
+---
+
+## Federation Protocol Specification (Phase 3 Target)
+
+This section defines the target state federation protocol — the design that Phase 2
+and Phase 3 should converge towards. It replaces the current Bearer-token / out-of-band
+invite flow with formal, standards-aligned mechanisms.
+
+### Identity & Discovery
+
+User identities follow the `@username:domain` format (similar to Matrix `@user:server`
+or Mastodon's WebFinger-based identity resolution).
+
+#### WebFinger (RFC 7033)
+
+Federation identities must be resolvable via WebFinger:
+
+```
+GET https://salus.example.com/.well-known/webfinger
+    ?resource=acct:alice@salus.example.com
+
+→ 200 {
+  "subject": "acct:alice@salus.example.com",
+  "links": [
+    {
+      "rel": "http://salus/federation",
+      "href": "https://salus.example.com/api/v1/federation",
+      "type": "application/json"
+    }
+  ]
+}
+```
+
+This eliminates the blind `https://{domain}/...` string construction. The server's
+actual federation URL is explicitly declared.
+
+#### Well-Known Federation Metadata
+
+```
+GET https://salus.example.com/.well-known/salus-federation
+
+→ 200 {
+  "version": "1.0",
+  "api_versions": ["v1", "v2"],
+  "public_key": "ed25519:Mb+4tGOWvUM...",
+  "key_type": "ed25519",
+  "supported_metrics": ["steps", "sleep", "heart_rate", "weight", "water", "nutrition"],
+  "supported_aggregations": ["daily_summary", "raw"],
+  "endpoints": {
+    "sharing": "/api/v1/federation/sharing",
+    "intent": "/api/v1/federation/intent",
+    "intent_response": "/api/v1/federation/intent-response",
+    "accept": "/api/v1/federation/accept",
+    "revoke": "/api/v1/federation/revoke",
+    "access_log": "/api/v1/federation/access-log"
+  },
+  "admin_contact": "admin@salus.example.com"
+}
+```
+
+---
+
+### Request Authentication — HTTP Message Signatures
+
+Phase 3 replaces static Bearer tokens with cryptographic request signing.
+The design follows **HTTP Message Signatures (RFC 9421)** using Ed25519 keypairs.
+
+**Why:** Shared Bearer tokens are stateful, require synchronization, and
+anyone with a leaked token has indefinite access. Ed25519 signatures provide
+origin authentication, content integrity, and replay protection without
+shared secrets.
+
+#### Key Management
+
+Each Salus server generates an Ed25519 keypair on first startup:
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+private_key = Ed25519PrivateKey.generate()
+public_key_bytes = private_key.public_key().public_bytes(
+    encoding=Raw, format=Raw
+)
+# Store private_key securely (encrypted on disk)
+# Publish public_key in .well-known/salus-federation
+```
+
+#### Signed Request Example
+
+```
+Signature-Input: sig1=("@method" "@path" "@authority" "content-digest" "x-salus-nonce" "x-salus-timestamp"); keyid="alice@salus.example.com"; created=1715971200; nonce="abc123"; alg="ed25519"
+Signature: sig1=:BASE64URL_NO_PAD(signature):
+Content-Digest: sha-256=:BASE64(hash(body)):
+X-Salus-Nonce: abc123
+X-Salus-Timestamp: 1715971200
+```
+
+**Replay Protection:**
+- `X-Salus-Nonce`: unique per request, server rejects duplicates within a time window
+- `X-Salus-Timestamp`: server rejects requests older than 30 seconds
+- `created` in signature params: embedded in signature itself, cannot be tampered
+
+**Content Integrity:**
+- `Content-Digest`: SHA-256 of the request body
+- Included in the signed components → modification of body invalidates signature
+
+#### Verification
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+def verify_federation_request(request, remote_public_key):
+    # 1. Parse Signature-Input header
+    # 2. Reconstruct signing string from covered components
+    # 3. Verify Ed25519 signature against public_key
+    # 4. Verify nonce not reused (check cache)
+    # 5. Verify timestamp within 30s tolerance
+    # 6. Verify Content-Digest matches actual body
+    pass
+```
+
+---
+
+### Connection Intent Protocol (3-Way Handshake)
+
+Replaces the out-of-band token delivery with a formal server-to-server protocol.
+
+```
+Alice (Server A)              Bob (Server B)
+──────────────                 ──────────────
+
+1. POST https://bob.com/api/v1/federation/intent
+   Signature: ed25519(alice-private-key)
+   Body: {
+     "intent_id": "uuid-v4",
+     "from": "@alice:alice.com",
+     "to": "@bob:bob.com",
+     "metrics": [
+       {"type": "steps", "aggregation": "daily_summary"},
+       {"type": "heart_rate", "aggregation": "raw"}
+     ],
+     "message": "Hi Bob, let's connect on Salus!",
+     "callback_url": "https://alice.com/api/v1/federation/intent-response",
+     "expires_at": "2026-07-10T10:00:00Z"
+   }
+   → 202 { "status": "pending", "intent_id": "uuid-v4" }
+
+2. Bob's server processes intent:
+   → Stores as pending invitation in local DB
+   → Creates SharingRelationship(state=pending, token=intent_id)
+   → Notifies Bob via UI: "@alice wants to share Steps, Heart Rate"
+
+3. Bob accepts or declines in his UI
+   │
+   → POST https://alice.com/api/v1/federation/intent-response
+     Signature: ed25519(bob-private-key)
+     Body: {
+       "intent_id": "uuid-v4",
+       "status": "accepted",
+       "grantee": "@bob:bob.com",
+       "grantee_public_key": "ed25519:..."
+     }
+
+4. Alice's server processes response:
+   → Validates ed25519 signature from Bob's public key
+     (fetched from https://bob.com/.well-known/salus-federation)
+   → Sets SharingRelationship.status = ACTIVE
+   → Stores Bob's public key for future request verification
+```
+
+**Benefits over Phase 1:**
+- Bob learns about the invitation immediately (no out-of-band token passing)
+- Both servers have a local record of the connection
+- Ed25519 key exchange during handshake enables signed data requests
+- UUID-based intent IDs replace ad-hoc hex tokens
+- Full audit trail on both sides
+
+---
+
+### Capability-Based Access Control
+
+Instead of one token per relationship, signed Capability Tokens describe
+exactly what the grantee can access — statelessly verifiable.
+
+```json
+{
+  "capability": {
+    "owner": "@alice:alice.com",
+    "grantee": "@bob:bob.com",
+    "permissions": [
+      {
+        "metric": "steps",
+        "aggregation": "daily_summary",
+        "window_days": 90
+      },
+      {
+        "metric": "heart_rate",
+        "aggregation": "raw",
+        "window_days": 30
+      }
+    ],
+    "allowed_contexts": ["feed", "leaderboard"],
+    "issued_at": "2026-07-03T10:00:00Z",
+    "expires_at": "2026-10-03T10:00:00Z"
+  },
+  "signature": "ed25519:BASE64(sign(private_key, canonical_json(capability)))"
+}
+```
+
+**Verification:** The data-serving server only needs to verify the signature
+against the owner's public key (fetched once via WebFinger). No DB lookup,
+no session, no shared state. The capability IS the authorization.
+
+---
+
+### Graceful Degradation
+
+When remote servers are unreachable, the system must degrade gracefully,
+not silently return zero/empty:
+
+| Context | Degraded Behavior |
+|---|---|
+| **Feed** | Show placeholder card: "Data from @bob:remote.com temporarily unavailable. Last sync: 2h ago." — not an empty feed |
+| **Leaderboard** | Show score as "—" with tooltip "Server unreachable" — not `0.0` |
+| **Analytics** | Show last known value with "Data as of: 3h ago" annotation |
+| **UI Peer Cards** | Connection status indicator (● green / ◐ amber / ○ red) next to peer name |
+| **Dashboard Widget** | Greyed-out widget with "Remote data unavailable" banner |
+| **Retry** | Exponential backoff: 1s → 2s → 4s → 8s (max 3 retries), then cache for 5 minutes |
+
+Error categories must be distinguishable:
+
+```python
+class FederationError(Exception):
+    pass
+
+class FederationPermanentError(FederationError):
+    """404, 401 — do not retry."""
+    pass
+
+class FederationTransientError(FederationError):
+    """Timeout, 500, 503 — retry with backoff."""
+    pass
+```
+
+---
+
+### Federation Health & Observability
+
+#### Prometheus Metrics
+
+```python
+# Exposed at GET /metrics
+federation_requests_total{endpoint="sharing", status="200"} 1423
+federation_requests_total{endpoint="sharing", status="401"} 12
+federation_request_duration_seconds{endpoint="sharing", quantile="0.95"} 0.32
+federation_connections_active{peer="@bob:bob.com"} 1
+federation_connections_pending 3
+federation_data_transferred_bytes{peer="@bob:bob.com", direction="outgoing"} 1_245_000
+```
+
+#### Audit Log
+
+Every federation data request creates an audit record:
+
+```json
+{
+  "timestamp": "2026-07-03T10:00:00Z",
+  "requester": "@bob:bob.com",
+  "owner": "@alice:alice.com",
+  "resource": {"metric": "steps", "date": "2026-07-02"},
+  "context": "feed",
+  "outcome": "granted",
+  "duration_ms": 45
+}
+```
+
+Users can access their audit log: `GET /api/v1/federation/access-log`
+
+#### Health Dashboard (Admin UI)
+
+```
+┌──────────────────────────────────────────────┐
+│ Federation Status                            │
+│                                              │
+│ Connected Peers: 3                           │
+│ Pending Invitations: 2                       │
+│                                              │
+│ @bob:bob.com           ● Online             │
+│   Last sync: 2 min ago                       │
+│   Shared (outgoing): Steps, HR              │
+│   Visible (incoming): Sleep                  │
+│   Latency: 120ms    Error rate: 0.0%        │
+│                                              │
+│ @carol:carol.org       ◐ Degraded           │
+│   Last sync: 3h ago                          │
+│   Error: Connection timeout                  │
+│   Latency: n/a       Error rate: 5.2%       │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+### Schema Evolution & API Versioning
+
+Federation endpoints are versioned via URL prefix:
+
+| Version | Path | Status |
+|---|---|---|
+| v1 | `/api/v1/federation/*` | Current (Phase 1) |
+| v2 | `/api/v2/federation/*` | Phase 2 (signed requests, formal handshake) |
+| v3 | `/api/v3/federation/*` | Phase 3 (capabilities, full observability) |
+
+Each server declares supported versions in its well-known metadata:
+
+```json
+{
+  "api_versions": ["v1", "v2"],
+  "deprecated_versions": [],
+  "sunset_dates": {}
+}
+```
+
+**Version negotiation:**
+1. Client checks remote server's `.well-known/salus-federation`
+2. Selects highest mutually-supported version
+3. Uses corresponding URL prefix
+
+**Backward compatibility rules:**
+- Never remove a field from a response without version bump
+- Never change a field's type or semantics
+- Additive changes (new fields, new endpoints) don't require a version bump
+- Deprecated versions must have a documented sunset date (minimum 6 months)
+
+---
+
+### Operational Runbook
+
+#### Key Rotation
+
+```
+1. Generate new Ed25519 keypair
+2. Publish new public_key in .well-known/salus-federation
+   alongside old key (keyring = [old, new], 7-day overlap)
+3. All new federation requests use new key
+4. Accept incoming requests signed with either key during overlap
+5. After 7 days, remove old key from well-known
+6. Delete old private key from disk
+```
+
+#### Incident Response
+
+```
+1. SUSPECT: Key compromise suspected
+   → Rotate keypair immediately
+   → Revoke all active federation tokens
+   → Notify connected peers via /api/v1/federation/revoke
+
+2. CONFIRM: Data breach confirmed
+   → Freeze federation (disable all /api/v1/federation/* endpoints)
+   → Export audit log for forensic analysis
+   → Notify affected users (GDPR Art. 34)
+
+3. RECOVER: After incident resolved
+   → Verify peer server integrity (re-fetch well-known)
+   → Re-establish connections with new keypairs
+   → Re-enable federation endpoints
+```
+
+#### Server Migration
+
+When a user moves from `salus-a.com` to `salus-b.com`:
+
+```
+1. User exports data from old server (backup/export)
+2. User imports data on new server
+3. User's new identity: @user:salus-b.com
+4. Old server publishes redirect in WebFinger:
+   { "rel": "http://salus/migrated-to", "href": "acct:user@salus-b.com" }
+5. Connected peers detect migration on next request
+6. Peers update their SharingRelationship.grantee_handle
+7. New Connection Intent protocol re-establishes trust
+```
+
+---
+
+### Test Infrastructure
+
+```
+tests/federation/
+├── conftest.py               # Fixtures: MockRemoteServer, KeyPairs, httpx mock
+├── test_discovery.py          # WebFinger resolution, Well-Known parsing
+├── test_webfinger.py          # Identity → URL resolution
+├── test_handshake.py          # Intent → Accept → Data flow (e2e)
+├── test_signing.py            # Ed25519 sign/verify, replay protection
+├── test_capability.py         # Capability issuance, validation, expiration
+├── test_errors.py             # 4xx/5xx responses, network failures
+├── test_retry.py              # Exponential backoff, circuit breaker
+├── test_degradation.py        # Graceful degradation in feed/leaderboard
+├── test_leaderboard_remote.py # Remote member scoring
+├── test_feed_remote.py        # Remote activity feed
+├── test_audit.py              # Access log recording and retrieval
+├── test_migration.py          # Schema evolution, version negotiation
+├── test_rotation.py           # Key rotation, overlapping trust window
+├── test_e2e.py                # docker-compose: 2 real Salus instances
+└── test_security.py           # Penetration test scenarios
+```
+
+**Integration test setup (docker-compose):**
+
+```yaml
+# tests/federation/docker-compose.yml
+services:
+  alice:
+    build: ../../.
+    environment:
+      - SALUS_DATABASE_URL=postgresql://alice:pass@db-alice/alice
+      - SALUS_JWT_SECRET_KEY=test-key-alice
+      - SALUS_HOST=alice.salus.test
+    ports: ["8001:8000"]
+  bob:
+    build: ../../.
+    environment:
+      - SALUS_DATABASE_URL=postgresql://bob:pass@db-bob/bob
+      - SALUS_JWT_SECRET_KEY=test-key-bob
+      - SALUS_HOST=bob.salus.test
+    ports: ["8002:8000"]
+```
+
+---
+
+### Privacy & Compliance by Design
+
+| GDPR Principle | Implementation |
+|---|---|
+| **Data Minimisation** | `daily_summary` is the default aggregation; raw data requires explicit opt-in per metric |
+| **Purpose Limitation** | Capability tokens encode allowed contexts (`feed`, `leaderboard`); server verifies context before serving data |
+| **Right of Access** | `GET /api/v1/federation/access-log` — every user can see who accessed their data, when, and for what purpose |
+| **Right to Erasure** | `POST /api/v1/federation/forget-me?user=@bob` — owner can remove all data access for a specific grantee; grantee's server removes all cached copies |
+| **Consent** | Explicit Accept flow (already implemented with ConnectionStatus enum); consent history is logged and immutable |
+| **Data Portability** | Federation is native data portability; users can migrate between instances without data loss (see Server Migration) |
+| **Privacy by Default** | All sharing starts as `pending`; no data accessible until grantee explicitly accepts |
+| **Transparency** | Well-known metadata, public audit log format, open protocol specification |
+
+---
+
+## Target State Summary
+
+| Dimension | Phase 1 (Current) | Phase 2 (Now) | Phase 3 (Target) |
+|---|---|---|---|
+| **Identity** | `@user:domain` string parse | WebFinger resolution | WebFinger + migration redirects |
+| **Auth** | Plaintext Bearer token | Hashed token | Ed25519 HTTP Signatures (RFC 9421) |
+| **Handshake** | Out-of-band token | Invite URL | Intent Protocol (3-way) |
+| **Access Control** | DB lookup per request | Indexed lookup | Signed Capabilities (stateless) |
+| **Observability** | Zero logs | Structured logs + audit | Prometheus + Audit Dashboard |
+| **Error Handling** | `except Exception: pass` | Typed exceptions + logging | Graceful degradation + circuit breaker |
+| **Testing** | 3 unit tests (no HTTP) | httpx-mocked integration | Docker-based e2e test suite |
+| **Compliance** | None | Audit log | Full GDPR tooling |
+| **Operations** | None | Runbook documented | Key rotation, incident response automated |
