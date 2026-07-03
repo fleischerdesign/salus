@@ -1941,11 +1941,7 @@ button {
 }
 
 /* ---- Responsive ---- */
-@media (max-width: 600px) {
-    :root {
-        --space-margin-desktop: var(--space-margin-mobile);
-    }
-
+@media (max-width: 1024px) {
     .top-app-bar-content {
         gap: var(--space-stack-sm);
     }
@@ -2051,6 +2047,12 @@ button {
         background: var(--color-slate-200);
         margin: 4px 0;
         border: none;
+    }
+}
+
+@media (max-width: 600px) {
+    :root {
+        --space-margin-desktop: var(--space-margin-mobile);
     }
 
     .page-header h1 {
