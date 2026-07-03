@@ -170,128 +170,237 @@ grantee-server → GET https://remote.example.com/api/v1/federation/sharing
 
 ---
 
-## What Is Missing (Phase 2)
+## What Is Missing — Comprehensive Gap Analysis (20 items)
 
-### 1. `resolve_and_fetch()` is Dead Code
+### Security (Critical)
 
+#### G1. Token stored as plaintext
+`api_token_hash` stores the raw hex token, not a hash. The field name says `_hash`
+but the implementation is plaintext. Anyone with DB access can extract all
+federation bearer tokens.
+**Fix:** Hash with `hashlib.sha256(token + pepper)` before storage. Verify via
+hash comparison. Show raw token to user once at creation, never again.
+**Files:** `services/sharing.py:88-97`, `models/sharing.py:28`.
+
+#### G2. No timing-safe token comparison
+Raw token compared via standard SQL `WHERE api_token_hash == :token`. No
+`secrets.compare_digest()` or constant-time semantics used anywhere.
+**Fix:** Pre-hash the token, then compare hashes (timing-safe by design since
+hashing normalises input size).
+**Files:** `routers/sharing.py:483`, `services/sharing.py:416`.
+
+#### G3. Federation accept endpoint has zero authentication
+`POST /api/v1/federation/accept` accepts any HTTP POST with a JSON body
+containing `token` and `owner_handle`. No Bearer auth, no origin check,
+no HMAC, no rate limiting. Any actor who discovers a pending relationship's
+token can activate it by sending a POST to the endpoint.
+**Fix:** Require `Authorization: Bearer <token>` header on `/accept` (same
+auth as `/sharing`), OR require the request to originate from the domain
+specified in the relationship's `grantee_handle`.
+**Files:** `services/sharing.py:400-409`, `routers/sharing.py:542-567`.
+
+#### G4. Token exposed in HTML template
+The raw `api_token_hash` is rendered in a `<code>` tag in `relationship_list.html`.
+Anyone with DOM access (XSS, browser extension, screen-sharing) can extract
+the federation bearer token.
+**Fix:** Never render full token in HTML. Show a truncated version with a
+"Copy" button that fetches the full token via an authenticated API call.
+**Files:** `templates/components/sharing/relationship_list.html:35`.
+
+#### G5. No request signing or replay protection
+Federation requests use only a static Bearer token. No:
+- HMAC signature to prove request origin
+- Nonce or timestamp to prevent replay attacks
+- JWT with embedded claims (subject, audience, expiration, issued-at)
+- Server identity verification (mTLS, certificate pinning)
+**Fix (Phase 2):** Sign requests with HMAC-SHA256 using a derived key.
+Add `X-Salus-Nonce` and `X-Salus-Timestamp` headers. Phase 3: mTLS.
+
+### Data Flow & Integration (High)
+
+#### G6. `resolve_and_fetch()` / `_fetch_remote()` are dead code
 `SharingService.resolve_and_fetch()` correctly dispatches between local
-(`_resolve_local`) and remote (`_fetch_remote`) resolution, but **no route
-handler calls it**. The feed and leaderboard query the local database directly.
-
+(`_resolve_local`) and remote (`_fetch_remote`) resolution, but **zero route
+handlers call it**. The feed and leaderboard query the local DB directly.
 **Fix:** Refactor `sharing_feed_page()` and `LeaderboardService.get_group_rankings()`
 to use `resolve_and_fetch()` as the single data-access path.
+**Files:** `services/sharing.py:255-390`, `routers/sharing.py:30-130`,
+`services/leaderboard.py:177-208`.
 
-### 2. No Federation Invite Delivery
+#### G7. No federation invite delivery mechanism
+When Alice creates a relationship with `@bob:remote.com`, a token is generated
+but Bob never learns about it. No standard protocol exists for delivering the
+invitation.
+**Fix:** Option A — Embed token in invite URL:
+`https://alice.example.com/sharing/invite?token=abc123&from=@alice`.
+Bob clicks → his server registers the incoming relationship. This integrates
+with the existing QR code feature.
+**Files:** `services/sharing.py:41-101`.
 
-When Alice creates a relationship with `@bob:remote.com`:
+#### G8. Leaderboard remote members always score zero
+`LeaderboardService.get_group_rankings()` has an explicit stub:
+`score = 0.0  # Remote User query (federation stub / simulation)`.
+No `_fetch_remote()` or `resolve_and_fetch()` call exists.
+**Fix:** Call `SharingService.resolve_and_fetch()` for remote members.
+Requires `SharingService` to be injected into `LeaderboardService`.
+**Files:** `services/leaderboard.py:206-208`.
 
-- A token is generated ✓
-- The token is stored in `api_token_hash` ✓
-- Bob never learns about the invitation ✗
+#### G9. Feed has zero federation support
+`sharing_feed_page()` queries `SharingRelationship` where `grantee_handle == f"@{username}"`
+— this matches only local users. Remote federation relationships have grantee
+handles like `@user:domain`, which never match. All data queries are local-only
+DB queries against `user_id`.
+**Fix:** Refactor to use `resolve_and_fetch()` which transparently handles
+local and remote data sources.
+**Files:** `routers/sharing.py:30-130`.
 
-A standard delivery mechanism is needed:
-
-**Option A — Invite URL:** Embed the token in an invite URL:
-```
-https://alice.example.com/sharing/invite?token=abc123&from=@alice
-```
-Bob clicks → Bob's server registers the incoming relationship.
-
-**Option B — Federation Webhook:** Alice's server calls a well-known endpoint
-on Bob's server to deliver the invitation.
-
-**Recommendation:** Option A for MVP (simple, works with existing QR code).
-
-### 3. No Server Discovery
-
-Remote URLs are constructed as `https://{domain}/api/v1/federation/...`.
-This assumes:
-- The domain in the handle is a valid HTTPS host
-- The federation endpoints are at the default paths
-- HTTPS is available and the certificate is trusted
-
-**Missing:**
+#### G10. No server discovery protocol
+Remote URLs are built as `https://{domain}/api/v1/federation/...` — hardcoded,
+blind trust. No:
 - `.well-known/salus-federation` discovery endpoint
-- Capability negotiation (supported metric types, API version)
-- Configurable protocol (HTTP for local dev, HTTPS for production)
+- Capability negotiation (supported API version, metric types)
+- Protocol fallback (HTTP for local dev, HTTPS for production)
+**Fix:** Add `GET /.well-known/salus-federation` returning JSON with API
+version, supported endpoints, and server capabilities.
+**Files:** `services/sharing.py:359-360`.
 
-### 4. Token Stored as Plaintext
+### Error Handling & Resilience (High)
 
-`api_token_hash` stores the raw hex token, not a hash. The comment in the
-original code says "In production, hash it."
+#### G11. Bare `except Exception` in 8 locations
+Eight places catch all exceptions indiscriminately, conflating `NotFoundError`,
+`PermissionError`, `ValueError`, `AttributeError`, and `OperationalError` into
+the same handler. This silently swallows bugs and makes debugging impossible.
+**Files:** `routers/sharing.py:160,202,244,258,283,297,548`,
+`services/sharing.py:388`.
 
-**Fix:** Hash with `bcrypt` or `hashlib.sha256` before storage. Verify with
-the hash, not a plaintext comparison.
+#### G12. Zero federation logging in routers
+The federation route handlers (`federated_shared_data`, `federated_accept`)
+have **zero** log statements. Impossible to audit who accessed what, when,
+or why access was denied.
+**Fix:** Log every federation request with: requester identity (token prefix),
+requested resource (owner, data_type, date), outcome (granted/denied), and
+latency.
+**Files:** `routers/sharing.py:462-567`.
 
-### 5. Leaderboard with Remote Peers
+#### G13. `_fetch_remote()` has no retry logic
+A single transient network error (DNS, timeout, connection refused) causes
+data to be silently dropped (`return []`). No retry, no backoff, no circuit
+breaker.
+**Fix:** Add exponential backoff with 3 retries. Log all failure details
+(URL, status code, duration). Distinguish permanent failures (404, 401)
+from transient ones (timeout, 500, 503).
+**Files:** `services/sharing.py:374-390`.
 
-`LeaderboardService.get_group_rankings()` has a federation stub at line 207-208:
-```python
-# Remote members (handle has ":"): returns score = 0.0
-```
-No `_fetch_remote()` call is made. Remote leaderboard members always score
-zero regardless of their actual data.
+#### G14. `federated_accept()` has no exception handling for service layer
+`process_federation_accept()` is called without a try/except wrapper.
+Any service-layer exception (DB error, session issue) becomes an
+unhandled 500.
+**Fix:** Wrap in try/except, log the error, return `{"status": "error"}`.
+**Files:** `routers/sharing.py:555`.
 
-**Fix:** For remote members, call `resolve_and_fetch()` or `_fetch_remote()`
-to retrieve their data, same as local members.
+### Architecture Violations (Medium)
 
-### 6. No Signature / Trust Chain
+#### G15. Router bypasses service layer for feed queries
+`sharing_feed_page()` opens `with sharing_svc.uow:` and runs raw SQLModel
+queries directly — N+1 pattern (one query per friend per metric type).
+Violates AGENTS.md rule #3 (Routers are THIN) and #2 (no raw DB access).
+**Fix:** Move data fetching into `SharingService` via `resolve_and_fetch()`.
+**Files:** `routers/sharing.py:39-116`.
 
-The current authentication relies solely on a Bearer token. There is no:
-- JWT-based token with expiration and claims
-- mTLS for server identity verification
-- Domain ownership verification (DNS TXT record, ACME challenge)
-- Token rotation mechanism
+#### G16. `_fetch_remote()` uses wrong token for multi-metric peers
+`active_rels[0].api_token_hash` blindly takes the first active relationship's
+token. If Alice shares Steps AND Heart Rate with Bob (two separate
+relationships, possibly different tokens), the code uses the Steps token
+to request Heart Rate data.
+**Fix:** Query by `metric_type_id` matching the requested `data_type`. Index
+the `api_token_hash` column for performance.
+**Files:** `services/sharing.py:369`, `models/sharing.py:28`.
 
-### 7. No Connection Status Sync
+### Code Quality (Medium)
 
-When a relationship is revoked on the owner's server, the grantee's server
-is not notified. The grantee continues to believe they have access.
+#### G17. `api_token_hash` column has no database index
+Every federation request performs a full table scan on `sharing_relationship`
+to find the matching token. With thousands of relationships, this becomes a
+performance bottleneck.
+**Fix:** Add `index=True` to the `api_token_hash` Field in the model, or
+create a separate migration.
+**Files:** `models/sharing.py:28`.
 
-**Fix:** Add a `/api/v1/federation/revoke` endpoint and call it from
-`deactivate_relationship()` for remote grantees.
+#### G18. Nested `with self.uow:` in dead code path
+`resolve_and_fetch()` opens `with self.uow:`, then calls `_resolve_local()`
+which opens another `with self.uow:`. The inner `__exit__` commits, then the
+outer `__exit__` commits again (no-op but semantically incorrect). While
+harmless, it indicates an architectural misunderstanding about UoW scoping.
+**Fix:** Remove the outer `with self.uow:` — it's a read-only user lookup
+that doesn't need a commit boundary.
+**Files:** `services/sharing.py:264-273,279`.
+
+#### G19. Date parse failure silently maps to today
+Invalid date strings silently fall back to `datetime.now(timezone.utc).date()`
+with no log, no warning, no user-facing indication. A typo in the date
+parameter (`"2026-07-32"`) returns today's data instead of an error.
+**Fix:** Log the fallback. Consider returning 400 for unparseable dates.
+**Files:** `routers/sharing.py:498-499`.
+
+### Testing (Medium)
+
+#### G20. Zero HTTP-layer federation tests
+No `httpx` mocking exists anywhere in the test suite. `_fetch_remote()` and
+`_notify_federation_accept()` are never tested against realistic HTTP scenarios.
+Missing test cases: remote 404, remote 500, malformed JSON, timeout, DNS
+failure, multiple tokens for same peer, expired token, invalid token, missing
+token, invalid JSON body on `/accept`.
+**Fix:** Add `pytest-httpx` or `responses` fixtures. Test all error paths.
+**Files:** `tests/test_sharing.py`.
+
+---
+
+## Security Threat Model
+
+| Threat | Vector | Current Mitigation | Gap |
+|---|---|---|---|
+| Token exfiltration from DB | DB access (SQL injection, backup theft) | None — plaintext storage | G1 |
+| Token exfiltration from DOM | XSS, browser extension, screen sharing | None — token rendered in HTML | G4 |
+| Token reuse after revocation | Replay of bearer token | None — token never invalidated | G3, G5 |
+| Unauthorised accept | POST to `/accept` without auth | None — endpoint has zero auth | G3 |
+| Man-in-the-middle | HTTP (not HTTPS) between servers | None — HTTP allowed | G10 |
+| Replay attack | Capture and replay of valid requests | None — no nonce/timestamp | G5 |
+| Server impersonation | DNS spoofing, fake domain | None — no certificate pinning | G10 |
 
 ---
 
 ## Implementation Plan (Phase 2)
 
-### Step 1: Wire `resolve_and_fetch()` into Feed
+### Priority 1 — Critical Security
+1. **Hash tokens** (G1) — `hashlib.sha256(token + pepper)` before storage
+2. **Secure `/accept` endpoint** (G3) — add Bearer auth or origin check
+3. **Remove token from HTML** (G4) — truncate display, fetch full token via API
 
-Replace the direct DB queries in `sharing_feed_page()` with calls to
-`SharingService.resolve_and_fetch()`. This automatically enables remote
-data fetching in the community feed.
+### Priority 2 — Wire Federation Into Production Paths
+4. **Wire `resolve_and_fetch()` into feed** (G6) — replace raw DB queries
+5. **Wire federation into leaderboard** (G8) — inject `SharingService` into `LeaderboardService`
+6. **Add invite URL protocol** (G7) — `GET /sharing/invite?token=...`
+7. **Fix `_fetch_remote()` token selection** (G16) — query by `data_type`, index column (G17)
 
-### Step 2: Invite URL Protocol
+### Priority 3 — Error Handling & Observability
+8. **Replace bare `except Exception`** (G11) — specific exception types
+9. **Add federation logging** (G12) — request audit trail
+10. **Add retry logic** (G13) — exponential backoff, circuit breaker
+11. **Add error handling in `/accept`** (G14) — try/except around service call
+12. **Log date parse fallback** (G19) — warn on invalid dates
 
-- Add `GET /sharing/invite?token=X&from=@handle` route
-- When Bob visits this URL (on Alice's server), show a confirmation page
-- Bob confirms → Alice's server sets `status=active`
-- Alternatively: Bob clicks invite link on his own server, which calls
-  `POST /api/v1/federation/accept` on Alice's server
+### Priority 4 — Code Architecture
+13. **Fix UoW scoping** (G18) — remove nested `with self.uow:`
+14. **Refactor feed to service layer** (G15) — move queries out of router
 
-### Step 3: Token Hashing
+### Priority 5 — Testing
+15. **Add httpx-mocked federation tests** (G20) — full HTTP-layer test coverage
 
-- Hash `api_token_hash` with `hashlib.sha256` before storage
-- Compare hashes during authentication (no plaintext comparison)
-- The raw token is shown to the user once at creation time
-
-### Step 4: Leaderboard Remote Scoring
-
-- In `LeaderboardService.get_group_rankings()`, for members with `:` in
-  their handle, call `SharingService.resolve_and_fetch()` or
-  `_fetch_remote()` to compute their actual score
-
-### Step 5: Security Hardening
-
-- JWT-based federation tokens with embedded claims (user, metric, expiration)
-- Server identity verification via mTLS or shared secret
-- Well-known discovery endpoint: `GET /.well-known/salus-federation`
-
-### Step 6: Connection Status Sync
-
-- `POST /api/v1/federation/revoke` endpoint
-- Called by `deactivate_relationship()` for remote grantees
-- Grantee's server updates local status
+### Priority 6 — Hardening (Phase 3)
+16. **Server discovery** (G10) — `.well-known/salus-federation`
+17. **Request signing** (G5) — HMAC + nonce + timestamp
+18. **mTLS** (G5) — certificate pinning for production
+19. **Token rotation** (G5) — periodic re-issuance of federation tokens
 
 ---
 
