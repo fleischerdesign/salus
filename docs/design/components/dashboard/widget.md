@@ -30,4 +30,4 @@
 
 **Responsive:** Widgets collapse to single column on mobile (<600px). Small/Medium/Large all span 1 column. Edit mode hidden on mobile (touch drag via SortableJS handles reorder).
 
-**Related:** `drag-handle.md`, `viz-*.md`, `empty-state.md`, `button.md`, `icon.md`, `kpi-card.md`
+**Related:** `drag-handle.md`, `viz-*.md`, `empty-state.md`, `btn.md`, `icon.md`, `kpi-card.md`

@@ -18,4 +18,4 @@
 - Label: `<dt>`. Value: `<dd>`. Multiple values per term: multiple `<dd>` elements
 - Horizontal layout: CSS grid or flex, not table (this is not tabular data)
 
-**Related:** `stat.md`, `table.md`, `lab-result.md`, `comparison-card.md`
+**Related:** `stat.md`, `table.md`, `lab-result.md`, `compare.md`

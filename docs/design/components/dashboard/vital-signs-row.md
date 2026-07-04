@@ -39,4 +39,4 @@
 
 **Responsive:** Wraps to 2 columns on tablet, single column on mobile.
 
-**Related:** `stat.md`, `kpi-card.md`, `status-dot.md`, `comparison-card.md`
+**Related:** `stat.md`, `kpi-card.md`, `status-dot.md`, `compare.md`

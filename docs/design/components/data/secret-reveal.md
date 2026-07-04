@@ -28,4 +28,4 @@
 | --secret-reveal-btn-size | 20px |
 | --secret-transition | `var(--duration-fast) var(--ease-default)` |
 
-**Related:** `button.md`, `icon.md`, `input.md`, `spinner.md`
+**Related:** `btn.md`, `icon.md`, `input.md`, `spinner.md`

@@ -35,4 +35,4 @@
 
 **Composition:** Previous button + Page buttons + Ellipsis + Next button + Optional items-per-page selector + "Showing X-Y of Z" label.
 
-**Related:** `table.md`, `button.md`, `select.md`
+**Related:** `table.md`, `btn.md`, `select.md`

@@ -29,4 +29,4 @@
 | --federation-dot-size | 8px |
 | --federation-font | `var(--font-caption)` |
 
-**Related:** `status-dot.md`, `peer-card.md`, `button.md`, `icon.md`
+**Related:** `status-dot.md`, `peer-card.md`, `btn.md`, `icon.md`

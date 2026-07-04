@@ -1,4 +1,4 @@
-# Button
+# Button (btn)
 
 **Tokens:** `--btn-primary-bg`, `--btn-primary-text`, `--btn-primary-hover-bg`, `--btn-secondary-border`, `--btn-secondary-text`, `--btn-secondary-hover-bg`, `--btn-ghost-text`, `--btn-ghost-hover-bg`, `--btn-danger-bg`, `--btn-danger-text`, `--btn-danger-hover-bg`, `--btn-sm-bg`, `--btn-sm-border`, `--btn-sm-text`, `--btn-sm-hover-bg`, `--btn-icon-size`, `--btn-icon-hover-bg`, `--btn-radius`, `--btn-font`, `--btn-padding`, `--btn-padding-sm`
 
@@ -32,4 +32,4 @@
 
 **Responsive:** Full-width on mobile (`<600px`). Button-group stacks vertically below `bp-mobile`.
 
-**Related:** `loading-button.md`, `icon.md`, `focus-ring.md`, `toggle.md`
+**Related:** `loading-btn.md`, `icon.md`, `focus-ring.md`, `toggle.md`

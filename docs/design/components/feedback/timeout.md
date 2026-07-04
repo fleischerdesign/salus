@@ -32,4 +32,4 @@
 
 **Composition:** Modal containing: Icon (clock/warning) + Title + Countdown timer + Extend Session button + Log Out button.
 
-**Related:** `modal.md`, `button.md`, `icon.md`, `stat.md`
+**Related:** `modal.md`, `btn.md`, `icon.md`, `stat.md`

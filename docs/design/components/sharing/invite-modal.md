@@ -24,4 +24,4 @@
 
 **Composition:** Modal containing: QR code image + Readonly link input + Copy button + Close button. Loaded via HTMX into modal container.
 
-**Related:** `modal.md`, `copy-to-clipboard.md`, `icon.md`, `button.md`
+**Related:** `modal.md`, `copy-to-clipboard.md`, `icon.md`, `btn.md`

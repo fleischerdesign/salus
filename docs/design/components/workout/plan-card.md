@@ -24,4 +24,4 @@
 
 **Composition:** Card with: Header (name + autoreg chip) + Exercise list + Start Session + Delete actions.
 
-**Related:** `card.md`, `active-session.md`, `exercise-item.md`, `chip.md`, `button.md`, `confirmation-dialog.md`
+**Related:** `card.md`, `active-session.md`, `exercise-item.md`, `chip.md`, `btn.md`, `confirm.md`

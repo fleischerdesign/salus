@@ -28,4 +28,4 @@
 | --loading-btn-error-color | `{colors.error-600}` |
 | --loading-btn-transition | `var(--duration-fast) var(--ease-default)` |
 
-**Related:** `button.md`, `spinner.md`, `toast.md`
+**Related:** `btn.md`, `spinner.md`, `toast.md`

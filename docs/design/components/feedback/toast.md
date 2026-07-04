@@ -43,4 +43,4 @@
 
 **Responsive:** Full-width on mobile with slight horizontal margin.
 
-**Related:** `alert.md`, `button.md`, `icon.md`
+**Related:** `alert.md`, `btn.md`, `icon.md`

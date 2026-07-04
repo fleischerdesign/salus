@@ -31,4 +31,4 @@
 | --scroll-top-z-index | `var(--z-sticky)` |
 | --scroll-top-threshold | 300px |
 
-**Related:** `button.md`, `icon.md`
+**Related:** `btn.md`, `icon.md`

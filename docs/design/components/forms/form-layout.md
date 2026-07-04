@@ -31,4 +31,4 @@
 
 **Composition:** Contains Input/Select/Textarea/Checkbox/Toggle groups stacked vertically or in rows. Submit + Cancel in form-actions.
 
-**Related:** `input.md`, `checkbox.md`, `radio-group.md`, `toggle.md`, `button.md`, `alert.md`
+**Related:** `input.md`, `checkbox.md`, `radio-group.md`, `toggle.md`, `btn.md`, `alert.md`

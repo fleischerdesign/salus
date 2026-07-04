@@ -30,4 +30,4 @@
 | --search-debounce-ms | 300ms |
 | --search-min-chars | 2 |
 
-**Related:** `input.md`, `autocomplete.md`, `icon.md`, `button.md`
+**Related:** `input.md`, `autocomplete.md`, `icon.md`, `btn.md`

@@ -17,4 +17,4 @@
 - Arrow icon: `aria-hidden="true"` (decorative)
 - `aria-label` on the link if label is just an icon (e.g., `aria-label="Back to Connections"`)
 
-**Related:** `link.md`, `icon.md`, `breadcrumbs.md`
+**Related:** `link.md`, `icon.md`, `breadcrumb.md`

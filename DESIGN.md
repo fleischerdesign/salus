@@ -250,6 +250,13 @@ transitions:
   modal: opacity var(--duration-normal) var(--ease-out), transform var(--duration-normal) var(--ease-out)
   card: box-shadow var(--duration-fast) var(--ease-default)
 
+nav-tokens:
+  link-color: "{colors.slate-600}"
+  link-hover-color: "{colors.primary}"
+  link-active-color: "{colors.primary}"
+  link-active-border: "2px solid {colors.primary}"
+  link-font: "{typography.label-md}"
+
 components:
   btn-primary:
     backgroundColor: "{colors.primary}"
@@ -337,16 +344,6 @@ components:
     rounded: "{rounded.xl}"
     shadow: "0 12px 24px rgba(0, 0, 0, 0.1)"
     max-width: 440px
-
-  nav:
-    height: 64px
-    bg: "#ffffff"
-    border: "1px solid {colors.slate-200}"
-    link-color: "{colors.slate-600}"
-    link-hover-color: "{colors.primary}"
-    link-active-border: "2px solid {colors.primary}"
-    link-active-color: "{colors.primary}"
-    link-typography: label-md
 
   alert-success:
     backgroundColor: "{colors.tertiary-50}"

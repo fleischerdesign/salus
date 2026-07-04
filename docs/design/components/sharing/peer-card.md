@@ -27,4 +27,4 @@
 
 **Composition:** Card containing: Avatar + Handle + Badge + Metric list + Footer (expiration, token, revoke). Part of peer-grid in sharing_connections page.
 
-**Related:** `card.md`, `avatar.md`, `chip.md`, `badge.md`, `icon.md`, `button.md`, `federation-status.md`, `pending-invitation.md`
+**Related:** `card.md`, `avatar.md`, `chip.md`, `badge.md`, `icon.md`, `btn.md`, `federation-status.md`, `pending-invitation.md`

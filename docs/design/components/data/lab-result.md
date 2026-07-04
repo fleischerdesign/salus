@@ -29,4 +29,4 @@
 | --lab-result-range-color | `{colors.slate-400}` |
 | --lab-result-indicator-size | 8px |
 
-**Related:** `stat.md`, `key-value.md`, `status-dot.md`, `comparison-card.md`
+**Related:** `stat.md`, `key-value.md`, `status-dot.md`, `compare.md`

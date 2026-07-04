@@ -36,4 +36,4 @@
 
 **Responsive:** Full-width on mobile.
 
-**Related:** `modal.md`, `button.md`, `icon.md`, `alert.md`
+**Related:** `modal.md`, `btn.md`, `icon.md`, `alert.md`

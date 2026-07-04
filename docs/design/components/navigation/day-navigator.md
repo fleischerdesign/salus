@@ -29,4 +29,4 @@
 | --day-nav-date-font | `var(--font-label-md)` |
 | --day-nav-date-hover | `{colors.primary}` |
 
-**Related:** `date-picker.md`, `button.md`, `icon.md`
+**Related:** `date-picker.md`, `btn.md`, `icon.md`

@@ -35,4 +35,4 @@
 
 **Composition:** Multiple sections, each with: Header (Button + Chevron) + Panel (content). Only one open at a time (configurable).
 
-**Related:** `card.md`, `icon.md`, `button.md`
+**Related:** `card.md`, `icon.md`, `btn.md`

@@ -31,4 +31,4 @@
 
 **Composition:** Contains: Logo (Link) + Nav Links + Nav Dropdown(s) + User Menu. Fixed at top, full-width.
 
-**Related:** `nav-dropdown.md`, `user-menu.md`, `link.md`, `drawer.md`, `breadcrumbs.md`
+**Related:** `nav-dropdown.md`, `user-menu.md`, `link.md`, `drawer.md`, `breadcrumb.md`

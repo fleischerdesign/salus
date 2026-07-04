@@ -31,4 +31,4 @@
 
 **Token Values:** Inherits `currentColor` from parent. Size via `font-size`. Filled variant: `fontVariationSettings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`.
 
-**Related:** `button.md`, `link.md`, `avatar.md`, `status-dot.md`
+**Related:** `btn.md`, `link.md`, `avatar.md`, `status-dot.md`

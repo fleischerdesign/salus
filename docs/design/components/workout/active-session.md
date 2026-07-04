@@ -27,4 +27,4 @@
 
 **Composition:** Header (plan name + autoreg chip) + Exercise list + Body notes + Complete button. Each exercise: name + targets + set rows with log.
 
-**Related:** `plan-card.md`, `autoregulation-set.md`, `button.md`, `input.md`, `chip.md`, `stat.md`
+**Related:** `plan-card.md`, `autoregulation-set.md`, `btn.md`, `input.md`, `chip.md`, `stat.md`

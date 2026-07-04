@@ -34,4 +34,4 @@
 | --toggle-transition | `var(--duration-fast) var(--ease-default)` |
 | --toggle-disabled-opacity | `0.5` |
 
-**Related:** `checkbox.md`, `radio-group.md`, `button.md`
+**Related:** `checkbox.md`, `radio-group.md`, `btn.md`

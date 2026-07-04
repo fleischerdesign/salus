@@ -39,4 +39,4 @@
 | --tooltip-delay | 150ms |
 | --tooltip-z-index | `var(--z-tooltip)` |
 
-**Related:** `chart-tooltip.md`, `button.md`, `icon.md`
+**Related:** `chart-tooltip.md`, `btn.md`, `icon.md`

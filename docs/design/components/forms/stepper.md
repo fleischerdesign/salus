@@ -29,4 +29,4 @@
 | --stepper-input-width | 56px |
 | --stepper-gap | `2px` |
 
-**Related:** `input.md`, `slider.md`, `button.md`
+**Related:** `input.md`, `slider.md`, `btn.md`

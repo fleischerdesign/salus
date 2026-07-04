@@ -35,4 +35,4 @@
 
 **Composition:** Card with accent bar (4px top) containing: Icon + Value + Label + Delta. 3-4 per row on desktop.
 
-**Related:** `card.md`, `stat.md`, `widget.md`, `comparison-card.md`
+**Related:** `card.md`, `stat.md`, `widget.md`, `compare.md`

@@ -130,6 +130,7 @@ def get_yaml_tokens(design_data: dict) -> set[str]:
         "durations": "--duration-",
         "easings": "--ease-",
         "transitions": "--transition-",
+        "nav-tokens": "--nav-",
     }
 
     for section, prefix in section_prefixes.items():
@@ -306,20 +307,17 @@ def check_token_consistency(files: list[Path], design_data: dict, report: Report
 # ---------------------------------------------------------------------------
 
 def check_component_coverage(files: list[Path], design_data: dict, report: Report) -> None:
-    """Check that YAML dict-components have spec files and vice versa."""
+    """Check that every spec file has a YAML component entry."""
     yaml_names = get_yaml_component_names(design_data)
     spec_names = {get_component_name(f) for f in files}
 
-    for name in yaml_names - spec_names:
-        report.findings.append(Finding(
-            severity="info", file="DESIGN.md", section="components",
-            message=f"YAML component '{name}' has no dedicated spec file (may be a variant in parent spec)"
-        ))
+    # Only check Spec→YAML direction. YAML→Spec is not checked because
+    # YAML entries may be variants (e.g. btn-primary-hover) documented in parent specs.
 
     for name in spec_names - yaml_names:
         report.findings.append(Finding(
-            severity="info", file=f"components/*/{name}.md", section="components",
-            message=f"Spec file exists but no YAML component definition for '{name}' (may use variant prefix)"
+            severity="error", file=f"components/*/{name}.md", section="components",
+            message=f"Spec file has no YAML component definition for '{name}' — add it to DESIGN.md components"
         ))
 
 

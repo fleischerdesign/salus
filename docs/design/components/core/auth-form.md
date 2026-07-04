@@ -23,4 +23,4 @@
 
 **Responsive:** Padding: 32px (desktop) → 24px 16px (mobile). Max-width: 440px.
 
-**Related:** `input.md`, `button.md`, `alert.md`, `divider.md`, `theme-toggle.md`, `language-switcher.md`
+**Related:** `input.md`, `btn.md`, `alert.md`, `divider.md`, `theme-toggle.md`, `language-switcher.md`

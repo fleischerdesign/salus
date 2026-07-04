@@ -27,4 +27,4 @@
 - Card header title: inside `<h2>`/`<h3>` for heading hierarchy
 - Grouped cards: wrap in `<ul>` with each card as `<li>` if they represent a collection
 
-**Related:** `empty-state.md`, `key-value.md`, `comparison-card.md`, `widget.md`
+**Related:** `empty-state.md`, `key-value.md`, `compare.md`, `widget.md`

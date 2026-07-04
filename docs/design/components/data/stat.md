@@ -21,4 +21,4 @@
 - Trend delta: `aria-label` describing direction + magnitude (e.g., "Increased by 5% from yesterday")
 - Fallback: "--" for missing data, never empty or "0"
 
-**Related:** `key-value.md`, `anim-number.md`, `comparison-card.md`, `progress-bar.md`
+**Related:** `key-value.md`, `anim-number.md`, `compare.md`, `progress-bar.md`

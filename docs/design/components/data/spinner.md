@@ -11,7 +11,7 @@
 **Usage:**
 - Inline: replaces icon or label text during HTMX load
 - Container: centered in parent when content loading
-- Button: replaces label, see loading-button.md
+- Button: replaces label, see loading-btn.md
 
 **Accessibility:** `aria-busy="true"` on parent. `role="status"` or `aria-label="Loading"` on spinner.
 
@@ -35,4 +35,4 @@
 | --spinner-duration | 0.8s |
 | --spinner-easing | `linear` |
 
-**Related:** `skeleton.md`, `loading-button.md`, `empty-state.md`
+**Related:** `skeleton.md`, `loading-btn.md`, `empty-state.md`

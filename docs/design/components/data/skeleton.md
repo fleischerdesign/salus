@@ -22,4 +22,4 @@
 - After content loads: remove `aria-busy`, swap skeleton for real content
 - Screen reader may announce "Loading" while aria-busy is true
 
-**Related:** `spinner.md`, `empty-state.md`, `loading-button.md`
+**Related:** `spinner.md`, `empty-state.md`, `loading-btn.md`

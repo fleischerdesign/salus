@@ -30,4 +30,4 @@
 
 **Composition:** Modal (Backdrop + Card) containing: Step indicator (dots) + Step content (icon + title + desc + body) + Footer (Back + Next/Skip/Finish). Step body loaded via HTMX.
 
-**Related:** `modal.md`, `step-indicator.md`, `button.md`, `icon.md`, `empty-state.md`, `form-layout.md`
+**Related:** `modal.md`, `step-indicator.md`, `btn.md`, `icon.md`, `empty-state.md`, `form-layout.md`

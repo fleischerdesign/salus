@@ -26,4 +26,4 @@
 | --copy-error-color | `{colors.error-600}` |
 | --copy-transition | `var(--duration-fast) var(--ease-default)` |
 
-**Related:** `button.md`, `icon.md`, `code.md`, `inline-code.md`
+**Related:** `btn.md`, `icon.md`, `code.md`, `inline-code.md`

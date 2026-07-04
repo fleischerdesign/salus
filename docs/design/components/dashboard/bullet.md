@@ -32,4 +32,4 @@
 | --bullet-target-color | `{colors.slate-900}` |
 | --bullet-target-width | 2px |
 
-**Related:** `progress-bar.md`, `viz-bar.md`, `comparison-card.md`
+**Related:** `progress-bar.md`, `viz-bar.md`, `compare.md`

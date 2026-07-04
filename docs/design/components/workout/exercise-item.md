@@ -23,4 +23,4 @@
 - Video link: `aria-label="Video tutorial for {name}"`
 - Delete: `aria-label="Delete exercise: {name}"` with confirmation
 
-**Related:** `chip.md`, `link.md`, `button.md`, `icon.md`, `list-item.md`, `plan-card.md`
+**Related:** `chip.md`, `link.md`, `btn.md`, `icon.md`, `list-item.md`, `plan-card.md`

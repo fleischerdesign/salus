@@ -37,4 +37,4 @@
 
 **Responsive:** Full-width. Min-height reduces to 80px on mobile.
 
-**Related:** `button.md`, `icon.md`, `progress-bar.md`, `chip.md`, `modal.md`
+**Related:** `btn.md`, `icon.md`, `progress-bar.md`, `chip.md`, `modal.md`

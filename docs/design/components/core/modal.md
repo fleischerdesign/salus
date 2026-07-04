@@ -26,4 +26,4 @@
 
 **Responsive:** Full-width with 16px margin on mobile (<600px). Max-width 440px on larger screens. Content scrollable at max-height 90vh.
 
-**Related:** `card.md`, `alert.md`, `confirmation-dialog.md`, `wizard.md`, `focus-ring.md`, `button.md`
+**Related:** `card.md`, `alert.md`, `confirm.md`, `wizard.md`, `focus-ring.md`, `btn.md`

@@ -17,4 +17,4 @@
 
 **Responsive:** Inline links follow text flow. Navigation links collapse per navigation responsive rules. External link icon always visible regardless of viewport.
 
-**Related:** `button.md`, `icon.md`, `focus-ring.md`, `back-link.md`, `top-app-bar.md`
+**Related:** `btn.md`, `icon.md`, `focus-ring.md`, `back-link.md`, `top-app-bar.md`

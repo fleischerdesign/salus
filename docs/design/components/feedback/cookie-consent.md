@@ -37,4 +37,4 @@
 
 **Composition:** Cookie icon + Description text + Accept All button + Settings link. Fixed at bottom of viewport.
 
-**Related:** `button.md`, `icon.md`, `toggle.md`, `modal.md`
+**Related:** `btn.md`, `icon.md`, `toggle.md`, `modal.md`

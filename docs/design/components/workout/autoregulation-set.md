@@ -25,4 +25,4 @@
 - 1RM calculation: `aria-label="Estimated 1RM: {value}kg"`
 - Dimmed opacity: supplemented by aria-label state description
 
-**Related:** `input.md`, `button.md`, `stepper.md`, `stat.md`, `active-session.md`
+**Related:** `input.md`, `btn.md`, `stepper.md`, `stat.md`, `active-session.md`

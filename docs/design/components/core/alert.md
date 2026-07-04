@@ -25,4 +25,4 @@
 
 **Responsive:** Full-width, padding reduces to 8px on mobile. Text may wrap.
 
-**Related:** `toast.md`, `input.md`, `confirmation-dialog.md`, `form-layout.md`
+**Related:** `toast.md`, `input.md`, `confirm.md`, `form-layout.md`

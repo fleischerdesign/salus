@@ -21,4 +21,4 @@
 
 **Composition:** Card section containing invitation rows. Each row: colored icon + owner name + metric + aggregation + Accept/Decline buttons.
 
-**Related:** `card.md`, `chip.md`, `icon.md`, `button.md`, `peer-card.md`, `invite-modal.md`
+**Related:** `card.md`, `chip.md`, `icon.md`, `btn.md`, `peer-card.md`, `invite-modal.md`
