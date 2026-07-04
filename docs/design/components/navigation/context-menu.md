@@ -15,3 +15,16 @@
 **Do:** Use for secondary actions on data rows · Auto-position within viewport · Support keyboard navigation
 
 **Don't:** Show on every element · Use as primary action mechanism · Omit keyboard access
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --context-menu-bg | `#ffffff` |
+| --context-menu-shadow | `var(--shadow-lg)` |
+| --context-menu-radius | `var(--radius-md)` |
+| --context-menu-item-padding | `8px 12px` |
+| --context-menu-divider | `1px solid {colors.slate-200}` |
+| --context-menu-danger-text | `{colors.error-600}` |
+| --context-menu-z-index | `var(--z-tooltip)` |
+
+**Related:** `nav-dropdown.md`, `table.md`, `list-item.md`

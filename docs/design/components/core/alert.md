@@ -20,3 +20,9 @@
 **Do:** Use for page-level feedback · Include clear action if error is recoverable · Use role="alert"
 
 **Don't:** Use for inline field validation (use error-text) · Stack multiple alerts · Leave ambiguous ("Something went wrong")
+
+**Composition:** Contains: Icon + Text + optional close Button. Alert is always inline in page content, never inside modals or overlays.
+
+**Responsive:** Full-width, padding reduces to 8px on mobile. Text may wrap.
+
+**Related:** `toast.md`, `input.md`, `confirmation-dialog.md`, `form-layout.md`

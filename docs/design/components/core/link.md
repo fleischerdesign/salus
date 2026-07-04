@@ -14,3 +14,7 @@
 **Do:** Use primary color for clickable links · Show underline on hover · Distinguish from body text · Add external icon for off-site links
 
 **Don't:** Use color alone to indicate link · Make link text generic ("click here") · Omit focus styles
+
+**Responsive:** Inline links follow text flow. Navigation links collapse per navigation responsive rules. External link icon always visible regardless of viewport.
+
+**Related:** `button.md`, `icon.md`, `focus-ring.md`, `back-link.md`, `top-app-bar.md`

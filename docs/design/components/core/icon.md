@@ -24,3 +24,7 @@
 **Do:** Use consistent sizing · Inherit color · Mark decorative icons as aria-hidden · Provide aria-label for icon-only buttons
 
 **Don't:** Mix font sizes in same component · Use icon without text label in interactive elements · Skip accessibility
+
+**Token Values:** Inherits `currentColor` from parent. Size via `font-size`. Filled variant: `fontVariationSettings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`.
+
+**Related:** `button.md`, `link.md`, `avatar.md`, `status-dot.md`

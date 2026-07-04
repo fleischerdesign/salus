@@ -20,3 +20,15 @@
 **Do:** Use for primary navigation · Show active state for current page · Keep link labels concise
 
 **Don't:** Nest deeper than 2 levels · Use for secondary/utility links (use User menu) · Omit mobile hamburger
+
+**Accessibility:**
+- `<nav>` element with `aria-label="Main navigation"`
+- Logo: link to home with descriptive `aria-label`
+- Active link: `aria-current="page"`
+- Mobile hamburger: `aria-expanded="true/false"`, `aria-controls="nav-menu"`, `aria-label="Toggle navigation"`
+- Dropdown triggers: `aria-expanded`, `aria-haspopup="true"`
+- Keyboard: Tab through links, Enter/Space opens dropdown, Escape closes
+
+**Composition:** Contains: Logo (Link) + Nav Links + Nav Dropdown(s) + User Menu. Fixed at top, full-width.
+
+**Related:** `nav-dropdown.md`, `user-menu.md`, `link.md`, `drawer.md`, `breadcrumbs.md`

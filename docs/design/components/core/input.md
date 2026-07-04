@@ -19,3 +19,16 @@
 **Do:** Always show label above · Use hint for format guidance · Mark required fields visibly · Associate errors with aria-describedby
 
 **Don't:** Placeholder as label replacement · Rely on color alone for error state · Leave errors unassociated from inputs
+
+**Accessibility:**
+- Every input MUST have an associated `<label>` with matching `for`/`id`
+- Error text linked via `aria-describedby="error-{id}"` on input
+- Error container: `role="alert"` for immediate screen reader announcement
+- Required fields: `required` attribute + `aria-required="true"` + visual asterisk
+- Hint text: `aria-describedby` separate from error
+- Native `<input>`/`<select>`/`<textarea>` — no custom `<div>` replacements
+- Focus: primary border + ring, never `outline: none` without replacement
+
+**Responsive:** Full-width on mobile. `.form-row` collapses to vertical stack below `bp-mobile`.
+
+**Related:** `select.md`, `textarea.md`, `color-picker.md`, `focus-ring.md`, `form-layout.md`, `search-input.md`, `autocomplete.md`, `number-stepper.md`, `slider.md`, `date-picker.md`

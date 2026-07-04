@@ -13,3 +13,10 @@
 **Do:** Use large bold numbers · Show unit · Add trend direction · Show "--" for missing data
 
 **Don't:** Use for multi-value display (use key-value list) · Omit unit · Show "0" when data is missing
+
+**Accessibility:**
+- Main value: `aria-label` describing what it represents (e.g., "Heart rate: 72 beats per minute")
+- Trend delta: `aria-label` describing direction + magnitude (e.g., "Increased by 5% from yesterday")
+- Fallback: "--" for missing data, never empty or "0"
+
+**Related:** `key-value.md`, `animated-number.md`, `comparison-card.md`, `progress-bar.md`

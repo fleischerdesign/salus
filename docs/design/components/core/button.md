@@ -21,3 +21,15 @@
 **Do:** Primary for main CTA · Secondary for secondary action · Ghost for Cancel · Danger for destructive · Icon button for icon-only actions
 
 **Don't:** Two Primary buttons side-by-side · Disabled button as informational state · Icon without aria-label
+
+**Accessibility:**
+- Native `<button>` element preferred; `role="button"` + `tabindex="0"` + Enter/Space handlers if `<div>` used
+- Icon-only buttons MUST have `aria-label` (e.g., `aria-label="Close"`)
+- Loading state: `aria-busy="true"`, disable interaction
+- Disabled: `disabled` attribute (not just CSS)
+- Toggle buttons: `aria-pressed="true/false"`
+- Focus: visible ring via `:focus-visible`
+
+**Responsive:** Full-width on mobile (`<600px`). Button-group stacks vertically below `bp-mobile`.
+
+**Related:** `loading-button.md`, `icon.md`, `focus-ring.md`, `toggle.md`

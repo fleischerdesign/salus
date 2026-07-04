@@ -15,3 +15,22 @@
 **Do:** Show total item count · Keep page buttons large enough to tap · Preserve URL state
 
 **Don't:** Show pagination for <10 items · Omit page size options · Break browser back button
+
+**Accessibility:**
+- Container: `<nav>` with `aria-label="Pagination"`
+- Page buttons: `<button>` elements (not `<a>` for same-page navigation). `aria-current="page"` on active page
+- Ellipsis: `aria-hidden="true"` or `aria-label="More pages"`
+- Previous/Next: `aria-label="Previous page"` / `"Next page"`
+- Items per page selector: `<label>` + `<select>`, `aria-label="Items per page"`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --pagination-btn-size | 40px |
+| --pagination-active-bg | `{colors.primary-50}` |
+| --pagination-active-text | `{colors.primary-600}` |
+| --pagination-gap | `4px` |
+
+**Composition:** Previous button + Page buttons + Ellipsis + Next button + Optional items-per-page selector + "Showing X-Y of Z" label.
+
+**Related:** `table.md`, `button.md`, `select.md`

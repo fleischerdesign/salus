@@ -13,3 +13,10 @@
 **Do:** Use mono font · Distinguish from body text with bg · Keep inline code compact
 
 **Don't:** Use for long text (use block variant) · Omit word-break for long tokens · Use sans-serif font
+
+**Accessibility:**
+- `<code>` element for inline, `<pre><code>` for block
+- Screen readers may announce "code" context — avoid if unnecessary
+- Token values: `aria-label` for copyable context (e.g., "API token value")
+
+**Related:** `copy-to-clipboard.md`, `stat.md`

@@ -17,3 +17,22 @@
 **Do:** Use for notification counts, unread indicators · Show "99+" for overflow · Absolute position on parent
 
 **Don't:** Use as a status indicator (use Chip) · Animate count changes · Show for zero count · Use without parent position:relative
+
+**Accessibility:**
+- `aria-label="{count} unread notifications"` or similar descriptive text
+- Number: visually shown, also in aria-label for screen readers
+- Parent element: `aria-describedby` referencing badge if badge conveys status
+- Dot variant (no count): `aria-label="Unread"` or "Active"
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --badge-bg | `{colors.error-500}` |
+| --badge-text | `{colors.on-error}` |
+| --badge-dot-size | 8px |
+| --badge-standard-size | 18px |
+| --badge-font | `10px / 700 var(--font-family-primary)` |
+| --badge-overflow-threshold | 99 |
+| --badge-overflow-text | "99+" |
+
+**Related:** `chip.md`, `status-dot.md`, `avatar.md`

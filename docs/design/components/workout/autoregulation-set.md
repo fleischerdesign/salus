@@ -15,3 +15,12 @@
 **Do:** Pre-fill autoreg target · Show 1RM progression · Dim completed sets
 
 **Don't:** Allow logging without weight+reps · Omit RPE display · Show 1RM for non-autoreg plans
+
+**Accessibility:**
+- Each set: inputs with labels, `aria-label="Set {N}: weight"` / `"reps"`
+- Log button: `aria-label="Log set {N}"`, `aria-busy` during submission
+- Logged state: `aria-label="Set {N} logged — {weight}kg × {reps} @ RPE {rpe}"`
+- 1RM calculation: `aria-label="Estimated 1RM: {value}kg"`
+- Dimmed opacity: supplemented by aria-label state description
+
+**Related:** `input.md`, `button.md`, `number-stepper.md`, `stat.md`, `active-session.md`

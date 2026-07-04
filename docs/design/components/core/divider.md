@@ -15,3 +15,11 @@
 **Do:** Use for visual separation between sections · Add label when context needs clarification
 
 **Don't:** Overuse — prefer whitespace for separation · Use without semantic purpose
+
+**Accessibility:**
+- Use `<hr>` element for horizontal dividers (semantic HTML)
+- Decorative dividers: `aria-hidden="true"`
+- Labeled dividers: label text is visible and read by screen readers
+- Vertical dividers: `aria-hidden="true"` (purely visual separation, not semantic content)
+
+**Related:** `auth-form.md`

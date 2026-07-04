@@ -18,3 +18,16 @@
 **Do:** Use consistent chrome for all widgets · Support drag-and-drop reorder · Show delta for trends
 
 **Don't:** Vary chrome across widgets · Forget empty state per widget · Hardcode viz colors (use component tokens)
+
+**Accessibility:**
+- Widget container: `role="region"` with `aria-label` from widget title
+- Edit mode: drag handle has `aria-grabbed`, keyboard reorder via Arrow keys
+- Widget chrome buttons: each has distinct `aria-label` ("Edit widget", "Delete widget", "Drag to reorder")
+- Empty widget: renders empty-state component with descriptive message
+- Auto-refresh via HTMX: `aria-live="polite"` on widget body
+
+**Composition:** Chrome (DragHandle + Title + Action buttons) + Body (Viz component or EmptyState). Inside dashboard-grid container.
+
+**Responsive:** Widgets collapse to single column on mobile (<600px). Small/Medium/Large all span 1 column. Edit mode hidden on mobile (touch drag via SortableJS handles reorder).
+
+**Related:** `drag-handle.md`, `viz-*.md`, `empty-state.md`, `button.md`, `icon.md`, `kpi-card.md`

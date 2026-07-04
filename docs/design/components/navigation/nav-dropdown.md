@@ -13,3 +13,14 @@
 **Do:** Use for grouped navigation · Keep dropdown width auto-fit · Limit to 2 levels
 
 **Don't:** Nest dropdowns deeper than 2 levels · Omit hover bridge · Make items too long (>25 chars)
+
+**Accessibility:**
+- Trigger: `aria-expanded="true/false"`, `aria-haspopup="true"`
+- Dropdown: `role="menu"`, items: `role="menuitem"`
+- Keyboard: Enter/Space opens, Arrow keys navigate items, Escape closes, Tab moves to next trigger
+- Mouse: `:hover` opens, mouseleave closes with 200ms delay
+- Active item: `aria-current="page"` if on current page
+
+**Composition:** Trigger (Link + Arrow icon) + Dropdown panel (list of Links). Part of TopAppBar.
+
+**Related:** `top-app-bar.md`, `user-menu.md`, `link.md`, `context-menu.md`

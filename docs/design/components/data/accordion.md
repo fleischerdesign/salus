@@ -15,3 +15,23 @@
 **Do:** Use for progressive disclosure · Animate expand/collapse · Show chevron direction clearly
 
 **Don't:** Use for single item (use card) · Omit animation (jarring) · Hide critical information (put in expanded by default)
+
+**Accessibility:**
+- Header: `<button>` with `aria-expanded="true/false"`, `aria-controls="accordion-panel-{id}"`
+- Panel: `role="region"`, `aria-labelledby` referencing header button
+- Icon/chevron: `aria-hidden="true"` (state communicated by aria-expanded)
+- Keyboard: Enter/Space toggles expansion
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --accordion-header-padding | `12px 16px` |
+| --accordion-header-font | `var(--font-body-md)` |
+| --accordion-content-padding | `16px` |
+| --accordion-border-color | `{colors.slate-200}` |
+| --accordion-chevron-size | 20px |
+| --accordion-transition | `var(--duration-normal) var(--ease-out)` |
+
+**Composition:** Multiple sections, each with: Header (Button + Chevron) + Panel (content). Only one open at a time (configurable).
+
+**Related:** `card.md`, `icon.md`, `button.md`

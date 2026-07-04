@@ -11,3 +11,20 @@
 **Do:** Use for daily dashboards · Show weekday name · Provide quick "Today" return
 
 **Don't:** Allow navigation to future dates (unless relevant) · Use custom date picker (native is more accessible)
+
+**Accessibility:**
+- Previous/Next: `<button>` with `aria-label="Previous day"` / `"Next day"`
+- Date display: `<button>` opening native date picker, `aria-label="Change date — current: {formatted date}"`
+- Today button: `aria-label="Go to today"`
+- Disabled arrows: `disabled` attribute when at boundary
+- Keyboard: Tab through, Enter/Space activates
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --day-nav-bg | `{colors.slate-50}` |
+| --day-nav-radius | `var(--radius-md)` |
+| --day-nav-date-font | `var(--font-label-md)` |
+| --day-nav-date-hover | `{colors.primary}` |
+
+**Related:** `date-picker.md`, `button.md`, `icon.md`

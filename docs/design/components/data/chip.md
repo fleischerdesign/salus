@@ -20,3 +20,10 @@
 **Do:** Use for status indicators, tags, categories · Keep labels short (1-2 words) · Use neutral for metadata, semantic for status
 
 **Don't:** Use as buttons (unless clickable variant) · Overflow with long text · Mix semantic and neutral in same context
+
+**Accessibility:**
+- Status chip (non-interactive): `<span>` element, purely visual
+- Action chip (clickable): `<button>` or `role="button"` + `tabindex="0"` + `aria-pressed` for toggle chips
+- Removable chip: × button with `aria-label="Remove {label}"`
+
+**Related:** `badge.md`, `chip-row.md`, `status-dot.md`, `diagnosis-tag.md`

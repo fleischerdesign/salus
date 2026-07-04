@@ -11,3 +11,10 @@
 **Do:** Use for zone/stage breakdowns · Show color legend · Make responsive
 
 **Don't:** Use for trend data (use sparkline) · Omit legend · Hardcode segment colors
+
+**Accessibility:**
+- SVG: `role="img"` with `aria-label` describing distribution (e.g., "Sleep: 2h awake, 3h light, 1.5h deep, 2h REM")
+- Legend items: list with color dots + text labels
+- Color dots: `aria-hidden="true"` (label text describes the segment)
+
+**Related:** `viz-bar.md`, `viz-donut.md`, `sleep-*` tokens

@@ -18,3 +18,12 @@
 **Do:** Use for focused tasks (forms, confirmations, details) · Always provide close button · Trap focus · Label with title
 
 **Don't:** Open modal from another modal · Omit Escape key handler · Forget focus restoration · Make non-dismissable without explicit reason
+
+**Composition:**
+- Contains one Card (for content structure)
+- Allowed in card: Form elements, Buttons, Text, Icon, Alert
+- Forbidden: Another Modal (no nested modals), Toast (modals are above toasts)
+
+**Responsive:** Full-width with 16px margin on mobile (<600px). Max-width 440px on larger screens. Content scrollable at max-height 90vh.
+
+**Related:** `card.md`, `alert.md`, `confirmation-dialog.md`, `wizard.md`, `focus-ring.md`, `button.md`

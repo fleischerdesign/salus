@@ -13,3 +13,17 @@
 **Do:** Use for dashboard values that update · Keep animation subtle · Respect number formatting
 
 **Don't:** Animate on page load (only on value change) · Use excessive duration · Skip animation for tiny deltas
+
+**Accessibility:**
+- `aria-live="polite"` announces the new value after animation completes
+- `aria-label` with final value + unit (screen readers don't need to "watch" the animation)
+- Respects `prefers-reduced-motion`: skip animation, show final value immediately
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --anim-number-duration | 800ms |
+| --anim-number-easing | `var(--ease-out)` |
+| --anim-number-min-delta | 1 (skip animation for smaller changes) |
+
+**Related:** `stat.md`, `spinner.md`

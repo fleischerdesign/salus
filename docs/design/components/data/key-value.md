@@ -12,3 +12,10 @@
 **Do:** Align labels consistently in lists · Use bold for values · Show "--" for missing data, not blank
 
 **Don't:** Use generic labels ("Value: 42") · Omit unit for measured values · Vary alignment in same list
+
+**Accessibility:**
+- Use `<dl>` (description list), `<dt>` (term/label), `<dd>` (description/value) for semantic structure
+- Label: `<dt>`. Value: `<dd>`. Multiple values per term: multiple `<dd>` elements
+- Horizontal layout: CSS grid or flex, not table (this is not tabular data)
+
+**Related:** `stat.md`, `table.md`, `lab-result.md`, `comparison-card.md`

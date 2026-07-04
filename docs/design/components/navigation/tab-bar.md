@@ -15,3 +15,24 @@
 **Do:** Use for 3-8 related views · Preserve active tab in URL · Scroll overflow on mobile · Show clear active indicator
 
 **Don't:** Use for >8 tabs · Use as primary navigation (use TopAppBar) · Omit URL state preservation
+
+**Accessibility:**
+- `role="tablist"` on container, `role="tab"` on each trigger, `role="tabpanel"` on each content panel
+- Active tab: `aria-selected="true"`, `tabindex="0"`. Inactive: `aria-selected="false"`, `tabindex="-1"`
+- Keyboard: Left/Right Arrow keys navigate between tabs, Home/End to first/last
+- `aria-controls="panel-id"` on tab linking to `id` on tabpanel
+- Content loaded via HTMX: `aria-live="polite"` on tabpanel
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --tab-font | `var(--font-label-md)` |
+| --tab-padding | `12px 16px` |
+| --tab-min-width | `90px` |
+| --tab-active-border | `2px solid {colors.primary}` |
+| --tab-active-text | `{colors.primary}` |
+| --tab-hover-bg | `{colors.slate-100}` |
+
+**Composition:** Tab triggers (row) + Tab panels (content area). Only one panel visible at a time.
+
+**Related:** `tabbed-sidebar.md`, `top-app-bar.md`, `link.md`

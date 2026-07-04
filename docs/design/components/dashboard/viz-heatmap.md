@@ -13,3 +13,20 @@
 **Do:** Use sequential color scale · Show tooltip on hover · Highlight today · Show month labels
 
 **Don't:** Use >5 color steps · Omit legend · Show without date context · Use diverging scale
+
+**Accessibility:**
+- Grid: `role="img"` with `aria-label` describing pattern (e.g., "Activity heatmap: highest activity on Mondays and Wednesdays")
+- Individual cells: not focusable (summary in aria-label)
+- Color steps: sequential palette, not diverging (red-green would fail colorblind users)
+- Legend: `aria-hidden="true"` on color scale, text describes levels
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --heatmap-cell-size | 14px |
+| --heatmap-cell-gap | 3px |
+| --heatmap-today-border | `2px solid {colors.primary-500}` |
+| --heatmap-color-steps | 5 |
+| --heatmap-empty-color | `{colors.slate-100}` |
+
+**Related:** `chart-tooltip.md`, `viz-bar.md`

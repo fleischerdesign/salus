@@ -16,3 +16,17 @@
 **Do:** Show progress visually · Use semantic element (ol) · Distinguish active clearly
 
 **Don't:** Use for <2 or >10 steps · Omit screen reader context · Skip error state
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --step-dot-size | 8px |
+| --step-number-size | 24px |
+| --step-pending-color | `{colors.slate-300}` |
+| --step-active-color | `{colors.primary-500}` |
+| --step-completed-color | `{colors.tertiary-500}` |
+| --step-error-color | `{colors.error-500}` |
+
+**Responsive:** Spacing reduces on mobile (8px→6px gap). Vertical labels may stack below dots.
+
+**Related:** `wizard.md`, `progress-bar.md`

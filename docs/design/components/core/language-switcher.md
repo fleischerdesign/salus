@@ -13,3 +13,10 @@
 **Do:** Show native language name · Apply immediately · Persist in cookie · Use radio group for ≤5 languages
 
 **Don't:** Require page reload (HTMX partial update preferred) · Use flags for languages (political) · Show unavailable languages
+
+**Accessibility:**
+- `<fieldset>` + `<legend>` or native `<select>` with `<label>`
+- Current language: `aria-current="true"` or `selected` attribute
+- `aria-label` on the group identifying it as language selector
+
+**Related:** `radio-group.md`, `theme-toggle.md`, `select.md`

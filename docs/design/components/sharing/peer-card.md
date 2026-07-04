@@ -15,3 +15,14 @@
 **Do:** Group metrics by peer · Show relationship direction · Distinguish remote vs local · Provide revoke per metric
 
 **Don't:** Expose full API tokens · Show Revoke All for pending only · Omit remote sync status
+
+**Accessibility:**
+- Card: `role="region"` with `aria-label="Connection with {handle}"`
+- Badge (Mutual/Sharing/Reading/Pending): `aria-label` describing direction
+- Metric rows: each with distinct revoke button, `aria-label="Stop sharing {metric} with {handle}"`
+- Remote chip: `aria-label="Remote peer — {domain}"`
+- Federation status: `aria-label` describing sync state
+
+**Composition:** Card containing: Avatar + Handle + Badge + Metric list + Footer (expiration, token, revoke). Part of peer-grid in sharing_connections page.
+
+**Related:** `card.md`, `avatar.md`, `chip.md`, `badge.md`, `icon.md`, `button.md`, `federation-status.md`, `pending-invitation.md`

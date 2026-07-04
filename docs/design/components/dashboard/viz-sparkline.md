@@ -12,3 +12,10 @@
 **Do:** Use for time-series trends at a glance · Show progress overlay when target exists · Keep minimal
 
 **Don't:** Add axes or grids (use full chart for that) · Show sparkline without context label · Use for single data point
+
+**Accessibility:**
+- SVG: `role="img"` with `aria-label` describing trend (e.g., "Steps trend over the past 7 days: upward, from 6,000 to 8,400")
+- Data points: not individually interactive; summary trend in aria-label
+- Overlay progress bar: inherits progress-bar accessibility
+
+**Related:** `viz-number.md`, `viz-bar.md`, `progress-bar.md`

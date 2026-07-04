@@ -15,3 +15,14 @@
 **Do:** Show user identity in trigger · Provide clear Logout · Use hx-boost=false for auth state changes
 
 **Don't:** Place settings here (use dedicated Settings page) · Omit email for multi-account clarity
+
+**Accessibility:**
+- Trigger: Avatar with `aria-expanded="true/false"`, `aria-haspopup="true"`, `aria-label="User menu — {username}"`
+- Dropdown: `role="menu"`, items: `role="menuitem"`
+- Keyboard: Enter/Space opens, Arrow keys navigate, Escape closes
+- Logout: distinct styling + `aria-label="Log out"` as separate from other menu items
+- Header (name/email): non-interactive, for identification only
+
+**Composition:** Trigger (Avatar + optional Badge) + Dropdown (Header text + Link list + Divider + Logout Link). Part of TopAppBar.
+
+**Related:** `avatar.md`, `nav-dropdown.md`, `divider.md`, `badge.md`, `top-app-bar.md`

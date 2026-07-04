@@ -15,3 +15,17 @@
 **Do:** Use for mobile navigation or dense filter panels · Trap focus · Close on backdrop click
 
 **Don't:** Use for primary desktop navigation (use TopAppBar) · Leave open on navigation · Forget focus trapping
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --drawer-width | 280px |
+| --drawer-bg | `#ffffff` |
+| --drawer-shadow | `var(--shadow-xl)` |
+| --drawer-backdrop | `rgba(0,0,0,0.3)` |
+| --drawer-transition | `var(--transition-modal)` |
+| --drawer-z-index | `var(--z-modal-backdrop)` |
+
+**Composition:** Backdrop + Panel (Header + Close button + Link list + optional Footer). Outside of normal document flow.
+
+**Related:** `top-app-bar.md`, `modal.md`, `link.md`, `icon.md`

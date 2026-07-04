@@ -21,3 +21,23 @@
 **Do:** Show current value label · Use for range input · Support keyboard · Show min/max labels
 
 **Don't:** Use for binary choices (use toggle) · Omit value feedback · Forget keyboard accessibility
+
+**Accessibility:**
+- `role="slider"` on thumb element
+- `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, `aria-valuetext`
+- Range variant: `aria-valuemin`/`max` on container, `aria-valuenow` on each thumb
+- Keyboard: Arrow Left/Down decreases, Arrow Right/Up increases, Home/End to min/max
+- Current value label: `aria-live="polite"` for live updates
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --slider-track-height | 4px |
+| --slider-track-bg | `{colors.slate-200}` |
+| --slider-fill-bg | `{colors.primary-500}` |
+| --slider-thumb-size | 20px |
+| --slider-thumb-border | `2px solid {colors.primary}` |
+| --slider-thumb-bg | `#ffffff` |
+| --slider-thumb-shadow | `var(--shadow-sm)` |
+
+**Related:** `number-stepper.md`, `toggle.md`, `input.md`

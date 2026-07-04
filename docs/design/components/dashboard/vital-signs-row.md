@@ -20,3 +20,23 @@
 **Do:** Show all 5 core vitals · Color-code by severity · Show units · Indicate normal range
 
 **Don't:** Omit units · Show without clinical context · Use ambiguous colors
+
+**Accessibility:**
+- Each vital card: `role="region"` with `aria-label` describing the vital + value + status
+- Status (normal/borderline/abnormal): `aria-label` on the card + color
+- Heart rate: additional `aria-live="polite"` if real-time updating
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --vital-card-min-width | 140px |
+| --vital-card-gap | 16px |
+| --vital-icon-size | 24px |
+| --vital-value-font | `var(--font-headline-md)` |
+| --vital-label-font | `var(--font-body-sm)` muted |
+
+**Composition:** Flex row of compact cards. Each card: Icon + Value + Unit + Label + optional trend arrow.
+
+**Responsive:** Wraps to 2 columns on tablet, single column on mobile.
+
+**Related:** `stat.md`, `kpi-card.md`, `status-dot.md`, `comparison-card.md`

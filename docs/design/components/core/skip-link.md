@@ -13,3 +13,13 @@
 **Do:** Implement as first focusable element · Move focus to main content · Make visible on focus
 
 **Don't:** Omit (WCAG violation) · Make permanently visible · Scroll instead of moving focus
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --skip-link-bg | `{colors.slate-900}` |
+| --skip-link-text | `{colors.slate-50}` |
+| --skip-link-font | `var(--font-body-md)` |
+| --skip-link-z-index | `var(--z-tooltip)` |
+
+**Related:** `focus-ring.md`

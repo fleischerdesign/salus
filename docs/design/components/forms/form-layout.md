@@ -20,3 +20,13 @@
 **Do:** Use form-stack as default · Group related fields in form-row · Place submit button in form-actions
 
 **Don't:** Use form-row for more than 2-3 fields · Put submit outside form-actions · Forget error states
+
+**Accessibility:**
+- `<form>` with `action` and `method` for non-JS fallback alongside HTMX attributes
+- All inputs: matching `for`/`id` labels, error `aria-describedby`
+- Submit button: `type="submit"`, `aria-busy` during submission
+- Fieldset grouping for related inputs with `<legend>`
+
+**Composition:** Contains Input/Select/Textarea/Checkbox/Toggle groups stacked vertically or in rows. Submit + Cancel in form-actions.
+
+**Related:** `input.md`, `checkbox.md`, `radio-group.md`, `toggle.md`, `button.md`, `alert.md`

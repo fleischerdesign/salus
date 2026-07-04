@@ -15,3 +15,11 @@
 **Do:** Use for user identity · Keep consistent sizing · Add status dot for online/offline · Use aria-label for screen readers
 
 **Don't:** Use for decorative icons · Vary size within same context · Omit alt text equivalent
+
+**Accessibility:**
+- Image avatars: `<img>` with `alt="User Name"` describing the person, not "avatar"
+- Initial avatars: `role="img"` + `aria-label="User Name"`
+- Status dot: `aria-label` describing status (e.g., "Online")
+- Interactive avatars (clickable): `role="button"` + `tabindex="0"` + accessible name
+
+**Related:** `status-dot.md`, `user-menu.md`, `icon.md`

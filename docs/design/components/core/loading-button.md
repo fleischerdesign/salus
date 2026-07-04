@@ -13,3 +13,19 @@
 **Do:** Preserve button width during loading · Show success briefly after completion · Disable during loading
 
 **Don't:** Shrink button when spinner appears · Leave button in loading state indefinitely · Forget error feedback
+
+**Accessibility:**
+- `aria-busy="true"` during loading, removed on completion
+- `aria-live="polite"` announces state transitions ("Saving...", "Saved!", "Error saving")
+- Button is `disabled` during loading to prevent double-submission
+- Success/Error icons: `aria-hidden="true"` (status communicated via live region text, not icon alone)
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --loading-btn-spinner-size | 16px |
+| --loading-btn-success-color | `{colors.tertiary-600}` |
+| --loading-btn-error-color | `{colors.error-600}` |
+| --loading-btn-transition | `var(--duration-fast) var(--ease-default)` |
+
+**Related:** `button.md`, `spinner.md`, `toast.md`

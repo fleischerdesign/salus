@@ -11,3 +11,11 @@
 **Do:** Use for custom color selection · Integrate with form layout · Show current color preview
 
 **Don't:** Style beyond recognition (native OS picker is accessible) · Omit label
+
+**Accessibility:**
+- `<input type="color">` with associated `<label>`
+- Native picker has built-in keyboard accessibility
+- Color preview: shows current value visually
+- Focus: visible ring
+
+**Related:** `input.md`, `form-layout.md`

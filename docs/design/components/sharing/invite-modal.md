@@ -11,3 +11,13 @@
 **Do:** Show QR code for mobile scanning · Provide copyable link · Use server-side QR generation
 
 **Don't:** Use external QR service (privacy) · Omit copy feedback · Show modal without close button
+
+**Accessibility:**
+- QR code image: `alt="QR code invitation link — scan to connect"`
+- Copy button: `aria-label="Copy invitation link to clipboard"`
+- Link input: `readonly`, `aria-label="Invitation link"`
+- Feedback: `aria-live="polite"` announces "Link copied" on success
+
+**Composition:** Modal containing: QR code image + Readonly link input + Copy button + Close button. Loaded via HTMX into modal container.
+
+**Related:** `modal.md`, `copy-to-clipboard.md`, `icon.md`, `button.md`

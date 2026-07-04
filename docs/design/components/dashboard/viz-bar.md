@@ -11,3 +11,10 @@
 **Do:** Use for composition/distribution data · Show proportional segments · Hide legend on small
 
 **Don't:** Use for time-series · Use without legend on medium+ widgets · Hardcode segment colors
+
+**Accessibility:**
+- Bar: `role="img"` with `aria-label` describing composition (e.g., "Macros: 45% protein, 30% carbs, 25% fat")
+- Legend: same as viz-pills legend accessibility
+- Segments: proportional width match percentages in aria-label
+
+**Related:** `viz-donut.md`, `viz-pills.md`, `viz-number.md`

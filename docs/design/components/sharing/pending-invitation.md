@@ -9,3 +9,14 @@
 **Do:** Show at top of Connections page · Distinguish metric visually · Confirm before decline · Refresh peer list after accept
 
 **Don't:** Omit aggregation type · Show without colored metric icon · Leave stale invitations
+
+**Accessibility:**
+- Card section: `role="region"` with `aria-label="Pending invitations"`
+- Each invitation: list item with metric icon + owner + metric + aggregation
+- Accept: `aria-label="Accept invitation from {owner} for {metric}"`
+- Decline: `aria-label="Decline invitation from {owner} for {metric}"`
+- Action feedback: `aria-live="polite"` announcing acceptance/decline
+
+**Composition:** Card section containing invitation rows. Each row: colored icon + owner name + metric + aggregation + Accept/Decline buttons.
+
+**Related:** `card.md`, `chip.md`, `icon.md`, `button.md`, `peer-card.md`, `invite-modal.md`

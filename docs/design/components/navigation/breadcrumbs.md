@@ -15,3 +15,22 @@
 **Do:** Show full path for context · Make current page non-clickable · Collapse on mobile
 
 **Don't:** Use for single-level pages · Make every item a link · Skip the "Home" root
+
+**Accessibility:**
+- Container: `<nav>` with `aria-label="Breadcrumb"`
+- List: `<ol>` (ordered list, reflecting hierarchy)
+- Current page: `aria-current="page"`, not a link
+- Separator: `aria-hidden="true"` (purely visual)
+- Collapsed items: button with `aria-label="Show more breadcrumbs"`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --breadcrumb-color | `{colors.slate-500}` |
+| --breadcrumb-hover-color | `{colors.primary}` |
+| --breadcrumb-active-color | `{colors.slate-900}` |
+| --breadcrumb-separator | `{colors.slate-400}` |
+
+**Responsive:** Collapses to "..." dropdown on mobile for intermediate items.
+
+**Related:** `link.md`, `top-app-bar.md`

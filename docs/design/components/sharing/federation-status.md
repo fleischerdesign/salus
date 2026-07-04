@@ -15,3 +15,18 @@
 **Do:** Show for all remote peers · Distinguish syncing/synced/failed · Provide retry on failure
 
 **Don't:** Show for local peers · Use ambiguous labels · Omit timestamp on last success
+
+**Accessibility:**
+- Status: `aria-label` describing sync state (e.g., "Last synced 2 minutes ago", "Sync failed — click to retry")
+- Dot: `aria-hidden="true"` (status communicated in text/aria-label)
+- Pulsing (syncing): respects `prefers-reduced-motion`
+- Retry button: `aria-label="Retry federation sync"`
+- Never synced: `aria-label="Not synced yet"`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --federation-dot-size | 8px |
+| --federation-font | `var(--font-caption)` |
+
+**Related:** `status-dot.md`, `peer-card.md`, `button.md`, `icon.md`

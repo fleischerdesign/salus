@@ -15,3 +15,11 @@
 **Do:** Use for homogeneous item collections · Maintain consistent row height · Show hover feedback
 
 **Don't:** Use for layout (use CSS grid) · Vary row heights in same list · Omit hover state for clickable items
+
+**Accessibility:**
+- Use `<ul>` or `<ol>` with `<li>` elements
+- Interactive items: `<button>` or `<a>` inside `<li>`, not `onclick` on `<li>`
+- Metadata/secondary text: `aria-describedby` linking to primary content
+- Actions: icon buttons with `aria-label` per action
+
+**Related:** `table.md`, `chip-row.md`, `context-menu.md`, `drag-handle.md`, `timeline.md`

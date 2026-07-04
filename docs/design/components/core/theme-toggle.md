@@ -13,3 +13,11 @@
 **Do:** Offer all 3 modes · Apply immediately · Persist selection · Use recognizable icons
 
 **Don't:** Require page reload · Omit system/auto option · Use toggle switch (3 options, not binary)
+
+**Accessibility:**
+- `<fieldset>` + `<legend>` for the radio group
+- Each option: `<input type="radio">` + `<label>` with matching `for`/`id`
+- Icons: `aria-hidden="true"` (label text provides the accessible name)
+- Immediate feedback: `aria-live="polite"` announcing theme change
+
+**Related:** `radio-group.md`, `language-switcher.md`, `icon.md`

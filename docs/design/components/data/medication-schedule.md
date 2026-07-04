@@ -20,3 +20,20 @@
 **Do:** Show clear status per dose · Indicate upcoming/due/missed · Use chip colors consistently · Show dosage clearly
 
 **Don't:** Omit time context · Use ambiguous status labels · Forget adherence summary
+
+**Accessibility:**
+- Use `<ol>` with `<li>` for chronological schedule
+- Each dose: `<time>` for scheduled time, `<span>` or chip for status
+- Status chips: `aria-label` describing state (e.g., "Taken at 08:15")
+- Adherence ring: `role="progressbar"` with day completion value
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --med-schedule-time-font | `var(--font-body-md)` bold |
+| --med-schedule-dosage-font | `var(--font-body-md)` |
+| --med-schedule-adherence-ring-size | 48px |
+| --med-schedule-due-highlight | `{colors.warning-50}` |
+| --med-schedule-missed-color | `{colors.error-500}` |
+
+**Related:** `chip.md`, `progress-bar.md`, `list-item.md`, `timeline.md`

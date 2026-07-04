@@ -11,3 +11,10 @@
 **Do:** Use for section/flow navigation · Provide explicit href · Place consistently top-left
 
 **Don't:** Use for browser history back (use JS history.back()) · Place without context · Show on root pages
+
+**Accessibility:**
+- Use `<a>` with explicit `href` (not `onclick` history.back)
+- Arrow icon: `aria-hidden="true"` (decorative)
+- `aria-label` on the link if label is just an icon (e.g., `aria-label="Back to Connections"`)
+
+**Related:** `link.md`, `icon.md`, `breadcrumbs.md`

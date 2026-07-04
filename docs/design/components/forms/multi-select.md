@@ -13,3 +13,19 @@
 **Do:** Show selected items as chips · Allow removal via × · Support Select All · Provide filter for long lists
 
 **Don't:** Force linear scrolling through 50+ items · Omit chip removal · Require Apply button for simple selections
+
+**Accessibility:**
+- `role="listbox"` with `aria-multiselectable="true"`
+- Each option: `role="option"` with `aria-selected="true/false"`
+- Selected chips: each has `aria-label="Remove {option}"` on × button
+- Keyboard: Arrow keys navigate, Space toggles selection, Enter closes and applies
+- Filter input: same as search-input accessibility
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --multiselect-chip-gap | `4px` |
+| --multiselect-filter-debounce | 150ms |
+| --multiselect-z-index | `var(--z-dropdown)` |
+
+**Related:** `chip.md`, `chip-row.md`, `checkbox.md`, `search-input.md`, `autocomplete.md`

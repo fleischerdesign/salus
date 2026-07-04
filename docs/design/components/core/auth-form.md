@@ -13,3 +13,14 @@
 **Do:** Center on page · Show provider buttons for OIDC/LDAP · Keep form concise · Show error alert for failures
 
 **Don't:** Overwhelm with too many providers · Forget password reset link · Show raw error messages
+
+**Accessibility:**
+- Form wrapped in `<form>` with `method="post"` and `action` attribute for non-JS fallback
+- Inputs: matching `for`/`id` on labels, `required` + `aria-required`, error `aria-describedby`
+- Provider buttons: distinct `aria-label` per provider (e.g., "Sign in with Google")
+- Error alert: `role="alert"` for immediate announcement
+- Submit button: `aria-busy="true"` during submission
+
+**Responsive:** Padding: 32px (desktop) → 24px 16px (mobile). Max-width: 440px.
+
+**Related:** `input.md`, `button.md`, `alert.md`, `divider.md`, `theme-toggle.md`, `language-switcher.md`

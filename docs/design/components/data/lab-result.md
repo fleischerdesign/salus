@@ -15,3 +15,18 @@
 **Do:** Show reference range · Color-code abnormal values · Group by category · Show critical values prominently
 
 **Don't:** Show value without range · Use color alone for abnormal · Hide units
+
+**Accessibility:**
+- Use `<dl>` (Lab test: `<dt>`, Value+Unit: `<dd>`, Range: `<dd>`)
+- Abnormal status: `aria-label` describing severity (e.g., "High — above normal range")
+- Color alone insufficient: always include text or aria-label for abnormal values
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --lab-result-value-font | `var(--font-headline-md)` |
+| --lab-result-unit-color | `{colors.slate-400}` |
+| --lab-result-range-color | `{colors.slate-400}` |
+| --lab-result-indicator-size | 8px |
+
+**Related:** `stat.md`, `key-value.md`, `status-dot.md`, `comparison-card.md`

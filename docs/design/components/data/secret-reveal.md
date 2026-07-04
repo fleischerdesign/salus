@@ -13,3 +13,19 @@
 **Do:** Use for sensitive config values · Fetch on demand · Show re-hide affordance · Never embed in source
 
 **Don't:** Cache revealed value client-side · Expose via HTML attribute · Use for non-sensitive data
+
+**Accessibility:**
+- Reveal button: `aria-expanded="true/false"`, `aria-label="Reveal secret value"` / `"Hide secret value"`
+- Masked state: text visually shows ````/`****`, `aria-label="Secret value hidden"`
+- Revealed state: `aria-label` describes the revealed value
+- Keyboard: Enter/Space toggles reveal
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --secret-mask-char | `*` |
+| --secret-mask-length | 12 |
+| --secret-reveal-btn-size | 20px |
+| --secret-transition | `var(--duration-fast) var(--ease-default)` |
+
+**Related:** `button.md`, `icon.md`, `input.md`, `spinner.md`

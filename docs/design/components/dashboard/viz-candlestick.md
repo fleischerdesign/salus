@@ -11,3 +11,10 @@
 **Do:** Use for OHLC-based metrics (HRV, blood pressure) · Show weekday labels · Color-code up/down
 
 **Don't:** Use for simple trend (use sparkline) · Omit weekday context · Use without color distinction
+
+**Accessibility:**
+- SVG: `role="img"` with `aria-label` describing range (e.g., "HRV this week: ranging from 45 to 72 ms")
+- Individual candles not separately interactive
+- Colors: green (up) and red (down) supplemented by aria-label pattern
+
+**Related:** `viz-sparkline.md`, `viz-number.md`, `chart-tooltip.md`

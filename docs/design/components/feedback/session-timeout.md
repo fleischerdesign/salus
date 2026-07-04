@@ -15,3 +15,21 @@
 **Do:** Warn 2 min before expiry · Show live countdown · Offer extend + logout · Auto-logout on expiry
 
 **Don't:** Surprise user with sudden logout · Omit countdown · Block UI without escape
+
+**Accessibility:**
+- `role="dialog"` with `aria-modal="true"`, `aria-labelledby`, focus trap, Escape does nothing (must make explicit choice)
+- Countdown: `aria-live="polite"` updating every second with remaining time
+- Last 30s: `aria-live="assertive"` for urgency
+- Buttons: "Extend Session" focused by default, "Log Out" as secondary
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --timeout-warning-duration | 120s (2 min before expiry) |
+| --timeout-countdown-font | `var(--font-headline-lg)` mono |
+| --timeout-urgent-color | `{colors.error-500}` |
+| --timeout-urgent-threshold | 30s |
+
+**Composition:** Modal containing: Icon (clock/warning) + Title + Countdown timer + Extend Session button + Log Out button.
+
+**Related:** `modal.md`, `button.md`, `icon.md`, `stat.md`

@@ -17,3 +17,15 @@
 **Do:** Keep steps ≤5 · Show progress indicator · Validate before advancing · Allow skip for optional steps
 
 **Don't:** Force linear progression when optional · Omit back button · Show success before server confirms
+
+**Accessibility:**
+- Modal: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
+- Step indicator: list with `aria-current="step"` on active step
+- Step content: `aria-live="polite"` when step changes (content swap via HTMX)
+- Next/Back: labeled clearly with direction + step context
+- Success state: `aria-live="assertive"` announcing completion
+- Focus moves to first focusable element on each new step
+
+**Composition:** Modal (Backdrop + Card) containing: Step indicator (dots) + Step content (icon + title + desc + body) + Footer (Back + Next/Skip/Finish). Step body loaded via HTMX.
+
+**Related:** `modal.md`, `step-indicator.md`, `button.md`, `icon.md`, `empty-state.md`, `form-layout.md`

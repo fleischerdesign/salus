@@ -15,3 +15,16 @@
 **Do:** Use for content containers · Keep consistent 24px padding · Include header with title for scannability
 
 **Don't:** Nest cards within cards · Vary padding per card instance · Omit header when card needs context
+
+**Composition:**
+- Allowed children: Text, Link, Button, Icon, Chip, Table, KeyValue, ProgressBar, any Viz component, form elements
+- Forbidden children: Modal (use modal's own card), Toast (use overlay), Card (no nesting)
+- Max nesting depth: 1 (Card → Body only, no Card → Card → Body)
+
+**Accessibility:**
+- Use `<section>` or `<article>` element for semantic HTML
+- If card is clickable as a whole: `tabindex="0"`, `role="button"`, Enter/Space handlers
+- Card header title: inside `<h2>`/`<h3>` for heading hierarchy
+- Grouped cards: wrap in `<ul>` with each card as `<li>` if they represent a collection
+
+**Related:** `empty-state.md`, `key-value.md`, `comparison-card.md`, `widget.md`

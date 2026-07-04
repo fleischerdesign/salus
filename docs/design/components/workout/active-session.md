@@ -15,3 +15,14 @@
 **Do:** Show real-time autoreg calculated targets · Disable log button when set count exceeds target · Show progress toward target sets
 
 **Don't:** Allow logging without weight/reps · Omit warmup indicator · Forget rest timer between sets
+
+**Accessibility:**
+- Each set row: distinct inputs with labels, `aria-label` describes set number
+- Log button: `aria-label="Log set {N}"`, `aria-busy` during submission
+- Logged state: `aria-label="Set {N} logged — {weight}kg × {reps} @ RPE {rpe}"`
+- Recovery score: `aria-label` describing readiness
+- Autoreg indicator: `aria-label="Autoregulated — {mode}"`
+
+**Composition:** Header (plan name + autoreg chip) + Exercise list + Body notes + Complete button. Each exercise: name + targets + set rows with log.
+
+**Related:** `plan-card.md`, `autoregulation-set.md`, `button.md`, `input.md`, `chip.md`, `stat.md`

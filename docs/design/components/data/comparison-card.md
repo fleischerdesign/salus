@@ -17,3 +17,10 @@
 **Do:** Show both periods clearly · Color-code delta direction · Use concise period labels
 
 **Don't:** Show delta without direction · Use ambiguous period labels · Compare unrelated metrics
+
+**Accessibility:**
+- Each period value: labeled clearly (e.g., "This week: 52,340 steps")
+- Delta: `aria-label` describing direction + magnitude + comparison (e.g., "Up 12% from last week")
+- Arrow icon: `aria-hidden="true"`
+
+**Related:** `card.md`, `stat.md`, `key-value.md`

@@ -11,3 +11,19 @@
 **Do:** Show visual confirmation after copy · Reset after 2s · Use for tokens, URLs, codes
 
 **Don't:** Stay in "Copied" state permanently · Flash too fast to notice · Forget error handling
+
+**Accessibility:**
+- Button: `aria-label` describes target ("Copy token to clipboard")
+- Clipboard API fallback: if `navigator.clipboard` unavailable, show error state
+- Copied confirmation: use `aria-live="polite"` region for screen reader announcement
+- Visual confirmation (check icon) must be accompanied by text for screen readers
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --copy-btn-icon-size | 16px |
+| --copy-success-color | `{colors.tertiary-600}` |
+| --copy-error-color | `{colors.error-600}` |
+| --copy-transition | `var(--duration-fast) var(--ease-default)` |
+
+**Related:** `button.md`, `icon.md`, `code.md`, `inline-code.md`

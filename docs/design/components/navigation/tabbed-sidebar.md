@@ -13,3 +13,13 @@
 **Do:** Use for settings/admin sections · Keep labels short · Maintain consistent sidebar width
 
 **Don't:** Use for primary navigation (use TopAppBar) · Mix navigation styles on same page
+
+**Accessibility:**
+- Sidebar: `<nav>` with `aria-label="Settings navigation"` or similar
+- Active link: `aria-current="page"`
+- Keyboard: Tab through links, no special arrow-key handling needed for simple list
+- Responsive: horizontal tab row gets `role="tablist"`, each tab gets `role="tab"` with `aria-selected`
+
+**Composition:** Sidebar (Link list) + Content area (flex-1). Sidebar is part of tabbed-layout container.
+
+**Related:** `tab-bar.md`, `top-app-bar.md`, `link.md`

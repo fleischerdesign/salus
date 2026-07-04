@@ -13,3 +13,22 @@
 **Do:** Show only after scrolling · Use smooth scroll · Position bottom-right consistently
 
 **Don't:** Show at top of page · Obscure content · Use jarring instant scroll
+
+**Accessibility:**
+- Button: `aria-label="Scroll to top"`
+- Icon: `aria-hidden="true"`
+- Keyboard: focusable in tab order, Enter/Space activates
+- Scroll behavior: `scroll-behavior: smooth` on `window.scrollTo({top: 0})`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --scroll-top-size | 40px |
+| --scroll-top-bg | `{colors.primary}` |
+| --scroll-top-icon-color | `#ffffff` |
+| --scroll-top-shadow | `var(--shadow-md)` |
+| --scroll-top-offset | 24px |
+| --scroll-top-z-index | `var(--z-sticky)` |
+| --scroll-top-threshold | 300px |
+
+**Related:** `button.md`, `icon.md`

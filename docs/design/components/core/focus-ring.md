@@ -13,3 +13,13 @@
 **Do:** Ensure visible focus on ALL interactive elements · Use :focus-visible · Never outline:none without replacement
 
 **Don't:** Remove focus rings · Use :focus instead of :focus-visible · Make focus ring invisible (color matches bg)
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --focus-ring-width | 2px |
+| --focus-ring-color | `{colors.primary-500}` |
+| --focus-ring-offset | 2px |
+| --focus-ring-style | solid |
+
+**Related:** `skip-link.md`

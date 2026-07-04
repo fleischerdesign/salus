@@ -14,3 +14,10 @@
 **Do:** Let chips wrap naturally · Use with chip component · Show overflow count
 
 **Don't:** Force single row with scroll · Mix chip variants in same row · Omit spacing
+
+**Accessibility:**
+- Container: `<ul>` with `<li>` for each chip (semantic list)
+- Overflow: "+N more" chip is focusable, reveals hidden chips on click
+- Removable chips: × button in each chip with aria-label
+
+**Related:** `chip.md`, `multi-select.md`, `badge.md`

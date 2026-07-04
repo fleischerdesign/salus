@@ -13,3 +13,11 @@
 **Do:** Use for single-value metrics · Show delta for trends · Keep unit compact
 
 **Don't:** Use for multi-value comparison (use viz-bar) · Omit unit · Show delta without context
+
+**Accessibility:**
+- Value: `aria-label` with full description (e.g., "Steps today: 8,432 — up 12% from yesterday")
+- Unit: included in aria-label
+- Delta: aria-label describes direction + magnitude
+- Fallback "--": `aria-label="No data available"`
+
+**Related:** `stat.md`, `viz-sparkline.md`, `animated-number.md`, `key-value.md`

@@ -16,3 +16,21 @@
 **Do:** Match spinner size to context · Use aria-busy on loading container · Show in HTMX indicators
 
 **Don't:** Forget to remove when loaded · Use tiny spinner for full-page load · Omit accessible label
+
+**Accessibility:**
+- `role="status"` or `aria-label="Loading"` on spinner element
+- Container: `aria-busy="true"` during load
+- Inline spinners (buttons, inputs): `aria-busy` on the interactive element
+- Spinner animation respects `prefers-reduced-motion`: stops spinning if user prefers reduced motion
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --spinner-sm | 16px |
+| --spinner-md | 24px |
+| --spinner-lg | 40px |
+| --spinner-color | `{colors.primary}` |
+| --spinner-duration | 0.8s |
+| --spinner-easing | `linear` |
+
+**Related:** `skeleton.md`, `loading-button.md`, `empty-state.md`
