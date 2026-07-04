@@ -305,6 +305,10 @@ uv run pyright src/
 # Install after adding dependencies
 uv sync
 
+# Validate design system component specs
+uv run python tools/validate_specs.py
+uv run python tools/validate_specs.py --only-errors
+
 # Nix checks
 nix flake check               # verify devShell + packages + modules
 nix build .#default           # build the Python package
