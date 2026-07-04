@@ -1,4 +1,4 @@
-# Chip / Badge
+# Chip (Status Label)
 
 **Tokens:** `--chip-radius`, `--chip-padding`, `--chip-font`, `--chip-success-bg`, `--chip-success-text`, `--chip-warning-bg`, `--chip-warning-text`, `--chip-error-bg`, `--chip-error-text`, `--chip-neutral-bg`, `--chip-neutral-text`
 
