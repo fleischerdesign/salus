@@ -16,6 +16,8 @@
 
 **Don't:** Allow logging without weight/reps · Omit warmup indicator · Forget rest timer between sets
 
+**Responsive:** Single column on mobile — exercises and sets stack vertically. Inputs inline on desktop, full-width on mobile.
+
 **Accessibility:**
 - Each set row: distinct inputs with labels, `aria-label` describes set number
 - Log button: `aria-label="Log set {N}"`, `aria-busy` during submission

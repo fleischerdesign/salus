@@ -18,6 +18,8 @@
 
 **Don't:** Force linear progression when optional · Omit back button · Show success before server confirms
 
+**Responsive:** Modal full-width on mobile with 16px margin. Step content scrollable within modal if content exceeds viewport. Button layout stacks vertically on narrow screens.
+
 **Accessibility:**
 - Modal: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
 - Step indicator: list with `aria-current="step"` on active step

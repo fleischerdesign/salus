@@ -13,8 +13,9 @@
 **Group:** Multiple accordion items stacked. Only one expanded at a time (default) or multiple (configurable).
 
 **Do:** Use for progressive disclosure · Animate expand/collapse · Show chevron direction clearly
-
 **Don't:** Use for single item (use card) · Omit animation (jarring) · Hide critical information (put in expanded by default)
+
+**Responsive:** Full-width on all viewports. Item headers stack vertically; no horizontal layout adaption needed.
 
 **Accessibility:**
 - Header: `<button>` with `aria-expanded="true/false"`, `aria-controls="accordion-panel-{id}"`

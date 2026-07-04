@@ -14,6 +14,8 @@
 
 **Don't:** Show excessive exercise detail (use session view) · Use page reload for delete
 
+**Responsive:** Full-width card on mobile. Exercise list items wrap vertically. Actions stack below card content on narrow screens.
+
 **Accessibility:**
 - Card: `role="region"` with `aria-label="Training plan: {name}"`
 - Start Session: `aria-label="Start {plan name} workout"`

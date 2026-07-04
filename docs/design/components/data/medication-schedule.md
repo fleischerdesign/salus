@@ -21,6 +21,8 @@
 
 **Don't:** Omit time context · Use ambiguous status labels · Forget adherence summary
 
+**Responsive:** Single-column dose list. Adherence ring shrinks on mobile. Time display stays inline with medication name.
+
 **Accessibility:**
 - Use `<ol>` with `<li>` for chronological schedule
 - Each dose: `<time>` for scheduled time, `<span>` or chip for status

@@ -16,6 +16,8 @@
 
 **Don't:** Show pagination for <10 items · Omit page size options · Break browser back button
 
+**Responsive:** Page buttons reduce to compact size on mobile. Items-per-page selector may move below or hide on narrow screens. "Showing X-Y of Z" label wraps.
+
 **Accessibility:**
 - Container: `<nav>` with `aria-label="Pagination"`
 - Page buttons: `<button>` elements (not `<a>` for same-page navigation). `aria-current="page"` on active page

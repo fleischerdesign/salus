@@ -14,6 +14,8 @@
 
 **Don't:** Use external QR service (privacy) · Omit copy feedback · Show modal without close button
 
+**Responsive:** Modal max-width 440px, full-width with margin on mobile. QR code scales down proportionally.
+
 **Accessibility:**
 - QR code image: `alt="QR code invitation link — scan to connect"`
 - Copy button: `aria-label="Copy invitation link to clipboard"`

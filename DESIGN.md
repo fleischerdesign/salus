@@ -214,44 +214,78 @@ spacing:
   unit: 4px
   container-max: 1440px
 
+shadows:
+  sm: "0 1px 2px rgba(0,0,0,0.05)"
+  md: "0 4px 12px rgba(0,0,0,0.05)"
+  lg: "0 8px 16px rgba(11,28,48,0.12)"
+  xl: "0 12px 24px rgba(0,0,0,0.1)"
+
+z-index:
+  dropdown: 100
+  sticky: 200
+  modal-backdrop: 300
+  modal: 400
+  tooltip: 500
+  debug: 9999
+
+durations:
+  instant: 100ms
+  fast: 150ms
+  normal: 200ms
+  slow: 300ms
+  very-slow: 500ms
+  glacial: 800ms
+
+easings:
+  default: cubic-bezier(0.4, 0, 0.2, 1)
+  in: cubic-bezier(0.4, 0, 1, 1)
+  out: cubic-bezier(0, 0, 0.2, 1)
+  linear: linear
+
+transitions:
+  btn: background var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default)
+  input: border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default)
+  modal: opacity var(--duration-normal) var(--ease-out), transform var(--duration-normal) var(--ease-out)
+  card: box-shadow var(--duration-fast) var(--ease-default)
+
 components:
-  button-primary:
+  btn-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     rounded: "{rounded.md}"
     typography: label-md
     padding: 10px 20px
-  button-primary-hover:
+  btn-primary-hover:
     backgroundColor: "{colors.primary-600}"
-  button-secondary:
+  btn-secondary:
     backgroundColor: transparent
     textColor: "{colors.primary}"
     border: "1px solid {colors.primary}"
     rounded: "{rounded.md}"
     padding: 10px 20px
-  button-secondary-hover:
+  btn-secondary-hover:
     backgroundColor: "{colors.primary-50}"
-  button-ghost:
+  btn-ghost:
     backgroundColor: transparent
     textColor: "{colors.primary}"
     rounded: "{rounded.md}"
     padding: 8px 16px
-  button-ghost-hover:
+  btn-ghost-hover:
     backgroundColor: "{colors.primary-50}"
-  button-danger:
+  btn-danger:
     backgroundColor: "{colors.error-50}"
     textColor: "{colors.error-700}"
     rounded: "{rounded.md}"
     padding: 8px 16px
-  button-danger-hover:
+  btn-danger-hover:
     backgroundColor: "{colors.error-100}"
-  button-sm:
+  btn-sm:
     backgroundColor: "{colors.slate-100}"
     textColor: "{colors.slate-700}"
     border: "1px solid {colors.slate-200}"
     rounded: "{rounded.sm}"
     padding: 6px 12px
-  button-icon:
+  btn-icon:
     size: 28px
     backgroundColor: transparent
     rounded: "{rounded.full}"
@@ -263,6 +297,7 @@ components:
     padding: "{spacing.lg}"
 
   input:
+    responsive: false
     backgroundColor: "{colors.slate-50}"
     border: "1px solid {colors.slate-300}"
     rounded: "{rounded.md}"
@@ -301,7 +336,7 @@ components:
     shadow: "0 12px 24px rgba(0, 0, 0, 0.1)"
     max-width: 440px
 
-  navigation:
+  nav:
     height: 64px
     bg: "#ffffff"
     border: "1px solid {colors.slate-200}"
@@ -335,8 +370,10 @@ components:
   sleep-deep: "{colors.primary-400}"
   sleep-rem: "{colors.metric-sleep}"
 
+
   # ---- Core UI ----
   alert:
+    responsive: false
     backgroundColor: "{colors.tertiary-50}"
     textColor: "{colors.tertiary-800}"
     rounded: "{rounded.md}"
@@ -346,52 +383,67 @@ components:
     padding: 32px
     rounded: "{rounded.lg}"
   avatar:
+    responsive: false
     size-sm: 36px
     size-lg: 48px
     backgroundColor: "{colors.slate-200}"
     textColor: "{colors.slate-600}"
     rounded: "{rounded.full}"
   checkbox:
+    responsive: false
     gap: 16px
   copy-to-clipboard:
+    responsive: false
     button-icon-size: 16px
     success-color: "{colors.tertiary-600}"
     error-color: "{colors.error-600}"
   divider:
+    responsive: false
     height: 1px
     backgroundColor: "{colors.slate-200}"
     label-gap: 16px
   drag-handle:
+    responsive: false
     color: "{colors.slate-400}"
     hover-color: "{colors.slate-600}"
     active-color: "{colors.primary-600}"
   empty-state:
+    responsive: false
     icon-muted-opacity: 0.4
   focus-ring:
+    responsive: false
     width: 2px
     color: "{colors.primary-500}"
     offset: 2px
   icon:
+    responsive: false
     sizes: "16px/18px/20px/22px/24px/40px/48px"
   inline-code:
+    responsive: false
     backgroundColor: "{colors.slate-100}"
     textColor: "{colors.slate-700}"
     fontFamily: "'{typography.code-sm}'"
-  language-switcher: {}
+  language-switcher:
+    responsive: false
   link:
+    responsive: false
     hover-underline: true
   loading-button:
+    responsive: false
     spinner-size: 16px
     success-color: "{colors.tertiary-600}"
     error-color: "{colors.error-600}"
   skip-link:
+    responsive: false
     backgroundColor: "{colors.slate-900}"
     textColor: "{colors.slate-50}"
     z-index: 500
-  theme-toggle: {}
+  theme-toggle:
+    responsive: false
 
   # ---- Navigation ----
   back-link:
+    responsive: false
     arrow-icon-size: 18px
   breadcrumbs:
     color: "{colors.slate-500}"
@@ -399,6 +451,7 @@ components:
     active-color: "{colors.slate-900}"
     separator-color: "{colors.slate-400}"
   context-menu:
+    responsive: false
     backgroundColor: "#ffffff"
     shadow: "{shadows.lg}"
     rounded: "{rounded.md}"
@@ -417,6 +470,7 @@ components:
     z-index: 300
   nav-dropdown-backdrop-color: "rgba(0,0,0,0.3)"
   scroll-to-top:
+    responsive: false
     size: 40px
     backgroundColor: "{colors.primary}"
     icon-color: "#ffffff"
@@ -424,6 +478,7 @@ components:
     z-index: 200
     threshold: 300px
   step-indicator:
+    responsive: false
     dot-size: 8px
     number-size: 24px
     pending-color: "{colors.slate-300}"
@@ -444,19 +499,23 @@ components:
     backgroundColor: "#ffffff"
     border: "1px solid {colors.slate-200}"
   user-menu:
+    responsive: false
     avatar-size: 36px
 
   # ---- Forms ----
   autocomplete:
+    responsive: false
     debounce: 150ms
     min-chars: 2
     max-items: 8
     match-highlight: "{colors.primary-600}"
     z-index: 100
   color-picker:
+    responsive: false
     width: 80px
     height: 44px
   date-picker:
+    responsive: false
     input-width: 200px
     calendar-width: 280px
     cell-size: 36px
@@ -475,23 +534,28 @@ components:
     actions-gap: 16px
     row-gap: 16px
   multi-select:
+    responsive: false
     chip-gap: 4px
     filter-debounce: 150ms
     z-index: 100
   number-stepper:
+    responsive: false
     btn-size: 28px
     input-width: 56px
     gap: 2px
   radio-group:
+    responsive: false
     gap: 8px
     item-padding: 6px 12px
   search-input:
+    responsive: false
     icon-size: 20px
     icon-color: "{colors.slate-400}"
     clear-btn-size: 20px
     debounce-ms: 300
     min-chars: 2
   slider:
+    responsive: false
     track-height: 4px
     track-bg: "{colors.slate-200}"
     fill-bg: "{colors.primary-500}"
@@ -499,6 +563,7 @@ components:
     thumb-border: "2px solid {colors.primary}"
     thumb-bg: "#ffffff"
   toggle:
+    responsive: false
     track-width: 44px
     track-height: 24px
     track-bg-off: "{colors.slate-200}"
@@ -514,6 +579,7 @@ components:
     border-color: "{colors.slate-200}"
     chevron-size: 20px
   allergy-badge:
+    responsive: false
     icon-size: 20px
     mild-color: "{colors.warning-500}"
     moderate-color: "{colors.warning-700}"
@@ -521,9 +587,11 @@ components:
     anaphylaxis-bg: "{colors.error-700}"
     anaphylaxis-text: "#ffffff"
   animated-number:
+    responsive: false
     duration: 800ms
     min-delta: 1
   badge:
+    responsive: false
     dot-size: 8px
     standard-size: 18px
     backgroundColor: "{colors.error-500}"
@@ -531,24 +599,31 @@ components:
     overflow-threshold: 99
     overflow-text: '"99+"'
   chart-tooltip:
+    responsive: false
     backgroundColor: "{colors.slate-800}"
     textColor: "{colors.slate-50}"
     rounded: 6px
     padding: 8px
     offset: 12px
   chip-row:
+    responsive: false
     gap: 8px
   comparison-card:
+    responsive: false
     gap: 8px
   diagnosis-tag:
+    responsive: false
     active-bg: "{colors.primary-100}"
     chronic-bg: "{colors.warning-100}"
     resolved-bg: "{colors.slate-100}"
   key-value:
+    responsive: false
     gap: 4px
   lab-result:
+    responsive: false
     indicator-size: 8px
   list-item:
+    responsive: false
     padding: 12px 16px
     border-color: "{colors.slate-200}"
   medication-schedule:
@@ -561,26 +636,32 @@ components:
     active-text: "{colors.primary-600}"
     gap: 4px
   progress-bar:
+    responsive: false
     height: 8px
     track-bg: "{colors.slate-100}"
     fill-color: "{colors.primary}"
   secret-reveal:
+    responsive: false
     mask-char: '"*"'
     mask-length: 12
     btn-size: 20px
   skeleton:
+    responsive: false
     animation-duration: 1.8s
     opacity-min: 0.4
     opacity-max: 0.75
   spinner:
+    responsive: false
     size-sm: 16px
     size-md: 24px
     size-lg: 40px
     color: "{colors.primary}"
     duration: 0.8s
   stat:
+    responsive: false
     fallback: '"--"'
   status-dot:
+    responsive: false
     size: 8px
     active-color: "{colors.tertiary-500}"
     pending-color: "{colors.warning-500}"
@@ -596,6 +677,7 @@ components:
     dot-color: "{colors.primary-500}"
     connector-length: 16px
   watermark:
+    responsive: false
     opacity-screen: 0.15
     opacity-print: 0.10
     color: "{colors.slate-300}"
@@ -606,16 +688,19 @@ components:
     icon-size: 48px
     max-width: 400px
   cookie-consent:
+    responsive: false
     backgroundColor: "{colors.slate-900}"
     textColor: "{colors.slate-50}"
     padding: 24px
     z-index: 500
   offline-indicator:
+    responsive: false
     backgroundColor: "{colors.warning-100}"
     textColor: "{colors.warning-800}"
     padding: 12px
     z-index: 200
   session-timeout:
+    responsive: false
     warning-duration: 120s
     urgent-color: "{colors.error-500}"
     urgent-threshold: 30s
@@ -626,6 +711,7 @@ components:
     max-visible: 3
     z-index: 500
   tooltip:
+    responsive: false
     backgroundColor: "{colors.slate-800}"
     textColor: "{colors.slate-50}"
     max-width: 280px
@@ -648,8 +734,10 @@ components:
     accent-positive: "{colors.tertiary-500}"
     accent-negative: "{colors.error-500}"
   viz-bar:
+    responsive: false
     height: 8px
   viz-bullet:
+    responsive: false
     bar-height: 24px
     band-poor: "{colors.slate-100}"
     band-satisfactory: "{colors.slate-200}"
@@ -658,11 +746,14 @@ components:
     target-color: "{colors.slate-900}"
     target-width: 2px
   viz-candlestick:
+    responsive: false
     height: 80px
   viz-donut:
+    responsive: false
     ring-width: 8px
     animation-duration: 800ms
   viz-gauge:
+    responsive: false
     arc-width: 12px
     low-color: "{colors.warning-400}"
     normal-color: "{colors.tertiary-500}"
@@ -670,24 +761,30 @@ components:
     needle-color: "{colors.slate-800}"
     animation-duration: 600ms
   viz-heatmap:
+    responsive: false
     cell-size: 14px
     cell-gap: 3px
     today-border: "2px solid {colors.primary-500}"
     color-steps: 5
     empty-color: "{colors.slate-100}"
   viz-number:
+    responsive: false
     compact-gap: 16px
   viz-pills:
+    responsive: false
     chart-height: 110px
   viz-progress:
+    responsive: false
     ring-size: 90px
     bar-height: 22px
     animation-duration: 600ms
   viz-sparkline:
+    responsive: false
     height: 30px
 
   # ---- Sharing ----
   federation-status:
+    responsive: false
     dot-size: 8px
   invite-modal:
     qr-size: 200px
@@ -714,6 +811,25 @@ components:
     step-icon-size: 48px
     dot-size: 8px
     dot-gap: 8px
+
+  btn:
+    radius: "{rounded.md}"
+    font: "{typography.label-md}"
+    padding: 10px 20px
+    padding-sm: 6px 12px
+
+  chip:
+    responsive: false
+    radius: "{rounded.full}"
+    padding: 4px 12px
+    font: "{typography.label-sm}"
+
+  nav-dropdown:
+    responsive: false
+    bg: "#ffffff"
+    border: "1px solid {colors.slate-200}"
+    shadow: "{shadows.lg}"
+    radius: "{rounded.md}"
 ---
 
 # Salus Design System

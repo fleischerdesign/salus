@@ -16,6 +16,8 @@
 
 **Don't:** Allow logging without weight+reps · Omit RPE display · Show 1RM for non-autoreg plans
 
+**Responsive:** Weight and reps inputs side-by-side on desktop, stack vertically on mobile. 1RM display collapses below inputs on narrow screens.
+
 **Accessibility:**
 - Each set: inputs with labels, `aria-label="Set {N}: weight"` / `"reps"`
 - Log button: `aria-label="Log set {N}"`, `aria-busy` during submission

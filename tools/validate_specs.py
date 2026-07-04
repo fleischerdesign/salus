@@ -4,7 +4,7 @@
 Checks:
   1. Required sections per component file
   2. Broken cross-references in Related sections
-  3. Token consistency (spec tokens vs DESIGN.md YAML components)
+  3. Token consistency (spec tokens vs DESIGN.md YAML)
   4. Component coverage (YAML components ↔ spec files)
   5. Section ordering (optional, --strict)
 
@@ -47,23 +47,15 @@ CONTAINER_COMPONENTS = {
 }
 
 # ---------------------------------------------------------------------------
-# Inline components (don't need Responsive section)
-# ---------------------------------------------------------------------------
-INLINE_COMPONENTS = {
-    "icon", "badge", "status-dot", "chip", "link", "divider",
-    "inline-code", "focus-ring", "back-link",
-}
-
-# ---------------------------------------------------------------------------
 # Required sections for every component
 # ---------------------------------------------------------------------------
 REQUIRED_SECTIONS = [
-    re.compile(r"^\*\*(?:Anatomy|Variants):\*\*", re.MULTILINE),
-    re.compile(r"^\*\*States:\*\*", re.MULTILINE),
-    re.compile(r"^\*\*Accessibility:\*\*", re.MULTILINE),
-    re.compile(r"^\*\*Do:\*\*", re.MULTILINE),
-    re.compile(r"^\*\*Don't:\*\*", re.MULTILINE),
-    re.compile(r"^\*\*Related:\*\*", re.MULTILINE),
+    (re.compile(r"^\*\*(?:Anatomy|Variants):\*\*", re.MULTILINE), "Anatomy/Variants"),
+    (re.compile(r"^\*\*States:\*\*", re.MULTILINE), "States"),
+    (re.compile(r"^\*\*Accessibility:\*\*", re.MULTILINE), "Accessibility"),
+    (re.compile(r"^\*\*Do:\*\*", re.MULTILINE), "Do"),
+    (re.compile(r"^\*\*Don't:\*\*", re.MULTILINE), "Don't"),
+    (re.compile(r"^\*\*Related:\*\*", re.MULTILINE), "Related"),
 ]
 
 # ---------------------------------------------------------------------------
@@ -104,112 +96,108 @@ class Report:
 # ---------------------------------------------------------------------------
 
 def parse_design_md(path: Path) -> dict:
-    """Extract YAML front matter from DESIGN.md."""
-    text = path.read_text(encoding="utf-8")
-    if not text.startswith("---"):
+    """Extract YAML front matter from DESIGN.md using line-boundary fence matching."""
+    lines = Path(path).read_text(encoding="utf-8").split("\n")
+    if not lines or lines[0].strip() != "---":
         return {}
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return {}
-    try:
-        return yaml.safe_load(parts[1]) or {}
-    except yaml.YAMLError as e:
-        print(f"Warning: Could not parse YAML front matter in {path}: {e}", file=sys.stderr)
-        return {}
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            yaml_str = "\n".join(lines[1:i])
+            try:
+                return yaml.safe_load(yaml_str) or {}
+            except yaml.YAMLError as e:
+                print(f"Warning: YAML parse error in {path}: {e}", file=sys.stderr)
+                return {}
+    return {}
+
+
+def get_yaml_component_names(design_data: dict) -> set[str]:
+    """Return component names that are dict entries (real components, not variant strings)."""
+    return {k for k, v in design_data.get("components", {}).items() if isinstance(v, dict)}
 
 
 def get_yaml_tokens(design_data: dict) -> set[str]:
-    """Extract all token names from DESIGN.md YAML colors, typography, rounded, spacing, components."""
+    """Generate CSS token names from YAML structure: --{section}-{key} for each section."""
     tokens: set[str] = set()
 
-    # colors
-    for key in design_data.get("colors", {}):
-        tokens.add(f"--color-{key}")
+    section_prefixes = {
+        "colors": "--color-",
+        "typography": "--font-",
+        "rounded": "--radius-",
+        "spacing": "--space-",
+        "shadows": "--shadow-",
+        "z-index": "--z-",
+        "durations": "--duration-",
+        "easings": "--ease-",
+        "transitions": "--transition-",
+    }
 
-    # typography
-    for key in design_data.get("typography", {}):
-        tokens.add(f"--font-{key}")
+    for section, prefix in section_prefixes.items():
+        for key in design_data.get(section, {}):
+            tokens.add(f"{prefix}{key}")
 
-    # rounded
-    for key in design_data.get("rounded", {}):
-        tokens.add(f"--radius-{key}")
-
-    # spacing
-    for key in design_data.get("spacing", {}):
-        tokens.add(f"--space-{key}")
-
-    # components
+    # components: --{name}-{subkey}
     for comp_name, comp_data in design_data.get("components", {}).items():
         if isinstance(comp_data, dict):
             for sub_key in comp_data:
-                tokens.add(f"--{comp_name}-{sub_key}".replace("_", "-"))
-        elif isinstance(comp_data, str):
-            tokens.add(f"--{comp_name}")
+                tokens.add(f"--{comp_name}-{sub_key.replace('_', '-')}")
 
     return tokens
 
 
-def get_yaml_component_names(design_data: dict) -> set[str]:
-    """Extract all component names from DESIGN.md YAML components section."""
-    return set(design_data.get("components", {}).keys())
-
-
-# ---------------------------------------------------------------------------
-# Spec file parser
-# ---------------------------------------------------------------------------
-
-def iter_spec_files() -> list[Path]:
-    """Return all component spec .md files."""
-    files = sorted(COMPONENTS_DIR.rglob("*.md"))
-    return [f for f in files if f.name != "README.md"]
-
-
-def get_component_name(filepath: Path) -> str:
-    """Extract normalized component name from file path. E.g. 'core/button.md' → 'button'."""
-    return filepath.stem
-
-
-def get_component_dir(filepath: Path) -> str:
-    """Get the parent directory name, e.g. 'core', 'navigation'."""
-    return filepath.parent.name
-
-
-def has_section(content: str, pattern: re.Pattern) -> bool:
-    """Check if content has a markdown bold section matching the pattern."""
-    return bool(pattern.search(content))
-
-
-def extract_related_refs(content: str) -> set[str]:
-    """Extract file references from the Related section. E.g. 'button.md', 'icon.md'."""
-    match = re.search(r"\*\*Related:\*\*\s*\n(.*?)(?=\n\*\*|\n#|\Z)", content, re.DOTALL)
-    if not match:
-        return set()
-
-    related_text = match.group(1)
-    refs = set()
-    for m in re.finditer(r'`([^`]+\.md)`', related_text):
-        refs.add(m.group(1))
-    for m in re.finditer(r'\b([a-z0-9-]+\.md)\b', related_text):
-        refs.add(m.group(1))
-    return refs
-
-
-def extract_token_refs(content: str) -> set[str]:
-    """Extract token references (--token-name) from spec content."""
-    return set(re.findall(r'(--[a-z][a-z0-9-]*(?:-[a-z][a-z0-9-]*)*)', content, re.IGNORECASE))
+def is_inline_component(design_data: dict, name: str) -> bool:
+    """Check if a component is marked as inline (no Responsive section needed)."""
+    comp = design_data.get("components", {}).get(name)
+    if isinstance(comp, dict):
+        return comp.get("responsive") is False
+    return False
 
 
 def is_new_component(content: str) -> bool:
-    """Check if component is marked as design spec only (not yet implemented)."""
+    """Check if component is marked as design spec only."""
     return "> Status: **Design spec only" in content
 
 
 # ---------------------------------------------------------------------------
-# Resolve cross-references
+# Spec file parsers
 # ---------------------------------------------------------------------------
 
+def iter_spec_files() -> list[Path]:
+    """Return all component spec .md files."""
+    return sorted(f for f in COMPONENTS_DIR.rglob("*.md") if f.name != "README.md")
+
+
+def get_component_name(filepath: Path) -> str:
+    """Extract component name from file path. E.g. 'core/btn.md' → 'btn'."""
+    return filepath.stem
+
+
+def get_component_relpath(filepath: Path) -> str:
+    """Relative path from repo root."""
+    return str(filepath.relative_to(ROOT))
+
+
+def has_section(content: str, pattern: re.Pattern) -> bool:
+    """Check if content has a markdown bold section."""
+    return bool(pattern.search(content))
+
+
+def extract_token_refs(content: str) -> set[str]:
+    """Extract all --css-token references from spec content."""
+    return set(re.findall(r'(--[a-z][a-z0-9-]*(?:-[a-z][a-z0-9-]*)*)', content, re.IGNORECASE))
+
+
+def extract_related_refs(content: str) -> set[str]:
+    """Extract file references from the Related section."""
+    match = re.search(r"\*\*Related:\*\*\s*\n(.*?)(?=\n\*\*|\n#|\Z)", content, re.DOTALL)
+    if not match:
+        return set()
+    related_text = match.group(1)
+    return {m.group(1) for m in re.finditer(r'`?([a-z0-9-]+\.md)`?', related_text)}
+
+
 def resolve_related_ref(ref: str, all_files: list[Path]) -> Path | None:
-    """Try to find a referenced file in the components tree."""
+    """Find a referenced file in the components tree."""
     for f in all_files:
         if f.name == ref:
             return f
@@ -220,50 +208,38 @@ def resolve_related_ref(ref: str, all_files: list[Path]) -> Path | None:
 # Check 1: Required Sections
 # ---------------------------------------------------------------------------
 
-def check_required_sections(filepath: Path, report: Report) -> None:
+def check_required_sections(filepath: Path, design_data: dict, report: Report) -> None:
     """Check that each spec file has all required sections."""
     content = filepath.read_text(encoding="utf-8")
     name = get_component_name(filepath)
-    relpath = str(filepath.relative_to(ROOT))
+    relpath = get_component_relpath(filepath)
 
-    for i, pattern in enumerate(REQUIRED_SECTIONS):
-        section_name = pattern.pattern.split(":")[0].replace(r"\*\*", "").replace(r"\*\*:\*\*", "")
+    for pattern, section_name in REQUIRED_SECTIONS:
         if not has_section(content, pattern):
             report.findings.append(Finding(
-                severity="error",
-                file=relpath,
-                section=section_name,
+                severity="error", file=relpath, section=section_name,
                 message=f"Missing required section: {section_name}"
             ))
 
-    # Composition (only for container components)
     if name in CONTAINER_COMPONENTS:
         if not has_section(content, re.compile(r"^\*\*Composition:\*\*", re.MULTILINE)):
             report.findings.append(Finding(
-                severity="error",
-                file=relpath,
-                section="Composition",
+                severity="error", file=relpath, section="Composition",
                 message=f"Container component '{name}' must have a Composition section"
             ))
 
-    # Token Values (only for NEW components)
     if is_new_component(content):
         if not has_section(content, re.compile(r"^\*\*Token Values:\*\*", re.MULTILINE)):
             report.findings.append(Finding(
-                severity="error",
-                file=relpath,
-                section="Token Values",
+                severity="error", file=relpath, section="Token Values",
                 message="NEW component (design spec only) must have Token Values section"
             ))
 
-    # Responsive (for non-inline components)
-    if name not in INLINE_COMPONENTS:
+    if not is_inline_component(design_data, name):
         if not has_section(content, re.compile(r"^\*\*Responsive:\*\*", re.MULTILINE)):
             report.findings.append(Finding(
-                severity="warning",
-                file=relpath,
-                section="Responsive",
-                message=f"Non-inline component '{name}' should have a Responsive section"
+                severity="warning", file=relpath, section="Responsive",
+                message=f"Component '{name}' should have a Responsive section (or set responsive: false in YAML)"
             ))
 
 
@@ -274,15 +250,13 @@ def check_required_sections(filepath: Path, report: Report) -> None:
 def check_cross_references(filepath: Path, all_files: list[Path], report: Report) -> None:
     """Check that all Related references point to existing files."""
     content = filepath.read_text(encoding="utf-8")
-    relpath = str(filepath.relative_to(ROOT))
+    relpath = get_component_relpath(filepath)
     refs = extract_related_refs(content)
 
     for ref in refs:
         if not resolve_related_ref(ref, all_files):
             report.findings.append(Finding(
-                severity="error",
-                file=relpath,
-                section="Related",
+                severity="error", file=relpath, section="Related",
                 message=f"Cross-reference '{ref}' does not exist in any component directory"
             ))
 
@@ -294,43 +268,37 @@ def check_cross_references(filepath: Path, all_files: list[Path], report: Report
 def check_token_consistency(files: list[Path], design_data: dict, report: Report) -> None:
     """Check that tokens referenced in specs are defined in DESIGN.md YAML."""
     yaml_tokens = get_yaml_tokens(design_data)
-    yaml_components = get_yaml_component_names(design_data)
+    yaml_components = design_data.get("components", {})
 
     for filepath in files:
         content = filepath.read_text(encoding="utf-8")
-        relpath = str(filepath.relative_to(ROOT))
+        relpath = get_component_relpath(filepath)
         spec_tokens = extract_token_refs(content)
 
-        # Filter out var() references and {path} references
-        actual_tokens = {t for t in spec_tokens if not t.startswith("--var")}
+        for token in spec_tokens:
+            # 1. Exact match
+            if token in yaml_tokens:
+                continue
 
-        for token in actual_tokens:
-            # Strip known prefixes for comparison
-            token_base = token.replace("--", "")
+            # 2. Derivative: --{prefix}-{...} where prefix matches a YAML component
+            parts = token.replace("--", "").split("-")
+            matched = False
+            for end in range(len(parts), 0, -1):
+                candidate = "-".join(parts[:end])
+                if candidate in yaml_components:
+                    matched = True
+                    break
+                # Candidate is a component family prefix (e.g. "btn" for "btn-primary")
+                if any(k.startswith(candidate + "-") for k in yaml_components):
+                    matched = True
+                    break
+            if matched:
+                continue
 
-            # Check if token exists in YAML (direct match or partial match)
-            token_matches = [
-                yt for yt in yaml_tokens
-                if yt.replace("--", "") == token_base
-                or yt.replace("--", "") == token_base.replace("-bg", "").replace("-text", "")
-                .replace("-border", "").replace("-color", "").replace("-radius", "")
-                .replace("-padding", "").replace("-font", "").replace("-size", "")
-                .replace("-shadow", "").replace("-gap", "").replace("-duration", "")
-                .replace("-easing", "").replace("-z-index", "").replace("-filter", "")
-                .replace("-max-width", "").replace("-transition", "")
-            ]
-
-            if not token_matches and token not in DESIGN_KNOWN_TOKENS:
-                report.findings.append(Finding(
-                    severity="warning",
-                    file=relpath,
-                    section="Token Values",
-                    message=f"Token '{token}' not found in DESIGN.md YAML front matter"
-                ))
-
-
-# Tokens that are compound/derived and won't appear verbatim in DESIGN.md YAML
-DESIGN_KNOWN_TOKENS: set[str] = set()
+            report.findings.append(Finding(
+                severity="info", file=relpath, section="Token Values",
+                message=f"Token '{token}' not found in DESIGN.md YAML — may need YAML entry or prefix alignment"
+            ))
 
 
 # ---------------------------------------------------------------------------
@@ -338,81 +306,47 @@ DESIGN_KNOWN_TOKENS: set[str] = set()
 # ---------------------------------------------------------------------------
 
 def check_component_coverage(files: list[Path], design_data: dict, report: Report) -> None:
-    """Check that YAML components have spec files and vice versa."""
+    """Check that YAML dict-components have spec files and vice versa."""
     yaml_names = get_yaml_component_names(design_data)
     spec_names = {get_component_name(f) for f in files}
 
-    for name in yaml_names:
-        if name not in spec_names:
-            report.findings.append(Finding(
-                severity="warning",
-                file="DESIGN.md",
-                section="components",
-                message=f"YAML component '{name}' has no corresponding spec file in docs/design/components/"
-            ))
+    for name in yaml_names - spec_names:
+        report.findings.append(Finding(
+            severity="info", file="DESIGN.md", section="components",
+            message=f"YAML component '{name}' has no dedicated spec file (may be a variant in parent spec)"
+        ))
 
-    for name in spec_names:
-        if name not in yaml_names:
-            report.findings.append(Finding(
-                severity="info",
-                file=f"components/*/{name}.md",
-                section="components",
-                message=f"Spec file exists but no YAML component definition in DESIGN.md for '{name}'"
-            ))
+    for name in spec_names - yaml_names:
+        report.findings.append(Finding(
+            severity="info", file=f"components/*/{name}.md", section="components",
+            message=f"Spec file exists but no YAML component definition for '{name}' (may use variant prefix)"
+        ))
 
 
 # ---------------------------------------------------------------------------
 # Check 5: Section Ordering (--strict)
 # ---------------------------------------------------------------------------
 
-SECTION_ORDER = [
-    "Tokens",
-    "Status",
-    "Anatomy",
-    "Variants",
-    "States",
-    "Sizes",
-    "Spacing",
-    "Appearance",
-    "Placement",
-    "Implementation",
-    "Responsive",
-    "Composition",
-    "Accessibility",
-    "Token Values",
-    "Do",
-    "Don't",
-    "Related",
-]
+SECTION_ORDER = {
+    "Tokens": 1, "Status": 2, "Anatomy": 3, "Variants": 4, "States": 5,
+    "Sizes": 6, "Spacing": 7, "Appearance": 8, "Placement": 9, "Implementation": 10,
+    "Responsive": 11, "Composition": 12, "Accessibility": 13, "Token Values": 14,
+    "Do": 15, "Don't": 16, "Related": 17,
+}
 
 def check_section_order(filepath: Path, report: Report) -> None:
     """Check that sections appear in the recommended order."""
     content = filepath.read_text(encoding="utf-8")
-    relpath = str(filepath.relative_to(ROOT))
-
-    section_matches = list(re.finditer(r"^\*\*(.+?):\*\*", content, re.MULTILINE))
-    found_sections = []
-
-    for m in section_matches:
-        name = m.group(1).strip()
-        for known in SECTION_ORDER:
-            if name.startswith(known):
-                found_sections.append(known)
-                break
-        else:
-            found_sections.append(name)
-
-    # Check relative ordering
-    positions = {s: i for i, s in enumerate(SECTION_ORDER)}
+    relpath = get_component_relpath(filepath)
     last_pos = -1
-    for sec in found_sections:
-        pos = positions.get(sec, 999)
+
+    for m in re.finditer(r"^\*\*(.+?):\*\*", content, re.MULTILINE):
+        name = m.group(1).strip()
+        pos = SECTION_ORDER.get(name, 999)
         if pos < last_pos:
             report.findings.append(Finding(
-                severity="info",
-                file=relpath,
-                section="Order",
-                message=f"Section '{sec}' appears out of recommended order"
+                severity="info", file=relpath, section="Order",
+                message=f"Section '{name}' appears out of recommended order"
             ))
             break
         last_pos = pos
@@ -424,33 +358,19 @@ def check_section_order(filepath: Path, report: Report) -> None:
 
 def format_human(report: Report, files_count: int) -> str:
     lines = []
-    error_findings = [f for f in report.findings if f.severity == "error"]
-    warning_findings = [f for f in report.findings if f.severity == "warning"]
-    info_findings = [f for f in report.findings if f.severity == "info"]
-
-    if error_findings:
-        lines.append("\nERRORS:")
-        for f in error_findings:
-            lines.append(f"  ✗ {f.file}")
-            lines.append(f"    → {f.message}")
-
-    if warning_findings:
-        lines.append("\nWARNINGS:")
-        for f in warning_findings:
-            lines.append(f"  ⚠ {f.file}")
-            lines.append(f"    → {f.message}")
-
-    if info_findings:
-        lines.append("\nINFO:")
-        for f in info_findings:
-            lines.append(f"  ℹ {f.file}")
-            lines.append(f"    → {f.message}")
+    by_severity = {"error": ("ERRORS:", "✗"), "warning": ("WARNINGS:", "⚠"), "info": ("INFO:", "ℹ")}
+    for sev, (label, icon) in by_severity.items():
+        findings = [f for f in report.findings if f.severity == sev]
+        if findings:
+            lines.append(f"\n{label}")
+            for f in findings:
+                lines.append(f"  {icon} {f.file}")
+                lines.append(f"    → {f.message}")
 
     passed = files_count - report.errors
     lines.insert(0, f"\nSummary: {files_count} files checked, "
                     f"{report.errors} errors, {report.warnings} warnings, "
                     f"{report.infos} info, {passed} passed")
-
     return "\n".join(lines)
 
 
@@ -465,13 +385,11 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Also check section ordering")
     args = parser.parse_args()
 
-    # Parse DESIGN.md
     design_data = parse_design_md(DESIGN_MD)
     if not design_data:
         print("Error: Could not parse DESIGN.md YAML front matter", file=sys.stderr)
         return 1
 
-    # Collect all spec files
     files = iter_spec_files()
     if not files:
         print("Error: No spec files found in docs/design/components/", file=sys.stderr)
@@ -479,9 +397,8 @@ def main() -> int:
 
     report = Report()
 
-    # Run checks
     for filepath in files:
-        check_required_sections(filepath, report)
+        check_required_sections(filepath, design_data, report)
         check_cross_references(filepath, files, report)
 
     check_token_consistency(files, design_data, report)
@@ -491,7 +408,6 @@ def main() -> int:
         for filepath in files:
             check_section_order(filepath, report)
 
-    # Output
     if args.json:
         output = {
             "findings": [

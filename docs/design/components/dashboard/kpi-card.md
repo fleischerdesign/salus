@@ -16,6 +16,8 @@
 
 **Don't:** Use for detailed data (use viz charts) · Overload with info beyond value+label+delta · Mix with unrelated metrics in same row
 
+**Responsive:** 3-4 cards per row on desktop, 2 on tablet, single column on mobile. Card width fluid within grid constraints.
+
 **Accessibility:**
 - Card: `role="region"` with `aria-label` from metric name
 - Value: `aria-label` with full description + unit + trend

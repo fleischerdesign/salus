@@ -16,6 +16,8 @@
 
 **Don't:** Use for primary desktop navigation (use TopAppBar) · Leave open on navigation · Forget focus trapping
 
+**Responsive:** Full-width overlay on mobile (<600px), 280px panel on tablet+. Backdrop always visible when open.
+
 **Token Values:**
 | Token | Value |
 |-------|-------|

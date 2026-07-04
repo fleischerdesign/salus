@@ -12,6 +12,8 @@
 
 **Don't:** Allow navigation to future dates (unless relevant) · Use custom date picker (native is more accessible)
 
+**Responsive:** Date format shortens on mobile (weekday + short date). Today button stays visible but may wrap below navigator on narrow screens.
+
 **Accessibility:**
 - Previous/Next: `<button>` with `aria-label="Previous day"` / `"Next day"`
 - Date display: `<button>` opening native date picker, `aria-label="Change date — current: {formatted date}"`

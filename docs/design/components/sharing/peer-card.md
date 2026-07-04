@@ -16,6 +16,8 @@
 
 **Don't:** Expose full API tokens · Show Revoke All for pending only · Omit remote sync status
 
+**Responsive:** Cards in peer-grid flow 1-3 per row depending on container width. Single column on mobile. Metric rows stack vertically.
+
 **Accessibility:**
 - Card: `role="region"` with `aria-label="Connection with {handle}"`
 - Badge (Mutual/Sharing/Reading/Pending): `aria-label` describing direction

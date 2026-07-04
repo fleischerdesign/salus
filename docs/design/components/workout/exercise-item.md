@@ -14,6 +14,8 @@
 
 **Don't:** Use page reload for CRUD · Omit muscle target info · Show without equipment context
 
+**Responsive:** Flex-wrap: equipment chips and muscle targets wrap below name on narrow screens.
+
 **Accessibility:**
 - Item: list item with `aria-label="Exercise: {name}, {equipment}"`
 - Equipment chip: `aria-label="Equipment: {type}"`

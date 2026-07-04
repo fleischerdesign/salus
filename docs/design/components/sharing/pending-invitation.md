@@ -10,6 +10,8 @@
 
 **Don't:** Omit aggregation type · Show without colored metric icon · Leave stale invitations
 
+**Responsive:** Invitation rows stack vertically. Accept/Decline buttons stay inline on desktop, may wrap on mobile.
+
 **Accessibility:**
 - Card section: `role="region"` with `aria-label="Pending invitations"`
 - Each invitation: list item with metric icon + owner + metric + aggregation

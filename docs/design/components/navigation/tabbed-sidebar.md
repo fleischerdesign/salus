@@ -14,6 +14,8 @@
 
 **Don't:** Use for primary navigation (use TopAppBar) · Mix navigation styles on same page
 
+**Responsive:** Desktop: 240px fixed sidebar + fluid content. Below 900px: sidebar becomes horizontal scrollable tab row above content.
+
 **Accessibility:**
 - Sidebar: `<nav>` with `aria-label="Settings navigation"` or similar
 - Active link: `aria-current="page"`
