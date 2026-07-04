@@ -2,6 +2,8 @@
 
 **Anatomy:** Header (value + unit + delta) + SVG candlestick chart (80px height) + Sub-label
 
+**States:** Default · Up-day (green candle) · Down-day (red candle) · No-data (empty chart with placeholder)
+
 **Sizes:** Medium/Large only. Not available in small.
 
 **Chart:** SVG candlestick bars with high/low wicks and open/close bodies. Green body (tertiary-600) when close > open, red body (error-600) when close < open. Wicks: slate-500. Weekday labels below: Mon-Sun, label-sm.

@@ -2,6 +2,8 @@
 
 **Anatomy:** Modal + QR code image + Copyable invite link + Copy button
 
+**States:** Default · Copied (check icon feedback, 2s) · Copy error (alert icon)
+
 **QR code:** 200×200px, white background, rounded-md. Generated server-side via `/sharing/connections/invite-qr?url=...`
 
 **Link input:** Read-only text input with full URL. Click selects all text. Copy button copies to clipboard.

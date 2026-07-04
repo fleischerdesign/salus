@@ -334,6 +334,386 @@ components:
   sleep-light: "{colors.secondary-400}"
   sleep-deep: "{colors.primary-400}"
   sleep-rem: "{colors.metric-sleep}"
+
+  # ---- Core UI ----
+  alert:
+    backgroundColor: "{colors.tertiary-50}"
+    textColor: "{colors.tertiary-800}"
+    rounded: "{rounded.md}"
+    padding: 12px 16px
+  auth-form:
+    max-width: 440px
+    padding: 32px
+    rounded: "{rounded.lg}"
+  avatar:
+    size-sm: 36px
+    size-lg: 48px
+    backgroundColor: "{colors.slate-200}"
+    textColor: "{colors.slate-600}"
+    rounded: "{rounded.full}"
+  checkbox:
+    gap: 16px
+  copy-to-clipboard:
+    button-icon-size: 16px
+    success-color: "{colors.tertiary-600}"
+    error-color: "{colors.error-600}"
+  divider:
+    height: 1px
+    backgroundColor: "{colors.slate-200}"
+    label-gap: 16px
+  drag-handle:
+    color: "{colors.slate-400}"
+    hover-color: "{colors.slate-600}"
+    active-color: "{colors.primary-600}"
+  empty-state:
+    icon-muted-opacity: 0.4
+  focus-ring:
+    width: 2px
+    color: "{colors.primary-500}"
+    offset: 2px
+  icon:
+    sizes: "16px/18px/20px/22px/24px/40px/48px"
+  inline-code:
+    backgroundColor: "{colors.slate-100}"
+    textColor: "{colors.slate-700}"
+    fontFamily: "'{typography.code-sm}'"
+  language-switcher: {}
+  link:
+    hover-underline: true
+  loading-button:
+    spinner-size: 16px
+    success-color: "{colors.tertiary-600}"
+    error-color: "{colors.error-600}"
+  skip-link:
+    backgroundColor: "{colors.slate-900}"
+    textColor: "{colors.slate-50}"
+    z-index: 500
+  theme-toggle: {}
+
+  # ---- Navigation ----
+  back-link:
+    arrow-icon-size: 18px
+  breadcrumbs:
+    color: "{colors.slate-500}"
+    hover-color: "{colors.primary}"
+    active-color: "{colors.slate-900}"
+    separator-color: "{colors.slate-400}"
+  context-menu:
+    backgroundColor: "#ffffff"
+    shadow: "{shadows.lg}"
+    rounded: "{rounded.md}"
+    item-padding: 8px 12px
+    danger-text: "{colors.error-600}"
+    z-index: 500
+  day-navigator:
+    backgroundColor: "{colors.slate-50}"
+    rounded: "{rounded.md}"
+    date-hover-color: "{colors.primary}"
+  drawer:
+    width: 280px
+    backgroundColor: "#ffffff"
+    shadow: "{shadows.xl}"
+    backdrop-color: "rgba(0,0,0,0.3)"
+    z-index: 300
+  nav-dropdown-backdrop-color: "rgba(0,0,0,0.3)"
+  scroll-to-top:
+    size: 40px
+    backgroundColor: "{colors.primary}"
+    icon-color: "#ffffff"
+    offset: 24px
+    z-index: 200
+    threshold: 300px
+  step-indicator:
+    dot-size: 8px
+    number-size: 24px
+    pending-color: "{colors.slate-300}"
+    active-color: "{colors.primary-500}"
+    completed-color: "{colors.tertiary-500}"
+    error-color: "{colors.error-500}"
+  tab-bar:
+    font: "{typography.label-md}"
+    padding: 12px 16px
+    min-width: 90px
+    active-border: "2px solid {colors.primary}"
+    active-text: "{colors.primary}"
+    hover-bg: "{colors.slate-100}"
+  tabbed-sidebar:
+    width: 240px
+  top-app-bar:
+    height: 64px
+    backgroundColor: "#ffffff"
+    border: "1px solid {colors.slate-200}"
+  user-menu:
+    avatar-size: 36px
+
+  # ---- Forms ----
+  autocomplete:
+    debounce: 150ms
+    min-chars: 2
+    max-items: 8
+    match-highlight: "{colors.primary-600}"
+    z-index: 100
+  color-picker:
+    width: 80px
+    height: 44px
+  date-picker:
+    input-width: 200px
+    calendar-width: 280px
+    cell-size: 36px
+    today-border: "2px solid {colors.primary}"
+    header-font: "{typography.label-md}"
+    z-index: 100
+  file-upload:
+    border: "2px dashed {colors.slate-200}"
+    drag-border: "2px solid {colors.primary}"
+    drag-bg: "{colors.primary-50}"
+    min-height: 120px
+    icon-size: 40px
+    preview-size: 48px
+  form-layout:
+    gap: 16px
+    actions-gap: 16px
+    row-gap: 16px
+  multi-select:
+    chip-gap: 4px
+    filter-debounce: 150ms
+    z-index: 100
+  number-stepper:
+    btn-size: 28px
+    input-width: 56px
+    gap: 2px
+  radio-group:
+    gap: 8px
+    item-padding: 6px 12px
+  search-input:
+    icon-size: 20px
+    icon-color: "{colors.slate-400}"
+    clear-btn-size: 20px
+    debounce-ms: 300
+    min-chars: 2
+  slider:
+    track-height: 4px
+    track-bg: "{colors.slate-200}"
+    fill-bg: "{colors.primary-500}"
+    thumb-size: 20px
+    thumb-border: "2px solid {colors.primary}"
+    thumb-bg: "#ffffff"
+  toggle:
+    track-width: 44px
+    track-height: 24px
+    track-bg-off: "{colors.slate-200}"
+    track-bg-on: "{colors.primary}"
+    thumb-size: 20px
+    thumb-bg: "#ffffff"
+    disabled-opacity: 0.5
+
+  # ---- Data Display ----
+  accordion:
+    header-padding: 12px 16px
+    content-padding: 16px
+    border-color: "{colors.slate-200}"
+    chevron-size: 20px
+  allergy-badge:
+    icon-size: 20px
+    mild-color: "{colors.warning-500}"
+    moderate-color: "{colors.warning-700}"
+    severe-color: "{colors.error-600}"
+    anaphylaxis-bg: "{colors.error-700}"
+    anaphylaxis-text: "#ffffff"
+  animated-number:
+    duration: 800ms
+    min-delta: 1
+  badge:
+    dot-size: 8px
+    standard-size: 18px
+    backgroundColor: "{colors.error-500}"
+    textColor: "{colors.on-error}"
+    overflow-threshold: 99
+    overflow-text: '"99+"'
+  chart-tooltip:
+    backgroundColor: "{colors.slate-800}"
+    textColor: "{colors.slate-50}"
+    rounded: 6px
+    padding: 8px
+    offset: 12px
+  chip-row:
+    gap: 8px
+  comparison-card:
+    gap: 8px
+  diagnosis-tag:
+    active-bg: "{colors.primary-100}"
+    chronic-bg: "{colors.warning-100}"
+    resolved-bg: "{colors.slate-100}"
+  key-value:
+    gap: 4px
+  lab-result:
+    indicator-size: 8px
+  list-item:
+    padding: 12px 16px
+    border-color: "{colors.slate-200}"
+  medication-schedule:
+    due-highlight: "{colors.warning-50}"
+    missed-color: "{colors.error-500}"
+    adherence-ring-size: 48px
+  pagination:
+    btn-size: 40px
+    active-bg: "{colors.primary-50}"
+    active-text: "{colors.primary-600}"
+    gap: 4px
+  progress-bar:
+    height: 8px
+    track-bg: "{colors.slate-100}"
+    fill-color: "{colors.primary}"
+  secret-reveal:
+    mask-char: '"*"'
+    mask-length: 12
+    btn-size: 20px
+  skeleton:
+    animation-duration: 1.8s
+    opacity-min: 0.4
+    opacity-max: 0.75
+  spinner:
+    size-sm: 16px
+    size-md: 24px
+    size-lg: 40px
+    color: "{colors.primary}"
+    duration: 0.8s
+  stat:
+    fallback: '"--"'
+  status-dot:
+    size: 8px
+    active-color: "{colors.tertiary-500}"
+    pending-color: "{colors.warning-500}"
+    error-color: "{colors.error-500}"
+    unknown-color: "{colors.slate-400}"
+    syncing-color: "{colors.primary-500}"
+    pulse-duration: 1.8s
+  timeline:
+    line-width: 2px
+    line-color: "{colors.slate-200}"
+    dot-size: 12px
+    dot-active-size: 16px
+    dot-color: "{colors.primary-500}"
+    connector-length: 16px
+  watermark:
+    opacity-screen: 0.15
+    opacity-print: 0.10
+    color: "{colors.slate-300}"
+    rotation: "-45deg"
+
+  # ---- Feedback ----
+  confirmation-dialog:
+    icon-size: 48px
+    max-width: 400px
+  cookie-consent:
+    backgroundColor: "{colors.slate-900}"
+    textColor: "{colors.slate-50}"
+    padding: 24px
+    z-index: 500
+  offline-indicator:
+    backgroundColor: "{colors.warning-100}"
+    textColor: "{colors.warning-800}"
+    padding: 12px
+    z-index: 200
+  session-timeout:
+    warning-duration: 120s
+    urgent-color: "{colors.error-500}"
+    urgent-threshold: 30s
+  toast:
+    max-width: 360px
+    gap: 8px
+    duration: "5s"
+    max-visible: 3
+    z-index: 500
+  tooltip:
+    backgroundColor: "{colors.slate-800}"
+    textColor: "{colors.slate-50}"
+    max-width: 280px
+    padding: 8px
+    rounded: 6px
+    arrow-size: 4px
+    gap: 8px
+    delay: 150ms
+    z-index: 500
+
+  # ---- Dashboard ----
+  kpi-card:
+    accent-bar-height: 4px
+    icon-size: 24px
+  vital-signs-row:
+    min-width: 140px
+    gap: 16px
+    icon-size: 24px
+  widget:
+    accent-positive: "{colors.tertiary-500}"
+    accent-negative: "{colors.error-500}"
+  viz-bar:
+    height: 8px
+  viz-bullet:
+    bar-height: 24px
+    band-poor: "{colors.slate-100}"
+    band-satisfactory: "{colors.slate-200}"
+    band-good: "{colors.slate-300}"
+    performance-color: "{colors.primary-600}"
+    target-color: "{colors.slate-900}"
+    target-width: 2px
+  viz-candlestick:
+    height: 80px
+  viz-donut:
+    ring-width: 8px
+    animation-duration: 800ms
+  viz-gauge:
+    arc-width: 12px
+    low-color: "{colors.warning-400}"
+    normal-color: "{colors.tertiary-500}"
+    high-color: "{colors.error-400}"
+    needle-color: "{colors.slate-800}"
+    animation-duration: 600ms
+  viz-heatmap:
+    cell-size: 14px
+    cell-gap: 3px
+    today-border: "2px solid {colors.primary-500}"
+    color-steps: 5
+    empty-color: "{colors.slate-100}"
+  viz-number:
+    compact-gap: 16px
+  viz-pills:
+    chart-height: 110px
+  viz-progress:
+    ring-size: 90px
+    bar-height: 22px
+    animation-duration: 600ms
+  viz-sparkline:
+    height: 30px
+
+  # ---- Sharing ----
+  federation-status:
+    dot-size: 8px
+  invite-modal:
+    qr-size: 200px
+    qr-bg: "#ffffff"
+  peer-card:
+    hover-shadow: "0px 2px 8px rgba(0,0,0,0.06)"
+  pending-invitation:
+    gap: 8px
+
+  # ---- Workout ----
+  active-session:
+    logged-opacity: 0.75
+  autoregulation-set:
+    dim-opacity: 0.75
+  exercise-item:
+    padding: 10px 14px
+    border: "1px solid var(--color-slate-200)"
+    rounded: 4px
+  plan-card:
+    padding: 24px
+
+  # ---- Onboarding ----
+  wizard:
+    step-icon-size: 48px
+    dot-size: 8px
+    dot-gap: 8px
 ---
 
 # Salus Design System

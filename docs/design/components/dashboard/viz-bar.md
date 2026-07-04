@@ -2,6 +2,8 @@
 
 **Anatomy:** Header (value + unit) + Segmented horizontal bar (8px height) + Legend
 
+**States:** Default · Hover (tooltip per segment on medium+ widgets) · No-data ("--" placeholder)
+
 **Sizes:** Medium/Large only. Legend hidden on small widgets.
 
 **Bar:** Rounded-full segments. Segment colors: protein (metric-heart-rate), carbs (secondary-400), fat (warning-400). Bar width: proportional to macro distribution.

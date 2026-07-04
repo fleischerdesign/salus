@@ -8,7 +8,7 @@
 
 **Sizes:** Max-width 440px. Fluid width below that. Max-height 90vh, scrollable.
 
-**Accessibility (mandatory):**
+**Accessibility:**
 - `role="dialog"`, `aria-modal="true"`, `aria-labelledby` referencing title
 - Focus trapped inside modal while open
 - Focus restored to trigger element on close

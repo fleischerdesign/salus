@@ -2,6 +2,8 @@
 
 **Anatomy:** Header (value + unit + delta) + SVG pill chart (110px height) + Color legend
 
+**States:** Default · Hover (per segment via chart-tooltip) · No-data (empty chart with placeholder)
+
 **Sizes:** Medium/Large only. Not available in small.
 
 **Chart:** SVG-rendered pill-shaped segments representing heart rate zones or sleep stages. Segments use ResizeObserver for responsive width. Zones/segments: Awake (warning-400), Light (secondary-400), Deep (primary-400), REM (metric-sleep).

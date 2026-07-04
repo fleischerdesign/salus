@@ -2,6 +2,8 @@
 
 **Anatomy:** Name + Equipment chip + Muscle targets + Video link (optional) + Delete button
 
+**States:** Default · Hover (actions visible) · Deleting (row opacity 0.5 pending confirmation)
+
 **Equipment variants:** Barbell, Dumbbell, Machine, Bodyweight, Kettlebell — each with distinct chip color.
 
 **Delete:** Same pattern as plan-card. Should use targeted removal instead of page reload.

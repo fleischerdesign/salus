@@ -4,6 +4,8 @@
 
 **Anatomy:** Chip showing ICD code + Short description
 
+**States:** Active (primary-100 bg) · Chronic (warning-100 bg, chronic icon) · Resolved (neutral chip, muted, optional check mark) · Primary/Chief complaint (bold border, slightly larger)
+
 **Variants:**
 - Active: primary-100 bg, primary-800 text
 - Chronic: chip with chronic icon, warning-100 bg

@@ -10,6 +10,8 @@
 
 **HTML:** First focusable element after `<body>`. `<a href="#main-content" class="sr-only focus:...">`
 
+**Accessibility:** Implement as first focusable element after `<body>`. Target must have `id="main-content"` on the main content container. When activated, focus moves to target (not just scroll — `element.focus()` with `tabindex="-1"`). Link text describes purpose: "Skip to main content". Focus ring must be visible when focused (inherits focus-ring tokens).
+
 **Do:** Implement as first focusable element · Move focus to main content · Make visible on focus
 
 **Don't:** Omit (WCAG violation) · Make permanently visible · Scroll instead of moving focus

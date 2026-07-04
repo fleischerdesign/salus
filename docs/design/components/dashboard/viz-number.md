@@ -2,6 +2,8 @@
 
 **Anatomy:** Primary value (large, bold) + Unit (muted, smaller) + Optional delta indicator + Optional sub-label
 
+**States:** Default · Positive trend (success delta) · Negative trend (error delta) · Neutral (muted delta) · No-data ("--" placeholder)
+
 **Sizes:**
 - Small: `widget-compact-layout` — icon + value + unit side-by-side
 - Medium/Large: `widget-large-layout` — value + unit stacked, sub-label below

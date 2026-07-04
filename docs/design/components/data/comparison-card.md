@@ -4,6 +4,8 @@
 
 **Anatomy:** Side-by-side or stacked comparison of two time periods. Each side: period label + value + delta
 
+**States:** Default · Positive change (tertiary-600, ↑) · Negative change (error-600, ↓) · No change (slate-500, →) · No data ("--")
+
 **Layout:**
 - Horizontal: Left (previous) | arrow → | Right (current). Gap: 8px, arrow in center.
 - Vertical: Top (current, larger) → Bottom (previous, smaller, muted).
@@ -24,3 +26,15 @@
 - Arrow icon: `aria-hidden="true"`
 
 **Related:** `card.md`, `stat.md`, `key-value.md`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --compare-gap | 8px |
+| --compare-positive-color | `{colors.tertiary-600}` |
+| --compare-negative-color | `{colors.error-600}` |
+| --compare-neutral-color | `{colors.slate-500}` |
+| --compare-arrow-icon-size | 18px |
+| --compare-period-label-font | `var(--font-body-sm)` |
+
+**Responsive:** Single column stack on mobile, side-by-side on desktop.

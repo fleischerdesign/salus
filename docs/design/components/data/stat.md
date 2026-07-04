@@ -2,6 +2,8 @@
 
 **Anatomy:** Large numeric value + Unit + Optional label + Optional trend delta
 
+**States:** Default · Positive trend (success ↑) · Negative trend (error ↓) · Neutral (muted →) · No-data ("--" placeholder, never blank or "0")
+
 **Sizes:** Compact (32px number, sidebar) · Standard (36px number, dashboard widgets) · Hero (48px number, KPI cards)
 
 **Formatting:** Steps: comma-separated integer. Weight: 1 decimal + "kg". Heart rate: integer + "bpm". Sleep: "Xh Ym". Duration: "Xh Ym". Percentage: "XX%".

@@ -2,6 +2,8 @@
 
 **Anatomy:** Card header (plan name + auto-regulation mode chip) + Exercise list + Actions (Start Session + Delete)
 
+**States:** Default · Hover (card shadow) · Deleting (pending confirmation) · No exercises (empty state)
+
 **Auto-regulation chip:** Shows mode (Disabled/Advisory/Guided). Color varies by mode.
 
 **Exercise list:** Compact sub-rows showing: name, equipment badge, target sets×reps.

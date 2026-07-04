@@ -2,6 +2,8 @@
 
 **Anatomy:** Rotating ring indicator, centered.
 
+**States:** Hidden · Visible/Spinning · Stopped (content loaded)
+
 **Sizes:** Small (16px, inline) · Medium (24px, button) · Large (40px, page/container)
 
 **Animation:** 0.8s linear infinite rotation. Primary color, 2-3px border with transparent gap.

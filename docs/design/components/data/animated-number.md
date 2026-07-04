@@ -4,6 +4,8 @@
 
 **Anatomy:** Numeric display that counts up/down from previous value to new value on change
 
+**States:** Static (showing current value) · Animating-up (counting up, 500-800ms) · Animating-down (counting down) · No-data ("--")
+
 **Animation:** Ease-out, 500-800ms duration. Numbers slide-rotate vertically (like odometer) or increment linearly.
 
 **Trigger:** Fires when new data arrives via HTMX swap. Detects value change and animates.

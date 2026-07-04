@@ -4,6 +4,8 @@
 
 **Anatomy:** SVG ring showing proportion of parts to whole. Center: total value or label.
 
+**States:** Default · Hover (per segment via chart-tooltip) · No-data (empty ring, "--" in center) · Single segment (full ring, one color)
+
 **Segments:** Stroke-dasharray based on proportions. Colors from color family tokens. 3-6 segments max.
 
 **Center text:** Large total value (headline-md, bold) + Label (caption, muted). Or: primary metric + unit.

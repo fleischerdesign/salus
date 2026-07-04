@@ -2,6 +2,10 @@
 
 **Anatomy:** Material Symbols font glyph, sized and colored consistently
 
+**States:** Default (outlined, `currentColor`) · Filled (`fontVariationSettings: 'FILL' 1`) · Disabled (opacity 0.4)
+
+**Accessibility:** `aria-hidden="true"` when purely decorative. `aria-label` when icon is the only interactive element content (e.g., icon-only buttons). Icon font renders as text — screen readers will read the ligature name unless explicitly hidden.
+
 **Sizes:** Standard sizes by context:
 
 | Context | Size |

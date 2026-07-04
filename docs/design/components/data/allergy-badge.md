@@ -4,6 +4,8 @@
 
 **Anatomy:** Icon (error-red) + Allergen name + Severity indicator
 
+**States:** Mild (warning-500 dot) · Moderate (warning-700 dot) · Severe (error-600 dot) · Anaphylaxis (error-700 bg + white text, always prominent). All allergies visible at all times — never hidden.
+
 **Severity levels:**
 - Mild: warning-500 dot, body-sm text
 - Moderate: warning-700 dot, semi-bold text

@@ -2,6 +2,8 @@
 
 **Anatomy:** 8px colored circle indicating current state. Distinct from Badge (which shows a count).
 
+**States:** Active/Online (tertiary-500) · Pending/Warning (warning-500) · Error/Offline (error-500) · Unknown/Neutral (slate-400) · Syncing/Processing (primary-500, pulsing)
+
 **Variants:**
 | Color | Meaning |
 |-------|---------|

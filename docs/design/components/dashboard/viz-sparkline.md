@@ -2,6 +2,8 @@
 
 **Anatomy:** SVG polyline chart (30px height, full width) + Optional progress bar overlay + Sub-label
 
+**States:** Default · With target (progress bar overlay visible) · No-data (empty chart, "--" placeholder) · Single data point (flat line, no curve)
+
 **Sizes:**
 - Medium/Large only. Not available in small (small widgets use viz-number).
 

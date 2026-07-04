@@ -4,6 +4,8 @@
 
 **Anatomy:** Horizontal bar showing: Qualitative ranges (colored background bands) + Performance measure (dark bar) + Comparative measure (vertical tick mark)
 
+**States:** Default · No-data ("--" placeholder) · At-target (performance bar reaches/passes target mark)
+
 **Structure:**
 1. Background bands: sequential shades (e.g., slate-100, slate-200, slate-300) — "poor", "satisfactory", "good" ranges
 2. Performance bar: primary-600, shorter than bands. Shows actual value.

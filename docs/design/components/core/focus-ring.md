@@ -2,6 +2,10 @@
 
 **Anatomy:** Visible outline around focused element indicating keyboard focus position
 
+**States:** Off (no focus ring) · Keyboard Focus (`:focus-visible` — 2px solid primary-500 ring, 2px offset) · Mouse Click (`:focus` — no ring, visual change via :active state only)
+
+**Accessibility:** Every interactive element MUST have a visible focus indicator. Use `:focus-visible` (not `:focus`) — mouse users don't need focus rings, keyboard users do. Never `outline: none` without a visible replacement. Focus order must be logical (DOM order). Custom focus rings must meet 3:1 contrast against background.
+
 **Appearance:** 2px solid primary-500, 2px offset from element edge. Never use `outline: none` without a replacement.
 
 **Default:** Browser default (dotted/dashed outline). **Override with caution.**

@@ -4,6 +4,8 @@
 
 **Anatomy:** Vertical line (left) + Event dots + Event cards (right). Chronological, newest first or oldest first.
 
+**States:** Default · Active/Selected (dot larger, primary ring) · Ongoing (dashed connector) · Completed (solid connector)
+
 **Line:** 2px width, slate-200. Full height of timeline container. 16px left padding.
 
 **Event dot:** 12px circle, filled (primary-500). Connected to line. First event: larger dot (16px). Active/selected: 4px primary ring.

@@ -2,6 +2,8 @@
 
 **Anatomy:** Input groups stacked vertically with consistent spacing.
 
+**States:** Default · Submitting (form disabled, submit button loading) · Error (alert above form, field-level errors) · Success (redirect or inline success message)
+
 **Tokens:** `--input-*` (see input.md)
 
 **Patterns:**
