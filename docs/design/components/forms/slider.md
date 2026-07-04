@@ -40,4 +40,4 @@
 | --slider-thumb-bg | `#ffffff` |
 | --slider-thumb-shadow | `var(--shadow-sm)` |
 
-**Related:** `number-stepper.md`, `toggle.md`, `input.md`
+**Related:** `stepper.md`, `toggle.md`, `input.md`

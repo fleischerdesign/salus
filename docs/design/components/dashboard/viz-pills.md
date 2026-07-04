@@ -19,4 +19,4 @@
 - Legend items: list with color dots + text labels
 - Color dots: `aria-hidden="true"` (label text describes the segment)
 
-**Related:** `viz-bar.md`, `viz-donut.md`, `sleep-*` tokens
+**Related:** `viz-bar.md`, `donut.md`, `sleep-*` tokens

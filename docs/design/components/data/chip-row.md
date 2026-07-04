@@ -20,4 +20,4 @@
 - Overflow: "+N more" chip is focusable, reveals hidden chips on click
 - Removable chips: × button in each chip with aria-label
 
-**Related:** `chip.md`, `multi-select.md`, `badge.md`
+**Related:** `chip.md`, `multiselect.md`, `badge.md`

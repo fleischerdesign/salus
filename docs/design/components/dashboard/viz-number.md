@@ -22,4 +22,4 @@
 - Delta: aria-label describes direction + magnitude
 - Fallback "--": `aria-label="No data available"`
 
-**Related:** `stat.md`, `viz-sparkline.md`, `animated-number.md`, `key-value.md`
+**Related:** `stat.md`, `viz-sparkline.md`, `anim-number.md`, `key-value.md`

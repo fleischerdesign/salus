@@ -31,4 +31,4 @@
 
 **Responsive:** Full-width on mobile. `.form-row` collapses to vertical stack below `bp-mobile`.
 
-**Related:** `select.md`, `textarea.md`, `color-picker.md`, `focus-ring.md`, `form-layout.md`, `search-input.md`, `autocomplete.md`, `number-stepper.md`, `slider.md`, `date-picker.md`
+**Related:** `select.md`, `textarea.md`, `color-picker.md`, `focus-ring.md`, `form-layout.md`, `search-input.md`, `autocomplete.md`, `stepper.md`, `slider.md`, `date-picker.md`

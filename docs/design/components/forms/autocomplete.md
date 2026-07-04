@@ -35,4 +35,4 @@
 
 **Responsive:** Full-width on mobile. Dropdown constrained to viewport.
 
-**Related:** `input.md`, `search-input.md`, `multi-select.md`, `select.md`
+**Related:** `input.md`, `search-input.md`, `multiselect.md`, `select.md`

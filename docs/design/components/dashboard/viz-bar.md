@@ -19,4 +19,4 @@
 - Legend: same as viz-pills legend accessibility
 - Segments: proportional width match percentages in aria-label
 
-**Related:** `viz-donut.md`, `viz-pills.md`, `viz-number.md`
+**Related:** `donut.md`, `viz-pills.md`, `viz-number.md`

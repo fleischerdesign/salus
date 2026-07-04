@@ -18,4 +18,4 @@ Inline checkboxes: horizontal row, gap 16px. Stack checkboxes: vertical list, ga
 - Indeterminate: `checkbox.indeterminate = true` via JS (not a HTML attribute)
 - Focus: visible ring on checkbox, navigate with Tab
 
-**Related:** `toggle.md`, `multi-select.md`, `radio-group.md`, `form-layout.md`
+**Related:** `toggle.md`, `multiselect.md`, `radio-group.md`, `form-layout.md`
