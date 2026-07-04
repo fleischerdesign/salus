@@ -48,6 +48,7 @@ src/salus/
 | `repositories/` | Classes that wrap data access (SQLModel Session) | Business logic, validation |
 | `services/` | Business logic classes (injected repos via `__init__`) | HTTP concerns, route handlers |
 | `routers/` | FastAPI `APIRouter` instances, route handler functions | Business logic, DB access |
+| `docs/design/` | Design system: tokens, component specs, patterns | Source code, tests |
 
 ## Architecture rules (DO NOT VIOLATE)
 

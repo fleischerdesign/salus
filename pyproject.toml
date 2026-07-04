@@ -30,6 +30,7 @@ salus = "salus.main:app"
 dev = [
     "pytest",
     "httpx",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]
