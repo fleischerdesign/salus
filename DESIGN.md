@@ -191,6 +191,8 @@ typography:
     fontSize: 14px
     fontWeight: 600
     lineHeight: 20px
+  family-primary: "'Manrope', system-ui, -apple-system, sans-serif"
+  family-mono: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace"
 
 rounded:
   none: 0px
@@ -445,7 +447,7 @@ components:
   back-link:
     responsive: false
     arrow-icon-size: 18px
-  breadcrumbs:
+  breadcrumb:
     color: "{colors.slate-500}"
     hover-color: "{colors.primary}"
     active-color: "{colors.slate-900}"
@@ -522,7 +524,7 @@ components:
     today-border: "2px solid {colors.primary}"
     header-font: "{typography.label-md}"
     z-index: 100
-  file-upload:
+  upload:
     border: "2px dashed {colors.slate-200}"
     drag-border: "2px solid {colors.primary}"
     drag-bg: "{colors.primary-50}"
@@ -533,12 +535,12 @@ components:
     gap: 16px
     actions-gap: 16px
     row-gap: 16px
-  multi-select:
+  multiselect:
     responsive: false
     chip-gap: 4px
     filter-debounce: 150ms
     z-index: 100
-  number-stepper:
+  stepper:
     responsive: false
     btn-size: 28px
     input-width: 56px
@@ -586,7 +588,7 @@ components:
     severe-color: "{colors.error-600}"
     anaphylaxis-bg: "{colors.error-700}"
     anaphylaxis-text: "#ffffff"
-  animated-number:
+  anim-number:
     responsive: false
     duration: 800ms
     min-delta: 1
@@ -608,7 +610,7 @@ components:
   chip-row:
     responsive: false
     gap: 8px
-  comparison-card:
+  compare:
     responsive: false
     gap: 8px
   diagnosis-tag:
@@ -626,7 +628,7 @@ components:
     responsive: false
     padding: 12px 16px
     border-color: "{colors.slate-200}"
-  medication-schedule:
+  med-schedule:
     due-highlight: "{colors.warning-50}"
     missed-color: "{colors.error-500}"
     adherence-ring-size: 48px
@@ -684,7 +686,7 @@ components:
     rotation: "-45deg"
 
   # ---- Feedback ----
-  confirmation-dialog:
+  confirm:
     icon-size: 48px
     max-width: 400px
   cookie-consent:
@@ -699,7 +701,7 @@ components:
     textColor: "{colors.warning-800}"
     padding: 12px
     z-index: 200
-  session-timeout:
+  timeout:
     responsive: false
     warning-duration: 120s
     urgent-color: "{colors.error-500}"
@@ -736,7 +738,7 @@ components:
   viz-bar:
     responsive: false
     height: 8px
-  viz-bullet:
+  bullet:
     responsive: false
     bar-height: 24px
     band-poor: "{colors.slate-100}"
@@ -748,11 +750,11 @@ components:
   viz-candlestick:
     responsive: false
     height: 80px
-  viz-donut:
+  donut:
     responsive: false
     ring-width: 8px
     animation-duration: 800ms
-  viz-gauge:
+  gauge:
     responsive: false
     arc-width: 12px
     low-color: "{colors.warning-400}"
@@ -760,7 +762,7 @@ components:
     high-color: "{colors.error-400}"
     needle-color: "{colors.slate-800}"
     animation-duration: 600ms
-  viz-heatmap:
+  heatmap:
     responsive: false
     cell-size: 14px
     cell-gap: 3px

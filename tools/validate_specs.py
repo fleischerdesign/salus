@@ -238,8 +238,8 @@ def check_required_sections(filepath: Path, design_data: dict, report: Report) -
     if not is_inline_component(design_data, name):
         if not has_section(content, re.compile(r"^\*\*Responsive:\*\*", re.MULTILINE)):
             report.findings.append(Finding(
-                severity="warning", file=relpath, section="Responsive",
-                message=f"Component '{name}' should have a Responsive section (or set responsive: false in YAML)"
+                severity="info", file=relpath, section="Responsive",
+                message=f"Component '{name}' could benefit from a Responsive section (or set responsive: false in YAML)"
             ))
 
 
