@@ -31,7 +31,7 @@
 }
 
 .chip__dismiss:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--color-slate-200);
 }
 
 /* Variants */

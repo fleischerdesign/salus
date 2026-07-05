@@ -531,7 +531,7 @@
     height: 20px;
     border: 2px solid var(--color-slate-300);
     border-radius: var(--radius-sm);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -614,7 +614,7 @@
 }
 
 .chip__dismiss:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--color-slate-200);
 }
 
 /* Variants */
@@ -862,7 +862,8 @@
 .drawer-backdrop[data-open] { opacity: 1; pointer-events: auto; }
 
 .drawer {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: #ffffff;
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    background: var(--color-surface-container-lowest);
     box-shadow: var(--shadow-xl); z-index: var(--z-modal, 400);
     transform: translateX(-100%);
     transition: transform var(--duration-normal) var(--ease-out);
@@ -1194,7 +1195,7 @@
 .modal-content {
     position: relative;
     z-index: var(--z-modal, 400);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     border-radius: var(--modal-radius);
     box-shadow: var(--modal-shadow);
     max-width: var(--modal-max-width, 440px);
@@ -1560,7 +1561,7 @@
 .select__trigger[aria-expanded="true"] {
     border-color: var(--color-primary-500);
     box-shadow: var(--input-focus-shadow);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
 }
 
 .select__value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1583,7 +1584,7 @@
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     max-height: 280px;
@@ -1670,7 +1671,7 @@
 
 .slider__thumb {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
-    width: 20px; height: 20px; background: #ffffff;
+    width: 20px; height: 20px; background: var(--color-surface-container-lowest);
     border: 2px solid var(--color-primary); border-radius: var(--radius-full);
     box-shadow: var(--shadow-sm); cursor: grab; transition: box-shadow var(--duration-fast) var(--ease-default);
 }
@@ -1917,7 +1918,7 @@
     height: 12px;
     border-radius: var(--radius-full);
     background: var(--color-primary-500);
-    border: 2px solid #ffffff;
+    border: 2px solid var(--color-surface-container-lowest);
     z-index: 1;
 }
 

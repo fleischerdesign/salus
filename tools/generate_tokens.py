@@ -387,6 +387,23 @@ def generate_dark_tokens(design: dict) -> list[str]:
     return lines
 
 
+def generate_light_tokens(design: dict) -> list[str]:
+    """Generate [data-theme='light'] block (overrides dark media query when user selects light)."""
+    light_colors = design.get("colors", {})
+
+    lines: list[str] = []
+    lines.append("[data-theme=\"light\"] {")
+    lines.append("  color-scheme: light;")
+    lines.append("")
+    lines.append("  /* ── Colors ────────────────────────────────────── */")
+
+    for key in light_colors:
+        lines.append(f"  --color-{key}: {light_colors[key]};")
+
+    lines.append("}")
+    return lines
+
+
 # ---------------------------------------------------------------------------
 # Output
 # ---------------------------------------------------------------------------
@@ -431,6 +448,8 @@ def generate_css(design: dict) -> str:
         + "\n".join(_indent(generate_dark_color_tokens(design), 4))
         + "\n  }\n}\n\n"
         + "\n".join(dark_tokens)
+        + "\n\n"
+        + "\n".join(generate_light_tokens(design))
         + "\n"
     )
 

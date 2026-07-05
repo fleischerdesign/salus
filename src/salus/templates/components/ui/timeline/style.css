@@ -34,7 +34,7 @@
     height: 12px;
     border-radius: var(--radius-full);
     background: var(--color-primary-500);
-    border: 2px solid #ffffff;
+    border: 2px solid var(--color-surface-container-lowest);
     z-index: 1;
 }
 

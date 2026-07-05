@@ -34,7 +34,7 @@
 .select__trigger[aria-expanded="true"] {
     border-color: var(--color-primary-500);
     box-shadow: var(--input-focus-shadow);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
 }
 
 .select__value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -57,7 +57,7 @@
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     max-height: 280px;

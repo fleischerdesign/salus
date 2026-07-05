@@ -11,7 +11,8 @@
 .drawer-backdrop[data-open] { opacity: 1; pointer-events: auto; }
 
 .drawer {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: #ffffff;
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    background: var(--color-surface-container-lowest);
     box-shadow: var(--shadow-xl); z-index: var(--z-modal, 400);
     transform: translateX(-100%);
     transition: transform var(--duration-normal) var(--ease-out);

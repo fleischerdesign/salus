@@ -16,7 +16,7 @@
 
 .slider__thumb {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
-    width: 20px; height: 20px; background: #ffffff;
+    width: 20px; height: 20px; background: var(--color-surface-container-lowest);
     border: 2px solid var(--color-primary); border-radius: var(--radius-full);
     box-shadow: var(--shadow-sm); cursor: grab; transition: box-shadow var(--duration-fast) var(--ease-default);
 }

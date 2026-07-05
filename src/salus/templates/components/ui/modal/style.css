@@ -31,7 +31,7 @@
 .modal-content {
     position: relative;
     z-index: var(--z-modal, 400);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     border-radius: var(--modal-radius);
     box-shadow: var(--modal-shadow);
     max-width: var(--modal-max-width, 440px);
