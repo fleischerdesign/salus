@@ -1,13 +1,11 @@
 <div class="onboarding-step-body" id="onboarding-step-{{ step_index }}-body">
     <form hx-post="/onboarding/token"
           hx-target="closest .onboarding-step-body"
-          hx-swap="innerHTML"
-          class="form-stack">
-        <div class="input-group">
-            <label for="ob-token-label-{{ step_index }}">{{ _("Token Label") }}</label>
-            <input type="text" id="ob-token-label-{{ step_index }}" name="label" placeholder="e.g. Samsung Health" required autofocus>
-        </div>
-        <input type="hidden" name="scopes" value="ingest:write">
-        {{ btn(_("Generate Token"), variant="primary", size="sm", type="submit") }}
+          hx-swap="innerHTML">
+        {% call form_stack() %}
+            {{ input(name="label", label=_("Token Label"), id="ob-token-label-" + step_index|string, placeholder="e.g. Samsung Health", required=true, attrs={"autofocus": "true"}) }}
+            <input type="hidden" name="scopes" value="ingest:write">
+            {{ btn(_("Generate Token"), variant="primary", size="sm", type="submit") }}
+        {% endcall %}
     </form>
 </div>

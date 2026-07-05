@@ -1,23 +1,20 @@
 <div class="modal-backdrop" onclick="if(event.target===this)this.remove()">
-    <div class="modal-content">
-        <div class="card onboarding-wizard onboarding-wizard-single">
-            <button class="btn-icon modal-close"
-                    onclick="this.closest('.modal-backdrop').remove()">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+    <div class="modal-content" style="max-width:440px;text-align:center;padding:40px 32px 24px">
+        <button class="modal__close" aria-label="Close" type="button"
+                onclick="this.closest('.modal-backdrop').remove()">
+            <span class="material-symbols-outlined">close</span>
+        </button>
 
-            <span class="material-symbols-outlined onboarding-step-icon">{{ icon }}</span>
-            <h2 class="onboarding-step-title">{{ title }}</h2>
-            <p class="onboarding-step-desc">{{ description }}</p>
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);display:block;margin-bottom:12px">{{ icon }}</span>
+        <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ title }}</h2>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ description }}</p>
 
-            {% set step_index = step_index | default(0) %}
-            {% include step_body_template %}
+        {% set step_index = step_index | default(0) %}
+        {% include step_body_template %}
 
-            <div class="onboarding-footer" style="justify-content:center;">
-                <button class="btn onboarding-step-done-btn" id="onboarding-step-done-btn"
-                        style="display:none;"
-                        onclick="this.closest('.modal-backdrop').remove()">Done</button>
-            </div>
+        <div style="display:flex;justify-content:center;margin-top:24px">
+            {{ btn("Done", variant="primary", class="onboarding-step-done-btn", id="onboarding-step-done-btn", style="display:none",
+                   onclick="this.closest('.modal-backdrop').remove()") }}
         </div>
     </div>
 </div>

@@ -1,13 +1,15 @@
-<div class="onboarding-success">
-    <span class="material-symbols-outlined onboarding-success-icon">check_circle</span>
-    <p class="onboarding-success-msg">{{ _("Token created.") }}</p>
-    <div class="onboarding-token-display">
-        <code class="onboarding-token-value">{{ plaintext_token }}</code>
-        <p class="onboarding-token-hint">{{ _("Copy this now — it won't be shown again.") }}</p>
+<div class="onboarding-success" style="text-align:center;padding:16px 0">
+    <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-tertiary);display:block;margin-bottom:8px">check_circle</span>
+    <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("Token created.") }}</p>
+    <div style="margin-top:16px;padding:12px;background:var(--color-slate-50);border:1px solid var(--color-slate-200);border-radius:var(--radius-md)">
+        <code style="font:var(--font-code-sm);word-break:break-all;display:block;margin-bottom:8px">{{ plaintext_token }}</code>
+        <p style="font:var(--font-label-sm);color:var(--color-slate-500);margin:0">{{ _("Copy this now — it won't be shown again.") }}</p>
     </div>
-    <div class="onboarding-webhook-url">
-        <span class="material-symbols-outlined onboarding-url-icon">link</span>
-        <code>{{ webhook_url }}</code>
-        <p class="onboarding-url-hint">{{ _("POST your health data to this URL with the token as") }} <code>Authorization: Bearer &lt;token&gt;</code> {{ _("header.") }}</p>
+    <div style="margin-top:12px;padding:12px;background:var(--color-slate-50);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);text-align:left">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-primary)">link</span>
+            <code style="font:var(--font-code-sm);word-break:break-all">{{ webhook_url }}</code>
+        </div>
+        <p style="font:var(--font-label-sm);color:var(--color-slate-500);margin:0">{{ _("POST your health data to this URL with the token as") }} <code style="font:var(--font-code-sm)">Authorization: Bearer &lt;token&gt;</code> {{ _("header.") }}</p>
     </div>
 </div>

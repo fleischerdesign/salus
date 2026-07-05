@@ -1,21 +1,19 @@
 <div class="onboarding-step-body" id="onboarding-step-{{ step_index }}-body">
     <form hx-post="/onboarding/entry"
           hx-target="closest .onboarding-step-body"
-          hx-swap="innerHTML"
-          class="form-stack">
-        <div class="input-group">
-            <label for="ob-entry-metric-{{ step_index }}">{{ _("Metric") }}</label>
-            <select id="ob-entry-metric-{{ step_index }}" name="metric_type_id" required>
-                <option value="">— {{ _("Select Metric") }} —</option>
-                {% for m in metrics %}
-                <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="input-group">
-            <label for="ob-entry-value-{{ step_index }}">{{ _("Value") }}</label>
-            <input type="text" id="ob-entry-value-{{ step_index }}" name="value" required placeholder="e.g. 82.5">
-        </div>
-        {{ btn(_("Log Entry"), variant="primary", size="sm", type="submit") }}
+          hx-swap="innerHTML">
+        {% call form_stack() %}
+            <div class="input">
+                <label class="input__label" for="ob-entry-metric-{{ step_index }}">{{ _("Metric") }}</label>
+                <select id="ob-entry-metric-{{ step_index }}" name="metric_type_id" class="input__field" required>
+                    <option value="">— {{ _("Select Metric") }} —</option>
+                    {% for m in metrics %}
+                    <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {{ input(name="value", label=_("Value"), id="ob-entry-value-" + step_index|string, required=true, attrs={"placeholder": "e.g. 82.5"}) }}
+            {{ btn(_("Log Entry"), variant="primary", size="sm", type="submit") }}
+        {% endcall %}
     </form>
 </div>

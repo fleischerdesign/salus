@@ -1,28 +1,26 @@
 <div class="onboarding-step-body" id="onboarding-step-{{ step_index }}-body">
     <form hx-post="/onboarding/goal"
           hx-target="closest .onboarding-step-body"
-          hx-swap="innerHTML"
-          class="form-stack">
-        <div class="input-group">
-            <label for="ob-goal-metric-{{ step_index }}">{{ _("Metric") }}</label>
-            <select id="ob-goal-metric-{{ step_index }}" name="metric_type_id" required>
-                <option value="">— {{ _("Select Metric") }} —</option>
-                {% for m in metrics %}
-                <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="input-group">
-            <label for="ob-goal-target-{{ step_index }}">{{ _("Target Value") }}</label>
-            <input type="number" id="ob-goal-target-{{ step_index }}" name="target_value" step="any" required placeholder="e.g. 80">
-        </div>
-        <div class="input-group">
-            <label for="ob-goal-direction-{{ step_index }}">{{ _("Direction") }}</label>
-            <select id="ob-goal-direction-{{ step_index }}" name="direction">
-                <option value="increase">{{ _("Increase") }}</option>
-                <option value="decrease">{{ _("Decrease") }}</option>
-            </select>
-        </div>
-        {{ btn(_("Create Goal"), variant="primary", size="sm", type="submit") }}
+          hx-swap="innerHTML">
+        {% call form_stack() %}
+            <div class="input">
+                <label class="input__label">{{ _("Metric") }}</label>
+                <select name="metric_type_id" class="input__field" id="ob-goal-metric-{{ step_index }}" required>
+                    <option value="">— {{ _("Select Metric") }} —</option>
+                    {% for m in metrics %}
+                    <option value="{{ m.id }}">{{ m.name }}{% if m.unit %} ({{ m.unit }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {{ input(name="target_value", label=_("Target Value"), type="number", id="ob-goal-target-" + step_index|string, required=true, attrs={"step": "any", "placeholder": "e.g. 80"}) }}
+            <div class="input">
+                <label class="input__label">{{ _("Direction") }}</label>
+                <select name="direction" class="input__field" id="ob-goal-direction-{{ step_index }}">
+                    <option value="increase">{{ _("Increase") }}</option>
+                    <option value="decrease">{{ _("Decrease") }}</option>
+                </select>
+            </div>
+            {{ btn(_("Create Goal"), variant="primary", size="sm", type="submit") }}
+        {% endcall %}
     </form>
 </div>

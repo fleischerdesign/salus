@@ -5,14 +5,19 @@
      {{ list_item(primary="John Doe", secondary="john@email.com", icon="person", action=btn("Edit")) }}
 
    Complex (call-based):
-     {% call list_item() %}
+     {% call list_item(hx_get="/settings", hx_target="#content") %}
        <div class="list-item__primary"><strong>{{ entry.value }}</strong></div>
        <div class="list-item__secondary">{{ entry.date }}</div>
        <div class="list-item__action">{{ btn("Edit") }} {{ btn("Delete") }}</div>
      {% endcall %}
  #}
-{% macro list_item(primary=none, secondary=none, icon=none, action=none, id=none, style=none, class=none) %}
-    <div class="list-item{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
+{% macro list_item(primary=none, secondary=none, icon=none, action=none, id=none, style=none, class=none, hx_get=none, hx_target=none, hx_swap=none, hx_push_url=none, hx_post=none) %}
+    <div class="list-item{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}
+         {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+         {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
+         {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+         {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
+         {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}>
         {% if caller is defined %}
             {{ caller() }}
         {% else %}
