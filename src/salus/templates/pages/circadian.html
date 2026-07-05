@@ -1,40 +1,29 @@
 {% extends "base.html" %}
 {% block title_suffix %} — {{ _("Circadian Advisor") }}{% endblock %}
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>{{ _("Circadian & Light Advisor") }}</h1>
-        <p class="text-muted">{{ _("Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle.") }}</p>
-    </div>
-</div>
 
-<div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:start;">
+<h1 style="font:var(--font-headline-lg);margin:0 0 4px 0">{{ _("Circadian & Light Advisor") }}</h1>
+<p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 24px 0">{{ _("Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle.") }}</p>
 
-    <!-- Timeline Overview Card -->
+<div class="form-stack" style="gap:24px">
+
     <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("24-Hour Circadian Alignment Timeline") }}</h3>
+        <div class="card__header">
+            <h3 class="card__header-title">{{ _("24-Hour Circadian Alignment Timeline") }}</h3>
         </div>
-        <div style="padding-top:16px;">
-            <p class="text-muted" style="font-size:12px;margin-bottom:16px;">
-                Visualizing solar phases alongside your actual habits. Aim to get bright light during sunrise, keep meals within the metabolic window, and sleep during peak melatonin release.
+        <div class="card__body">
+            <p style="font:var(--font-caption);color:var(--color-slate-500);margin:0 0 16px 0">
+                {{ _("Visualizing solar phases alongside your actual habits. Aim to get bright light during sunrise, keep meals within the metabolic window, and sleep during peak melatonin release.") }}
             </p>
-            
-            <!-- Timeline Visual representation -->
-            <div style="display:flex;height:32px;border-radius:16px;overflow:hidden;background:var(--color-slate-100);position:relative;margin-bottom:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
-                <!-- Sunrise sector -->
-                <div style="position:absolute;left:25%;width:50%;height:100%;background:linear-gradient(90deg, #fdba74 0%, #fef08a 10%, #fde047 50%, #fef08a 90%, #fdba74 100%);opacity:0.85;" title="Daylight Phase"></div>
-                <!-- Night sector (left of sunrise) -->
-                <div style="position:absolute;left:0;width:25%;height:100%;background:#1e1b4b;" title="Night Phase"></div>
-                <!-- Night sector (right of sunset) -->
-                <div style="position:absolute;left:75%;width:25%;height:100%;background:#1e1b4b;" title="Night Phase"></div>
-                
-                <!-- Sleep overlay -->
-                <div style="position:absolute;left:10%;width:30%;height:60%;top:20%;background:rgba(99,102,241,0.5);border:1.5px solid #4f46e5;border-radius:4px;" title="Actual Sleep Window"></div>
+
+            <div style="display:flex;height:32px;border-radius:16px;overflow:hidden;background:var(--color-slate-100);position:relative;margin-bottom:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05)">
+                <div style="position:absolute;left:25%;width:50%;height:100%;background:linear-gradient(90deg, #fdba74 0%, #fef08a 10%, #fde047 50%, #fef08a 90%, #fdba74 100%);opacity:0.85" title="Daylight Phase"></div>
+                <div style="position:absolute;left:0;width:25%;height:100%;background:#1e1b4b" title="Night Phase"></div>
+                <div style="position:absolute;left:75%;width:25%;height:100%;background:#1e1b4b" title="Night Phase"></div>
+                <div style="position:absolute;left:10%;width:30%;height:60%;top:20%;background:rgba(99,102,241,0.5);border:1.5px solid #4f46e5;border-radius:4px" title="Actual Sleep Window"></div>
             </div>
-            
-            <!-- Solar Times Labels -->
-            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--color-slate-500);padding:0 8px;">
+
+            <div style="display:flex;justify-content:space-between;font:var(--font-caption);font-weight:600;color:var(--color-slate-500);padding:0 8px">
                 <span>00:00</span>
                 <span>Dawn: {{ advice.solar_times.dawn }}</span>
                 <span>Sunrise: {{ advice.solar_times.sunrise }}</span>
@@ -46,134 +35,133 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px">
 
-        <!-- Left: Alignment & Settings -->
-        <div style="display:flex;flex-direction:column;gap:24px;">
-            
-            <!-- Alignment Score -->
-            <div class="card" style="text-align:center;padding:32px 16px;">
-                <h3 class="card-title" style="margin-bottom:16px;">Circadian Alignment</h3>
-                
-                <div style="position:relative;width:120px;height:120px;margin:0 auto 16px auto;display:flex;align-items:center;justify-content:center;">
-                    <svg style="transform:rotate(-90deg);width:100px;height:100px;">
-                        <circle cx="50" cy="50" r="40" stroke="var(--color-slate-100)" stroke-width="8" fill="transparent" />
-                        <circle cx="50" cy="50" r="40" stroke="var(--color-primary)" stroke-width="8" fill="transparent" 
-                                stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 * (100 - advice.alignment_score) / 100 }}" />
-                    </svg>
-                    <div style="position:absolute;font-size:24px;font-weight:800;color:var(--color-slate-900);">
-                        {{ advice.alignment_score }}%
+        <div class="form-stack" style="gap:24px">
+
+            <div class="card" style="text-align:center">
+                <div class="card__body">
+                    <h3 style="font:var(--font-headline-md);margin:0 0 16px 0">{{ _("Circadian Alignment") }}</h3>
+
+                    <div style="position:relative;width:120px;height:120px;margin:0 auto 16px auto;display:flex;align-items:center;justify-content:center">
+                        <svg style="transform:rotate(-90deg);width:100px;height:100px">
+                            <circle cx="50" cy="50" r="40" stroke="var(--color-slate-100)" stroke-width="8" fill="transparent" />
+                            <circle cx="50" cy="50" r="40" stroke="var(--color-primary)" stroke-width="8" fill="transparent"
+                                    stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 * (100 - advice.alignment_score) / 100 }}" />
+                        </svg>
+                        <div style="position:absolute;font-size:24px;font-weight:800;color:var(--color-on-surface)">
+                            {{ advice.alignment_score }}%
+                        </div>
                     </div>
-                </div>
 
-                <div style="font-weight:700;font-size:14px;color:var(--color-slate-800);margin-bottom:6px;">
-                    {% if advice.alignment_score >= 85 %}
-                        Optimal Synchronization 🌟
-                    {% elif advice.alignment_score >= 60 %}
-                        Minor Shift (Social Jetlag) ⏳
-                    {% else %}
-                        Misaligned Circadian Phase ⚠️
-                    {% endif %}
+                    <div class="stat__label" style="margin-bottom:6px">
+                        {% if advice.alignment_score >= 85 %}
+                            {{ _("Optimal Synchronization") }}
+                        {% elif advice.alignment_score >= 60 %}
+                            {{ _("Minor Shift (Social Jetlag)") }}
+                        {% else %}
+                            {{ _("Misaligned Circadian Phase") }}
+                        {% endif %}
+                    </div>
+                    <p style="font:var(--font-caption);color:var(--color-slate-500);margin:0">
+                        {{ _("Your sleep schedule is offset by some minutes compared to your natural local solar midnight.") }}
+                    </p>
                 </div>
-                <p class="text-muted" style="font-size:12px;margin:0;">
-                    Your sleep schedule is offset by some minutes compared to your natural local solar midnight.
-                </p>
             </div>
 
-            <!-- Profile / Coordinates Configuration -->
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ _("Location & Chronotype") }}</h3>
+                <div class="card__header">
+                    <h3 class="card__header-title">{{ _("Location & Chronotype") }}</h3>
                 </div>
-                <form action="/circadian/profile" method="POST" style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Latitude</label>
-                            <input type="number" step="0.0001" name="latitude" value="{{ profile.latitude }}" required
-                                   style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                <form action="/circadian/profile" method="POST" class="form-stack">
+                    <div class="form-row">
+                        <div class="input">
+                            <label class="input__label">Latitude</label>
+                            <input type="number" step="0.0001" name="latitude" value="{{ profile.latitude }}" required class="input__field">
                         </div>
-                        <div>
-                            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Longitude</label>
-                            <input type="number" step="0.0001" name="longitude" value="{{ profile.longitude }}" required
-                                   style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                        <div class="input">
+                            <label class="input__label">Longitude</label>
+                            <input type="number" step="0.0001" name="longitude" value="{{ profile.longitude }}" required class="input__field">
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Timezone UTC Offset</label>
-                            <input type="number" step="0.5" name="timezone_offset_hours" value="{{ profile.timezone_offset_hours }}" required
-                                   style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;">
+                    <div class="form-row">
+                        <div class="input">
+                            <label class="input__label">{{ _("Timezone UTC Offset") }}</label>
+                            <input type="number" step="0.5" name="timezone_offset_hours" value="{{ profile.timezone_offset_hours }}" required class="input__field">
                         </div>
-                        <div>
-                            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px;">Chronotype</label>
-                            <select name="configured_chronotype" style="width:100%;padding:8px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:13px;background:#fff;">
-                                <option value="morning_lark" {% if profile.configured_chronotype == 'morning_lark' %}selected{% endif %}>Morning Lark 🌅</option>
-                                <option value="intermediate" {% if profile.configured_chronotype == 'intermediate' %}selected{% endif %}>Intermediate ☀️</option>
-                                <option value="night_owl" {% if profile.configured_chronotype == 'night_owl' %}selected{% endif %}>Night Owl 🦉</option>
+                        <div class="input">
+                            <label class="input__label">{{ _("Chronotype") }}</label>
+                            <select name="configured_chronotype" class="input__field">
+                                <option value="morning_lark" {% if profile.configured_chronotype == 'morning_lark' %}selected{% endif %}>{{ _("Morning Lark") }}</option>
+                                <option value="intermediate" {% if profile.configured_chronotype == 'intermediate' %}selected{% endif %}>{{ _("Intermediate") }}</option>
+                                <option value="night_owl" {% if profile.configured_chronotype == 'night_owl' %}selected{% endif %}>{{ _("Night Owl") }}</option>
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-sm" style="margin-top:8px;">Update Parameters 💾</button>
+                    <div class="form-actions">
+                        {{ btn(_("Update Parameters"), variant="primary", size="sm", type="submit") }}
+                    </div>
                 </form>
             </div>
 
         </div>
 
-        <!-- Right: Advisor Recommendations -->
-        <div style="display:flex;flex-direction:column;gap:24px;">
-            
-            <!-- Sleep Window advice -->
+        <div class="form-stack" style="gap:24px">
+
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ _("Optimal Sleep Window") }}</h3>
+                <div class="card__header">
+                    <h3 class="card__header-title">{{ _("Optimal Sleep Window") }}</h3>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                        <div style="padding:10px;border-radius:6px;background:var(--color-primary-50);border:1px solid var(--color-primary-100);">
-                            <div class="text-muted" style="font-size:11px;font-weight:600;">Target Window</div>
-                            <strong style="color:var(--color-primary);font-size:16px;">{{ advice.sleep_window.target_onset }} - {{ advice.sleep_window.target_offset }}</strong>
+                <div class="card__body">
+                    <div class="form-stack" style="gap:12px">
+                        <div class="form-row">
+                            <div class="card" data-variant="flat" style="flex:1;text-align:center;border:1px solid var(--color-primary-200);background:var(--color-primary-50)">
+                                <div class="stat__label" style="margin-bottom:4px">{{ _("Target Window") }}</div>
+                                <div class="stat__value" style="font-size:16px;color:var(--color-primary)">{{ advice.sleep_window.target_onset }} - {{ advice.sleep_window.target_offset }}</div>
+                            </div>
+                            <div class="card" data-variant="flat" style="flex:1;text-align:center">
+                                <div class="stat__label" style="margin-bottom:4px">{{ _("Actual Window (Recent)") }}</div>
+                                <div class="stat__value" style="font-size:16px">{{ advice.sleep_window.actual_onset }} - {{ advice.sleep_window.actual_offset }}</div>
+                            </div>
                         </div>
-                        <div style="padding:10px;border-radius:6px;background:var(--color-slate-50);border:1px solid var(--color-slate-100);">
-                            <div class="text-muted" style="font-size:11px;font-weight:600;">Actual Window (Recent)</div>
-                            <strong style="color:var(--color-slate-800);font-size:16px;">{{ advice.sleep_window.actual_onset }} - {{ advice.sleep_window.actual_offset }}</strong>
-                        </div>
+                        <p style="font:var(--font-body-sm);color:var(--color-on-surface);margin:0;line-height:1.5">{{ advice.sleep_window.advice }}</p>
                     </div>
-                    <p style="font-size:13px;margin:0;line-height:1.5;">{{ advice.sleep_window.advice }}</p>
                 </div>
             </div>
 
-            <!-- Light advisor -->
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ _("Light Exposure Scheduling") }}</h3>
+                <div class="card__header">
+                    <h3 class="card__header-title">{{ _("Light Exposure Scheduling") }}</h3>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:16px;padding-top:12px;">
-                    {% for la in advice.light_advice %}
-                    <div style="display:flex;gap:12px;align-items:flex-start;">
-                        <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:24px;">
-                            {% if loop.first %}wb_sunny{% else %}nightlight{% endif %}
-                        </span>
-                        <div>
-                            <strong style="display:block;font-size:14px;color:var(--color-slate-800);">{{ la.action }} &bull; <span style="color:var(--color-primary);">{{ la.time_window }}</span></strong>
-                            <span class="text-muted" style="font-size:12px;line-height:1.5;display:block;margin-top:2px;">{{ la.description }}</span>
+                <div class="card__body">
+                    <div class="form-stack" style="gap:16px">
+                        {% for la in advice.light_advice %}
+                        <div class="list-item" style="border-bottom:none;padding:0">
+                            <span class="material-symbols-outlined list-item__icon" style="color:var(--color-primary)">
+                                {% if loop.first %}wb_sunny{% else %}nightlight{% endif %}
+                            </span>
+                            <div class="list-item__body">
+                                <div class="list-item__primary" style="white-space:normal">{{ la.action }} &middot; <span style="color:var(--color-primary)">{{ la.time_window }}</span></div>
+                                <div class="list-item__secondary" style="white-space:normal;line-height:1.5">{{ la.description }}</div>
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Eating window -->
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ _("Metabolic Window (Eating)") }}</h3>
+                <div class="card__header">
+                    <h3 class="card__header-title">{{ _("Metabolic Window (Eating)") }}</h3>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
-                    <div style="padding:10px;border-radius:6px;background:var(--color-success-50);border:1px solid var(--color-success-100);width:fit-content;">
-                        <div class="text-muted" style="font-size:11px;font-weight:600;color:var(--color-success-800);">Optimal Intake Period</div>
-                        <strong style="color:var(--color-success-700);font-size:16px;">{{ advice.eating_window.start }} - {{ advice.eating_window.end }}</strong>
+                <div class="card__body">
+                    <div class="form-stack" style="gap:12px">
+                        <div class="card" data-variant="flat" style="background:var(--color-tertiary-50);border:1px solid var(--color-tertiary-200);width:fit-content">
+                            <div class="stat__label" style="color:var(--color-tertiary);margin-bottom:4px">{{ _("Optimal Intake Period") }}</div>
+                            <div class="stat__value" style="font-size:16px;color:var(--color-tertiary-700)">{{ advice.eating_window.start }} - {{ advice.eating_window.end }}</div>
+                        </div>
+                        <p style="font:var(--font-body-sm);color:var(--color-on-surface);margin:0;line-height:1.5">{{ advice.eating_window.advice }}</p>
                     </div>
-                    <p style="font-size:13px;margin:0;line-height:1.5;">{{ advice.eating_window.advice }}</p>
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-<table class="data-grid">
+<table class="table">
     <thead>
         <tr>
             <th>{{ _("Shared With") }}</th>
@@ -11,40 +11,40 @@
     </thead>
     <tbody>
         {% for rel in relationships %}
-        <tr {% if not rel.is_active %}style="opacity: 0.5;"{% endif %}>
+        <tr {% if not rel.is_active %}style="opacity:0.5"{% endif %}>
             <td>
-                <span style="font-weight:600;font-size:14px;color:var(--color-primary);">{{ rel.grantee_handle }}</span>
+                <span style="font-weight:600;font-size:14px;color:var(--color-primary)">{{ rel.grantee_handle }}</span>
             </td>
             <td>
-                <span class="chip chip-neutral" style="font-size:12px;">{{ rel.metric_type.name }}</span>
+                <span class="chip" data-variant="neutral" style="font-size:12px">{{ rel.metric_type.name }}</span>
             </td>
             <td>
-                <span style="font-size:13px;text-transform: capitalize;">{{ rel.aggregation_level.replace('_', ' ') }}</span>
+                <span style="font-size:13px;text-transform:capitalize">{{ rel.aggregation_level.replace('_', ' ') }}</span>
             </td>
             <td>
-                <span style="font-size:13px;">
+                <span style="font-size:13px">
                     {% if rel.expiration_date %}
                         {{ rel.expiration_date.strftime('%Y-%m-%d') }}
                     {% else %}
-                        <span class="text-muted" style="font-style:italic;">Never</span>
+                        <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-style:italic">Never</span>
                     {% endif %}
                 </span>
             </td>
             <td>
                 {% if rel.is_active %}
-                <span class="text-success" style="font-size:12px;font-weight:600;">ACTIVE</span>
+                <span style="font-size:12px;font-weight:600;color:var(--color-tertiary)">ACTIVE</span>
                 {% else %}
-                <span class="text-muted" style="font-size:11px;">DEACTIVATED</span>
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">DEACTIVATED</span>
                 {% endif %}
             </td>
             <td>
                 {% if rel.is_active %}
-                <button class="btn-ghost btn-sm text-danger"
+                <button class="btn" data-variant="ghost" data-size="sm"
                         hx-delete="/sharing/{{ rel.id }}"
                         hx-confirm="Are you sure you want to stop sharing this metric?"
                         hx-target="#sharing-relationship-container"
                         hx-swap="innerHTML"
-                        style="color:var(--color-danger-600);border-color:transparent;">
+                        style="color:var(--color-error-600)">
                     {{ _("Revoke") }}
                 </button>
                 {% endif %}
@@ -52,7 +52,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" class="text-muted" style="text-align:center;padding:24px;">
+            <td colspan="6" style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;padding:24px">
                 {{ _("You are not sharing any metrics yet.") }}
             </td>
         </tr>

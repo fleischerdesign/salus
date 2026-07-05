@@ -1,46 +1,41 @@
-{% from "components/ui/card/macro.html" import card %}
-{% from "components/ui/btn/macro.html" import btn %}
+{% call card(title=_("Privacy & Local Ownership")) %}
+    <div class="form-stack" style="gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:32px;color:var(--color-primary)">shield</span>
+            <h3 style="font:var(--font-headline-md);margin:0">{{ _("Local First Policy") }}</h3>
+        </div>
 
-<div class="settings-section">
-    {% call card(title=_("Privacy & Local Ownership")) %}
-        <div class="flex-column gap-md">
-            <div class="flex-center gap-sm">
-                <span class="material-symbols-outlined" style="font-size:32px;color:var(--color-primary);">shield</span>
-                <h3 style="font:var(--font-headline-md); margin:0;">{{ _("Local First Policy") }}</h3>
-            </div>
-            
-            <p style="font:var(--font-body-md); line-height:1.6; color:var(--color-on-surface-variant); margin-top:12px;">
-                {{ _("Salus operates strictly local-first. By default, all your vital stats, sleep cycles, metabolic timelines, and medical configurations are stored securely in your local instance database. No telemetry, raw logs, or personal records are sent to external cloud instances, unless you explicitly configure outbound sharing.") }}
+        <p style="font:var(--font-body-md);line-height:1.6;color:var(--color-on-surface-variant);margin-top:12px">
+            {{ _("Salus operates strictly local-first. By default, all your vital stats, sleep cycles, metabolic timelines, and medical configurations are stored securely in your local instance database. No telemetry, raw logs, or personal records are sent to external cloud instances, unless you explicitly configure outbound sharing.") }}
+        </p>
+
+        <div style="border-top:1px solid var(--color-outline-variant);padding-top:16px;margin-top:16px">
+            <h4 style="font:var(--font-body-md);font-weight:600;margin-bottom:8px">{{ _("Zero-Knowledge Protocol Assurance") }}</h4>
+            <p style="font:var(--font-body-sm);color:var(--color-on-surface-variant)">
+                {{ _("When medical sharing is enabled, data is end-to-end encrypted (E2EE) directly in your browser using AES-GCM before transmission. Neither the host server nor intermediaries possess the decryption keys — only your designated medical provider holds the private RSA key required to view your profile.") }}
             </p>
-
-            <div style="border-top: 1px solid var(--color-outline-variant); padding-top:16px; margin-top:16px;">
-                <h4 style="font:var(--font-body-md); font-weight:600; margin-bottom:8px;">{{ _("Zero-Knowledge Protocol Assurance") }}</h4>
-                <p style="font:var(--font-body-sm); color:var(--color-on-surface-variant);">
-                    {{ _("When medical sharing is enabled, data is end-to-end encrypted (E2EE) directly in your browser using AES-GCM before transmission. Neither the host server nor intermediaries possess the decryption keys — only your designated medical provider holds the private RSA key required to view your profile.") }}
-                </p>
-            </div>
         </div>
-    {% endcall %}
-</div>
+    </div>
+{% endcall %}
 
-<div class="settings-section" style="margin-top:20px;">
-    {% call card(title=_("Security & Audit Logs")) %}
-        <div class="flex-column gap-sm">
-            <div class="flex-between" style="border-bottom: 1px solid var(--color-slate-100); padding-bottom:12px;">
-                <div>
-                    <strong style="display:block;">{{ _("Two-Factor Authentication (2FA)") }}</strong>
-                    <span class="text-muted" style="font:var(--font-body-sm);">{{ _("Enhance account security using standard TOTP authenticator apps.") }}</span>
-                </div>
-                <button class="btn" data-variant="small" disabled style="opacity:0.6;cursor:not-allowed">{{ _("Coming Soon") }}</button>
+<div style="margin-top:24px">
+{% call card(title=_("Security & Audit Logs")) %}
+    <div class="form-stack" style="gap:12px">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--color-slate-100);padding-bottom:12px">
+            <div>
+                <strong style="display:block">{{ _("Two-Factor Authentication (2FA)") }}</strong>
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Enhance account security using standard TOTP authenticator apps.") }}</span>
             </div>
-            
-            <div class="flex-between" style="padding-top:8px;">
-                <div>
-                    <strong style="display:block;">{{ _("Security Log Audit") }}</strong>
-                    <span class="text-muted" style="font:var(--font-body-sm);">{{ _("Review recent login timestamps, IP locations, and API requests.") }}</span>
-                </div>
-                <button class="btn" data-variant="small" disabled style="opacity:0.6;cursor:not-allowed">{{ _("Coming Soon") }}</button>
-            </div>
+            {{ btn(_("Coming Soon"), variant="small", disabled=true) }}
         </div>
-    {% endcall %}
+
+        <div style="display:flex;justify-content:space-between;padding-top:8px">
+            <div>
+                <strong style="display:block">{{ _("Security Log Audit") }}</strong>
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Review recent login timestamps, IP locations, and API requests.") }}</span>
+            </div>
+            {{ btn(_("Coming Soon"), variant="small", disabled=true) }}
+        </div>
+    </div>
+{% endcall %}
 </div>

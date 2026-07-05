@@ -1,11 +1,27 @@
-{# vim: set ft=htmldjango: List Item #}
-{% macro list_item(primary, secondary=none, icon=none, action=none) %}
-    <div class="list-item">
-        {% if icon %}<span class="list-item__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>{% endif %}
-        <div class="list-item__body">
-            <div class="list-item__primary">{{ primary }}</div>
-            {% if secondary %}<div class="list-item__secondary">{{ secondary }}</div>{% endif %}
-        </div>
-        {% if action %}<div class="list-item__action">{{ action }}</div>{% endif %}
+{# vim: set ft=htmldjango:
+   List Item — @component list-item
+
+   Simple:
+     {{ list_item(primary="John Doe", secondary="john@email.com", icon="person", action=btn("Edit")) }}
+
+   Complex (call-based):
+     {% call list_item() %}
+       <div class="list-item__primary"><strong>{{ entry.value }}</strong></div>
+       <div class="list-item__secondary">{{ entry.date }}</div>
+       <div class="list-item__action">{{ btn("Edit") }} {{ btn("Delete") }}</div>
+     {% endcall %}
+ #}
+{% macro list_item(primary=none, secondary=none, icon=none, action=none, id=none, style=none, class=none) %}
+    <div class="list-item{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
+        {% if caller is defined %}
+            {{ caller() }}
+        {% else %}
+            {% if icon %}<span class="list-item__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>{% endif %}
+            <div class="list-item__body">
+                <div class="list-item__primary">{{ primary }}</div>
+                {% if secondary %}<div class="list-item__secondary">{{ secondary }}</div>{% endif %}
+            </div>
+            {% if action %}<div class="list-item__action">{{ action|safe }}</div>{% endif %}
+        {% endif %}
     </div>
 {% endmacro %}

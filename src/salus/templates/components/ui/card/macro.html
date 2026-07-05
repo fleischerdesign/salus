@@ -11,13 +11,15 @@
      {% endcall %}
  #}
 
-{% macro card(title=none, icon=none, variant="default", hoverable=false, clickable=false, href=none, class=none) %}
+{% macro card(title=none, icon=none, variant=none, hoverable=false, clickable=false, href=none, id=none, style=none, class=none) %}
     {% set tag = "a" if href else "div" %}
     <{{ tag }}
-        class="card {{ class or '' }}"
-        data-variant="{{ variant }}"
+        class="card{% if class %} {{ class }}{% endif %}"
+        {% if variant %}data-variant="{{ variant }}"{% endif %}
         {% if hoverable or variant == "elevated" %}data-hoverable{% endif %}
         {% if clickable or href %}data-clickable{% endif %}
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if style %}style="{{ style }}"{% endif %}
         {% if href %}href="{{ href }}"{% endif %}
     >
         {% if title or icon %}
@@ -27,8 +29,6 @@
             {% endif %}
             {% if title %}
             <h3 class="card__header-title">{{ title }}</h3>
-            {% endif %}
-            {% if caller is defined and caller.arguments is not defined %}
             {% endif %}
         </div>
         {% endif %}

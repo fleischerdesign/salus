@@ -8,14 +8,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/tokens.css">
+    <link rel="stylesheet" href="/static/components.css">
+    <link rel="stylesheet" href="/static/base.css">
     <style>
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: var(--color-slate-50, #f8fafc);
+            background-color: var(--color-slate-50);
             margin: 0;
             padding: 0;
-            color: var(--color-slate-800, #1e293b);
+            color: var(--color-slate-800);
         }
         .container {
             max-width: 1000px;
@@ -29,17 +31,17 @@
         .header h1 {
             font-size: 28px;
             font-weight: 800;
-            color: var(--color-slate-900, #0f172a);
+            color: var(--color-slate-900);
             margin: 0 0 8px 0;
         }
         .header p {
-            color: var(--color-slate-500, #64748b);
+            color: var(--color-slate-500);
             margin: 0;
             font-size: 14px;
         }
         .decrypt-card {
-            background: #fff;
-            border: 1.5px solid var(--color-slate-200, #e2e8f0);
+            background: var(--color-surface-container-lowest);
+            border: 1px solid var(--color-slate-200);
             border-radius: 12px;
             padding: 32px;
             text-align: center;
@@ -48,17 +50,17 @@
             margin: 0 auto;
         }
         .dropzone {
-            border: 2px dashed var(--color-primary-300, #93c5fd);
+            border: 2px dashed var(--color-primary-300);
             border-radius: 8px;
             padding: 40px 20px;
-            background: var(--color-primary-50, #eff6ff);
+            background: var(--color-primary-50);
             cursor: pointer;
             transition: 0.2s;
             margin-top: 16px;
         }
         .dropzone:hover {
-            background: var(--color-primary-100, #dbeafe);
-            border-color: var(--color-primary-400, #60a5fa);
+            background: var(--color-primary-100);
+            border-color: var(--color-primary-400);
         }
         .hidden {
             display: none !important;
@@ -70,16 +72,16 @@
             margin-top: 24px;
         }
         .metric-card {
-            background: #fff;
-            border: 1.5px solid var(--color-slate-200, #e2e8f0);
+            background: var(--color-surface-container-lowest);
+            border: 1px solid var(--color-slate-200);
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.02);
         }
         .metric-title {
-            font-size: 13px;
+            font: var(--font-caption);
             font-weight: 700;
-            color: var(--color-slate-500, #64748b);
+            color: var(--color-slate-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 12px;
@@ -90,17 +92,17 @@
         .metric-value {
             font-size: 32px;
             font-weight: 800;
-            color: var(--color-slate-900, #0f172a);
+            color: var(--color-slate-900);
         }
         .metric-unit {
             font-size: 14px;
             font-weight: 500;
-            color: var(--color-slate-400, #94a3b8);
+            color: var(--color-slate-400);
             margin-left: 4px;
         }
         .table-card {
-            background: #fff;
-            border: 1.5px solid var(--color-slate-200, #e2e8f0);
+            background: var(--color-surface-container-lowest);
+            border: 1px solid var(--color-slate-200);
             border-radius: 12px;
             padding: 20px;
             margin-top: 24px;
@@ -129,62 +131,60 @@
 <body>
 
     <div class="container">
-        
+
         <div class="header">
             <h1>Salus Secure Health Dashboard</h1>
-            <p>End-to-End Encrypted Patient Medical Record &bull; Zero-Knowledge Server State 🛡️</p>
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500)">End-to-End Encrypted Patient Medical Record &middot; Zero-Knowledge Server State</p>
         </div>
 
-        <!-- Decryption Interface -->
         <div id="decrypt-section" class="decrypt-card">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-primary);">lock</span>
-            <h2 style="margin:12px 0 6px 0;font-size:18px;font-weight:700;">Decrypt Health Record</h2>
-            <p class="text-muted" style="font-size:13px;margin:0 0 16px 0;">This file has been encrypted using RSA-OAEP. Select the private key file (`salus_gp_key.json`) to view the patient's data.</p>
-            
+            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary)">lock</span>
+            <h2 style="margin:12px 0 6px 0;font-size:18px;font-weight:700">Decrypt Health Record</h2>
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 16px 0">This file has been encrypted using RSA-OAEP. Select the private key file (<code>salus_gp_key.json</code>) to view the patient's data.</p>
+
             <input type="file" id="key-file-input" accept="application/json" class="hidden" onchange="handleFileSelect(event)">
             <div class="dropzone" onclick="document.getElementById('key-file-input').click()">
-                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-primary-400);">upload_file</span>
-                <p style="margin:8px 0 0 0;font-size:13px;font-weight:600;">Choose Private Key File</p>
-                <p class="text-muted" style="margin:4px 0 0 0;font-size:11px;">or drag & drop key file here</p>
+                <span class="material-symbols-outlined" style="font-size:32px;color:var(--color-primary-400)">upload_file</span>
+                <p style="margin:8px 0 0 0;font-size:13px;font-weight:600">Choose Private Key File</p>
+                <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">or drag & drop key file here</p>
             </div>
         </div>
 
-        <!-- Decrypted Content -->
         <div id="dashboard-section" class="hidden">
-            
-            <div class="card" style="background:var(--color-success-50);border-color:var(--color-success-200);color:var(--color-success-800);padding:12px 16px;border-radius:8px;margin-bottom:24px;display:flex;align-items:center;gap:8px;">
-                <span class="material-symbols-outlined" style="color:var(--color-success-600);">verified_user</span>
-                <span style="font-weight:600;font-size:13px;">Decryption successful. Data verified locally in your browser.</span>
+
+            <div class="alert-banner" data-variant="success" style="margin-bottom:24px">
+                <span class="material-symbols-outlined alert-banner__icon">verified_user</span>
+                <div class="alert-banner__content">
+                    <span style="font-weight:600;font:var(--font-body-sm)">Decryption successful. Data verified locally in your browser.</span>
+                </div>
             </div>
 
-            <!-- Summary Cards -->
             <div class="dashboard-grid">
                 <div class="metric-card">
                     <div class="metric-title">
-                        <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:18px;">bedtime</span>
+                        <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:18px">bedtime</span>
                         Avg Sleep Duration
                     </div>
                     <div class="metric-value" id="val-sleep">--<span class="metric-unit">hrs</span></div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">
-                        <span class="material-symbols-outlined" style="color:#f59e0b;font-size:18px;">steps</span>
+                        <span class="material-symbols-outlined" style="color:#f59e0b;font-size:18px">steps</span>
                         Avg Daily Steps
                     </div>
                     <div class="metric-value" id="val-steps">--<span class="metric-unit">steps</span></div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">
-                        <span class="material-symbols-outlined" style="color:#ef4444;font-size:18px;">favorite</span>
+                        <span class="material-symbols-outlined" style="color:#ef4444;font-size:18px">favorite</span>
                         Avg Resting Heart Rate
                     </div>
                     <div class="metric-value" id="val-rhr">--<span class="metric-unit">bpm</span></div>
                 </div>
             </div>
 
-            <!-- Detailed Logs Table -->
             <div class="table-card">
-                <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:700;color:var(--color-slate-800);">Daily Vitals Log</h3>
+                <h3 style="margin:0 0 16px 0;font:var(--font-headline-sm);font-weight:700">Daily Vitals Log</h3>
                 <table class="med-table">
                     <thead>
                         <tr>
@@ -196,7 +196,6 @@
                         </tr>
                     </thead>
                     <tbody id="vitals-table-body">
-                        <!-- Filled dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -205,7 +204,6 @@
 
     </div>
 
-    <!-- Hidden Ciphertext inputs for JS to read -->
     <script id="encrypted-data" type="text/plain">{{ share.encrypted_data }}</script>
     <script id="encrypted-key" type="text/plain">{{ share.encrypted_key }}</script>
 
@@ -227,71 +225,47 @@
     }
 
     async function decryptAndRender(jwkKey) {
-        // Read Base64 payloads
         const encDataB64 = document.getElementById("encrypted-data").innerText.trim();
         const encKeyB64 = document.getElementById("encrypted-key").innerText.trim();
 
-        // 1. Import Private Key
         const privateKey = await window.crypto.subtle.importKey(
             "jwk",
             jwkKey,
-            {
-                name: "RSA-OAEP",
-                hash: "SHA-256"
-            },
+            { name: "RSA-OAEP", hash: "SHA-256" },
             false,
             ["decrypt"]
         );
 
-        // 2. Decrypt AES key using RSA
         const encryptedKeyBuffer = base64ToArrayBuffer(encKeyB64);
         const rawAesKey = await window.crypto.subtle.decrypt(
-            {
-                name: "RSA-OAEP"
-            },
+            { name: "RSA-OAEP" },
             privateKey,
             encryptedKeyBuffer
         );
 
-        // 3. Import AES Key
         const aesKey = await window.crypto.subtle.importKey(
-            "raw",
-            rawAesKey,
-            {
-                name: "AES-GCM"
-            },
-            false,
-            ["decrypt"]
+            "raw", rawAesKey, { name: "AES-GCM" }, false, ["decrypt"]
         );
 
-        // 4. Unpack AES payload: IV (12 bytes) + Ciphertext
         const fullPayload = new Uint8Array(base64ToArrayBuffer(encDataB64));
         const iv = fullPayload.slice(0, 12);
         const ciphertext = fullPayload.slice(12);
 
-        // 5. Decrypt payload using AES-GCM
         const decryptedBuffer = await window.crypto.subtle.decrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
+            { name: "AES-GCM", iv: iv },
             aesKey,
             ciphertext
         );
 
-        // 6. Parse JSON data
         const decoder = new TextDecoder();
         const data = JSON.parse(decoder.decode(decryptedBuffer));
-
         renderDashboard(data);
     }
 
     function renderDashboard(data) {
-        // Hide decryption panel, show dashboard
         document.getElementById("decrypt-section").classList.add("hidden");
         document.getElementById("dashboard-section").classList.remove("hidden");
 
-        // Parse day aggregates
         const days = Object.keys(data).sort().reverse();
         if (days.length === 0) return;
 
@@ -304,8 +278,6 @@
 
         days.forEach(day => {
             const metrics = data[day];
-            
-            // Extract values
             const steps = metrics["steps"] !== undefined ? metrics["steps"] : null;
             const sleep = metrics["sleep_duration"] !== undefined ? metrics["sleep_duration"] : null;
             const rhr = metrics["resting_heart_rate"] !== undefined ? metrics["resting_heart_rate"] : null;
@@ -315,7 +287,6 @@
             if (steps !== null) { totalSteps += steps; stepsCount++; }
             if (rhr !== null) { totalRhr += rhr; rhrCount++; }
 
-            // Table Row
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td><strong>${day}</strong></td>
@@ -327,7 +298,6 @@
             tableBody.appendChild(row);
         });
 
-        // Compute averages
         if (sleepCount > 0) {
             document.getElementById("val-sleep").innerHTML = `${((totalSleep / sleepCount) / 3600).toFixed(1)} <span class="metric-unit">hrs</span>`;
         }

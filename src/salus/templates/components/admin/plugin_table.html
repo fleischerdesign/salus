@@ -1,4 +1,4 @@
-<table class="data-grid">
+<table class="table">
     <thead>
         <tr>
             <th>{{ _("Plugin") }}</th>
@@ -12,53 +12,53 @@
         {% for plugin in plugins %}
         <tr>
             <td>
-                <div style="font-weight:600;font-size:14px;">{{ plugin.name }}</div>
-                <div class="text-muted" style="font-size:11px;">ID: {{ plugin.id }} | v{{ plugin.version }}</div>
-                <div class="text-muted" style="font-size:11px;">Author: {{ plugin.author }}</div>
+                <div style="font-weight:600;font-size:14px">{{ plugin.name }}</div>
+                <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">ID: {{ plugin.id }} | v{{ plugin.version }}</div>
+                <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">Author: {{ plugin.author }}</div>
             </td>
             <td>
-                <div style="font-size:13px;">{{ plugin.description }}</div>
+                <div style="font-size:13px">{{ plugin.description }}</div>
             </td>
             <td>
                 {% if plugin.permissions %}
                     {% for perm in plugin.permissions %}
-                    <span class="chip chip-neutral" style="font-size:11px;">{{ perm }}</span>
+                    <span class="chip" data-variant="neutral" style="font-size:11px">{{ perm }}</span>
                     {% endfor %}
                 {% else %}
-                    <span class="text-muted" style="font-size:12px;font-style:italic;">None</span>
+                    <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:12px;font-style:italic">None</span>
                 {% endif %}
             </td>
             <td>
-                <form hx-post="/admin/plugins/{{ plugin.id }}/toggle" hx-target="#admin-plugins-container" hx-swap="innerHTML" style="margin:0;">
-                    <label class="switch" style="position:relative;display:inline-block;width:34px;height:20px;margin:0;">
+                <form hx-post="/admin/plugins/{{ plugin.id }}/toggle" hx-target="#admin-plugins-container" hx-swap="innerHTML" style="margin:0">
+                    <label class="switch" style="position:relative;display:inline-block;width:34px;height:20px;margin:0">
                         <input type="checkbox" name="enable" value="true" {% if plugin.enabled %}checked{% endif %}
                                onchange="this.form.dispatchEvent(new Event('submit', {bubbles: true}))"
-                               style="opacity:0;width:0;height:0;">
-                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:20px;"></span>
+                               style="opacity:0;width:0;height:0">
+                        <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:20px"></span>
                     </label>
-                    <span style="font-size:12px;margin-left:8px;vertical-align:super;">
+                    <span style="font-size:12px;margin-left:8px;vertical-align:super">
                         {% if plugin.loaded %}
-                        <span class="chip chip-success" style="font-size:10px;padding:2px 6px;">LOADED</span>
+                        <span class="chip" data-variant="success" style="font-size:10px;padding:2px 6px">LOADED</span>
                         {% else %}
-                        <span class="chip chip-warning" style="font-size:10px;padding:2px 6px;">INACTIVE</span>
+                        <span class="chip" data-variant="warning" style="font-size:10px;padding:2px 6px">INACTIVE</span>
                         {% endif %}
                     </span>
                 </form>
             </td>
             <td>
-                <button class="btn-ghost btn-sm text-danger"
+                <button class="btn" data-variant="ghost" data-size="sm"
                         hx-delete="/admin/plugins/{{ plugin.id }}"
                         hx-confirm="Are you sure you want to uninstall and delete this plugin?"
                         hx-target="#admin-plugins-container"
                         hx-swap="innerHTML"
-                        style="color:var(--color-danger-600);border-color:transparent;">
+                        style="color:var(--color-error-600)">
                     Uninstall
                 </button>
             </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="5" class="text-muted" style="text-align:center;padding:24px;">
+            <td colspan="5" style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;padding:24px">
                 No plugins installed.
             </td>
         </tr>
@@ -67,10 +67,8 @@
 </table>
 
 <style>
-/* Simple CSS switch slider */
-.switch input:checked + .slider {
-    background-color: var(--color-primary);
-}
+.switch input + .slider { background-color: var(--color-slate-300); }
+.switch input:checked + .slider { background-color: var(--color-primary); }
 .switch .slider:before {
     position: absolute;
     content: "";
@@ -78,7 +76,7 @@
     width: 14px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--color-surface-container-lowest);
     transition: .4s;
     border-radius: 50%;
 }

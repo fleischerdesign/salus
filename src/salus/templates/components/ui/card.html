@@ -1,17 +1,17 @@
 {% macro card(title=None, icon=None, id=None, style=None, title_style=None, header_right=None) %}
 <div class="card" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
     {% if title or icon or header_right %}
-    <div class="card-header">
-        <div class="flex-center gap-sm">
+    <div class="card__header">
+        <div style="display:flex;align-items:center;gap:8px">
             {% if icon %}
-            <span class="material-symbols-outlined" style="font-size:24px; {% if title_style %}{{ title_style }}{% endif %}">{{ icon }}</span>
+            <span class="material-symbols-outlined" style="font-size:24px;{% if title_style %}{{ title_style }}{% endif %}">{{ icon }}</span>
             {% endif %}
             {% if title %}
-            <h3 class="card-title" {% if title_style %}style="{{ title_style }}"{% endif %}>{{ title }}</h3>
+            <h3 class="card__header-title" {% if title_style %}style="{{ title_style }}"{% endif %}>{{ title }}</h3>
             {% endif %}
         </div>
         {% if header_right %}
-        <div class="flex-center gap-sm">
+        <div style="display:flex;align-items:center;gap:8px">
             {{ header_right }}
         </div>
         {% endif %}

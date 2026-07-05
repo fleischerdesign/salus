@@ -1,6 +1,6 @@
 <div class="card onboarding-card">
-    <div class="card-header">
-        <h3 class="card-title">{{ _("Getting Started") }}</h3>
+    <div class="card__header">
+        <h3 class="card__header-title">{{ _("Getting Started") }}</h3>
         <button class="btn-icon onboarding-card-close"
                 hx-post="/onboarding/dismiss"
                 hx-target="#onboarding-card"
@@ -35,7 +35,7 @@
             <span class="onboarding-check-desc">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</span>
         </div>
     </div>
-    <button class="btn-ghost onboarding-card-dismiss"
+    <button class="btn" data-variant="ghost" style="width:100%;margin-top:8px"
             hx-post="/onboarding/dismiss"
             hx-target="#onboarding-card"
             hx-swap="outerHTML">

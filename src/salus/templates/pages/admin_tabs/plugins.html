@@ -1,17 +1,17 @@
-<div class="settings-section">
-    <div class="card">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);">
-            <h3 class="card-title">{{ _("Developer Plugins") }}</h3>
-            <button class="btn btn-sm"
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__header-title">{{ _("Developer Plugins") }}</h3>
+        <div class="card__header-action">
+            <button class="btn" data-variant="primary" data-size="sm"
                     hx-get="/admin/plugins/upload-modal"
                     hx-target="#modal-container"
                     hx-swap="innerHTML">
                 {{ _("Install Plugin") }}
             </button>
         </div>
-        <div id="admin-plugins-container" style="padding-top:12px;">
-            {% include "components/admin/plugin_table.html" %}
-        </div>
+    </div>
+    <div class="card__body" id="admin-plugins-container">
+        {% include "components/admin/plugin_table.html" %}
     </div>
 </div>
 

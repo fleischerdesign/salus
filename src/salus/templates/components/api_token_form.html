@@ -1,5 +1,3 @@
-{% from "components/ui/input/macro.html" import input %}
-{% from "components/ui/btn/macro.html" import btn %}
 <form hx-post="/settings/api-tokens" hx-target="#token-generate-container" hx-swap="innerHTML">
     <div class="form-stack">
         {{ input(name="label", label=_("Label"), placeholder="e.g. Samsung Health", required=true, id="token-label") }}

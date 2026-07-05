@@ -5,7 +5,7 @@
             <div>
                 <h3 class="peer-name">{{ peer.handle }}
                     {% if peer.is_remote %}
-                    <span class="chip chip-neutral peer-remote-tag"><span class="material-symbols-outlined" style="font-size:14px">public</span> {{ _("Remote") }}</span>
+                    <span class="chip peer-remote-tag" data-variant="neutral"><span class="material-symbols-outlined" style="font-size:14px">public</span> {{ _("Remote") }}</span>
                     {% endif %}
                 </h3>
                 {% if peer.is_remote and peer.last_sync %}
@@ -41,7 +41,7 @@
             <div class="flex-center gap-sm">
                 <span class="material-symbols-outlined metric-row-icon" style="color:{{ metric.color }}">{{ metric.icon }}</span>
                 <span class="metric-row-name">{{ metric.metric_name }}</span>
-                <span class="chip chip-neutral metric-row-agg">
+                <span class="chip metric-row-agg" data-variant="neutral">
                     {{ _("Summary") if metric.aggregation == 'daily_summary' else _("Raw") }}
                 </span>
                 <span class="metric-row-direction {% if metric.direction == 'outgoing' %}metric-row-direction--out{% else %}metric-row-direction--in{% endif %}">
@@ -50,7 +50,7 @@
                 </span>
             </div>
             {% if metric.direction == 'outgoing' %}
-            <button class="btn-ghost btn-sm metric-revoke-btn"
+            <button class="btn metric-revoke-btn" data-variant="ghost" data-size="sm"
                     hx-delete="/sharing/{{ metric.relationship_id }}"
                     hx-confirm="{{ _('Stop sharing this metric?') }}"
                     hx-target="closest .metric-row"
@@ -66,7 +66,7 @@
 
     <div class="peer-footer">
         {% if peer.expiration %}
-        <span class="peer-expiry text-muted">
+        <span class="peer-expiry" style="font:var(--font-body-sm);color:var(--color-slate-500)">
             <span class="material-symbols-outlined" style="font-size:14px">schedule</span>
             {{ _("Expires") }} {{ peer.expiration.strftime('%Y-%m-%d') }}
         </span>
@@ -74,7 +74,7 @@
         {% if peer.api_token and peer.is_remote %}
         <span class="peer-token">
             <code class="peer-token-value" id="token-{{ peer.handle | replace('@', '') | replace(':', '-') }}">{{ peer.api_token[:12] }}&hellip;</code>
-            <button class="btn-ghost btn-sm"
+            <button class="btn" data-variant="ghost" data-size="sm"
                     onclick="navigator.clipboard.writeText('{{ peer.api_token }}')"
                     title="{{ _('Copy API token') }}">
                 <span class="material-symbols-outlined" style="font-size:14px">content_copy</span>
@@ -82,7 +82,7 @@
         </span>
         {% endif %}
         {% if not peer.is_pending and (peer.is_mutual or (peer.metrics and peer.metrics[0].direction == 'outgoing')) %}
-        <button class="btn-ghost btn-sm peer-revoke-all"
+        <button class="btn peer-revoke-all" data-variant="ghost" data-size="sm"
                 hx-delete="/sharing/{{ peer.metrics[0].relationship_id }}"
                 hx-confirm="{{ _('Revoke all sharing with') }} {{ peer.handle }}?"
                 hx-target="closest .peer-card"

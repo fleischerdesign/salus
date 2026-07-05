@@ -1,255 +1,244 @@
-{% from "components/ui/card/macro.html" import card %}
-
-<div class="settings-section">
-    {% call card(title=_("Data Export")) %}
-        <div class="data-management-grid" style="display:grid; grid-template-columns: 1fr; gap:16px;">
-            <div class="data-box" style="padding:12px; background:var(--color-surface-container-low); border-radius:8px; border:1px solid var(--color-outline-variant);">
-                <div class="flex-center gap-sm mb-sm" style="display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary);">download</span>
-                    <h4 style="font:var(--font-body-md);font-weight:600;margin:0;">{{ _("Export Local Data") }}</h4>
-                </div>
-                <p class="text-muted" style="font:var(--font-body-sm); margin:8px 0 12px 0;">
-                    {{ _("Download all your health records and custom metrics directly to your computer.") }}
-                </p>
-                <div class="flex gap-sm" style="display:flex; gap:8px;">
-                    <a href="/export/download?format=csv" class="btn" data-variant="small">CSV</a>
-                    <a href="/export/download?format=json" class="btn" data-variant="small">JSON</a>
-                </div>
+{% call card(title=_("Data Export")) %}
+    <div class="data-management-grid" style="display:grid;grid-template-columns:1fr;gap:16px">
+        <div style="padding:12px;background:var(--color-surface-container-low);border-radius:8px;border:1px solid var(--color-outline-variant)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">download</span>
+                <h4 style="font:var(--font-body-md);font-weight:600;margin:0">{{ _("Export Local Data") }}</h4>
+            </div>
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:8px 0 12px 0">
+                {{ _("Download all your health records and custom metrics directly to your computer.") }}
+            </p>
+            <div style="display:flex;gap:8px">
+                <a href="/export/download?format=csv" class="btn" data-variant="small">CSV</a>
+                <a href="/export/download?format=json" class="btn" data-variant="small">JSON</a>
             </div>
         </div>
-    {% endcall %}
+    </div>
+{% endcall %}
+
+<div style="margin-top:20px">
+{% call card(title=_("Medical Share")) %}
+    <p style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:12px;margin-bottom:16px">
+        {{ _("Share end-to-end encrypted health profiles with your GP or doctor using Zero-Knowledge Asymmetric Cryptography.") }}
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:20px">
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("1. Register Recipient (Public Key)") }}</h4>
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:8px">
+                    <button type="button" class="btn" data-variant="secondary" onclick="generateKeyPair()">
+                        {{ _("Generate Key Pair") }}
+                    </button>
+                </div>
+                <form id="recipient-form" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px">{{ _("Recipient Name") }}</label>
+                        <input type="text" id="recipient-name" placeholder="e.g. Dr. Mueller" required
+                               style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                    </div>
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px">{{ _("Public Key (auto-filled)") }}</label>
+                        <textarea id="recipient-pubkey" rows="4" readonly required placeholder="{{ _('Generate keys above to auto-fill') }}"
+                                  style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:11px;font-family:monospace;background:var(--color-surface-container-lowest)"></textarea>
+                    </div>
+                    <button type="submit" class="btn" data-variant="small" style="align-self:flex-start">{{ _("Save Recipient") }}</button>
+                </form>
+            </div>
+        </div>
+
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("Registered Recipients") }}</h4>
+            <div id="recipients-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto">
+                {% for r in recipients %}
+                <div style="padding:10px;border:1px solid var(--color-outline-variant);border-radius:6px;background:var(--color-surface-container-lowest);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <strong style="font-size:13px;color:var(--color-on-surface)">{{ r.name }}</strong>
+                        <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
+                    </div>
+                    <button type="button" class="btn" data-variant="small" style="color:var(--color-error)" onclick="deleteRecipient({{ r.id }})">
+                        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+                    </button>
+                </div>
+                {% else %}
+                <p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;font-size:12px">{{ _("No recipients registered yet.") }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("2. Encrypt & Share Data") }}</h4>
+            <form id="share-form" style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                    <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px">{{ _("Choose Recipient") }}</label>
+                    <select id="share-recipient-id" required style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                        <option value="">— {{ _("Select") }} —</option>
+                        {% for r in recipients %}
+                        <option value="{{ r.id }}" data-pubkey="{{ r.public_key }}">{{ r.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px">{{ _("Days to Share") }}</label>
+                        <input type="number" id="share-days" value="30" min="1" max="365"
+                               style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                    </div>
+                    <div>
+                        <label style="display:block;font-weight:600;margin-bottom:4px;font-size:12px">{{ _("Expiration (Hours)") }}</label>
+                        <input type="number" id="share-expire-hours" value="24" min="1"
+                               style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                    </div>
+                </div>
+
+                <button type="button" class="btn" data-variant="primary" onclick="createAsymmetricShare()" style="margin-top:8px">
+                    {{ _("Encrypt and Generate Shareable Link") }}
+                </button>
+            </form>
+
+            <div id="share-result-container" style="display:none;margin-top:16px;padding:12px;background:var(--color-primary-fixed);border:1px solid var(--color-primary);border-radius:8px">
+                <strong style="color:var(--color-on-primary-fixed);display:block;margin-bottom:6px;font-size:13px">{{ _("Secure Share Link Generated:") }}</strong>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" id="share-link-url" readonly style="flex:1;padding:8px;border:1px solid var(--color-outline);border-radius:4px;font-size:12px;font-family:monospace;background:var(--color-surface-container-lowest)">
+                    <button type="button" class="btn" data-variant="primary" data-size="sm" onclick="copyShareLink()">{{ _("Copy") }}</button>
+                </div>
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px;margin-top:6px;display:block">
+                    {{ _("Give this link and the downloaded private key file to your doctor.") }}
+                </span>
+            </div>
+        </div>
+
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("Active Encrypted Share Links") }}</h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+                {% for s in shares %}
+                <div style="padding:10px;border:1px solid var(--color-outline-variant);border-radius:6px;background:var(--color-surface-container-lowest);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-weight:600;color:var(--color-on-surface);font-size:13px">{{ _("Share Link for") }} {{ s.recipient.name }}</div>
+                        <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">
+                            {{ _("Created:") }} {{ s.created_at.strftime('%Y-%m-%d %H:%M') }} |
+                            {{ _("Expires:") }} {% if s.expires_at %}{{ s.expires_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ _("Never") }}{% endif %}
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:6px">
+                        <button type="button" class="btn" data-variant="secondary" data-size="sm" onclick="copyDirectShareLink({{ s.id }})">{{ _("Copy") }}</button>
+                        <button type="button" class="btn" data-variant="ghost" data-size="sm" style="color:var(--color-error)" onclick="deleteShare({{ s.id }})">
+                            <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;font-size:12px">{{ _("No active encrypted shares.") }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endcall %}
 </div>
 
-<div class="settings-section" style="margin-top:20px;">
-    {% call card(title=_("Medical Share")) %}
-        <p class="text-muted" style="font-size:12px; margin-bottom:16px;">
-            {{ _("Share end-to-end encrypted health profiles with your GP or doctor using Zero-Knowledge Asymmetric Cryptography.") }}
-        </p>
+<div style="margin-top:20px">
+{% call card(title=_("Open Science Data Synthesizer")) %}
+    <p style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:12px;margin-bottom:16px">
+        {{ _("Anonymize and donate your health data to research using Local Differential Privacy (LDP).") }}
+    </p>
 
-        <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
-            <!-- Register Recipient / GP -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("1. Register Recipient (Public Key)") }}</h4>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <div style="display:flex; gap:8px;">
-                        <button type="button" class="btn" data-variant="secondary" onclick="generateKeyPair()">
-                            {{ _("Generate Key Pair") }} 🔑
-                        </button>
+    <div style="display:grid;grid-template-columns:1fr;gap:20px">
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("1. Select Metrics & Generalization") }}</h4>
+            <form id="synthesis-form" style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                    <label style="display:block;font-weight:700;margin-bottom:8px;font-size:12px">{{ _("Health Vitals to Share") }}</label>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" name="science_metrics" value="steps" checked style="width:16px;height:16px">
+                            {{ _("Steps (Daily counts)") }}
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" name="science_metrics" value="sleep_duration" checked style="width:16px;height:16px">
+                            {{ _("Sleep (Durations)") }}
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" name="science_metrics" value="resting_heart_rate" checked style="width:16px;height:16px">
+                            {{ _("Resting Heart Rate (bpm)") }}
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" name="science_metrics" value="active_calories" checked style="width:16px;height:16px">
+                            {{ _("Active Energy Burn (kcal)") }}
+                        </label>
                     </div>
-                    <form id="recipient-form" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
-                        <div>
-                            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:12px;">{{ _("Recipient Name") }}</label>
-                            <input type="text" id="recipient-name" placeholder="e.g. Dr. Mueller" required
-                                   style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                        </div>
-                        <div>
-                            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:12px;">{{ _("Public Key (auto-filled)") }}</label>
-                            <textarea id="recipient-pubkey" rows="4" readonly required placeholder="{{ _('Generate keys above to auto-fill') }}"
-                                      style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:11px; font-family:monospace; background:var(--color-surface-container-lowest);"></textarea>
-                        </div>
-                        <button type="submit" class="btn" data-variant="small" style="align-self:flex-start;">{{ _("Save Recipient") }}</button>
-                    </form>
                 </div>
-            </div>
 
-            <!-- Recipients List -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("Registered Recipients") }}</h4>
-                <div id="recipients-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
-                    {% for r in recipients %}
-                    <div style="padding:10px; border:1px solid var(--color-outline-variant); border-radius:6px; background:var(--color-surface-container-lowest); display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong style="font-size:13px; color:var(--color-on-surface);">{{ r.name }}</strong>
-                            <div class="text-muted" style="font-size:11px;">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
-                        </div>
-                        <button type="button" class="btn" data-variant="small" style="color:var(--color-error);" onclick="deleteRecipient({{ r.id }})">
-                            <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
-                        </button>
-                    </div>
-                    {% else %}
-                    <p class="text-muted" style="text-align:center; font-size:12px;">{{ _("No recipients registered yet.") }}</p>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Create Share Link -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("2. Encrypt & Share Data") }}</h4>
-                <form id="share-form" style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div>
-                        <label style="display:block; font-weight:600; margin-bottom:4px; font-size:12px;">{{ _("Choose Recipient") }}</label>
-                        <select id="share-recipient-id" required style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                            <option value="">— {{ _("Select") }} —</option>
-                            {% for r in recipients %}
-                            <option value="{{ r.id }}" data-pubkey="{{ r.public_key }}">{{ r.name }}</option>
-                            {% endfor %}
+                        <label for="weeks" style="display:block;font-weight:700;margin-bottom:4px;font-size:12px">{{ _("Timeframe") }}</label>
+                        <select id="weeks" name="weeks" style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                            <option value="4">{{ _("Last 4 Weeks") }}</option>
+                            <option value="8">{{ _("Last 8 Weeks") }}</option>
+                            <option value="12" selected>{{ _("Last 12 Weeks") }}</option>
+                            <option value="24">{{ _("Last 24 Weeks") }}</option>
                         </select>
                     </div>
-                    
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                        <div>
-                            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:12px;">{{ _("Days to Share") }}</label>
-                            <input type="number" id="share-days" value="30" min="1" max="365"
-                                   style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                        </div>
-                        <div>
-                            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:12px;">{{ _("Expiration (Hours)") }}</label>
-                            <input type="number" id="share-expire-hours" value="24" min="1"
-                                   style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                        </div>
+                    <div>
+                        <label for="epsilon" style="display:block;font-weight:700;margin-bottom:4px;font-size:12px">{{ _("Privacy Budget") }} (&epsilon;)</label>
+                        <select id="epsilon" name="epsilon" style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                            <option value="0.5">{{ _("High Privacy") }} (&epsilon; = 0.5)</option>
+                            <option value="1.0" selected>{{ _("Balanced") }} (&epsilon; = 1.0)</option>
+                            <option value="2.0">{{ _("Low Privacy") }} (&epsilon; = 2.0)</option>
+                        </select>
                     </div>
-
-                    <button type="button" class="btn" onclick="createAsymmetricShare()" style="margin-top:8px;">
-                        {{ _("Encrypt and Generate Shareable Link") }} 🔒
-                    </button>
-                </form>
-
-                <div id="share-result-container" style="display:none; margin-top:16px; padding:12px; background:var(--color-primary-fixed); border:1px solid var(--color-primary); border-radius:8px;">
-                    <strong style="color:var(--color-on-primary-fixed); display:block; margin-bottom:6px; font-size:13px;">{{ _("Secure Share Link Generated:") }}</strong>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <input type="text" id="share-link-url" readonly style="flex:1; padding:8px; border:1px solid var(--color-outline); border-radius:4px; font-size:12px; font-family:monospace; background:var(--color-surface-container-lowest);">
-                        <button type="button" class="btn btn-sm" onclick="copyShareLink()">{{ _("Copy") }}</button>
-                    </div>
-                    <span class="text-muted" style="font-size:11px; margin-top:6px; display:block;">
-                        {{ _("Give this link and the downloaded private key file to your doctor.") }}
-                    </span>
                 </div>
+
+                <div>
+                    <label style="display:block;font-weight:700;margin-bottom:8px;font-size:12px">{{ _("General Demographics (Binned)") }}</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <label for="birth-year" style="display:block;font-size:11px;margin-bottom:4px;color:var(--color-slate-500)">{{ _("Birth Year") }}</label>
+                            <input type="number" id="birth-year" placeholder="e.g. 1990" min="1900" max="2026"
+                                   style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                        </div>
+                        <div>
+                            <label for="weight" style="display:block;font-size:11px;margin-bottom:4px;color:var(--color-slate-500)">{{ _("Body Weight (kg)") }}</label>
+                            <input type="number" id="weight" step="0.1" placeholder="e.g. 74.5" min="30" max="300"
+                                   style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:13px;background:var(--color-surface-container-lowest)">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn" data-variant="primary" onclick="generatePreview()" style="margin-top:8px">
+                    {{ _("Generate Dataset Preview") }}
+                </button>
+            </form>
+        </div>
+
+        <div style="padding:16px;border:1px solid var(--color-outline-variant);border-radius:8px;background:var(--color-surface-container-low)">
+            <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("2. Preview & Donate Dataset") }}</h4>
+            <div id="preview-placeholder" style="text-align:center;padding:30px 16px;font:var(--font-body-sm);color:var(--color-slate-500)">
+                <span class="material-symbols-outlined" style="font-size:32px">query_stats</span>
+                <p style="margin:8px 0 0 0;font-size:12px">{{ _("Configure metrics and click generate to preview.") }}</p>
             </div>
 
-            <!-- Active Shares List -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("Active Encrypted Share Links") }}</h4>
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    {% for s in shares %}
-                    <div style="padding:10px; border:1px solid var(--color-outline-variant); border-radius:6px; background:var(--color-surface-container-lowest); display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-weight:600; color:var(--color-on-surface); font-size:13px;">{{ _("Share Link for") }} {{ s.recipient.name }}</div>
-                            <div class="text-muted" style="font-size:11px;">
-                                {{ _("Created:") }} {{ s.created_at.strftime('%Y-%m-%d %H:%M') }} | 
-                                {{ _("Expires:") }} {% if s.expires_at %}{{ s.expires_at.strftime('%Y-%m-%d %H:%M') }}{% else %}{{ _("Never") }}{% endif %}
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="copyDirectShareLink({{ s.id }})">{{ _("Copy") }}</button>
-                            <button type="button" class="btn-ghost btn-sm" style="color:var(--color-error);" onclick="deleteShare({{ s.id }})">
-                                <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
-                            </button>
-                        </div>
+            <div id="preview-container" style="display:none;flex-direction:column;gap:12px">
+                <div>
+                    <label style="display:block;font-weight:700;margin-bottom:6px;font-size:12px">{{ _("JSON Dataset Output") }}</label>
+                    <textarea id="json-output" rows="8" readonly
+                              style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-family:monospace;font-size:11px;background:var(--color-surface-container-lowest);resize:vertical"></textarea>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                    <div style="display:flex;gap:6px">
+                        <button class="btn" data-variant="secondary" data-size="sm" onclick="downloadJSON()">JSON</button>
+                        <button class="btn" data-variant="secondary" data-size="sm" onclick="downloadCSV()">CSV</button>
                     </div>
-                    {% else %}
-                    <p class="text-muted" style="text-align:center; font-size:12px;">{{ _("No active encrypted shares.") }}</p>
-                    {% endfor %}
+                    <button class="btn" data-variant="primary" data-size="sm" onclick="donateDataset()">{{ _("Donate to Research") }}</button>
                 </div>
             </div>
         </div>
-    {% endcall %}
-</div>
-
-<div class="settings-section" style="margin-top:20px;">
-    {% call card(title=_("Open Science Data Synthesizer")) %}
-        <p class="text-muted" style="font-size:12px; margin-bottom:16px;">
-            {{ _("Anonymize and donate your health data to research using Local Differential Privacy (LDP).") }}
-        </p>
-
-        <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
-            <!-- Dataset Config -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("1. Select Metrics & Generalization") }}</h4>
-                <form id="synthesis-form" style="display:flex; flex-direction:column; gap:12px;">
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:8px; font-size:12px;">{{ _("Health Vitals to Share") }}</label>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
-                                <input type="checkbox" name="science_metrics" value="steps" checked style="width:16px;height:16px;">
-                                {{ _("Steps (Daily counts)") }}
-                            </label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
-                                <input type="checkbox" name="science_metrics" value="sleep_duration" checked style="width:16px;height:16px;">
-                                {{ _("Sleep (Durations)") }}
-                            </label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
-                                <input type="checkbox" name="science_metrics" value="resting_heart_rate" checked style="width:16px;height:16px;">
-                                {{ _("Resting Heart Rate (bpm)") }}
-                            </label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
-                                <input type="checkbox" name="science_metrics" value="active_calories" checked style="width:16px;height:16px;">
-                                {{ _("Active Energy Burn (kcal)") }}
-                            </label>
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                        <div>
-                            <label for="weeks" style="display:block; font-weight:700; margin-bottom:4px; font-size:12px;">{{ _("Timeframe") }}</label>
-                            <select id="weeks" name="weeks" style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                                <option value="4">{{ _("Last 4 Weeks") }}</option>
-                                <option value="8">{{ _("Last 8 Weeks") }}</option>
-                                <option value="12" selected>{{ _("Last 12 Weeks") }}</option>
-                                <option value="24">{{ _("Last 24 Weeks") }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="epsilon" style="display:block; font-weight:700; margin-bottom:4px; font-size:12px;">{{ _("Privacy Budget") }} (&epsilon;)</label>
-                            <select id="epsilon" name="epsilon" style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                                <option value="0.5">{{ _("High Privacy") }} (&epsilon; = 0.5)</option>
-                                <option value="1.0" selected>{{ _("Balanced") }} (&epsilon; = 1.0)</option>
-                                <option value="2.0">{{ _("Low Privacy") }} (&epsilon; = 2.0)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:8px; font-size:12px;">{{ _("General Demographics (Binned)") }}</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <div>
-                                <label for="birth-year" style="display:block; font-size:11px; margin-bottom:4px;" class="text-muted">{{ _("Birth Year") }}</label>
-                                <input type="number" id="birth-year" placeholder="e.g. 1990" min="1900" max="2026"
-                                       style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                            </div>
-                            <div>
-                                <label for="weight" style="display:block; font-size:11px; margin-bottom:4px;" class="text-muted">{{ _("Body Weight (kg)") }}</label>
-                                <input type="number" id="weight" step="0.1" placeholder="e.g. 74.5" min="30" max="300"
-                                       style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:13px; background:var(--color-surface-container-lowest);">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn" onclick="generatePreview()" style="margin-top:8px;">
-                        {{ _("Generate Dataset Preview") }} ⚡
-                    </button>
-                </form>
-            </div>
-
-            <!-- Preview Card -->
-            <div style="padding:16px; border:1px solid var(--color-outline-variant); border-radius:8px; background:var(--color-surface-container-low);">
-                <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("2. Preview & Donate Dataset") }}</h4>
-                <div id="preview-placeholder" style="text-align:center; padding:30px 16px;" class="text-muted">
-                    <span class="material-symbols-outlined" style="font-size:32px;">query_stats</span>
-                    <p style="margin:8px 0 0 0; font-size:12px;">{{ _("Configure metrics and click generate to preview.") }}</p>
-                </div>
-
-                <div id="preview-container" style="display:none; flex-direction:column; gap:12px;">
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:6px; font-size:12px;">{{ _("JSON Dataset Output") }}</label>
-                        <textarea id="json-output" rows="8" readonly
-                                  style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-family:monospace; font-size:11px; background:var(--color-surface-container-lowest); resize:vertical;"></textarea>
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-secondary btn-sm" onclick="downloadJSON()">JSON</button>
-                            <button class="btn btn-secondary btn-sm" onclick="downloadCSV()">CSV</button>
-                        </div>
-                        <button class="btn btn-sm" onclick="donateDataset()">{{ _("Donate to Research") }} 🔬</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endcall %}
+    </div>
+{% endcall %}
 </div>
 
 <script>
-// Web Crypto API helpers
 async function generateKeyPair() {
     try {
         const keyPair = await window.crypto.subtle.generateKey(
@@ -263,15 +252,12 @@ async function generateKeyPair() {
             ["encrypt", "decrypt"]
         );
 
-        // Export Public Key to PEM
         const exportedPublic = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
         const publicKeyPem = formatAsPem(exportedPublic, "PUBLIC KEY");
         document.getElementById("recipient-pubkey").value = publicKeyPem;
 
-        // Export Private Key to JWK (JSON)
         const exportedPrivate = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
-        
-        // Trigger file download
+
         const blob = new Blob([JSON.stringify(exportedPrivate, null, 2)], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -292,7 +278,6 @@ function formatAsPem(binary, label) {
     return `-----BEGIN ${label}-----\n${chunks}\n-----END ${label}-----`;
 }
 
-// Recipient Form submit
 document.getElementById("recipient-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("recipient-name").value;
@@ -305,7 +290,6 @@ document.getElementById("recipient-form").addEventListener("submit", async (e) =
     });
 
     if (response.ok) {
-        // Swap to the shares tab again to reload recipient list
         if (typeof htmx !== 'undefined') {
             htmx.ajax('GET', '/settings/shares', '#settings-content');
         } else {
@@ -355,7 +339,6 @@ function copyDirectShareLink(id) {
     alert("Link copied: " + url);
 }
 
-// Create Encrypted Share logic
 async function createAsymmetricShare() {
     const recipientSelect = document.getElementById("share-recipient-id");
     const recipientId = parseInt(recipientSelect.value);
@@ -376,45 +359,24 @@ async function createAsymmetricShare() {
 
         const spkiBinary = pemToBinary(pubKeyPem);
         const pubKey = await window.crypto.subtle.importKey(
-            "spki",
-            spkiBinary,
-            {
-                name: "RSA-OAEP",
-                hash: "SHA-256"
-            },
-            false,
-            ["encrypt"]
+            "spki", spkiBinary, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]
         );
 
         const aesKey = await window.crypto.subtle.generateKey(
-            {
-                name: "AES-GCM",
-                length: 256
-            },
-            true,
-            ["encrypt"]
+            { name: "AES-GCM", length: 256 }, true, ["encrypt"]
         );
 
         const iv = window.crypto.getRandomValues(new Uint8Array(12));
         const encoder = new TextEncoder();
         const encodedData = encoder.encode(JSON.stringify(rawData));
-        
+
         const encryptedDataBuffer = await window.crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            aesKey,
-            encodedData
+            { name: "AES-GCM", iv: iv }, aesKey, encodedData
         );
 
         const rawAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
         const encryptedKeyBuffer = await window.crypto.subtle.encrypt(
-            {
-                name: "RSA-OAEP"
-            },
-            pubKey,
-            rawAesKey
+            { name: "RSA-OAEP" }, pubKey, rawAesKey
         );
 
         const aesPayload = new Uint8Array(12 + encryptedDataBuffer.byteLength);
@@ -440,7 +402,6 @@ async function createAsymmetricShare() {
             const shareUrl = `${window.location.origin}/share/doctor/${share.id}`;
             document.getElementById("share-link-url").value = shareUrl;
             document.getElementById("share-result-container").style.display = "block";
-            // Refresh settings view in background if htmx is ready
             setTimeout(() => {
                 if (typeof htmx !== 'undefined') {
                     htmx.ajax('GET', '/settings/shares', '#settings-content');
@@ -483,7 +444,6 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
-// Open Science Synthesizer JS logic
 let lastDataset = null;
 
 async function generatePreview() {
@@ -520,7 +480,6 @@ async function generatePreview() {
         if (response.ok) {
             lastDataset = await response.json();
             document.getElementById("json-output").value = JSON.stringify(lastDataset, null, 2);
-            
             document.getElementById("preview-placeholder").style.display = "none";
             document.getElementById("preview-container").style.display = "flex";
         } else {

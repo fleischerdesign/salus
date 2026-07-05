@@ -13,6 +13,7 @@ from starlette.templating import Jinja2Templates
 from salus.config import settings as app_settings
 from salus.database import Session, engine
 from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError, NotFoundError
+from salus.jinja2_ext import AutoImportLoader
 from salus.models import system_config  # noqa: F401
 from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
@@ -153,6 +154,8 @@ templates = Jinja2Templates(
 )
 templates.env.undefined = StrictUndefined
 templates.env.globals["settings"] = app_settings
+if templates.env.loader is not None:
+    templates.env.loader = AutoImportLoader(templates.env.loader)
 
 
 @asynccontextmanager

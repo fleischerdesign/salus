@@ -4,10 +4,9 @@
      {{ alert_banner("Profile saved.", variant="success") }}
      {{ alert_banner("Could not connect.", variant="error", dismissible=true) }}
  #}
-
-{% macro alert_banner(message, variant="info", title=none, dismissible=false) %}
+{% macro alert_banner(message, variant="info", title=none, dismissible=false, id=none, style=none, class=none) %}
     {% set icons = {"success": "check_circle", "error": "error", "warning": "warning", "info": "info"} %}
-    <div class="alert-banner" data-variant="{{ variant }}" role="{% if variant == 'error' %}alert{% else %}status{% endif %}">
+    <div class="alert-banner{% if class %} {{ class }}{% endif %}" data-variant="{{ variant }}" role="{% if variant == 'error' %}alert{% else %}status{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
         <span class="alert-banner__icon material-symbols-outlined" aria-hidden="true">{{ icons[variant] }}</span>
         <div class="alert-banner__content">
             {% if title %}<div class="alert-banner__title">{{ title }}</div>{% endif %}

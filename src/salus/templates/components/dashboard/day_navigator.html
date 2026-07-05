@@ -30,7 +30,7 @@
     {% endif %}
 
     {% if not is_today %}
-    <button class="btn-sm"
+    <button class="btn" data-variant="primary" data-size="sm"
             hx-get="/dashboard/grid"
             hx-target="#dashboard-content"
             hx-swap="outerHTML">

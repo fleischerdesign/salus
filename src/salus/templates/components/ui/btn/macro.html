@@ -2,36 +2,43 @@
    Button — @component btn
 
    Usage:
-     {{ btn("Save", variant="primary") }}
-     {{ btn("Cancel", variant="ghost") }}
-     {{ btn(variant="danger", icon="delete", label="Delete") }}
-     {{ btn(icon="close", aria_label="Close") }}
+     {{ btn("Save") }}
+     {{ btn("Delete", variant="danger", size="sm") }}
+     {{ btn(icon="close", variant="ghost", aria_label="Close") }}
 
    Variants: primary | secondary | ghost | danger | small
-   Sizes: sm (via data-size)
+   Sizes: sm (via size)
    States: disabled | loading
+   Attributes: any via attrs dict for edge-cases
  #}
 
-{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, full_width_mobile=true, class=none, hx_get=none, hx_post=none, hx_delete=none, hx_put=none, hx_target=none, hx_swap=none, hx_push_url=none) %}
+{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, type=none, full_width_mobile=true, class=none, id=none, style=none, hx_get=none, hx_post=none, hx_delete=none, hx_put=none, hx_confirm=none, hx_target=none, hx_swap=none, hx_push_url=none, onclick=none, hyperscript=none, attrs=none) %}
     {% set tag = "a" if href else "button" %}
+    {% set btn_type = "submit" if type == "submit" else "button" %}
     <{{ tag }}
-        class="btn {{ class or '' }}"
+        class="btn{% if class %} {{ class }}{% endif %}"
         data-variant="{{ variant }}"
         {% if size %}data-size="{{ size }}"{% endif %}
         {% if icon and not label %}data-icon-only{% endif %}
         {% if disabled %}disabled{% endif %}
         {% if loading %}aria-busy="true" disabled{% endif %}
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if style %}style="{{ style }}"{% endif %}
         {% if href %}href="{{ href }}"{% endif %}
-        {% if full_width_mobile %}data-full-width-mobile{% endif %}
+        {% if full_width_mobile and not class %}data-full-width-mobile{% endif %}
         {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
-        {% if not href %}type="button"{% endif %}
+        {% if not href %}type="{{ btn_type }}"{% endif %}
         {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
         {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
         {% if hx_delete %}hx-delete="{{ hx_delete }}"{% endif %}
         {% if hx_put %}hx-put="{{ hx_put }}"{% endif %}
+        {% if hx_confirm %}hx-confirm="{{ hx_confirm }}"{% endif %}
         {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
         {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
         {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}
+        {% if onclick %}onclick="{{ onclick }}"{% endif %}
+        {% if hyperscript %} _="{{ hyperscript }}"{% endif %}
+        {% if attrs %}{% for k, v in attrs.items() %} {{ k }}="{{ v }}"{% endfor %}{% endif %}
     >
         {% if loading %}
         <span class="btn__spinner" aria-hidden="true"></span>

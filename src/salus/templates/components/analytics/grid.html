@@ -1,84 +1,100 @@
 <div class="analytics-grid-layout">
     <div class="card analytics-col-8" id="trends-card">
-        <h2 class="card-title">Physiological Trends</h2>
-        <div class="chart-container" style="height:320px;">
-            <canvas id="trendsChart"></canvas>
+        <div class="card__header">
+            <h3 class="card__header-title">Physiological Trends</h3>
+        </div>
+        <div class="card__body">
+            <div class="chart-container" style="height:320px">
+                <canvas id="trendsChart"></canvas>
+            </div>
         </div>
     </div>
 
     <div class="card analytics-col-4" id="tdee-card">
-        <h2 class="card-title">Metabolic Baseline</h2>
-        {% if bmr %}
-        <div class="tdee-value">{{ "%.0f"|format(tdee_data[0]|float) if tdee_data else "—" }} <span class="tdee-unit">kcal/day</span></div>
-        <div class="tdee-details">
-            <div class="tdee-row"><span>BMR (Cunningham)</span><span>{{ "%.0f"|format(bmr|float) }} kcal</span></div>
-            {% if tdee_data %}
-            <div class="tdee-row"><span>Activity Factor</span><span>{{ "%.2f"|format(tdee_data[1]|float) }}x</span></div>
-            <div class="tdee-row"><span>HRR Utilization</span><span>{{ "%.0f"|format(tdee_data[2]|float * 100) }}%</span></div>
-            {% endif %}
-            {% if weight_trend and weight_trend.current %}
-            <div class="tdee-row"><span>Current Weight</span><span>{{ "%.1f"|format(weight_trend.current|float) }} kg</span></div>
+        <div class="card__header">
+            <h3 class="card__header-title">Metabolic Baseline</h3>
+        </div>
+        <div class="card__body">
+            {% if bmr %}
+            <div class="tdee-value">{{ "%.0f"|format(tdee_data[0]|float) if tdee_data else "—" }} <span class="tdee-unit">kcal/day</span></div>
+            <div class="tdee-details">
+                <div class="tdee-row"><span>BMR (Cunningham)</span><span>{{ "%.0f"|format(bmr|float) }} kcal</span></div>
+                {% if tdee_data %}
+                <div class="tdee-row"><span>Activity Factor</span><span>{{ "%.2f"|format(tdee_data[1]|float) }}x</span></div>
+                <div class="tdee-row"><span>HRR Utilization</span><span>{{ "%.0f"|format(tdee_data[2]|float * 100) }}%</span></div>
+                {% endif %}
+                {% if weight_trend and weight_trend.current %}
+                <div class="tdee-row"><span>Current Weight</span><span>{{ "%.1f"|format(weight_trend.current|float) }} kg</span></div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500)">No weight data available for TDEE calculation.</p>
             {% endif %}
         </div>
-        {% else %}
-        <p class="text-muted">No weight data available for TDEE calculation.</p>
-        {% endif %}
     </div>
 
     <div class="card analytics-col-6" id="sleep-card">
-        <h2 class="card-title">Sleep Analysis</h2>
-        {% if latest_sleep %}
-        <div class="sleep-value">{{ "%.1f"|format(latest_sleep.duration_hours|float) }}h</div>
-        <div class="sleep-bar">
-            {% if latest_sleep.awake_pct > 0 %}
-            <div class="sleep-segment sleep-awake" style="width:{{ latest_sleep.awake_pct|round|int }}%" title="Awake {{ latest_sleep.awake_pct|round|int }}%"></div>
-            {% endif %}
-            {% if latest_sleep.light_pct > 0 %}
-            <div class="sleep-segment sleep-light" style="width:{{ latest_sleep.light_pct|round|int }}%" title="Light {{ latest_sleep.light_pct|round|int }}%"></div>
-            {% endif %}
-            {% if latest_sleep.deep_pct > 0 %}
-            <div class="sleep-segment sleep-deep" style="width:{{ latest_sleep.deep_pct|round|int }}%" title="Deep {{ latest_sleep.deep_pct|round|int }}%"></div>
-            {% endif %}
-            {% if latest_sleep.rem_pct > 0 %}
-            <div class="sleep-segment sleep-rem" style="width:{{ latest_sleep.rem_pct|round|int }}%" title="REM {{ latest_sleep.rem_pct|round|int }}%"></div>
+        <div class="card__header">
+            <h3 class="card__header-title">Sleep Analysis</h3>
+        </div>
+        <div class="card__body">
+            {% if latest_sleep %}
+            <div class="sleep-value">{{ "%.1f"|format(latest_sleep.duration_hours|float) }}h</div>
+            <div class="sleep-bar">
+                {% if latest_sleep.awake_pct > 0 %}
+                <div class="sleep-segment sleep-awake" style="width:{{ latest_sleep.awake_pct|round|int }}%" title="Awake {{ latest_sleep.awake_pct|round|int }}%"></div>
+                {% endif %}
+                {% if latest_sleep.light_pct > 0 %}
+                <div class="sleep-segment sleep-light" style="width:{{ latest_sleep.light_pct|round|int }}%" title="Light {{ latest_sleep.light_pct|round|int }}%"></div>
+                {% endif %}
+                {% if latest_sleep.deep_pct > 0 %}
+                <div class="sleep-segment sleep-deep" style="width:{{ latest_sleep.deep_pct|round|int }}%" title="Deep {{ latest_sleep.deep_pct|round|int }}%"></div>
+                {% endif %}
+                {% if latest_sleep.rem_pct > 0 %}
+                <div class="sleep-segment sleep-rem" style="width:{{ latest_sleep.rem_pct|round|int }}%" title="REM {{ latest_sleep.rem_pct|round|int }}%"></div>
+                {% endif %}
+            </div>
+            <div class="sleep-legend">
+                <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-awake"></span> Awake {{ latest_sleep.awake_pct|round|int }}%</span>
+                <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-light"></span> Light {{ latest_sleep.light_pct|round|int }}%</span>
+                <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-deep"></span> Deep {{ latest_sleep.deep_pct|round|int }}%</span>
+                <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-rem"></span> REM {{ latest_sleep.rem_pct|round|int }}%</span>
+            </div>
+            {% else %}
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500)">No sleep data available.</p>
             {% endif %}
         </div>
-        <div class="sleep-legend">
-            <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-awake"></span> Awake {{ latest_sleep.awake_pct|round|int }}%</span>
-            <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-light"></span> Light {{ latest_sleep.light_pct|round|int }}%</span>
-            <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-deep"></span> Deep {{ latest_sleep.deep_pct|round|int }}%</span>
-            <span class="sleep-legend-item"><span class="sleep-dot sleep-dot-rem"></span> REM {{ latest_sleep.rem_pct|round|int }}%</span>
-        </div>
-        {% else %}
-        <p class="text-muted">No sleep data available.</p>
-        {% endif %}
     </div>
 
     <div class="card analytics-col-6" id="exercise-card">
-        <h2 class="card-title">Exercise History</h2>
-        {% if exercise_sessions %}
-        <div class="exercise-list">
-            {% for session in exercise_sessions %}
-            <div class="exercise-row">
-                <div class="exercise-main">
-                    <span class="exercise-name">{{ session.type_name }}</span>
-                    <span class="exercise-duration">{{ session.duration_seconds|int // 3600 }}h {{ (session.duration_seconds|int % 3600) // 60 }}min</span>
-                </div>
-                <div class="exercise-meta">
-                    <span class="exercise-date">{{ session.date }} {{ session.time }}</span>
-                    {% if session.distance_meters > 0 %}
-                    <span class="exercise-dist">{{ "%.1f"|format(session.distance_meters / 1000) }}km</span>
-                    {% endif %}
-                    {% if session.calories > 0 %}
-                    <span class="exercise-cal">{{ "%.0f"|format(session.calories) }} kcal</span>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
+        <div class="card__header">
+            <h3 class="card__header-title">Exercise History</h3>
         </div>
-        {% else %}
-        <p class="text-muted">No exercise sessions recorded.</p>
-        {% endif %}
+        <div class="card__body">
+            {% if exercise_sessions %}
+            <div class="exercise-list">
+                {% for session in exercise_sessions %}
+                <div class="exercise-row">
+                    <div class="exercise-main">
+                        <span class="exercise-name">{{ session.type_name }}</span>
+                        <span class="exercise-duration">{{ session.duration_seconds|int // 3600 }}h {{ (session.duration_seconds|int % 3600) // 60 }}min</span>
+                    </div>
+                    <div class="exercise-meta">
+                        <span class="exercise-date">{{ session.date }} {{ session.time }}</span>
+                        {% if session.distance_meters > 0 %}
+                        <span class="exercise-dist">{{ "%.1f"|format(session.distance_meters / 1000) }}km</span>
+                        {% endif %}
+                        {% if session.calories > 0 %}
+                        <span class="exercise-cal">{{ "%.0f"|format(session.calories) }} kcal</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500)">No exercise sessions recorded.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 

@@ -1,5 +1,5 @@
 <div id="admin-token-table">
-    <table class="data-grid">
+    <table class="table">
         <thead>
             <tr>
                 <th>{{ _("Label") }}</th>
@@ -14,18 +14,18 @@
             {% for t in tokens %}
             <tr id="admin-token-{{ t.id }}">
                 <td><strong>{{ t.label }}</strong></td>
-                <td class="text-muted">{{ t.token_prefix }}...</td>
+                <td style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ t.token_prefix }}...</td>
                 <td>
-                    <div class="flex gap-sm" style="flex-wrap:wrap;">
+                    <div class="flex gap-sm" style="flex-wrap:wrap">
                         {% for scope in t.scopes.split() %}
-                        <span class="chip chip-neutral" style="font-size:11px;">{{ scope }}</span>
+                        <span class="chip" data-variant="neutral" style="font-size:11px">{{ scope }}</span>
                         {% endfor %}
                     </div>
                 </td>
-                <td class="text-muted">{{ t.created_at.strftime('%Y-%m-%d') }}</td>
-                <td class="text-muted">{{ t.last_used_at.strftime('%Y-%m-%d %H:%M') if t.last_used_at else _("Never") }}</td>
+                <td style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ t.created_at.strftime('%Y-%m-%d') }}</td>
+                <td style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ t.last_used_at.strftime('%Y-%m-%d %H:%M') if t.last_used_at else _("Never") }}</td>
                 <td>
-                    <button class="btn-danger btn-sm"
+                    <button class="btn" data-variant="danger" data-size="sm"
                             hx-delete="/admin/tokens/{{ t.id }}"
                             hx-target="#admin-token-table"
                             hx-swap="outerHTML">

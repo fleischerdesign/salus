@@ -1,8 +1,8 @@
 {% if pending_invitations %}
 <div class="card pending-invitations" id="pending-invitations">
-    <div class="card-header">
-        <h3 class="card-title">{{ _("Pending Invitations") }}</h3>
-        <span class="chip chip-warning">{{ pending_invitations|length }}</span>
+    <div class="card__header">
+        <h3 class="card__header-title">{{ _("Pending Invitations") }}</h3>
+        <span class="chip" data-variant="warning">{{ pending_invitations|length }}</span>
     </div>
     <div class="pending-list">
         {% for inv in pending_invitations %}
@@ -11,20 +11,20 @@
                 <span class="material-symbols-outlined" style="color:{{ inv.metric_type.color }};font-size:20px">{{ inv.metric_type.icon }}</span>
                 <div>
                     <span class="pending-owner">{{ inv.owner.username }}</span>
-                    <span class="text-muted" style="font-size:12px">
+                    <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:12px">
                         {{ _("wants to share") }} <strong>{{ inv.metric_type.name }}</strong>
                         {% if inv.aggregation_level == 'daily_summary' %}({{ _("Summary") }}){% else %}({{ _("Raw") }}){% endif %}
                     </span>
                 </div>
             </div>
             <div class="flex-center gap-sm">
-                <button class="btn btn-sm"
+                <button class="btn" data-variant="primary" data-size="sm"
                         hx-post="/sharing/{{ inv.id }}/accept"
                         hx-target="#pending-{{ inv.id }}"
                         hx-swap="outerHTML">
                     {{ _("Accept") }}
                 </button>
-                <button class="btn-ghost btn-sm"
+                <button class="btn" data-variant="ghost" data-size="sm"
                         style="color:var(--color-error)"
                         hx-post="/sharing/{{ inv.id }}/decline"
                         hx-target="#pending-{{ inv.id }}"

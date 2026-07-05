@@ -1,5 +1,5 @@
 <div id="admin-user-table">
-    <table class="data-grid">
+    <table class="table">
         <thead>
             <tr>
                 <th>{{ _("User") }}</th>
@@ -17,16 +17,16 @@
                 <td>
                     <strong>{{ u.display_name or u.username }}</strong>
                     <br>
-                    <span class="text-muted">{{ u.username }}</span>
+                    <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ u.username }}</span>
                 </td>
                 <td>{{ u.email or '-' }}</td>
                 <td>
-                    <span class="chip {% if u.is_admin %}chip-success{% else %}chip-neutral{% endif %}" style="font-size:11px;">
+                    <span class="chip" {% if u.is_admin %}data-variant="success"{% else %}data-variant="neutral"{% endif %} style="font-size:11px">
                         {{ _("Yes") if u.is_admin else _("No") }}
                     </span>
                 </td>
                 <td>
-                    <span class="chip {% if u.is_active %}chip-success{% else %}chip-error{% endif %}" style="font-size:11px;">
+                    <span class="chip" {% if u.is_active %}data-variant="success"{% else %}data-variant="error"{% endif %} style="font-size:11px">
                         {{ _("Active") if u.is_active else _("Inactive") }}
                     </span>
                 </td>
@@ -34,25 +34,25 @@
                 <td>{{ u.goal_count }}</td>
                 <td>
                     <div class="flex gap-sm">
-                        <button class="btn-sm"
+                        <button class="btn" data-variant="primary" data-size="sm"
                                 hx-get="/admin/users/{{ u.id }}/detail"
                                 hx-target="#admin-user-detail"
                                 hx-swap="innerHTML">
                             {{ _("Detail") }}
                         </button>
-                        <button class="btn-sm"
+                        <button class="btn" data-variant="primary" data-size="sm"
                                 hx-post="/admin/users/{{ u.id }}/toggle-admin"
                                 hx-target="#admin-user-table"
                                 hx-swap="outerHTML">
                             {{ _("Demote") if u.is_admin else _("Make Admin") }}
                         </button>
-                        <button class="btn-sm {{ 'btn-danger' if u.is_active else '' }}"
+                        <button class="btn" {% if u.is_active %}data-variant="danger"{% else %}data-variant="primary"{% endif %} data-size="sm"
                                 hx-post="/admin/users/{{ u.id }}/toggle-active"
                                 hx-target="#admin-user-table"
                                 hx-swap="outerHTML">
                             {{ _("Deactivate") if u.is_active else _("Activate") }}
                         </button>
-                        <button class="btn-danger btn-sm"
+                        <button class="btn" data-variant="danger" data-size="sm"
                                 hx-delete="/admin/users/{{ u.id }}"
                                 hx-target="#admin-user-table"
                                 hx-swap="outerHTML"

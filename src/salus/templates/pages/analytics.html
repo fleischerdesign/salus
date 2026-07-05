@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "components/ui/btn/macro.html" import btn %}
 {% block title_suffix %} — {{ _("Analytics") }}{% endblock %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -9,18 +8,13 @@
 <h1 style="font:var(--font-headline-lg);margin:0 0 4px 0">{{ _("Analytics") }}</h1>
 <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 24px 0">{{ _("Metabolic & Activity Trends") }}</p>
 
-<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+{% call chip_row() %}
     {% for value, label in range_buttons %}
-    <button class="btn" data-variant="{% if active_range == value %}secondary{% else %}small{% endif %}"
-        hx-get="/analytics/data?range={{ value }}"
-        hx-target="#analytics-grid"
-        hx-swap="outerHTML">
-        {{ _(label) }}
-    </button>
+    {{ btn(_(label), variant="secondary" if active_range == value else "small", hx_get="/analytics/data?range=" + value, hx_target="#analytics-grid", hx_swap="outerHTML") }}
     {% endfor %}
-</div>
+{% endcall %}
 
-<div id="analytics-grid">
+<div id="analytics-grid" style="margin-top:24px">
     {% include "components/analytics/grid.html" %}
 </div>
 
