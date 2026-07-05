@@ -1,18 +1,8 @@
-<div class="card">
-    <div class="card__header">
-        <h3 class="card__header-title">{{ _("Developer Plugins") }}</h3>
-        <div class="card__header-action">
-            <button class="btn" data-variant="primary" data-size="sm"
-                    hx-get="/admin/plugins/upload-modal"
-                    hx-target="#modal-container"
-                    hx-swap="innerHTML">
-                {{ _("Install Plugin") }}
-            </button>
-        </div>
-    </div>
-    <div class="card__body" id="admin-plugins-container">
+{% set install_btn = btn(_("Install Plugin"), variant="primary", size="sm", hx_get="/admin/plugins/upload-modal", hx_target="#modal-container", hx_swap="innerHTML") %}
+{% call card(title=_("Developer Plugins"), header_action=install_btn) %}
+    <div id="admin-plugins-container">
         {% include "components/admin/plugin_table.html" %}
     </div>
-</div>
+{% endcall %}
 
 <div id="modal-container"></div>

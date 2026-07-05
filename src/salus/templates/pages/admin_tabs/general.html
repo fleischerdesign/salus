@@ -1,80 +1,67 @@
-<div class="card">
-    <div class="card__header">
-        <h3 class="card__header-title">{{ _("System Configuration") }}</h3>
-    </div>
-    <div class="card__body">
-        {% for cat in config_categories %}
-        {% set cat_items = config_by_cat.get(cat, []) %}
-        {% if cat_items %}
-        <div style="margin-bottom:16px">
-            <h4 style="font:var(--font-label-sm);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-slate-500);margin-bottom:8px;padding:0 4px">{{ cat }}</h4>
-            <div id="admin-config-{{ cat }}">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>{{ _("Setting") }}</th>
-                            <th>{{ _("Value") }}</th>
-                            <th>{{ _("Source") }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in cat_items %}
-                        <tr>
-                            <td>
-                                <div style="font:var(--font-body-sm);font-weight:600">{{ item.description }}</div>
-                                <div style="font:var(--font-label-sm);color:var(--color-slate-500)">{{ item.key }}</div>
-                            </td>
-                            <td>
-                                {% if item.is_secret %}
-                                <span style="font:var(--font-body-sm)">&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</span>
-                                <button class="btn" data-variant="ghost" data-size="sm"
-                                        hx-get="/admin/config/{{ item.key }}/reveal"
-                                        hx-target="closest td"
-                                        hx-swap="innerHTML"
-                                        title="{{ _('Reveal value') }}">
-                                    <span class="material-symbols-outlined" style="font-size:16px">visibility</span>
-                                </button>
-                                {% else %}
-                                <span style="font:var(--font-body-sm);{% if item.is_env_override %}color:var(--color-slate-400){% endif %}">{{ item.value }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.is_env_override %}
-                                <span class="chip" data-variant="warning" title="{{ _('Set via') }} {{ item.env_var_name }}">ENV</span>
-                                {% else %}
-                                <span class="chip" data-variant="neutral">DB</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if not item.is_env_override %}
-                                <button class="btn" data-variant="primary" data-size="sm"
-                                        hx-get="/admin/config/{{ item.key }}/edit"
-                                        hx-target="#admin-config-{{ cat }}"
-                                        hx-swap="outerHTML">
-                                    {{ _("Edit") }}
-                                </button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+{% call card(title=_("System Configuration")) %}
+    {% for cat in config_categories %}
+    {% set cat_items = config_by_cat.get(cat, []) %}
+    {% if cat_items %}
+    <div style="margin-bottom:16px">
+        <h4 style="font:var(--font-label-sm);text-transform:uppercase;letter-spacing:0.05em;color:var(--color-slate-500);margin-bottom:8px;padding:0 4px">{{ cat }}</h4>
+        <div id="admin-config-{{ cat }}">
+            {% call table(headers=[_("Setting"), _("Value"), _("Source"), ""]) %}
+                {% for item in cat_items %}
+                <tr>
+                    <td>
+                        <div style="font:var(--font-body-sm);font-weight:600">{{ item.description }}</div>
+                        <div style="font:var(--font-body-sm);color:var(--color-slate-500);font:var(--font-label-sm)">{{ item.key }}</div>
+                    </td>
+                    <td>
+                        {% if item.is_secret and not item.editing %}
+                        <span style="font:var(--font-body-sm)">••••••••</span>
+                        {{ btn(icon="visibility", variant="ghost", size="sm",
+                               hx_get="/admin/config/" + item.key + "/reveal",
+                               hx_target="closest td",
+                               hx_swap="innerHTML",
+                               aria_label=_("Reveal value")) }}
+                        {% elif item.editing %}
+                        <input type="text" name="value" form="config-edit-{{ category }}" value="{{ item.value }}" style="font-size:13px;padding:4px 8px;width:200px" autofocus>
+                        {% else %}
+                        <span style="font:var(--font-body-sm);{% if item.is_env_override %}color:var(--color-slate-400){% endif %}">{{ item.value }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.is_env_override %}
+                        {{ chip(_("ENV"), variant="warning", style="font-size:11px") }}
+                        {% else %}
+                        {{ chip(_("DB"), variant="neutral", style="font-size:11px") }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not item.is_env_override %}
+                        {% if item.editing %}
+                        <form id="config-edit-{{ category }}" hx-put="/admin/config/{{ item.key }}" hx-target="#admin-config-{{ category }}" hx-swap="outerHTML" style="display:inline">
+                            {{ btn(_("Save"), variant="primary", size="sm", type="submit") }}
+                        </form>
+                        {{ btn(_("Cancel"), variant="ghost", size="sm", hx_get="/admin/config/" + category, hx_target="#admin-config-" + category, hx_swap="outerHTML") }}
+                        {% else %}
+                        {{ btn(_("Edit"), variant="primary", size="sm",
+                               hx_get="/admin/config/" + item.key + "/edit",
+                               hx_target="#admin-config-" + category,
+                               hx_swap="outerHTML") }}
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endcall %}
         </div>
-        {% endif %}
-        {% endfor %}
-        <p style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:8px">
-            {{ _("Settings marked ENV are controlled by environment variables and cannot be edited here.") }}
-        </p>
     </div>
-</div>
+    {% endif %}
+    {% endfor %}
+    <p style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:8px">
+        {{ _("Settings marked ENV are controlled by environment variables and cannot be edited here.") }}
+    </p>
+{% endcall %}
 
-<div class="card" style="margin-top:24px">
-    <div class="card__header">
-        <h3 class="card__header-title">{{ _("Encrypted Backups (Zero-Knowledge)") }}</h3>
-    </div>
-    <div class="card__body" id="admin-backups-container">
+{% call card(title=_("Encrypted Backups (Zero-Knowledge)"), style="margin-top:24px") %}
+    <div id="admin-backups-container">
         {% include "components/admin/backup_table.html" %}
     </div>
-</div>
+{% endcall %}

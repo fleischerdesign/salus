@@ -1,4 +1,4 @@
-<div class="card">
+{% call card() %}
     <div class="card__header">
         <h3 class="card__header-title">{{ _("API Tokens") }}</h3>
         <div class="card__header-action">
@@ -44,4 +44,4 @@
         <p style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("No API tokens created yet.") }}</p>
         {% endif %}
     </div>
-</div>
+{% endcall %}

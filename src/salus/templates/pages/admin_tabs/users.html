@@ -1,18 +1,8 @@
-<div class="card">
-    <div class="card__header">
-        <h3 class="card__header-title">{{ _("Users") }}</h3>
-    </div>
-    <div class="card__body">
-        {% include "components/admin/user_table.html" %}
-        <div id="admin-user-detail" style="margin-top:24px"></div>
-    </div>
-</div>
+{% call card(title=_("Users")) %}
+    {% include "components/admin/user_table.html" %}
+    <div id="admin-user-detail" style="margin-top:24px"></div>
+{% endcall %}
 
-<div class="card" style="margin-top:24px">
-    <div class="card__header">
-        <h3 class="card__header-title">{{ _("API Tokens") }}</h3>
-    </div>
-    <div class="card__body">
-        {% include "components/admin/token_table.html" %}
-    </div>
-</div>
+{% call card(title=_("API Tokens"), style="margin-top:24px") %}
+    {% include "components/admin/token_table.html" %}
+{% endcall %}

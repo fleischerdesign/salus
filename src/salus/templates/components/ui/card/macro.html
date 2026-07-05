@@ -11,7 +11,7 @@
      {% endcall %}
  #}
 
-{% macro card(title=none, icon=none, variant=none, hoverable=false, clickable=false, href=none, id=none, style=none, class=none) %}
+{% macro card(title=none, icon=none, header_action=none, variant=none, hoverable=false, clickable=false, href=none, id=none, style=none, class=none) %}
     {% set tag = "a" if href else "div" %}
     <{{ tag }}
         class="card{% if class %} {{ class }}{% endif %}"
@@ -22,13 +22,16 @@
         {% if style %}style="{{ style }}"{% endif %}
         {% if href %}href="{{ href }}"{% endif %}
     >
-        {% if title or icon %}
+        {% if title or icon or header_action %}
         <div class="card__header">
             {% if icon %}
             <span class="card__header-icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
             {% endif %}
             {% if title %}
             <h3 class="card__header-title">{{ title }}</h3>
+            {% endif %}
+            {% if header_action %}
+            <div class="card__header-action">{{ header_action|safe }}</div>
             {% endif %}
         </div>
         {% endif %}
