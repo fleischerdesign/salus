@@ -1165,22 +1165,19 @@
    Modal — @component modal
    ========================================================================== */
 
-.modal-backdrop:not([data-open]) {
-    display: none;
-}
-
-.modal-backdrop[data-open] {
-    display: flex;
-}
-
 .modal-backdrop {
     position: fixed;
     inset: 0;
     background: var(--modal-backdrop-bg);
     z-index: var(--z-modal-backdrop, 300);
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 16px;
+}
+
+.modal-backdrop[data-open] {
+    display: flex;
 }
     content: "";
     position: fixed;
