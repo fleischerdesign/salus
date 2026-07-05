@@ -1,9 +1,12 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/day-navigator/macro.html" import day_navigator %}
 {% block title_suffix %} — {{ _("Dashboard") }}{% endblock %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 {% endblock %}
 {% block content %}
+
 {% if show_onboarding %}
 {% if request.cookies.get("onboarding_modal_closed") %}
 <div id="onboarding-card">{% include "components/onboarding_card.html" %}</div>
@@ -13,28 +16,33 @@
 {% endif %}
 {% endif %}
 
-<div class="page-header">
-    <h1>{{ _("Dashboard") }}</h1>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Dashboard") }}</h1>
+
     <div id="day-navigator">
-        {% include "components/dashboard/day_navigator.html" %}
+        {{ day_navigator(display_date_formatted, prev_date, next_date, is_today, can_go_next) }}
     </div>
-    <div class="page-header-actions">
-        <button id="edit-layout-btn" class="btn-sm"
-                onclick="document.getElementById('dashboard-grid').classList.add('edit-mode');
-                         this.style.display='none';
-                         document.getElementById('done-layout-btn').style.display='';">
+
+    <div style="display:flex;gap:8px">
+        <button id="edit-layout-btn" class="btn" data-variant="small"
+            _="on click
+                add .edit-mode to #dashboard-grid
+                hide me
+                show #done-layout-btn">
             {{ _("Edit Layout") }}
         </button>
-        <button id="done-layout-btn" class="btn-sm active" style="display:none;"
-                onclick="document.getElementById('dashboard-grid').classList.remove('edit-mode');
-                         this.style.display='none';
-                         document.getElementById('edit-layout-btn').style.display='';">
+        <button id="done-layout-btn" class="btn" data-variant="primary" data-size="sm" style="display:none"
+            _="on click
+                remove .edit-mode from #dashboard-grid
+                hide me
+                show #edit-layout-btn">
             {{ _("Done") }}
         </button>
-        <button class="btn-sm edit-layout-only"
-                hx-get="/dashboard/widgets/add-modal"
-                hx-target="body"
-                hx-swap="beforeend">
+        <button class="btn" data-variant="small" style="display:none"
+            _="on load if #dashboard-grid matches .edit-mode then show me end"
+            hx-get="/dashboard/widgets/add-modal"
+            hx-target="body"
+            hx-swap="beforeend">
             + {{ _("Add Widget") }}
         </button>
     </div>
@@ -79,7 +87,6 @@
         }
     });
 
-    // Global Tooltip Management
     var tooltip = document.getElementById('chart-tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
@@ -90,7 +97,6 @@
     document.addEventListener('mouseover', function(e) {
         var trigger = e.target.closest('[data-tooltip]');
         if (!trigger) return;
-        
         tooltip.innerHTML = trigger.getAttribute('data-tooltip');
         tooltip.classList.add('visible');
         positionTooltip(e);

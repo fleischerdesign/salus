@@ -1,27 +1,43 @@
-{% from "components/ui/modal.html" import modal %}
-{% from "components/ui/select.html" import select %}
+{% from "components/ui/btn/macro.html" import btn %}
 
-{% call modal(title=_("Add Widget")) %}
-<form hx-post="/dashboard/widgets/add"
-      hx-on::afterRequest="this.closest('.modal-backdrop').remove()">
-    <div class="form-stack">
-        {% call select(name="metric_type_id", label=_("Metric"), id="add-widget-metric") %}
-            {% for m in metrics %}
-            <option value="{{ m.id }}">{{ m.name }}</option>
-            {% endfor %}
-        {% endcall %}
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="add-widget-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <h2 class="modal__title" id="add-widget-title">{{ _("Add Widget") }}</h2>
+        <div class="modal__body">
+            <form hx-post="/dashboard/widgets/add"
+                  hx-on::afterRequest="this.closest('.modal-backdrop').remove()">
+                <div class="form-stack">
+                    <div class="input">
+                        <label class="input__label" for="add-widget-metric">{{ _("Metric") }}</label>
+                        <select id="add-widget-metric" name="metric_type_id" class="input__field">
+                            {% for m in metrics %}
+                            <option value="{{ m.id }}">{{ m.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-        {% call select(name="size", label=_("Size"), id="add-widget-size") %}
-            <option value="small">{{ _("Small (1 column)") }}</option>
-            <option value="medium" selected>{{ _("Medium (2 columns)") }}</option>
-            <option value="large">{{ _("Large (4 columns)") }}</option>
-        {% endcall %}
+                    <div class="input">
+                        <label class="input__label" for="add-widget-size">{{ _("Size") }}</label>
+                        <select id="add-widget-size" name="size" class="input__field">
+                            <option value="small">{{ _("Small (1 column)") }}</option>
+                            <option value="medium" selected>{{ _("Medium (2 columns)") }}</option>
+                            <option value="large">{{ _("Large (4 columns)") }}</option>
+                        </select>
+                    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn">{{ _("Add") }}</button>
-            <button type="button" class="btn-ghost"
-                    onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                        {{ btn(_("Add"), variant="primary") }}
+                        <button type="button" class="btn" data-variant="ghost"
+                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-</form>
-{% endcall %}
+</div>
