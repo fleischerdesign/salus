@@ -208,15 +208,32 @@
         <section class="ds-section" id="modal">
             <h2>Modal <code>modal</code></h2>
             <div class="ds-spacing">
-                {{ btn("Open Modal", variant="primary") }}
+                <button class="btn" data-variant="primary" type="button"
+                    _="on click show the next .modal-backdrop">Open Modal</button>
             </div>
-            {% call modal(title="Example Modal") %}
-                <p style="font:var(--font-body-sm);color:var(--color-slate-500)">This is a modal dialog. Press Escape or click the backdrop to close.</p>
-                {% call modal_footer() %}
-                    {{ btn("Cancel", variant="ghost") }}
-                    {{ btn("Save", variant="primary") }}
-                {% endcall %}
-            {% endcall %}
+            <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="example-modal-title"
+                 style="display:none"
+                 _="on click if event.target === me then hide me end
+                    on keydown[key is 'Escape'] hide me">
+                <div class="modal-content" style="max-width: 400px;">
+                    <button class="modal__close" aria-label="Close" type="button"
+                        _="on click hide closest .modal-backdrop">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                    <h2 class="modal__title" id="example-modal-title">Example Modal</h2>
+                    <div class="modal__body">
+                        <p style="font:var(--font-body-sm);color:var(--color-slate-500)">
+                            This is a modal dialog. Press Escape or click the backdrop to close.
+                        </p>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn" data-variant="ghost" type="button"
+                            _="on click hide closest .modal-backdrop">Cancel</button>
+                        <button class="btn" data-variant="primary" type="button"
+                            _="on click hide closest .modal-backdrop">Save</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section class="ds-section" id="select">
@@ -586,15 +603,29 @@
         <section class="ds-section" id="confirm">
             <h2>Confirm Dialog <code>confirm</code></h2>
             <div class="ds-spacing">
-                {{ btn("Delete Item", variant="danger") }}
+                <button class="btn" data-variant="danger" type="button"
+                    _="on click show the next .modal-backdrop">Delete Item</button>
             </div>
-            {% call confirm_dialog(title="Delete Item?", variant="danger") %}
-                This action cannot be undone. All data associated with this item will be permanently removed.
-                <div class="confirm__actions" style="margin-top:24px">
-                    {{ confirm_button("Cancel", variant="ghost") }}
-                    {{ confirm_button("Delete", variant="danger") }}
+            <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ds-confirm-title"
+                 style="display:none"
+                 _="on click if event.target === me then hide me end
+                    on keydown[key is 'Escape'] hide me">
+                <div class="modal-content" style="max-width: 400px;">
+                    <span class="confirm__icon" data-variant="danger" aria-hidden="true">
+                        <span class="material-symbols-outlined" style="font-size:48px">warning</span>
+                    </span>
+                    <h2 class="confirm__title" id="ds-confirm-title">Delete Item?</h2>
+                    <div class="confirm__message">
+                        This action cannot be undone. All data associated with this item will be permanently removed.
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
+                        <button class="btn" data-variant="ghost" type="button"
+                            _="on click hide closest .modal-backdrop">Cancel</button>
+                        <button class="btn" data-variant="danger" type="button"
+                            _="on click hide closest .modal-backdrop">Delete</button>
+                    </div>
                 </div>
-            {% endcall %}
+            </div>
         </section>
 
         <section class="ds-section" id="cookie-consent">
