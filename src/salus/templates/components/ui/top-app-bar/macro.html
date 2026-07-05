@@ -1,0 +1,20 @@
+{# vim: set ft=htmldjango: Top App Bar #}
+{% macro top_app_bar(logo_text="salus", logo_href="/", current_user=none) %}
+    <header class="top-app-bar" role="banner">
+        <a href="{{ logo_href }}" class="top-app-bar__logo" aria-label="Home">{{ logo_text }}</a>
+        <nav class="top-app-bar__nav" aria-label="Main navigation">
+            {{ caller() if caller else "" }}
+        </nav>
+        <span class="top-app-bar__spacer"></span>
+        <div class="top-app-bar__actions">
+            {% if current_user %}{{ user_menu(current_user) }}{% else %}{{ btn("Sign In", href="/auth/login", variant="primary") }}{% endif %}
+        </div>
+        <button class="top-app-bar__hamburger" aria-label="Toggle navigation" aria-expanded="false" type="button"
+            _="on click toggle @aria-expanded then toggle .show on next <nav/>">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+    </header>
+{% endmacro %}
+{% macro top_app_bar_link(text, href, current=false) %}
+    <a href="{{ href }}" class="top-app-bar__nav-link" {% if current %}aria-current="page"{% endif %}>{{ text }}</a>
+{% endmacro %}

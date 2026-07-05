@@ -1,0 +1,7 @@
+{# vim: set ft=htmldjango: Tab Bar #}
+{% macro tab_bar(tabs=[], active=none) %}
+    <div class="tab-bar" role="tablist">{% for tab in tabs %}
+        <button class="tab-bar__tab" role="tab" aria-selected="{{ 'true' if tab.value == active else 'false' }}"
+            hx-get="{{ tab.href }}" hx-target="#tab-content" hx-swap="innerHTML">{{ tab.label }}</button>{% endfor %}
+    </div>
+{% endmacro %}

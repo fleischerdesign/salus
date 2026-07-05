@@ -1,0 +1,9 @@
+/* ==========================================================================
+   Day Navigator — @component day-navigator
+   ========================================================================== */
+.day-nav { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: var(--color-slate-50); border-radius: var(--radius-md); }
+.day-nav__arrow { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: var(--radius-full); cursor: pointer; color: var(--color-slate-600); font-size: 20px; transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default); }
+.day-nav__arrow:hover { background: var(--color-primary-50); color: var(--color-primary); }
+.day-nav__arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+.day-nav__date { font: var(--font-label-md); color: var(--color-on-surface); cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); transition: color var(--duration-fast) var(--ease-default); }
+.day-nav__date:hover { color: var(--color-primary); }

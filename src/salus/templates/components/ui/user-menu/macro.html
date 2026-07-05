@@ -1,0 +1,21 @@
+{# vim: set ft=htmldjango: User Menu #}
+{% macro user_menu(user) %}
+    <div class="user-menu">
+        <button class="user-menu__trigger" aria-expanded="false" aria-haspopup="true" aria-label="User menu — {{ user.display_name or user.username }}"
+            _="on click toggle @aria-expanded then halt else halt">
+            {{ avatar(user.display_name or user.username, size="sm") }}
+        </button>
+        <div class="user-menu__dropdown" role="menu">
+            <div class="user-menu__header">
+                <div class="user-menu__name">{{ user.display_name or user.username }}</div>
+                {% if user.email %}<div class="user-menu__email">{{ user.email }}</div>{% endif %}
+            </div>
+            {{ caller() if caller else "" }}
+        </div>
+    </div>
+{% endmacro %}
+{% macro user_menu_item(text, href=none, danger=false) %}
+    {% set tag = "a" if href else "button" %}
+    <{{ tag }} {% if href %}href="{{ href }}"{% endif %} class="user-menu__item {% if danger %}user-menu__item--danger{% endif %}" role="menuitem" type="{% if not href %}button{% endif %}">{{ text }}</{{ tag }}>
+{% endmacro %}
+{% macro user_menu_separator() %}<div class="user-menu__separator" aria-hidden="true"></div>{% endmacro %}

@@ -1,0 +1,16 @@
+/* ==========================================================================
+   Top App Bar — @component top-app-bar
+   ========================================================================== */
+.top-app-bar { position: sticky; top: 0; z-index: var(--z-sticky, 200); background: #ffffff; border-bottom: 1px solid var(--color-slate-200); height: 64px; display: flex; align-items: center; padding: 0 16px; transition: box-shadow 200ms var(--ease-default); }
+.top-app-bar[data-scrolled] { box-shadow: var(--shadow-sm); }
+.top-app-bar__logo { font: var(--font-headline-md); color: var(--color-primary); text-decoration: none; flex-shrink: 0; }
+.top-app-bar__nav { display: flex; align-items: center; gap: 0; margin-left: 32px; height: 100%; }
+.top-app-bar__nav-link { font: var(--font-label-md); color: var(--nav-link-color, var(--color-slate-600)); text-decoration: none; padding: 0 16px; height: 100%; display: flex; align-items: center; border-bottom: 2px solid transparent; transition: color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default); }
+.top-app-bar__nav-link:hover { color: var(--nav-link-hover-color, var(--color-primary)); }
+.top-app-bar__nav-link[aria-current="page"] { color: var(--nav-link-active-color, var(--color-primary)); border-bottom-color: var(--color-primary); }
+.top-app-bar__spacer { flex: 1; }
+.top-app-bar__actions { display: flex; align-items: center; gap: 8px; }
+
+/* Mobile */
+.top-app-bar__hamburger { display: none; background: transparent; border: none; cursor: pointer; padding: 8px; color: var(--color-slate-700); font-size: 24px; }
+@media (max-width: 1024px) { .top-app-bar__nav { display: none; } .top-app-bar__hamburger { display: flex; } }

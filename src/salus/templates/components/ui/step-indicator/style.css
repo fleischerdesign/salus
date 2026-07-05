@@ -1,0 +1,31 @@
+/* ==========================================================================
+   Step Indicator — @component step-indicator
+   ========================================================================== */
+
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.step-indicator__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-slate-300);
+    transition: background var(--duration-fast) var(--ease-default);
+    flex-shrink: 0;
+}
+
+.step-indicator__dot[data-state="active"] {
+    background: var(--color-primary-500);
+}
+
+.step-indicator__dot[data-state="completed"] {
+    background: var(--color-tertiary-500);
+}
+
+.step-indicator__dot[data-state="error"] {
+    background: var(--color-error-500);
+}

@@ -1,0 +1,21 @@
+{# vim: set ft=htmldjango:
+   Alert Banner — @component alert-banner
+   Usage:
+     {{ alert_banner("Profile saved.", variant="success") }}
+     {{ alert_banner("Could not connect.", variant="error", dismissible=true) }}
+ #}
+
+{% macro alert_banner(message, variant="info", title=none, dismissible=false) %}
+    {% set icons = {"success": "check_circle", "error": "error", "warning": "warning", "info": "info"} %}
+    <div class="alert-banner" data-variant="{{ variant }}" role="{% if variant == 'error' %}alert{% else %}status{% endif %}">
+        <span class="alert-banner__icon material-symbols-outlined" aria-hidden="true">{{ icons[variant] }}</span>
+        <div class="alert-banner__content">
+            {% if title %}<div class="alert-banner__title">{{ title }}</div>{% endif %}
+            {{ message }}
+        </div>
+        {% if dismissible %}
+        <button class="alert-banner__close material-symbols-outlined" aria-label="Dismiss"
+                type="button" _="on click remove closest .alert-banner">close</button>
+        {% endif %}
+    </div>
+{% endmacro %}

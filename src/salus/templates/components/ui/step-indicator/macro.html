@@ -1,0 +1,19 @@
+{# vim: set ft=htmldjango:
+   Step Indicator — @component step-indicator
+   Usage:
+     {{ step_indicator(total=3, current=0) }}
+ #}
+
+{% macro step_indicator(total, current) %}
+    <ol class="step-indicator" role="list" aria-label="Progress">
+        {% for i in range(total) %}
+        <li>
+            <span class="step-indicator__dot"
+                  data-state="{% if i < current %}completed{% elif i == current %}active{% endif %}"
+                  aria-current="{% if i == current %}step{% endif %}"
+                  aria-label="Step {{ i + 1 }} of {{ total }}{% if i < current %} — completed{% endif %}">
+            </span>
+        </li>
+        {% endfor %}
+    </ol>
+{% endmacro %}

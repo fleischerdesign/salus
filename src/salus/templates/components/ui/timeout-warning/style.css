@@ -1,0 +1,28 @@
+/* ==========================================================================
+   Timeout Warning — @component timeout-warning
+   ========================================================================== */
+
+.timeout-timer {
+    font: var(--font-headline-lg);
+    font-family: var(--font-family-mono);
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-on-surface);
+    margin: 16px 0;
+}
+
+.timeout-timer[data-urgent] {
+    color: var(--color-error-500);
+    animation: timeout-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timeout-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .timeout-timer[data-urgent] {
+        animation: none;
+    }
+}

@@ -1,0 +1,11 @@
+{# vim: set ft=htmldjango: List Item #}
+{% macro list_item(primary, secondary=none, icon=none, action=none) %}
+    <div class="list-item">
+        {% if icon %}<span class="list-item__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>{% endif %}
+        <div class="list-item__body">
+            <div class="list-item__primary">{{ primary }}</div>
+            {% if secondary %}<div class="list-item__secondary">{{ secondary }}</div>{% endif %}
+        </div>
+        {% if action %}<div class="list-item__action">{{ action }}</div>{% endif %}
+    </div>
+{% endmacro %}

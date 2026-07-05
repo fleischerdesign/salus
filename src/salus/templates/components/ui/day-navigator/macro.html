@@ -1,0 +1,45 @@
+{# vim: set ft=htmldjango:
+   Day Navigator — @component day-navigator
+   Usage:
+     {{ day_navigator(date="2026-07-05", prev="2026-07-04", next="2026-07-06", is_today=false) }}
+ #}
+
+{% macro day_navigator(date_display, prev_date, next_date, is_today=false, can_go_next=true) %}
+    <div class="day-nav" role="navigation" aria-label="Date navigation">
+        <button
+            class="day-nav__arrow"
+            hx-get="/dashboard/grid?date={{ prev_date }}"
+            hx-target="#dashboard-content"
+            hx-swap="innerHTML"
+            aria-label="Previous day"
+            type="button"
+        >
+            <span class="material-symbols-outlined" aria-hidden="true" style="font-size:20px">chevron_left</span>
+        </button>
+
+        <span class="day-nav__date">{{ date_display }}</span>
+
+        <button
+            class="day-nav__arrow"
+            hx-get="/dashboard/grid?date={{ next_date }}"
+            hx-target="#dashboard-content"
+            hx-swap="innerHTML"
+            aria-label="Next day"
+            type="button"
+            {% if not can_go_next %}disabled{% endif %}
+        >
+            <span class="material-symbols-outlined" aria-hidden="true" style="font-size:20px">chevron_right</span>
+        </button>
+
+        {% if not is_today %}
+        <button
+            class="btn"
+            data-variant="small"
+            hx-get="/dashboard/grid"
+            hx-target="#dashboard-content"
+            hx-swap="innerHTML"
+            type="button"
+        >Today</button>
+        {% endif %}
+    </div>
+{% endmacro %}

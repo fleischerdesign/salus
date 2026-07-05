@@ -1,0 +1,2 @@
+{# vim: set ft=htmldjango: Chip Row #}
+{% macro chip_row() %}<div class="chip-row">{{ caller() if caller else "" }}</div>{% endmacro %}
