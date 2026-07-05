@@ -1,0 +1,39 @@
+{# vim: set ft=htmldjango:
+   Button — @component btn
+
+   Usage:
+     {{ btn("Save", variant="primary") }}
+     {{ btn("Cancel", variant="ghost") }}
+     {{ btn(variant="danger", icon="delete", label="Delete") }}
+     {{ btn(icon="close", aria_label="Close") }}
+
+   Variants: primary | secondary | ghost | danger | small
+   Sizes: sm (via data-size)
+   States: disabled | loading
+ #}
+
+{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, full_width_mobile=true, class=none) %}
+    {% set tag = "a" if href else "button" %}
+    <{{ tag }}
+        class="btn {{ class or '' }}"
+        data-variant="{{ variant }}"
+        {% if size %}data-size="{{ size }}"{% endif %}
+        {% if icon and not label %}data-icon-only{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if loading %}aria-busy="true" disabled{% endif %}
+        {% if href %}href="{{ href }}"{% endif %}
+        {% if full_width_mobile %}data-full-width-mobile{% endif %}
+        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% if not href %}type="button"{% endif %}
+    >
+        {% if loading %}
+        <span class="btn__spinner" aria-hidden="true"></span>
+        {% endif %}
+        {% if icon %}
+        <span class="btn__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
+        {% endif %}
+        {% if label %}
+        <span class="btn__label">{{ label }}</span>
+        {% endif %}
+    </{{ tag }}>
+{% endmacro %}
