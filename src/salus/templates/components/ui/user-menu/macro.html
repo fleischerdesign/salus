@@ -7,6 +7,8 @@
    Usage: {{ user_menu(current_user) }}
  #}
 
+{% from "components/ui/avatar/macro.html" import avatar %}
+
 {% macro user_menu(user) %}
     {% set display = user.display_name or user.username %}
     {% set initial = display[:1].upper() %}
