@@ -1,55 +1,51 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
 {% block title_suffix %} — {{ _("Exercises") }}{% endblock %}
 {% block content %}
-<div class="page-header">
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
-        <h1>{{ _("Exercise Library") }}</h1>
-        <p class="text-muted">{{ _("Browse cataloged movements or add custom exercises to use in your training plans.") }}</p>
+        <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Exercise Library") }}</h1>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Browse cataloged movements or add custom exercises to use in your training plans.") }}</p>
     </div>
-    <div>
-        <button class="btn"
-                hx-get="/workouts/exercises/new"
-                hx-target="#modal-container"
-                hx-swap="innerHTML">
-            {{ _("New Exercise") }}
-        </button>
-    </div>
+    {{ btn(_("New Exercise"), variant="primary", hx_get="/workouts/exercises/new", hx_target="#modal-container", hx_swap="innerHTML") }}
 </div>
 
 <div id="modal-container"></div>
 
-<div style="max-width: 800px; margin: 0 auto;">
-    <div class="card">
-        <div style="display:flex;flex-direction:column;gap:12px;padding-top:12px;">
+<div style="max-width:800px;margin:0 auto">
+    <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:24px">
+        <div style="display:flex;flex-direction:column;gap:12px">
             {% for ex in exercises %}
-            <div style="padding:10px 14px;border:1px solid var(--color-slate-200);border-radius:6px;background:var(--color-surface-container-lowest);display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <div style="padding:10px 14px;border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);background:var(--color-slate-50);display:flex;justify-content:space-between;align-items:center;gap:12px">
                 <div>
-                    <div style="font-weight:600;font-size:14px;color:var(--color-slate-800);">{{ ex.name }}</div>
-                    <div style="font-size:11px;" class="text-muted">
-                        <span style="text-transform:capitalize;">{{ ex.equipment }}</span> &bull; 
-                        Target: <span style="text-transform:capitalize;color:var(--color-primary-700);">{{ ex.primary_muscles.replace(',', ', ') }}</span>
+                    <div style="font-weight:600;font:var(--font-body-md);color:var(--color-on-surface)">{{ ex.name }}</div>
+                    <div style="font:var(--font-caption);color:var(--color-slate-500)">
+                        <span style="text-transform:capitalize">{{ ex.equipment }}</span> &middot;
+                        {{ _("Target") }}: <span style="text-transform:capitalize;color:var(--color-primary-700)">{{ ex.primary_muscles.replace(',', ', ') }}</span>
                     </div>
                 </div>
-                <div style="display:flex;gap:4px;">
+                <div style="display:flex;gap:4px">
                     {% if ex.video_url %}
-                    <a href="{{ ex.video_url }}" target="_blank" class="btn-ghost btn-sm" title="Watch tutorial">
-                        <span class="material-symbols-outlined" style="font-size:18px;">smart_display</span>
+                    <a href="{{ ex.video_url }}" target="_blank" class="btn" data-variant="ghost" title="{{ _('Watch tutorial') }}">
+                        <span class="material-symbols-outlined" style="font-size:18px">smart_display</span>
                     </a>
                     {% endif %}
                     {% if ex.user_id %}
-                    <button class="btn-ghost btn-sm" style="color:var(--color-danger-600);"
+                    <button class="btn" data-variant="ghost" style="color:var(--color-error-600)"
                             hx-delete="/api/v1/workouts/exercises/{{ ex.id }}"
                             hx-swap="none"
-                            onclick="setTimeout(() => window.location.reload(), 200)">
-                        <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+                            _="on click wait 200ms then reload() the location of the window">
+                        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
                     </button>
                     {% endif %}
                 </div>
             </div>
             {% else %}
-            <p class="text-muted" style="text-align:center;">{{ _("No exercises cataloged.") }}</p>
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;padding:16px">{{ _("No exercises cataloged.") }}</p>
             {% endfor %}
         </div>
     </div>
 </div>
+
 {% endblock %}

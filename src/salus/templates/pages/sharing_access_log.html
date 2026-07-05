@@ -1,63 +1,51 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/chip/macro.html" import chip %}
 {% block title_suffix %} — {{ _("Access Log") }}{% endblock %}
 {% block content %}
-<div class="page-header">
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
-        <h1>{{ _("Federation Access Log") }}</h1>
-        <p class="text-muted">{{ _("A record of when connected peers accessed your shared health data.") }}</p>
+        <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Federation Access Log") }}</h1>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("A record of when connected peers accessed your shared health data.") }}</p>
     </div>
-    <div class="page-header-actions">
-        <a href="/sharing/connections" class="btn btn-secondary">
-            <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
-            {{ _("Back to Connections") }}
-        </a>
-    </div>
+    <a href="/sharing/connections" class="btn" data-variant="secondary">
+        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">arrow_back</span>
+        {{ _("Back to Connections") }}
+    </a>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ _("Recent Access Events") }}</h3>
-        <span class="chip chip-neutral">{{ logs|length }}</span>
+<div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font:var(--font-headline-md);margin:0">{{ _("Recent Access Events") }}</h3>
+        {{ chip(logs|length | string, variant="neutral") }}
     </div>
     {% if logs %}
-    <table class="data-grid">
-        <thead>
-            <tr>
-                <th>{{ _("Requester") }}</th>
-                <th>{{ _("Data Type") }}</th>
-                <th>{{ _("Date Requested") }}</th>
-                <th>{{ _("Accessed At") }}</th>
-            </tr>
-        </thead>
+    <table class="table">
+        <thead><tr>
+            <th>{{ _("Requester") }}</th>
+            <th>{{ _("Data Type") }}</th>
+            <th>{{ _("Date Requested") }}</th>
+            <th>{{ _("Accessed At") }}</th>
+        </tr></thead>
         <tbody>
             {% for log in logs %}
             <tr>
-                <td>
-                    <span style="font-weight:600;font-size:14px;color:var(--color-primary);">{{ log.requester_handle }}</span>
-                </td>
-                <td>
-                    <span class="chip chip-neutral" style="font-size:12px;">{{ log.data_type }}</span>
-                </td>
-                <td>
-                    <span style="font-size:13px;">{{ log.target_date }}</span>
-                </td>
-                <td>
-                    <span style="font-size:13px;" title="{{ log.accessed_at.isoformat() }}">
-                        {{ log.accessed_at.strftime('%Y-%m-%d %H:%M') }}
-                    </span>
-                </td>
+                <td><span style="font-weight:600;color:var(--color-primary)">{{ log.requester_handle }}</span></td>
+                <td>{{ chip(log.data_type, variant="neutral") }}</td>
+                <td>{{ log.target_date }}</td>
+                <td title="{{ log.accessed_at.isoformat() }}">{{ log.accessed_at.strftime('%Y-%m-%d %H:%M') }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <div class="empty-state" style="padding:32px;text-align:center;">
-        <span class="material-symbols-outlined empty-state-icon">visibility_off</span>
-        <h3 class="empty-state-title">{{ _("No Access Events") }}</h3>
-        <p class="text-muted empty-state-text">
-            {{ _("No peer has accessed your shared data via federation yet.") }}
-        </p>
+    <div style="text-align:center;padding:32px">
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-400);opacity:0.4">visibility_off</span>
+        <h3 style="font:var(--font-headline-md);color:var(--color-slate-700);margin:16px 0 8px 0">{{ _("No Access Events") }}</h3>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("No peer has accessed your shared data via federation yet.") }}</p>
     </div>
     {% endif %}
 </div>
+
 {% endblock %}

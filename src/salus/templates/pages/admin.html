@@ -1,38 +1,40 @@
 {% extends "base.html" %}
 {% block title_suffix %} — {{ _("Admin") }}{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1>{{ _("Admin Panel") }}</h1>
-</div>
+
+<h1 style="font:var(--font-headline-lg);margin:0 0 24px 0">{{ _("Admin Panel") }}</h1>
 
 <div class="tabbed-layout">
-    <!-- Left Sidebar Sub-Navigation -->
-    <aside class="tabbed-sidebar" onclick="const a = event.target.closest('.tabbed-sidebar-link'); if(a){ this.querySelectorAll('.tabbed-sidebar-link').forEach(el => el.classList.remove('active')); a.classList.add('active'); }">
+    <nav class="tabbed-sidebar" aria-label="Admin navigation">
         <a hx-get="/admin" hx-target="#admin-content" hx-push-url="true"
-           class="tabbed-sidebar-link {% if active_tab == 'general' %}active{% endif %}">
-            <span class="material-symbols-outlined">settings</span>
+           class="tabbed-sidebar__link {% if active_tab == 'general' %}active{% endif %}"
+           {% if active_tab == 'general' %}aria-current="page"{% endif %}>
+            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">settings</span>
             {{ _("General") }}
         </a>
         <a hx-get="/admin/users" hx-target="#admin-content" hx-push-url="true"
-           class="tabbed-sidebar-link {% if active_tab == 'users' %}active{% endif %}">
-            <span class="material-symbols-outlined">group</span>
+           class="tabbed-sidebar__link {% if active_tab == 'users' %}active{% endif %}"
+           {% if active_tab == 'users' %}aria-current="page"{% endif %}>
+            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">group</span>
             {{ _("Users") }}
         </a>
         <a hx-get="/admin/stats" hx-target="#admin-content" hx-push-url="true"
-           class="tabbed-sidebar-link {% if active_tab == 'stats' %}active{% endif %}">
-            <span class="material-symbols-outlined">monitoring</span>
+           class="tabbed-sidebar__link {% if active_tab == 'stats' %}active{% endif %}"
+           {% if active_tab == 'stats' %}aria-current="page"{% endif %}>
+            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">monitoring</span>
             {{ _("Statistics") }}
         </a>
         <a hx-get="/admin/plugins" hx-target="#admin-content" hx-push-url="true"
-           class="tabbed-sidebar-link {% if active_tab == 'plugins' %}active{% endif %}">
-            <span class="material-symbols-outlined">extension</span>
+           class="tabbed-sidebar__link {% if active_tab == 'plugins' %}active{% endif %}"
+           {% if active_tab == 'plugins' %}aria-current="page"{% endif %}>
+            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">extension</span>
             {{ _("Plugins") }}
         </a>
-    </aside>
+    </nav>
 
-    <!-- Right Panel Content -->
-    <div id="admin-content" class="flex-1">
+    <div id="admin-content" style="flex:1;min-width:0;padding:24px">
         {% include "pages/admin_tabs/" + active_tab + ".html" %}
     </div>
 </div>
+
 {% endblock %}

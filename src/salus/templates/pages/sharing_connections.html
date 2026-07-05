@@ -1,39 +1,34 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
+{% from "components/ui/chip/macro.html" import chip %}
 {% block title_suffix %} — {{ _("Connections") }}{% endblock %}
 {% block content %}
-<div class="page-header">
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
-        <h1>{{ _("Connections") }}</h1>
-        <p class="text-muted">{{ _("Manage your data sharing connections and invite new peers.") }}</p>
+        <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Connections") }}</h1>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Manage your data sharing connections and invite new peers.") }}</p>
     </div>
-    <div class="page-header-actions">
-        <button class="btn btn-secondary"
-                hx-get="/sharing/connections/invite-modal"
-                hx-target="#modal-container"
-                hx-swap="innerHTML">
-            <span class="material-symbols-outlined" style="font-size:18px">qr_code_2</span>
-            {{ _("Invite Link") }}
-        </button>
-    </div>
+    {{ btn(_("Invite Link"), variant="secondary", hx_get="/sharing/connections/invite-modal", hx_target="#modal-container", hx_swap="innerHTML") }}
 </div>
 
 <div id="modal-container"></div>
 
 {% if new_tokens %}
-<div class="alert alert-success" role="alert" style="display:block; margin-bottom: 24px; padding: 16px; border-radius: 8px;">
-    <h4 style="margin-top:0; margin-bottom:8px; font-weight:600; display:flex; align-items:center; gap:8px;">
-        <span class="material-symbols-outlined" style="color:var(--color-success-600)">check_circle</span>
+<div style="background:var(--color-tertiary-50);border:1px solid var(--color-tertiary-300);border-radius:var(--radius-md);padding:16px;margin-bottom:24px" role="alert">
+    <h4 style="margin:0 0 8px 0;font:var(--font-body-md);font-weight:600;display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="color:var(--color-tertiary-600)">check_circle</span>
         {{ _("Sharing Invitation Created for") }} <strong>{{ grantee_handle }}</strong>
     </h4>
-    <p>{{ _("Please copy these security token(s) now. For security reasons, you will not be able to see them again once you leave this page.") }}</p>
-    <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+    <p style="font:var(--font-body-sm);margin:0">{{ _("Please copy these security token(s) now. For security reasons, you will not be able to see them again once you leave this page.") }}</p>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
         {% for item in new_tokens %}
-        <div style="display:flex; align-items:center; gap:8px; background:var(--color-slate-50); padding:8px 12px; border-radius:6px; border:1px solid var(--color-slate-200);">
-            <span class="chip chip-neutral" style="margin:0;">{{ item.metric }}</span>
-            <code id="raw-token-{{ loop.index }}" style="font-size:13px; background:var(--color-slate-100); padding:4px 8px; border-radius:4px; font-family:monospace; flex:1; overflow-x:auto;">{{ item.token }}</code>
-            <button class="btn btn-sm btn-secondary" onclick="navigator.clipboard.writeText('{{ item.token }}'); this.innerText='{{ _("Copied!") }}'; setTimeout(()=>this.innerText='{{ _("Copy") }}', 2000)">
-                {{ _("Copy") }}
-            </button>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--color-slate-50);padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--color-slate-200)">
+            {{ chip(item.metric, variant="neutral") }}
+            <code style="font:var(--font-code-sm);background:var(--color-slate-100);padding:4px 8px;border-radius:var(--radius-sm);flex:1;overflow-x:auto">{{ item.token }}</code>
+            <button class="btn" data-variant="small"
+                _="on click writeText('{{ item.token }}') into the navigator's clipboard then put '{{ _("Copied!") }}' into me then wait 2s then put '{{ _("Copy") }}' into me">{{ _("Copy") }}</button>
         </div>
         {% endfor %}
     </div>
@@ -41,91 +36,86 @@
 {% endif %}
 
 {% if error %}
-<div class="alert alert-error" role="alert">
-    <span class="material-symbols-outlined" style="font-size:18px">error</span>
-    <span>{{ error }}</span>
-</div>
+{{ alert_banner(error, variant="error") }}
 {% endif %}
 
 {% include "components/sharing/pending_invitations.html" %}
 
-<div class="connections-layout" id="peer-list">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Invite a Peer") }}</h3>
-        </div>
-        <form method="post" action="/sharing" class="form-stack">
-            <div class="input-group">
-                <label for="grantee_handle">{{ _("Peer Handle") }}</label>
-                <input type="text" id="grantee_handle" name="grantee_handle"
-                       placeholder="@username"
-                       value="{{ connect_to_prefill or '' }}" required>
-                <span class="input-hint">
-                    {{ _("Use <code>@username</code> for local users, or <code>@username:domain</code> for remote servers.") }}
-                </span>
-            </div>
-
-            <div class="input-group">
-                <label>{{ _("Metrics to Share") }}</label>
-                <div class="metric-select-list">
-                    {% for metric in metrics %}
-                    <div class="metric-select-row">
-                        <label class="metric-select-label">
-                            <input type="checkbox" name="metric_type_ids" value="{{ metric.id }}">
-                            <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:20px">{{ metric.icon }}</span>
-                            <span class="metric-select-name">{{ metric.name }}</span>
-                        </label>
-                        <select name="aggregation_level_{{ metric.id }}" class="metric-select-agg">
-                            <option value="daily_summary">{{ _("Summary") }}</option>
-                            <option value="raw">{{ _("Raw Logs") }}</option>
-                        </select>
-                    </div>
-                    {% endfor %}
+<div style="display:flex;flex-direction:column;gap:16px" id="peer-list">
+    <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:24px">
+        <h3 style="font:var(--font-headline-md);margin:0 0 16px 0">{{ _("Invite a Peer") }}</h3>
+        <form method="post" action="/sharing">
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div>
+                    <label for="grantee_handle" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Peer Handle") }}</label>
+                    <input type="text" id="grantee_handle" name="grantee_handle" placeholder="@username"
+                           value="{{ connect_to_prefill or '' }}" required
+                           style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
+                    <span style="font:var(--font-body-sm);color:var(--color-slate-500);display:block;margin-top:4px">
+                        {{ _("Use <code>@username</code> for local users, or <code>@username:domain</code> for remote servers.") | safe }}
+                    </span>
                 </div>
-            </div>
 
-            <div class="input-group">
-                <label for="expiration_days">{{ _("Expiration (Optional)") }}</label>
-                <input type="number" id="expiration_days" name="expiration_days"
-                       placeholder="{{ _('e.g. 30 days') }}" min="1">
-            </div>
+                <div>
+                    <label style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:8px">{{ _("Metrics to Share") }}</label>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        {% for metric in metrics %}
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px;background:var(--color-slate-50);border-radius:var(--radius-sm)">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font:var(--font-body-sm)">
+                                <input type="checkbox" name="metric_type_ids" value="{{ metric.id }}" style="width:16px;height:16px">
+                                <span class="material-symbols-outlined" style="color:{{ metric.color }};font-size:20px">{{ metric.icon }}</span>
+                                {{ metric.name }}
+                            </label>
+                            <select name="aggregation_level_{{ metric.id }}" style="padding:4px 8px;font:var(--font-body-sm);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);background:var(--color-surface-container-lowest)">
+                                <option value="daily_summary">{{ _("Summary") }}</option>
+                                <option value="raw">{{ _("Raw Logs") }}</option>
+                            </select>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn">
-                    <span class="material-symbols-outlined" style="font-size:18px">share</span>
-                    {{ _("Share & Invite") }}
-                </button>
+                <div>
+                    <label for="expiration_days" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Expiration (Optional)") }}</label>
+                    <input type="number" id="expiration_days" name="expiration_days" placeholder="{{ _('e.g. 30 days') }}" min="1"
+                           style="width:200px;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
+                </div>
+
+                <div style="display:flex;justify-content:flex-end">
+                    {{ btn(_("Share") + " & " + _("Invite"), variant="primary") }}
+                </div>
             </div>
         </form>
     </div>
 
     {% if peers %}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ _("Active Connections") }}</h3>
-            <span class="chip chip-neutral">{{ peers|length }}</span>
+    <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font:var(--font-headline-md);margin:0">{{ _("Active Connections") }}</h3>
+            {{ chip(peers|length | string, variant="neutral") }}
         </div>
-        <div class="peer-grid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
             {% for peer in peers %}
                 {% include "components/sharing/peer_card.html" %}
             {% endfor %}
         </div>
     </div>
     {% else %}
-    <div class="card empty-state-card">
-        <span class="material-symbols-outlined empty-state-icon">contacts</span>
-        <h3 class="empty-state-title">{{ _("No Connections Yet") }}</h3>
-        <p class="text-muted empty-state-text">
+    <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:48px 24px;text-align:center">
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-400);opacity:0.4">contacts</span>
+        <h3 style="font:var(--font-headline-md);color:var(--color-slate-700);margin:16px 0 8px 0">{{ _("No Connections Yet") }}</h3>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0;max-width:400px;margin-left:auto;margin-right:auto">
             {{ _("Invite a peer using the form to start sharing your health data.") }}
         </p>
     </div>
     {% endif %}
 </div>
 
-<div style="margin-top:16px;text-align:right;">
-    <a href="/sharing/access-log" class="btn btn-secondary btn-sm">
-        <span class="material-symbols-outlined" style="font-size:16px">visibility</span>
+<div style="margin-top:16px;text-align:right">
+    <a href="/sharing/access-log" class="btn" data-variant="small">
+        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">visibility</span>
         {{ _("View Access Log") }}
     </a>
 </div>
+
 {% endblock %}
