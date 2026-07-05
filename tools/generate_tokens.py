@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DESIGN_MD = ROOT / "DESIGN.md"
 OUTPUT_CSS = ROOT / "src" / "salus" / "static" / "tokens.css"
 
-PALETTE_SCALES = ("primary", "secondary", "tertiary", "error", "warning")
+PALETTE_SCALES = ("primary", "secondary", "tertiary", "error", "warning", "slate")
 
 SECTION_TO_PREFIX = {
     "colors": "color",
@@ -277,10 +277,6 @@ def derive_dark_colors(light_colors: dict) -> dict[str, str]:
     for key, value in light_colors.items():
         if key.startswith("metric-") or key.startswith("rank-"):
             dark[key] = _dim_metric(value)
-
-    slate_keys = {k for k in light_colors if k.startswith("slate-")}
-    for k in slate_keys:
-        dark[k] = light_colors[k]
 
     for key, value in light_colors.items():
         if key in dark:
