@@ -45,7 +45,7 @@ class AutoImportLoader(BaseLoader):
         self, environment: Environment, template: str
     ) -> tuple[str, str | None, Callable[[], bool] | None]:
         source, filename, uptodate = self._delegate.get_source(environment, template)
-        if "components/ui/" not in str(filename):
+        if "/macro.html" not in str(filename):
             source = get_macro_imports() + source
         return source, filename, uptodate
 
