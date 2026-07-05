@@ -12,12 +12,11 @@ if TYPE_CHECKING:
 MACRO_RE = re.compile(r'{%\s*macro\s+(\w+)\s*\(')
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
-COMPONENTS_DIR = TEMPLATES_DIR / "components" / "ui"
 
 
 def _build_macro_index() -> str:
     lines: list[str] = []
-    for macro_path in sorted(COMPONENTS_DIR.glob("*/macro.html")):
+    for macro_path in sorted(TEMPLATES_DIR.rglob("*/macro.html")):
         rel = str(macro_path.relative_to(TEMPLATES_DIR))
         content = macro_path.read_text(encoding="utf-8")
         names = MACRO_RE.findall(content)
