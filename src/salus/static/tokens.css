@@ -233,7 +233,7 @@
   --btn-icon-size: 28px;
   --btn-icon-bg: transparent;
   --btn-icon-radius: var(--radius-full);
-  --card-bg: #ffffff;
+  --card-bg: var(--color-surface-container-lowest);
   --card-border: 1px solid var(--color-slate-200);
   --card-radius: var(--radius-md);
   --card-padding: var(--space-lg);
@@ -332,7 +332,7 @@
   --breadcrumb-hover-color: var(--color-primary);
   --breadcrumb-active-color: var(--color-slate-900);
   --breadcrumb-separator-color: var(--color-slate-400);
-  --context-menu-bg: #ffffff;
+  --context-menu-bg: var(--color-surface-container-lowest);
   --context-menu-shadow: var(--shadow-lg);
   --context-menu-radius: var(--radius-md);
   --context-menu-item-padding: 8px 12px;
@@ -342,7 +342,7 @@
   --day-navigator-radius: var(--radius-md);
   --day-navigator-date-hover-color: var(--color-primary);
   --drawer-width: 280px;
-  --drawer-bg: #ffffff;
+  --drawer-bg: var(--color-surface-container-lowest);
   --drawer-shadow: var(--shadow-xl);
   --drawer-backdrop-color: rgba(0,0,0,0.3);
   --drawer-z-index: 300;
@@ -367,7 +367,7 @@
   --tab-bar-hover-bg: var(--color-slate-100);
   --tabbed-sidebar-width: 240px;
   --top-app-bar-height: 64px;
-  --top-app-bar-bg: #ffffff;
+  --top-app-bar-bg: var(--color-surface-container-lowest);
   --top-app-bar-border: 1px solid var(--color-slate-200);
   --user-menu-avatar-size: 36px;
   --select-bg: var(--color-slate-50);

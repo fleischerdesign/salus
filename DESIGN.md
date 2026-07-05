@@ -315,7 +315,7 @@ components:
     rounded: "{rounded.full}"
 
   card:
-    backgroundColor: "#ffffff"
+    backgroundColor: "{colors.surface-container-lowest}"
     border: "1px solid {colors.slate-200}"
     rounded: "{rounded.md}"
     padding: "{spacing.lg}"
@@ -476,7 +476,7 @@ components:
     separator-color: "{colors.slate-400}"
   context-menu:
     responsive: false
-    backgroundColor: "#ffffff"
+    backgroundColor: "{colors.surface-container-lowest}"
     shadow: "{shadows.lg}"
     rounded: "{rounded.md}"
     item-padding: 8px 12px
@@ -488,7 +488,7 @@ components:
     date-hover-color: "{colors.primary}"
   drawer:
     width: 280px
-    backgroundColor: "#ffffff"
+    backgroundColor: "{colors.surface-container-lowest}"
     shadow: "{shadows.xl}"
     backdrop-color: "rgba(0,0,0,0.3)"
     z-index: 300
@@ -520,7 +520,7 @@ components:
     width: 240px
   top-app-bar:
     height: 64px
-    backgroundColor: "#ffffff"
+    backgroundColor: "{colors.surface-container-lowest}"
     border: "1px solid {colors.slate-200}"
   user-menu:
     responsive: false
