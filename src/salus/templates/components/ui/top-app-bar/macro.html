@@ -1,20 +1,67 @@
-{# vim: set ft=htmldjango: Top App Bar #}
+{# vim: set ft=htmldjango:
+   Top App Bar — @component top-app-bar
+
+   Usage:
+     {% call top_app_bar(logo_text="salus") %}
+       {{ top_app_bar_link("Dashboard", "/") }}
+       {% call nav_dropdown("Metrics") %}
+         {{ nav_dropdown_item("Steps", "/entries?metric_type_id=1") }}
+       {% endcall %}
+     {% endcall %}
+
+   The caller slot renders navigation links.
+   User menu is auto-rendered when current_user is provided.
+ #}
+
+{% from "components/ui/user-menu/macro.html" import user_menu %}
+{% from "components/ui/btn/macro.html" import btn %}
+
 {% macro top_app_bar(logo_text="salus", logo_href="/", current_user=none) %}
-    <header class="top-app-bar" role="banner">
+    <header class="top-app-bar" role="banner"
+            _="init
+               on scroll from window
+                   if window.scrollY > 8
+                       then add @data-scrolled
+                       else remove @data-scrolled
+                   end
+               end">
+
         <a href="{{ logo_href }}" class="top-app-bar__logo" aria-label="Home">{{ logo_text }}</a>
+
         <nav class="top-app-bar__nav" aria-label="Main navigation">
-            {% if caller is defined %}{{ caller() }}{% endif %}
+            {% if caller %}{{ caller() }}{% endif %}
         </nav>
+
         <span class="top-app-bar__spacer"></span>
+
         <div class="top-app-bar__actions">
-            {% if current_user %}{{ user_menu(current_user) }}{% else %}{{ btn("Sign In", href="/auth/login", variant="primary") }}{% endif %}
+            {% if current_user %}
+                {{ user_menu(current_user) }}
+            {% else %}
+                {{ btn("Sign In", variant="primary", href="/auth/login", full_width_mobile=false) }}
+            {% endif %}
         </div>
-        <button class="top-app-bar__hamburger" aria-label="Toggle navigation" aria-expanded="false" type="button"
-            _="on click toggle @aria-expanded then toggle .show on next <nav/>">
-            <span class="material-symbols-outlined">menu</span>
+
+        {% if current_user %}
+        <button class="top-app-bar__hamburger" aria-label="Toggle navigation" aria-expanded="false"
+                type="button"
+                _="on click
+                    if @aria-expanded is 'true'
+                        set @aria-expanded to 'false'
+                        remove @data-open from #drawer-overlay
+                    else
+                        set @aria-expanded to 'true'
+                        add @data-open to #drawer-overlay
+                    end">
+            <span class="material-symbols-outlined" aria-hidden="true">menu</span>
         </button>
+        {% endif %}
     </header>
 {% endmacro %}
+
+
 {% macro top_app_bar_link(text, href, current=false) %}
-    <a href="{{ href }}" class="top-app-bar__nav-link" {% if current %}aria-current="page"{% endif %}>{{ text }}</a>
+    <a href="{{ href }}" class="top-app-bar__nav-link" {% if current %}aria-current="page"{% endif %}>
+        {{ text }}
+    </a>
 {% endmacro %}

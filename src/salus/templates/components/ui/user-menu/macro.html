@@ -1,21 +1,51 @@
-{# vim: set ft=htmldjango: User Menu #}
+{# vim: set ft=htmldjango:
+   User Menu — @component user-menu
+
+   Renders avatar trigger + dropdown with standard items:
+     Settings, Admin (if user.is_admin), separator, Logout
+
+   Usage: {{ user_menu(current_user) }}
+ #}
+
 {% macro user_menu(user) %}
     <div class="user-menu">
-        <button class="user-menu__trigger" aria-expanded="false" aria-haspopup="true" aria-label="User menu — {{ user.display_name or user.username }}"
-            _="on click toggle @aria-expanded then halt else halt">
-            {{ avatar(user.display_name or user.username, size="sm") }}
+        <button class="user-menu__trigger" aria-expanded="false" aria-haspopup="true"
+                aria-label="User menu — {{ user.display_name or user.username }}"
+                type="button"
+                _="on click toggle @aria-expanded
+                   on click outside add @aria-expanded='false'">
+            <span class="avatar" data-size="sm" role="img"
+                  aria-label="{{ user.display_name or user.username }}">
+                {{ (user.display_name or user.username)[:1].upper() }}
+            </span>
         </button>
+
         <div class="user-menu__dropdown" role="menu">
             <div class="user-menu__header">
                 <div class="user-menu__name">{{ user.display_name or user.username }}</div>
                 {% if user.email %}<div class="user-menu__email">{{ user.email }}</div>{% endif %}
             </div>
-            {% if caller is defined %}{{ caller() }}{% endif %}
+
+            <a href="/settings" class="user-menu__item" role="menuitem">
+                <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">settings</span>
+                Settings
+            </a>
+
+            {% if user.is_admin %}
+            <a href="/admin" class="user-menu__item" role="menuitem">
+                <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">admin_panel_settings</span>
+                Admin
+            </a>
+            {% endif %}
+
+            <div class="user-menu__separator" aria-hidden="true"></div>
+
+            <form method="post" action="/auth/logout">
+                <button type="submit" class="user-menu__item user-menu__item--danger" role="menuitem">
+                    <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">logout</span>
+                    Logout
+                </button>
+            </form>
         </div>
     </div>
 {% endmacro %}
-{% macro user_menu_item(text, href=none, danger=false) %}
-    {% set tag = "a" if href else "button" %}
-    <{{ tag }} {% if href %}href="{{ href }}"{% endif %} class="user-menu__item {% if danger %}user-menu__item--danger{% endif %}" role="menuitem" type="{% if not href %}button{% endif %}">{{ text }}</{{ tag }}>
-{% endmacro %}
-{% macro user_menu_separator() %}<div class="user-menu__separator" aria-hidden="true"></div>{% endmacro %}
