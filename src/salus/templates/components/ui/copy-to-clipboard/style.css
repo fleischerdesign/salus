@@ -1,0 +1,8 @@
+/* ==========================================================================
+   Copy to Clipboard — @component copy-to-clipboard
+   ========================================================================== */
+.copy-clipboard { display: flex; align-items: center; gap: 8px; }
+.copy-clipboard__target { font: var(--font-code-sm); background: var(--color-slate-100); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-slate-200); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-clipboard__btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: var(--radius-full); color: var(--color-slate-500); transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default); }
+.copy-clipboard__btn:hover { background: var(--color-slate-100); color: var(--color-slate-700); }
+.copy-clipboard__btn[data-copied] { color: var(--color-tertiary-600); }

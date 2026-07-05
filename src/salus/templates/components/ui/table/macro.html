@@ -1,0 +1,7 @@
+{# vim: set ft=htmldjango: Table — @component table #}
+{% macro table(headers=[], rows=[], compact=false) %}
+    <table class="table {% if compact %}table--compact{% endif %}">
+        <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+{% endmacro %}

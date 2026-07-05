@@ -1,0 +1,9 @@
+/* ==========================================================================
+   Search Input — @component search-input
+   ========================================================================== */
+.search-input { position: relative; }
+.search-input .input__field { padding-left: 38px; padding-right: 38px; }
+.search-input__icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-slate-400); pointer-events: none; }
+.search-input__clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-slate-400); background: transparent; border: none; cursor: pointer; padding: 0; display: none; }
+.search-input input:not(:placeholder-shown) ~ .search-input__clear { display: block; }
+.search-input__clear:hover { color: var(--color-slate-600); }

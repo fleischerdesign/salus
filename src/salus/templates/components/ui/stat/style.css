@@ -1,0 +1,13 @@
+/* ==========================================================================
+   Stat — @component stat
+   ========================================================================== */
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat__value { font: var(--font-headline-lg); color: var(--color-on-surface); display: flex; align-items: baseline; gap: 4px; }
+.stat__value--hero { font: var(--font-display); }
+.stat__unit { font: var(--font-body-md); color: var(--color-slate-500); font-weight: 400; }
+.stat__label { font: var(--font-label-sm); color: var(--color-slate-500); }
+.stat__delta { font: var(--font-label-sm); font-weight: 600; }
+.stat__delta[data-trend="up"] { color: var(--color-tertiary-600); }
+.stat__delta[data-trend="down"] { color: var(--color-error-600); }
+.stat__delta[data-trend="neutral"] { color: var(--color-slate-500); }
+.stat__fallback { color: var(--color-slate-400); }

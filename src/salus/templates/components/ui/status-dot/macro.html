@@ -1,0 +1,4 @@
+{# vim: set ft=htmldjango: Status Dot #}
+{% macro status_dot(status="active") %}
+    <span class="status-dot" data-status="{{ status }}" aria-label="{{ status }}"></span>
+{% endmacro %}

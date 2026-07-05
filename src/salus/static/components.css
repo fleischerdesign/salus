@@ -453,6 +453,18 @@
 }
 
 
+/* @source src/salus/templates/components/ui/copy-to-clipboard/style.css */
+
+/* ==========================================================================
+   Copy to Clipboard — @component copy-to-clipboard
+   ========================================================================== */
+.copy-clipboard { display: flex; align-items: center; gap: 8px; }
+.copy-clipboard__target { font: var(--font-code-sm); background: var(--color-slate-100); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-slate-200); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-clipboard__btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; border-radius: var(--radius-full); color: var(--color-slate-500); transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default); }
+.copy-clipboard__btn:hover { background: var(--color-slate-100); color: var(--color-slate-700); }
+.copy-clipboard__btn[data-copied] { color: var(--color-tertiary-600); }
+
+
 /* @source src/salus/templates/components/ui/divider/style.css */
 
 /* ==========================================================================
@@ -502,6 +514,17 @@
     max-width: 360px;
     margin-bottom: 24px;
 }
+
+
+/* @source src/salus/templates/components/ui/form-layout/style.css */
+
+/* ==========================================================================
+   Form Layout — @component form-layout
+   ========================================================================== */
+.form-stack { display: flex; flex-direction: column; gap: 16px; }
+.form-row { display: flex; gap: 16px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+@media (max-width: 600px) { .form-row { flex-direction: column; } .form-actions { flex-direction: column; } }
 
 
 /* @source src/salus/templates/components/ui/icon/style.css */
@@ -645,6 +668,18 @@
 }
 
 
+/* @source src/salus/templates/components/ui/key-value/style.css */
+
+/* ==========================================================================
+   Key-Value — @component key-value
+   ========================================================================== */
+.kv { display: flex; }
+.kv--vertical { flex-direction: column; gap: 2px; }
+.kv--horizontal { flex-direction: row; gap: 4px; align-items: baseline; }
+.kv__label { font: var(--font-label-sm); color: var(--color-slate-500); }
+.kv__value { font: var(--font-body-md); font-weight: 600; color: var(--color-on-surface); }
+
+
 /* @source src/salus/templates/components/ui/link/style.css */
 
 /* ==========================================================================
@@ -782,6 +817,33 @@
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(16px); }
 }
+
+
+/* @source src/salus/templates/components/ui/progress-bar/style.css */
+
+/* ==========================================================================
+   Progress Bar — @component progress-bar
+   ========================================================================== */
+.progress-bar { height: 8px; background: var(--color-slate-100); border-radius: var(--radius-full); overflow: hidden; }
+.progress-bar[data-size="lg"] { height: 16px; }
+.progress-bar[data-size="sm"] { height: 4px; }
+.progress-bar__fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 500ms var(--ease-default); }
+.progress-bar__fill[data-variant="success"] { background: var(--color-tertiary); }
+.progress-bar__fill[data-variant="warning"] { background: var(--color-warning); }
+.progress-bar__fill[data-variant="error"] { background: var(--color-error); }
+
+
+/* @source src/salus/templates/components/ui/search-input/style.css */
+
+/* ==========================================================================
+   Search Input — @component search-input
+   ========================================================================== */
+.search-input { position: relative; }
+.search-input .input__field { padding-left: 38px; padding-right: 38px; }
+.search-input__icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-slate-400); pointer-events: none; }
+.search-input__clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-slate-400); background: transparent; border: none; cursor: pointer; padding: 0; display: none; }
+.search-input input:not(:placeholder-shown) ~ .search-input__clear { display: block; }
+.search-input__clear:hover { color: var(--color-slate-600); }
 
 
 /* @source src/salus/templates/components/ui/select/style.css */
@@ -936,6 +998,74 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* @source src/salus/templates/components/ui/stat/style.css */
+
+/* ==========================================================================
+   Stat — @component stat
+   ========================================================================== */
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat__value { font: var(--font-headline-lg); color: var(--color-on-surface); display: flex; align-items: baseline; gap: 4px; }
+.stat__value--hero { font: var(--font-display); }
+.stat__unit { font: var(--font-body-md); color: var(--color-slate-500); font-weight: 400; }
+.stat__label { font: var(--font-label-sm); color: var(--color-slate-500); }
+.stat__delta { font: var(--font-label-sm); font-weight: 600; }
+.stat__delta[data-trend="up"] { color: var(--color-tertiary-600); }
+.stat__delta[data-trend="down"] { color: var(--color-error-600); }
+.stat__delta[data-trend="neutral"] { color: var(--color-slate-500); }
+.stat__fallback { color: var(--color-slate-400); }
+
+
+/* @source src/salus/templates/components/ui/status-dot/style.css */
+
+/* ==========================================================================
+   Status Dot — @component status-dot
+   ========================================================================== */
+.status-dot { width: 8px; height: 8px; border-radius: var(--radius-full); flex-shrink: 0; }
+.status-dot[data-status="active"] { background: var(--color-tertiary-500); }
+.status-dot[data-status="pending"] { background: var(--color-warning-500); }
+.status-dot[data-status="error"] { background: var(--color-error-500); }
+.status-dot[data-status="unknown"] { background: var(--color-slate-400); }
+.status-dot[data-status="syncing"] { background: var(--color-primary-500); animation: status-pulse 1.8s ease-in-out infinite; }
+@keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .status-dot[data-status="syncing"] { animation: none; } }
+
+
+/* @source src/salus/templates/components/ui/table/style.css */
+
+/* ==========================================================================
+   Table — @component table
+   ========================================================================== */
+.table { width: 100%; border-collapse: collapse; font: var(--font-body-sm); }
+.table th { text-align: left; padding: 10px 16px; font: var(--font-label-sm); color: var(--color-slate-700); background: var(--color-slate-100); border-bottom: 1px solid var(--color-slate-200); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.table td { padding: 12px 16px; border-bottom: 1px solid var(--color-slate-200); color: var(--color-on-surface); }
+.table tr:hover td { background: var(--color-slate-50); }
+.table--compact th, .table--compact td { padding: 8px 12px; }
+
+
+/* @source src/salus/templates/components/ui/toast/style.css */
+
+/* ==========================================================================
+   Toast — @component toast (positioned top-right, auto-dismiss)
+   ========================================================================== */
+
+.toast-container { position: fixed; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: var(--z-tooltip, 500); max-width: 360px; width: 100%; pointer-events: none; }
+
+.toast { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); font: var(--font-body-sm); pointer-events: auto; animation: toast-in 200ms var(--ease-out); }
+
+.toast[data-variant="success"] { background: var(--color-tertiary-50); color: var(--color-tertiary-800); border: 1px solid var(--color-tertiary-200); }
+.toast[data-variant="error"] { background: var(--color-error-50); color: var(--color-error-800); border: 1px solid var(--color-error-200); }
+.toast[data-variant="warning"] { background: var(--color-warning-50); color: var(--color-warning-800); border: 1px solid var(--color-warning-200); }
+.toast[data-variant="info"] { background: var(--color-secondary-50); color: var(--color-secondary-800); border: 1px solid var(--color-secondary-200); }
+
+.toast__icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.toast__message { flex: 1; }
+.toast__close { background: transparent; border: none; cursor: pointer; padding: 0; font-size: 16px; color: inherit; opacity: 0.6; flex-shrink: 0; } .toast__close:hover { opacity: 1; }
+
+@media (max-width: 600px) { .toast-container { left: 16px; right: 16px; max-width: 100%; } }
+
+@keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 
 
 /* @source src/salus/templates/components/ui/toggle/style.css */

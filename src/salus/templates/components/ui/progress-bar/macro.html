@@ -1,0 +1,6 @@
+{# vim: set ft=htmldjango: Progress Bar — @component progress-bar #}
+{% macro progress_bar(value, max=100, variant="default", size="standard", label=none) %}
+    <div role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="{{ max }}" aria-label="{{ label or '' }}" class="progress-bar" data-size="{{ size }}">
+        <div class="progress-bar__fill" data-variant="{{ variant }}" style="width: {{ (value / max * 100) | round }}%"></div>
+    </div>
+{% endmacro %}

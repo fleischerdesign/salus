@@ -1,0 +1,12 @@
+{# vim: set ft=htmldjango: Search Input #}
+{% macro search_input(name="q", placeholder="Search...", value=none, id=none) %}
+    {% set field_id = id or name %}
+    <div class="search-input">
+        <span class="search-input__icon material-symbols-outlined" aria-hidden="true">search</span>
+        <input id="{{ field_id }}" name="{{ name }}" type="search" class="input__field" placeholder="{{ placeholder }}" value="{{ value or '' }}">
+        <button type="button" class="search-input__clear" aria-label="Clear search"
+            _="on click set value of previous <input/> to '' then hide me then trigger change on previous <input/>">
+            &times;
+        </button>
+    </div>
+{% endmacro %}

@@ -1,0 +1,4 @@
+{# vim: set ft=htmldjango: Form Layout — @component form-layout #}
+{% macro form_stack() %}<div class="form-stack">{{ caller() if caller else "" }}</div>{% endmacro %}
+{% macro form_row() %}<div class="form-row">{{ caller() if caller else "" }}</div>{% endmacro %}
+{% macro form_actions() %}<div class="form-actions">{{ caller() if caller else "" }}</div>{% endmacro %}

@@ -1,0 +1,11 @@
+/* ==========================================================================
+   Status Dot — @component status-dot
+   ========================================================================== */
+.status-dot { width: 8px; height: 8px; border-radius: var(--radius-full); flex-shrink: 0; }
+.status-dot[data-status="active"] { background: var(--color-tertiary-500); }
+.status-dot[data-status="pending"] { background: var(--color-warning-500); }
+.status-dot[data-status="error"] { background: var(--color-error-500); }
+.status-dot[data-status="unknown"] { background: var(--color-slate-400); }
+.status-dot[data-status="syncing"] { background: var(--color-primary-500); animation: status-pulse 1.8s ease-in-out infinite; }
+@keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .status-dot[data-status="syncing"] { animation: none; } }

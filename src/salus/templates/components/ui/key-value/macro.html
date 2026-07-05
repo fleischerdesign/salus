@@ -1,0 +1,4 @@
+{# vim: set ft=htmldjango: Key-Value #}
+{% macro key_value(label, value, layout="vertical") %}
+    <div class="kv kv--{{ layout }}"><span class="kv__label">{{ label }}</span><span class="kv__value">{{ value }}</span></div>
+{% endmacro %}

@@ -1,0 +1,8 @@
+/* ==========================================================================
+   Key-Value — @component key-value
+   ========================================================================== */
+.kv { display: flex; }
+.kv--vertical { flex-direction: column; gap: 2px; }
+.kv--horizontal { flex-direction: row; gap: 4px; align-items: baseline; }
+.kv__label { font: var(--font-label-sm); color: var(--color-slate-500); }
+.kv__value { font: var(--font-body-md); font-weight: 600; color: var(--color-on-surface); }
