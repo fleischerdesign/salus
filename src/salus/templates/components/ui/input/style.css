@@ -40,7 +40,7 @@
 
 .input__field:focus {
     border-color: var(--color-primary-500);
-    background: #ffffff;
+    background: var(--color-surface-container-lowest);
     box-shadow: var(--input-focus-shadow);
 }
 
