@@ -1,45 +1,61 @@
-{% from "components/ui/modal.html" import modal %}
-{% from "components/ui/select.html" import select %}
-{% from "components/ui/input.html" import input %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
 
-{% call modal(title=_("Edit Metric") if metric else _("New Metric")) %}
-<form
-    {% if metric %}hx-put="/metrics/{{ metric.id }}"{% else %}hx-post="/metrics"{% endif %}
-    hx-target="body"
-    hx-push-url="true"
->
-    <div class="form-stack">
-        {{ input(name="name", label=_("Name"), value=metric.name if metric else '', required=True, id="metric-name") }}
-        {{ input(name="unit", label=_("Unit"), value=metric.unit if metric else '', id="metric-unit") }}
-        
-        {% call select(name="data_type", label=_("Data Type"), id="metric-data-type") %}
-            <option value="number" {% if metric and metric.data_type.value == 'number' %}selected{% endif %}>{{ _("Number") }}</option>
-            <option value="text" {% if metric and metric.data_type.value == 'text' %}selected{% endif %}>{{ _("Text") }}</option>
-            <option value="boolean" {% if metric and metric.data_type.value == 'boolean' %}selected{% endif %}>{{ _("Boolean") }}</option>
-        {% endcall %}
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="metric-form-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <h2 class="modal__title" id="metric-form-title">{{ _("Edit Metric") if metric else _("New Metric") }}</h2>
+        <div class="modal__body">
+            <form
+                {% if metric %}hx-put="/metrics/{{ metric.id }}"{% else %}hx-post="/metrics"{% endif %}
+                hx-target="body"
+                hx-push-url="true">
+                <div class="form-stack">
+                    {{ input(name="name", label=_("Name"), value=metric.name if metric else '', required=true, id="metric-name") }}
+                    {{ input(name="unit", label=_("Unit"), value=metric.unit if metric else '', id="metric-unit") }}
 
-        {% call select(name="icon", label=_("Icon"), id="metric-icon") %}
-            <option value="monitoring" {% if metric and metric.icon == 'monitoring' %}selected{% endif %}>{{ _("Monitoring (default)") }}</option>
-            <option value="directions_walk" {% if metric and metric.icon == 'directions_walk' %}selected{% endif %}>{{ _("Directions Walk") }}</option>
-            <option value="monitor_heart" {% if metric and metric.icon == 'monitor_heart' %}selected{% endif %}>{{ _("Monitor Heart") }}</option>
-            <option value="bedtime" {% if metric and metric.icon == 'bedtime' %}selected{% endif %}>{{ _("Bedtime") }}</option>
-            <option value="restaurant" {% if metric and metric.icon == 'restaurant' %}selected{% endif %}>{{ _("Restaurant") }}</option>
-            <option value="monitor_weight" {% if metric and metric.icon == 'monitor_weight' %}selected{% endif %}>{{ _("Monitor Weight") }}</option>
-            <option value="exercise" {% if metric and metric.icon == 'exercise' %}selected{% endif %}>{{ _("Exercise") }}</option>
-            <option value="water_drop" {% if metric and metric.icon == 'water_drop' %}selected{% endif %}>{{ _("Water Drop") }}</option>
-            <option value="psychology" {% if metric and metric.icon == 'psychology' %}selected{% endif %}>{{ _("Psychology") }}</option>
-            <option value="checklist" {% if metric and metric.icon == 'checklist' %}selected{% endif %}>{{ _("Checklist") }}</option>
-            <option value="bloodtype" {% if metric and metric.icon == 'bloodtype' %}selected{% endif %}>{{ _("Blood Type") }}</option>
-            <option value="vital_signs" {% if metric and metric.icon == 'vital_signs' %}selected{% endif %}>{{ _("Vital Signs") }}</option>
-            <option value="body_fat" {% if metric and metric.icon == 'body_fat' %}selected{% endif %}>{{ _("Body Fat") }}</option>
-        {% endcall %}
+                    <div class="input">
+                        <label class="input__label" for="metric-data-type">{{ _("Data Type") }}</label>
+                        <select id="metric-data-type" name="data_type" class="input__field">
+                            <option value="number" {% if metric and metric.data_type.value == 'number' %}selected{% endif %}>{{ _("Number") }}</option>
+                            <option value="text" {% if metric and metric.data_type.value == 'text' %}selected{% endif %}>{{ _("Text") }}</option>
+                            <option value="boolean" {% if metric and metric.data_type.value == 'boolean' %}selected{% endif %}>{{ _("Boolean") }}</option>
+                        </select>
+                    </div>
 
-        {{ input(name="color", label=_("Color"), type="color", value=metric.color if metric else '#4f46e5', id="metric-color") }}
+                    <div class="input">
+                        <label class="input__label" for="metric-icon">{{ _("Icon") }}</label>
+                        <select id="metric-icon" name="icon" class="input__field">
+                            <option value="monitoring" {% if metric and metric.icon == 'monitoring' %}selected{% endif %}>{{ _("Monitoring (default)") }}</option>
+                            <option value="directions_walk" {% if metric and metric.icon == 'directions_walk' %}selected{% endif %}>{{ _("Directions Walk") }}</option>
+                            <option value="monitor_heart" {% if metric and metric.icon == 'monitor_heart' %}selected{% endif %}>{{ _("Monitor Heart") }}</option>
+                            <option value="bedtime" {% if metric and metric.icon == 'bedtime' %}selected{% endif %}>{{ _("Bedtime") }}</option>
+                            <option value="restaurant" {% if metric and metric.icon == 'restaurant' %}selected{% endif %}>{{ _("Restaurant") }}</option>
+                            <option value="monitor_weight" {% if metric and metric.icon == 'monitor_weight' %}selected{% endif %}>{{ _("Monitor Weight") }}</option>
+                            <option value="exercise" {% if metric and metric.icon == 'exercise' %}selected{% endif %}>{{ _("Exercise") }}</option>
+                            <option value="water_drop" {% if metric and metric.icon == 'water_drop' %}selected{% endif %}>{{ _("Water Drop") }}</option>
+                            <option value="psychology" {% if metric and metric.icon == 'psychology' %}selected{% endif %}>{{ _("Psychology") }}</option>
+                            <option value="checklist" {% if metric and metric.icon == 'checklist' %}selected{% endif %}>{{ _("Checklist") }}</option>
+                            <option value="bloodtype" {% if metric and metric.icon == 'bloodtype' %}selected{% endif %}>{{ _("Blood Type") }}</option>
+                            <option value="vital_signs" {% if metric and metric.icon == 'vital_signs' %}selected{% endif %}>{{ _("Vital Signs") }}</option>
+                            <option value="body_fat" {% if metric and metric.icon == 'body_fat' %}selected{% endif %}>{{ _("Body Fat") }}</option>
+                        </select>
+                    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn">{{ _("Save") }}</button>
-            <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
+                    {{ input(name="color", label=_("Color"), type="color", value=metric.color if metric else '#4f46e5', id="metric-color") }}
+
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                        {{ btn(_("Save"), variant="primary") }}
+                        <button type="button" class="btn" data-variant="ghost"
+                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-</form>
-{% endcall %}
+</div>

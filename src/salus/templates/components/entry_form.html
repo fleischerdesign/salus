@@ -1,36 +1,49 @@
-{% from "components/ui/modal.html" import modal %}
-{% from "components/ui/select.html" import select %}
-{% from "components/ui/input.html" import input %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
 
-{% call modal(title=_("Edit Entry") if entry else _("New Entry")) %}
-<form
-    {% if entry %}hx-put="/entries/{{ entry.id }}"{% else %}hx-post="/entries"{% endif %}
-    hx-target="body"
-    hx-push-url="true"
->
-    <div class="form-stack">
-        {% call select(name="metric_type_id", label=_("Metric"), required=True, id="entry-metric") %}
-            {% for m in metrics %}
-            <option value="{{ m.id }}"
-                {% if entry and entry.metric_type_id == m.id %}selected{% endif %}
-                {% if not entry and selected_metric_id == m.id %}selected{% endif %}>
-                {{ m.name }}
-            </option>
-            {% endfor %}
-        {% endcall %}
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="entry-form-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <h2 class="modal__title" id="entry-form-title">{{ _("Edit Entry") if entry else _("New Entry") }}</h2>
+        <div class="modal__body">
+            <form
+                {% if entry %}hx-put="/entries/{{ entry.id }}"{% else %}hx-post="/entries"{% endif %}
+                hx-target="body"
+                hx-push-url="true">
+                <div class="form-stack">
+                    <div class="input">
+                        <label class="input__label" for="entry-metric">{{ _("Metric") }}</label>
+                        <select id="entry-metric" name="metric_type_id" class="input__field" required>
+                            {% for m in metrics %}
+                            <option value="{{ m.id }}"
+                                {% if entry and entry.metric_type_id == m.id %}selected{% endif %}
+                                {% if not entry and selected_metric_id == m.id %}selected{% endif %}>
+                                {{ m.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-        {{ input(name="value", label=_("Value"), value=entry.display_value if entry else '', required=True, id="entry-value") }}
-        
-        {{ input(name="timestamp", label=_("Timestamp"), type="datetime-local", 
-                    value=entry.start_time.strftime('%Y-%m-%dT%H:%M') if entry and entry.start_time else '', 
-                    id="entry-timestamp") }}
-        
-        {{ input(name="notes", label=_("Notes"), value=entry.notes if entry else '', id="entry-notes") }}
+                    {{ input(name="value", label=_("Value"), value=entry.display_value if entry else '', required=true, id="entry-value") }}
 
-        <div class="form-actions">
-            <button type="submit" class="btn">{{ _("Save") }}</button>
-            <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
+                    {{ input(name="timestamp", label=_("Timestamp"), type="datetime-local",
+                                value=entry.start_time.strftime('%Y-%m-%dT%H:%M') if entry and entry.start_time else '',
+                                id="entry-timestamp") }}
+
+                    {{ input(name="notes", label=_("Notes"), value=entry.notes if entry else '', id="entry-notes") }}
+
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                        {{ btn(_("Save"), variant="primary") }}
+                        <button type="button" class="btn" data-variant="ghost"
+                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-</form>
-{% endcall %}
+</div>

@@ -1,24 +1,23 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
 {% block title_suffix %} — {{ _("Entries") }}{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1>{{ _("Entries") }}</h1>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+    <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Entries") }}</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        {{ btn(_("New Entry"), variant="primary", hx_get="/entries/new" + ("?metric_type_id=" + selected_metric_id | string if selected_metric_id else ""), hx_target="#modal-container", hx_swap="innerHTML") }}
+        <a href="/metrics" class="btn" data-variant="secondary" style="display:inline-flex;align-items:center;gap:4px">
+            <span class="material-symbols-outlined" style="font-size:16px">settings</span>
+            {{ _("Configure Metrics") }}
+        </a>
+    </div>
 </div>
 
-<div class="flex-wrap gap-sm mb-md" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-    <button class="btn"
-        hx-get="/entries/new{% if selected_metric_id %}?metric_type_id={{ selected_metric_id }}{% endif %}"
-        hx-target="#modal-container"
-        hx-swap="innerHTML">
-        {{ _("New Entry") }}
-    </button>
-    <a href="/metrics" class="btn btn-secondary flex-center gap-xs" style="display:inline-flex; align-items:center; gap:4px; text-decoration:none;">
-        <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">settings</span>
-        {{ _("Configure Metrics") }}
-    </a>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
     {% for metric in metrics %}
     <a href="/entries?metric_type_id={{ metric.id }}"
-       class="btn-sm {% if selected_metric_id == metric.id %}active{% endif %}">
+       class="btn" data-variant="{% if selected_metric_id == metric.id %}secondary{% else %}small{% endif %}">
         {{ metric.name }}
     </a>
     {% endfor %}
@@ -27,33 +26,23 @@
 <div id="modal-container"></div>
 
 {% for entry in entries %}
-<div class="card" id="entry-{{ entry.id }}">
-    <div class="flex-between flex-wrap gap-md">
-        <div>
-            <strong>{{ entry.display_value }}</strong>
-            <span class="text-muted ml-sm">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
-            {% if entry.notes %}<span class="text-muted"> — {{ entry.notes }}</span>{% endif %}
-        </div>
-        <div class="flex gap-sm">
-            <button class="btn-sm"
-                hx-get="/entries/{{ entry.id }}/edit"
-                hx-target="#modal-container"
-                hx-swap="innerHTML">
-                {{ _("Edit") }}
-            </button>
-            <button
-                hx-delete="/entries/{{ entry.id }}"
-                hx-target="#entry-{{ entry.id }}"
-                hx-swap="outerHTML"
-                class="btn-danger">
-                {{ _("Delete") }}
-            </button>
-        </div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+            padding:16px;margin-bottom:8px;background:var(--color-surface-container-lowest);
+            border:1px solid var(--color-slate-200);border-radius:var(--radius-md)" id="entry-{{ entry.id }}">
+    <div>
+        <strong>{{ entry.display_value }}</strong>
+        <span style="font:var(--font-body-sm);color:var(--color-slate-500);margin-left:8px">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
+        {% if entry.notes %}<span style="font:var(--font-body-sm);color:var(--color-slate-500)"> — {{ entry.notes }}</span>{% endif %}
+    </div>
+    <div style="display:flex;gap:8px">
+        {{ btn(_("Edit"), variant="small", hx_get="/entries/" + entry.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
+        {{ btn(_("Delete"), variant="danger", hx_delete="/entries/" + entry.id | string, hx_target="#entry-" + entry.id | string, hx_swap="outerHTML") }}
     </div>
 </div>
 {% endfor %}
 
 {% if not entries and selected_metric_id %}
-<p class="text-muted mt-md">{{ _("No entries for this metric yet.") }}</p>
+<p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;margin-top:24px">{{ _("No entries for this metric yet.") }}</p>
 {% endif %}
+
 {% endblock %}

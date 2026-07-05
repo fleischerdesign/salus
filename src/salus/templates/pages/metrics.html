@@ -1,43 +1,30 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/card/macro.html" import card %}
+{% from "components/ui/chip/macro.html" import chip %}
 {% block title_suffix %} — {{ _("Metrics") }}{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1>{{ _("Metrics") }}</h1>
-    <div class="page-header-actions">
-        <button class="btn"
-            hx-get="/metrics/new"
-            hx-target="#modal-container"
-            hx-swap="innerHTML">
-            {{ _("New Metric") }}
-        </button>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Metrics") }}</h1>
+    <div>
+        {{ btn(_("New Metric"), variant="primary", hx_get="/metrics/new", hx_target="#modal-container", hx_swap="innerHTML") }}
     </div>
 </div>
 
 <div id="modal-container"></div>
 
-{% from "components/ui/card.html" import card %}
 {% for metric in metrics %}
-{% set header_right %}
-    <span class="chip chip-neutral">{{ metric.unit or '-' }}</span>
-    <span class="chip chip-neutral">{{ metric.data_type.value }}</span>
-{% endset %}
-
-{% call card(title=metric.name, icon=metric.icon, id="metric-" ~ metric.id, title_style="color: " ~ metric.color, header_right=header_right) %}
-    <div class="flex gap-sm">
-        <button class="btn-sm"
-            hx-get="/metrics/{{ metric.id }}/edit"
-            hx-target="#modal-container"
-            hx-swap="innerHTML">
-            {{ _("Edit") }}
-        </button>
-        <button
-            hx-delete="/metrics/{{ metric.id }}"
-            hx-target="#metric-{{ metric.id }}"
-            hx-swap="outerHTML"
-            class="btn-danger">
-            {{ _("Delete") }}
-        </button>
-    </div>
-{% endcall %}
+    {% call card(title=metric.name, icon=metric.icon) %}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            {{ chip(metric.unit or '-', variant="neutral") }}
+            {{ chip(metric.data_type.value, variant="neutral") }}
+        </div>
+        <div style="display:flex;gap:8px">
+            {{ btn(_("Edit"), variant="small", hx_get="/metrics/" + metric.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
+            {{ btn(_("Delete"), variant="danger", hx_delete="/metrics/" + metric.id | string, hx_target="#metric-" + metric.id | string, hx_swap="outerHTML") }}
+        </div>
+    {% endcall %}
 {% endfor %}
+
 {% endblock %}
