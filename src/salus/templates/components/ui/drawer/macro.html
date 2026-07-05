@@ -1,7 +1,7 @@
 {# vim: set ft=htmldjango: Drawer #}
 {% macro drawer(title="Menu") %}
     <div class="drawer-backdrop" id="drawer-overlay"
-         _="on click if event.target === me then remove @data-open
+         _="on click if event.target === me then remove @data-open end
             on keydown[key is 'Escape'] remove @data-open">
         <div class="drawer" role="dialog" aria-modal="true" aria-label="{{ title }}">
             <div class="drawer__header">
