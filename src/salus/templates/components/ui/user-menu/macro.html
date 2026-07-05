@@ -8,33 +8,32 @@
  #}
 
 {% macro user_menu(user) %}
+    {% set display = user.display_name or user.username %}
+    {% set initial = display[:1].upper() %}
     <div class="user-menu">
         <button class="user-menu__trigger" aria-expanded="false" aria-haspopup="true"
-                aria-label="User menu — {{ user.display_name or user.username }}"
+                aria-label="{{ _("User menu") }} — {{ display }}"
                 type="button"
-                _="on click toggle @aria-expanded
-                   on click outside add @aria-expanded='false'">
-            <span class="avatar" data-size="sm" role="img"
-                  aria-label="{{ user.display_name or user.username }}">
-                {{ (user.display_name or user.username)[:1].upper() }}
-            </span>
+                _="on click toggle @data-open
+                   on click outside remove @data-open">
+            {{ avatar(display, size="sm", image=user.avatar_url) }}
         </button>
 
         <div class="user-menu__dropdown" role="menu">
             <div class="user-menu__header">
-                <div class="user-menu__name">{{ user.display_name or user.username }}</div>
+                <div class="user-menu__name">{{ display }}</div>
                 {% if user.email %}<div class="user-menu__email">{{ user.email }}</div>{% endif %}
             </div>
 
             <a href="/settings" class="user-menu__item" role="menuitem">
                 <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">settings</span>
-                Settings
+                {{ _("Settings") }}
             </a>
 
             {% if user.is_admin %}
             <a href="/admin" class="user-menu__item" role="menuitem">
                 <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">admin_panel_settings</span>
-                Admin
+                {{ _("Admin") }}
             </a>
             {% endif %}
 
@@ -43,7 +42,7 @@
             <form method="post" action="/auth/logout">
                 <button type="submit" class="user-menu__item user-menu__item--danger" role="menuitem">
                     <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;vertical-align:middle" aria-hidden="true">logout</span>
-                    Logout
+                    {{ _("Logout") }}
                 </button>
             </form>
         </div>

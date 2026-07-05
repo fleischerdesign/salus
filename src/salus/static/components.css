@@ -1350,11 +1350,10 @@ img {
 
 .nav-dropdown__trigger:hover { color: var(--nav-link-hover-color, var(--color-primary)); }
 
-.nav-dropdown__trigger[aria-expanded="true"] { color: var(--nav-link-hover-color, var(--color-primary)); }
-
 .nav-dropdown__chevron { font-size: 16px; transition: transform var(--duration-fast) var(--ease-default); }
 
-.nav-dropdown__trigger[aria-expanded="true"] .nav-dropdown__chevron { transform: rotate(180deg); }
+.nav-dropdown__trigger[data-open] { color: var(--nav-link-hover-color, var(--color-primary)); }
+.nav-dropdown__trigger[data-open] .nav-dropdown__chevron { transform: rotate(180deg); }
 
 .nav-dropdown__menu {
     position: absolute; top: calc(100% + 4px); left: 0; min-width: 180px;
@@ -1363,7 +1362,7 @@ img {
     display: none;
 }
 
-.nav-dropdown__trigger[aria-expanded="true"] + .nav-dropdown__menu,
+.nav-dropdown__trigger[data-open] + .nav-dropdown__menu,
 .nav-dropdown:focus-within .nav-dropdown__menu { display: block; }
 
 .nav-dropdown__item {
@@ -2212,9 +2211,9 @@ img {
    ========================================================================== */
 .user-menu { position: relative; }
 .user-menu__trigger { background: transparent; border: none; cursor: pointer; padding: 4px; border-radius: var(--radius-full); transition: background var(--duration-fast) var(--ease-default); display: flex; }
-.user-menu__trigger:hover { background: var(--color-slate-100); }
+.user-menu__trigger:hover { background: var(--color-slate-200); }
 .user-menu__dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: var(--color-surface-container-lowest); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); min-width: 200px; padding: 4px 0; z-index: var(--z-dropdown, 100); display: none; }
-.user-menu__trigger[aria-expanded="true"] + .user-menu__dropdown { display: block; }
+.user-menu__trigger[data-open] + .user-menu__dropdown { display: block; }
 .user-menu__header { padding: 12px 16px; border-bottom: 1px solid var(--color-slate-200); }
 .user-menu__name { font: var(--font-body-md); font-weight: 600; color: var(--color-on-surface); }
 .user-menu__email { font: var(--font-caption); color: var(--color-slate-500); }

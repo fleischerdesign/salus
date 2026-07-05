@@ -1,7 +1,9 @@
 {# vim: set ft=htmldjango: Nav Dropdown #}
 {% macro nav_dropdown(label) %}
     <div class="nav-dropdown">
-        <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button">
+        <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button"
+                _="on click toggle @data-open
+                   on click outside remove @data-open">
             {{ label }} <span class="nav-dropdown__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </button>
         <div class="nav-dropdown__menu" role="menu">{% if caller is defined %}{{ caller() }}{% endif %}</div>
