@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Stepper — @component stepper
+   ========================================================================== */
+
+.stepper { display: flex; align-items: center; gap: 2px; }
+
+.stepper__btn {
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer;
+    color: var(--color-slate-600); font-size: 18px;
+    transition: background var(--duration-fast) var(--ease-default);
+}
+
+.stepper__btn:hover { background: var(--color-slate-100); }
+
+.stepper__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.stepper__input {
+    width: 56px; height: 44px; text-align: center;
+    font: var(--font-body-md); color: var(--color-on-surface);
+    background: var(--color-slate-50); border: 1px solid var(--color-slate-300);
+    border-radius: var(--radius-md);
+}
+
+.stepper__input:focus { border-color: var(--color-primary-500); outline: none; box-shadow: var(--input-focus-shadow); }

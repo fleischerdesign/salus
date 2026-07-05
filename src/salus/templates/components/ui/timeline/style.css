@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Timeline — @component timeline
+   ========================================================================== */
+
+.timeline {
+    position: relative;
+    padding-left: 32px;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--color-slate-200);
+}
+
+.timeline__item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.timeline__item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline__dot {
+    position: absolute;
+    left: -25px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-500);
+    border: 2px solid #ffffff;
+    z-index: 1;
+}
+
+.timeline__time {
+    font: var(--font-caption);
+    color: var(--color-slate-500);
+    margin-bottom: 2px;
+}
+
+.timeline__title {
+    font: var(--font-body-md);
+    font-weight: 600;
+    color: var(--color-on-surface);
+}
+
+.timeline__desc {
+    font: var(--font-body-sm);
+    color: var(--color-slate-600);
+    margin-top: 4px;
+}

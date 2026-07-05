@@ -1,0 +1,8 @@
+{# vim: set ft=htmldjango: Date Picker #}
+{% macro date_picker(name, label=none, value=none, id=none) %}
+    {% set field_id = id or name %}
+    <div class="date-picker">
+        {% if label %}<label for="{{ field_id }}" class="input__label">{{ label }}</label>{% endif %}
+        <input type="date" id="{{ field_id }}" name="{{ name }}" value="{{ value or '' }}">
+    </div>
+{% endmacro %}

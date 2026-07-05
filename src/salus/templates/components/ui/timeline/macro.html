@@ -1,0 +1,23 @@
+{# vim: set ft=htmldjango:
+   Timeline — @component timeline
+   Usage:
+     {% call timeline() %}
+       {{ timeline_item("08:15", "Morning Run", "5.2 km — 28 min") }}
+       {{ timeline_item("12:30", "Lunch", "680 kcal") }}
+     {% endcall %}
+ #}
+
+{% macro timeline() %}
+    <div class="timeline" role="list">
+        {{ caller() if caller else "" }}
+    </div>
+{% endmacro %}
+
+{% macro timeline_item(time, title, description=none) %}
+    <div class="timeline__item" role="listitem">
+        <div class="timeline__dot" aria-hidden="true"></div>
+        <div class="timeline__time">{{ time }}</div>
+        <div class="timeline__title">{{ title }}</div>
+        {% if description %}<div class="timeline__desc">{{ description }}</div>{% endif %}
+    </div>
+{% endmacro %}

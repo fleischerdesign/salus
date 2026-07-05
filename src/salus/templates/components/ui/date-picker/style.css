@@ -1,0 +1,12 @@
+/* ==========================================================================
+   Date Picker — @component date-picker
+   ========================================================================== */
+.date-picker input[type="date"] {
+    height: 44px; padding: 10px 12px; font: var(--font-body-md);
+    color: var(--color-on-surface); background: var(--color-slate-50);
+    border: 1px solid var(--color-slate-300); border-radius: var(--radius-md);
+    transition: border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default);
+}
+.date-picker input[type="date"]:focus {
+    border-color: var(--color-primary-500); box-shadow: var(--input-focus-shadow); outline: none;
+}

@@ -1,0 +1,13 @@
+/* ==========================================================================
+   Autocomplete — @component autocomplete
+   ========================================================================== */
+.autocomplete { position: relative; }
+.autocomplete__dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 280px; overflow-y: auto;
+    background: #ffffff; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown, 100); padding: 4px 0; display: none;
+}
+.autocomplete input:focus ~ .autocomplete__dropdown,
+.autocomplete__dropdown:has(:hover) { display: block; }
+.autocomplete__option { padding: 8px 12px; font: var(--font-body-sm); color: var(--color-on-surface); cursor: pointer; transition: background var(--duration-fast) var(--ease-default); }
+.autocomplete__option:hover, .autocomplete__option[data-active] { background: var(--color-slate-50); }

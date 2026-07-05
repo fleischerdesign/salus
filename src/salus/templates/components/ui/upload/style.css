@@ -1,0 +1,27 @@
+/* ==========================================================================
+   File Upload — @component upload
+   ========================================================================== */
+
+.upload-zone {
+    border: 2px dashed var(--color-slate-200); border-radius: var(--radius-md);
+    padding: 32px; text-align: center; cursor: pointer; min-height: 120px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: border-color var(--duration-fast) var(--ease-default),
+                background var(--duration-fast) var(--ease-default);
+    gap: 8px;
+}
+
+.upload-zone:hover { border-color: var(--color-primary); }
+
+.upload-zone[data-dragover] {
+    border-color: var(--color-primary); border-style: solid;
+    background: var(--color-primary-50);
+}
+
+.upload-zone__icon { font-size: 40px; color: var(--color-slate-400); }
+
+.upload-zone__label { font: var(--font-label-md); color: var(--color-slate-600); }
+
+.upload-zone__hint { font: var(--font-body-sm); color: var(--color-slate-400); }
+
+.upload-zone input[type="file"] { display: none; }

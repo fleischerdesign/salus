@@ -1,0 +1,14 @@
+{# vim: set ft=htmldjango: Tabbed Sidebar #}
+{% macro tabbed_sidebar() %}
+    <div class="tabbed-layout">
+        <nav class="tabbed-sidebar" aria-label="Section navigation">{{ caller() if caller else "" }}</nav>
+        <div class="tabbed-content" id="tab-content">
+            {{ kwargs.get("content", "") }}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro tabbed_sidebar_link(text, href, current=false) %}
+    <a href="{{ href }}" class="tabbed-sidebar__link" hx-get="{{ href }}" hx-target="#tab-content" hx-swap="innerHTML"
+       hx-push-url="true" {% if current %}aria-current="page"{% endif %}>{{ text }}</a>
+{% endmacro %}

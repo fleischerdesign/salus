@@ -1,0 +1,20 @@
+{# vim: set ft=htmldjango: Drawer #}
+{% macro drawer(title="Menu") %}
+    <div class="drawer-backdrop" id="drawer-overlay"
+         _="on click if event.target === me remove @data-open">
+        <div class="drawer" role="dialog" aria-modal="true" aria-label="{{ title }}">
+            <div class="drawer__header">
+                <h2 class="drawer__title">{{ title }}</h2>
+                <button class="btn" data-icon-only aria-label="Close"
+                        _="on click remove @data-open from #drawer-overlay" type="button">
+                    <span class="material-symbols-outlined" style="font-size:20px">close</span>
+                </button>
+            </div>
+            <nav class="drawer__body">{{ caller() if caller else "" }}</nav>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro drawer_link(text, href, current=false) %}
+    <a href="{{ href }}" class="drawer__link" {% if current %}aria-current="page"{% endif %}>{{ text }}</a>
+{% endmacro %}

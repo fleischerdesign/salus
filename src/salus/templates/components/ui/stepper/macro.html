@@ -1,0 +1,19 @@
+{# vim: set ft=htmldjango:
+   Stepper — @component stepper
+   Usage: {{ stepper(name="reps", value=8, min=1, max=20) }}
+ #}
+
+{% macro stepper(name, value=0, min=0, max=99, step=1, id=none) %}
+    {% set field_id = id or name %}
+    <div class="stepper">
+        <button class="stepper__btn" type="button" aria-label="Decrease"
+                _="on click decrement the value of next <input/> by {{ step }} then trigger change on next <input/>"
+                {% if value <= min %}disabled{% endif %}>−</button>
+        <input type="number" class="stepper__input" id="{{ field_id }}" name="{{ name }}"
+               value="{{ value }}" min="{{ min }}" max="{{ max }}" step="{{ step }}"
+               aria-valuemin="{{ min }}" aria-valuemax="{{ max }}" aria-valuenow="{{ value }}">
+        <button class="stepper__btn" type="button" aria-label="Increase"
+                _="on click increment the value of previous <input/> by {{ step }} then trigger change on previous <input/>"
+                {% if value >= max %}disabled{% endif %}>+</button>
+    </div>
+{% endmacro %}
