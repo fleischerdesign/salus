@@ -208,14 +208,13 @@
         <section class="ds-section" id="modal">
             <h2>Modal <code>modal</code></h2>
             <button class="btn" data-variant="primary" type="button"
-                _="on click show the next .modal-backdrop">Open Modal</button>
+                _="on click add @data-open to the next .modal-backdrop">Open Modal</button>
             <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="example-modal-title"
-                 style="display:none"
-                 _="on click if event.target === me then hide me end
-                    on keydown[key is 'Escape'] hide me">
+                 _="on click if event.target === me then remove @data-open end
+                    on keydown[key is 'Escape'] remove @data-open">
                 <div class="modal-content" style="max-width: 400px;">
                     <button class="modal__close" aria-label="Close" type="button"
-                        _="on click hide closest .modal-backdrop">
+                        _="on click remove @data-open from closest .modal-backdrop">
                         <span class="material-symbols-outlined" aria-hidden="true">close</span>
                     </button>
                     <h2 class="modal__title" id="example-modal-title">Example Modal</h2>
@@ -226,9 +225,9 @@
                     </div>
                     <div class="modal__footer">
                         <button class="btn" data-variant="ghost" type="button"
-                            _="on click hide closest .modal-backdrop">Cancel</button>
+                            _="on click remove @data-open from closest .modal-backdrop">Cancel</button>
                         <button class="btn" data-variant="primary" type="button"
-                            _="on click hide closest .modal-backdrop">Save</button>
+                            _="on click remove @data-open from closest .modal-backdrop">Save</button>
                     </div>
                 </div>
             </div>
@@ -601,11 +600,10 @@
         <section class="ds-section" id="confirm">
             <h2>Confirm Dialog <code>confirm</code></h2>
             <button class="btn" data-variant="danger" type="button"
-                _="on click show the next .modal-backdrop">Delete Item</button>
+                _="on click add @data-open to the next .modal-backdrop">Delete Item</button>
             <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ds-confirm-title"
-                 style="display:none"
-                 _="on click if event.target === me then hide me end
-                    on keydown[key is 'Escape'] hide me">
+                 _="on click if event.target === me then remove @data-open end
+                    on keydown[key is 'Escape'] remove @data-open">
                 <div class="modal-content" style="max-width: 400px;">
                     <span class="confirm__icon" data-variant="danger" aria-hidden="true">
                         <span class="material-symbols-outlined" style="font-size:48px">warning</span>
@@ -616,9 +614,9 @@
                     </div>
                     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
                         <button class="btn" data-variant="ghost" type="button"
-                            _="on click hide closest .modal-backdrop">Cancel</button>
+                            _="on click remove @data-open from closest .modal-backdrop">Cancel</button>
                         <button class="btn" data-variant="danger" type="button"
-                            _="on click hide closest .modal-backdrop">Delete</button>
+                            _="on click remove @data-open from closest .modal-backdrop">Delete</button>
                     </div>
                 </div>
             </div>

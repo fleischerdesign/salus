@@ -13,8 +13,8 @@
     {% set modal_id = id or "confirm-" + range(1000, 9999) | random | string %}
     <div class="modal-backdrop" id="{{ modal_id }}" role="dialog" aria-modal="true"
          aria-labelledby="{{ modal_id }}-title"
-         _="on click if event.target === me then remove me end
-            on keydown[key is 'Escape'] remove me">
+         _="on click if event.target === me then remove @data-open from me end
+            on keydown[key is 'Escape'] remove @data-open from me">
         <div class="modal-content" style="max-width: 400px;">
             <span class="confirm__icon" data-variant="{{ variant }}"
                   id="{{ modal_id }}-icon" aria-hidden="true">
@@ -34,5 +34,5 @@
         {% if hx_delete %}hx-delete="{{ hx_delete }}"{% endif %}
         {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
         {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-        _="on click remove closest .modal-backdrop">{{ label }}</button>
+        _="on click remove @data-open from closest .modal-backdrop">{{ label }}</button>
 {% endmacro %}
