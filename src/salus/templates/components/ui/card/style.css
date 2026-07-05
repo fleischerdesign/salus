@@ -7,7 +7,8 @@
     border: var(--card-border);
     border-radius: var(--card-radius);
     padding: var(--card-padding);
-    transition: box-shadow var(--duration-fast) var(--ease-default);
+    transition: box-shadow var(--duration-fast) var(--ease-default),
+                transform var(--duration-fast) var(--ease-default);
 }
 
 .card[data-variant="elevated"] {
@@ -26,6 +27,7 @@
 .card[data-hoverable]:hover,
 .card[data-variant="elevated"]:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .card[data-clickable] {

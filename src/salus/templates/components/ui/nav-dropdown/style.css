@@ -23,11 +23,12 @@
     position: absolute; top: calc(100% + 4px); left: 0; min-width: 180px;
     background: var(--color-surface-container-lowest); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-slate-200); padding: 4px 0; z-index: var(--z-dropdown, 100);
-    display: none;
+    opacity: 0; pointer-events: none; transform: translateY(-4px);
+    transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
 }
 
 .nav-dropdown__trigger[data-open] + .nav-dropdown__menu,
-.nav-dropdown:focus-within .nav-dropdown__menu { display: block; }
+.nav-dropdown:focus-within .nav-dropdown__menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
 
 .nav-dropdown__item {
     display: block; padding: 10px 16px; font: var(--font-label-md); color: var(--color-slate-700);
