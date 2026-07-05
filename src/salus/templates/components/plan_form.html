@@ -1,58 +1,69 @@
-{% from "components/ui/modal.html" import modal %}
-{% from "components/ui/input.html" import input %}
-{% from "components/ui/select.html" import select %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
 
-{% call modal(title=_("New Workout Plan")) %}
-<form hx-post="/workouts/plans" hx-target="body" class="form-stack">
-    {{ input(name="name", label=_("Plan Name"), type="text", required=True, placeholder="e.g. Upper Body A") }}
-    {{ input(name="description", label=_("Description"), type="text", placeholder="e.g. Chest and back hypertrophy day") }}
-    
-    <div class="form-row">
-        <div style="flex:1;">
-            {% call select(name="autoreg_mode", label=_("Autoregulation Mode"), required=True) %}
-                <option value="advisory" selected>Advisory (Show suggestions, manual approval)</option>
-                <option value="guided">Guided (Auto-applied weights)</option>
-                <option value="disabled">Disabled (Fully Manual)</option>
-            {% endcall %}
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="plan-form-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <h2 class="modal__title" id="plan-form-title">{{ _("New Workout Plan") }}</h2>
+        <div class="modal__body">
+            <form hx-post="/workouts/plans" hx-target="body">
+                <div class="form-stack">
+                    {{ input(name="name", label=_("Plan Name"), type="text", required=true, placeholder="e.g. Upper Body A") }}
+                    {{ input(name="description", label=_("Description"), type="text", placeholder="e.g. Chest and back hypertrophy day") }}
+
+                    <div class="input">
+                        <label class="input__label" for="plan-autoreg">{{ _("Autoregulation Mode") }}</label>
+                        <select id="plan-autoreg" name="autoreg_mode" class="input__field" required>
+                            <option value="advisory" selected>Advisory (Show suggestions, manual approval)</option>
+                            <option value="guided">Guided (Auto-applied weights)</option>
+                            <option value="disabled">Disabled (Fully Manual)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin:16px 0 8px 0;font-weight:700;font:var(--font-body-md);color:var(--color-slate-700)">Exercises & Targets</div>
+
+                    {% for idx in range(0, 5) %}
+                    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;background:var(--color-slate-50);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px">
+                        <div>
+                            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">Exercise {{ idx + 1 }}</label>
+                            <select name="exercise_{{ idx }}" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;background:var(--color-surface-container-lowest)">
+                                <option value="">— Skip —</option>
+                                {% for ex in exercises %}
+                                <option value="{{ ex.id }}">{{ ex.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">Sets</label>
+                            <input type="number" name="sets_{{ idx }}" value="3" min="1" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">Reps</label>
+                            <input type="number" name="reps_{{ idx }}" value="8" min="1" max="50" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">Target RPE</label>
+                            <input type="number" name="rpe_{{ idx }}" value="8.0" step="0.5" min="5" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:6px">
+                            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;text-align:center">Lock</label>
+                            <input type="checkbox" name="lock_{{ idx }}" value="1" style="width:16px;height:16px;cursor:pointer">
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+                        {{ btn(_("Create Plan"), variant="primary") }}
+                        <button type="button" class="btn" data-variant="ghost"
+                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-
-    <div style="margin:16px 0 8px 0;font-weight:700;font-size:14px;color:var(--color-slate-700);">Exercises & Targets</div>
-    
-    <!-- We present 5 rows of exercise configuration -->
-    {% for idx in range(0, 5) %}
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;background:var(--color-slate-50);padding:8px;border-radius:6px;margin-bottom:8px;">
-        <div>
-            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;">Exercise {{ idx + 1 }}</label>
-            <select name="exercise_{{ idx }}" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;background:#fff;">
-                <option value="">— Skip —</option>
-                {% for ex in exercises %}
-                <option value="{{ ex.id }}">{{ ex.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;">Sets</label>
-            <input type="number" name="sets_{{ idx }}" value="3" min="1" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;">
-        </div>
-        <div>
-            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;">Reps</label>
-            <input type="number" name="reps_{{ idx }}" value="8" min="1" max="50" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;">
-        </div>
-        <div>
-            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;">Target RPE</label>
-            <input type="number" name="rpe_{{ idx }}" value="8.0" step="0.5" min="5" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px;">
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:6px;">
-            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;text-align:center;">Lock 🔒</label>
-            <input type="checkbox" name="lock_{{ idx }}" value="1" style="width:16px;height:16px;cursor:pointer;">
-        </div>
-    </div>
-    {% endfor %}
-
-    <div class="form-actions" style="margin-top:16px;">
-        <button type="submit" class="btn">{{ _("Create Plan") }}</button>
-        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
-    </div>
-</form>
-{% endcall %}
+</div>

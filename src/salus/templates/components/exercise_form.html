@@ -1,37 +1,50 @@
-{% from "components/ui/modal.html" import modal %}
-{% from "components/ui/input.html" import input %}
-{% from "components/ui/select.html" import select %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
 
-{% call modal(title=_("New Exercise")) %}
-<form hx-post="/workouts/exercises" hx-target="body" class="form-stack">
-    {{ input(name="name", label=_("Exercise Name"), type="text", required=True, placeholder="e.g. Incline Bench Press") }}
-    
-    <div class="form-row">
-        <div style="flex:1;">
-            {% call select(name="equipment", label=_("Equipment"), required=True) %}
-                <option value="barbell">Barbell</option>
-                <option value="dumbbell">Dumbbell</option>
-                <option value="machine">Machine</option>
-                <option value="bodyweight">Bodyweight</option>
-                <option value="kettlebell">Kettlebell</option>
-            {% endcall %}
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="exercise-form-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <h2 class="modal__title" id="exercise-form-title">{{ _("New Exercise") }}</h2>
+        <div class="modal__body">
+            <form hx-post="/workouts/exercises" hx-target="body">
+                <div class="form-stack">
+                    {{ input(name="name", label=_("Exercise Name"), type="text", required=true, placeholder="e.g. Incline Bench Press") }}
+
+                    <div class="input">
+                        <label class="input__label" for="exercise-equipment">{{ _("Equipment") }}</label>
+                        <select id="exercise-equipment" name="equipment" class="input__field" required>
+                            <option value="barbell">Barbell</option>
+                            <option value="dumbbell">Dumbbell</option>
+                            <option value="machine">Machine</option>
+                            <option value="bodyweight">Bodyweight</option>
+                            <option value="kettlebell">Kettlebell</option>
+                        </select>
+                    </div>
+
+                    {{ input(name="primary_muscles", label=_("Primary Muscles (comma-separated)"), type="text", required=true, placeholder="e.g. pectoralis_major,anterior_deltoid") }}
+                    {{ input(name="secondary_muscles", label=_("Secondary Muscles (comma-separated, optional)"), type="text", placeholder="e.g. triceps_brachii") }}
+                    {{ input(name="description", label=_("Description"), type="text", placeholder="e.g. Incline press set at 30 degrees.") }}
+
+                    <div class="input">
+                        <label class="input__label" for="exercise-instructions">{{ _("Instructions") }}</label>
+                        <textarea id="exercise-instructions" name="instructions" placeholder="Step-by-step instructions..." rows="3"
+                                  style="width:100%;padding:10px 12px;border:1px solid var(--color-slate-300);border-radius:var(--radius-md);font:var(--font-body-md);resize:vertical;background:var(--color-slate-50)"></textarea>
+                    </div>
+
+                    {{ input(name="video_url", label=_("Tutorial Video URL (YouTube/Vimeo)"), type="url", placeholder="e.g. https://youtube.com/watch?v=...") }}
+
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                        {{ btn(_("Add Exercise"), variant="primary") }}
+                        <button type="button" class="btn" data-variant="ghost"
+                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-
-    {{ input(name="primary_muscles", label=_("Primary Muscles (comma-separated)"), type="text", required=True, placeholder="e.g. pectoralis_major,anterior_deltoid") }}
-    {{ input(name="secondary_muscles", label=_("Secondary Muscles (comma-separated, optional)"), type="text", required=False, placeholder="e.g. triceps_brachii") }}
-    {{ input(name="description", label=_("Description"), type="text", placeholder="e.g. Incline press set at 30 degrees.") }}
-    
-    <div class="input-group">
-        <label for="instructions">{{ _("Instructions") }}</label>
-        <textarea id="instructions" name="instructions" placeholder="Step-by-step instructions..." rows="3" style="width:100%;padding:8px 12px;border:1.5px solid var(--color-slate-200);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
-    </div>
-
-    {{ input(name="video_url", label=_("Tutorial Video URL (YouTube/Vimeo)"), type="url", placeholder="e.g. https://youtube.com/watch?v=...") }}
-
-    <div class="form-actions">
-        <button type="submit" class="btn">{{ _("Add Exercise") }}</button>
-        <button type="button" class="btn-ghost" onclick="this.closest('.modal-backdrop').remove()">{{ _("Cancel") }}</button>
-    </div>
-</form>
-{% endcall %}
+</div>

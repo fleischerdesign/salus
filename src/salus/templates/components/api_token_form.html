@@ -1,51 +1,53 @@
-{% from "components/ui/input.html" import input %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
 <form hx-post="/settings/api-tokens" hx-target="#token-generate-container" hx-swap="innerHTML">
     <div class="form-stack">
-        {{ input(name="label", label=_("Label"), placeholder="e.g. Samsung Health", required=True, id="token-label") }}
-        <fieldset style="border:1px solid var(--color-slate-200);border-radius:var(--radius-default);padding:12px 16px;">
+        {{ input(name="label", label=_("Label"), placeholder="e.g. Samsung Health", required=true, id="token-label") }}
+        <fieldset style="border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:12px 16px;">
             <legend style="font:var(--font-label-sm);color:var(--color-slate-500);padding:0 8px;">{{ _("Scopes") }}</legend>
-            <div class="flex-column gap-sm" style="font:var(--font-body-sm);">
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+            <div style="display:flex;flex-direction:column;gap:8px;font:var(--font-body-sm)">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="ingest:write" checked>
                     <span><strong>ingest:write</strong> — {{ _("Webhook data ingestion") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="entries:read">
                     <span><strong>entries:read</strong> — {{ _("Read manual entries") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="entries:write">
                     <span><strong>entries:write</strong> — {{ _("Create/edit/delete entries") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="metrics:read">
                     <span><strong>metrics:read</strong> — {{ _("Read metric types") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="metrics:write">
                     <span><strong>metrics:write</strong> — {{ _("Create/edit/delete metrics") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="goals:read">
                     <span><strong>goals:read</strong> — {{ _("Read goals") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="goals:write">
                     <span><strong>goals:write</strong> — {{ _("Create/edit/delete goals") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="health:read">
                     <span><strong>health:read</strong> — {{ _("Query health data") }}</span>
                 </label>
-                <label class="flex-center gap-sm" style="cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                     <input type="checkbox" name="scopes" value="admin">
                     <span><strong>admin</strong> — {{ _("Full access (grants all scopes)") }}</span>
                 </label>
             </div>
         </fieldset>
-        <div class="form-actions">
-            <button type="submit" class="btn">{{ _("Generate") }}</button>
-            <button type="button" class="btn-ghost" onclick="this.closest('form').remove()">{{ _("Cancel") }}</button>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+            {{ btn(_("Generate"), variant="primary") }}
+            <button type="button" class="btn" data-variant="ghost"
+                    _="on click remove closest form">{{ _("Cancel") }}</button>
         </div>
     </div>
 </form>

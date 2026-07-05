@@ -1,41 +1,37 @@
-<div class="card ai-insight-card" id="ai-insight-card-{{ display_date }}" style="position:relative; overflow:hidden;">
-    <!-- Sleek top decorative gradient bar -->
-    <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--color-primary), #a855f7);"></div>
+<div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px;position:relative;overflow:hidden" id="ai-insight-card-{{ display_date }}">
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--color-primary),var(--color-secondary-500))"></div>
 
-    <div class="flex-between align-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--color-slate-100); padding-bottom: 12px; padding-top: 4px;">
-        <div class="flex-center gap-sm">
-            <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 28px;">psychology</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;padding-top:4px;border-bottom:1px solid var(--color-slate-100)">
+        <div style="display:flex;align-items:center;gap:12px">
+            <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:28px">psychology</span>
             <div>
-                <strong style="font: var(--font-title-sm); color: var(--color-slate-800);">{{ _("AI Coach Health Insight") }}</strong>
-                <div style="font: var(--font-label-sm); color: var(--color-slate-400);">{{ _("Daily telemetry evaluation") }}</div>
+                <strong style="font:var(--font-headline-md);color:var(--color-on-surface)">{{ _("AI Coach Health Insight") }}</strong>
+                <div style="font:var(--font-label-sm);color:var(--color-slate-500)">{{ _("Daily telemetry evaluation") }}</div>
             </div>
         </div>
-        <span class="chip chip-neutral" style="font: var(--font-label-sm);">{{ display_date }}</span>
+        <span class="chip" data-variant="neutral" style="font:var(--font-label-sm)">{{ display_date }}</span>
     </div>
 
     {% if insight %}
-    <div class="ai-insight-content markdown-body" id="insight-content-{{ insight.id }}" style="font: var(--font-body-sm); line-height: 1.7; color: var(--color-slate-700); padding: 4px 0;">
+    <div id="insight-content-{{ insight.id }}" style="font:var(--font-body-sm);line-height:1.7;color:var(--color-slate-700);padding:4px 0">
 {{ insight.content }}
     </div>
-    
-    <div class="flex-between align-center" style="margin-top: 16px; border-top: 1px solid var(--color-slate-100); padding-top: 12px; font: var(--font-label-sm); color: var(--color-slate-400);">
-        <span>{{ _("Model:") }} <code>{{ insight.model_used }}</code></span>
-        <button class="btn-ghost btn-sm flex-center gap-xs"
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--color-slate-100);font:var(--font-label-sm);color:var(--color-slate-500)">
+        <span>{{ _("Model:") }} <code style="font:var(--font-code-sm)">{{ insight.model_used }}</code></span>
+        <button class="btn" data-variant="ghost"
                 hx-post="/insights/generate?date={{ display_date }}"
                 hx-target="#ai-insight-card-{{ display_date }}"
                 hx-swap="outerHTML"
-                hx-indicator="#insight-generating-spinner-{{ display_date }}"
-                title="{{ _("Regenerate insight") }}">
-            <span class="material-symbols-outlined" style="font-size:16px;">refresh</span>
+                hx-indicator="#insight-gen-spinner-{{ display_date }}">
+            <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">refresh</span>
             {{ _("Regenerate") }}
         </button>
     </div>
 
-    <!-- Hidden indicator styled to display nicely on swap -->
-    <div id="insight-generating-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top: 12px;">
-        <div class="flex-center gap-sm" style="color: var(--color-primary); font: var(--font-label-sm); padding: 12px 0;">
-            <div class="spinner"></div>
-            {{ _("Re-analyzing biometrics...") }}
+    <div id="insight-gen-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top:12px">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm);padding:12px 0">
+            {{ spinner("sm") }} {{ _("Re-analyzing biometrics...") }}
         </div>
     </div>
 
@@ -48,20 +44,19 @@
         })();
     </script>
     {% else %}
-    <div style="text-align: center; padding: 32px 16px;" id="insight-generator-container">
-        <p class="text-muted" style="margin-bottom: 20px; font: var(--font-body-sm);">{{ _("No AI health insights generated for this date yet.") }}</p>
-        <button class="btn flex-center gap-xs" style="margin: 0 auto;"
+    <div style="text-align:center;padding:32px 16px" id="insight-generator-container">
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:20px">{{ _("No AI health insights generated for this date yet.") }}</p>
+        <button class="btn" data-variant="primary"
                 hx-post="/insights/generate?date={{ display_date }}"
                 hx-target="#ai-insight-card-{{ display_date }}"
                 hx-swap="outerHTML"
-                hx-indicator="#insight-generating-spinner-{{ display_date }}">
-            <span class="material-symbols-outlined" style="font-size:20px;">magic_button</span>
+                hx-indicator="#insight-gen-spinner-{{ display_date }}">
+            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle">magic_button</span>
             {{ _("Generate Insight") }}
         </button>
-        <div id="insight-generating-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top: 16px;">
-            <div class="flex-center gap-sm" style="color: var(--color-primary); font: var(--font-label-sm);">
-                <div class="spinner"></div>
-                {{ _("Analyzing health telemetry...") }}
+        <div id="insight-gen-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top:16px">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm);justify-content:center">
+                {{ spinner("sm") }} {{ _("Analyzing health telemetry...") }}
             </div>
         </div>
     </div>

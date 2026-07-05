@@ -1,23 +1,29 @@
-{% from "components/ui/modal.html" import modal %}
-{% call modal(title=_("Your Invite Link")) %}
-<div class="qr-modal-content">
-    <p class="text-muted qr-modal-desc">
-        {{ _("Share this QR code or link with a peer to let them connect with you.") }}
-    </p>
-    <div class="qr-image-wrapper">
-        <img src="/sharing/connections/invite-qr?url={{ connect_url|urlencode }}"
-             alt="QR Invitation Code"
-             class="qr-image">
-    </div>
-    <div class="flex gap-sm mt-md">
-        <input type="text" readonly value="{{ connect_url }}"
-               id="connect-link-input" class="connect-link-input"
-               onclick="this.select()">
-        <button class="btn btn-secondary"
-                onclick="const el=document.getElementById('connect-link-input');navigator.clipboard.writeText(el.value);const orig=this.innerHTML;this.innerHTML='{{ _("Copied!") }}';setTimeout(()=>this.innerHTML=orig,2000)">
-            <span class="material-symbols-outlined" style="font-size:16px">content_copy</span>
-            {{ _("Copy") }}
+{% from "components/ui/btn/macro.html" import btn %}
+
+<div class="modal-backdrop" data-open role="dialog" aria-modal="true" aria-labelledby="invite-modal-title"
+     _="on click if event.target === me then remove me end
+        on keydown[key is 'Escape'] remove me">
+    <div class="modal-content" style="max-width:440px">
+        <button class="modal__close" aria-label="Close" type="button"
+                _="on click remove closest .modal-backdrop">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
         </button>
+        <h2 class="modal__title" id="invite-modal-title">{{ _("Your Invite Link") }}</h2>
+        <div class="modal__body" style="text-align:center">
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:16px">
+                {{ _("Share this QR code or link with a peer to let them connect with you.") }}
+            </p>
+            <div style="margin-bottom:16px">
+                <img src="/sharing/connections/invite-qr?url={{ connect_url|urlencode }}"
+                     alt="QR Invitation Code" style="max-width:200px;border-radius:var(--radius-md)">
+            </div>
+            <div style="display:flex;gap:8px">
+                <input type="text" readonly value="{{ connect_url }}" id="connect-link-input"
+                       style="flex:1;padding:10px 12px;font:var(--font-code-sm);border:1px solid var(--color-slate-200);
+                              border-radius:var(--radius-md);background:var(--color-slate-50)"
+                       onclick="this.select()">
+                {{ btn(_("Copy"), variant="secondary") }}
+            </div>
+        </div>
     </div>
 </div>
-{% endcall %}

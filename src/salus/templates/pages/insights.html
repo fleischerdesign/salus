@@ -1,156 +1,84 @@
 {% extends "base.html" %}
 {% block title_suffix %} — {{ _("AI Coach") }}{% endblock %}
-
 {% block head %}
-<!-- Load Marked.js to parse markdown client-side -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
     .history-item {
-        display: block;
-        padding: 12px;
-        border-radius: var(--border-radius-md);
-        border: 1px solid var(--color-slate-200);
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: block; padding: 12px; border-radius: var(--radius-md);
+        border: 1px solid var(--color-slate-200); text-decoration: none;
+        color: inherit; transition: all var(--duration-fast) var(--ease-default);
     }
     .history-item:hover {
-        border-color: var(--color-primary) !important;
-        background-color: var(--color-slate-50);
-        transform: translateY(-1px);
+        border-color: var(--color-primary); background: var(--color-slate-50); transform: translateY(-1px);
     }
     .history-item.active {
-        border-color: var(--color-primary) !important;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(168, 85, 247, 0.05));
-        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border-color: var(--color-primary); background: var(--color-primary-50);
     }
-    .insight-layout {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 24px;
-        align-items: start;
-        margin-top: 20px;
-    }
-    @media (max-width: 768px) {
-        .insight-layout {
-            grid-template-columns: 1fr;
-        }
-    }
-    /* Elegant markdown styles inside target card */
-    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-        font-family: inherit;
-        font-weight: 700;
-        margin-top: 16px;
-        margin-bottom: 8px;
-        color: var(--color-slate-800);
-    }
-    .markdown-body h3 {
-        font-size: 1.1rem;
-    }
-    .markdown-body p {
-        margin-bottom: 12px;
-        color: var(--color-slate-600);
-    }
-    .markdown-body ul {
-        padding-left: 20px;
-        margin-bottom: 12px;
-    }
-    .markdown-body li {
-        margin-bottom: 6px;
-        color: var(--color-slate-600);
-    }
-    .markdown-body strong {
-        color: var(--color-slate-800);
-    }
-    .spinner {
-        width: 18px;
-        height: 18px;
-        border: 2px solid var(--color-slate-200);
-        border-top-color: var(--color-primary);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
+    .insight-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; margin-top: 20px; }
+    @media (max-width: 768px) { .insight-layout { grid-template-columns: 1fr; } }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-family: inherit; font-weight: 700; margin-top: 16px; margin-bottom: 8px; color: var(--color-on-surface); }
+    .markdown-body h3 { font-size: 1.1rem; }
+    .markdown-body p { margin-bottom: 12px; color: var(--color-slate-600); }
+    .markdown-body ul { padding-left: 20px; margin-bottom: 12px; }
+    .markdown-body li { margin-bottom: 6px; color: var(--color-slate-600); }
+    .markdown-body strong { color: var(--color-on-surface); }
 </style>
 {% endblock %}
-
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>{{ _("AI Coach") }}</h1>
-        <p class="text-muted">{{ _("Physician-grade daily health recommendations powered by LLMs") }}</p>
-    </div>
-</div>
+
+<h1 style="font:var(--font-headline-lg);margin:0 0 4px 0">{{ _("AI Coach") }}</h1>
+<p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 24px 0">{{ _("Physician-grade daily health recommendations powered by LLMs") }}</p>
 
 <div class="insight-layout">
-    <!-- Left Column: Selection and active insight card -->
-    <div class="flex-col gap-md">
-        <!-- Date Selector Card -->
-        <div class="card" style="padding: 16px;">
-            <div class="flex-between align-center gap-md" style="flex-wrap: wrap;">
-                <div class="flex-center gap-xs">
-                    <span class="material-symbols-outlined text-muted">calendar_today</span>
-                    <strong style="font: var(--font-label-md); color: var(--color-slate-700);">{{ _("Active Day Selection:") }}</strong>
-                </div>
-                <input type="date" name="date" value="{{ display_date }}" 
-                       hx-get="/insights" 
-                       hx-target="#ai-insight-card-container" 
-                       hx-trigger="change" 
-                       hx-push-url="true"
-                       class="form-control" style="width: auto; min-width: 160px; padding: 6px 12px;">
+    <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+                    padding:16px;background:var(--color-surface-container-lowest);
+                    border:1px solid var(--color-slate-200);border-radius:var(--radius-md)">
+            <div style="display:flex;align-items:center;gap:8px">
+                <span class="material-symbols-outlined" style="color:var(--color-slate-500)">calendar_today</span>
+                <strong style="font:var(--font-label-md);color:var(--color-slate-700)">{{ _("Active Day Selection:") }}</strong>
             </div>
+            <input type="date" name="date" value="{{ display_date }}"
+                   hx-get="/insights" hx-target="#ai-insight-card-container"
+                   hx-trigger="change" hx-push-url="true"
+                   style="padding:6px 12px;font:var(--font-body-sm);border:1px solid var(--color-slate-300);
+                          border-radius:var(--radius-md);background:var(--color-slate-50);width:auto;min-width:160px">
         </div>
-
-        <!-- Dynamic Card Container -->
         <div id="ai-insight-card-container">
             {% include "components/ai_insight_card.html" %}
         </div>
     </div>
 
-    <!-- Right Column: History list -->
-    <div class="card" style="padding: 20px;">
-        <div class="flex-center gap-xs" style="margin-bottom: 16px; border-bottom: 1px solid var(--color-slate-100); padding-bottom: 8px;">
-            <span class="material-symbols-outlined" style="color: var(--color-slate-400);">history</span>
-            <strong style="font: var(--font-title-sm); color: var(--color-slate-800);">{{ _("Insight History") }}</strong>
+    <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);
+                border-radius:var(--radius-md);padding:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--color-slate-100)">
+            <span class="material-symbols-outlined" style="color:var(--color-slate-400)">history</span>
+            <strong style="font:var(--font-headline-md);color:var(--color-on-surface)">{{ _("Insight History") }}</strong>
         </div>
         {% if history %}
-        <div class="flex-col gap-sm" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;padding-right:4px">
             {% for item in history %}
             <a href="/insights?date={{ item.query_date }}"
                hx-get="/insights?date={{ item.query_date }}"
                hx-target="#ai-insight-card-container"
                hx-push-url="true"
                class="history-item {% if item.query_date == display_date %}active{% endif %}"
-               onclick="document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active')); this.classList.add('active');">
-                <div class="flex-between align-center" style="margin-bottom: 6px;">
-                    <strong style="font: var(--font-label-md); color: var(--color-slate-700);">{{ item.query_date }}</strong>
-                    <span class="chip chip-neutral" style="font-size: 10px; padding: 1px 4px; border-radius: 4px;">{{ item.model_used.split('/')[-1] }}</span>
+               _="on click remove .active from .history-item then add .active to me">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                    <strong style="font:var(--font-label-md);color:var(--color-slate-700)">{{ item.query_date }}</strong>
+                    <span class="chip" data-variant="neutral" style="font-size:10px;padding:1px 6px">{{ item.model_used.split('/')[-1] }}</span>
                 </div>
-                <div style="font: var(--font-label-sm); color: var(--color-slate-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div style="font:var(--font-label-sm);color:var(--color-slate-500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     {{ item.content.replace('#', '').replace('*', '').strip()[:65] }}...
                 </div>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <div style="text-align: center; padding: 32px 0;">
-            <p class="text-muted" style="font: var(--font-body-sm); margin: 0;">{{ _("No historical insights recorded yet.") }}</p>
+        <div style="text-align:center;padding:32px 0">
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("No historical insights recorded yet.") }}</p>
         </div>
         {% endif %}
     </div>
 </div>
-
-<script>
-    // Add visual feedback to active link on page load
-    document.addEventListener("DOMContentLoaded", function() {
-        var links = document.querySelectorAll(".history-item");
-        links.forEach(function(l) {
-            if (l.getAttribute("href").indexOf("{{ display_date }}") !== -1) {
-                l.classList.add("active");
-            }
-        });
-    });
-</script>
 {% endblock %}

@@ -1,8 +1,4 @@
-{% from "components/ui/alert.html" import alert %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
 <div class="form-stack">
-    {% call alert(type="success") -%}
-        <strong>{{ _("Copy this token now — it won't be shown again.") }}</strong>
-        <br>
-        <code id="new-token-value">{{ plaintext_token }}</code>
-    {%- endcall %}
+    {{ alert_banner("<strong>" + _("Copy this token now — it won't be shown again.") + "</strong><br><code style='font:" + "var(--font-code-sm)'>" + plaintext_token + "</code>" | safe, variant="success") }}
 </div>
