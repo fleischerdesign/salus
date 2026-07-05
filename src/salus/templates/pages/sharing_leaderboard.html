@@ -1,206 +1,173 @@
 {% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
 {% block title_suffix %} — {{ _("Challenges") }}{% endblock %}
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>{{ _("Social Challenges & Leaderboards") }}</h1>
-        <p class="text-muted">{{ _("Compete with friends, track habits, and achieve goals together with dynamic multi-metric challenges.") }}</p>
-    </div>
-</div>
+
+<h1 style="font:var(--font-headline-lg);margin:0 0 4px 0">{{ _("Social Challenges & Leaderboards") }}</h1>
+<p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 24px 0">{{ _("Compete with friends, track habits, and achieve goals together with dynamic multi-metric challenges.") }}</p>
 
 {% if error %}
-<div class="card" style="background:var(--color-danger-50);border-color:var(--color-danger-200);color:var(--color-danger-800);margin-bottom:24px;padding:12px 16px;border-radius:8px;">
-    <div style="display:flex;align-items:center;gap:8px;">
-        <span class="material-symbols-outlined" style="color:var(--color-danger-600);">error</span>
-        <span style="font-weight:500;">{{ error }}</span>
-    </div>
-</div>
+{{ alert_banner(error, variant="error") }}
 {% endif %}
 
-<div style="display:grid; grid-template-columns: 2fr 1.2fr; gap:24px; align-items:start;">
-    
-    <!-- Left: Challenges List -->
-    <div style="display:flex; flex-direction:column; gap:20px;">
-        <h2 style="font-size:18px; font-weight:700; margin:0; color:var(--color-slate-800); display:flex; align-items:center; gap:8px;">
-            <span class="material-symbols-outlined" style="color:var(--color-primary);">emoji_events</span>
+<div style="display:grid;grid-template-columns:2fr 1.2fr;gap:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:20px">
+        <h2 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="color:var(--color-primary)">emoji_events</span>
             {{ _("My Active Challenges") }}
         </h2>
-        
+
         {% for g_info in groups %}
-        <a href="/sharing/leaderboard/{{ g_info.group.id }}" style="text-decoration:none; color:inherit; display:block;">
-            <div class="card" style="padding:20px; transition: transform 0.2s, box-shadow 0.2s; cursor:pointer; overflow:hidden;"
-                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.06)';"
-                 onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
-                
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <a href="/sharing/leaderboard/{{ g_info.group.id }}" style="text-decoration:none;color:inherit;display:block">
+            <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px;cursor:pointer;transition:transform var(--duration-fast) var(--ease-default),box-shadow var(--duration-fast) var(--ease-default)"
+                 _="on mouseover set my style transform to 'translateY(-2px)' then set my style boxShadow to '0 8px 16px rgba(0,0,0,0.06)'
+                    on mouseout set my style transform to 'none' then set my style boxShadow to 'none'">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
                     <div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:24px;">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:24px">
                                 {% if g_info.group.metric_type_code == 'steps' %}footprint
                                 {% elif g_info.group.metric_type_code == 'workouts' %}fitness_center
                                 {% elif g_info.group.metric_type_code == 'sleep' %}bedtime
                                 {% elif g_info.group.metric_type_code == 'water' %}local_drink
                                 {% else %}leaderboard{% endif %}
                             </span>
-                            <h3 style="margin:0; font-size:18px; font-weight:700; color:var(--color-slate-800);">{{ g_info.group.name }}</h3>
+                            <h3 style="font:var(--font-headline-md);margin:0">{{ g_info.group.name }}</h3>
                         </div>
-                        <p class="text-muted" style="margin:4px 0 0 32px; font-size:12px; text-transform: capitalize;">
-                            {{ g_info.group.time_frame }} {{ _("Challenge") }} • {{ _("Metric") }}: <strong>{{ g_info.group.metric_type_code }}</strong>
+                        <p style="font:var(--font-caption);color:var(--color-slate-500);margin:4px 0 0 32px;text-transform:capitalize">
+                            {{ g_info.group.time_frame }} {{ _("Challenge") }} &middot; {{ _("Metric") }}: <strong>{{ g_info.group.metric_type_code }}</strong>
                         </p>
                     </div>
-                    
-                    <span style="font-size:11px; font-weight:700; background:var(--color-primary-fixed); color:var(--color-on-primary-fixed); padding:4px 8px; border-radius:12px;">
-                        {{ g_info.member_count }} {% if g_info.member_count == 1 %}{{ _("Participant") }}{% else %}{{ _("Participants") }}{% endif %}
+                    <span style="font:var(--font-caption);font-weight:700;background:var(--color-primary-100);color:var(--color-primary-700);padding:4px 8px;border-radius:12px">
+                        {{ g_info.member_count }} {{ _("Participants") if g_info.member_count != 1 else _("Participant") }}
                     </span>
                 </div>
-                
-                <!-- Inner Score and Ranking Summary -->
-                <div style="display:flex; align-items:center; gap:24px; border-top:1.5px solid var(--color-slate-100); padding-top:14px; margin-top:8px;">
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--color-slate-400); letter-spacing:0.5px;">{{ _("Your Ranking") }}</span>
-                        <div style="display:flex; align-items:center; gap:4px;">
+
+                <div style="display:flex;align-items:center;gap:24px;border-top:1px solid var(--color-slate-100);padding-top:14px;margin-top:8px">
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                        <span style="font:var(--font-caption);font-weight:600;text-transform:uppercase;color:var(--color-slate-500);letter-spacing:0.5px">{{ _("Your Ranking") }}</span>
+                        <div style="display:flex;align-items:center;gap:4px">
                             {% if g_info.my_rank == 1 %}
-                                <span class="material-symbols-outlined" style="color:#d4af37; font-size:20px; font-variation-settings:'FILL' 1;">workspace_premium</span>
-                                <span style="font-size:16px; font-weight:800; color:#d4af37;">1st Place</span>
+                                <span class="material-symbols-outlined" style="color:#d4af37;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                <span style="font-size:16px;font-weight:800;color:#d4af37">1st Place</span>
                             {% elif g_info.my_rank == 2 %}
-                                <span class="material-symbols-outlined" style="color:#aaa9ad; font-size:20px; font-variation-settings:'FILL' 1;">workspace_premium</span>
-                                <span style="font-size:16px; font-weight:800; color:#aaa9ad;">2nd Place</span>
+                                <span class="material-symbols-outlined" style="color:#aaa9ad;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                <span style="font-size:16px;font-weight:800;color:#aaa9ad">2nd Place</span>
                             {% elif g_info.my_rank == 3 %}
-                                <span class="material-symbols-outlined" style="color:#b08d57; font-size:20px; font-variation-settings:'FILL' 1;">workspace_premium</span>
-                                <span style="font-size:16px; font-weight:800; color:#b08d57;">3rd Place</span>
+                                <span class="material-symbols-outlined" style="color:#b08d57;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                <span style="font-size:16px;font-weight:800;color:#b08d57">3rd Place</span>
                             {% elif g_info.my_rank %}
-                                <span style="font-size:16px; font-weight:800; color:var(--color-slate-700);">#{{ g_info.my_rank }}</span>
+                                <span style="font-size:16px;font-weight:800;color:var(--color-on-surface)">#{{ g_info.my_rank }}</span>
                             {% else %}
-                                <span style="font-size:14px; font-weight:600; color:var(--color-slate-400);">{{ _("No data") }}</span>
+                                <span style="font-size:14px;font-weight:600;color:var(--color-slate-400)">{{ _("No data") }}</span>
                             {% endif %}
                         </div>
                     </div>
-                    
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--color-slate-400); letter-spacing:0.5px;">{{ _("Your Score") }}</span>
-                        <span style="font-size:16px; font-weight:800; color:var(--color-slate-800); font-family:var(--font-family-mono);">
+
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                        <span style="font:var(--font-caption);font-weight:600;text-transform:uppercase;color:var(--color-slate-500);letter-spacing:0.5px">{{ _("Your Score") }}</span>
+                        <span style="font-size:16px;font-weight:800;color:var(--color-on-surface);font-family:var(--font-family-mono)">
                             {% if g_info.group.metric_type_code == 'steps' %}
-                                {{ "{:,}".format(g_info.my_score|int) }} <span style="font-size:11px; font-weight:600; color:var(--color-slate-500);">steps</span>
+                                {{ "{:,}".format(g_info.my_score|int) }} <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500)">steps</span>
                             {% elif g_info.group.metric_type_code == 'workouts' %}
-                                {{ g_info.my_score|int }} <span style="font-size:11px; font-weight:600; color:var(--color-slate-500);">workouts</span>
+                                {{ g_info.my_score|int }} <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500)">workouts</span>
                             {% elif g_info.group.metric_type_code == 'sleep' %}
-                                {{ "%.1f"|format(g_info.my_score) }} <span style="font-size:11px; font-weight:600; color:var(--color-slate-500);">hrs avg</span>
+                                {{ "%.1f"|format(g_info.my_score) }} <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500)">hrs avg</span>
                             {% elif g_info.group.metric_type_code == 'water' %}
-                                {{ "%.0f"|format(g_info.my_score) }} <span style="font-size:11px; font-weight:600; color:var(--color-slate-500);">ml total</span>
+                                {{ "%.0f"|format(g_info.my_score) }} <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500)">ml total</span>
                             {% else %}
                                 {{ g_info.my_score }}
                             {% endif %}
                         </span>
                     </div>
-                    
-                    <div style="margin-left:auto; display:flex; align-items:center; gap:4px; font-size:13px; font-weight:600; color:var(--color-primary);">
+
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:4px;font:var(--font-body-sm);font-weight:600;color:var(--color-primary)">
                         <span>{{ _("View Details") }}</span>
-                        <span class="material-symbols-outlined" style="font-size:16px; font-weight:800;">arrow_forward</span>
+                        <span class="material-symbols-outlined" style="font-size:16px;font-weight:800">arrow_forward</span>
                     </div>
                 </div>
             </div>
         </a>
         {% else %}
-        <div class="card" style="text-align:center; padding:48px 24px;" class="text-muted">
-            <span class="material-symbols-outlined" style="font-size:48px; color:var(--color-slate-300);">leaderboard</span>
-            <h3 style="margin:12px 0 6px 0; font-size:16px; font-weight:700; color:var(--color-slate-700);">{{ _("No Active Challenges") }}</h3>
-            <p style="margin:0; font-size:13px;" class="text-muted">{{ _("Join an existing challenge with an invite code or create your own custom challenge.") }}</p>
+        <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);text-align:center;padding:48px 24px">
+            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-300)">leaderboard</span>
+            <h3 style="font:var(--font-headline-md);color:var(--color-on-surface);margin:12px 0 6px 0">{{ _("No Active Challenges") }}</h3>
+            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("Join an existing challenge with an invite code or create your own custom challenge.") }}</p>
         </div>
         {% endfor %}
     </div>
-    
-    <!-- Right: Join & Create Challenge -->
-    <div style="display:flex; flex-direction:column; gap:24px;">
-        
-        <!-- Join Challenge Card -->
-        <div class="card" style="padding:20px;">
-            <div class="card-header" style="padding:0 0 12px 0; border-bottom:1px solid var(--color-slate-100); margin-bottom:16px;">
-                <h3 class="card-title" style="margin:0; font-size:15px; font-weight:700; color:var(--color-slate-800); display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:20px;">vpn_key</span>
+
+    <div style="display:flex;flex-direction:column;gap:24px">
+        <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px">
+            <div style="padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);margin-bottom:16px">
+                <h3 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
+                    <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:20px">vpn_key</span>
                     {{ _("Join via Code") }}
                 </h3>
             </div>
-            
-            <form method="post" action="/sharing/leaderboard/join" class="form-stack">
-                <div class="input-group">
-                    <label for="invite_code">{{ _("Invite Code") }}</label>
-                    <input type="text" id="invite_code" name="invite_code" placeholder="e.g. a2b4c6..." required
-                           style="font-family:var(--font-family-mono);">
+            <form method="post" action="/sharing/leaderboard/join">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                    <div>
+                        <label for="invite_code" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Invite Code") }}</label>
+                        <input type="text" id="invite_code" name="invite_code" placeholder="e.g. a2b4c6..." required
+                               style="width:100%;padding:10px 12px;font:var(--font-body-md);font-family:var(--font-family-mono);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
+                    </div>
+                    {{ btn(_("Join Challenge"), variant="primary", full_width_mobile=false) }}
                 </div>
-                <button type="submit" class="btn" style="width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">group_add</span>
-                    {{ _("Join Challenge") }}
-                </button>
             </form>
         </div>
-        
-        <!-- Create Challenge Card -->
-        <div class="card" style="padding:20px;">
-            <div class="card-header" style="padding:0 0 12px 0; border-bottom:1px solid var(--color-slate-100); margin-bottom:16px;">
-                <h3 class="card-title" style="margin:0; font-size:15px; font-weight:700; color:var(--color-slate-800); display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:20px;">add_circle</span>
+
+        <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px">
+            <div style="padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);margin-bottom:16px">
+                <h3 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
+                    <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:20px">add_circle</span>
                     {{ _("Create Custom Challenge") }}
                 </h3>
             </div>
-            
-            <form method="post" action="/sharing/leaderboard/create" class="form-stack">
-                <div class="input-group">
-                    <label for="name">{{ _("Challenge Name") }}</label>
-                    <input type="text" id="name" name="name" placeholder="e.g. Summer Steps" required>
-                </div>
-                
-                <div class="input-group">
-                    <label for="metric_type_code">{{ _("Metric Type") }}</label>
-                    <select id="metric_type_code" name="metric_type_code" required>
-                        {% for m in supported_metrics %}
-                        <option value="{{ m.code }}">{{ m.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="input-group">
-                    <label for="time_frame">{{ _("Time Frame") }}</label>
-                    <select id="time_frame" name="time_frame" required onchange="toggleCustomDates(this.value)">
-                        <option value="weekly">{{ _("Rolling 7 Days") }}</option>
-                        <option value="monthly">{{ _("Rolling 30 Days") }}</option>
-                        <option value="custom">{{ _("Custom Date Range") }}</option>
-                    </select>
-                </div>
-                
-                <!-- Custom Date Selectors -->
-                <div id="custom-dates" style="display:none; flex-direction:column; gap:12px; background:var(--color-surface-container-lowest); padding:12px; border-radius:var(--radius-default); border:1px solid var(--color-outline-variant);">
-                    <div class="input-group">
-                        <label for="start_date">{{ _("Start Date") }}</label>
-                        <input type="date" id="start_date" name="start_date">
+            <form method="post" action="/sharing/leaderboard/create">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                    <div>
+                        <label for="name" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Challenge Name") }}</label>
+                        <input type="text" id="name" name="name" placeholder="e.g. Summer Steps" required
+                               style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
                     </div>
-                    <div class="input-group">
-                        <label for="end_date">{{ _("End Date") }}</label>
-                        <input type="date" id="end_date" name="end_date">
+                    <div>
+                        <label for="metric_type_code" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Metric Type") }}</label>
+                        <select id="metric_type_code" name="metric_type_code" required
+                                style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md)">
+                            {% for m in supported_metrics %}
+                            <option value="{{ m.code }}">{{ m.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+                    <div>
+                        <label for="time_frame" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Time Frame") }}</label>
+                        <select id="time_frame" name="time_frame" required
+                                _="on change if my value is 'custom' show #custom-dates else hide #custom-dates"
+                                style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md)">
+                            <option value="weekly">{{ _("Rolling 7 Days") }}</option>
+                            <option value="monthly">{{ _("Rolling 30 Days") }}</option>
+                            <option value="custom">{{ _("Custom Date Range") }}</option>
+                        </select>
+                    </div>
+                    <div id="custom-dates" style="display:none;flex-direction:column;gap:12px;background:var(--color-slate-50);padding:12px;border-radius:var(--radius-md);border:1px solid var(--color-slate-200)">
+                        <div>
+                            <label for="start_date" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("Start Date") }}</label>
+                            <input type="date" id="start_date" name="start_date"
+                                   style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
+                        </div>
+                        <div>
+                            <label for="end_date" style="font:var(--font-label-md);color:var(--color-on-surface);display:block;margin-bottom:4px">{{ _("End Date") }}</label>
+                            <input type="date" id="end_date" name="end_date"
+                                   style="width:100%;padding:10px 12px;font:var(--font-body-md);background:var(--color-slate-50);border:1px solid var(--color-slate-300);border-radius:var(--radius-md);box-sizing:border-box">
+                        </div>
+                    </div>
+                    {{ btn(_("Create Challenge"), variant="secondary", full_width_mobile=false) }}
                 </div>
-                
-                <button type="submit" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-                    {{ _("Create Challenge") }}
-                </button>
             </form>
         </div>
-        
     </div>
 </div>
 
-<script>
-function toggleCustomDates(val) {
-    const customDiv = document.getElementById('custom-dates');
-    if (val === 'custom') {
-        customDiv.style.display = 'flex';
-        document.getElementById('start_date').required = true;
-        document.getElementById('end_date').required = true;
-    } else {
-        customDiv.style.display = 'none';
-        document.getElementById('start_date').required = false;
-        document.getElementById('end_date').required = false;
-    }
-}
-</script>
 {% endblock %}
