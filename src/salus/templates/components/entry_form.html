@@ -36,8 +36,7 @@
 
                     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
                         {{ btn(_("Save"), variant="primary") }}
-                        <button type="button" class="btn" data-variant="ghost"
-                                _="on click remove closest .modal-backdrop">{{ _("Cancel") }}</button>
+                        {{ btn(_("Cancel"), variant="ghost", hyperscript="on click remove closest .modal-backdrop") }}
                     </div>
                 </div>
             </form>

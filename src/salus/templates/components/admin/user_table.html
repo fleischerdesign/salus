@@ -21,44 +21,32 @@
                 </td>
                 <td>{{ u.email or '-' }}</td>
                 <td>
-                    <span class="chip" {% if u.is_admin %}data-variant="success"{% else %}data-variant="neutral"{% endif %} style="font-size:11px">
-                        {{ _("Yes") if u.is_admin else _("No") }}
-                    </span>
+                    {{ chip(_("Yes") if u.is_admin else _("No"), variant="success" if u.is_admin else "neutral", style="font-size:11px") }}
                 </td>
                 <td>
-                    <span class="chip" {% if u.is_active %}data-variant="success"{% else %}data-variant="error"{% endif %} style="font-size:11px">
-                        {{ _("Active") if u.is_active else _("Inactive") }}
-                    </span>
+                    {{ chip(_("Active") if u.is_active else _("Inactive"), variant="success" if u.is_active else "error", style="font-size:11px") }}
                 </td>
                 <td>{{ u.measurement_count }}</td>
                 <td>{{ u.goal_count }}</td>
                 <td>
                     <div class="flex gap-sm">
-                        <button class="btn" data-variant="primary" data-size="sm"
-                                hx-get="/admin/users/{{ u.id }}/detail"
-                                hx-target="#admin-user-detail"
-                                hx-swap="innerHTML">
-                            {{ _("Detail") }}
-                        </button>
-                        <button class="btn" data-variant="primary" data-size="sm"
-                                hx-post="/admin/users/{{ u.id }}/toggle-admin"
-                                hx-target="#admin-user-table"
-                                hx-swap="outerHTML">
-                            {{ _("Demote") if u.is_admin else _("Make Admin") }}
-                        </button>
-                        <button class="btn" {% if u.is_active %}data-variant="danger"{% else %}data-variant="primary"{% endif %} data-size="sm"
-                                hx-post="/admin/users/{{ u.id }}/toggle-active"
-                                hx-target="#admin-user-table"
-                                hx-swap="outerHTML">
-                            {{ _("Deactivate") if u.is_active else _("Activate") }}
-                        </button>
-                        <button class="btn" data-variant="danger" data-size="sm"
-                                hx-delete="/admin/users/{{ u.id }}"
-                                hx-target="#admin-user-table"
-                                hx-swap="outerHTML"
-                                hx-confirm="Delete user '{{ u.username }}' and all their data?">
-                            {{ _("Delete") }}
-                        </button>
+                        {{ btn(_("Detail"), variant="primary", size="sm",
+                                hx_get="/admin/users/" + u.id|string + "/detail",
+                                hx_target="#admin-user-detail",
+                                hx_swap="innerHTML") }}
+                        {{ btn(_("Demote") if u.is_admin else _("Make Admin"), variant="primary", size="sm",
+                                hx_post="/admin/users/" + u.id|string + "/toggle-admin",
+                                hx_target="#admin-user-table",
+                                hx_swap="outerHTML") }}
+                        {{ btn(_("Deactivate") if u.is_active else _("Activate"), variant="danger" if u.is_active else "primary", size="sm",
+                                hx_post="/admin/users/" + u.id|string + "/toggle-active",
+                                hx_target="#admin-user-table",
+                                hx_swap="outerHTML") }}
+                        {{ btn(_("Delete"), variant="danger", size="sm",
+                                hx_delete="/admin/users/" + u.id|string,
+                                hx_confirm="Delete user '" + u.username + "' and all their data?",
+                                hx_target="#admin-user-table",
+                                hx_swap="outerHTML") }}
                     </div>
                 </td>
             </tr>

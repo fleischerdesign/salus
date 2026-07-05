@@ -44,8 +44,7 @@
         </fieldset>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
             {{ btn(_("Generate"), variant="primary") }}
-            <button type="button" class="btn" data-variant="ghost"
-                    _="on click remove closest form">{{ _("Cancel") }}</button>
+            {{ btn(_("Cancel"), variant="ghost", hyperscript="on click remove closest form") }}
         </div>
     </div>
 </form>

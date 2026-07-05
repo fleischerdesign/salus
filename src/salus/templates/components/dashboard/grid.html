@@ -30,7 +30,7 @@
     {% endfor %}
 </div>
 {% if not widgets %}
-<div class="card">
-    <p>{{ _("No widgets yet. Add one to get started.") }}</p>
-</div>
+{% call card() %}
+    <p style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("No widgets yet. Add one to get started.") }}</p>
+{% endcall %}
 {% endif %}

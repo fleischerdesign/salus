@@ -16,6 +16,6 @@
             <label for="ob-entry-value-{{ step_index }}">{{ _("Value") }}</label>
             <input type="text" id="ob-entry-value-{{ step_index }}" name="value" required placeholder="e.g. 82.5">
         </div>
-        <button type="submit" class="btn" data-variant="primary" data-size="sm">{{ _("Log Entry") }}</button>
+        {{ btn(_("Log Entry"), variant="primary", size="sm", type="submit") }}
     </form>
 </div>

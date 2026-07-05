@@ -8,6 +8,6 @@
             <input type="text" id="ob-token-label-{{ step_index }}" name="label" placeholder="e.g. Samsung Health" required autofocus>
         </div>
         <input type="hidden" name="scopes" value="ingest:write">
-        <button type="submit" class="btn" data-variant="primary" data-size="sm">{{ _("Generate Token") }}</button>
+        {{ btn(_("Generate Token"), variant="primary", size="sm", type="submit") }}
     </form>
 </div>

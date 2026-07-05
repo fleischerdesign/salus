@@ -9,8 +9,8 @@
                 {{ _("Download all your health records and custom metrics directly to your computer.") }}
             </p>
             <div style="display:flex;gap:8px">
-                <a href="/export/download?format=csv" class="btn" data-variant="small">CSV</a>
-                <a href="/export/download?format=json" class="btn" data-variant="small">JSON</a>
+                {{ btn("CSV", variant="small", href="/export/download?format=csv") }}
+                {{ btn("JSON", variant="small", href="/export/download?format=json") }}
             </div>
         </div>
     </div>
@@ -27,9 +27,7 @@
             <h4 style="font-weight:700;margin:0 0 12px 0;font-size:14px">{{ _("1. Register Recipient (Public Key)") }}</h4>
             <div style="display:flex;flex-direction:column;gap:12px">
                 <div style="display:flex;gap:8px">
-                    <button type="button" class="btn" data-variant="secondary" onclick="generateKeyPair()">
-                        {{ _("Generate Key Pair") }}
-                    </button>
+                    {{ btn(_("Generate Key Pair"), variant="secondary", onclick="generateKeyPair()") }}
                 </div>
                 <form id="recipient-form" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
                     <div>
@@ -42,7 +40,7 @@
                         <textarea id="recipient-pubkey" rows="4" readonly required placeholder="{{ _('Generate keys above to auto-fill') }}"
                                   style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:11px;font-family:monospace;background:var(--color-surface-container-lowest)"></textarea>
                     </div>
-                    <button type="submit" class="btn" data-variant="small" style="align-self:flex-start">{{ _("Save Recipient") }}</button>
+                    {{ btn(_("Save Recipient"), variant="small", type="submit", style="align-self:flex-start") }}
                 </form>
             </div>
         </div>
@@ -56,9 +54,7 @@
                         <strong style="font-size:13px;color:var(--color-on-surface)">{{ r.name }}</strong>
                         <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
                     </div>
-                    <button type="button" class="btn" data-variant="small" style="color:var(--color-error)" onclick="deleteRecipient({{ r.id }})">
-                        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
-                    </button>
+                    {{ btn(icon="delete", variant="small", style="color:var(--color-error)", onclick="deleteRecipient(" + r.id|string + ")") }}
                 </div>
                 {% else %}
                 <p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;font-size:12px">{{ _("No recipients registered yet.") }}</p>
@@ -92,16 +88,14 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn" data-variant="primary" onclick="createAsymmetricShare()" style="margin-top:8px">
-                    {{ _("Encrypt and Generate Shareable Link") }}
-                </button>
+                {{ btn(_("Encrypt and Generate Shareable Link"), variant="primary", onclick="createAsymmetricShare()", style="margin-top:8px") }}
             </form>
 
             <div id="share-result-container" style="display:none;margin-top:16px;padding:12px;background:var(--color-primary-fixed);border:1px solid var(--color-primary);border-radius:8px">
                 <strong style="color:var(--color-on-primary-fixed);display:block;margin-bottom:6px;font-size:13px">{{ _("Secure Share Link Generated:") }}</strong>
                 <div style="display:flex;gap:8px;align-items:center">
                     <input type="text" id="share-link-url" readonly style="flex:1;padding:8px;border:1px solid var(--color-outline);border-radius:4px;font-size:12px;font-family:monospace;background:var(--color-surface-container-lowest)">
-                    <button type="button" class="btn" data-variant="primary" data-size="sm" onclick="copyShareLink()">{{ _("Copy") }}</button>
+                    {{ btn(_("Copy"), variant="primary", size="sm", onclick="copyShareLink()") }}
                 </div>
                 <span style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px;margin-top:6px;display:block">
                     {{ _("Give this link and the downloaded private key file to your doctor.") }}
@@ -122,10 +116,8 @@
                         </div>
                     </div>
                     <div style="display:flex;gap:6px">
-                        <button type="button" class="btn" data-variant="secondary" data-size="sm" onclick="copyDirectShareLink({{ s.id }})">{{ _("Copy") }}</button>
-                        <button type="button" class="btn" data-variant="ghost" data-size="sm" style="color:var(--color-error)" onclick="deleteShare({{ s.id }})">
-                            <span class="material-symbols-outlined" style="font-size:18px">delete</span>
-                        </button>
+                        {{ btn(_("Copy"), variant="secondary", size="sm", onclick="copyDirectShareLink(" + s.id|string + ")") }}
+{{ btn(icon="delete", variant="ghost", size="sm", style="color:var(--color-error)", onclick="deleteShare(" + s.id|string + ")") }}
                     </div>
                 </div>
                 {% else %}
@@ -205,9 +197,7 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn" data-variant="primary" onclick="generatePreview()" style="margin-top:8px">
-                    {{ _("Generate Dataset Preview") }}
-                </button>
+                {{ btn(_("Generate Dataset Preview"), variant="primary", onclick="generatePreview()", style="margin-top:8px") }}
             </form>
         </div>
 
@@ -227,10 +217,10 @@
 
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
                     <div style="display:flex;gap:6px">
-                        <button class="btn" data-variant="secondary" data-size="sm" onclick="downloadJSON()">JSON</button>
-                        <button class="btn" data-variant="secondary" data-size="sm" onclick="downloadCSV()">CSV</button>
+                        {{ btn("JSON", variant="secondary", size="sm", onclick="downloadJSON()") }}
+                        {{ btn("CSV", variant="secondary", size="sm", onclick="downloadCSV()") }}
                     </div>
-                    <button class="btn" data-variant="primary" data-size="sm" onclick="donateDataset()">{{ _("Donate to Research") }}</button>
+                    {{ btn(_("Donate to Research"), variant="primary", size="sm", onclick="donateDataset()") }}
                 </div>
             </div>
         </div>

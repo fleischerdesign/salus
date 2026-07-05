@@ -4,9 +4,7 @@
             <strong style="font:var(--font-title-sm)">{{ detail.display_name or detail.username }}</strong>
             <span style="font:var(--font-body-sm);color:var(--color-slate-500);margin-left:8px">{{ detail.email or _("No email") }}</span>
         </div>
-        <button class="btn" data-variant="ghost" data-size="sm" onclick="this.closest('.admin-detail').remove()">
-            <span class="material-symbols-outlined" style="font-size:20px">close</span>
-        </button>
+        {{ btn(icon="close", variant="ghost", size="sm", onclick="this.closest('.admin-detail').remove()") }}
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
@@ -33,7 +31,7 @@
         <span style="font:var(--font-body-sm);color:var(--color-slate-500);font:var(--font-label-sm)">{{ _("Connected Accounts") }}</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
             {% for ident in detail.identities %}
-            <span class="chip" data-variant="neutral" style="font-size:11px">{{ ident.provider.title() }}</span>
+            {{ chip(ident.provider.title(), variant="neutral", style="font-size:11px") }}
             {% endfor %}
         </div>
     </div>
@@ -56,8 +54,8 @@
                 <tr>
                     <td style="font:var(--font-body-sm)">{{ mt.name }}</td>
                     <td style="font:var(--font-body-sm)">{{ mt.unit or '-' }}</td>
-                    <td><span class="chip" data-variant="neutral" style="font-size:11px">{{ mt.data_type.value if mt.data_type else mt.data_type }}</span></td>
-                    <td><span class="chip" {% if mt.is_system %}data-variant="success"{% else %}data-variant="neutral"{% endif %} style="font-size:11px">{{ _('System') if mt.is_system else _('Custom') }}</span></td>
+                    <td>{{ chip(mt.data_type.value if mt.data_type else mt.data_type, variant="neutral", style="font-size:11px") }}</td>
+                    <td>{{ chip(_("System") if mt.is_system else _("Custom"), variant="success" if mt.is_system else "neutral", style="font-size:11px") }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -80,7 +78,7 @@
                 {% for entry in detail.recent_entries %}
                 <tr>
                     <td style="font:var(--font-body-sm)">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') if entry.start_time else '-' }}</td>
-                    <td><span class="chip" data-variant="neutral" style="font-size:11px">{{ entry.source }}</span></td>
+                    <td>{{ chip(entry.source, variant="neutral", style="font-size:11px") }}</td>
                     <td style="font:var(--font-body-sm)">{{ entry.data_type }}</td>
                 </tr>
                 {% endfor %}
@@ -96,12 +94,10 @@
             {% for t in detail.tokens %}
             <div style="font:var(--font-body-sm);display:flex;justify-content:space-between;align-items:center">
                 <span>{{ t.label }} <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ t.token_prefix }}...</span></span>
-                <button class="btn" data-variant="danger" data-size="sm"
-                        hx-delete="/admin/tokens/{{ t.id }}"
-                        hx-target="#admin-token-table"
-                        hx-swap="outerHTML">
-                    {{ _("Revoke") }}
-                </button>
+                {{ btn(_("Revoke"), variant="danger", size="sm",
+                        hx_delete="/admin/tokens/" + t.id|string,
+                        hx_target="#admin-token-table",
+                        hx_swap="outerHTML") }}
             </div>
             {% endfor %}
         </div>
