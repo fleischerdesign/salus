@@ -2,7 +2,7 @@
 {% macro nav_dropdown(label) %}
     <div class="nav-dropdown">
         <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button"
-                _="on click toggle @data-open
+                _="on click if @data-open then remove @data-open else add @data-open end
                    on click outside remove @data-open">
             {{ label }} <span class="nav-dropdown__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </button>

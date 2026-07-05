@@ -16,7 +16,7 @@
         <button class="user-menu__trigger" aria-expanded="false" aria-haspopup="true"
                 aria-label="{{ _("User menu") }} — {{ display }}"
                 type="button"
-                _="on click toggle @data-open
+                _="on click if @data-open then remove @data-open else add @data-open end
                    on click outside remove @data-open">
             {{ avatar(display, size="sm", image=user.avatar_url) }}
         </button>
