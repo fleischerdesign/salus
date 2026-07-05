@@ -1348,7 +1348,8 @@ img {
 .nav-dropdown__chevron { font-size: 16px; transition: transform var(--duration-fast) var(--ease-out); }
 
 .nav-dropdown__trigger[data-open] { color: var(--nav-link-hover-color, var(--color-primary)); }
-.nav-dropdown__trigger[data-open] .nav-dropdown__chevron { transform: rotate(180deg); }
+.nav-dropdown__trigger[data-open] .nav-dropdown__chevron,
+.nav-dropdown:focus-within .nav-dropdown__chevron { transform: rotate(180deg); }
 
 .nav-dropdown__menu {
     position: absolute; top: calc(100% + 4px); left: 0; min-width: 180px;

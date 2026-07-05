@@ -13,6 +13,9 @@
                   end
                   on navClose
                     remove @data-open then set @aria-expanded to 'false'
+                  end
+                  on blur
+                    remove @data-open then set @aria-expanded to 'false'
                   end">
             {{ label }} <span class="nav-dropdown__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </button>
