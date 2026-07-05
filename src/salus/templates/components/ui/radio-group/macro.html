@@ -1,9 +1,11 @@
 {# vim: set ft=htmldjango: Radio Group #}
-{% macro radio_group(name, options=[], selected=none) %}
+{% macro radio_group(name, options=[], selected=none, auto_submit=false) %}
     <div class="radio-group" role="radiogroup">
         {% for opt in options %}
         <label style="position:relative">
-            <input type="radio" name="{{ name }}" value="{{ opt.value }}" {% if opt.value == selected %}checked{% endif %}>
+            <input type="radio" name="{{ name }}" value="{{ opt.value }}"
+                   {% if opt.value == selected %}checked{% endif %}
+                   {% if auto_submit %}onchange="this.form.submit()"{% endif %}>
             <span class="radio-group__option">{{ opt.label }}</span>
         </label>
         {% endfor %}
