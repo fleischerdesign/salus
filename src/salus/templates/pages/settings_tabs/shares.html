@@ -1,4 +1,4 @@
-{% from "components/ui/card.html" import card %}
+{% from "components/ui/card/macro.html" import card %}
 
 <div class="settings-section">
     {% call card(title=_("Data Export")) %}
@@ -12,8 +12,8 @@
                     {{ _("Download all your health records and custom metrics directly to your computer.") }}
                 </p>
                 <div class="flex gap-sm" style="display:flex; gap:8px;">
-                    <a href="/export/download?format=csv" class="btn-sm">CSV</a>
-                    <a href="/export/download?format=json" class="btn-sm">JSON</a>
+                    <a href="/export/download?format=csv" class="btn" data-variant="small">CSV</a>
+                    <a href="/export/download?format=json" class="btn" data-variant="small">JSON</a>
                 </div>
             </div>
         </div>
@@ -32,7 +32,7 @@
                 <h4 style="font-weight:700; margin:0 0 12px 0; font-size:14px;">{{ _("1. Register Recipient (Public Key)") }}</h4>
                 <div style="display:flex; flex-direction:column; gap:12px;">
                     <div style="display:flex; gap:8px;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="generateKeyPair()">
+                        <button type="button" class="btn" data-variant="secondary" onclick="generateKeyPair()">
                             {{ _("Generate Key Pair") }} 🔑
                         </button>
                     </div>
@@ -47,7 +47,7 @@
                             <textarea id="recipient-pubkey" rows="4" readonly required placeholder="{{ _('Generate keys above to auto-fill') }}"
                                       style="width:100%; padding:8px; border:1.5px solid var(--color-outline-variant); border-radius:6px; font-size:11px; font-family:monospace; background:var(--color-surface-container-lowest);"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-sm" style="align-self:flex-start;">{{ _("Save Recipient") }}</button>
+                        <button type="submit" class="btn" data-variant="small" style="align-self:flex-start;">{{ _("Save Recipient") }}</button>
                     </form>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                             <strong style="font-size:13px; color:var(--color-on-surface);">{{ r.name }}</strong>
                             <div class="text-muted" style="font-size:11px;">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
                         </div>
-                        <button type="button" class="btn-ghost btn-sm" style="color:var(--color-error);" onclick="deleteRecipient({{ r.id }})">
+                        <button type="button" class="btn" data-variant="small" style="color:var(--color-error);" onclick="deleteRecipient({{ r.id }})">
                             <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
                         </button>
                     </div>

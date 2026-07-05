@@ -1,91 +1,82 @@
-{% from "components/ui/input.html" import input %}
-{% from "components/ui/alert.html" import alert %}
-{% from "components/ui/card.html" import card %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
+{% from "components/ui/card/macro.html" import card %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/chip/macro.html" import chip %}
+{% from "components/ui/form-layout/macro.html" import form_stack, form_actions %}
+{% from "components/ui/radio-group/macro.html" import radio_group %}
 
 {% if error %}
-{{ alert(type="error", message=error) }}
+{{ alert_banner(error, variant="error") }}
 {% endif %}
 {% if success %}
-{{ alert(type="success", message=success) }}
+{{ alert_banner(success, variant="success") }}
 {% endif %}
 
-<div class="settings-section">
+<div style="margin-bottom:20px">
     {% call card(title=_("Profile")) %}
-        <div class="identity-card">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px;margin-bottom:12px;background:var(--color-slate-50);border-radius:var(--radius-md)">
+            <span class="avatar" data-size="md" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--color-slate-200);border-radius:var(--radius-full);font-weight:600;text-transform:uppercase;font-size:16px;color:var(--color-slate-600)">
+                {{ (current_user.display_name or current_user.username)[:1].upper() }}
+            </span>
             <div>
                 <strong>{{ current_user.display_name or current_user.username }}</strong>
                 <br>
-                <span class="text-muted">{{ current_user.email or _('No email set') }}</span>
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ current_user.email or _('No email set') }}</span>
             </div>
         </div>
-        <form method="post" action="/settings/theme" style="margin-top:12px;">
-            <label style="font:var(--font-label-sm);color:var(--color-slate-600);display:block;margin-bottom:8px;">{{ _("Theme") }}</label>
-            <div class="flex gap-sm" style="flex-wrap:wrap;">
-                <label class="btn-sm {{ 'active' if current_user.theme == 'system' else '' }}" style="cursor:pointer;">
-                    <input type="radio" name="theme" value="system" style="display:none;" onchange="this.form.submit()"
-                           {{ 'checked' if current_user.theme == 'system' else '' }}>
-                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">brightness_auto</span>
-                    {{ _("System") }}
-                </label>
-                <label class="btn-sm {{ 'active' if current_user.theme == 'light' else '' }}" style="cursor:pointer;">
-                    <input type="radio" name="theme" value="light" style="display:none;" onchange="this.form.submit()"
-                           {{ 'checked' if current_user.theme == 'light' else '' }}>
-                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">light_mode</span>
-                    {{ _("Light") }}
-                </label>
-                <label class="btn-sm {{ 'active' if current_user.theme == 'dark' else '' }}" style="cursor:pointer;">
-                    <input type="radio" name="theme" value="dark" style="display:none;" onchange="this.form.submit()"
-                           {{ 'checked' if current_user.theme == 'dark' else '' }}>
-                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">dark_mode</span>
-                    {{ _("Dark") }}
-                </label>
-            </div>
+
+        <form method="post" action="/settings/theme" style="margin-top:12px">
+            <label style="font:var(--font-label-sm);color:var(--color-slate-600);display:block;margin-bottom:8px">{{ _("Theme") }}</label>
+            {{ radio_group(name="theme", options=[
+                {"value": "system", "label": "☀️ " + _("System")},
+                {"value": "light", "label": "🔆 " + _("Light")},
+                {"value": "dark", "label": "🌙 " + _("Dark")},
+            ], selected=current_user.theme) }}
+            <button type="submit" style="display:none"></button>
         </form>
-        <form method="post" action="/settings/locale" style="margin-top:16px; border-top:1px solid var(--color-slate-100); padding-top:16px;">
-            <label style="font:var(--font-label-sm);color:var(--color-slate-600);display:block;margin-bottom:8px;">{{ _("Language") }}</label>
-            <div class="flex gap-sm" style="flex-wrap:wrap;">
-                <label class="btn-sm {{ 'active' if current_locale == 'en' else '' }}" style="cursor:pointer;">
-                    <input type="radio" name="locale" value="en" style="display:none;" onchange="this.form.submit()"
-                           {{ 'checked' if current_locale == 'en' else '' }}>
-                    {{ _("English") }}
-                </label>
-                <label class="btn-sm {{ 'active' if current_locale == 'de' else '' }}" style="cursor:pointer;">
-                    <input type="radio" name="locale" value="de" style="display:none;" onchange="this.form.submit()"
-                           {{ 'checked' if current_locale == 'de' else '' }}>
-                    {{ _("German") }}
-                </label>
-            </div>
+
+        <form method="post" action="/settings/locale" style="margin-top:16px;border-top:1px solid var(--color-slate-100);padding-top:16px">
+            <label style="font:var(--font-label-sm);color:var(--color-slate-600);display:block;margin-bottom:8px">{{ _("Language") }}</label>
+            {{ radio_group(name="locale", options=[
+                {"value": "en", "label": _("English")},
+                {"value": "de", "label": _("German")},
+            ], selected=current_locale) }}
+            <button type="submit" style="display:none"></button>
         </form>
     {% endcall %}
-</div>
+    </div>
 
-<div class="settings-section" style="margin-top:20px;">
+<div style="margin-bottom:20px">
     {% call card(title=_("Connected Accounts")) %}
         {% for identity in identities %}
-        <div class="identity-card">
-            <span class="chip {% if identity.provider == 'local' %}chip-neutral{% elif identity.provider == 'ldap' %}chip-warning{% else %}chip-success{% endif %}">
-                {{ identity.provider.title() }}
-            </span>
-            <span class="text-muted">{{ identity.provider_user_id }}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-slate-100)">
+            <div style="display:flex;align-items:center;gap:12px">
+                {{ chip(identity.provider.title(), variant={
+                    'local': 'neutral',
+                    'ldap': 'warning'
+                }.get(identity.provider, 'success')) }}
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ identity.provider_user_id }}</span>
+            </div>
         </div>
         {% endfor %}
 
         {% if settings.google_client_id and 'google' not in connected_providers %}
-        <div class="identity-card">
-            <span class="text-muted">Google</span>
-            <a href="/auth/oidc/google" class="btn-sm">Connect</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-slate-100)">
+            <span style="font:var(--font-body-sm);color:var(--color-slate-500)">Google</span>
+            <a href="/auth/oidc/google" class="btn" data-variant="small">Connect</a>
         </div>
         {% endif %}
         {% if settings.github_client_id and 'github' not in connected_providers %}
-        <div class="identity-card">
-            <span class="text-muted">GitHub</span>
-            <a href="/auth/oidc/github" class="btn-sm">Connect</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-slate-100)">
+            <span style="font:var(--font-body-sm);color:var(--color-slate-500)">GitHub</span>
+            <a href="/auth/oidc/github" class="btn" data-variant="small">Connect</a>
         </div>
         {% endif %}
         {% if settings.oidc_client_id and 'oidc' not in connected_providers %}
-        <div class="identity-card">
-            <span class="text-muted">OIDC</span>
-            <a href="/auth/oidc/oidc" class="btn-sm">Connect</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+            <span style="font:var(--font-body-sm);color:var(--color-slate-500)">OIDC</span>
+            <a href="/auth/oidc/oidc" class="btn" data-variant="small">Connect</a>
         </div>
         {% endif %}
     {% endcall %}
@@ -94,37 +85,31 @@
 {% include "components/api_token_list.html" %}
 
 {% if current_user.password_hash %}
-<div class="settings-section" style="margin-top:20px;">
+<div style="margin-bottom:20px">
     {% call card(title=_("Change Password")) %}
         <form method="post" action="/settings/change-password">
-            <div class="form-stack">
-                {{ input(name="current_password", label=_("Current Password"), type="password", required=True, id="settings-current-password") }}
-                {{ input(name="new_password", label=_("New Password"), type="password", required=True, id="settings-new-password") }}
-                <div class="form-actions">
-                    <button type="submit" class="btn">{{ _("Change Password") }}</button>
-                </div>
-            </div>
+            {% call form_stack() %}
+                {{ input(name="current_password", label=_("Current Password"), type="password", required=true, id="settings-current-password") }}
+                {{ input(name="new_password", label=_("New Password"), type="password", required=true, id="settings-new-password") }}
+                {% call form_actions() %}
+                    {{ btn(_("Change Password"), variant="primary") }}
+                {% endcall %}
+            {% endcall %}
         </form>
     {% endcall %}
 </div>
 {% endif %}
 
-<div class="settings-section" style="margin-top:20px;">
+<div style="margin-bottom:20px">
     {% call card(title=_("Connected Sources")) %}
-        <p class="text-muted" style="font:var(--font-body-sm); margin-bottom:12px;">{{ _("Health data syncs automatically from connected wearables.") }}</p>
-        <div class="sources-list" style="display:flex; flex-direction:column; gap:8px;">
-            <div class="source-row" style="display:flex; justify-content:space-between; align-items:center; padding:8px; border:1px solid var(--color-outline-variant); border-radius:6px; background:var(--color-surface-container-lowest);">
-                <span>🏃 Samsung Health</span>
-                <span class="chip chip-success">Active</span>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:12px">{{ _("Health data syncs automatically from connected wearables.") }}</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            {% for source in [("🏃 Samsung Health", "success"), ("🫀 Apple Health", "neutral"), ("⌚ Oura Ring", "neutral")] %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);background:var(--color-slate-50)">
+                <span>{{ source[0] }}</span>
+                {{ chip("Active" if source[1] == "success" else "Available", variant=source[1]) }}
             </div>
-            <div class="source-row" style="display:flex; justify-content:space-between; align-items:center; padding:8px; border:1px solid var(--color-outline-variant); border-radius:6px; background:var(--color-surface-container-lowest);">
-                <span>🫀 Apple Health</span>
-                <span class="chip chip-neutral">Available</span>
-            </div>
-            <div class="source-row" style="display:flex; justify-content:space-between; align-items:center; padding:8px; border:1px solid var(--color-outline-variant); border-radius:6px; background:var(--color-surface-container-lowest);">
-                <span>⌚ Oura Ring</span>
-                <span class="chip chip-neutral">Available</span>
-            </div>
+            {% endfor %}
         </div>
     {% endcall %}
 </div>

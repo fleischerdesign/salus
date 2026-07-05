@@ -1,4 +1,5 @@
-{% from "components/ui/card.html" import card %}
+{% from "components/ui/card/macro.html" import card %}
+{% from "components/ui/btn/macro.html" import btn %}
 
 <div class="settings-section">
     {% call card(title=_("Privacy & Local Ownership")) %}
@@ -30,7 +31,7 @@
                     <strong style="display:block;">{{ _("Two-Factor Authentication (2FA)") }}</strong>
                     <span class="text-muted" style="font:var(--font-body-sm);">{{ _("Enhance account security using standard TOTP authenticator apps.") }}</span>
                 </div>
-                <button class="btn-sm" disabled style="opacity:0.6; cursor:not-allowed;">{{ _("Coming Soon") }}</button>
+                <button class="btn" data-variant="small" disabled style="opacity:0.6;cursor:not-allowed">{{ _("Coming Soon") }}</button>
             </div>
             
             <div class="flex-between" style="padding-top:8px;">
@@ -38,7 +39,7 @@
                     <strong style="display:block;">{{ _("Security Log Audit") }}</strong>
                     <span class="text-muted" style="font:var(--font-body-sm);">{{ _("Review recent login timestamps, IP locations, and API requests.") }}</span>
                 </div>
-                <button class="btn-sm" disabled style="opacity:0.6; cursor:not-allowed;">{{ _("Coming Soon") }}</button>
+                <button class="btn" data-variant="small" disabled style="opacity:0.6;cursor:not-allowed">{{ _("Coming Soon") }}</button>
             </div>
         </div>
     {% endcall %}
