@@ -42,8 +42,8 @@
         </div>
 
         <div style="padding-top:12px;border-top:1px solid var(--color-slate-100)">
-            <button class="btn" data-variant="ghost" style="font-size:13px"
-                    _="on click
+            {{ btn(icon="favorite", label=_("Kudos"), variant="ghost", style="font-size:13px",
+                   hyperscript="on click
                         if me matches .kudos-active
                             remove .kudos-active from me
                             set my style color to ''
@@ -52,10 +52,7 @@
                             add .kudos-active to me
                             set my style color to 'var(--color-primary)'
                             then put 'heart_plus' into the next <span/>
-                        end">
-                <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">favorite</span>
-                {{ _("Kudos") }}
-            </button>
+                        end") }}
         </div>
     </div>
     {% else %}
@@ -65,7 +62,7 @@
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0 0 24px 0;max-width:400px;margin-left:auto;margin-right:auto">
             {{ _("Connect with peers in your connections tab to see their workouts and steps here.") }}
         </p>
-        <a href="/sharing/connections" class="btn" data-variant="primary">{{ _("Manage Connections") }}</a>
+        {{ btn(_("Manage Connections"), variant="primary", href="/sharing/connections") }}
     </div>
     {% endfor %}
 </div>

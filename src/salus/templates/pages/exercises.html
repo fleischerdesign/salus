@@ -26,17 +26,10 @@
                 </div>
                 <div style="display:flex;gap:4px">
                     {% if ex.video_url %}
-                    <a href="{{ ex.video_url }}" target="_blank" class="btn" data-variant="ghost" title="{{ _('Watch tutorial') }}">
-                        <span class="material-symbols-outlined" style="font-size:18px">smart_display</span>
-                    </a>
+                    {{ btn(icon="smart_display", variant="ghost", href=ex.video_url, attrs={"target": "_blank"}, aria_label=_("Watch tutorial")) }}
                     {% endif %}
                     {% if ex.user_id %}
-                    <button class="btn" data-variant="ghost" style="color:var(--color-error-600)"
-                            hx-delete="/api/v1/workouts/exercises/{{ ex.id }}"
-                            hx-swap="none"
-                            _="on click wait 200ms then reload() the location of the window">
-                        <span class="material-symbols-outlined" style="font-size:18px">delete</span>
-                    </button>
+                    {{ btn(icon="delete", variant="ghost", style="color:var(--color-error-600)", hx_delete="/api/v1/workouts/exercises/" + ex.id | string, hx_swap="none", hyperscript="on click wait 200ms then reload() the location of the window") }}
                     {% endif %}
                 </div>
             </div>

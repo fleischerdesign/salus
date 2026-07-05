@@ -1,4 +1,16 @@
 {# vim: set ft=htmldjango: Form Layout — @component form-layout #}
-{% macro form_stack() %}<div class="form-stack">{% if caller is defined %}{{ caller() }}{% endif %}</div>{% endmacro %}
-{% macro form_row() %}<div class="form-row">{% if caller is defined %}{{ caller() }}{% endif %}</div>{% endmacro %}
-{% macro form_actions() %}<div class="form-actions">{% if caller is defined %}{{ caller() }}{% endif %}</div>{% endmacro %}
+{% macro form_stack(id=none, style=none, class=none) %}
+    <div class="form-stack{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
+        {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+{% endmacro %}
+{% macro form_row(id=none, style=none, class=none) %}
+    <div class="form-row{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
+        {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+{% endmacro %}
+{% macro form_actions(id=none, style=none, class=none) %}
+    <div class="form-actions{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
+        {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+{% endmacro %}
