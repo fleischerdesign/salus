@@ -42,6 +42,25 @@ All interactive state changes use these defaults:
 | Opacity | `--duration-fast` (150ms) | `--ease-default` |
 | Transform (scale/translate) | `--duration-normal` (200ms) | `--ease-out` |
 | Color (text) | `--duration-fast` (150ms) | `--ease-default` |
+| Show/Hide (opacity+transform) | `--duration-fast` (150ms) | `--ease-out` |
+
+**Show/Hide Rule:** NEVER toggle `display:none` ↔ `display:block` — it breaks CSS transitions. Always use `opacity` + `pointer-events` + `transform`:
+
+```css
+/* ❌ WRONG */
+.xxx__dropdown { display: none; }
+.xxx__trigger[data-open] + .xxx__dropdown { display: block; }
+
+/* ✅ CORRECT */
+.xxx__dropdown {
+    opacity: 0; pointer-events: none; transform: translateY(-4px);
+    transition: opacity var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+}
+.xxx__trigger[data-open] + .xxx__dropdown {
+    opacity: 1; pointer-events: auto; transform: translateY(0);
+}
+```
 
 ---
 
@@ -156,3 +175,4 @@ Content max-width: `--space-container-max` = 1440px. Fluid below that.
 | Error shake | Horizontal shake | 400ms |
 | Content load | Skeleton pulse | 1.8s loop |
 | Spinner | Continuous rotation | 800ms per revolution |
+| Show/Hide (dropdown, modal) | Opacity fade + vertical slide | 150ms ease-out |
