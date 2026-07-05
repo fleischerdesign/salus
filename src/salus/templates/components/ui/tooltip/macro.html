@@ -1,0 +1,9 @@
+{# vim: set ft=htmldjango: Tooltip — @component tooltip #}
+{% macro tooltip(text) %}
+    <span class="tooltip" role="tooltip">{{ text }}</span>
+{% endmacro %}
+{% macro tooltip_wrapper() %}
+    <span class="tooltip-wrapper">
+        {{ caller() if caller else "" }}
+    </span>
+{% endmacro %}

@@ -1,0 +1,6 @@
+{# vim: set ft=htmldjango: Avatar — @component avatar #}
+{% macro avatar(name, size="sm", interactive=false, aria_label=none) %}
+    <span class="avatar" data-size="{{ size }}" {% if interactive %}data-interactive{% endif %} role="img" aria-label="{{ aria_label or name }}">
+        {{ name[:1] }}
+    </span>
+{% endmacro %}

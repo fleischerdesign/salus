@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Chip — @component chip
+   ========================================================================== */
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--chip-padding, 4px 12px);
+    font: var(--chip-font, var(--font-label-sm));
+    border-radius: var(--chip-radius, var(--radius-full));
+    white-space: nowrap;
+    height: 24px;
+    box-sizing: border-box;
+}
+
+.chip__icon {
+    font-size: 14px;
+}
+
+.chip__dismiss {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0 -4px 0 2px;
+    font-size: 14px;
+    display: flex;
+    border-radius: var(--radius-full);
+    transition: background var(--duration-fast) var(--ease-default);
+}
+
+.chip__dismiss:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Variants */
+
+.chip[data-variant="success"] {
+    background: var(--chip-success-bg);
+    color: var(--chip-success-text);
+}
+
+.chip[data-variant="warning"] {
+    background: var(--chip-warning-bg);
+    color: var(--chip-warning-text);
+}
+
+.chip[data-variant="error"] {
+    background: var(--chip-error-bg);
+    color: var(--chip-error-text);
+}
+
+.chip[data-variant="neutral"] {
+    background: var(--chip-neutral-bg);
+    color: var(--chip-neutral-text);
+}

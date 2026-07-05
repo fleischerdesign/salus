@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Skeleton — @component skeleton
+   ========================================================================== */
+
+.skeleton {
+    background: var(--color-slate-200);
+    border-radius: var(--radius-sm);
+    animation: skeleton-pulse 1.8s var(--ease-default) infinite;
+}
+
+.skeleton--text  { height: 14px; width: 100%; }
+.skeleton--heading { height: 20px; width: 60%; }
+.skeleton--avatar { width: 40px; height: 40px; border-radius: var(--radius-full); }
+.skeleton--card  { height: 120px; width: 100%; border-radius: var(--radius-md); }
+.skeleton--button { height: 44px; width: 120px; border-radius: var(--radius-md); }
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton { animation: none; opacity: 0.5; }
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.75; }
+}

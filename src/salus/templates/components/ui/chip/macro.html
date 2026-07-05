@@ -1,0 +1,16 @@
+{# vim: set ft=htmldjango:
+   Chip — @component chip
+   Usage: {{ chip("Active", variant="success") }}
+          {{ chip("Protein", variant="neutral", icon="fitness_center", dismissible=true) }}
+ #}
+{% macro chip(label, variant="neutral", icon=none, dismissible=false, aria_label=none) %}
+    <span class="chip" data-variant="{{ variant }}" {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+        {% if icon %}
+        <span class="chip__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
+        {% endif %}
+        {{ label }}
+        {% if dismissible %}
+        <button class="chip__dismiss" aria-label="Remove {{ label }}" type="button">&times;</button>
+        {% endif %}
+    </span>
+{% endmacro %}

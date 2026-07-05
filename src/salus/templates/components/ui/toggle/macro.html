@@ -1,0 +1,17 @@
+{# vim: set ft=htmldjango:
+   Toggle — @component toggle
+   Usage: {{ toggle(name="dark_mode", checked=true, label="Dark Mode") }}
+ #}
+{% macro toggle(name, label=none, checked=false, disabled=false, id=none) %}
+    {% set field_id = id or name %}
+    <label class="toggle" for="{{ field_id }}">
+        <input type="checkbox" id="{{ field_id }}" name="{{ name }}" class="toggle__input"
+            {% if checked %}checked{% endif %}
+            {% if disabled %}disabled{% endif %}
+            role="switch" aria-checked="{{ 'true' if checked else 'false' }}">
+        <span class="toggle__track">
+            <span class="toggle__thumb"></span>
+        </span>
+        {% if label %}<span>{{ label }}</span>{% endif %}
+    </label>
+{% endmacro %}

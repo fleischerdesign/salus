@@ -1,0 +1,4 @@
+{# vim: set ft=htmldjango: Icon — @component icon #}
+{% macro icon(name, size=24, filled=false, aria_hidden=true) %}
+    <span class="material-symbols-outlined icon icon--{{ size }}" {% if filled %}data-filled{% endif %} {% if aria_hidden %}aria-hidden="true"{% endif %}>{{ name }}</span>
+{% endmacro %}

@@ -1,0 +1,12 @@
+{# vim: set ft=htmldjango:
+   Badge — @component badge
+   Usage: {{ badge("3") }}  {{ badge(size="dot") }}
+ #}
+{% macro badge(count=none, size="standard", variant="default", aria_label=none) %}
+    {% set label = count if count and count|int > 0 else "" %}
+    <span class="badge" data-size="{{ size }}" data-variant="{{ variant }}" aria-label="{{ aria_label or label + ' notifications' }}">
+        {% if size != "dot" and count %}
+        {{ count if count|int <= 99 else "99+" }}
+        {% endif %}
+    </span>
+{% endmacro %}

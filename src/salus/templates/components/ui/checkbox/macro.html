@@ -1,0 +1,21 @@
+{# vim: set ft=htmldjango:
+   Checkbox — @component checkbox
+   Usage:
+     {{ checkbox(name="agree", label="I agree to terms", checked=true) }}
+     {{ checkbox(name="metric", label="Steps", value="1", disabled=true) }}
+ #}
+{% macro checkbox(name, label=none, value="1", checked=false, disabled=false, id=none) %}
+    {% set field_id = id or name %}
+    <label class="checkbox" for="{{ field_id }}">
+        <input
+            type="checkbox"
+            id="{{ field_id }}"
+            name="{{ name }}"
+            value="{{ value }}"
+            class="checkbox__input"
+            {% if checked %}checked{% endif %}
+            {% if disabled %}disabled{% endif %}
+        >
+        {% if label %}{{ label }}{% endif %}
+    </label>
+{% endmacro %}

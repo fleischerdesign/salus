@@ -1,0 +1,11 @@
+{# vim: set ft=htmldjango:
+   Empty State — @component empty-state
+ #}
+{% macro empty_state(icon="inbox", title="", description="", action=none) %}
+    <div class="empty-state" role="status">
+        <span class="empty-state__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
+        {% if title %}<h3 class="empty-state__title">{{ title }}</h3>{% endif %}
+        {% if description %}<p class="empty-state__description">{{ description }}</p>{% endif %}
+        {% if action %}{{ action }}{% endif %}
+    </div>
+{% endmacro %}
