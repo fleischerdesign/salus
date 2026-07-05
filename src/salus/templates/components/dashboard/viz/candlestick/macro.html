@@ -1,0 +1,30 @@
+{# vim: set ft=htmldjango: Viz Candlestick — @component viz-candlestick #}
+{% macro viz_candlestick(primary_value, primary_unit=none, primary_label=none, delta=none, stats_line=none, color=none, chart=none) %}
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        {% if primary_label %}<span class="viz-label">{{ primary_label }}</span>{% endif %}
+        <span class="viz-stat__value">
+            {{ primary_value }}<span class="viz-stat__unit">{{ primary_unit }}</span>
+        </span>
+        {% if delta %}<span class="viz-delta">{{ delta | safe }}</span>{% endif %}
+    </div>
+    {% if stats_line %}<div class="viz-stat__sub">{{ stats_line | safe }}</div>{% endif %}
+    {% if chart %}
+    <svg class="viz-chart viz-chart--candlestick" viewBox="0 0 {{ chart.chart_w }} {{ chart.chart_h }}" preserveAspectRatio="xMidYMid meet">
+        {% for c in chart.candles %}
+        {% if not c.empty %}
+        <line x1="{{ c.cx }}" y1="{{ c.high_y }}" x2="{{ c.cx }}" y2="{{ c.low_y }}"
+              stroke="{{ color }}" stroke-width="1.5" opacity="0.6"/>
+        <rect x="{{ c.cx - c.half_w }}" y="{{ c.body_y }}"
+              width="{{ c.half_w * 2 }}" height="{{ c.body_h }}"
+              fill="{{ c.fill }}" rx="1.5" opacity="0.85"/>
+        {% endif %}
+        <text x="{{ c.cx }}" y="{{ chart.chart_h - 4 }}" text-anchor="middle"
+              font-size="9" fill="var(--color-slate-400)">{{ c.label }}</text>
+        {% endfor %}
+        {% if chart.reference_y is not none %}
+        <line x1="0" y1="{{ chart.reference_y }}" x2="{{ chart.chart_w }}" y2="{{ chart.reference_y }}"
+              stroke="{{ color }}" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+        {% endif %}
+    </svg>
+    {% endif %}
+{% endmacro %}

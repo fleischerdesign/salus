@@ -1,0 +1,29 @@
+{# vim: set ft=htmldjango: Viz Bar — @component viz-bar #}
+{% macro viz_bar(primary_value, primary_unit=none, delta=none, sub=none, color=none, icon=none, segments=[]) %}
+    {% if icon and color %}
+    <div class="viz-icon" style="background:{{ color }}20">
+        <span class="material-symbols-outlined" style="color:{{ color }}">{{ icon }}</span>
+    </div>
+    {% endif %}
+    <div class="viz-stat">
+        <span class="viz-stat__value">
+            {{ primary_value }}{% if primary_unit %} <span class="viz-stat__unit">{{ primary_unit }}</span>{% endif %}
+        </span>
+        {% if delta %}<span class="viz-delta">{{ delta | safe }}</span>{% endif %}
+        {% if sub %}<span class="viz-stat__sub">{{ sub | safe }}</span>{% endif %}
+    </div>
+    {% if segments %}
+    <div class="viz-bar__segments">
+        {% for seg in segments %}
+        <div class="viz-bar__segment {{ seg.css_class }}" style="width:{{ seg.pct }}%" data-tooltip="{{ seg.label }}"></div>
+        {% endfor %}
+    </div>
+    <div class="viz-bar__legend">
+        {% for seg in segments %}
+        <span class="viz-bar__legend-item">
+            <span class="viz-bar__legend-dot {{ seg.css_class }}"></span>{{ seg.label }}
+        </span>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endmacro %}

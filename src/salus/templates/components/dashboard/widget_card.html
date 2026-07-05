@@ -1,23 +1,19 @@
-<div class="widget-body">
+{% call widget_body() %}
     {% if empty %}
-    <div class="widget-empty">
-        <span class="material-symbols-outlined widget-empty-icon"
-              style="color:{{ metric.color }};">{{ metric.icon }}</span>
-        <span class="widget-empty-text">{{ empty_text }}</span>
-    </div>
+    {{ widget_empty(icon=metric.icon if metric else "info", color=metric.color if metric else "var(--color-slate-400)", text=empty_text) }}
     {% elif viz %}
-    {% if viz.type == "candlestick" %}
-        {% include "components/dashboard/viz/candlestick.html" %}
-    {% elif viz.type == "pills" %}
-        {% include "components/dashboard/viz/pills.html" %}
-    {% elif viz.type == "sparkline" %}
-        {% include "components/dashboard/viz/sparkline.html" %}
-    {% elif viz.type == "bar" %}
-        {% include "components/dashboard/viz/bar.html" %}
-    {% elif viz.type == "progress" %}
-        {% include "components/dashboard/viz/progress.html" %}
-    {% else %}
-        {% include "components/dashboard/viz/number.html" %}
+        {% if viz.type == "candlestick" %}
+            {{ viz_candlestick(primary_value=viz.primary_value, primary_unit=viz.primary_unit, primary_label=viz.primary_label, delta=viz.delta, stats_line=viz.stats_line, color=viz.color, chart=viz.chart if viz.chart is defined) }}
+        {% elif viz.type == "pills" %}
+            {{ viz_pills(primary_value=viz.primary_value, primary_unit=viz.primary_unit, delta=viz.delta, stats_line=viz.stats_line, color=viz.color, icon=metric.icon if metric else none, widget_id=widget.id if widget else none, chart=viz.chart if viz.chart is defined) }}
+        {% elif viz.type == "sparkline" %}
+            {{ viz_sparkline(primary_value=viz.primary_value, primary_unit=viz.primary_unit, delta=viz.delta, sub=viz.sub, percent=viz.percent if viz.percent is defined else none, color=viz.color, icon=metric.icon if metric else none, sparkline_points=viz.sparkline_points if viz.sparkline_points is defined) }}
+        {% elif viz.type == "bar" %}
+            {{ viz_bar(primary_value=viz.primary_value, primary_unit=viz.primary_unit, delta=viz.delta, sub=viz.sub, color=viz.color, icon=metric.icon if metric else none, segments=viz.segments if viz.segments is defined else []) }}
+        {% elif viz.type == "progress" %}
+            {{ viz_progress(primary_value=viz.primary_value, primary_unit=viz.primary_unit, delta=viz.delta, percent=viz.percent if viz.percent is defined else 0, target_label=viz.target_label if viz.target_label is defined else none, color=viz.color, has_goal=viz.has_goal if viz.has_goal is defined else true, is_small=widget.size.value == "small" if widget and widget.size and widget.size.value else false) }}
+        {% else %}
+            {{ viz_number(primary_value=viz.primary_value, primary_unit=viz.primary_unit, delta=viz.delta, sub=viz.sub, icon=metric.icon if metric else none, color=viz.color) }}
+        {% endif %}
     {% endif %}
-    {% endif %}
-</div>
+{% endcall %}

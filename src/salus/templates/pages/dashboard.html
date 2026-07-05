@@ -24,16 +24,16 @@
     <div style="display:flex;gap:8px">
         {{ btn(_("Edit Layout"), variant="small", id="edit-layout-btn",
                hyperscript="on click
-                add .edit-mode to #dashboard-grid
+                add .widget-grid--edit to #dashboard-grid
                 hide me
                 show #done-layout-btn") }}
         {{ btn(_("Done"), variant="primary", size="sm", id="done-layout-btn", style="display:none",
                hyperscript="on click
-                remove .edit-mode from #dashboard-grid
+                remove .widget-grid--edit from #dashboard-grid
                 hide me
                 show #edit-layout-btn") }}
         {{ btn("+ " + _("Add Widget"), variant="small", style="display:none",
-               hyperscript="on load if #dashboard-grid matches .edit-mode then show me end",
+               hyperscript="on load if #dashboard-grid matches .widget-grid--edit then show me end",
                hx_get="/dashboard/widgets/add-modal",
                hx_target="body",
                hx_swap="beforeend") }}
@@ -52,9 +52,9 @@
     function initSortable() {
         if (window._dashboardSortable) window._dashboardSortable.destroy();
         window._dashboardSortable = new Sortable(grid, {
-            handle: '.widget-drag-handle',
+            handle: '.widget-chrome__drag',
             animation: 150,
-            ghostClass: 'widget-ghost',
+            ghostClass: 'widget-grid__ghost',
             onEnd: function(evt) {
                 var ids = Array.from(evt.to.children)
                     .map(function(el) { return el.dataset.widgetId; })
@@ -70,7 +70,7 @@
 
     document.body.addEventListener('widgetAdded', function() {
         initSortable();
-        document.getElementById('dashboard-grid').classList.add('edit-mode');
+        document.getElementById('dashboard-grid').classList.add('widget-grid--edit');
     });
 
     document.body.addEventListener('htmx:afterSwap', function(evt) {

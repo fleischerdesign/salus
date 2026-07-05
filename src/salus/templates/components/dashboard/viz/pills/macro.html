@@ -1,0 +1,65 @@
+{# vim: set ft=htmldjango: Viz Pills — @component viz-pills #}
+{% macro viz_pills(primary_value, primary_unit=none, delta=none, stats_line=none, color=none, icon=none, widget_id=none, chart=none) %}
+    {% if icon and color %}
+    <div class="viz-icon" style="background:{{ color }}20">
+        <span class="material-symbols-outlined" style="color:{{ color }}">{{ icon }}</span>
+    </div>
+    {% endif %}
+    <div class="viz-stat">
+        <div style="display:flex;align-items:baseline;gap:8px">
+            <span class="viz-stat__value">
+                {{ primary_value }}<span class="viz-stat__unit">{{ primary_unit }}</span>
+            </span>
+            {% if delta %}<span class="viz-delta">{{ delta | safe }}</span>{% endif %}
+        </div>
+        {% if stats_line %}<span class="viz-stat__sub">{{ stats_line | safe }}</span>{% endif %}
+    </div>
+    {% if chart %}
+    <svg class="viz-chart viz-chart--pills" id="pill-chart-{{ widget_id }}" data-primary-color="{{ color }}"></svg>
+    <script>
+    (function () {
+        var svg = document.getElementById("pill-chart-{{ widget_id }}");
+        if (!svg) return;
+        var data = {{ chart | tojson }};
+        var CHART_H = 110, PAD_X = 12, PAD_TOP = 8, PAD_BOT = 26;
+        function render() {
+            var w = svg.clientWidth || 220;
+            var pw = w - 2 * PAD_X, ph = CHART_H - PAD_TOP - PAD_BOT;
+            svg.setAttribute("viewBox", "0 0 " + w + " " + CHART_H);
+            var parts = [];
+            if (data.resting_y_fraction != null) {
+                var ry = PAD_TOP + data.resting_y_fraction * ph;
+                parts.push('<line x1="' + PAD_X + '" y1="' + ry + '" x2="' + (w - PAD_X) + '" y2="' + ry + '" stroke="var(--color-slate-300)" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.85" vector-effect="non-scaling-stroke"/>');
+                parts.push('<text x="' + (w - PAD_X - 2) + '" y="' + (ry - 4) + '" text-anchor="end" font-size="8" fill="var(--color-slate-400)" opacity="0.8">Ruhepuls ' + data.resting_bpm + '</text>');
+            }
+            if (data.target_y_fraction != null) {
+                var ty = PAD_TOP + data.target_y_fraction * ph;
+                parts.push('<line x1="' + PAD_X + '" y1="' + ty + '" x2="' + (w - PAD_X) + '" y2="' + ty + '" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5" vector-effect="non-scaling-stroke"/>');
+                parts.push('<text x="' + (w - PAD_X - 2) + '" y="' + (ty - 4) + '" text-anchor="end" font-size="8" fill="#f59e0b" opacity="0.65">Ziel ' + data.target_bpm + '</text>');
+            }
+            var yd = data.y_max - data.y_min;
+            for (var i = 0; i < data.pills.length; i++) {
+                var p = data.pills[i];
+                var cx = PAD_X + p.x_fraction * pw;
+                var fy_min = 1 - (p.min_bpm - data.y_min) / yd;
+                var fy_max = 1 - (p.max_bpm - data.y_min) / yd;
+                var y_min_coord = PAD_TOP + fy_min * ph;
+                var y_max_coord = PAD_TOP + fy_max * ph;
+                if (Math.abs(y_min_coord - y_max_coord) < 6) { var cy = (y_min_coord + y_max_coord) / 2; y_min_coord = cy + 3; y_max_coord = cy - 3; }
+                parts.push('<line x1="' + cx + '" y1="' + y_min_coord + '" x2="' + cx + '" y2="' + y_max_coord + '" stroke="' + p.color + '" stroke-width="4.5" stroke-linecap="round" opacity="0.85" vector-effect="non-scaling-stroke" data-tooltip="' + p.tooltip + '"/>');
+            }
+            var interval = w < 280 ? 6 : w < 560 ? 3 : 2;
+            var fs = w < 280 ? 9 : 10;
+            for (var h = 0; h < 24; h += interval) {
+                var lx = PAD_X + (h / 24) * pw;
+                parts.push('<text x="' + lx + '" y="' + (CHART_H - 7) + '" text-anchor="middle" font-size="' + fs + '" fill="var(--color-slate-400)">' + (h < 10 ? "0" : "") + h + ':00</text>');
+            }
+            svg.innerHTML = parts.join("");
+        }
+        render();
+        new ResizeObserver(render).observe(svg);
+        new MutationObserver(render).observe(svg, {attributeFilter: ["style", "class"], attributes: true});
+    })();
+    </script>
+    {% endif %}
+{% endmacro %}

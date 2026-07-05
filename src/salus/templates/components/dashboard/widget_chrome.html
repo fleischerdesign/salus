@@ -1,31 +1,22 @@
-<div class="dashboard-widget widget-{{ widget.size.value }}"
-     data-widget-id="{{ widget.id }}"
-     id="widget-{{ widget.id }}"
-     hx-get="/dashboard/widgets/{{ widget.id }}{% if display_date %}?date={{ display_date }}{% endif %}"
-     hx-trigger="widgetRefresh-{{ widget.id }} from:body"
-     hx-swap="outerHTML">
-    <div class="widget-chrome">
-        <span class="material-symbols-outlined widget-drag-handle">drag_indicator</span>
-        <span class="widget-chrome-title">{{ metric.name if metric else _("Widget") }}</span>
-        <div class="widget-chrome-actions">
-            <button class="btn-icon"
-                    hx-get="/dashboard/widgets/{{ widget.id }}/edit"
-                    hx-target="#modal-container"
-                    hx-swap="innerHTML"
-                    title="{{ _("Edit size") }}">
-                <span class="material-symbols-outlined">tune</span>
-            </button>
-            <button class="btn-icon"
-                    hx-delete="/dashboard/widgets/{{ widget.id }}"
-                    hx-target="#widget-{{ widget.id }}"
-                    hx-swap="outerHTML"
-                    hx-confirm="{{ _("Remove this widget?") }}"
-                    title="{{ _("Remove") }}">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+{% set size = widget.size.value if widget.size else "md" %}
+{% call widget_grid_item(id="widget-" + widget.id|string, widget_id=widget.id, size=size,
+       hx_get="/dashboard/widgets/" + widget.id|string + ("?date=" + display_date if display_date else ""),
+       hx_trigger="widgetRefresh-" + widget.id|string + " from:body", hx_swap="outerHTML") %}
+    {% set actions %}
+        <div class="widget-chrome__actions">
+            {{ btn(icon="tune", variant="ghost", size="sm",
+                   hx_get="/dashboard/widgets/" + widget.id|string + "/edit",
+                   hx_target="#modal-container", hx_swap="innerHTML",
+                   aria_label=_("Edit size")) }}
+            {{ btn(icon="close", variant="ghost", size="sm",
+                   hx_delete="/dashboard/widgets/" + widget.id|string,
+                   hx_target="#widget-" + widget.id|string, hx_swap="outerHTML",
+                   hx_confirm=_("Remove this widget?"),
+                   aria_label=_("Remove")) }}
         </div>
-    </div>
+    {% endset %}
+    {{ widget_chrome(title=metric.name if metric else _("Widget"), drag_handle=true, actions=actions) }}
     {% if metric %}
     {% include "components/dashboard/widget_card.html" %}
     {% endif %}
-</div>
+{% endcall %}

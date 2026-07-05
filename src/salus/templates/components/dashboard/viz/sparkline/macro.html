@@ -1,0 +1,27 @@
+{# vim: set ft=htmldjango: Viz Sparkline — @component viz-sparkline #}
+{% macro viz_sparkline(primary_value, primary_unit=none, delta=none, sub=none, percent=none, color=none, icon=none, sparkline_points=none) %}
+    {% if icon and color %}
+    <div class="viz-icon" style="background:{{ color }}20">
+        <span class="material-symbols-outlined" style="color:{{ color }}">{{ icon }}</span>
+    </div>
+    {% endif %}
+    <div class="viz-stat">
+        <span class="viz-stat__value">
+            {{ primary_value }}{% if primary_unit %} <span class="viz-stat__unit">{{ primary_unit }}</span>{% endif %}
+        </span>
+        {% if delta %}<span class="viz-delta">{{ delta | safe }}</span>{% endif %}
+        {% if sub %}<span class="viz-stat__sub">{{ sub | safe }}</span>{% endif %}
+        {% if percent is not none %}
+        <div class="progress-bar" style="margin-top:6px">
+            <div class="progress-bar__fill" style="width:{{ percent }}%;background:{{ color }}"></div>
+        </div>
+        {% endif %}
+    </div>
+    {% if sparkline_points %}
+    <svg class="viz-chart viz-chart--sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+        <polyline fill="none" stroke="{{ color }}" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            points="{{ sparkline_points }}"/>
+    </svg>
+    {% endif %}
+{% endmacro %}

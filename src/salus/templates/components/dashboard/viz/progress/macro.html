@@ -1,0 +1,28 @@
+{# vim: set ft=htmldjango: Viz Progress — @component viz-progress #}
+{% macro viz_progress(primary_value, primary_unit=none, delta=none, percent=none, target_label=none, color=none, has_goal=true, is_small=false) %}
+    {% if not has_goal %}
+        {{ viz_number(primary_value=primary_value, primary_unit=primary_unit, delta=delta, color=color) }}
+    {% elif is_small %}
+    <div class="viz-progress-ring">
+        <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--color-slate-100)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="{{ color }}" stroke-width="8"
+                    stroke-dasharray="{{ percent * 2.51327 | round(2) }} 251.327"
+                    stroke-linecap="round" transform="rotate(-90 50 50)" opacity="0.9"/>
+            <text x="50" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="var(--color-on-surface)">{{ percent }}%</text>
+            <text x="50" y="62" text-anchor="middle" font-size="10" fill="var(--color-slate-400)">{{ primary_value }}</text>
+        </svg>
+        <span class="viz-progress-target">{{ target_label }}</span>
+    </div>
+    {% else %}
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <span class="viz-stat__value">{{ primary_value }}<span class="viz-stat__unit"> {{ primary_unit }}</span></span>
+        {% if delta %}<span class="viz-delta">{{ delta | safe }}</span>{% endif %}
+    </div>
+    <div class="viz-progress-track">
+        <div class="viz-progress-fill" style="width:{{ percent }}%;background:{{ color }}"></div>
+        <span class="viz-progress-pct">{{ percent }}%</span>
+    </div>
+    <span class="viz-progress-target">{{ target_label }}</span>
+    {% endif %}
+{% endmacro %}

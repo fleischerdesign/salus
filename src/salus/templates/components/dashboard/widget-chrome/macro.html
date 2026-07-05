@@ -1,0 +1,53 @@
+{# vim: set ft=htmldjango:
+   Widget Chrome — @component widget-chrome
+
+   Usage:
+     {% call widget_chrome(title="Steps", color="#f59e0b") %}
+       <div class="widget-chrome__actions">
+         {{ btn(icon="tune", variant="ghost") }}
+         {{ btn(icon="close", variant="ghost") }}
+       </div>
+     {% endcall %}
+
+   Skeleton variant:
+     {{ widget_skeleton(title="Steps") }}
+ #}
+
+{% macro widget_chrome(title, color=none, drag_handle=false, actions=none) %}
+    <div class="widget-chrome">
+        {% if drag_handle %}
+        <span class="material-symbols-outlined widget-chrome__drag">drag_indicator</span>
+        {% endif %}
+        <span class="widget-chrome__title" {% if color %}style="color:{{ color }}"{% endif %}>{{ title }}</span>
+        {% if actions %}<div class="widget-chrome__actions">{{ actions|safe }}</div>{% endif %}
+        {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+{% endmacro %}
+
+
+{% macro widget_body() %}
+    <div class="widget-body" style="padding:8px 16px 16px 16px">
+        {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+{% endmacro %}
+
+
+{% macro widget_empty(icon, color, text) %}
+    {% call widget_body() %}
+        <div class="widget-empty">
+            <span class="material-symbols-outlined widget-empty__icon" style="color:{{ color }}">{{ icon }}</span>
+            <span class="widget-empty__text">{{ text }}</span>
+        </div>
+    {% endcall %}
+{% endmacro %}
+
+
+{% macro widget_skeleton(title) %}
+    <div class="widget-chrome">
+        <div class="widget-chrome__title" style="color:var(--color-slate-300)">{{ title }}</div>
+    </div>
+    <div class="widget-body" style="padding-top:0">
+        <div class="widget-skeleton" style="width:50px;height:32px;border-radius:6px"></div>
+        <div class="widget-skeleton" style="width:100%;height:60px;border-radius:8px;margin-top:16px;min-height:80px"></div>
+    </div>
+{% endmacro %}
