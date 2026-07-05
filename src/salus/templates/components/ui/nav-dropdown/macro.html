@@ -3,13 +3,13 @@
     <div class="nav-dropdown">
         <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button"
                 _="on click
-                    if @data-open is 'true'
+                    if @data-open is 'true' then
                       remove @data-open
                       set @aria-expanded to 'false'
                       blur me
                     else
                       send navClose to <button.nav-dropdown__trigger/>
-                      add @data-open
+                      set @data-open to 'true'
                       set @aria-expanded to 'true'
                     end
                   end
