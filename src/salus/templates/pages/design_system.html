@@ -152,8 +152,7 @@
 
         <section class="ds-section" id="modal">
             <h2>Modal <code>modal</code></h2>
-            <button class="btn" data-variant="primary" type="button"
-                _="on click add @data-open to the next .modal-backdrop">Open Modal</button>
+            {{ btn("Open Modal", variant="primary", attrs={"type": "button"}, hyperscript="on click add @data-open to the next .modal-backdrop") }}
             <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="example-modal-title"
                  _="on click if event.target === me then remove @data-open end
                     on keydown[key is 'Escape'] remove @data-open">
@@ -169,10 +168,8 @@
                         </p>
                     </div>
                     <div class="modal__footer">
-                        <button class="btn" data-variant="ghost" type="button"
-                            _="on click remove @data-open from closest .modal-backdrop">Cancel</button>
-                        <button class="btn" data-variant="primary" type="button"
-                            _="on click remove @data-open from closest .modal-backdrop">Save</button>
+                        {{ btn("Cancel", variant="ghost", hyperscript="on click remove @data-open from closest .modal-backdrop") }}
+                        {{ btn("Save", variant="primary", hyperscript="on click remove @data-open from closest .modal-backdrop") }}
                     </div>
                 </div>
             </div>
@@ -544,8 +541,7 @@
 
         <section class="ds-section" id="confirm">
             <h2>Confirm Dialog <code>confirm</code></h2>
-            <button class="btn" data-variant="danger" type="button"
-                _="on click add @data-open to the next .modal-backdrop">Delete Item</button>
+            {{ btn("Delete Item", variant="danger", hyperscript="on click add @data-open to the next .modal-backdrop") }}
             <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ds-confirm-title"
                  _="on click if event.target === me then remove @data-open end
                     on keydown[key is 'Escape'] remove @data-open">
@@ -558,10 +554,8 @@
                         This action cannot be undone. All data associated with this item will be permanently removed.
                     </div>
                     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
-                        <button class="btn" data-variant="ghost" type="button"
-                            _="on click remove @data-open from closest .modal-backdrop">Cancel</button>
-                        <button class="btn" data-variant="danger" type="button"
-                            _="on click remove @data-open from closest .modal-backdrop">Delete</button>
+                        {{ btn("Cancel", variant="ghost", hyperscript="on click remove @data-open from closest .modal-backdrop") }}
+                        {{ btn("Delete", variant="danger", hyperscript="on click remove @data-open from closest .modal-backdrop") }}
                     </div>
                 </div>
             </div>

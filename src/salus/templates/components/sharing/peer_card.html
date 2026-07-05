@@ -74,11 +74,9 @@
         {% if peer.api_token and peer.is_remote %}
         <span class="peer-token">
             <code class="peer-token-value" id="token-{{ peer.handle | replace('@', '') | replace(':', '-') }}">{{ peer.api_token[:12] }}&hellip;</code>
-            <button class="btn" data-variant="ghost" data-size="sm"
-                    onclick="navigator.clipboard.writeText('{{ peer.api_token }}')"
-                    title="{{ _('Copy API token') }}">
-                <span class="material-symbols-outlined" style="font-size:14px">content_copy</span>
-            </button>
+            {{ btn(icon="content_copy", variant="ghost", size="sm",
+                   onclick="navigator.clipboard.writeText('" + peer.api_token + "')",
+                   aria_label=_("Copy API token")) }}
         </span>
         {% endif %}
         {% if not peer.is_pending and (peer.is_mutual or (peer.metrics and peer.metrics[0].direction == 'outgoing')) %}

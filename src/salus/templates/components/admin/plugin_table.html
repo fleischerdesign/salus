@@ -46,14 +46,11 @@
                 </form>
             </td>
             <td>
-                <button class="btn" data-variant="ghost" data-size="sm"
-                        hx-delete="/admin/plugins/{{ plugin.id }}"
-                        hx-confirm="Are you sure you want to uninstall and delete this plugin?"
-                        hx-target="#admin-plugins-container"
-                        hx-swap="innerHTML"
-                        style="color:var(--color-error-600)">
-                    Uninstall
-                </button>
+                {{ btn("Uninstall", variant="ghost", size="sm", style="color:var(--color-error-600)",
+                       hx_delete="/admin/plugins/" + plugin.id|string,
+                       hx_confirm="Are you sure you want to uninstall and delete this plugin?",
+                       hx_target="#admin-plugins-container",
+                       hx_swap="innerHTML") }}
             </td>
         </tr>
         {% else %}

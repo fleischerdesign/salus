@@ -18,19 +18,14 @@
                 </div>
             </div>
             <div class="flex-center gap-sm">
-                <button class="btn" data-variant="primary" data-size="sm"
-                        hx-post="/sharing/{{ inv.id }}/accept"
-                        hx-target="#pending-{{ inv.id }}"
-                        hx-swap="outerHTML">
-                    {{ _("Accept") }}
-                </button>
-                <button class="btn" data-variant="ghost" data-size="sm"
-                        style="color:var(--color-error)"
-                        hx-post="/sharing/{{ inv.id }}/decline"
-                        hx-target="#pending-{{ inv.id }}"
-                        hx-swap="outerHTML">
-                    {{ _("Decline") }}
-                </button>
+                {{ btn(_("Accept"), variant="primary", size="sm",
+                       hx_post="/sharing/" + inv.id|string + "/accept",
+                       hx_target="#pending-" + inv.id|string,
+                       hx_swap="outerHTML") }}
+                {{ btn(_("Decline"), variant="ghost", size="sm", style="color:var(--color-error)",
+                       hx_post="/sharing/" + inv.id|string + "/decline",
+                       hx_target="#pending-" + inv.id|string,
+                       hx_swap="outerHTML") }}
             </div>
         </div>
         {% endfor %}

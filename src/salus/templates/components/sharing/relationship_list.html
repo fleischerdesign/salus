@@ -39,14 +39,11 @@
             </td>
             <td>
                 {% if rel.is_active %}
-                <button class="btn" data-variant="ghost" data-size="sm"
-                        hx-delete="/sharing/{{ rel.id }}"
-                        hx-confirm="Are you sure you want to stop sharing this metric?"
-                        hx-target="#sharing-relationship-container"
-                        hx-swap="innerHTML"
-                        style="color:var(--color-error-600)">
-                    {{ _("Revoke") }}
-                </button>
+                {{ btn(_("Revoke"), variant="ghost", size="sm", style="color:var(--color-error-600)",
+                       hx_delete="/sharing/" + rel.id|string,
+                       hx_confirm="Are you sure you want to stop sharing this metric?",
+                       hx_target="#sharing-relationship-container",
+                       hx_swap="innerHTML") }}
                 {% endif %}
             </td>
         </tr>

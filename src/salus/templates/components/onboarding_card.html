@@ -35,10 +35,8 @@
             <span class="onboarding-check-desc">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</span>
         </div>
     </div>
-    <button class="btn" data-variant="ghost" style="width:100%;margin-top:8px"
-            hx-post="/onboarding/dismiss"
-            hx-target="#onboarding-card"
-            hx-swap="outerHTML">
-        {{ _("Dismiss") }}
-    </button>
+    {{ btn(_("Dismiss"), variant="ghost", style="width:100%;margin-top:8px",
+           hx_post="/onboarding/dismiss",
+           hx_target="#onboarding-card",
+           hx_swap="outerHTML") }}
 </div>

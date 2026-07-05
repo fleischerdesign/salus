@@ -38,25 +38,16 @@
             {{ divider(label=_("or")) }}
 
             {% if settings.google_client_id %}
-            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
-                    onclick="window.location.href='/auth/oidc/google'" type="button">
-                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
-                {{ _("Sign in with Google") }}
-            </button>
+            {{ btn(icon="login", label=_("Sign in with Google"), variant="secondary", style="width:100%;margin-bottom:8px",
+                   attrs={"type": "button"}, onclick="window.location.href='/auth/oidc/google'") }}
             {% endif %}
             {% if settings.github_client_id %}
-            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
-                    onclick="window.location.href='/auth/oidc/github'" type="button">
-                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
-                {{ _("Sign in with GitHub") }}
-            </button>
+            {{ btn(icon="login", label=_("Sign in with GitHub"), variant="secondary", style="width:100%;margin-bottom:8px",
+                   attrs={"type": "button"}, onclick="window.location.href='/auth/oidc/github'") }}
             {% endif %}
             {% if settings.oidc_client_id %}
-            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
-                    onclick="window.location.href='/auth/oidc/oidc'" type="button">
-                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
-                {{ _("Sign in with OIDC") }}
-            </button>
+            {{ btn(icon="login", label=_("Sign in with OIDC"), variant="secondary", style="width:100%;margin-bottom:8px",
+                   attrs={"type": "button"}, onclick="window.location.href='/auth/oidc/oidc'") }}
             {% endif %}
 
             <div style="text-align:center;margin-top:24px">

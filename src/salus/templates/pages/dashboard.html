@@ -22,27 +22,21 @@
     </div>
 
     <div style="display:flex;gap:8px">
-        <button id="edit-layout-btn" class="btn" data-variant="small"
-            _="on click
+        {{ btn(_("Edit Layout"), variant="small", id="edit-layout-btn",
+               hyperscript="on click
                 add .edit-mode to #dashboard-grid
                 hide me
-                show #done-layout-btn">
-            {{ _("Edit Layout") }}
-        </button>
-        <button id="done-layout-btn" class="btn" data-variant="primary" data-size="sm" style="display:none"
-            _="on click
+                show #done-layout-btn") }}
+        {{ btn(_("Done"), variant="primary", size="sm", id="done-layout-btn", style="display:none",
+               hyperscript="on click
                 remove .edit-mode from #dashboard-grid
                 hide me
-                show #edit-layout-btn">
-            {{ _("Done") }}
-        </button>
-        <button class="btn" data-variant="small" style="display:none"
-            _="on load if #dashboard-grid matches .edit-mode then show me end"
-            hx-get="/dashboard/widgets/add-modal"
-            hx-target="body"
-            hx-swap="beforeend">
-            + {{ _("Add Widget") }}
-        </button>
+                show #edit-layout-btn") }}
+        {{ btn("+ " + _("Add Widget"), variant="small", style="display:none",
+               hyperscript="on load if #dashboard-grid matches .edit-mode then show me end",
+               hx_get="/dashboard/widgets/add-modal",
+               hx_target="body",
+               hx_swap="beforeend") }}
     </div>
 </div>
 

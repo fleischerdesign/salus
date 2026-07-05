@@ -30,11 +30,9 @@
     {% endif %}
 
     {% if not is_today %}
-    <button class="btn" data-variant="primary" data-size="sm"
-            hx-get="/dashboard/grid"
-            hx-target="#dashboard-content"
-            hx-swap="outerHTML">
-        {{ _("Today") }}
-    </button>
+    {{ btn(_("Today"), variant="primary", size="sm",
+           hx_get="/dashboard/grid",
+           hx_target="#dashboard-content",
+           hx_swap="outerHTML") }}
     {% endif %}
 </div>
