@@ -262,7 +262,7 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     rounded: "{rounded.md}"
-    typography: label-md
+    typography: "{typography.label-md}"
     padding: 10px 20px
   btn-primary-hover:
     backgroundColor: "{colors.primary-600}"
@@ -311,14 +311,14 @@ components:
     border: "1px solid {colors.slate-300}"
     rounded: "{rounded.md}"
     padding: 10px 12px
-    typography: body-md
+    typography: "{typography.body-md}"
   input-focus:
     border: "1px solid {colors.primary}"
     shadow: "0 0 0 2px {colors.primary-200}"
 
   table:
     header-bg: "{colors.slate-100}"
-    header-typography: label-sm
+    header-typography: "{typography.label-sm}"
     row-hover-bg: "{colors.slate-50}"
     border: "1px solid {colors.slate-200}"
 
@@ -421,7 +421,7 @@ components:
     responsive: false
     backgroundColor: "{colors.slate-100}"
     textColor: "{colors.slate-700}"
-    fontFamily: "'{typography.code-sm}'"
+    fontFamily: "{typography.code-sm}"
   language-switcher:
     responsive: false
   link:
