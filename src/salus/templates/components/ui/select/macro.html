@@ -1,0 +1,39 @@
+{# vim: set ft=htmldjango:
+   Select — @component select
+   Usage:
+     {% call select(name="metric", label="Metric Type") %}
+       <span class="select__option" data-value="1">Steps</span>
+       <span class="select__option" data-value="2">Heart Rate</span>
+     {% endcall %}
+ #}
+{% macro select(name, label=none, placeholder="Select...", error=none, id=none) %}
+    {% set field_id = id or name %}
+    <div class="select">
+        {% if label %}
+        <label for="{{ field_id }}-trigger" class="select__label">{{ label }}</label>
+        {% endif %}
+
+        <div style="position: relative;">
+            <div class="select__trigger" id="{{ field_id }}-trigger" role="combobox" aria-expanded="false"
+                 aria-haspopup="listbox" tabindex="0"
+                 _="on click toggle @aria-expanded between 'true' and 'false' then if @aria-expanded is 'true' call focus() end">
+                <span class="select__value">
+                    <span class="select__placeholder">{{ placeholder }}</span>
+                </span>
+                <span class="select__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
+            </div>
+
+            <div class="select__dropdown" role="listbox" id="{{ field_id }}-listbox">
+                <input type="hidden" name="{{ name }}" id="{{ field_id }}" value="">
+                {{ caller() if caller else "" }}
+            </div>
+        </div>
+
+        {% if error %}
+        <span class="select__error" role="alert">
+            <span class="material-symbols-outlined" style="font-size:16px" aria-hidden="true">error</span>
+            {{ error }}
+        </span>
+        {% endif %}
+    </div>
+{% endmacro %}
