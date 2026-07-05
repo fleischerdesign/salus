@@ -1345,7 +1345,7 @@ img {
 
 .nav-dropdown__trigger:hover { color: var(--nav-link-hover-color, var(--color-primary)); }
 
-.nav-dropdown__chevron { font-size: 16px; transition: transform var(--duration-fast) var(--ease-default); }
+.nav-dropdown__chevron { font-size: 16px; transition: transform var(--duration-fast) var(--ease-out); }
 
 .nav-dropdown__trigger[data-open] { color: var(--nav-link-hover-color, var(--color-primary)); }
 .nav-dropdown__trigger[data-open] .nav-dropdown__chevron { transform: rotate(180deg); }
