@@ -229,7 +229,7 @@
 
 body {
     margin: 0;
-    background: var(--color-background);
+    background: var(--color-surface);
     color: var(--color-on-background);
     font-family: var(--font-family-primary);
     font-size: 16px;

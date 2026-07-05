@@ -3,7 +3,7 @@
        aria_label=_("Dismiss")) %}
 {% call card(title=_("Getting Started"), header_action=close_btn, style="margin-bottom:24px") %}
     {% call form_row(style="gap:12px") %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-lowest)",
+        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface)",
                hx_get="/onboarding/step/0/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">sync</span>
             <div style="text-align:center">
@@ -11,7 +11,7 @@
                 <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Generate an API token for webhook ingestion.") }}</div>
             </div>
         {% endcall %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-lowest)",
+        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface)",
                hx_get="/onboarding/step/1/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">edit_note</span>
             <div style="text-align:center">
@@ -19,7 +19,7 @@
                 <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Track weight, mood, or any custom metric.") }}</div>
             </div>
         {% endcall %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-lowest)",
+        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface)",
                hx_get="/onboarding/step/2/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">track_changes</span>
             <div style="text-align:center">
