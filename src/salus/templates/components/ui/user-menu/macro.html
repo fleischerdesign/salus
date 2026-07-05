@@ -20,7 +20,7 @@
                     if @data-open then remove @data-open else add @data-open end
                    end
                    on click from elsewhere remove @data-open">
-            {{ avatar(display, size="sm", image=getattr(user, 'avatar_url', None)) }}
+            {{ avatar(display, size="sm", image=none) }}
         </button>
 
         <div class="user-menu__dropdown" role="menu">
