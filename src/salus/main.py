@@ -2,6 +2,7 @@ import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +21,8 @@ from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import admin, analytics, api, auth, circadian, dashboard, design_system, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
+
+locale_ctx: ContextVar[str] = ContextVar("salus_locale", default="en")
 
 
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -71,6 +74,20 @@ def get_translation_context(request: Request):
         "_": lambda text: translate(text, locale),
         "current_locale": locale
     }
+
+
+async def i18n_middleware(request: Request, call_next):
+    locale = request.cookies.get("salus_locale")
+    if not locale:
+        accept_lang = request.headers.get("Accept-Language", "")
+        locale = "de" if "de" in accept_lang.lower() else "en"
+    locale_ctx.set(locale)
+    response = await call_next(request)
+    return response
+
+
+def _translate(text: str) -> str:
+    return translate(text, locale_ctx.get())
 
 
 def get_nav_context(request: Request):
@@ -154,6 +171,7 @@ templates = Jinja2Templates(
 )
 templates.env.undefined = StrictUndefined
 templates.env.globals["settings"] = app_settings
+templates.env.globals["_"] = _translate
 if templates.env.loader is not None:
     templates.env.loader = AutoImportLoader(templates.env.loader)
 
@@ -241,6 +259,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.middleware("http")(i18n_middleware)
 app.mount("/static", StaticFiles(directory="src/salus/static"), name="static")
 app.include_router(dashboard.router)
 app.include_router(metrics.router, prefix="/metrics")
