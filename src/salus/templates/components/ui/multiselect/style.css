@@ -9,7 +9,7 @@
     transition: border-color var(--duration-fast) var(--ease-default);
 }
 .multiselect__trigger:hover { border-color: var(--color-slate-400); }
-.multiselect__trigger[aria-expanded="true"] { border-color: var(--color-primary-500); box-shadow: var(--input-focus-shadow); background: #ffffff; }
+.multiselect__trigger[aria-expanded="true"] { border-color: var(--color-primary-500); box-shadow: var(--input-focus-shadow); background: var(--color-surface-container-lowest); }
 .multiselect__placeholder { color: var(--color-slate-400); font: var(--font-body-md); padding: 6px 4px; }
 .multiselect__dropdown {
     position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 280px; overflow-y: auto;

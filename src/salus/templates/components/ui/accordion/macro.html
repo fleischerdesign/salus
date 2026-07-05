@@ -19,7 +19,7 @@
     <div class="accordion__item">
         <button class="accordion__trigger" aria-expanded="{{ 'true' if open else 'false' }}"
                 aria-controls="{{ item_id }}"
-                _="on click toggle @aria-expanded">
+                _="on click toggle @aria-expanded='true'">
             {{ title }}
             <span class="accordion__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </button>
