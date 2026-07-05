@@ -298,10 +298,10 @@ def _dim_metric(hex_color: str) -> str:
         r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
     except ValueError:
         return f"#{hex_color}"
-    h, s, l = _rgb_to_hsl(r, g, b)
-    l = min(l + 10, 85)
+    h, s, li = _rgb_to_hsl(r, g, b)
+    li = min(li + 10, 85)
     s = max(s - 15, 30)
-    nr, ng, nb = _hsl_to_rgb(h, s, l)
+    nr, ng, nb = _hsl_to_rgb(h, s, li)
     return f"#{nr:02x}{ng:02x}{nb:02x}"
 
 
@@ -309,11 +309,11 @@ def _rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
     rr, gg, bb = r / 255.0, g / 255.0, b / 255.0
     mx = max(rr, gg, bb)
     mn = min(rr, gg, bb)
-    l = (mx + mn) / 2
+    li = (mx + mn) / 2
     if mx == mn:
-        return 0.0, 0.0, round(l * 100, 1)
+        return 0.0, 0.0, round(li * 100, 1)
     d = mx - mn
-    s = d / (2 - mx - mn) if l > 0.5 else d / (mx + mn)
+    s = d / (2 - mx - mn) if li > 0.5 else d / (mx + mn)
     if mx == rr:
         h = (gg - bb) / d + (6 if gg < bb else 0)
     elif mx == gg:
@@ -321,15 +321,15 @@ def _rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
     else:
         h = (rr - gg) / d + 4
     h /= 6
-    return round(h * 360, 1), round(s * 100, 1), round(l * 100, 1)
+    return round(h * 360, 1), round(s * 100, 1), round(li * 100, 1)
 
 
-def _hsl_to_rgb(h: float, s: float, l: float) -> tuple[int, int, int]:
+def _hsl_to_rgb(h: float, s: float, li: float) -> tuple[int, int, int]:
     h /= 360
     s /= 100
-    l /= 100
+    li /= 100
     if s == 0:
-        v = round(l * 255)
+        v = round(li * 255)
         return v, v, v
 
     def hue_to_rgb(p: float, q: float, t: float) -> float:
@@ -345,8 +345,8 @@ def _hsl_to_rgb(h: float, s: float, l: float) -> tuple[int, int, int]:
             return p + (q - p) * (2 / 3 - t) * 6
         return p
 
-    q = l * (1 + s) if l < 0.5 else l + s - l * s
-    p = 2 * l - q
+    q = li * (1 + s) if li < 0.5 else li + s - li * s
+    p = 2 * li - q
     return (
         round(hue_to_rgb(p, q, h + 1 / 3) * 255),
         round(hue_to_rgb(p, q, h) * 255),
@@ -383,7 +383,7 @@ def generate_css(design: dict) -> str:
         "/*",
         " * Salus Design Tokens",
         " * AUTO-GENERATED from DESIGN.md — do not edit by hand.",
-        f" * Regenerate: uv run python tools/generate_tokens.py",
+        " * Regenerate: uv run python tools/generate_tokens.py",
         " */",
         "",
         ":root {",
