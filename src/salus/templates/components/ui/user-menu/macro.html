@@ -17,7 +17,7 @@
                 aria-label="{{ _("User menu") }} — {{ display }}"
                 type="button"
                 _="on click
-                    if @data-open then remove @data-open else add @data-open end
+                    if @data-open then remove @data-open else set @data-open to 'true' end
                    end
                    on click from elsewhere remove @data-open">
             {{ avatar(display, size="sm", image=none) }}
