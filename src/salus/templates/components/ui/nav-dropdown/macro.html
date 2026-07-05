@@ -4,7 +4,7 @@
         <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button">
             {{ label }} <span class="nav-dropdown__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </button>
-        <div class="nav-dropdown__menu" role="menu">{{ caller() if caller else "" }}</div>
+        <div class="nav-dropdown__menu" role="menu">{% if caller is defined %}{{ caller() }}{% endif %}</div>
     </div>
 {% endmacro %}
 

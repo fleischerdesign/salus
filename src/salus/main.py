@@ -16,7 +16,7 @@ from salus.exceptions import AuthenticationError, ConflictError, ForbiddenError,
 from salus.models import system_config  # noqa: F401
 from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
-from salus.routers import admin, analytics, api, auth, dashboard, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science, circadian
+from salus.routers import admin, analytics, api, auth, circadian, dashboard, design_system, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
 
@@ -257,6 +257,7 @@ app.include_router(workout.router)
 app.include_router(asymmetric_share.router)
 app.include_router(open_science.router)
 app.include_router(circadian.router)
+app.include_router(design_system.router)
 
 
 

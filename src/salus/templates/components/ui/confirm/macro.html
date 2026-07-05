@@ -22,23 +22,17 @@
             </span>
             <h2 class="confirm__title" id="{{ modal_id }}-title">{{ title }}</h2>
             <div class="confirm__message">
-                {{ caller() if caller else "" }}
+                {% if caller is defined %}{{ caller() }}{% endif %}
             </div>
         </div>
     </div>
 {% endmacro %}
 
 
-{% macro confirm_button(label, variant="secondary", **kwargs) %}
+{% macro confirm_button(label, variant="secondary", hx_delete=none, hx_post=none, hx_target=none) %}
     <button class="btn" data-variant="{{ variant }}" type="button"
-        {% for key, value in kwargs.items() %}{% if key == 'hx_delete' %}
-            hx-delete="{{ value }}"
-        {% elif key == 'hx_post' %}
-            hx-post="{{ value }}"
-        {% elif key == 'hx_target' %}
-            hx-target="{{ value }}"
-        {% else %}
-            {{ key }}="{{ value }}"
-        {% endif %}{% endfor %}
+        {% if hx_delete %}hx-delete="{{ hx_delete }}"{% endif %}
+        {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
+        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
         _="on click remove closest .modal-backdrop">{{ label }}</button>
 {% endmacro %}

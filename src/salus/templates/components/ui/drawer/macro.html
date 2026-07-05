@@ -10,7 +10,7 @@
                     <span class="material-symbols-outlined" style="font-size:20px">close</span>
                 </button>
             </div>
-            <nav class="drawer__body">{{ caller() if caller else "" }}</nav>
+            <nav class="drawer__body">{% if caller is defined %}{{ caller() }}{% endif %}</nav>
         </div>
     </div>
 {% endmacro %}

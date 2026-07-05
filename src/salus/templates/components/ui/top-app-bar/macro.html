@@ -3,7 +3,7 @@
     <header class="top-app-bar" role="banner">
         <a href="{{ logo_href }}" class="top-app-bar__logo" aria-label="Home">{{ logo_text }}</a>
         <nav class="top-app-bar__nav" aria-label="Main navigation">
-            {{ caller() if caller else "" }}
+            {% if caller is defined %}{{ caller() }}{% endif %}
         </nav>
         <span class="top-app-bar__spacer"></span>
         <div class="top-app-bar__actions">

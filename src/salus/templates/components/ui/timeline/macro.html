@@ -9,7 +9,7 @@
 
 {% macro timeline() %}
     <div class="timeline" role="list">
-        {{ caller() if caller else "" }}
+        {% if caller is defined %}{{ caller() }}{% endif %}
     </div>
 {% endmacro %}
 

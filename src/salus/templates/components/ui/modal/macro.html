@@ -44,7 +44,7 @@
             {% endif %}
 
             <div class="modal__body">
-                {{ caller() if caller else "" }}
+                {% if caller is defined %}{{ caller() }}{% endif %}
             </div>
         </div>
     </div>
@@ -53,6 +53,6 @@
 
 {% macro modal_footer() %}
     <div class="modal__footer">
-        {{ caller() if caller else "" }}
+        {% if caller is defined %}{{ caller() }}{% endif %}
     </div>
 {% endmacro %}

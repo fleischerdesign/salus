@@ -7,7 +7,7 @@
             <span class="multiselect__placeholder">Select options...</span>
         </div>
         <div class="multiselect__dropdown" role="listbox" aria-multiselectable="true">
-            {{ caller() if caller else "" }}
+            {% if caller is defined %}{{ caller() }}{% endif %}
         </div>
     </div>
 {% endmacro %}

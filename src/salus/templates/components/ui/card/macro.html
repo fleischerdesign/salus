@@ -28,13 +28,13 @@
             {% if title %}
             <h3 class="card__header-title">{{ title }}</h3>
             {% endif %}
-            {% if caller and caller.arguments is not defined %}
+            {% if caller is defined and caller.arguments is not defined %}
             {% endif %}
         </div>
         {% endif %}
 
         <div class="card__body">
-            {{ caller() if caller else "" }}
+            {% if caller is defined %}{{ caller() }}{% endif %}
         </div>
     </{{ tag }}>
 {% endmacro %}

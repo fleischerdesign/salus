@@ -1,0 +1,714 @@
+{% extends "base.html" %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/card/macro.html" import card %}
+{% from "components/ui/modal/macro.html" import modal, modal_footer %}
+{% from "components/ui/select/macro.html" import select %}
+{% from "components/ui/checkbox/macro.html" import checkbox %}
+{% from "components/ui/toggle/macro.html" import toggle %}
+{% from "components/ui/chip/macro.html" import chip %}
+{% from "components/ui/badge/macro.html" import badge %}
+{% from "components/ui/icon/macro.html" import icon %}
+{% from "components/ui/avatar/macro.html" import avatar %}
+{% from "components/ui/divider/macro.html" import divider %}
+{% from "components/ui/link/macro.html" import link %}
+{% from "components/ui/empty-state/macro.html" import empty_state %}
+{% from "components/ui/skeleton/macro.html" import skeleton %}
+{% from "components/ui/spinner/macro.html" import spinner %}
+{% from "components/ui/tooltip/macro.html" import tooltip, tooltip_wrapper %}
+{% from "components/ui/toast/macro.html" import toast %}
+{% from "components/ui/progress-bar/macro.html" import progress_bar %}
+{% from "components/ui/table/macro.html" import table %}
+{% from "components/ui/form-layout/macro.html" import form_stack, form_row, form_actions %}
+{% from "components/ui/key-value/macro.html" import key_value %}
+{% from "components/ui/stat/macro.html" import stat %}
+{% from "components/ui/status-dot/macro.html" import status_dot %}
+{% from "components/ui/copy-to-clipboard/macro.html" import copy_to_clipboard %}
+{% from "components/ui/search-input/macro.html" import search_input %}
+{% from "components/ui/top-app-bar/macro.html" import top_app_bar, top_app_bar_link %}
+{% from "components/ui/user-menu/macro.html" import user_menu, user_menu_item, user_menu_separator %}
+{% from "components/ui/tab-bar/macro.html" import tab_bar %}
+{% from "components/ui/tabbed-sidebar/macro.html" import tabbed_sidebar, tabbed_sidebar_link %}
+{% from "components/ui/nav-dropdown/macro.html" import nav_dropdown, nav_dropdown_item %}
+{% from "components/ui/day-navigator/macro.html" import day_navigator %}
+{% from "components/ui/breadcrumb/macro.html" import breadcrumb, breadcrumb_item, breadcrumb_current %}
+{% from "components/ui/step-indicator/macro.html" import step_indicator %}
+{% from "components/ui/scroll-to-top/macro.html" import scroll_to_top %}
+{% from "components/ui/drawer/macro.html" import drawer, drawer_link %}
+{% from "components/ui/confirm/macro.html" import confirm_dialog, confirm_button %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
+{% from "components/ui/offline-indicator/macro.html" import offline_indicator %}
+{% from "components/ui/cookie-consent/macro.html" import cookie_consent %}
+{% from "components/ui/timeout-warning/macro.html" import timeout_warning %}
+{% from "components/ui/chip-row/macro.html" import chip_row %}
+{% from "components/ui/list-item/macro.html" import list_item %}
+{% from "components/ui/compare/macro.html" import compare %}
+{% from "components/ui/timeline/macro.html" import timeline, timeline_item %}
+{% from "components/ui/accordion/macro.html" import accordion, accordion_item %}
+{% from "components/ui/pagination/macro.html" import pagination %}
+{% from "components/ui/radio-group/macro.html" import radio_group %}
+{% from "components/ui/slider/macro.html" import slider %}
+{% from "components/ui/stepper/macro.html" import stepper %}
+{% from "components/ui/upload/macro.html" import upload %}
+{% from "components/ui/autocomplete/macro.html" import autocomplete %}
+{% from "components/ui/multiselect/macro.html" import multiselect %}
+{% from "components/ui/date-picker/macro.html" import date_picker %}
+
+{% block title %}Design System — {{ settings.app_name }}{% endblock %}
+
+{% block head %}
+<style>
+    .ds-layout { display: flex; min-height: calc(100vh - 64px); }
+    .ds-sidebar { width: 240px; flex-shrink: 0; border-right: 1px solid var(--color-slate-200); padding: 16px 0; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; z-index: 10; }
+    .ds-sidebar h3 { font: var(--font-label-sm); padding: 8px 16px; color: var(--color-slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 16px; }
+    .ds-sidebar h3:first-child { margin-top: 0; }
+    .ds-sidebar a { display: block; padding: 8px 16px; font: var(--font-body-sm); color: var(--color-slate-600); text-decoration: none; border-left: 3px solid transparent; }
+    .ds-sidebar a:hover { color: var(--color-primary); background: var(--color-slate-50); }
+    .ds-content { flex: 1; padding: 32px; min-width: 0; max-width: 960px; }
+    .ds-section { margin-bottom: 48px; }
+    .ds-section h2 { font: var(--font-headline-lg); margin-bottom: 4px; }
+    .ds-section h2 code { font: var(--font-code-sm); font-size: 14px; color: var(--color-slate-400); font-weight: 400; margin-left: 8px; }
+    .ds-section > p { font: var(--font-body-sm); color: var(--color-slate-500); margin-bottom: 24px; }
+    .ds-variants { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin-bottom: 24px; }
+    .ds-variants--col { flex-direction: column; max-width: 440px; }
+    .ds-spacing { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .ds-label { font: var(--font-label-sm); color: var(--color-slate-500); margin-bottom: 8px; display: block; }
+    .ds-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ds-card-grid .card { min-height: 160px; }
+
+    @media (max-width: 900px) { .ds-layout { flex-direction: column; } .ds-sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--color-slate-200); display: flex; overflow-x: auto; gap: 8px; padding: 8px; } .ds-sidebar h3 { display: none; } .ds-sidebar a { white-space: nowrap; border-left: none; padding: 6px 12px; border-radius: var(--radius-md); } .ds-content { padding: 16px; } .ds-card-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="ds-layout">
+    <aside class="ds-sidebar">
+        <h3>Core UI</h3>
+        <a href="#btn">Button</a>
+        <a href="#input">Input</a>
+        <a href="#card">Card</a>
+        <a href="#modal">Modal</a>
+        <a href="#select">Select</a>
+        <a href="#checkbox">Checkbox</a>
+        <a href="#toggle">Toggle</a>
+        <a href="#chip">Chip</a>
+        <a href="#badge">Badge</a>
+        <a href="#icon">Icon</a>
+        <a href="#avatar">Avatar</a>
+        <a href="#divider">Divider</a>
+        <a href="#link">Link</a>
+        <a href="#empty-state">Empty State</a>
+        <a href="#skeleton">Skeleton</a>
+        <a href="#spinner">Spinner</a>
+        <a href="#tooltip">Tooltip</a>
+        <h3>Forms</h3>
+        <a href="#form-layout">Form Layout</a>
+        <a href="#search-input">Search Input</a>
+        <a href="#date-picker">Date Picker</a>
+        <a href="#radio-group">Radio Group</a>
+        <a href="#slider">Slider</a>
+        <a href="#stepper">Stepper</a>
+        <a href="#upload">Upload</a>
+        <a href="#autocomplete">Autocomplete</a>
+        <a href="#multiselect">Multiselect</a>
+        <h3>Data</h3>
+        <a href="#table">Table</a>
+        <a href="#progress-bar">Progress Bar</a>
+        <a href="#key-value">Key-Value</a>
+        <a href="#stat">Stat</a>
+        <a href="#status-dot">Status Dot</a>
+        <a href="#copy-clipboard">Copy to Clipboard</a>
+        <a href="#chip-row">Chip Row</a>
+        <a href="#list-item">List Item</a>
+        <a href="#compare">Compare</a>
+        <a href="#timeline">Timeline</a>
+        <a href="#accordion">Accordion</a>
+        <a href="#pagination">Pagination</a>
+        <h3>Feedback</h3>
+        <a href="#toast">Toast</a>
+        <a href="#alert">Alert</a>
+        <a href="#confirm">Confirm</a>
+        <a href="#cookie-consent">Cookie Consent</a>
+        <a href="#offline">Offline</a>
+        <a href="#timeout">Timeout</a>
+        <h3>Navigation</h3>
+        <a href="#day-navigator">Day Navigator</a>
+        <a href="#breadcrumb">Breadcrumb</a>
+        <a href="#step-indicator">Step Indicator</a>
+        <a href="#tab-bar">Tab Bar</a>
+        <a href="#tabbed-sidebar">Tabbed Sidebar</a>
+        <a href="#nav-dropdown">Nav Dropdown</a>
+        <a href="#drawer">Drawer</a>
+        <a href="#scroll-top">Scroll to Top</a>
+    </aside>
+
+    <main class="ds-content">
+        <h1 style="font: var(--font-display); margin-bottom: 8px;">Design System</h1>
+        <p style="font: var(--font-body-md); color: var(--color-slate-500); margin-bottom: 48px;">
+            Living style guide for Salus. All components rendered from their macros.
+            See <a href="https://github.com/fleischerdesign/salus/blob/develop/DESIGN.md" class="link">DESIGN.md</a> for tokens.
+        </p>
+
+        <!-- ════════════════════════════════════════════ CORE UI -->
+
+        <section class="ds-section" id="btn">
+            <h2>Button <code>btn</code></h2>
+            <p>Variants, sizes, states. All colors from <code>--btn-*</code> tokens.</p>
+            <div class="ds-variants">
+                {{ btn("Primary", variant="primary") }}
+                {{ btn("Secondary", variant="secondary") }}
+                {{ btn("Ghost", variant="ghost") }}
+                {{ btn("Danger", variant="danger") }}
+                {{ btn("Small", variant="small") }}
+                {{ btn(icon="close", aria_label="Close") }}
+            </div>
+            <div class="ds-spacing">
+                {{ btn("Save", variant="primary", loading=true) }}
+                {{ btn("Disabled", variant="primary", disabled=true) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="input">
+            <h2>Input <code>input</code></h2>
+            <div class="ds-card-grid">
+                <div>{% call card(title="Text Input", icon="text_fields") %}
+                    {{ input(name="email", label="Email", type="email", placeholder="hello@example.com") }}
+                {% endcall %}</div>
+                <div>{% call card(title="With Error", icon="error") %}
+                    {{ input(name="bad-email", label="Email", value="not-an-email", error="Please enter a valid email") }}
+                {% endcall %}</div>
+                <div>{% call card(title="With Icons", icon="search") %}
+                    {{ input(name="url", label="Website", icon_left="language", placeholder="https://") }}
+                {% endcall %}</div>
+                <div>{% call card(title="Disabled", icon="block") %}
+                    {{ input(name="locked", label="Read Only", value="Cannot edit", disabled=true) }}
+                {% endcall %}</div>
+            </div>
+        </section>
+
+        <section class="ds-section" id="card">
+            <h2>Card <code>card</code></h2>
+            <div class="ds-card-grid">
+                {% call card(title="Default Card", icon="dashboard") %}
+                    <p style="font:var(--font-body-sm);color:var(--color-slate-500)">Standard card with border and no shadow.</p>
+                {% endcall %}
+                {% call card(title="Elevated", icon="layers", variant="elevated") %}
+                    <p style="font:var(--font-body-sm);color:var(--color-slate-500)">Pre-elevated with shadow-sm.</p>
+                {% endcall %}
+                {% call card(title="Flat", icon="crop_square", variant="flat") %}
+                    <p style="font:var(--font-body-sm);color:var(--color-slate-500)">No border, slate-50 background.</p>
+                {% endcall %}
+                {% call card(title="Outlined", icon="check_box_outline_blank", variant="outlined") %}
+                    <p style="font:var(--font-body-sm);color:var(--color-slate-500)">Outline only, no shadow.</p>
+                {% endcall %}
+            </div>
+        </section>
+
+        <section class="ds-section" id="modal">
+            <h2>Modal <code>modal</code></h2>
+            <div class="ds-spacing">
+                {{ btn("Open Modal", variant="primary") }}
+            </div>
+            {% call modal(title="Example Modal") %}
+                <p style="font:var(--font-body-sm);color:var(--color-slate-500)">This is a modal dialog. Press Escape or click the backdrop to close.</p>
+                {% call modal_footer() %}
+                    {{ btn("Cancel", variant="ghost") }}
+                    {{ btn("Save", variant="primary") }}
+                {% endcall %}
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="select">
+            <h2>Select <code>select</code></h2>
+            <div class="ds-variants--col">
+                {% call select(name="metric-type", label="Metric Type", placeholder="Choose a metric...") %}
+                    <div class="select__option" data-value="1">Steps</div>
+                    <div class="select__option" data-value="2">Heart Rate</div>
+                    <div class="select__option" data-value="3">Sleep</div>
+                    <div class="select__option" data-value="4">Weight</div>
+                {% endcall %}
+            </div>
+        </section>
+
+        <section class="ds-section" id="checkbox">
+            <h2>Checkbox <code>checkbox</code></h2>
+            <div class="ds-variants">
+                {{ checkbox(name="agree", label="I agree to the terms") }}
+                {{ checkbox(name="subscribe", label="Subscribe to newsletter", checked=true) }}
+                {{ checkbox(name="inactive", label="Disabled option", disabled=true) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="toggle">
+            <h2>Toggle <code>toggle</code></h2>
+            <div class="ds-variants">
+                {{ toggle(name="dark-mode", label="Dark Mode") }}
+                {{ toggle(name="notifications", label="Notifications", checked=true) }}
+                {{ toggle(name="off", label="Disabled", disabled=true) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="chip">
+            <h2>Chip <code>chip</code></h2>
+            <div class="ds-variants">
+                {{ chip("Success", variant="success") }}
+                {{ chip("Warning", variant="warning") }}
+                {{ chip("Error", variant="error") }}
+                {{ chip("Neutral", variant="neutral") }}
+                {{ chip("Removable", variant="neutral", dismissible=true) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="badge">
+            <h2>Badge <code>badge</code></h2>
+            <div class="ds-spacing">
+                <div style="position:relative;display:inline-flex;padding:12px;background:var(--color-slate-100);border-radius:var(--radius-md)">
+                    Inbox {{ badge("3") }}
+                </div>
+                <div style="position:relative;display:inline-flex;padding:12px;background:var(--color-slate-100);border-radius:var(--radius-md)">
+                    Messages {{ badge("99+") }}
+                </div>
+                <div style="position:relative;display:inline-flex;padding:12px;background:var(--color-slate-100);border-radius:var(--radius-md)">
+                    Active {{ badge(size="dot") }}
+                </div>
+            </div>
+        </section>
+
+        <section class="ds-section" id="icon">
+            <h2>Icon <code>icon</code></h2>
+            <div class="ds-variants">
+                <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-slate-500)">home</span>
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--color-primary)">favorite</span>
+                <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-error-500)">delete</span>
+                <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-tertiary-500)">check_circle</span>
+                <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-warning-500)">warning</span>
+            </div>
+        </section>
+
+        <section class="ds-section" id="avatar">
+            <h2>Avatar <code>avatar</code></h2>
+            <div class="ds-variants">
+                {{ avatar("Alice", size="sm") }}
+                {{ avatar("Bob", size="md") }}
+                {{ avatar("Charlie", size="lg") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="divider">
+            <h2>Divider <code>divider</code></h2>
+            <div style="max-width:440px">
+                <p style="font:var(--font-body-sm)">Above</p>
+                {{ divider() }}
+                <p style="font:var(--font-body-sm)">Below</p>
+                {{ divider(label="or") }}
+                <p style="font:var(--font-body-sm)">More content</p>
+            </div>
+        </section>
+
+        <section class="ds-section" id="link">
+            <h2>Link <code>link</code></h2>
+            <div class="ds-spacing">
+                <p>{{ link("Inline text link", "#") }}</p>
+                <p>{{ link("Navigation link", "#", variant="nav") }}</p>
+                <p>{{ link("Active nav", "#", variant="nav-active") }}</p>
+                <p>{{ link("Action link", "#", variant="action") }}</p>
+                <p>{{ link("External", "https://example.com", external=true) }}</p>
+            </div>
+        </section>
+
+        <section class="ds-section" id="empty-state">
+            <h2>Empty State <code>empty-state</code></h2>
+            <div style="border:1px solid var(--color-slate-200);border-radius:var(--radius-md)">
+                {{ empty_state(icon="inbox", title="No messages yet", description="When you receive messages, they will appear here.", action=btn("Send a message", variant="primary")) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="skeleton">
+            <h2>Skeleton <code>skeleton</code></h2>
+            <div style="max-width:440px;display:flex;flex-direction:column;gap:12px">
+                {{ skeleton("heading") }}
+                {{ skeleton() }}
+                {{ skeleton() }}
+                <div style="display:flex;gap:12px;align-items:center">
+                    {{ skeleton("avatar") }}
+                    <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                        {{ skeleton() }}
+                        {{ skeleton() }}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="ds-section" id="spinner">
+            <h2>Spinner <code>spinner</code></h2>
+            <div class="ds-variants">
+                {{ spinner("sm") }}
+                {{ spinner("md") }}
+                {{ spinner("lg") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="tooltip">
+            <h2>Tooltip <code>tooltip</code></h2>
+            <div style="padding:40px 0 40px 100px">
+                {% call tooltip_wrapper() %}
+                    <span style="font:var(--font-body-md)">Hover me</span>
+                    {{ tooltip("This is a helpful tooltip with supplementary information.") }}
+                {% endcall %}
+            </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════ FORMS -->
+
+        <section class="ds-section" id="form-layout">
+            <h2>Form Layout <code>form-layout</code></h2>
+            {% call card(title="Example Form", icon="description") %}
+                {% call form_stack() %}
+                    {{ input(name="first", label="First Name", placeholder="John") }}
+                    {% call form_row() %}
+                        {{ input(name="city", label="City") }}
+                        {{ input(name="zip", label="ZIP") }}
+                    {% endcall %}
+                    {% call form_actions() %}
+                        {{ btn("Cancel", variant="ghost") }}
+                        {{ btn("Save", variant="primary") }}
+                    {% endcall %}
+                {% endcall %}
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="search-input">
+            <h2>Search Input <code>search-input</code></h2>
+            <div style="max-width:360px">
+                {{ search_input(name="q", placeholder="Search metrics...") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="date-picker">
+            <h2>Date Picker <code>date-picker</code></h2>
+            <div style="max-width:240px">
+                {{ date_picker(name="date", label="Select date", value="2026-07-05") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="radio-group">
+            <h2>Radio Group <code>radio-group</code></h2>
+            {{ radio_group(name="theme", options=[
+                {"value": "system", "label": "System"},
+                {"value": "light", "label": "Light"},
+                {"value": "dark", "label": "Dark"}
+            ], selected="system") }}
+        </section>
+
+        <section class="ds-section" id="slider">
+            <h2>Slider <code>slider</code></h2>
+            <div style="max-width:360px">
+                {{ slider(name="volume", min=0, max=100, value=65, label_min="0", label_max="100") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="stepper">
+            <h2>Stepper <code>stepper</code></h2>
+            {{ stepper(name="reps", value=8, min=1, max=20) }}
+        </section>
+
+        <section class="ds-section" id="upload">
+            <h2>Upload <code>upload</code></h2>
+            <div style="max-width:440px">
+                {{ upload(name="file", accept=".csv,.json") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="autocomplete">
+            <h2>Autocomplete <code>autocomplete</code></h2>
+            <div style="max-width:360px">
+                {{ autocomplete(name="country", options=[
+                    {"value": "de", "label": "Germany"},
+                    {"value": "fr", "label": "France"},
+                    {"value": "uk", "label": "United Kingdom"},
+                ]) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="multiselect">
+            <h2>Multiselect <code>multiselect</code></h2>
+            <div style="max-width:440px">
+                {{ multiselect(name="metrics") }}
+            </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════ DATA -->
+
+        <section class="ds-section" id="table">
+            <h2>Table <code>table</code></h2>
+            {{ table(
+                headers=["Name", "Value", "Unit", "Date"],
+                rows=[
+                    ["Steps", "8,432", "steps", "Jul 5, 2026"],
+                    ["Heart Rate", "72", "bpm", "Jul 5, 2026"],
+                    ["Sleep", "7h 32m", "—", "Jul 5, 2026"],
+                ]
+            ) }}
+        </section>
+
+        <section class="ds-section" id="progress-bar">
+            <h2>Progress Bar <code>progress-bar</code></h2>
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:440px">
+                {{ progress_bar(75) }}
+                {{ progress_bar(50, variant="success", size="lg") }}
+                {{ progress_bar(25, variant="warning", size="sm") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="key-value">
+            <h2>Key-Value <code>key-value</code></h2>
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:300px">
+                {{ key_value("Height", "178 cm") }}
+                {{ key_value("Blood Type", "A+", layout="horizontal") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="stat">
+            <h2>Stat <code>stat</code></h2>
+            <div class="ds-variants">
+                {{ stat("8,432", unit="steps", label="Today", delta="12%", trend="up") }}
+                {{ stat("78.2", unit="kg", label="Weight", delta="1.3 kg", trend="down") }}
+                {{ stat("72", unit="bpm", label="Resting HR", hero=true) }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="status-dot">
+            <h2>Status Dot <code>status-dot</code></h2>
+            <div class="ds-variants">
+                {{ status_dot("active") }} Active
+                {{ status_dot("pending") }} Pending
+                {{ status_dot("error") }} Error
+                {{ status_dot("unknown") }} Unknown
+                {{ status_dot("syncing") }} Syncing
+            </div>
+        </section>
+
+        <section class="ds-section" id="copy-clipboard">
+            <h2>Copy to Clipboard <code>copy-to-clipboard</code></h2>
+            <div style="max-width:440px">
+                {{ copy_to_clipboard("s3ns0r-h34lth-t0k3n-2026", label="API token") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="chip-row">
+            <h2>Chip Row <code>chip-row</code></h2>
+            {% call chip_row() %}
+                {{ chip("Protein", variant="neutral", icon="fitness_center") }}
+                {{ chip("Carbs", variant="neutral", icon="grain") }}
+                {{ chip("Fats", variant="neutral", icon="water_drop") }}
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="list-item">
+            <h2>List Item <code>list-item</code></h2>
+            <div style="max-width:440px">
+                {{ list_item("Barbell Squat", secondary="3×10 @ RPE 7 · Quadriceps", icon="fitness_center", action=btn(icon="edit", aria_label="Edit", variant="ghost")) }}
+                {{ list_item("Bench Press", secondary="4×8 @ RPE 6 · Chest, Triceps", icon="fitness_center") }}
+                {{ list_item("Deadlift", secondary="1×5 @ RPE 9 · Back, Hamstrings", icon="fitness_center") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="compare">
+            <h2>Compare <code>compare</code></h2>
+            {{ compare(
+                prev={"value": "7,102", "label": "Yesterday"},
+                current={"value": "8,432", "label": "Today"},
+                delta="18%", trend="up"
+            ) }}
+        </section>
+
+        <section class="ds-section" id="timeline">
+            <h2>Timeline <code>timeline</code></h2>
+            <div style="max-width:440px">
+                {% call timeline() %}
+                    {{ timeline_item("08:15", "Morning Run", "5.2 km — 28 min — Avg HR 142 bpm") }}
+                    {{ timeline_item("12:30", "Lunch — Chicken Salad", "680 kcal · 45g protein") }}
+                    {{ timeline_item("18:00", "Upper/Lower Workout", "Squat 3×8, Bench 4×10, Deadlift 1×5") }}
+                    {{ timeline_item("22:00", "Bedtime", "7h 32m sleep — 22% REM, 18% Deep") }}
+                {% endcall %}
+            </div>
+        </section>
+
+        <section class="ds-section" id="accordion">
+            <h2>Accordion <code>accordion</code></h2>
+            <div style="max-width:440px">
+                {% call accordion() %}
+                    {% call accordion_item("What metrics can I track?") %}
+                        <p>You can track steps, heart rate, sleep, weight, nutrition, exercise, blood pressure, HRV, and any custom metric.</p>
+                    {% endcall %}
+                    {% call accordion_item("How does sharing work?", open=true) %}
+                        <p>Invite peers by handle. Share specific metrics. Choose aggregation level (raw or daily summary). Federated sharing across instances.</p>
+                    {% endcall %}
+                    {% call accordion_item("Is my data encrypted?") %}
+                        <p>Yes. Doctor shares use E2E encryption (RSA). Backups use AES-256-GCM. API tokens are hashed server-side.</p>
+                    {% endcall %}
+                {% endcall %}
+            </div>
+        </section>
+
+        <section class="ds-section" id="pagination">
+            <h2>Pagination <code>pagination</code></h2>
+            {{ pagination(
+                current_page=3, total_pages=8,
+                url_pattern="/entries?page={page}",
+                total_items=156, items_label="entries"
+            ) }}
+        </section>
+
+        <!-- ════════════════════════════════════════════ FEEDBACK -->
+
+        <section class="ds-section" id="toast">
+            <h2>Toast <code>toast</code></h2>
+            <div style="display:flex;flex-direction:column;gap:8px;max-width:360px">
+                {{ toast("Settings saved successfully.", variant="success") }}
+                {{ toast("Could not connect to server.", variant="error") }}
+                {{ toast("Your storage is almost full.", variant="warning") }}
+                {{ toast("New update available.", variant="info") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="alert">
+            <h2>Alert Banner <code>alert-banner</code></h2>
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:440px">
+                {{ alert_banner("Profile updated successfully.", variant="success") }}
+                {{ alert_banner("Could not save changes. Please try again.", variant="error", dismissible=true) }}
+                {{ alert_banner("Your subscription expires in 7 days.", variant="warning", title="Heads up") }}
+                {{ alert_banner("Maintenance scheduled for Sunday 02:00 UTC.", variant="info") }}
+            </div>
+        </section>
+
+        <section class="ds-section" id="confirm">
+            <h2>Confirm Dialog <code>confirm</code></h2>
+            <div class="ds-spacing">
+                {{ btn("Delete Item", variant="danger") }}
+            </div>
+            {% call confirm_dialog(title="Delete Item?", variant="danger") %}
+                This action cannot be undone. All data associated with this item will be permanently removed.
+                <div class="confirm__actions" style="margin-top:24px">
+                    {{ confirm_button("Cancel", variant="ghost") }}
+                    {{ confirm_button("Delete", variant="danger") }}
+                </div>
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="cookie-consent">
+            <h2>Cookie Consent <code>cookie-consent</code></h2>
+            {{ cookie_consent() }}
+        </section>
+
+        <section class="ds-section" id="offline">
+            <h2>Offline Indicator <code>offline-indicator</code></h2>
+            <div style="max-width:600px">
+                <div class="offline-banner" role="alert" style="display:flex;position:static;top:auto">
+                    <span class="offline-banner__icon material-symbols-outlined">cloud_off</span>
+                    <span class="offline-banner__text">You are offline. Changes will sync when connection is restored.</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="ds-section" id="timeout">
+            <h2>Timeout Warning <code>timeout-warning</code></h2>
+            <div style="max-width:400px;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:24px;text-align:center">
+                <span style="display:block;font-size:48px;color:var(--color-warning-500);margin-bottom:16px">
+                    <span class="material-symbols-outlined" style="font-size:48px">schedule</span>
+                </span>
+                <h3 style="font:var(--font-headline-md);margin-bottom:8px">Session Expiring</h3>
+                <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:16px">
+                    Your session will expire due to inactivity.
+                </p>
+                <div class="timeout-timer" data-urgent>00:45</div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                    {{ btn("Extend Session", variant="primary") }}
+                    {{ btn("Log Out", variant="ghost") }}
+                </div>
+            </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════ NAVIGATION -->
+
+        <section class="ds-section" id="day-navigator">
+            <h2>Day Navigator <code>day-navigator</code></h2>
+            {{ day_navigator("Wednesday, July 5, 2026", "2026-07-04", "2026-07-06", is_today=true) }}
+        </section>
+
+        <section class="ds-section" id="breadcrumb">
+            <h2>Breadcrumb <code>breadcrumb</code></h2>
+            {% call breadcrumb() %}
+                {{ breadcrumb_item("Home", "/") }}
+                {{ breadcrumb_item("Settings", "/settings") }}
+                {{ breadcrumb_current("Account") }}
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="step-indicator">
+            <h2>Step Indicator <code>step-indicator</code></h2>
+            <p>Step 2 of 4:</p>
+            {{ step_indicator(total=4, current=1) }}
+        </section>
+
+        <section class="ds-section" id="tab-bar">
+            <h2>Tab Bar <code>tab-bar</code></h2>
+            {{ tab_bar(tabs=[
+                {"value": "overview", "label": "Overview", "href": "#"},
+                {"value": "metrics", "label": "Metrics", "href": "#"},
+                {"value": "insights", "label": "Insights", "href": "#"},
+            ], active="overview") }}
+            <div id="tab-content" style="padding:16px;font:var(--font-body-sm);color:var(--color-slate-500)">
+                Select a tab to view content.
+            </div>
+        </section>
+
+        <section class="ds-section" id="tabbed-sidebar">
+            <h2>Tabbed Sidebar <code>tabbed-sidebar</code></h2>
+            {% call tabbed_sidebar() %}
+                {{ tabbed_sidebar_link("Account", "#", current=true) }}
+                {{ tabbed_sidebar_link("Privacy", "#") }}
+                {{ tabbed_sidebar_link("Shares", "#") }}
+            {% endcall %}
+        </section>
+
+        <section class="ds-section" id="nav-dropdown">
+            <h2>Nav Dropdown <code>nav-dropdown</code></h2>
+            <div style="padding:4px 0">
+                {% call nav_dropdown("Metrics") %}
+                    {{ nav_dropdown_item("Steps", "#") }}
+                    {{ nav_dropdown_item("Heart Rate", "#") }}
+                    {{ nav_dropdown_item("Sleep", "#", current=true) }}
+                {% endcall %}
+            </div>
+        </section>
+
+        <section class="ds-section" id="drawer">
+            <h2>Drawer <code>drawer</code></h2>
+            <div style="max-width:360px;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);overflow:hidden">
+                <div style="padding:8px 0">
+                    <a href="#" class="drawer__link" style="display:block">Dashboard</a>
+                    <a href="#" class="drawer__link" style="display:block;color:var(--color-primary);background:var(--color-primary-50)" aria-current="page">Analytics</a>
+                    <a href="#" class="drawer__link" style="display:block">Workouts</a>
+                    <a href="#" class="drawer__link" style="display:block">Settings</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="ds-section" id="scroll-top">
+            <h2>Scroll to Top <code>scroll-to-top</code></h2>
+            {{ scroll_to_top() }}
+        </section>
+
+        <!-- Footer -->
+        {{ divider(spacing="section") }}
+        <p style="font:var(--font-body-sm);color:var(--color-slate-400);text-align:center">
+            Salus Design System — generated from <code>DESIGN.md</code> tokens.
+            Validator: 95 specs, 0/0/0.
+        </p>
+
+    </main>
+</div>
+
+{% endblock %}

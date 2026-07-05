@@ -25,7 +25,7 @@
 
             <div class="select__dropdown" role="listbox" id="{{ field_id }}-listbox">
                 <input type="hidden" name="{{ name }}" id="{{ field_id }}" value="">
-                {{ caller() if caller else "" }}
+                {% if caller is defined %}{{ caller() }}{% endif %}
             </div>
         </div>
 

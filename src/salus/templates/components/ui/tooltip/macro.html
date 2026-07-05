@@ -4,6 +4,6 @@
 {% endmacro %}
 {% macro tooltip_wrapper() %}
     <span class="tooltip-wrapper">
-        {{ caller() if caller else "" }}
+        {% if caller is defined %}{{ caller() }}{% endif %}
     </span>
 {% endmacro %}

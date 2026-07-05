@@ -10,7 +10,7 @@
                 <div class="user-menu__name">{{ user.display_name or user.username }}</div>
                 {% if user.email %}<div class="user-menu__email">{{ user.email }}</div>{% endif %}
             </div>
-            {{ caller() if caller else "" }}
+            {% if caller is defined %}{{ caller() }}{% endif %}
         </div>
     </div>
 {% endmacro %}

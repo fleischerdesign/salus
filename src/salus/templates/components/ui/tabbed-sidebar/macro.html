@@ -1,7 +1,7 @@
 {# vim: set ft=htmldjango: Tabbed Sidebar #}
 {% macro tabbed_sidebar() %}
     <div class="tabbed-layout">
-        <nav class="tabbed-sidebar" aria-label="Section navigation">{{ caller() if caller else "" }}</nav>
+        <nav class="tabbed-sidebar" aria-label="Section navigation">{% if caller is defined %}{{ caller() }}{% endif %}</nav>
         <div class="tabbed-content" id="tab-content">
             {{ kwargs.get("content", "") }}
         </div>
