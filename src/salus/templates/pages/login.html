@@ -1,66 +1,77 @@
 {% extends "base.html" %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
+{% from "components/ui/divider/macro.html" import divider %}
+{% from "components/ui/link/macro.html" import link %}
+{% from "components/ui/form-layout/macro.html" import form_stack %}
+{% from "components/ui/card/macro.html" import card %}
 {% block title_suffix %} — {{ _("Sign In") }}{% endblock %}
 {% block content %}
-{% from "components/ui/input.html" import input %}
-{% from "components/ui/alert.html" import alert %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>{{ _("Sign In") }}</h2>
-        <p class="auth-subtitle">{{ _("Access your health data dashboard") }}</p>
 
-        {% if error %}
-        {{ alert(type="error", message=error) }}
-        {% endif %}
+<div style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+    {% call card(variant="elevated", class="card") %}
+        <div style="max-width:400px;width:340px">
+            <h2 style="font:var(--font-headline-lg);text-align:center;margin-bottom:8px">{{ _("Sign In") }}</h2>
+            <p style="font:var(--font-body-md);color:var(--color-slate-500);text-align:center;margin-bottom:32px">{{ _("Access your health data dashboard") }}</p>
 
-        {% if ldap_mode %}
-        <form method="post" action="/auth/ldap">
-            <div class="form-stack">
-                {{ input(name="username", label=_("LDAP Username"), required=True, id="login-username") }}
-                {{ input(name="password", label=_("Password"), type="password", required=True, id="login-password") }}
-                <button type="submit" class="btn">{{ _("Sign In with LDAP") }}</button>
+            {% if error %}
+            {{ alert_banner(error, variant="error") }}
+            {% endif %}
+
+            {% if ldap_mode %}
+            <form method="post" action="/auth/ldap">
+                {% call form_stack() %}
+                    {{ input(name="username", label=_("LDAP Username"), required=true, id="login-username") }}
+                    {{ input(name="password", label=_("Password"), type="password", required=true, id="login-password") }}
+                    {{ btn(_("Sign In with LDAP"), variant="primary") }}
+                {% endcall %}
+            </form>
+            <div style="text-align:center;margin-top:16px">{{ link(_("Local login"), "/auth/login") }}</div>
+            {% else %}
+            <form method="post" action="/auth/login">
+                {% call form_stack() %}
+                    {{ input(name="username", label=_("Username"), required=true, id="login-username") }}
+                    {{ input(name="password", label=_("Password"), type="password", required=true, id="login-password") }}
+                    {{ btn(_("Sign In"), variant="primary") }}
+                {% endcall %}
+            </form>
+            {% endif %}
+
+            {% if not ldap_mode and settings.ldap_server_uri %}
+            <div style="text-align:center;margin-top:8px">{{ link(_("Sign in with LDAP"), "/auth/ldap") }}</div>
+            {% endif %}
+
+            {{ divider(label=_("or")) }}
+
+            {% if settings.google_client_id %}
+            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
+                    onclick="window.location.href='/auth/oidc/google'" type="button">
+                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
+                {{ _("Sign in with Google") }}
+            </button>
+            {% endif %}
+            {% if settings.github_client_id %}
+            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
+                    onclick="window.location.href='/auth/oidc/github'" type="button">
+                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
+                {{ _("Sign in with GitHub") }}
+            </button>
+            {% endif %}
+            {% if settings.oidc_client_id %}
+            <button class="btn" data-variant="secondary" style="width:100%;margin-bottom:8px"
+                    onclick="window.location.href='/auth/oidc/oidc'" type="button">
+                <span class="material-symbols-outlined" style="font-size:20px;margin-right:12px" aria-hidden="true">login</span>
+                {{ _("Sign in with OIDC") }}
+            </button>
+            {% endif %}
+
+            <div style="text-align:center;margin-top:24px">
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Don't have an account?") }}</span>
+                {{ link(_("Create one"), "/auth/register") }}
             </div>
-        </form>
-        <div class="mt-md text-center">
-            <a href="/auth/login" class="text-primary" style="font: var(--font-body-sm);">{{ _("Local login") }}</a>
         </div>
-        {% else %}
-        <form method="post" action="/auth/login">
-            <div class="form-stack">
-                {{ input(name="username", label=_("Username"), required=True, id="login-username") }}
-                {{ input(name="password", label=_("Password"), type="password", required=True, id="login-password") }}
-                <button type="submit" class="btn">{{ _("Sign In") }}</button>
-            </div>
-        </form>
-        {% endif %}
-
-        {% if not ldap_mode and settings.ldap_server_uri %}
-        <div class="mt-sm text-center">
-            <a href="/auth/ldap" class="text-primary" style="font: var(--font-body-sm);">{{ _("Sign in with LDAP") }}</a>
-        </div>
-        {% endif %}
-
-        <div class="auth-divider"><span>{{ _("or") }}</span></div>
-
-        {% if settings.google_client_id %}
-        <a href="/auth/oidc/google" class="provider-btn">
-            <span>{{ _("Sign in with Google") }}</span>
-        </a>
-        {% endif %}
-        {% if settings.github_client_id %}
-        <a href="/auth/oidc/github" class="provider-btn">
-            <span>{{ _("Sign in with GitHub") }}</span>
-        </a>
-        {% endif %}
-        {% if settings.oidc_client_id %}
-        <a href="/auth/oidc/oidc" class="provider-btn">
-            <span>{{ _("Sign in with OIDC") }}</span>
-        </a>
-        {% endif %}
-
-        <div class="mt-md text-center">
-            <span style="font: var(--font-body-sm); color: var(--color-slate-500);">{{ _("Don't have an account?") }}</span>
-            <a href="/auth/register" class="text-primary" style="font: var(--font-body-sm);">{{ _("Create one") }}</a>
-        </div>
-    </div>
+    {% endcall %}
 </div>
+
 {% endblock %}

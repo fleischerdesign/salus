@@ -1,31 +1,39 @@
 {% extends "base.html" %}
+{% from "components/ui/input/macro.html" import input %}
+{% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/alert-banner/macro.html" import alert_banner %}
+{% from "components/ui/link/macro.html" import link %}
+{% from "components/ui/form-layout/macro.html" import form_stack %}
+{% from "components/ui/card/macro.html" import card %}
 {% block title_suffix %} — {{ _("Register") }}{% endblock %}
 {% block content %}
-{% from "components/ui/input.html" import input %}
-{% from "components/ui/alert.html" import alert %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>{{ _("Create Account") }}</h2>
-        <p class="auth-subtitle">{{ _("Start tracking your health data") }}</p>
 
-        {% if error %}
-        {{ alert(type="error", message=error) }}
-        {% endif %}
+<div style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+    {% call card(variant="elevated") %}
+        <div style="max-width:400px;width:340px">
+            <h2 style="font:var(--font-headline-lg);text-align:center;margin-bottom:8px">{{ _("Create Account") }}</h2>
+            <p style="font:var(--font-body-md);color:var(--color-slate-500);text-align:center;margin-bottom:32px">{{ _("Start tracking your health data") }}</p>
 
-        <form method="post" action="/auth/register">
-            <div class="form-stack">
-                {{ input(name="username", label=_("Username"), required=True, id="reg-username") }}
-                {{ input(name="email", label=_("Email (optional)"), type="email", id="reg-email") }}
-                {{ input(name="display_name", label=_("Display Name (optional)"), id="reg-display-name") }}
-                {{ input(name="password", label=_("Password"), type="password", required=True, id="reg-password") }}
-                <button type="submit" class="btn">{{ _("Create Account") }}</button>
+            {% if error %}
+            {{ alert_banner(error, variant="error") }}
+            {% endif %}
+
+            <form method="post" action="/auth/register">
+                {% call form_stack() %}
+                    {{ input(name="username", label=_("Username"), required=true, id="reg-username") }}
+                    {{ input(name="email", label=_("Email (optional)"), type="email", id="reg-email") }}
+                    {{ input(name="display_name", label=_("Display Name (optional)"), id="reg-display-name") }}
+                    {{ input(name="password", label=_("Password"), type="password", required=true, id="reg-password") }}
+                    {{ btn(_("Create Account"), variant="primary") }}
+                {% endcall %}
+            </form>
+
+            <div style="text-align:center;margin-top:24px">
+                <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Already have an account?") }}</span>
+                {{ link(_("Sign In"), "/auth/login") }}
             </div>
-        </form>
-
-        <div class="mt-md text-center">
-            <span style="font: var(--font-body-sm); color: var(--color-slate-500);">{{ _("Already have an account?") }}</span>
-            <a href="/auth/login" class="text-primary" style="font: var(--font-body-sm);">{{ _("Sign In") }}</a>
         </div>
-    </div>
+    {% endcall %}
 </div>
+
 {% endblock %}
