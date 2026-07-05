@@ -3,7 +3,7 @@
     <div class="nav-dropdown">
         <button class="nav-dropdown__trigger" aria-expanded="false" aria-haspopup="true" type="button"
                 _="on click
-                    if @data-open then remove @data-open else set @data-open to 'true' end
+                    if @data-open is 'true' then remove @data-open else set @data-open to 'true' end
                    end
                    on click from elsewhere remove @data-open">
             {{ label }} <span class="nav-dropdown__chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
