@@ -370,6 +370,16 @@ components:
     textColor: "{colors.error-800}"
     border: "1px solid {colors.error-300}"
     rounded: "{rounded.md}"
+  alert-warning:
+    backgroundColor: "{colors.warning-50}"
+    textColor: "{colors.warning-800}"
+    border: "1px solid {colors.warning-300}"
+    rounded: "{rounded.md}"
+  alert-info:
+    backgroundColor: "{colors.secondary-50}"
+    textColor: "{colors.secondary-800}"
+    border: "1px solid {colors.secondary-300}"
+    rounded: "{rounded.md}"
 
   chart:
     primary: "{colors.primary-500}"
