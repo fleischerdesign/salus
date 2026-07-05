@@ -116,7 +116,7 @@ def generate_global_tokens(design: dict) -> list[str]:
     lines: list[str] = []
     lines.append("  /* ── Colors ────────────────────────────────────────── */")
 
-    for key, value in design.get("colors", {}).items():
+    for key, value in _get_light_colors(design).items():
         lines.append(f"  --color-{key}: {value};")
 
     lines.append("")
@@ -227,33 +227,22 @@ def generate_component_tokens(design: dict) -> list[str]:
 
 PALETTE_REVERSAL = {50: 900, 100: 800, 200: 700, 300: 600, 400: 500, 500: 400, 600: 300, 700: 200, 800: 100, 900: 50}
 
-DARK_SURFACE_MAP = {
-    "surface": "#0f172a",
-    "surface-dim": "#0f172a",
-    "surface-bright": "#334155",
-    "surface-container-lowest": "#0f172a",
-    "surface-container-low": "#1e293b",
-    "surface-container": "#1e293b",
-    "surface-container-high": "#1e293b",
-    "surface-container-highest": "#334155",
-    "on-surface": "#e2e8f0",
-    "on-surface-variant": "#94a3b8",
-    "inverse-surface": "#eaf1ff",
-    "inverse-on-surface": "#213145",
-    "outline": "#475569",
-    "outline-variant": "#334155",
-    "surface-tint": "#a5b4fc",
-    "background": "#0f172a",
-    "on-background": "#e2e8f0",
-    "on-primary": "#1e1b4b",
-    "on-primary-container": "#e0e7ff",
-    "on-secondary": "#0c4a6e",
-    "on-secondary-container": "#bae6fd",
-    "on-tertiary": "#064e3b",
-    "on-tertiary-container": "#d1fae5",
-    "on-error": "#7f1d1d",
-    "on-error-container": "#fee2e2",
-}
+
+def _get_dark_config(design: dict) -> dict[str, str]:
+    """Extract dark-mode color overrides from DESIGN.md colors.dark section."""
+    colors = design.get("colors", {})
+    if not isinstance(colors, dict):
+        return {}
+    dark_section = colors.get("dark", {})
+    return dark_section if isinstance(dark_section, dict) else {}
+
+
+def _get_light_colors(design: dict) -> dict[str, str]:
+    """Extract light-mode colors, excluding the 'dark' sub-section."""
+    colors = design.get("colors", {})
+    if not isinstance(colors, dict):
+        return {}
+    return {k: v for k, v in colors.items() if k != "dark"}
 
 
 def derive_palette_dark(light_colors: dict, scale_name: str) -> dict[str, str]:
@@ -267,9 +256,9 @@ def derive_palette_dark(light_colors: dict, scale_name: str) -> dict[str, str]:
     return dark
 
 
-def derive_dark_colors(light_colors: dict) -> dict[str, str]:
-    """Generate a complete dark-mode color map."""
-    dark: dict[str, str] = DARK_SURFACE_MAP.copy()
+def derive_dark_colors(light_colors: dict, dark_config: dict) -> dict[str, str]:
+    """Generate a complete dark-mode color map from DESIGN.md explicit values + palette reversal."""
+    dark: dict[str, str] = dict(dark_config)
 
     for scale in PALETTE_SCALES:
         dark.update(derive_palette_dark(light_colors, scale))
@@ -366,8 +355,9 @@ def _hsl_to_rgb(h: float, s: float, li: float) -> tuple[int, int, int]:
 
 def generate_dark_tokens(design: dict) -> list[str]:
     """Generate [data-theme='dark'] block."""
-    light_colors = design.get("colors", {})
-    dark_colors = derive_dark_colors(light_colors)
+    light_colors = _get_light_colors(design)
+    dark_config = _get_dark_config(design)
+    dark_colors = derive_dark_colors(light_colors, dark_config)
 
     lines: list[str] = []
     lines.append("[data-theme=\"dark\"] {")
@@ -385,7 +375,7 @@ def generate_dark_tokens(design: dict) -> list[str]:
 
 def generate_light_tokens(design: dict) -> list[str]:
     """Generate [data-theme='light'] block (overrides dark media query when user selects light)."""
-    light_colors = design.get("colors", {})
+    light_colors = _get_light_colors(design)
 
     lines: list[str] = []
     lines.append("[data-theme=\"light\"] {")
@@ -456,8 +446,9 @@ def _indent(lines: list[str], spaces: int) -> list[str]:
 
 def generate_dark_color_tokens(design: dict) -> list[str]:
     """Generate just the dark color overrides (no [data-theme] wrapper)."""
-    light_colors = design.get("colors", {})
-    dark_colors = derive_dark_colors(light_colors)
+    light_colors = _get_light_colors(design)
+    dark_config = _get_dark_config(design)
+    dark_colors = derive_dark_colors(light_colors, dark_config)
 
     lines: list[str] = []
     lines.append("color-scheme: dark;")
