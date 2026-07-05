@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Input — @component input
+   ========================================================================== */
+
+.input {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.input__label {
+    font: var(--font-label-md);
+    color: var(--color-on-surface);
+}
+
+.input__label--required::after {
+    content: " *";
+    color: var(--color-error-500);
+}
+
+.input__field {
+    padding: var(--input-padding, 10px 12px);
+    font: var(--input-typography, var(--font-body-md));
+    color: var(--color-on-surface);
+    background: var(--input-bg);
+    border: var(--input-border);
+    border-radius: var(--input-radius);
+    transition: border-color var(--duration-fast) var(--ease-default),
+                box-shadow var(--duration-fast) var(--ease-default),
+                background var(--duration-fast) var(--ease-default);
+    outline: none;
+    height: 44px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input__field:hover {
+    border-color: var(--color-slate-400);
+}
+
+.input__field:focus {
+    border-color: var(--color-primary-500);
+    background: #ffffff;
+    box-shadow: var(--input-focus-shadow);
+}
+
+.input__field::placeholder {
+    color: var(--color-slate-400);
+}
+
+.input__field:disabled {
+    opacity: var(--disabled-opacity, 0.5);
+    cursor: var(--disabled-cursor, not-allowed);
+    background: var(--color-slate-100);
+    border-color: var(--color-slate-200);
+}
+
+.input__field:read-only {
+    border-color: var(--color-slate-200);
+    cursor: default;
+}
+
+/* ── With icon ────────────────────────────────────────────── */
+
+.input--with-icon-left .input__field {
+    padding-left: 38px;
+}
+
+.input--with-icon-right .input__field {
+    padding-right: 38px;
+}
+
+.input__icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--color-slate-400);
+    pointer-events: none;
+}
+
+.input__icon--left {
+    left: 12px;
+}
+
+.input__icon--right {
+    right: 12px;
+}
+
+/* ── Error ────────────────────────────────────────────────── */
+
+.input--error .input__field {
+    border-color: var(--color-error-400);
+    background: var(--color-error-50);
+}
+
+.input--error .input__label {
+    color: var(--color-error-600);
+}
+
+.input__error {
+    font: var(--font-body-sm);
+    color: var(--color-error-600);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.input__error-icon {
+    font-size: 16px;
+}
+
+/* ── Hint ─────────────────────────────────────────────────── */
+
+.input__hint {
+    font: var(--font-body-sm);
+    color: var(--color-slate-500);
+}
+
+/* ── Input wrapper (for icon positioning) ─────────────────── */
+
+.input__wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}

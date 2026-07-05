@@ -1,0 +1,54 @@
+{# vim: set ft=htmldjango:
+   Input — @component input
+
+   Usage:
+     {{ input(name="email", label="Email", required=true) }}
+     {{ input(name="search", icon_left="search", placeholder="Search...") }}
+     {{ input(name="weight", label="Weight", unit="kg", error="Required") }}
+ #}
+
+{% macro input(name, type="text", label=none, placeholder=none, value=none, required=false, disabled=false, readonly=false, icon_left=none, icon_right=none, hint=none, error=none, unit=none, id=none) %}
+    {% set field_id = id or name %}
+
+    <div class="input {% if error %}input--error{% endif %} {% if icon_left %}input--with-icon-left{% endif %} {% if icon_right %}input--with-icon-right{% endif %}">
+        {% if label %}
+        <label for="{{ field_id }}" class="input__label {% if required %}input__label--required{% endif %}">{{ label }}</label>
+        {% endif %}
+
+        <div class="input__wrapper">
+            {% if icon_left %}
+            <span class="input__icon input__icon--left material-symbols-outlined" aria-hidden="true">{{ icon_left }}</span>
+            {% endif %}
+
+            <input
+                id="{{ field_id }}"
+                name="{{ name }}"
+                type="{{ type }}"
+                class="input__field"
+                placeholder="{{ placeholder or '' }}"
+                value="{{ value or '' }}"
+                {% if required %}required aria-required="true"{% endif %}
+                {% if disabled %}disabled{% endif %}
+                {% if readonly %}readonly{% endif %}
+                {% if error %}aria-describedby="{{ field_id }}-error"{% endif %}
+            >
+
+            {% if icon_right %}
+            <span class="input__icon input__icon--right material-symbols-outlined" aria-hidden="true">{{ icon_right }}</span>
+            {% endif %}
+
+            {% if unit %}
+            <span class="input__unit">{{ unit }}</span>
+            {% endif %}
+        </div>
+
+        {% if error %}
+        <span id="{{ field_id }}-error" class="input__error" role="alert">
+            <span class="input__error-icon material-symbols-outlined" aria-hidden="true">error</span>
+            {{ error }}
+        </span>
+        {% elif hint %}
+        <span class="input__hint">{{ hint }}</span>
+        {% endif %}
+    </div>
+{% endmacro %}

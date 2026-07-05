@@ -1,0 +1,40 @@
+{# vim: set ft=htmldjango:
+   Card — @component card
+
+   Usage:
+     {% call card(title="Profile", icon="person") %}
+       <p>Content here</p>
+     {% endcall %}
+
+     {% call card(variant="elevated", clickable=true, href="/settings") %}
+       Clickable card content
+     {% endcall %}
+ #}
+
+{% macro card(title=none, icon=none, variant="default", hoverable=false, clickable=false, href=none, class=none) %}
+    {% set tag = "a" if href else "div" %}
+    <{{ tag }}
+        class="card {{ class or '' }}"
+        data-variant="{{ variant }}"
+        {% if hoverable or variant == "elevated" %}data-hoverable{% endif %}
+        {% if clickable or href %}data-clickable{% endif %}
+        {% if href %}href="{{ href }}"{% endif %}
+    >
+        {% if title or icon %}
+        <div class="card__header">
+            {% if icon %}
+            <span class="card__header-icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
+            {% endif %}
+            {% if title %}
+            <h3 class="card__header-title">{{ title }}</h3>
+            {% endif %}
+            {% if caller and caller.arguments is not defined %}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card__body">
+            {{ caller() if caller else "" }}
+        </div>
+    </{{ tag }}>
+{% endmacro %}

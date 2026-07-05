@@ -1,0 +1,58 @@
+{# vim: set ft=htmldjango:
+   Modal — @component modal
+
+   Usage:
+     {% call modal(title="Edit Widget", id="edit-modal") %}
+       <form hx-post="/save">...</form>
+     {% endcall %}
+
+   Or with footer:
+     {% call modal(title="Confirm", close_button=true) %}
+       <p>Are you sure?</p>
+       {% call modal_footer() %}
+         {{ btn("Cancel", variant="ghost") }}
+         {{ btn("Confirm", variant="primary") }}
+       {% endcall %}
+     {% endcall %}
+ #}
+
+{% macro modal(title, id=none, close_button=true, class=none) %}
+    {% set modal_id = id or "modal-" + range(1000, 9999) | random | string %}
+    <div
+        class="modal-backdrop {{ class or '' }}"
+        id="{{ modal_id }}"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="{{ modal_id }}-title"
+        _="on click if event.target === me then remove me end
+           on keydown[key is 'Escape'] remove me"
+    >
+        <div class="modal-content">
+            {% if close_button %}
+            <button
+                class="modal__close"
+                aria-label="Close"
+                type="button"
+                _="on click remove closest .modal-backdrop"
+            >
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+            {% endif %}
+
+            {% if title %}
+            <h2 class="modal__title" id="{{ modal_id }}-title">{{ title }}</h2>
+            {% endif %}
+
+            <div class="modal__body">
+                {{ caller() if caller else "" }}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro modal_footer() %}
+    <div class="modal__footer">
+        {{ caller() if caller else "" }}
+    </div>
+{% endmacro %}
