@@ -38,3 +38,19 @@
 .viz-progress-fill { height: 100%; border-radius: var(--radius-full); transition: width 600ms var(--ease-default); }
 .viz-progress-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: var(--font-label-sm); font-weight: 600; color: var(--color-on-surface); }
 .viz-progress-target { text-align: center; font: var(--font-body-sm); color: var(--color-slate-500); margin-top: 4px; }
+
+/* ── Chart Tooltip ─────────────────────────────────────────── */
+#chart-tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--chart-tooltip-bg, var(--color-slate-900));
+    color: var(--chart-tooltip-text, var(--color-surface-container-lowest));
+    border-radius: var(--chart-tooltip-radius, var(--radius-sm));
+    padding: var(--chart-tooltip-padding, 4px 8px);
+    font: var(--font-label-sm);
+    transform: translate(8px, 8px);
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-default);
+    z-index: var(--z-tooltip, 999);
+}
+#chart-tooltip.visible { opacity: 1; }
