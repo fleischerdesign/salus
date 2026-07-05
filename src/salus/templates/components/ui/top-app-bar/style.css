@@ -1,7 +1,8 @@
 /* ==========================================================================
    Top App Bar — @component top-app-bar
    ========================================================================== */
-.top-app-bar { position: sticky; top: 0; z-index: var(--z-sticky, 200); background: var(--color-surface-container-lowest); border-bottom: 1px solid var(--color-slate-200); height: 64px; display: flex; align-items: center; padding: 0 16px; transition: box-shadow 200ms var(--ease-default); }
+.top-app-bar { position: sticky; top: 0; z-index: var(--z-sticky, 200); background: var(--color-surface-container-lowest); border-bottom: 1px solid var(--color-slate-200); height: 64px; transition: box-shadow 200ms var(--ease-default); }
+.top-app-bar__inner { max-width: var(--space-container-max, 1440px); margin: 0 auto; width: 100%; height: 100%; display: flex; align-items: center; padding: 0 16px; box-sizing: border-box; }
 .top-app-bar[data-scrolled] { box-shadow: var(--shadow-sm); }
 .top-app-bar__logo { font: var(--font-headline-md); color: var(--color-primary); text-decoration: none; flex-shrink: 0; }
 .top-app-bar__nav { display: flex; align-items: center; gap: 0; margin-left: 32px; height: 100%; }

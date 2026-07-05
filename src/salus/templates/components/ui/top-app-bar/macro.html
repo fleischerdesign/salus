@@ -25,37 +25,40 @@
                        else remove @data-scrolled
                    end
                end">
+        <div class="top-app-bar__inner">
 
-        <a href="{{ logo_href }}" class="top-app-bar__logo" aria-label="Home">{{ logo_text }}</a>
+            <a href="{{ logo_href }}" class="top-app-bar__logo" aria-label="Home">{{ logo_text }}</a>
 
-        <nav class="top-app-bar__nav" aria-label="Main navigation">
-            {% if caller %}{{ caller() }}{% endif %}
-        </nav>
+            <nav class="top-app-bar__nav" aria-label="Main navigation">
+                {% if caller %}{{ caller() }}{% endif %}
+            </nav>
 
-        <span class="top-app-bar__spacer"></span>
+            <span class="top-app-bar__spacer"></span>
 
-        <div class="top-app-bar__actions">
+            <div class="top-app-bar__actions">
+                {% if current_user %}
+                    {{ user_menu(current_user) }}
+                {% else %}
+                    {{ btn("Sign In", variant="primary", href="/auth/login", full_width_mobile=false) }}
+                {% endif %}
+            </div>
+
             {% if current_user %}
-                {{ user_menu(current_user) }}
-            {% else %}
-                {{ btn("Sign In", variant="primary", href="/auth/login", full_width_mobile=false) }}
+            <button class="top-app-bar__hamburger" aria-label="Toggle navigation" aria-expanded="false"
+                    type="button"
+                    _="on click
+                        if @aria-expanded is 'true'
+                            set @aria-expanded to 'false'
+                            remove @data-open from #drawer-overlay
+                        else
+                            set @aria-expanded to 'true'
+                            add @data-open to #drawer-overlay
+                        end">
+                <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+            </button>
             {% endif %}
-        </div>
 
-        {% if current_user %}
-        <button class="top-app-bar__hamburger" aria-label="Toggle navigation" aria-expanded="false"
-                type="button"
-                _="on click
-                    if @aria-expanded is 'true'
-                        set @aria-expanded to 'false'
-                        remove @data-open from #drawer-overlay
-                    else
-                        set @aria-expanded to 'true'
-                        add @data-open to #drawer-overlay
-                    end">
-            <span class="material-symbols-outlined" aria-hidden="true">menu</span>
-        </button>
-        {% endif %}
+        </div>
     </header>
 {% endmacro %}
 
