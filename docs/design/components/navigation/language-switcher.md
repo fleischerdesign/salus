@@ -1,0 +1,60 @@
+# Language Switcher
+
+> Status: **Design spec only — not yet implemented.**
+
+**Anatomy:** Trigger (globe icon + current locale code) + Dropdown (list of available locales)
+
+**States:** Closed · Open (dropdown visible, 4-8 locale options) · Selected (checkmark + active indicator on current locale)
+
+**Locales:** EN (English) · DE (German) · More added via config. Display: locale name in its own language (e.g., "English / EN", "Deutsch / DE").
+
+**Placement:** Top-app-bar (desktop) or settings (mobile). Not visible when only one locale available.
+
+**Persistence:** Cookie (`salus_locale`) set on selection. Page reloads with new locale.
+
+**Do:** Show locale names in native language · Auto-detect from browser initially · Persist selection
+
+**Don't:** Use flag icons for languages (languages ≠ countries) · Auto-redirect if user explicitly selected · Show when only 1 locale
+
+**Accessibility:**
+- Trigger: `aria-label="Change language — current: English"`, `aria-expanded`, `aria-haspopup="true"`
+- Dropdown: `role="listbox"`, items: `role="option"`, `aria-selected="true/false"`
+- Selected locale: `aria-selected="true"`, checkmark icon visible
+- Keyboard: Enter/Space opens, Arrow keys navigate, Enter selects and applies
+
+## Visual Design
+
+### Appearance
+- **Trigger:** `--font-label-sm`, `--color-slate-600`, 20px globe icon left, 4px gap, locale code right
+- **Dropdown:** `#ffffff` bg, `--shadow-lg`, `--radius-md`, min-width 160px
+- **Item default:** `--font-body-sm`, padding 8px 12px, `--color-slate-700`
+- **Item hover:** `--color-slate-50` bg
+- **Item selected:** `--color-primary-50` bg, `--color-primary-600` text, ✓ checkmark 16px right
+
+### States
+| State | Trigger | Dropdown |
+|-------|---------|----------|
+| Closed | Globe icon + code | Hidden |
+| Open | Globe icon + code, hover color | Visible |
+
+### Spacing
+- Trigger padding: 8px 12px
+- Icon↔Code gap: 4px
+- Item padding: 8px 12px
+- Dropdown↔Trigger gap: 4px
+
+### Responsive
+Desktop: in top-app-bar (right, before user menu). Mobile: in settings page (list of locale options, no dropdown).
+
+**Related:** `top-app-bar.md`, `nav-dropdown.md`, `icon.md`
+
+**Token Values:**
+| Token | Value |
+|-------|-------|
+| --language-switcher-trigger-font | `var(--font-label-sm)` |
+| --language-switcher-trigger-color | `{colors.slate-600}` |
+| --language-switcher-item-padding | `8px 12px` |
+| --language-switcher-item-font | `var(--font-body-sm)` |
+| --language-switcher-item-selected-bg | `{colors.primary-50}` |
+| --language-switcher-item-selected-text | `{colors.primary-600}` |
+| --language-switcher-checkmark-size | 16px |
