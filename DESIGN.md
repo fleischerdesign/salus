@@ -257,6 +257,21 @@ nav-tokens:
   link-active-border: "2px solid {colors.primary}"
   link-font: "{typography.label-md}"
 
+breakpoints:
+  mobile: 600px
+  tablet: 1024px
+
+keyframes:
+  skeleton-pulse: "0%, 100% { opacity: 0.4; } 50% { opacity: 0.75; }"
+  fade-in: "from { opacity: 0; } to { opacity: 1; }"
+  slide-up: "from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); }"
+  slide-in-right: "from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); }"
+  slide-out-right: "from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); }"
+
+disabled:
+  opacity: 0.5
+  cursor: not-allowed
+
 components:
   btn-primary:
     backgroundColor: "{colors.primary}"
@@ -502,6 +517,20 @@ components:
     avatar-size: 36px
 
   # ---- Forms ----
+  select:
+    backgroundColor: "{colors.slate-50}"
+    border: "1px solid {colors.slate-300}"
+    rounded: "{rounded.md}"
+    padding: 10px 12px
+    typography: "{typography.body-md}"
+    chevron-size: 20px
+    chevron-color: "{colors.slate-400}"
+    option-padding: 10px 12px
+    option-hover-bg: "{colors.slate-100}"
+    option-selected-bg: "{colors.primary-50}"
+    option-selected-text: "{colors.primary-700}"
+    no-results-color: "{colors.slate-400}"
+    z-index: "{z-index.dropdown}"
   autocomplete:
     responsive: false
     debounce: 150ms

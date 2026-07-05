@@ -194,6 +194,14 @@
   --nav-link-active-color: var(--color-primary);
   --nav-link-active-border: 2px solid var(--color-primary);
   --nav-link-font: var(--font-label-md);
+
+  /* ── Breakpoints ───────────────────────────────────── */
+  --bp-mobile: 600px;
+  --bp-tablet: 1024px;
+
+  /* ── Disabled State ────────────────────────────────── */
+  --disabled-opacity: 0.5;
+  --disabled-cursor: not-allowed;
   /* ── Component Tokens ──────────────────────────────── */
   --btn-primary-bg: var(--color-primary);
   --btn-primary-text: var(--color-on-primary);
@@ -354,6 +362,19 @@
   --top-app-bar-bg: #ffffff;
   --top-app-bar-border: 1px solid var(--color-slate-200);
   --user-menu-avatar-size: 36px;
+  --select-bg: var(--color-slate-50);
+  --select-border: 1px solid var(--color-slate-300);
+  --select-radius: var(--radius-md);
+  --select-padding: 10px 12px;
+  --select-typography: var(--font-body-md);
+  --select-chevron-size: 20px;
+  --select-chevron-color: var(--color-slate-400);
+  --select-option-padding: 10px 12px;
+  --select-option-hover-bg: var(--color-slate-100);
+  --select-option-selected-bg: var(--color-primary-50);
+  --select-option-selected-text: var(--color-primary-700);
+  --select-no-results-color: var(--color-slate-400);
+  --select-z-index: {z-index.dropdown};
   --autocomplete-debounce: 150ms;
   --autocomplete-min-chars: 2;
   --autocomplete-max-items: 8;
@@ -560,6 +581,26 @@
   --nav-dropdown-border: 1px solid var(--color-slate-200);
   --nav-dropdown-shadow: var(--shadow-lg);
   --nav-dropdown-radius: var(--radius-md);
+}
+
+@keyframes --skeleton-pulse {
+  0%, 100% { opacity: 0.4; } 50% { opacity: 0.75; }
+}
+
+@keyframes --fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+@keyframes --slide-up {
+  from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes --slide-in-right {
+  from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes --slide-out-right {
+  from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); }
 }
 
 @media (prefers-color-scheme: dark) {

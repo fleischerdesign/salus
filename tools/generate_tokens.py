@@ -37,6 +37,8 @@ SECTION_TO_PREFIX = {
     "easings": "ease",
     "transitions": "transition",
     "nav-tokens": "nav",
+    "breakpoints": "bp",
+    "disabled": "disabled",
 }
 
 PROPERTY_MAP = {
@@ -183,6 +185,18 @@ def generate_global_tokens(design: dict) -> list[str]:
     for key, value in design.get("nav-tokens", {}).items():
         resolved = resolve_ref(value)
         lines.append(f"  --nav-{key}: {resolved};")
+
+    lines.append("")
+    lines.append("  /* ── Breakpoints ───────────────────────────────────── */")
+
+    for key, value in design.get("breakpoints", {}).items():
+        lines.append(f"  --bp-{key}: {value};")
+
+    lines.append("")
+    lines.append("  /* ── Disabled State ────────────────────────────────── */")
+
+    for key, value in design.get("disabled", {}).items():
+        lines.append(f"  --disabled-{key}: {value};")
 
     return lines
 
@@ -378,6 +392,16 @@ def generate_dark_tokens(design: dict) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
+def generate_keyframes(design: dict) -> list[str]:
+    lines: list[str] = []
+    for key, value in design.get("keyframes", {}).items():
+        lines.append(f"@keyframes --{key} {{")
+        lines.append(f"  {value}")
+        lines.append("}")
+        lines.append("")
+    return lines
+
+
 def generate_css(design: dict) -> str:
     header = [
         "/*",
@@ -391,6 +415,7 @@ def generate_css(design: dict) -> str:
     global_tokens = generate_global_tokens(design)
     component_tokens = generate_component_tokens(design)
     dark_tokens = generate_dark_tokens(design)
+    keyframes = generate_keyframes(design)
 
     return (
         "\n".join(header)
@@ -399,6 +424,8 @@ def generate_css(design: dict) -> str:
         + "\n"
         + "\n".join(component_tokens)
         + "\n}\n\n"
+        + "\n".join(keyframes)
+        + "\n"
         + "@media (prefers-color-scheme: dark) {\n"
         + "  :root {\n"
         + "\n".join(_indent(generate_dark_color_tokens(design), 4))

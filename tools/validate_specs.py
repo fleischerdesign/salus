@@ -131,6 +131,8 @@ def get_yaml_tokens(design_data: dict) -> set[str]:
         "easings": "--ease-",
         "transitions": "--transition-",
         "nav-tokens": "--nav-",
+        "breakpoints": "--bp-",
+        "disabled": "--disabled-",
     }
 
     for section, prefix in section_prefixes.items():
