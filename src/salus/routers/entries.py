@@ -36,11 +36,8 @@ async def entries_overview(
 ):
     user_id = uid(current_user)
     metrics = metric_svc.find_all(user_id)
-    overview = (
-        measurement_svc.get_metric_overview(user_id, [uid(m) for m in metrics])
-        if metrics
-        else {}
-    )
+    metric_ids = [m.id for m in metrics if m.id is not None]
+    overview = measurement_svc.get_metric_overview(user_id, metric_ids) if metric_ids else {}
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/entries.html",
