@@ -18,7 +18,7 @@
     {% set ov = overview.get(metric.id) %}
     {% call card(title=metric.name, icon=metric.icon, hoverable=true, clickable=true,
                  href="/entries/" + metric.id|string,
-                 style="--card-icon-color:" ~ metric.color) %}
+                 style="--card-icon-color:" ~ metric.color ~ ";border-left:3px solid " ~ metric.color) %}
         <div style="font:var(--font-headline-md);font-weight:700;color:var(--color-on-surface)">
             {{ ov.latest_value if ov and ov.latest_value else "—" }}
             {% if ov and ov.latest_value and metric.unit %}
