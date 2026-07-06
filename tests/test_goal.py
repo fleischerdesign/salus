@@ -67,7 +67,7 @@ class TestGoalRoutes:
 
     def test_goals_page_loads_authenticated(self, authenticated_client):
         authenticated_client.post(
-            "/metrics",
+            "/entries/metric",
             data={"name": "CustomWeight", "unit": "kg", "data_type": "number"},
             follow_redirects=True,
         )
@@ -77,7 +77,7 @@ class TestGoalRoutes:
 
     def test_create_goal(self, authenticated_client):
         authenticated_client.post(
-            "/metrics",
+            "/entries/metric",
             data={"name": "CustomSteps", "unit": "steps", "data_type": "number"},
             follow_redirects=True,
         )

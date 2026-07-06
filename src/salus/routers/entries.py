@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -9,7 +10,9 @@ from salus.dependencies import (
     get_metric_type_service,
     get_sharing_service,
 )
+from salus.models import DataType
 from salus.models.user import User
+from salus.schemas import MetricTypeCreate
 from salus.schemas.measurement import MeasurementCreate
 from salus.services._helpers import uid
 from salus.services.measurement import MeasurementService
@@ -25,6 +28,9 @@ def _form_to_create(value: str, timestamp_str: str | None, notes: str | None) ->
         timestamp=datetime.fromisoformat(timestamp_str) if timestamp_str else None,
         notes=notes,
     )
+
+
+# ── Entry routes ─────────────────────────────────────────────────
 
 
 @router.get("", response_class=HTMLResponse)
@@ -174,3 +180,80 @@ async def entries_detail(
         else "pages/entries_detail.html"
     )
     return request.app.state.templates.TemplateResponse(request, template, context)
+
+
+# ── Metric admin routes ───────────────────────────────────────────
+
+
+@router.get("/metric/new", response_class=HTMLResponse)
+async def new_metric_form(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/metric_form.html",
+        {"current_user": current_user, "metric": None},
+    )
+
+
+@router.post("/metric")
+async def create_metric(
+    request: Request,
+    name: Annotated[str, Form()],
+    unit: Annotated[str, Form()] = "",
+    data_type: Annotated[str, Form()] = "number",
+    color: Annotated[str, Form()] = "#4f46e5",
+    icon: Annotated[str, Form()] = "monitoring",
+    current_user: User = Depends(get_current_user),
+    metric_service: MetricTypeService = Depends(get_metric_type_service),
+):
+    metric_service.create(
+        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color, icon=icon),
+        user_id=uid(current_user),
+    )
+    return RedirectResponse(url="/entries", status_code=303)
+
+
+@router.get("/metric/{metric_type_id}/edit", response_class=HTMLResponse)
+async def edit_metric_form(
+    metric_type_id: int,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    metric_service: MetricTypeService = Depends(get_metric_type_service),
+):
+    metric = metric_service.get(metric_type_id, uid(current_user))
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/metric_form.html",
+        {"metric": metric, "current_user": current_user},
+    )
+
+
+@router.put("/metric/{metric_type_id}")
+async def update_metric(
+    metric_type_id: int,
+    name: Annotated[str, Form()],
+    unit: Annotated[str, Form()] = "",
+    data_type: Annotated[str, Form()] = "number",
+    color: Annotated[str, Form()] = "#4f46e5",
+    icon: Annotated[str, Form()] = "monitoring",
+    current_user: User = Depends(get_current_user),
+    metric_service: MetricTypeService = Depends(get_metric_type_service),
+):
+    metric_service.update(
+        metric_type_id,
+        uid(current_user),
+        MetricTypeCreate(name=name, unit=unit, data_type=DataType(data_type), color=color, icon=icon),
+    )
+    return RedirectResponse(url="/entries", status_code=303)
+
+
+@router.delete("/metric/{metric_type_id}")
+async def delete_metric(
+    metric_type_id: int,
+    current_user: User = Depends(get_current_user),
+    metric_service: MetricTypeService = Depends(get_metric_type_service),
+):
+    metric_service.delete(metric_type_id, uid(current_user))
+    return HTMLResponse(status_code=200)

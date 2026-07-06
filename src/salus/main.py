@@ -18,7 +18,7 @@ from salus.jinja2_ext import AutoImportLoader
 from salus.models import system_config  # noqa: F401
 from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
-from salus.routers import admin, analytics, api, auth, circadian, dashboard, design_system, entries, export, goals, insight, metrics, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science
+from salus.routers import admin, analytics, api, auth, circadian, dashboard, design_system, entries, export, goals, insight, onboarding, settings, webhook, sharing, workout, asymmetric_share, open_science
 from salus.services.config import ConfigService
 from salus.services.i18n import translate
 
@@ -262,7 +262,6 @@ app.add_middleware(
 app.middleware("http")(i18n_middleware)
 app.mount("/static", StaticFiles(directory="src/salus/static"), name="static")
 app.include_router(dashboard.router)
-app.include_router(metrics.router, prefix="/metrics")
 app.include_router(entries.router, prefix="/entries")
 app.include_router(webhook.router)
 app.include_router(onboarding.router)

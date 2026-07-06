@@ -5,7 +5,7 @@ def test_list_entries_requires_auth(client):
 
 def test_list_entries_empty(authenticated_client):
     authenticated_client.post(
-        "/metrics",
+        "/entries/metric",
         data={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )
@@ -15,7 +15,7 @@ def test_list_entries_empty(authenticated_client):
 
 def test_create_and_list_entry(authenticated_client):
     authenticated_client.post(
-        "/metrics",
+        "/entries/metric",
         data={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )
@@ -30,7 +30,7 @@ def test_create_and_list_entry(authenticated_client):
 
 def test_delete_entry(authenticated_client):
     authenticated_client.post(
-        "/metrics",
+        "/entries/metric",
         data={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )

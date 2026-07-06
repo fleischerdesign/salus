@@ -9,7 +9,7 @@
         <h2 class="modal__title" id="metric-form-title">{{ _("Edit Metric") if metric else _("New Metric") }}</h2>
         <div class="modal__body">
             <form
-                {% if metric %}hx-put="/metrics/{{ metric.id }}"{% else %}hx-post="/metrics"{% endif %}
+                {% if metric %}hx-put="/entries/metric/{{ metric.id }}"{% else %}hx-post="/entries/metric"{% endif %}
                 hx-target="body"
                 hx-push-url="true">
                 <div class="form-stack">
@@ -50,6 +50,13 @@
                         {{ btn(_("Save"), variant="primary") }}
                         {{ btn(_("Cancel"), variant="ghost", type="button", hyperscript="on click remove closest .modal-backdrop") }}
                     </div>
+                    {% if metric and not metric.is_system %}
+                    <div style="border-top:1px solid var(--color-slate-100);padding-top:12px;margin-top:12px;display:flex;justify-content:flex-end">
+                        {{ btn(_("Delete Metric"), variant="danger",
+                               hx_delete="/entries/metric/" + metric.id|string,
+                               hx_target="body", hx_confirm=_("Delete this metric and all its entries?")) }}
+                    </div>
+                    {% endif %}
                 </div>
             </form>
         </div>

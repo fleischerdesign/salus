@@ -7,7 +7,11 @@
         <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Logbook") }}</h1>
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Select a metric to view and manage its entries.") }}</p>
     </div>
-    {{ btn(icon="settings", variant="secondary", href="/metrics") }}
+    <div style="display:flex;gap:8px">
+        {{ btn(_("New Metric"), variant="secondary",
+               hx_get="/entries/metric/new",
+               hx_target="#modal-container", hx_swap="innerHTML") }}
+    </div>
 </div>
 
 {% if metrics %}
@@ -16,7 +20,11 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
     {% for metric in metrics %}
     {% set ov = overview.get(metric.id) %}
-    {% call card(title=metric.name, icon=metric.icon, hoverable=true, clickable=true,
+    {% set edit_icon = btn(icon="edit", variant="ghost", size="sm",
+           hx_get="/entries/metric/" + metric.id|string + "/edit",
+           hx_target="#modal-container", hx_swap="innerHTML",
+           aria_label=_("Edit metric")) %}
+    {% call card(title=metric.name, icon=metric.icon, header_action=edit_icon, hoverable=true, clickable=true,
                  href="/entries/" + metric.id|string,
                  style="--card-icon-color:" ~ metric.color ~ ";border-top:3px solid " ~ metric.color) %}
         <div style="font:var(--font-headline-md);font-weight:700;color:var(--color-on-surface)">
@@ -38,7 +46,9 @@
 {% call card(style="text-align:center;padding:32px 24px") %}
     <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-slate-300)">list_alt</span>
     <p style="font:var(--font-body-md);color:var(--color-slate-500);margin:12px 0 0 0">{{ _("No metrics configured yet.") }}</p>
-    <p style="margin:8px 0 0 0">{{ btn(_("Create your first metric"), variant="primary", href="/metrics") }}</p>
+    <p style="margin:8px 0 0 0">{{ btn(_("Create your first metric"), variant="primary",
+           hx_get="/entries/metric/new",
+           hx_target="#modal-container", hx_swap="innerHTML") }}</p>
 {% endcall %}
 {% endif %}
 

@@ -1,7 +1,7 @@
 def test_user_data_scoped(authenticated_client, client):
     """Alice creates custom metrics & entries. Bob logs in and sees none of them."""
     authenticated_client.post(
-        "/metrics",
+        "/entries/metric",
         data={"name": "AliceCustom", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )
@@ -18,7 +18,7 @@ def test_user_data_scoped(authenticated_client, client):
         follow_redirects=True,
     )
 
-    response = client.get("/metrics")
+    response = client.get("/entries")
     assert response.status_code == 200
     assert "AliceCustom" not in response.text
 
@@ -36,7 +36,7 @@ def test_alice_cannot_see_bob_metrics(authenticated_client, client):
         follow_redirects=True,
     )
     client.post(
-        "/metrics",
+        "/entries/metric",
         data={"name": "Hydration", "unit": "ml", "data_type": "number", "color": "#0ea5e9"},
         follow_redirects=True,
     )

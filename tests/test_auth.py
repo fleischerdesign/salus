@@ -97,7 +97,7 @@ def test_logout_clears_cookie(client):
     response = client.post("/auth/logout", follow_redirects=False)
     assert response.status_code == 303
 
-    response = client.get("/metrics", follow_redirects=False)
+    response = client.get("/entries", follow_redirects=False)
     assert response.status_code == 303
 
 
