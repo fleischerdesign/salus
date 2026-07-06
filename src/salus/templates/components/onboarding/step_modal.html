@@ -1,8 +1,4 @@
-{% call modal() %}
-    <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);display:block;margin-bottom:12px">{{ step_icon }}</span>
-    <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ title }}</h2>
-    <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ description }}</p>
-
+{% call modal(icon=step_icon, title=title, subtitle=description, variant="centered") %}
     {% set step_index = step_index | default(0) %}
     {% include step_body_template %}
 

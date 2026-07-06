@@ -74,6 +74,39 @@
     padding-right: 36px;
 }
 
+.modal__subtitle {
+    font: var(--font-body-sm);
+    color: var(--color-slate-500);
+    margin: 4px 0 24px 0;
+    line-height: 1.6;
+    padding-right: 36px;
+}
+
+.modal__header-icon {
+    font-size: 20px;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+/* ── Centered variant (wizard/onboarding) ─────────────────── */
+.modal-content[data-variant="centered"] {
+    text-align: center;
+}
+.modal-content[data-variant="centered"] .modal__header-icon {
+    font-size: 48px;
+    color: var(--color-primary);
+    display: block;
+    margin-bottom: 12px;
+}
+.modal-content[data-variant="centered"] .modal__title {
+    padding-right: 0;
+    margin-bottom: 8px;
+}
+.modal-content[data-variant="centered"] .modal__subtitle {
+    padding-right: 0;
+    margin-bottom: 24px;
+}
+
 .modal__body {
     color: var(--color-on-surface);
 }
