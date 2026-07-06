@@ -1,4 +1,4 @@
-{% call modal(icon=step_icon, title=title, subtitle=description, variant="centered") %}
+{% call modal(icon=step_icon, title=title, subtitle=description, variant="centered", open=true) %}
     {% set step_index = step_index | default(0) %}
     {% include step_body_template %}
 

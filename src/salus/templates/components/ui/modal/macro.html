@@ -18,7 +18,7 @@
      <button _="on click add @data-open to #edit-modal">Open</button>
  #}
 
-{% macro modal(title=none, icon=none, subtitle=none, variant=none, id=none, close_button=true, content_style=none, class=none) %}
+{% macro modal(title=none, icon=none, subtitle=none, variant=none, id=none, close_button=true, open=false, content_style=none, class=none) %}
     {% set modal_id = id or "modal-" + range(1000, 9999) | random | string %}
     <div
         class="modal-backdrop {{ class or '' }}"
@@ -26,6 +26,7 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="{{ modal_id }}-title"
+        {% if open %}data-open{% endif %}
         _="on click if event.target === me then remove @data-open from me end
            on keydown[key is 'Escape'] remove @data-open from me"
     >
