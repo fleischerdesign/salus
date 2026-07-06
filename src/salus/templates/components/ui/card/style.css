@@ -79,10 +79,10 @@
 
 /* ── Edit-mode (card grid) ─────────────────────────────────── */
 
-.card-grid--edit .card {
+.card-grid--edit .card .card__header {
     cursor: grab;
 }
-.card-grid--edit .card:active {
+.card-grid--edit .card .card__header:active {
     cursor: grabbing;
 }
 

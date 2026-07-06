@@ -131,6 +131,10 @@
 .edit-mode .widget-grid__item .widget-chrome {
     background: var(--color-slate-50);
     border-bottom: 1px solid var(--color-slate-100);
+    cursor: grab;
+}
+.edit-mode .widget-grid__item .widget-chrome:active {
+    cursor: grabbing;
 }
 .widget-grid__ghost {
     opacity: 0.4;
@@ -693,10 +697,10 @@ img {
 
 /* ── Edit-mode (card grid) ─────────────────────────────────── */
 
-.card-grid--edit .card {
+.card-grid--edit .card .card__header {
     cursor: grab;
 }
-.card-grid--edit .card:active {
+.card-grid--edit .card .card__header:active {
     cursor: grabbing;
 }
 
