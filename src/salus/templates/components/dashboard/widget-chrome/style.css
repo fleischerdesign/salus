@@ -12,6 +12,7 @@
 
 .widget-chrome__title { flex: 1; font: var(--font-label-sm); color: var(--color-slate-500); text-transform: uppercase; letter-spacing: 0.05em; }
 .widget-chrome__actions { display: flex; gap: 2px; }
+.widget-body { padding: 8px 16px 16px 16px; }
 
 .widget-chrome__drag {
     font-size: 16px; color: var(--drag-handle-color, var(--color-slate-400)); cursor: grab;
@@ -50,4 +51,4 @@
 .widget-empty__text { font: var(--font-body-sm); color: var(--color-slate-500); max-width: 240px; text-align: center; }
 
 /* ── Skeleton loading ─────────────────────────────────────── */
-.widget-skeleton { animation: --skeleton-pulse 1.5s var(--ease-default) infinite; background: var(--color-slate-100); border-radius: var(--radius-sm); }
+.widget-skeleton { animation: --skeleton-pulse var(--skeleton-animation-duration) var(--ease-default) infinite; background: var(--color-slate-200); border-radius: var(--radius-sm); }

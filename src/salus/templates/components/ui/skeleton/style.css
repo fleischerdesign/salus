@@ -5,7 +5,7 @@
 .skeleton {
     background: var(--color-slate-200);
     border-radius: var(--radius-sm);
-    animation: skeleton-pulse 1.8s var(--ease-default) infinite;
+    animation: --skeleton-pulse var(--skeleton-animation-duration) var(--ease-default) infinite;
 }
 
 .skeleton--text  { height: 14px; width: 100%; }
@@ -16,9 +16,4 @@
 
 @media (prefers-reduced-motion: reduce) {
     .skeleton { animation: none; opacity: 0.5; }
-}
-
-@keyframes skeleton-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.75; }
 }
