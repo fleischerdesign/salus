@@ -18,7 +18,7 @@
 
 
 {% macro widget_grid_item(id=none, widget_id=none, size="md", skeleton=false, hx_get=none, hx_trigger=none, hx_swap=none) %}
-    {% set size_class = {"sm": "widget--sm", "md": "widget--md", "lg": "widget--lg"}.get(size, "widget--md") %}
+    {% set size_class = {"small": "widget--sm", "medium": "widget--md", "large": "widget--lg"}.get(size, "widget--md") %}
     <div class="widget-grid__item {{ size_class }}" {% if id %}id="{{ id }}"{% endif %} {% if widget_id %}data-widget-id="{{ widget_id }}"{% endif %}
          {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
          {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% endif %}

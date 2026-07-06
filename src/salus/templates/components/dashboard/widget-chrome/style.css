@@ -19,6 +19,25 @@
 .widget-chrome__drag:hover { color: var(--drag-handle-hover-color, var(--color-slate-600)); }
 .widget-chrome__drag:active { color: var(--drag-handle-active-color, var(--color-primary)); cursor: grabbing; }
 
+/* ── Chrome action buttons ─────────────────────────────────── */
+
+.widget-chrome__actions .btn[data-icon-only] {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--color-slate-400);
+}
+.widget-chrome__actions .btn[data-icon-only] .btn__icon {
+    font-size: 18px;
+}
+.widget-chrome__actions .btn[data-icon-only]:hover {
+    color: var(--color-slate-600);
+    background: var(--color-slate-100);
+}
+.widget-chrome__actions .btn[data-icon-only]:active {
+    color: var(--color-primary);
+}
+
 /* ── Widget sizes ─────────────────────────────────────────── */
 .widget--sm { grid-column: span 1; }
 .widget--md { grid-column: span 2; }

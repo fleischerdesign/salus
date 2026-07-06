@@ -1,19 +1,17 @@
-{% set size = widget.size.value if widget.size else "md" %}
+{% set size = widget.size.value if widget.size else "medium" %}
 {% call widget_grid_item(id="widget-" + widget.id|string, widget_id=widget.id, size=size,
        hx_get="/dashboard/widgets/" + widget.id|string + ("?date=" + display_date if display_date else ""),
        hx_trigger="widgetRefresh-" + widget.id|string + " from:body", hx_swap="outerHTML") %}
     {% set actions %}
-        <div class="widget-chrome__actions">
-            {{ btn(icon="tune", variant="ghost", size="sm",
+            {{ btn(icon="tune", variant="ghost",
                    hx_get="/dashboard/widgets/" + widget.id|string + "/edit",
                    hx_target="#modal-container", hx_swap="innerHTML",
                    aria_label=_("Edit size")) }}
-            {{ btn(icon="close", variant="ghost", size="sm",
+            {{ btn(icon="close", variant="ghost",
                    hx_delete="/dashboard/widgets/" + widget.id|string,
                    hx_target="#widget-" + widget.id|string, hx_swap="outerHTML",
                    hx_confirm=_("Remove this widget?"),
                    aria_label=_("Remove")) }}
-        </div>
     {% endset %}
     {{ widget_chrome(title=metric.name if metric else _("Widget"), drag_handle=true, actions=actions) }}
     {% if metric %}

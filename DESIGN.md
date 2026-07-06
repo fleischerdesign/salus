@@ -330,12 +330,6 @@ components:
     padding: 8px 16px
   btn-danger-hover:
     backgroundColor: "{colors.error-100}"
-  btn-sm:
-    backgroundColor: "{colors.slate-100}"
-    textColor: "{colors.slate-700}"
-    border: "1px solid {colors.slate-200}"
-    rounded: "{rounded.sm}"
-    padding: 6px 12px
   btn-icon:
     size: 28px
     backgroundColor: transparent

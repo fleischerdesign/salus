@@ -24,6 +24,8 @@
 .widget-grid__item .widget-chrome__actions {
     opacity: 0;
     pointer-events: none;
+    width: 0;
+    overflow: hidden;
     transition: opacity var(--duration-fast) var(--ease-out);
 }
 .widget-grid--edit .widget-grid__item .widget-chrome {
@@ -34,6 +36,8 @@
 .widget-grid--edit .widget-grid__item .widget-chrome__actions {
     opacity: 1;
     pointer-events: auto;
+    width: auto;
+    overflow: visible;
 }
 .widget-grid__ghost {
     opacity: 0.4;

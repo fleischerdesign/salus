@@ -54,6 +54,16 @@
     pointer-events: none;
 }
 
+/* ── Size: Small ──────────────────────────────────────────── */
+/* Placed BEFORE variant rules so variant color tokens win */
+
+.btn[data-size="sm"] {
+    --_btn-radius: var(--radius-sm);
+    --_btn-padding: 6px 12px;
+    font-size: 12px;
+    gap: 6px;
+}
+
 /* ── Variant: Primary ─────────────────────────────────────── */
 
 .btn[data-variant="primary"] {
@@ -95,24 +105,11 @@
     --_btn-padding: var(--btn-danger-padding);
 }
 
-/* ── Size: Small ──────────────────────────────────────────── */
-
-.btn[data-size="sm"],
-.btn[data-variant="small"] {
-    --_btn-bg: var(--btn-sm-bg);
-    --_btn-text: var(--btn-sm-text);
-    --_btn-border: var(--btn-sm-border);
-    --_btn-hover-bg: var(--btn-sm-hover-bg);
-    --_btn-radius: var(--btn-sm-radius);
-    --_btn-padding: var(--btn-sm-padding);
-    font-size: 12px;
-    gap: 6px;
-}
-
 /* ── Icon-only ────────────────────────────────────────────── */
 
 .btn[data-icon-only] {
     --_btn-bg: var(--btn-icon-bg);
+    --_btn-border: none;
     --_btn-radius: var(--btn-icon-radius);
     --_btn-padding: 0;
     width: var(--btn-icon-size, 28px);

@@ -18,7 +18,7 @@
             {{ chip(metric.data_type.value, variant="neutral") }}
         </div>
         <div style="display:flex;gap:8px">
-            {{ btn(_("Edit"), variant="small", hx_get="/metrics/" + metric.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
+            {{ btn(_("Edit"), variant="secondary", size="sm", hx_get="/metrics/" + metric.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
             {{ btn(_("Delete"), variant="danger", hx_delete="/metrics/" + metric.id | string, hx_target="#metric-" + metric.id | string, hx_swap="outerHTML") }}
         </div>
     {% endcall %}

@@ -9,8 +9,8 @@
                 {{ _("Download all your health records and custom metrics directly to your computer.") }}
             </p>
             <div style="display:flex;gap:8px">
-                {{ btn("CSV", variant="small", href="/export/download?format=csv") }}
-                {{ btn("JSON", variant="small", href="/export/download?format=json") }}
+                {{ btn("CSV", variant="secondary", size="sm", href="/export/download?format=csv") }}
+                {{ btn("JSON", variant="secondary", size="sm", href="/export/download?format=json") }}
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
                         <textarea id="recipient-pubkey" rows="4" readonly required placeholder="{{ _('Generate keys above to auto-fill') }}"
                                   style="width:100%;padding:8px;border:1.5px solid var(--color-outline-variant);border-radius:6px;font-size:11px;font-family:monospace;background:var(--color-surface-container-lowest)"></textarea>
                     </div>
-                    {{ btn(_("Save Recipient"), variant="small", type="submit", style="align-self:flex-start") }}
+                    {{ btn(_("Save Recipient"), variant="secondary", size="sm", type="submit", style="align-self:flex-start") }}
                 </form>
             </div>
         </div>
@@ -54,7 +54,7 @@
                         <strong style="font-size:13px;color:var(--color-on-surface)">{{ r.name }}</strong>
                         <div style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:11px">Added {{ r.created_at.strftime('%Y-%m-%d') }}</div>
                     </div>
-                    {{ btn(icon="delete", variant="small", style="color:var(--color-error)", onclick="deleteRecipient(" + r.id|string + ")") }}
+                    {{ btn(icon="delete", variant="ghost", size="sm", style="color:var(--color-error)", onclick="deleteRecipient(" + r.id|string + ")") }}
                 </div>
                 {% else %}
                 <p style="font:var(--font-body-sm);color:var(--color-slate-500);text-align:center;font-size:12px">{{ _("No recipients registered yet.") }}</p>

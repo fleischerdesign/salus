@@ -22,7 +22,7 @@
     </div>
 
     <div style="display:flex;gap:8px">
-        {{ btn(_("Edit Layout"), variant="small", id="edit-layout-btn",
+        {{ btn(_("Edit Layout"), variant="secondary", size="sm", id="edit-layout-btn",
                hyperscript="on click
                 add .widget-grid--edit to #dashboard-grid
                 hide me
@@ -32,7 +32,7 @@
                 remove .widget-grid--edit from #dashboard-grid
                 hide me
                 show #edit-layout-btn") }}
-        {{ btn("+ " + _("Add Widget"), variant="small", style="display:none",
+        {{ btn("+ " + _("Add Widget"), variant="secondary", size="sm", style="display:none",
                hyperscript="on load if #dashboard-grid matches .widget-grid--edit then show me end",
                hx_get="/dashboard/widgets/add-modal",
                hx_target="body",

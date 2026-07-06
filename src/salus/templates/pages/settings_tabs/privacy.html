@@ -26,7 +26,7 @@
                 <strong style="display:block">{{ _("Two-Factor Authentication (2FA)") }}</strong>
                 <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Enhance account security using standard TOTP authenticator apps.") }}</span>
             </div>
-            {{ btn(_("Coming Soon"), variant="small", disabled=true) }}
+            {{ btn(_("Coming Soon"), variant="secondary", size="sm", disabled=true) }}
         </div>
 
         <div style="display:flex;justify-content:space-between;padding-top:8px">
@@ -34,7 +34,7 @@
                 <strong style="display:block">{{ _("Security Log Audit") }}</strong>
                 <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ _("Review recent login timestamps, IP locations, and API requests.") }}</span>
             </div>
-            {{ btn(_("Coming Soon"), variant="small", disabled=true) }}
+            {{ btn(_("Coming Soon"), variant="secondary", size="sm", disabled=true) }}
         </div>
     </div>
 {% endcall %}

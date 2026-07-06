@@ -1,7 +1,7 @@
 {% call widget_grid(id="dashboard-grid") %}
     {% for widget in widgets %}
     {% set metric = metrics_by_id.get(widget.metric_type_id) %}
-    {% set size = widget.size.value if widget.size else "md" %}
+    {% set size = widget.size.value if widget.size else "medium" %}
     {% call widget_grid_item(id="widget-" + widget.id|string, widget_id=widget.id, size=size,
            hx_get="/dashboard/widgets/" + widget.id|string + ("?date=" + display_date if display_date else ""),
            hx_trigger="load", hx_swap="outerHTML") %}

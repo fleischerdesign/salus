@@ -24,7 +24,7 @@
         <div style="display:flex;align-items:center;gap:8px;background:var(--color-slate-50);padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--color-slate-200)">
             {{ chip(item.metric, variant="neutral") }}
             <code style="font:var(--font-code-sm);background:var(--color-slate-100);padding:4px 8px;border-radius:var(--radius-sm);flex:1;overflow-x:auto">{{ item.token }}</code>
-            {{ btn(_("Copy"), variant="small", hyperscript="on click writeText('" + item.token + "') into the navigator's clipboard then put '" + _("Copied!") + "' into me then wait 2s then put '" + _("Copy") + "' into me") }}
+            {{ btn(_("Copy"), variant="secondary", size="sm", hyperscript="on click writeText('" + item.token + "') into the navigator's clipboard then put '" + _("Copied!") + "' into me then wait 2s then put '" + _("Copy") + "' into me") }}
         </div>
         {% endfor %}
     </div>
@@ -108,7 +108,7 @@
 </div>
 
 <div style="margin-top:16px;text-align:right">
-    {{ btn(icon="visibility", label=_("View Access Log"), variant="small", href="/sharing/access-log") }}
+    {{ btn(icon="visibility", label=_("View Access Log"), variant="secondary", size="sm", href="/sharing/access-log") }}
 </div>
 
 {% endblock %}

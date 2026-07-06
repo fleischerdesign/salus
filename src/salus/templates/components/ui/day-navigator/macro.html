@@ -4,6 +4,8 @@
      {{ day_navigator(date="2026-07-05", prev="2026-07-04", next="2026-07-06", is_today=false) }}
  #}
 
+{% from "components/ui/btn/macro.html" import btn %}
+
 {% macro day_navigator(date_display, prev_date, next_date, is_today=false, can_go_next=true) %}
     <div class="day-nav" role="navigation" aria-label="Date navigation">
         <button
@@ -32,14 +34,7 @@
         </button>
 
         {% if not is_today %}
-        <button
-            class="btn"
-            data-variant="small"
-            hx-get="/dashboard/grid"
-            hx-target="#dashboard-content"
-            hx-swap="innerHTML"
-            type="button"
-        >Today</button>
+        {{ btn("Today", variant="secondary", size="sm", hx_get="/dashboard/grid", hx_target="#dashboard-content", hx_swap="innerHTML") }}
         {% endif %}
     </div>
 {% endmacro %}

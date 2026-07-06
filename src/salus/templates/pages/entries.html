@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="list-item__action" style="display:flex;gap:8px">
-            {{ btn(_("Edit"), variant="small", hx_get="/entries/" + entry.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
+            {{ btn(_("Edit"), variant="secondary", size="sm", hx_get="/entries/" + entry.id | string + "/edit", hx_target="#modal-container", hx_swap="innerHTML") }}
             {{ btn(_("Delete"), variant="danger", hx_delete="/entries/" + entry.id | string, hx_target="#entry-" + entry.id | string, hx_swap="outerHTML") }}
         </div>
     {% endcall %}

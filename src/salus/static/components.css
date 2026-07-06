@@ -96,6 +96,25 @@
 .widget-chrome__drag:hover { color: var(--drag-handle-hover-color, var(--color-slate-600)); }
 .widget-chrome__drag:active { color: var(--drag-handle-active-color, var(--color-primary)); cursor: grabbing; }
 
+/* ── Chrome action buttons ─────────────────────────────────── */
+
+.widget-chrome__actions .btn[data-icon-only] {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--color-slate-400);
+}
+.widget-chrome__actions .btn[data-icon-only] .btn__icon {
+    font-size: 18px;
+}
+.widget-chrome__actions .btn[data-icon-only]:hover {
+    color: var(--color-slate-600);
+    background: var(--color-slate-100);
+}
+.widget-chrome__actions .btn[data-icon-only]:active {
+    color: var(--color-primary);
+}
+
 /* ── Widget sizes ─────────────────────────────────────────── */
 .widget--sm { grid-column: span 1; }
 .widget--md { grid-column: span 2; }
@@ -138,6 +157,8 @@
 .widget-grid__item .widget-chrome__actions {
     opacity: 0;
     pointer-events: none;
+    width: 0;
+    overflow: hidden;
     transition: opacity var(--duration-fast) var(--ease-out);
 }
 .widget-grid--edit .widget-grid__item .widget-chrome {
@@ -148,6 +169,8 @@
 .widget-grid--edit .widget-grid__item .widget-chrome__actions {
     opacity: 1;
     pointer-events: auto;
+    width: auto;
+    overflow: visible;
 }
 .widget-grid__ghost {
     opacity: 0.4;
@@ -505,6 +528,16 @@ img {
     pointer-events: none;
 }
 
+/* ── Size: Small ──────────────────────────────────────────── */
+/* Placed BEFORE variant rules so variant color tokens win */
+
+.btn[data-size="sm"] {
+    --_btn-radius: var(--radius-sm);
+    --_btn-padding: 6px 12px;
+    font-size: 12px;
+    gap: 6px;
+}
+
 /* ── Variant: Primary ─────────────────────────────────────── */
 
 .btn[data-variant="primary"] {
@@ -546,24 +579,11 @@ img {
     --_btn-padding: var(--btn-danger-padding);
 }
 
-/* ── Size: Small ──────────────────────────────────────────── */
-
-.btn[data-size="sm"],
-.btn[data-variant="small"] {
-    --_btn-bg: var(--btn-sm-bg);
-    --_btn-text: var(--btn-sm-text);
-    --_btn-border: var(--btn-sm-border);
-    --_btn-hover-bg: var(--btn-sm-hover-bg);
-    --_btn-radius: var(--btn-sm-radius);
-    --_btn-padding: var(--btn-sm-padding);
-    font-size: 12px;
-    gap: 6px;
-}
-
 /* ── Icon-only ────────────────────────────────────────────── */
 
 .btn[data-icon-only] {
     --_btn-bg: var(--btn-icon-bg);
+    --_btn-border: none;
     --_btn-radius: var(--btn-icon-radius);
     --_btn-padding: 0;
     width: var(--btn-icon-size, 28px);
