@@ -1,4 +1,5 @@
 import logging
+import math
 from datetime import datetime, timezone
 
 from salus.exceptions import NotFoundError
@@ -27,6 +28,26 @@ class MeasurementService:
         self, metric_type_id: int, user_id: int
     ) -> list[Measurement]:
         return self.repo.find_by_metric_type(metric_type_id, user_id)
+
+    def find_by_metric_type_paginated(
+        self, metric_type_id: int, user_id: int, page: int = 1, per_page: int = 25,
+    ) -> tuple[list[Measurement], int, int]:
+        offset = (page - 1) * per_page
+        entries, total = self.repo.find_by_metric_type_paginated(metric_type_id, user_id, offset, per_page)
+        total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
+        return entries, total, total_pages
+
+    def get_metric_overview(self, user_id: int, metric_ids: list[int]) -> dict[int, dict]:
+        result: dict[int, dict] = {}
+        for mid in metric_ids:
+            latest = self.repo.get_latest_by_metric_type(mid, user_id)
+            count = self.repo.count_by_metric_type(mid, user_id)
+            result[mid] = {
+                "latest_value": latest.display_value if latest else None,
+                "latest_date": latest.start_time.strftime("%Y-%m-%d %H:%M") if latest else None,
+                "entry_count": count,
+            }
+        return result
 
     def find_recent(self, user_id: int, limit: int = 20) -> list[Measurement]:
         return self.repo.find_recent_entries(user_id, limit)

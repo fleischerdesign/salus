@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title_suffix %} — {{ metric.name }}{% endblock %}
+{% block content %}
+
+<p style="margin-bottom:16px">{{ link("← " + _("Back to Logbook"), "/entries") }}</p>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+        <span class="material-symbols-outlined" style="font-size:32px;color:{{ metric.color }}">{{ metric.icon }}</span>
+        <div>
+            <h1 style="font:var(--font-headline-lg);margin:0">{{ metric.name }}</h1>
+            {% if metric.unit %}
+            <span style="font:var(--font-body-sm);color:var(--color-slate-500)">{{ metric.unit }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {{ btn(_("New Entry"), variant="primary",
+           hx_get="/entries/new?metric_type_id=" + metric.id|string,
+           hx_target="#modal-container", hx_swap="innerHTML") }}
+</div>
+
+<div id="modal-container"></div>
+
+<div id="entries-table">
+    {% include "components/entries_table_partial.html" %}
+</div>
+
+{% endblock %}

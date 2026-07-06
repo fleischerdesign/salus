@@ -1,0 +1,32 @@
+{% if entries %}
+{% call table(headers=[_("Date"), _("Value"), "", ""]) %}
+    {% for entry in entries %}
+    <tr id="entry-{{ entry.id }}">
+        <td style="white-space:nowrap;font:var(--font-body-sm)">{{ entry.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td style="font-weight:600">{{ entry.display_value }}</td>
+        <td style="color:var(--color-slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--font-body-sm)">{{ entry.notes or '' }}</td>
+        <td style="display:flex;gap:4px;justify-content:flex-end">
+            {{ btn(icon="edit", variant="ghost", size="sm",
+                   hx_get="/entries/" + entry.id|string + "/edit",
+                   hx_target="body", hx_swap="beforeend",
+                   aria_label=_("Edit")) }}
+            {{ btn(icon="delete", variant="ghost", size="sm",
+                   hx_delete="/entries/" + entry.id|string,
+                   hx_target="#entry-" + entry.id|string, hx_swap="outerHTML",
+                   aria_label=_("Delete")) }}
+        </td>
+    </tr>
+    {% endfor %}
+{% endcall %}
+
+{{ pagination(current_page, total_pages, url_pattern, total_items=total_entries, items_label=_("entries"),
+              hx_target="#entries-table", hx_swap="outerHTML") }}
+{% else %}
+<div style="text-align:center;padding:32px 0">
+    <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-slate-300)">edit_note</span>
+    <p style="font:var(--font-body-md);color:var(--color-slate-500);margin:12px 0 0 0">{{ _("No entries yet.") }}</p>
+    {{ btn(_("Add your first entry"), variant="primary", style="margin-top:12px",
+           hx_get="/entries/new?metric_type_id=" + metric.id|string,
+           hx_target="#modal-container", hx_swap="innerHTML") }}
+</div>
+{% endif %}

@@ -22,7 +22,7 @@
             <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</div>
         {% endcall %}
     {% endcall %}
-    {{ btn(_("Dismiss"), variant="ghost", style="width:100%;margin-top:16px",
+    {{ btn(_("Dismiss"), variant="ghost", size="sm", style="margin:16px auto 0;display:block",
            hx_post="/onboarding/dismiss",
            hx_target="#onboarding-card",
            hx_swap="outerHTML") }}

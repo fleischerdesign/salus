@@ -106,6 +106,19 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
     ) -> list[Measurement]:
         ...
 
+    def find_by_metric_type_paginated(
+        self, metric_type_id: int, user_id: int, offset: int = 0, limit: int = 25
+    ) -> tuple[list[Measurement], int]:
+        ...
+
+    def count_by_metric_type(self, metric_type_id: int, user_id: int) -> int:
+        ...
+
+    def get_latest_by_metric_type(
+        self, metric_type_id: int, user_id: int
+    ) -> Measurement | None:
+        ...
+
 
 @runtime_checkable
 class IMetricTypeRepository(IRepository[MetricType], Protocol):

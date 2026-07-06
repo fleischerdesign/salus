@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from salus.dependencies import (
@@ -28,27 +28,25 @@ def _form_to_create(value: str, timestamp_str: str | None, notes: str | None) ->
 
 
 @router.get("", response_class=HTMLResponse)
-async def list_entries(
+async def entries_overview(
     request: Request,
-    metric_type_id: int | None = None,
     current_user: User = Depends(get_current_user),
-    metric_service: MetricTypeService = Depends(get_metric_type_service),
-    measurement_service: MeasurementService = Depends(get_measurement_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):
     user_id = uid(current_user)
-    metrics = metric_service.find_all(user_id)
-    entries = (
-        measurement_service.find_by_metric_type(metric_type_id, user_id)
-        if metric_type_id
-        else []
+    metrics = metric_svc.find_all(user_id)
+    overview = (
+        measurement_svc.get_metric_overview(user_id, [uid(m) for m in metrics])
+        if metrics
+        else {}
     )
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/entries.html",
         {
             "metrics": metrics,
-            "entries": entries,
-            "selected_metric_id": metric_type_id,
+            "overview": overview,
             "current_user": current_user,
         },
     )
@@ -96,7 +94,7 @@ async def create_entry(
         pass
 
     return RedirectResponse(
-        url=f"/entries?metric_type_id={metric_type_id}", status_code=303
+        url=f"/entries/{metric_type_id}", status_code=303
     )
 
 
@@ -142,3 +140,40 @@ async def delete_entry(
 ):
     measurement_service.delete(entry_id, uid(current_user))
     return HTMLResponse(status_code=200)
+
+
+@router.get("/{metric_type_id}", response_class=HTMLResponse)
+async def entries_detail(
+    metric_type_id: int,
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(25, ge=10, le=100),
+    current_user: User = Depends(get_current_user),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    measurement_svc: MeasurementService = Depends(get_measurement_service),
+):
+    user_id = uid(current_user)
+    metric = metric_svc.get(metric_type_id, user_id)
+
+    is_htmx = request.headers.get("HX-Request")
+
+    entries, total, total_pages = measurement_svc.find_by_metric_type_paginated(
+        metric_type_id, user_id, page=page, per_page=limit,
+    )
+
+    context = {
+        "metric": metric,
+        "entries": entries,
+        "current_page": page,
+        "total_pages": total_pages,
+        "total_entries": total,
+        "url_pattern": f"/entries/{metric_type_id}?limit={limit}&page={{page}}",
+        "current_user": current_user,
+    }
+
+    template = (
+        "components/entries_table_partial.html"
+        if is_htmx
+        else "pages/entries_detail.html"
+    )
+    return request.app.state.templates.TemplateResponse(request, template, context)

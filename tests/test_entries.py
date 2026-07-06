@@ -9,7 +9,7 @@ def test_list_entries_empty(authenticated_client):
         data={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
         follow_redirects=True,
     )
-    response = authenticated_client.get("/entries?metric_type_id=1")
+    response = authenticated_client.get("/entries/13")
     assert response.status_code == 200
 
 
@@ -21,7 +21,7 @@ def test_create_and_list_entry(authenticated_client):
     )
     response = authenticated_client.post(
         "/entries",
-        data={"value": "80.5", "metric_type_id": "1"},
+        data={"value": "80.5", "metric_type_id": "13"},
         follow_redirects=True,
     )
     assert response.status_code == 200
@@ -36,7 +36,7 @@ def test_delete_entry(authenticated_client):
     )
     authenticated_client.post(
         "/entries",
-        data={"value": "80.5", "metric_type_id": "1"},
+        data={"value": "80.5", "metric_type_id": "13"},
         follow_redirects=True,
     )
     response = authenticated_client.delete("/entries/1")

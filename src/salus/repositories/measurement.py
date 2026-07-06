@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlmodel import select
 
 from salus.models.measurement import Measurement
@@ -20,6 +20,53 @@ class MeasurementRepository(Repository[Measurement]):
     def __init__(self, session, registry: Optional["HookRegistry"] = None) -> None:
         super().__init__(session)
         self.registry = registry
+
+    def find_by_metric_type_paginated(
+        self, metric_type_id: int, user_id: int, offset: int = 0, limit: int = 25
+    ) -> tuple[list[Measurement], int]:
+        stmt = select(Measurement).where(
+            Measurement.metric_type_id == metric_type_id,
+            Measurement.user_id == user_id,
+        )
+        count_stmt = select(func.count()).select_from(Measurement).where(
+            Measurement.metric_type_id == metric_type_id,
+            Measurement.user_id == user_id,
+        )
+        total = self.session.exec(count_stmt).one()
+
+        stmt = stmt.order_by(desc(Measurement.start_time)).offset(offset).limit(limit)  # pyright: ignore[reportArgumentType]
+        results = list(self.session.exec(stmt).all())
+
+        if self.registry:
+            for synth in self.registry.metric_synthesizers:
+                try:
+                    synth_records = synth.synthesize(user_id, results)
+                    if synth_records:
+                        results.extend([r for r in synth_records if r.metric_type_id == metric_type_id])
+                except Exception as e:
+                    logger.error(f"Error in metric synthesizer: {e}")
+        return results, total
+
+    def count_by_metric_type(self, metric_type_id: int, user_id: int) -> int:
+        count_stmt = select(func.count()).select_from(Measurement).where(
+            Measurement.metric_type_id == metric_type_id,
+            Measurement.user_id == user_id,
+        )
+        return self.session.exec(count_stmt).one()
+
+    def get_latest_by_metric_type(
+        self, metric_type_id: int, user_id: int
+    ) -> Measurement | None:
+        stmt = (
+            select(Measurement)
+            .where(
+                Measurement.metric_type_id == metric_type_id,
+                Measurement.user_id == user_id,
+            )
+            .order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
+            .limit(1)
+        )
+        return self.session.exec(stmt).first()
 
     def find_by_metric_type(
         self, metric_type_id: int, user_id: int | None = None
