@@ -119,3 +119,12 @@
 .edit-mode .card .card__header-icon {
     font-size: 16px;
 }
+
+.card-grid__ghost {
+    opacity: 0.4;
+    border: 2px dashed var(--color-primary);
+    border-radius: var(--radius-md);
+    background: var(--color-primary-50);
+}
+.card-grid__ghost .card__header,
+.card-grid__ghost .card__body { visibility: hidden; }

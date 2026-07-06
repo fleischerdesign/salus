@@ -87,6 +87,7 @@
         window._entriesSortable = new Sortable(grid, {
             handle: '.card__header',
             filter: '.edit-chrome__actions, .edit-chrome__actions *',
+            ghostClass: 'card-grid__ghost',
             animation: 150,
             onEnd: function(evt) {
                 var ids = Array.from(evt.to.children)
