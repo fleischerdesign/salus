@@ -6,7 +6,7 @@
 
 {% from "components/ui/btn/macro.html" import btn %}
 
-{% macro day_navigator(date_display, prev_date, next_date, is_today=false, can_go_next=true) %}
+{% macro day_navigator(date_display, prev_date, next_date, raw_date=none, is_today=false, can_go_next=true) %}
     <div class="day-nav" role="navigation" aria-label="Date navigation">
         <button
             class="day-nav__arrow"
@@ -19,7 +19,14 @@
             <span class="material-symbols-outlined" aria-hidden="true" style="font-size:20px">chevron_left</span>
         </button>
 
-        <span class="day-nav__date">{{ date_display }}</span>
+        <span style="position:relative;display:inline-block">
+            <span class="day-nav__date"
+                  _="on click get the next <input/> then call it.showPicker()">{{ date_display }}</span>
+            <input type="date" name="date" value="{{ raw_date or '' }}"
+                  style="position:absolute;inset:0;opacity:0;pointer-events:none"
+                  hx-get="/dashboard/grid" hx-target="#dashboard-content" hx-swap="innerHTML"
+                  hx-trigger="change" hx-include="this">
+        </span>
 
         <button
             class="day-nav__arrow"

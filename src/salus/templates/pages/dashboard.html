@@ -18,7 +18,7 @@
     <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Dashboard") }}</h1>
 
     <div id="day-navigator">
-        {{ day_navigator(display_date_formatted, prev_date, next_date, is_today, can_go_next) }}
+        {{ day_navigator(display_date_formatted, prev_date, next_date, raw_date=display_date, is_today=is_today, can_go_next=can_go_next) }}
     </div>
 
     <div style="display:flex;gap:8px">
