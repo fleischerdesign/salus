@@ -36,6 +36,7 @@ def _admin_context(
     config_by_cat: dict[str, list[dict]] = {}
     for item in config_svc.get_all():
         config_by_cat.setdefault(item["category"], []).append(item)
+        item["editing"] = False
 
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
     

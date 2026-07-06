@@ -1,28 +1,28 @@
-<div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px;position:relative" id="goal-card-{{ card.goal.id }}">
+<div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px;position:relative" id="goal-card-{{ goal_card_data.goal.id }}">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
         <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">track_changes</span>
         <div>
-            <h3 style="font:var(--font-body-md);font-weight:600;margin:0">{{ card.metric_name }}</h3>
-            <span style="font:var(--font-label-sm);color:var(--color-slate-500)">{{ _(card.goal.frequency) }}</span>
+            <h3 style="font:var(--font-body-md);font-weight:600;margin:0">{{ goal_card_data.metric_name }}</h3>
+            <span style="font:var(--font-label-sm);color:var(--color-slate-500)">{{ _(goal_card_data.goal.frequency) }}</span>
         </div>
     </div>
 
     <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:8px">
-        <span style="font:var(--font-headline-md);font-weight:700;color:var(--color-on-surface)">{{ card.progress.current_value if card.progress.current_value is not none else "—" }}{% if card.progress.current_value is not none and card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
-        <span style="font:var(--font-body-sm);color:var(--color-slate-500)">/ {{ "%.0f"|format(card.goal.target_value) }}{% if card.metric_unit %} {{ card.metric_unit }}{% endif %}</span>
+        <span style="font:var(--font-headline-md);font-weight:700;color:var(--color-on-surface)">{{ goal_card_data.progress.current_value if goal_card_data.progress.current_value is not none else "—" }}{% if goal_card_data.progress.current_value is not none and goal_card_data.metric_unit %} {{ goal_card_data.metric_unit }}{% endif %}</span>
+        <span style="font:var(--font-body-sm);color:var(--color-slate-500)">/ {{ "%.0f"|format(goal_card_data.goal.target_value) }}{% if goal_card_data.metric_unit %} {{ goal_card_data.metric_unit }}{% endif %}</span>
     </div>
 
-    {{ progress_bar(card.progress.percent, variant=card.progress.status, size="standard") }}
+    {{ progress_bar(goal_card_data.progress.percent, variant=goal_card_data.progress.status, size="standard") }}
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
         <span style="font:var(--font-label-sm);font-weight:600;
-                     color:{% if card.progress.status == 'success' %}var(--color-tertiary-600){% elif card.progress.status == 'warning' %}var(--color-warning-600){% else %}var(--color-primary-600){% endif %}">
-            {{ _(card.progress.status) }}
+                     color:{% if goal_card_data.progress.status == 'success' %}var(--color-tertiary-600){% elif goal_card_data.progress.status == 'warning' %}var(--color-warning-600){% else %}var(--color-primary-600){% endif %}">
+            {{ _(goal_card_data.progress.status) }}
         </span>
         <span style="font:var(--font-body-sm);color:var(--color-slate-500)">
-            {% if card.goal.frequency == "once" and card.goal.deadline %}
-            {{ card.goal.deadline }}
-            {% elif card.goal.frequency == "daily" %}
+            {% if goal_card_data.goal.frequency == "once" and goal_card_data.goal.deadline %}
+            {{ goal_card_data.goal.deadline }}
+            {% elif goal_card_data.goal.frequency == "daily" %}
             {{ _("daily reset") }}
             {% else %}
             {{ _("weekly reset") }}
@@ -30,5 +30,5 @@
         </span>
     </div>
 
-    {{ btn(icon="close", variant="ghost", aria_label=_("Delete goal"), hx_delete="/goals/" + card.goal.id | string, hx_target="#goal-cards", hx_swap="outerHTML") }}
+    {{ btn(icon="close", variant="ghost", aria_label=_("Delete goal"), hx_delete="/goals/" + goal_card_data.goal.id | string, hx_target="#goal-cards", hx_swap="outerHTML") }}
 </div>

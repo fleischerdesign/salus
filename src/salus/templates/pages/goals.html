@@ -14,7 +14,7 @@
 
 {% if goal_cards %}
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="goal-cards">
-    {% for card in goal_cards %}
+    {% for goal_card_data in goal_cards %}
     {% include "components/goal_card.html" %}
     {% endfor %}
 </div>

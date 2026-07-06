@@ -95,7 +95,7 @@ def test_onboarding_step_modal_token(authenticated_client):
     response = authenticated_client.get("/onboarding/step/0/modal")
     assert response.status_code == 200
     assert "Generate Token" in response.text
-    assert "modal-close" in response.text
+    assert "modal__close" in response.text
 
 
 def test_onboarding_step_modal_entry(authenticated_client):
