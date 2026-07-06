@@ -31,6 +31,7 @@ class MetricType(SQLModel, table=True):
     icon: str = Field(default="monitoring")
     widget_size: str = Field(default="medium")
     widget_enabled: bool = Field(default=False)
+    position: int = Field(default=0)
 
     user: "User" = Relationship(back_populates="metric_types")
     measurements: list["Measurement"] = Relationship(back_populates="metric_type")

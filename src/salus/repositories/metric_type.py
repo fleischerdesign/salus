@@ -8,7 +8,7 @@ class MetricTypeRepository(Repository[MetricType]):
     model = MetricType
 
     def find_all(self, user_id: int | None = None) -> list[MetricType]:
-        stmt = select(MetricType)
+        stmt = select(MetricType).order_by(MetricType.position)  # pyright: ignore[reportArgumentType]
         if user_id is not None:
             stmt = stmt.where(MetricType.user_id == user_id)
         return list(self.session.exec(stmt).all())
@@ -22,3 +22,11 @@ class MetricTypeRepository(Repository[MetricType]):
             MetricType.name == name, MetricType.user_id == user_id
         )
         return self.session.exec(stmt).first()
+
+    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+        for pos, metric_id in enumerate(ordered_ids):
+            mt = self.get_by_id(metric_id)
+            if mt is not None and mt.user_id == user_id:
+                mt.position = pos
+                self.session.add(mt)
+        self.session.commit()

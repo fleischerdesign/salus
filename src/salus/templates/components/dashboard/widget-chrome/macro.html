@@ -2,24 +2,21 @@
    Widget Chrome — @component widget-chrome
 
    Usage:
-     {% call widget_chrome(title="Steps", color="#f59e0b") %}
-       <div class="widget-chrome__actions">
-         {{ btn(icon="tune", variant="ghost") }}
-         {{ btn(icon="close", variant="ghost") }}
-       </div>
+     {% call widget_chrome(title="Steps", color="#f59e0b", drag_handle=true, actions=btns) %}
+       ...body content...
      {% endcall %}
 
    Skeleton variant:
      {{ widget_skeleton(title="Steps") }}
  #}
 
+{% from "components/ui/edit-chrome/macro.html" import edit_chrome_drag, edit_chrome_actions %}
+
 {% macro widget_chrome(title, color=none, drag_handle=false, actions=none) %}
     <div class="widget-chrome">
-        {% if drag_handle %}
-        <span class="material-symbols-outlined widget-chrome__drag">drag_indicator</span>
-        {% endif %}
+        {% if drag_handle %}{{ edit_chrome_drag() }}{% endif %}
         <span class="widget-chrome__title" {% if color %}style="color:{{ color }}"{% endif %}>{{ title }}</span>
-        {% if actions %}<div class="widget-chrome__actions">{{ actions|safe }}</div>{% endif %}
+        {% if actions %}{% call edit_chrome_actions() %}{{ actions|safe }}{% endcall %}{% endif %}
         {% if caller is defined %}{{ caller() }}{% endif %}
     </div>
 {% endmacro %}

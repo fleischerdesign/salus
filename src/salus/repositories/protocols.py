@@ -131,6 +131,9 @@ class IMetricTypeRepository(IRepository[MetricType], Protocol):
     def find_by_name_and_user(self, name: str, user_id: int) -> MetricType | None:
         ...
 
+    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+        ...
+
 
 @runtime_checkable
 class IGoalRepository(IRepository[Goal], Protocol):

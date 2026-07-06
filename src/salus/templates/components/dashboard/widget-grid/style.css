@@ -20,25 +20,9 @@
 .widget-grid__item:hover { box-shadow: var(--shadow-sm); }
 
 /* ── SortableJS edit mode ─────────────────────────────────── */
-.widget-grid__item .widget-chrome__drag,
-.widget-grid__item .widget-chrome__actions {
-    opacity: 0;
-    pointer-events: none;
-    max-width: 0;
-    overflow: hidden;
-    transition: opacity var(--duration-fast) var(--ease-out),
-                max-width var(--duration-fast) var(--ease-out);
-}
-.widget-grid--edit .widget-grid__item .widget-chrome {
+.edit-mode .widget-grid__item .widget-chrome {
     background: var(--color-slate-50);
     border-bottom: 1px solid var(--color-slate-100);
-}
-.widget-grid--edit .widget-grid__item .widget-chrome__drag,
-.widget-grid--edit .widget-grid__item .widget-chrome__actions {
-    opacity: 1;
-    pointer-events: auto;
-    max-width: 100px;
-    overflow: visible;
 }
 .widget-grid__ghost {
     opacity: 0.4;

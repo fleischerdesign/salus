@@ -23,15 +23,17 @@
 
     <div style="display:flex;gap:8px">
         {{ btn(_("Edit Layout"), variant="secondary", size="sm", id="edit-layout-btn",
-               hyperscript="on click
-                add .widget-grid--edit to #dashboard-grid
-                hide me
-                show #done-layout-btn") }}
+                hyperscript="on click
+                 add .widget-grid--edit to #dashboard-grid
+                 add .edit-mode to #dashboard-grid
+                 hide me
+                 show #done-layout-btn") }}
         {{ btn(_("Done"), variant="primary", size="sm", id="done-layout-btn", style="display:none",
-               hyperscript="on click
-                remove .widget-grid--edit from #dashboard-grid
-                hide me
-                show #edit-layout-btn") }}
+                hyperscript="on click
+                 remove .widget-grid--edit from #dashboard-grid
+                 remove .edit-mode from #dashboard-grid
+                 hide me
+                 show #edit-layout-btn") }}
         {{ btn("+ " + _("Add Widget"), variant="secondary", size="sm", style="display:none",
                hyperscript="on load if #dashboard-grid matches .widget-grid--edit then show me end",
                hx_get="/dashboard/widgets/add-modal",
@@ -70,7 +72,7 @@
 
     document.body.addEventListener('widgetAdded', function() {
         initSortable();
-        document.getElementById('dashboard-grid').classList.add('widget-grid--edit');
+        document.getElementById('dashboard-grid').classList.add('widget-grid--edit', 'edit-mode');
     });
 
     document.body.addEventListener('htmx:afterSwap', function(evt) {

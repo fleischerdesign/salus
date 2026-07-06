@@ -40,3 +40,6 @@ class MetricTypeService:
         if metric_type.is_system:
             raise ConflictError("Cannot delete system metric types")
         self.repo.delete(metric_type)
+
+    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+        self.repo.reorder(user_id, ordered_ids)

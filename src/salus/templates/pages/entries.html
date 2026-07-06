@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title_suffix %} — {{ _("Logbook") }}{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+{% endblock %}
 {% block content %}
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
@@ -7,25 +10,56 @@
         <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Logbook") }}</h1>
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Select a metric to view and manage its entries.") }}</p>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        {% if metrics %}
+        {{ btn(_("Edit Metrics"), variant="secondary", size="sm", id="edit-metrics-btn",
+               hyperscript="on click
+                add .card-grid--edit to #entries-grid
+                add .edit-mode to #entries-grid
+                hide me
+                show #done-metrics-btn
+                show #new-metric-btn") }}
+        {{ btn(_("Done"), variant="primary", size="sm", id="done-metrics-btn", style="display:none",
+               hyperscript="on click
+                remove .card-grid--edit from #entries-grid
+                remove .edit-mode from #entries-grid
+                hide me
+                hide #new-metric-btn
+                show #edit-metrics-btn") }}
+        {{ btn(_("New Metric"), variant="secondary", size="sm", id="new-metric-btn", style="display:none",
+               hx_get="/entries/metric/new",
+               hx_target="#modal-container", hx_swap="innerHTML") }}
+        {% else %}
         {{ btn(_("New Metric"), variant="secondary",
                hx_get="/entries/metric/new",
                hx_target="#modal-container", hx_swap="innerHTML") }}
+        {% endif %}
     </div>
 </div>
 
 {% if metrics %}
 <div id="modal-container"></div>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+<div id="entries-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
     {% for metric in metrics %}
     {% set ov = overview.get(metric.id) %}
-    {% set edit_icon = btn(icon="edit", variant="ghost", size="sm",
-           hx_get="/entries/metric/" + metric.id|string + "/edit",
-           hx_target="#modal-container", hx_swap="innerHTML",
-           aria_label=_("Edit metric")) %}
-    {% call card(title=metric.name, icon=metric.icon, header_action=edit_icon, hoverable=true, clickable=true,
+    {% set edit_btns %}
+        {{ btn(icon="edit", variant="ghost",
+               hx_get="/entries/metric/" + metric.id|string + "/edit",
+               hx_target="#modal-container", hx_swap="innerHTML",
+               aria_label=_("Edit metric")) }}
+        {% if not metric.is_system %}
+        {{ btn(icon="delete", variant="ghost", style="color:var(--color-error-600)",
+               hx_delete="/entries/metric/" + metric.id|string,
+               hx_target="closest .card", hx_swap="outerHTML",
+               hx_confirm=_("Delete this metric and all its entries?"),
+               aria_label=_("Delete metric")) }}
+        {% endif %}
+    {% endset %}
+    {% call card(title=metric.name, icon=metric.icon, drag_handle=true, card_actions=edit_btns,
+                 hoverable=true, clickable=true,
                  href="/entries/" + metric.id|string,
+                 id="metric-card-" + metric.id|string,
                  style="--card-icon-color:" ~ metric.color ~ ";border-top:3px solid " ~ metric.color) %}
         <div style="font:var(--font-headline-md);font-weight:700;color:var(--color-on-surface)">
             {{ ov.latest_value if ov and ov.latest_value else "—" }}
@@ -42,6 +76,42 @@
     {% endcall %}
     {% endfor %}
 </div>
+
+<script>
+(function() {
+    var grid = document.getElementById('entries-grid');
+    if (!grid) return;
+
+    function initSortable() {
+        if (window._entriesSortable) window._entriesSortable.destroy();
+        window._entriesSortable = new Sortable(grid, {
+            handle: '.edit-chrome__drag',
+            animation: 150,
+            onEnd: function(evt) {
+                var ids = Array.from(evt.to.children)
+                    .map(function(el) {
+                        var match = el.id && el.id.match(/^metric-card-(\d+)$/);
+                        return match ? match[1] : null;
+                    })
+                    .filter(Boolean);
+                if (ids.length > 0) {
+                    htmx.ajax('POST', '/entries/metric/reorder', {
+                        values: { 'ids': ids.join(',') }
+                    });
+                }
+            }
+        });
+    }
+
+    initSortable();
+
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'entries-grid') {
+            initSortable();
+        }
+    });
+})();
+</script>
 {% else %}
 {% call card(style="text-align:center;padding:32px 24px") %}
     <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-slate-300)">list_alt</span>

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from salus.dependencies import (
     get_current_user,
@@ -257,3 +257,14 @@ async def delete_metric(
 ):
     metric_service.delete(metric_type_id, uid(current_user))
     return HTMLResponse(status_code=200)
+
+
+@router.post("/metric/reorder")
+async def reorder_metrics(
+    ids: str = Form(),
+    current_user: User = Depends(get_current_user),
+    metric_service: MetricTypeService = Depends(get_metric_type_service),
+):
+    ordered = [int(i) for i in ids.split(",") if i.strip().isdigit()]
+    metric_service.reorder(uid(current_user), ordered)
+    return Response(status_code=204)

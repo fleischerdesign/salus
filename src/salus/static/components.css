@@ -88,34 +88,7 @@
 }
 
 .widget-chrome__title { flex: 1; font: var(--font-label-sm); color: var(--color-slate-500); text-transform: uppercase; letter-spacing: 0.05em; }
-.widget-chrome__actions { display: flex; gap: 2px; }
 .widget-body { padding: 8px 16px 16px 16px; }
-
-.widget-chrome__drag {
-    font-size: 16px; color: var(--drag-handle-color, var(--color-slate-400)); cursor: grab;
-    transition: color var(--duration-fast) var(--ease-default);
-}
-.widget-chrome__drag:hover { color: var(--drag-handle-hover-color, var(--color-slate-600)); }
-.widget-chrome__drag:active { color: var(--drag-handle-active-color, var(--color-primary)); cursor: grabbing; }
-
-/* ── Chrome action buttons ─────────────────────────────────── */
-
-.widget-chrome__actions .btn[data-icon-only] {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    color: var(--color-slate-400);
-}
-.widget-chrome__actions .btn[data-icon-only] .btn__icon {
-    font-size: 18px;
-}
-.widget-chrome__actions .btn[data-icon-only]:hover {
-    color: var(--color-slate-600);
-    background: var(--color-slate-100);
-}
-.widget-chrome__actions .btn[data-icon-only]:active {
-    color: var(--color-primary);
-}
 
 /* ── Widget sizes ─────────────────────────────────────────── */
 .widget--sm { grid-column: span 1; }
@@ -155,25 +128,9 @@
 .widget-grid__item:hover { box-shadow: var(--shadow-sm); }
 
 /* ── SortableJS edit mode ─────────────────────────────────── */
-.widget-grid__item .widget-chrome__drag,
-.widget-grid__item .widget-chrome__actions {
-    opacity: 0;
-    pointer-events: none;
-    max-width: 0;
-    overflow: hidden;
-    transition: opacity var(--duration-fast) var(--ease-out),
-                max-width var(--duration-fast) var(--ease-out);
-}
-.widget-grid--edit .widget-grid__item .widget-chrome {
+.edit-mode .widget-grid__item .widget-chrome {
     background: var(--color-slate-50);
     border-bottom: 1px solid var(--color-slate-100);
-}
-.widget-grid--edit .widget-grid__item .widget-chrome__drag,
-.widget-grid--edit .widget-grid__item .widget-chrome__actions {
-    opacity: 1;
-    pointer-events: auto;
-    max-width: 100px;
-    overflow: visible;
 }
 .widget-grid__ghost {
     opacity: 0.4;
@@ -698,6 +655,10 @@ img {
     align-items: center;
     gap: 12px;
     margin-bottom: var(--space-md, 16px);
+    transition: gap var(--duration-fast) var(--ease-out),
+                padding var(--duration-fast) var(--ease-out),
+                margin var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
 }
 
 .card__header-icon {
@@ -728,6 +689,46 @@ img {
     margin-top: var(--space-md, 16px);
     padding-top: var(--space-md, 16px);
     border-top: 1px solid var(--color-slate-100);
+}
+
+/* ── Edit-mode (card grid) ─────────────────────────────────── */
+
+.card-grid--edit .card {
+    cursor: grab;
+}
+.card-grid--edit .card:active {
+    cursor: grabbing;
+}
+
+.card-grid--edit .card[href] {
+    pointer-events: none;
+}
+
+.card-grid--edit .card .edit-chrome__drag,
+.card-grid--edit .card .edit-chrome__actions {
+    pointer-events: auto;
+}
+
+.edit-mode .card .card__header {
+    margin-top: calc(-1 * var(--card-padding));
+    margin-left: calc(-1 * var(--card-padding));
+    margin-right: calc(-1 * var(--card-padding));
+    gap: 4px;
+    margin-bottom: 0;
+    padding: 8px 12px;
+    background: var(--color-slate-50);
+    border-bottom: 1px solid var(--color-slate-100);
+}
+
+.edit-mode .card .card__header-title {
+    font: var(--font-label-sm);
+    color: var(--color-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.edit-mode .card .card__header-icon {
+    font-size: 16px;
 }
 
 
@@ -1112,6 +1113,68 @@ img {
 .drawer__link[aria-current="page"] { color: var(--color-primary); background: var(--color-primary-50); }
 
 @media (max-width: 600px) { .drawer { width: 100%; } }
+
+
+/* @source src/salus/templates/components/ui/edit-chrome/style.css */
+
+/* ==========================================================================
+   Edit Chrome — @component edit-chrome
+
+   Shared drag handle + action buttons for widget-chrome and card headers.
+   Hidden by default, revealed under .edit-mode parent via opacity+max-width
+   transition (not display:none). Pattern: AGENTS.md §14.
+   ========================================================================== */
+
+.edit-chrome__drag {
+    font-size: 16px;
+    color: var(--color-slate-400);
+    cursor: grab;
+    transition: color var(--duration-fast) var(--ease-default);
+}
+.edit-chrome__drag:hover { color: var(--color-slate-600); }
+.edit-chrome__drag:active { color: var(--color-primary); cursor: grabbing; }
+
+.edit-chrome__actions {
+    display: flex;
+    gap: 2px;
+}
+
+.edit-chrome__actions .btn[data-icon-only] {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--color-slate-400);
+}
+.edit-chrome__actions .btn[data-icon-only] .btn__icon {
+    font-size: 18px;
+}
+.edit-chrome__actions .btn[data-icon-only]:hover {
+    color: var(--color-slate-600);
+    background: var(--color-slate-100);
+}
+.edit-chrome__actions .btn[data-icon-only]:active {
+    color: var(--color-primary);
+}
+
+/* ── Edit-mode visibility ──────────────────────────────────── */
+
+.edit-chrome__drag,
+.edit-chrome__actions {
+    opacity: 0;
+    pointer-events: none;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity var(--duration-fast) var(--ease-out),
+                max-width var(--duration-fast) var(--ease-out);
+}
+
+.edit-mode .edit-chrome__drag,
+.edit-mode .edit-chrome__actions {
+    opacity: 1;
+    pointer-events: auto;
+    max-width: 120px;
+    overflow: visible;
+}
 
 
 /* @source src/salus/templates/components/ui/empty-state/style.css */
