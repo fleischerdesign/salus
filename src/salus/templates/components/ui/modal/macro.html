@@ -26,8 +26,8 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="{{ modal_id }}-title"
-        {% if open %}data-open{% endif %}
-        _="on click if event.target === me then remove @data-open from me end
+        _="{% if open %}init add @data-open end{% endif %}
+           on click if event.target === me then remove @data-open from me end
            on keydown[key is 'Escape'] remove @data-open from me"
     >
         <div class="modal-content"
