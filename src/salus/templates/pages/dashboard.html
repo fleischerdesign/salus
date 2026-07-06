@@ -54,7 +54,8 @@
     function initSortable() {
         if (window._dashboardSortable) window._dashboardSortable.destroy();
         window._dashboardSortable = new Sortable(grid, {
-            handle: '.widget-chrome__drag',
+            handle: '.widget-chrome',
+            filter: '.edit-chrome__actions, .edit-chrome__actions *',
             animation: 150,
             ghostClass: 'widget-grid__ghost',
             onEnd: function(evt) {
