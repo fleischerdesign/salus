@@ -12,7 +12,7 @@
    Attributes: any via attrs dict for edge-cases
  #}
 
-{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, type=none, full_width_mobile=true, class=none, id=none, style=none, hx_get=none, hx_post=none, hx_delete=none, hx_put=none, hx_confirm=none, hx_target=none, hx_swap=none, hx_push_url=none, onclick=none, hyperscript=none, attrs=none) %}
+{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, type="submit", full_width_mobile=true, class=none, id=none, style=none, hx_get=none, hx_post=none, hx_delete=none, hx_put=none, hx_confirm=none, hx_target=none, hx_swap=none, hx_push_url=none, onclick=none, hyperscript=none, attrs=none) %}
     {% set tag = "a" if href else "button" %}
     {% set btn_type = "submit" if type == "submit" else "button" %}
     <{{ tag }}
