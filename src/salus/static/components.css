@@ -675,6 +675,7 @@ img {
     font: var(--font-headline-md);
     color: var(--color-on-surface);
     flex: 1;
+    margin: 0;
 }
 
 .card__header-action {
