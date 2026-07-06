@@ -1,38 +1,16 @@
-<div class="modal-backdrop" data-open onclick="if(event.target===this)this.remove()">
-    <div class="modal-content" style="max-width:440px;text-align:center;padding:40px 32px 24px">
-        <button class="modal__close" aria-label="Close" type="button"
-                onclick="this.closest('.modal-backdrop').remove()">
-            <span class="material-symbols-outlined">close</span>
-        </button>
+{% call modal() %}
+    <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);display:block;margin-bottom:12px">{{ step_icon }}</span>
+    <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ title }}</h2>
+    <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ description }}</p>
 
-        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);display:block;margin-bottom:12px">{{ icon }}</span>
-        <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ title }}</h2>
-        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ description }}</p>
+    {% set step_index = step_index | default(0) %}
+    {% include step_body_template %}
 
-        {% set step_index = step_index | default(0) %}
-        {% include step_body_template %}
-
-        <div style="display:flex;justify-content:center;margin-top:24px">
-            {{ btn("Done", variant="primary", class="onboarding-step-done-btn", id="onboarding-step-done-btn", style="display:none",
-                   onclick="this.closest('.modal-backdrop').remove()") }}
-        </div>
+    <div style="display:flex;justify-content:center;margin-top:24px">
+        {{ btn("Done", variant="primary", id="onboarding-step-done-btn", style="display:none",
+               hyperscript="on click remove @data-open from closest .modal-backdrop
+               init on htmx:afterSwap
+                    if <.onboarding-success/> is in me then show me end
+               end") }}
     </div>
-</div>
-
-<script>
-(function() {
-    var modal = document.currentScript.closest('.modal-backdrop');
-    if (!modal) return;
-    var body = modal.querySelector('.onboarding-step-body');
-    var done = modal.querySelector('.onboarding-step-done-btn');
-    if (!body || !done) return;
-    if (body.querySelector('.onboarding-success')) {
-        done.style.display = '';
-    }
-    body.addEventListener('htmx:afterSwap', function() {
-        if (body.querySelector('.onboarding-success')) {
-            done.style.display = '';
-        }
-    });
-})();
-</script>
+{% endcall %}

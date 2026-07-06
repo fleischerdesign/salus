@@ -1,122 +1,120 @@
-<div class="modal-backdrop" id="onboarding-overlay" data-open>
-    <div class="modal-content" style="max-width:440px;text-align:center;padding:40px 32px 24px;overflow:hidden">
-        <button class="modal__close" aria-label="Close" type="button"
-                _="on click remove @data-open from closest .modal-backdrop">
-            <span class="material-symbols-outlined">close</span>
-        </button>
+{% call modal(id="onboarding-overlay", close_button=false) %}
+    <style>
+    @keyframes onboard-slide-in {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    </style>
 
-        <div class="onboarding-step" data-step="0" style="animation:onboard-slide-in 0.25s ease-out">
-            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">sync</span>
-            <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Connect a Data Source") }}</h2>
-            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Generate an API token. Share the webhook URL with your wearables and apps to stream data into salus.") }}</p>
-            {% with step_index=0 %}{% include "components/onboarding/step_token_body.html" %}{% endwith %}
+    <button class="modal__close" aria-label="{{ _('Close') }}" type="button"
+            _="on click
+                remove @data-open from closest .modal-backdrop
+                js document.cookie = 'onboarding_modal_closed=1; path=/' end
+                set #onboarding-card.style.display to ''">
+        <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div _="
+        def showStep(n)
+            set steps to <.onboarding-step/> in the closest .modal-content
+            for s in steps
+                if s@data-step as Int is n
+                    set s.style.display to ''
+                else
+                    set s.style.display to 'none'
+                end
+            end
+            set dots to <.onboarding-dot/> in the closest .modal-content
+            for d in dots index i
+                if i is n
+                    set d.style.background to 'var(--color-primary)'
+                else
+                    set d.style.background to 'var(--color-slate-300)'
+                end
+            end
+            set btn to <.onboarding-next/>
+            if n is 2
+                set btn.querySelector('.btn__label').textContent to '{{ _("Done") }}'
+            else
+                set btn.querySelector('.btn__label').textContent to '{{ _("Next") }}'
+            end
+            if n is 0
+                hide <.onboarding-back/>
+            else
+                show <.onboarding-back/>
+            end
+        end
+        def stepDone()
+            set body to <div.onboarding-step[data-step='${$current}']/> in me
+            return body and <.onboarding-success/> in body
+        end
+        def allStepsDone()
+            for step in <div.onboarding-step/> in me
+                if not (<.onboarding-success/> in step)
+                    return false
+                end
+            end
+            return true
+        end
+        def dismiss()
+            remove #onboarding-overlay
+            remove #onboarding-card
+            fetch /onboarding/dismiss with method:'POST'
+        end
+        init
+            set $current to 0 then showStep($current)
+        end
+    "></div>
+
+    <div class="onboarding-step" data-step="0" style="animation:onboard-slide-in 0.25s ease-out">
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">sync</span>
+        <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Connect a Data Source") }}</h2>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Generate an API token. Share the webhook URL with your wearables and apps to stream data into salus.") }}</p>
+        {% with step_index=0 %}{% include "components/onboarding/step_token_body.html" %}{% endwith %}
+    </div>
+
+    <div class="onboarding-step" data-step="1" style="display:none;animation:onboard-slide-in 0.25s ease-out">
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">edit_note</span>
+        <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Log Your First Entry") }}</h2>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Manually track a metric — weight, mood, blood pressure, or whatever matters to you.") }}</p>
+        {% with step_index=1 %}{% include "components/onboarding/step_entry_body.html" %}{% endwith %}
+    </div>
+
+    <div class="onboarding-step" data-step="2" style="display:none;animation:onboard-slide-in 0.25s ease-out">
+        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">track_changes</span>
+        <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Set Your First Goal") }}</h2>
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Define a target — walk 10,000 steps per day, sleep 8 hours, or reach 80 kg.") }}</p>
+        {% with step_index=2 %}{% include "components/onboarding/step_goal_body.html" %}{% endwith %}
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px">
+        <div style="display:flex;gap:8px">
+            <span class="onboarding-dot" data-dot="0" style="width:8px;height:8px;border-radius:50%;background:var(--color-primary)"></span>
+            <span class="onboarding-dot" data-dot="1" style="width:8px;height:8px;border-radius:50%;background:var(--color-slate-300)"></span>
+            <span class="onboarding-dot" data-dot="2" style="width:8px;height:8px;border-radius:50%;background:var(--color-slate-300)"></span>
         </div>
-
-        <div class="onboarding-step" data-step="1" style="display:none;animation:onboard-slide-in 0.25s ease-out">
-            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">edit_note</span>
-            <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Log Your First Entry") }}</h2>
-            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Manually track a metric — weight, mood, blood pressure, or whatever matters to you.") }}</p>
-            {% with step_index=1 %}{% include "components/onboarding/step_entry_body.html" %}{% endwith %}
-        </div>
-
-        <div class="onboarding-step" data-step="2" style="display:none;animation:onboard-slide-in 0.25s ease-out">
-            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-primary);margin-bottom:12px;display:block">track_changes</span>
-            <h2 style="font:var(--font-headline-md);color:var(--color-on-surface);margin-bottom:8px">{{ _("Set Your First Goal") }}</h2>
-            <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin-bottom:24px;line-height:1.6">{{ _("Define a target — walk 10,000 steps per day, sleep 8 hours, or reach 80 kg.") }}</p>
-            {% with step_index=2 %}{% include "components/onboarding/step_goal_body.html" %}{% endwith %}
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px">
-            <div style="display:flex;gap:8px">
-                <span class="onboarding-dot" data-dot="0" style="width:8px;height:8px;border-radius:50%;background:var(--color-primary)"></span>
-                <span class="onboarding-dot" data-dot="1" style="width:8px;height:8px;border-radius:50%;background:var(--color-slate-300)"></span>
-                <span class="onboarding-dot" data-dot="2" style="width:8px;height:8px;border-radius:50%;background:var(--color-slate-300)"></span>
-            </div>
-            <div style="display:flex;gap:8px">
-                {{ btn(_("Skip"), variant="ghost", class="onboarding-skip") }}
-                {{ btn(_("Back"), variant="ghost", class="onboarding-back", style="display:none") }}
-                {{ btn(_("Next"), variant="primary", class="onboarding-next") }}
-            </div>
+        <div style="display:flex;gap:8px">
+            {{ btn(_("Skip"), variant="ghost", class="onboarding-skip",
+                   hyperscript="on click
+                    remove @data-open from closest .modal-backdrop
+                    js document.cookie = 'onboarding_modal_closed=1; path=/' end
+                    set #onboarding-card.style.display to ''") }}
+            {{ btn(_("Back"), variant="ghost", class="onboarding-back", style="display:none",
+                   hyperscript="on click
+                    set $current to $current - 1 then showStep($current)") }}
+            {{ btn(_("Next"), variant="primary", class="onboarding-next",
+                   hyperscript="on click
+                    if $current is 2
+                        if allStepsDone()
+                            call dismiss()
+                        else
+                            remove @data-open from closest .modal-backdrop
+                            js document.cookie = 'onboarding_modal_closed=1; path=/' end
+                            set #onboarding-card.style.display to ''
+                        end
+                    else
+                        set $current to $current + 1 then showStep($current)
+                    end") }}
         </div>
     </div>
-</div>
-
-<style>
-@keyframes onboard-slide-in {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-</style>
-
-<script>
-(function() {
-    var overlay = document.getElementById('onboarding-overlay');
-    if (!overlay) return;
-    var steps = overlay.querySelectorAll('.onboarding-step');
-    var dots = overlay.querySelectorAll('.onboarding-dot');
-    var nextBtn = overlay.querySelector('.onboarding-next');
-    var backBtn = overlay.querySelector('.onboarding-back');
-    var skipBtn = overlay.querySelector('.onboarding-skip');
-    var closeBtn = overlay.querySelector('.modal__close');
-    var current = 0;
-
-    var txtDone = "{{ _('Done') }}";
-    var txtNext = "{{ _('Next') }}";
-
-    function showStep(n) {
-        steps.forEach(function(s, i) { s.style.display = i === n ? '' : 'none'; });
-        dots.forEach(function(d, i) {
-            d.style.background = i === n ? 'var(--color-primary)' : 'var(--color-slate-300)';
-        });
-        nextBtn.querySelector('.btn__label').textContent = n === steps.length - 1 ? txtDone : txtNext;
-        backBtn.style.display = n === 0 ? 'none' : '';
-    }
-
-    function stepDone() {
-        var body = steps[current].querySelector('.onboarding-step-body');
-        return body && body.querySelector('.onboarding-success');
-    }
-
-    function allStepsDone() {
-        for (var i = 0; i < steps.length; i++) {
-            var body = steps[i].querySelector('.onboarding-step-body');
-            if (!body || !body.querySelector('.onboarding-success')) return false;
-        }
-        return true;
-    }
-
-    function dismiss() {
-        overlay.remove();
-        htmx.ajax('POST', '/onboarding/dismiss', {swap: 'none'});
-        var card = document.getElementById('onboarding-card');
-        if (card) card.remove();
-    }
-
-    function closeWithoutDismiss() {
-        document.cookie = 'onboarding_modal_closed=1; path=/';
-        overlay.remove();
-        var card = document.getElementById('onboarding-card');
-        if (card) card.style.display = '';
-    }
-
-    nextBtn.addEventListener('click', function() {
-        if (current === steps.length - 1) {
-            if (allStepsDone()) { dismiss(); }
-            else { closeWithoutDismiss(); }
-            return;
-        }
-        current++;
-        showStep(current);
-    });
-
-    backBtn.addEventListener('click', function() {
-        if (current > 0) { current--; showStep(current); }
-    });
-
-    skipBtn.addEventListener('click', closeWithoutDismiss);
-    closeBtn.addEventListener('click', closeWithoutDismiss);
-    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeWithoutDismiss(); });
-
-    showStep(0);
-})();
-</script>
+{% endcall %}

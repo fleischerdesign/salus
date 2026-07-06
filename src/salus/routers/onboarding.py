@@ -136,7 +136,7 @@ async def onboarding_step_modal(
         "components/onboarding/step_modal.html",
         {
             "step_index": n,
-            "icon": step_def["icon"],
+            "step_icon": step_def["icon"],
             "title": step_def["title"],
             "description": step_def["description"],
             "step_body_template": step_def["template"],
