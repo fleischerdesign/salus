@@ -84,6 +84,7 @@
     gap: 4px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--color-slate-100);
+    transition: background var(--duration-fast) var(--ease-out);
 }
 
 .widget-chrome__title { flex: 1; font: var(--font-label-sm); color: var(--color-slate-500); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -157,9 +158,10 @@
 .widget-grid__item .widget-chrome__actions {
     opacity: 0;
     pointer-events: none;
-    width: 0;
+    max-width: 0;
     overflow: hidden;
-    transition: opacity var(--duration-fast) var(--ease-out);
+    transition: opacity var(--duration-fast) var(--ease-out),
+                max-width var(--duration-fast) var(--ease-out);
 }
 .widget-grid--edit .widget-grid__item .widget-chrome {
     background: var(--color-slate-50);
@@ -169,7 +171,7 @@
 .widget-grid--edit .widget-grid__item .widget-chrome__actions {
     opacity: 1;
     pointer-events: auto;
-    width: auto;
+    max-width: 100px;
     overflow: visible;
 }
 .widget-grid__ghost {
