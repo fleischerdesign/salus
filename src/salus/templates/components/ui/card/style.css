@@ -86,8 +86,11 @@
     cursor: grabbing;
 }
 
-.card-grid--edit .card[href] {
+.card-grid--edit .card .card__body {
     pointer-events: none;
+}
+.card-grid--edit .card .card__header {
+    pointer-events: auto;
 }
 
 .card-grid--edit .card .edit-chrome__drag,
