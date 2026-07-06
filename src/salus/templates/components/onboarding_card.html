@@ -3,29 +3,23 @@
        aria_label=_("Dismiss")) %}
 {% call card(title=_("Getting Started"), header_action=close_btn, style="margin-bottom:24px") %}
     {% call form_row(style="gap:12px") %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-low)",
+        {% call card(variant="flat", hoverable=true, clickable=true, style="text-align:center;padding:16px 12px",
                hx_get="/onboarding/step/0/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">sync</span>
-            <div style="text-align:center">
-                <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface)">{{ _("Connect a data source") }}</div>
-                <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Generate an API token for webhook ingestion.") }}</div>
-            </div>
+            <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface);margin-top:8px">{{ _("Connect a data source") }}</div>
+            <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Generate an API token for webhook ingestion.") }}</div>
         {% endcall %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-low)",
+        {% call card(variant="flat", hoverable=true, clickable=true, style="text-align:center;padding:16px 12px",
                hx_get="/onboarding/step/1/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">edit_note</span>
-            <div style="text-align:center">
-                <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface)">{{ _("Log your first entry") }}</div>
-                <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Track weight, mood, or any custom metric.") }}</div>
-            </div>
+            <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface);margin-top:8px">{{ _("Log your first entry") }}</div>
+            <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("Track weight, mood, or any custom metric.") }}</div>
         {% endcall %}
-        {% call list_item(style="flex:1;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;cursor:pointer;border:1px solid var(--color-slate-200);border-radius:var(--radius-md);background:var(--color-surface-container-low)",
+        {% call card(variant="flat", hoverable=true, clickable=true, style="text-align:center;padding:16px 12px",
                hx_get="/onboarding/step/2/modal", hx_target="body", hx_swap="beforeend") %}
             <span class="material-symbols-outlined" style="font-size:24px;color:var(--color-primary)">track_changes</span>
-            <div style="text-align:center">
-                <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface)">{{ _("Set your first goal") }}</div>
-                <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</div>
-            </div>
+            <div style="font:var(--font-body-sm);font-weight:600;color:var(--color-on-surface);margin-top:8px">{{ _("Set your first goal") }}</div>
+            <div style="font:var(--font-label-sm);color:var(--color-slate-500);margin-top:4px">{{ _("E.g. walk 10,000 steps or sleep 8 hours.") }}</div>
         {% endcall %}
     {% endcall %}
     {{ btn(_("Dismiss"), variant="ghost", style="width:100%;margin-top:16px",
