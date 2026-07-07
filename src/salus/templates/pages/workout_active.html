@@ -91,6 +91,18 @@
                             {% else %}
                             {{ icon("auto_awesome", style="font-size:18px;color:var(--color-primary)", title=_("Autoregulated targets active")) }}
                             {% endif %}
+                            
+                            <!-- Form Cues (Info Icon) -->
+                            <button type="button" 
+                                    style="background:transparent;border:none;color:var(--color-slate-400);cursor:pointer;display:inline-flex;align-items:center;padding:0;transition:color var(--duration-fast)"
+                                    onmouseover="this.style.color='var(--color-primary)'"
+                                    onmouseout="this.style.color='var(--color-slate-400)'"
+                                    hx-get="/workouts/exercises/{{ target.exercise_id }}/instructions"
+                                    hx-target="#modal-container"
+                                    hx-swap="innerHTML"
+                                    title="{{ _('View Execution Instructions') }}">
+                                <span class="material-symbols-outlined" style="font-size:18px">info</span>
+                            </button>
                         </h3>
                         <p style="margin:4px 0 0 0;font:var(--font-caption);color:var(--color-slate-500)">
                             {{ _("Target") }}: {{ target.suggested_sets }} {{ _("sets") }} x {{ target.suggested_reps }} {{ _("reps") }} @ RPE {{ target.suggested_rpe }}

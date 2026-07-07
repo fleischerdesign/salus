@@ -75,9 +75,12 @@ class WorkoutService:
         with self.uow:
             return self.uow.exercises.find_all_catalog(user_id)
 
-    def get_exercise(self, exercise_id: int) -> Optional[Exercise]:
+    def get_exercise(self, user_id: int, exercise_id: int) -> Optional[Exercise]:
         with self.uow:
-            return self.uow.exercises.get_by_id(exercise_id)
+            ex = self.uow.exercises.get_by_id(exercise_id)
+            if ex and (ex.user_id is None or ex.user_id == user_id):
+                return ex
+            return None
 
     def delete_exercise(self, user_id: int, exercise_id: int) -> None:
         with self.uow:

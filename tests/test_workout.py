@@ -393,3 +393,27 @@ def test_new_plan_modal_route(authenticated_client):
     assert response.status_code == 200
 
 
+def test_exercise_instructions_modal_route(authenticated_client):
+    from sqlmodel import Session
+    from salus.models.workout import Exercise
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        ex = Exercise(
+            name="Squats", 
+            equipment="barbell", 
+            primary_muscles="quadriceps", 
+            instructions="Keep back straight."
+        )
+        session.add(ex)
+        session.commit()
+        ex_id = ex.id
+
+    response = authenticated_client.get(f"/workouts/exercises/{ex_id}/instructions")
+    assert response.status_code == 200
+    assert "Squats" in response.text
+    assert "Quadriceps" in response.text
+    assert "Keep back straight." in response.text
+
+
+

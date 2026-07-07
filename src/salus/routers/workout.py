@@ -287,7 +287,7 @@ async def edit_exercise_modal(
     service: WorkoutService = Depends(get_workout_service),
 ):
     from salus.exceptions import NotFoundError
-    ex = service.get_exercise(exercise_id)
+    ex = service.get_exercise(user_id=uid(current_user), exercise_id=exercise_id)
     if not ex:
         raise NotFoundError("Exercise not found.")
     if ex.user_id != uid(current_user):
@@ -453,6 +453,27 @@ async def workout_session_detail_page(
             "duration_mins": duration_mins,
             "muscle_sets": sorted(muscle_sets.items(), key=lambda x: x[1], reverse=True)
         }
+    )
+
+
+@router.get("/workouts/exercises/{exercise_id}/instructions", response_class=HTMLResponse)
+async def exercise_instructions_modal(
+    request: Request,
+    exercise_id: int,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    exercise = service.get_exercise(user_id=uid(current_user), exercise_id=exercise_id)
+    if not exercise:
+        raise NotFoundError("Exercise not found.")
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/exercise_instructions_modal.html",
+        {
+            "current_user": current_user,
+            "exercise": exercise,
+        },
     )
 
 
