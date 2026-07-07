@@ -289,6 +289,7 @@ document.addEventListener("click", function(e) {
         if (typeof showToast === "function") {
             showToast("Rest time is up! Get ready for your next set. 💪", "success");
         }
+        window.dispatchEvent(new CustomEvent("rest-timer-finished"));
     }
 
     function updateTimerDisplay() {
@@ -332,6 +333,7 @@ document.addEventListener("click", function(e) {
         const endTime = Date.now() + (duration * 1000);
         sessionStorage.setItem("rest_timer_end", endTime.toString());
         updateTimerDisplay();
+        window.dispatchEvent(new CustomEvent("rest-timer-started", { detail: { duration } }));
     }
 
     function adjustTimer(delta) {

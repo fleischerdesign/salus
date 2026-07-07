@@ -60,9 +60,20 @@
         <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Active Workout Session") }}</h1>
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Log your sets. Dynamic autoregulated targets are shown below.") }}</p>
     </div>
-    {% if session.recovery_score %}
-    {{ chip(variant="success", label=_("Recovery Score") + ": " + session.recovery_score|round(0)|string + "%", icon="bolt", style="height:auto;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:700;white-space:nowrap") }}
-    {% endif %}
+    <div style="display:flex;align-items:center;gap:12px">
+        <!-- Audio Guide Toggle Button -->
+        <button id="audio-guide-toggle" 
+                class="btn" 
+                data-variant="tonal" 
+                style="height:auto;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px"
+                onclick="toggleAudioGuide()">
+            <span class="material-symbols-outlined" id="audio-guide-icon">volume_off</span>
+            <span id="audio-guide-text">{{ _("Audio Guide Off") }}</span>
+        </button>
+        {% if session.recovery_score %}
+        {{ chip(variant="success", label=_("Recovery Score") + ": " + session.recovery_score|round(0)|string + "%", icon="bolt", style="height:auto;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:700;white-space:nowrap") }}
+        {% endif %}
+    </div>
 </div>
 
 {% call form_stack(style="gap:24px") %}
@@ -325,7 +336,10 @@ function update1RM(exId, setNum) {
         display.innerText = "Est. 1RM: --";
         display.style.color = "var(--color-slate-500)";
         display.style.fontWeight = "600";
-    async function logSet(sessionId, exerciseId, setNumber) {
+    }
+}
+
+async function logSet(sessionId, exerciseId, setNumber) {
     const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
     const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
     if (!btn || !row) return;
@@ -371,6 +385,7 @@ function update1RM(exId, setNum) {
                 showToast("Set unlog queued offline.", "warning");
             }
         }
+        speak(`Set ${setNumber} removed.`);
     } else {
         // Toggle ON (Submit)
         if (isNaN(weight) || isNaN(reps)) {
@@ -412,6 +427,7 @@ function update1RM(exId, setNum) {
                 }
             }
         }
+        speak(`Set ${setNumber} logged.`);
 
         // Trigger the global persistent rest-timer (90 seconds)
         window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
@@ -469,8 +485,92 @@ function update1RM(exId, setNum) {
     }
 }
 
+// Hands-free Audio Guide Implementation
+let audioGuideEnabled = localStorage.getItem("salus_audio_guide_enabled") === "true";
+
+function updateAudioGuideUI() {
+    const btn = document.getElementById("audio-guide-toggle");
+    const icon = document.getElementById("audio-guide-icon");
+    const text = document.getElementById("audio-guide-text");
+    if (!btn || !icon || !text) return;
+
+    if (audioGuideEnabled) {
+        btn.setAttribute("data-variant", "primary");
+        icon.innerText = "volume_up";
+        text.innerText = "Audio Guide On";
+    } else {
+        btn.setAttribute("data-variant", "tonal");
+        icon.innerText = "volume_off";
+        text.innerText = "Audio Guide Off";
+    }
+}
+
+function toggleAudioGuide() {
+    audioGuideEnabled = !audioGuideEnabled;
+    localStorage.setItem("salus_audio_guide_enabled", audioGuideEnabled ? "true" : "false");
+    updateAudioGuideUI();
+    
+    if (audioGuideEnabled) {
+        speak("Audio guide enabled. Happy training!");
+    } else {
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    }
+}
+
+function speak(text) {
+    if (!audioGuideEnabled) return;
+    if (!window.speechSynthesis) {
+        console.warn("Speech synthesis not supported in this browser.");
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = document.documentElement.lang || "en-US";
+    window.speechSynthesis.speak(utterance);
+}
+
+function speakNextSetPrompt() {
+    const rows = Array.from(document.querySelectorAll("[id^='row-']"));
+    let nextRow = null;
+    for (const row of rows) {
+        const btn = row.querySelector("button.workout-set-checkbox");
+        if (btn && btn.getAttribute("data-logged") === "false") {
+            nextRow = row;
+            break;
+        }
+    }
+    if (nextRow) {
+        const idParts = nextRow.id.split("-");
+        const exId = idParts[1];
+        const setNum = idParts[2];
+        
+        const cardEl = nextRow.closest(".card");
+        const exNameEl = cardEl ? cardEl.querySelector(".card__header-title") : null;
+        const exName = exNameEl ? exNameEl.innerText.trim() : "Next Exercise";
+        
+        const weightVal = nextRow.querySelector("[id^='weight-']").value;
+        const repsVal = nextRow.querySelector("[id^='reps-']").value;
+        
+        speak(`Next set is ${exName}, set number ${setNum}. Target is ${repsVal} reps at ${weightVal} kilograms.`);
+    } else {
+        speak("All sets completed. Great job!");
+    }
+}
+
+// Bind event listeners for rest timer
+window.addEventListener("rest-timer-started", function(e) {
+    setTimeout(speakNextSetPrompt, 1500);
+});
+
+window.addEventListener("rest-timer-finished", function() {
+    speak("Rest finished. Time for your next set!");
+});
+
 // Calculate initial 1RMs and check RPE failures on page load
 document.addEventListener("DOMContentLoaded", function() {
+    updateAudioGuideUI();
     document.querySelectorAll("[id^='est1rm-']").forEach(function(span) {
         const idParts = span.id.split("-");
         if (idParts.length === 3) {
