@@ -264,10 +264,6 @@ async function logSet(sessionId, exerciseId, setNumber) {
                 // Re-enable inputs and adjust buttons
                 row.querySelectorAll("input").forEach(i => i.disabled = false);
                 row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = false);
-
-                if (typeof showToast === "function") {
-                    showToast("Set unlogged successfully!", "success");
-                }
             } else {
                 const err = await response.json();
                 const errMsg = "Failed to unlog set: " + (err.detail || "Unknown error");
