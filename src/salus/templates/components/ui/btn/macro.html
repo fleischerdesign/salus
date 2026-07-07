@@ -20,6 +20,7 @@
     <{{ tag }}
         class="btn{% if extra_class %} {{ extra_class }}{% endif %}"
         data-variant="{{ variant }}"
+        {% if href %}href="{{ href }}"{% endif %}
         {% if size %}data-size="{{ size }}"{% endif %}
         {% if icon and not label %}data-icon-only{% endif %}
         {% if disabled or loading %}disabled{% endif %}

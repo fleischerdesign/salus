@@ -118,6 +118,12 @@
                      drag_handle=true,
                      card_actions=exercise_actions,
                      class="exercise-card",
+                     clickable=true,
+                     hyperscript="on click
+                                     if event.target.closest('.card__header-action, .edit-chrome__actions, button, a') is null
+                                         go to url '/workouts/exercises/" ~ ex.id | string ~ "'
+                                     end
+                                  end",
                      style="display:flex;flex-direction:column;justify-content:space-between;gap:12px;transition:all var(--duration-fast)",
                      attrs={"data-name": ex.name | lower, "data-muscle": ex.primary_muscles | lower, "data-equipment": ex.equipment | lower}) %}
             <div>
