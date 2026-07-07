@@ -419,7 +419,7 @@ async function logSet(sessionId, exerciseId, setNumber) {
                 const parsedExId = parseInt(exerciseId);
                 const parsedSetNum = parseInt(setNumber);
                 console.log("[RPE Guardrail] Evaluating logged set:", { exerciseId: parsedExId, setNumber: parsedSetNum, rpe: parsedRpe });
-                if (parsedRpe === 10.0 || parsedRpe === 10) {
+                if (parsedRpe >= 10.0) {
                     const promptContainer = document.getElementById("rpe-prompt-" + parsedExId);
                     console.log("[RPE Guardrail] Prompt container element found:", !!promptContainer);
                     if (promptContainer) {
