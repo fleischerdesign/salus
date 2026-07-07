@@ -224,7 +224,7 @@
                 {% call card(title=_("Recent Workouts")) %}
                     {% call form_stack() %}
                         {% for sess in recent_sessions %}
-                        {% call card(variant="flat", style="padding:12px") %}
+                        {% call card(variant="flat", href="/workouts/sessions/" ~ sess.id, style="padding:12px;text-decoration:none") %}
                             <div style="display:flex;justify-content:space-between;font:var(--font-caption);color:var(--color-slate-500)">
                                 <span>{{ sess.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
                                 {% if sess.recovery_score %}

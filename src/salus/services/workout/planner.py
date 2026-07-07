@@ -325,6 +325,23 @@ class WorkoutService:
         with self.uow:
             return self.uow.workout_sessions.find_recent_by_user(user_id, limit)
 
+    def get_session(self, user_id: int, session_id: int) -> Optional[WorkoutSession]:
+        with self.uow as sql_uow:
+            from sqlalchemy.orm import selectinload
+            from sqlmodel import select
+            from typing import Any, cast
+
+            stmt = (
+                select(WorkoutSession)
+                .where(WorkoutSession.user_id == user_id)
+                .where(WorkoutSession.id == session_id)
+                .options(
+                    selectinload(cast(Any, WorkoutSession.logs)),
+                    selectinload(cast(Any, WorkoutSession.plan))
+                )
+            )
+            return sql_uow.session.exec(stmt).first()
+
     def get_session_targets(
         self, user_id: int, plan_id: int, date_str: Optional[str] = None
     ) -> list[dict]:

@@ -330,3 +330,60 @@ def test_rpe10_prompt_presence(authenticated_client):
     response = authenticated_client.get("/workouts/sessions/active")
     assert response.status_code == 200
     assert 'id="rpe-prompt-' in response.text
+
+
+def test_completed_session_detail_page(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise
+    from salus.services.workout.planner import WorkoutService
+    from salus.services.workout.autoregulation import AutoregulationService
+    from salus.services.analytics.sleep import SleepAnalysisService
+    from salus.services.analytics.activity import ActivityAnalysisService
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+    from salus.schemas.workout import WorkoutLogEntryCreate
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        uow = SqlUnitOfWork(session)
+        sleep_svc = SleepAnalysisService(uow.measurements)
+        activity_svc = ActivityAnalysisService(uow.measurements)
+        autoreg_svc = AutoregulationService(sleep_svc, activity_svc)
+        workout_svc = WorkoutService(uow, autoreg_svc)
+
+        alice = session.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        user_id = alice.id
+
+        ex = Exercise(name="Curls", equipment="dumbbell", primary_muscles="biceps")
+        session.add(ex)
+        session.commit()
+        ex_id = ex.id
+
+        plan = WorkoutPlan(name="Test Plan A", user_id=user_id, autoreg_mode="disabled")
+        session.add(plan)
+        session.commit()
+        plan_id = plan.id
+
+        plan_ex = WorkoutPlanExercise(plan_id=plan_id, exercise_id=ex_id, order=0, target_sets=3, target_reps=8, target_rpe=8.0)
+        session.add(plan_ex)
+        session.commit()
+
+        # Start, log set, and complete session
+        sess = workout_svc.start_session(user_id=user_id, plan_id=plan_id)
+        session_id = sess.id
+        workout_svc.log_set(
+            user_id=user_id,
+            session_id=session_id,
+            entry=WorkoutLogEntryCreate(exercise_id=ex_id, set_number=1, weight=12.5, reps=10, rpe=8.0)
+        )
+        workout_svc.complete_session(user_id=user_id, session_id=session_id, notes="Felt great!")
+
+    response = authenticated_client.get(f"/workouts/sessions/{session_id}")
+    assert response.status_code == 200
+    assert "Test Plan A" in response.text
+    assert "Curls" in response.text
+    assert "Felt great!" in response.text
+    assert "Biceps" in response.text
+    assert "125 kg" in response.text  # 12.5 * 10 = 125 volume
+

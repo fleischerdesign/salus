@@ -16,6 +16,7 @@ from salus.schemas.workout import (
 )
 from salus.services.workout.planner import WorkoutService
 from salus.services._helpers import uid
+from salus.exceptions import NotFoundError
 
 router = APIRouter(tags=["Workouts"])
 
@@ -381,6 +382,77 @@ async def complete_session_post(
         user_id=uid(current_user), session_id=session_id, notes=notes
     )
     return RedirectResponse("/workouts/plans", status_code=303)
+
+
+@router.get("/workouts/sessions/{session_id}", response_class=HTMLResponse)
+async def workout_session_detail_page(
+    request: Request,
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    session = service.get_session(user_id=uid(current_user), session_id=session_id)
+    if not session or not session.completed_at:
+        raise NotFoundError("Completed workout session not found.")
+        
+    exercise_map = {ex.id: ex for ex in service.get_exercise_catalog(user_id=uid(current_user))}
+    
+    # Group logs by exercise and sort sets
+    logs_by_exercise = {}
+    total_volume = 0.0
+    total_reps = 0
+    set_count = len(session.logs)
+    rpes = []
+    muscle_sets = {}
+    
+    for log in session.logs:
+        ex = exercise_map.get(log.exercise_id)
+        ex_name = ex.name if ex else "Unknown Exercise"
+        
+        if log.exercise_id not in logs_by_exercise:
+            logs_by_exercise[log.exercise_id] = {
+                "exercise_name": ex_name,
+                "exercise": ex,
+                "logs": []
+            }
+        logs_by_exercise[log.exercise_id]["logs"].append(log)
+        
+        # Stats accumulation
+        total_volume += log.weight * log.reps
+        total_reps += log.reps
+        if log.rpe is not None:
+            rpes.append(log.rpe)
+            
+        # Muscle distribution mapping
+        if ex and ex.primary_muscles:
+            muscles = [m.strip() for m in ex.primary_muscles.split(",") if m.strip()]
+            for m in muscles:
+                m_name = m.replace("_", " ").capitalize()
+                muscle_sets[m_name] = muscle_sets.get(m_name, 0) + 1
+
+    # Sort sets for each exercise
+    for ex_id in logs_by_exercise:
+        logs_by_exercise[ex_id]["logs"].sort(key=lambda log: log.set_number)
+        
+    avg_rpe = sum(rpes) / len(rpes) if rpes else 0.0
+    duration_td = session.completed_at - session.started_at
+    duration_mins = int(duration_td.total_seconds() // 60)
+    
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "pages/workout_session_detail.html",
+        {
+            "current_user": current_user,
+            "session": session,
+            "logs_by_exercise": logs_by_exercise.values(),
+            "total_volume": total_volume,
+            "total_reps": total_reps,
+            "set_count": set_count,
+            "avg_rpe": avg_rpe,
+            "duration_mins": duration_mins,
+            "muscle_sets": sorted(muscle_sets.items(), key=lambda x: x[1], reverse=True)
+        }
+    )
 
 
 # --------------------------------------------------------------------------
