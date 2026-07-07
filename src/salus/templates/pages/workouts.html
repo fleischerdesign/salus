@@ -195,13 +195,14 @@
                         {% for ex in exercises %}
                         {% call card(id="workout-exercise-row-" + ex.id | string, variant="flat", style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;gap:12px") %}
                             <div style="flex:1">
-                                <div style="font-weight:600;font:var(--font-body-md);color:var(--color-on-surface)">{{ ex.name }}</div>
+                                <a href="/workouts/exercises/{{ ex.id }}" style="text-decoration:none;font-weight:600;font:var(--font-body-md);color:var(--color-on-surface);transition:color var(--duration-fast)" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-on-surface)'">{{ ex.name }}</a>
                                 <div style="font:var(--font-caption);color:var(--color-slate-500);margin-top:4px">
                                     <span style="text-transform:capitalize">{{ ex.equipment }}</span> &middot;
                                     {{ _("Target") }}: <span style="text-transform:capitalize;color:var(--color-primary)">{{ ex.primary_muscles.replace(',', ', ') }}</span>
                                 </div>
                             </div>
                             <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+                                {{ btn(icon="monitoring", variant="ghost", size="sm", href="/workouts/exercises/" + ex.id | string, aria_label=_("View analytics and history")) }}
                                 {% if ex.video_url %}
                                 {{ btn(icon="smart_display", variant="ghost", size="sm", href=ex.video_url, attrs={"target": "_blank"}, aria_label=_("Watch tutorial")) }}
                                 {% endif %}

@@ -456,6 +456,100 @@ async def workout_session_detail_page(
     )
 
 
+@router.get("/workouts/exercises/{exercise_id}", response_class=HTMLResponse)
+async def exercise_detail_page(
+    request: Request,
+    exercise_id: int,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    details = service.get_exercise_details(user_id=uid(current_user), exercise_id=exercise_id)
+    exercise = details["exercise"]
+    history = details["history"]
+    
+    # Aggregate statistics
+    total_sets = len(history)
+    total_reps = sum(log.reps for log in history)
+    
+    # Build chart data (group by session date)
+    session_points = []
+    for log in reversed(history):
+        session = log.session
+        if not session or not session.completed_at:
+            continue
+        date_str = session.completed_at.strftime('%Y-%m-%d')
+        est1rm = log.weight if log.reps == 1 else log.weight / (1.0278 - (0.0278 * log.reps))
+        
+        found = False
+        for pt in session_points:
+            if pt["date"] == date_str:
+                pt["weight"] = max(pt["weight"], log.weight)
+                pt["est1rm"] = max(pt["est1rm"], est1rm)
+                found = True
+                break
+        if not found:
+            session_points.append({
+                "date": date_str,
+                "weight": log.weight,
+                "est1rm": est1rm
+            })
+            
+    # Calculate SVG coordinates if we have enough points (at least 2 for a line)
+    svg_path_weight = ""
+    svg_path_1rm = ""
+    svg_points = []
+    
+    if len(session_points) >= 2:
+        max_val = max(pt["est1rm"] for pt in session_points) * 1.1
+        min_val = min(pt["weight"] for pt in session_points) * 0.9
+        if max_val == min_val:
+            max_val += 10
+            min_val -= 10
+        val_range = max_val - min_val
+        
+        width = 600
+        height = 250
+        padding = 40
+        
+        for idx, pt in enumerate(session_points):
+            x = padding + (idx / (len(session_points) - 1)) * (width - 2 * padding)
+            y_weight = height - padding - ((pt["weight"] - min_val) / val_range) * (height - 2 * padding)
+            y_1rm = height - padding - ((pt["est1rm"] - min_val) / val_range) * (height - 2 * padding)
+            
+            svg_points.append({
+                "date": pt["date"],
+                "weight": pt["weight"],
+                "est1rm": pt["est1rm"],
+                "x": x,
+                "y_weight": y_weight,
+                "y_1rm": y_1rm
+            })
+            
+            if idx == 0:
+                svg_path_weight = f"M {x} {y_weight}"
+                svg_path_1rm = f"M {x} {y_1rm}"
+            else:
+                svg_path_weight += f" L {x} {y_weight}"
+                svg_path_1rm += f" L {x} {y_1rm}"
+                
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "pages/workout_exercise_detail.html",
+        {
+            "current_user": current_user,
+            "exercise": exercise,
+            "history": history,
+            "total_sets": total_sets,
+            "total_reps": total_reps,
+            "pr_weight": details["pr_weight"],
+            "pr_est_1rm": details["pr_est_1rm"],
+            "svg_points": svg_points,
+            "svg_path_weight": svg_path_weight,
+            "svg_path_1rm": svg_path_1rm
+        }
+    )
+
+
 @router.get("/workouts/exercises/{exercise_id}/instructions", response_class=HTMLResponse)
 async def exercise_instructions_modal(
     request: Request,

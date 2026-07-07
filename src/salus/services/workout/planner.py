@@ -400,3 +400,40 @@ class WorkoutService:
                 t["pr_est_1rm"] = ex_pr.get("max_est_1rm", 0.0)
 
             return targets
+
+    def get_exercise_history(self, user_id: int, exercise_id: int) -> list[WorkoutLogEntry]:
+        with self.uow as sql_uow:
+            from sqlmodel import select, desc
+            from sqlalchemy.orm import selectinload
+            from salus.models.workout import WorkoutSession, WorkoutLogEntry
+            from typing import cast, Any
+            
+            stmt = (
+                select(WorkoutLogEntry)
+                .join(WorkoutSession)
+                .where(WorkoutSession.user_id == user_id)
+                .where(WorkoutLogEntry.exercise_id == exercise_id)
+                .where(WorkoutSession.completed_at.is_not(None))  # type: ignore
+                .order_by(desc(WorkoutSession.completed_at))
+                .options(selectinload(cast(Any, WorkoutLogEntry.session)))
+            )
+            return list(sql_uow.session.exec(stmt).all())
+
+    def get_exercise_details(self, user_id: int, exercise_id: int) -> dict:
+        with self.uow:
+            exercise = self.get_exercise(user_id, exercise_id)
+            if not exercise:
+                raise NotFoundError("Exercise not found.")
+                
+            history = self.get_exercise_history(user_id, exercise_id)
+            prs = self.uow.workout_sessions.get_personal_records(user_id, [exercise_id])
+            ex_pr = prs.get(exercise_id, {})
+            pr_weight = ex_pr.get("max_weight", 0.0)
+            pr_est_1rm = ex_pr.get("max_est_1rm", 0.0)
+            
+            return {
+                "exercise": exercise,
+                "history": history,
+                "pr_weight": pr_weight,
+                "pr_est_1rm": pr_est_1rm
+            }
