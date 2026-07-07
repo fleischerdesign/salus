@@ -387,3 +387,9 @@ def test_completed_session_detail_page(authenticated_client):
     assert "Biceps" in response.text
     assert "125 kg" in response.text  # 12.5 * 10 = 125 volume
 
+
+def test_new_plan_modal_route(authenticated_client):
+    response = authenticated_client.get("/workouts/plans/new")
+    assert response.status_code == 200
+
+

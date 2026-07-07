@@ -69,6 +69,7 @@ async def new_plan_modal(
         {
             "current_user": current_user,
             "exercises": exercises,
+            "plan": None,
         },
     )
 
