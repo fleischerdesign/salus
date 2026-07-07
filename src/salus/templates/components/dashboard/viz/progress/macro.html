@@ -1,4 +1,5 @@
 {# vim: set ft=htmldjango: Viz Progress — @component viz-progress #}
+{% from "components/dashboard/viz/number/macro.html" import viz_number %}
 {% macro viz_progress(primary_value, primary_unit=none, delta=none, percent=none, target_label=none, color=none, has_goal=true, is_small=false) %}
     {% if not has_goal %}
         {{ viz_number(primary_value=primary_value, primary_unit=primary_unit, delta=delta, color=color) }}

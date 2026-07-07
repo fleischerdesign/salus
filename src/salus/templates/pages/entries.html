@@ -36,10 +36,7 @@
         {% endif %}
     </div>
 </div>
-
 {% if metrics %}
-<div id="modal-container"></div>
-
 <div id="entries-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
     {% for metric in metrics %}
     {% set ov = overview.get(metric.id) %}
@@ -116,7 +113,7 @@
 </script>
 {% else %}
 {% call card(style="text-align:center;padding:32px 24px") %}
-    <span class="material-symbols-outlined" style="font-size:40px;color:var(--color-slate-300)">list_alt</span>
+    {{ icon("list_alt", style="font-size:40px;color:var(--color-slate-300)") }}
     <p style="font:var(--font-body-md);color:var(--color-slate-500);margin:12px 0 0 0">{{ _("No metrics configured yet.") }}</p>
     <p style="margin:8px 0 0 0">{{ btn(_("Create your first metric"), variant="primary",
            hx_get="/entries/metric/new",

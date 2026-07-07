@@ -22,16 +22,20 @@ class AppleHealthExportParser:
         for item in records_data:
             if not isinstance(item, dict):
                 continue
-            data_type = item.get("type", "").replace(
-                "HKQuantityTypeIdentifier", ""
-            ).replace("HKCategoryTypeIdentifier", "")
+            data_type = (
+                item.get("type", "")
+                .replace("HKQuantityTypeIdentifier", "")
+                .replace("HKCategoryTypeIdentifier", "")
+            )
             start_time = item.get("startDate", "")
             ext_id = make_external_id("apple_health", data_type, start_time)
-            records.append(Measurement(
-                data_type=data_type,
-                source="apple_health",
-                value_json=json.dumps({"value": item.get("value", "")}),
-                start_time=_to_dt(start_time),
-                external_id=ext_id,
-            ))
+            records.append(
+                Measurement(
+                    data_type=data_type,
+                    source="apple_health",
+                    value_json=json.dumps({"value": item.get("value", "")}),
+                    start_time=_to_dt(start_time),
+                    external_id=ext_id,
+                )
+            )
         return records

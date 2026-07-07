@@ -1,0 +1,46 @@
+{# vim: set ft=htmldjango:
+   Notifications Bell — @component notifications-bell
+   Renders bell icon trigger with badge and dropdown for recent notifications.
+ #}
+
+{% from "components/ui/icon/macro.html" import icon %}
+{% from "components/ui/skeleton/macro.html" import skeleton_line %}
+
+{% macro notifications_bell() %}
+<div class="notifications-menu">
+    <button class="notifications-menu__trigger" 
+            hx-get="/notifications/dropdown" 
+            hx-target="#notifications-dropdown-content"
+            hx-trigger="click once"
+            title="{{ _('Notifications') }}"
+            type="button"
+            aria-expanded="false"
+            aria-haspopup="true">
+        {{ icon("notifications", size=24) }}
+        <span class="notifications-menu__badge" id="notifications-count-badge"
+              hx-get="/notifications/count"
+              hx-trigger="load, refresh-notifications from:body">
+            {# Loaded dynamically #}
+        </span>
+    </button>
+    <div class="notifications-menu__dropdown">
+        <div class="notifications-menu__header">
+            <h4>{{ _("Notifications") }}</h4>
+            <button class="notifications-menu__read-all"
+                    hx-post="/notifications/read-all"
+                    hx-swap="none">
+                {{ _("Mark all read") }}
+            </button>
+        </div>
+        <div id="notifications-dropdown-content" class="notifications-menu__content"
+             hx-get="/notifications/dropdown"
+             hx-trigger="refresh-notifications from:body">
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+                {{ skeleton_line(width="50%", height="14px") }}
+                {{ skeleton_line(width="90%", height="12px") }}
+                {{ skeleton_line(width="70%", height="10px") }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

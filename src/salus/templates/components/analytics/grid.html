@@ -86,6 +86,18 @@
         if (!canvas) return;
         var ctx = canvas.getContext('2d');
         if (window._salusChart) window._salusChart.destroy();
+        
+        // Dynamically read active theme CSS variables
+        var style = getComputedStyle(document.documentElement);
+        var primaryColor = style.getPropertyValue('--color-primary').trim() || '#4f46e5';
+        var tertiaryColor = style.getPropertyValue('--color-tertiary').trim() || '#0ea5e9';
+        var gridColor = style.getPropertyValue('--color-slate-200').trim() || '#e2e8f0';
+        var textColor = style.getPropertyValue('--color-slate-600').trim() || '#475569';
+        
+        // Convert hex to rgba for background gradients
+        var primaryBG = primaryColor.startsWith('#') ? hexToRgba(primaryColor, 0.05) : 'rgba(79,70,229,0.05)';
+        var tertiaryBG = tertiaryColor.startsWith('#') ? hexToRgba(tertiaryColor, 0.05) : 'rgba(14,165,233,0.05)';
+
         window._salusChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -93,16 +105,16 @@
                 datasets: [{
                     label: 'Weight (kg)',
                     data: {{ weight_data|safe }},
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79,70,229,0.05)',
+                    borderColor: primaryColor,
+                    backgroundColor: primaryBG,
                     yAxisID: 'yWeight',
                     tension: 0.3,
                     fill: true,
                 }, {
                     label: 'Steps',
                     data: {{ steps_data|safe }},
-                    borderColor: '#0ea5e9',
-                    backgroundColor: 'rgba(14,165,233,0.05)',
+                    borderColor: tertiaryColor,
+                    backgroundColor: tertiaryBG,
                     yAxisID: 'ySteps',
                     tension: 0.3,
                     fill: true,
@@ -112,22 +124,43 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { display: true, position: 'top' } },
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        position: 'top',
+                        labels: { color: textColor }
+                    } 
+                },
                 scales: {
                     yWeight: {
                         type: 'linear', display: true, position: 'left',
-                        title: { display: true, text: 'Weight (kg)' },
-                        grid: { color: '#f1f5f9' }
+                        title: { display: true, text: 'Weight (kg)', color: textColor },
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
                     },
                     ySteps: {
                         type: 'linear', display: true, position: 'right',
-                        title: { display: true, text: 'Steps' },
+                        title: { display: true, text: 'Steps', color: textColor },
+                        ticks: { color: textColor },
                         grid: { drawOnChartArea: false }
+                    },
+                    x: {
+                        ticks: { color: textColor },
+                        grid: { color: gridColor }
                     }
                 }
             }
         });
     }
+
+    function hexToRgba(hex, alpha) {
+        hex = hex.replace('#', '');
+        var r = parseInt(hex.substring(0, 2), 16);
+        var g = parseInt(hex.substring(2, 4), 16);
+        var b = parseInt(hex.substring(4, 6), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+    }
+
     document.addEventListener('DOMContentLoaded', initGridChart);
     document.addEventListener('htmx:afterSettle', initGridChart);
 })();

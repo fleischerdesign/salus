@@ -28,9 +28,13 @@ class MeasurementRepository(Repository[Measurement]):
             Measurement.metric_type_id == metric_type_id,
             Measurement.user_id == user_id,
         )
-        count_stmt = select(func.count()).select_from(Measurement).where(
-            Measurement.metric_type_id == metric_type_id,
-            Measurement.user_id == user_id,
+        count_stmt = (
+            select(func.count())
+            .select_from(Measurement)
+            .where(
+                Measurement.metric_type_id == metric_type_id,
+                Measurement.user_id == user_id,
+            )
         )
         total = self.session.exec(count_stmt).one()
 
@@ -42,15 +46,25 @@ class MeasurementRepository(Repository[Measurement]):
                 try:
                     synth_records = synth.synthesize(user_id, results)
                     if synth_records:
-                        results.extend([r for r in synth_records if r.metric_type_id == metric_type_id])
+                        results.extend(
+                            [
+                                r
+                                for r in synth_records
+                                if r.metric_type_id == metric_type_id
+                            ]
+                        )
                 except Exception as e:
                     logger.error(f"Error in metric synthesizer: {e}")
         return results, total
 
     def count_by_metric_type(self, metric_type_id: int, user_id: int) -> int:
-        count_stmt = select(func.count()).select_from(Measurement).where(
-            Measurement.metric_type_id == metric_type_id,
-            Measurement.user_id == user_id,
+        count_stmt = (
+            select(func.count())
+            .select_from(Measurement)
+            .where(
+                Measurement.metric_type_id == metric_type_id,
+                Measurement.user_id == user_id,
+            )
         )
         return self.session.exec(count_stmt).one()
 
@@ -71,9 +85,7 @@ class MeasurementRepository(Repository[Measurement]):
     def find_by_metric_type(
         self, metric_type_id: int, user_id: int | None = None
     ) -> list[Measurement]:
-        stmt = select(Measurement).where(
-            Measurement.metric_type_id == metric_type_id
-        )
+        stmt = select(Measurement).where(Measurement.metric_type_id == metric_type_id)
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
         stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
@@ -85,7 +97,13 @@ class MeasurementRepository(Repository[Measurement]):
                     synth_records = synth.synthesize(user_id, results)
                     if synth_records:
                         # Filter to only return the ones matching the requested metric type if needed
-                        results.extend([r for r in synth_records if r.metric_type_id == metric_type_id])
+                        results.extend(
+                            [
+                                r
+                                for r in synth_records
+                                if r.metric_type_id == metric_type_id
+                            ]
+                        )
                 except Exception as e:
                     logger.error(f"Error in metric synthesizer: {e}")
         return results
@@ -122,29 +140,33 @@ class MeasurementRepository(Repository[Measurement]):
                     if synth_records:
                         filtered = synth_records
                         if data_types:
-                            filtered = [r for r in filtered if r.data_type in data_types]
+                            filtered = [
+                                r for r in filtered if r.data_type in data_types
+                            ]
                         results.extend(filtered)
                 except Exception as e:
                     logger.error(f"Error in metric synthesizer: {e}")
         return results
 
-    def find_latest(self, data_type: str, user_id: int | None = None) -> Measurement | None:
+    def find_latest(
+        self, data_type: str, user_id: int | None = None
+    ) -> Measurement | None:
         results = self.find_all(user_id=user_id, data_types=[data_type], limit=1)
         return results[0] if results else None
 
     def upsert_all(self, records: list[Measurement]) -> tuple[int, int]:
         inserted = 0
         duplicates = 0
-        
+
         # 1. Gather all external IDs to query existing records in chunks
         external_ids = [rec.external_id for rec in records if rec.external_id]
         existing_map: dict[tuple[str, str], Measurement] = {}
-        
+
         if external_ids:
             # Chunking to avoid SQLite parameter limit (usually 999)
             chunk_size = 900
             for i in range(0, len(external_ids), chunk_size):
-                chunk = external_ids[i:i + chunk_size]
+                chunk = external_ids[i : i + chunk_size]
                 stmt = select(Measurement).where(
                     Measurement.external_id.in_(chunk)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
@@ -152,13 +174,13 @@ class MeasurementRepository(Repository[Measurement]):
                 for ext in chunk_existing:
                     if ext.external_id:
                         existing_map[(ext.external_id, ext.source)] = ext
-                        
+
         # 2. Match and update/insert
         for rec in records:
             existing = None
             if rec.external_id:
                 existing = existing_map.get((rec.external_id, rec.source))
-                
+
             if existing is not None:
                 existing.value_numeric = rec.value_numeric
                 existing.value_text = rec.value_text
@@ -172,7 +194,7 @@ class MeasurementRepository(Repository[Measurement]):
                 if rec.external_id:
                     existing_map[(rec.external_id, rec.source)] = rec
                 inserted += 1
-                
+
         # 3. Commit the transaction once at the end
         self.session.commit()
         return inserted, duplicates
@@ -180,11 +202,11 @@ class MeasurementRepository(Repository[Measurement]):
     def find_by_date_range(
         self, user_id: int, data_types: list[str], since: datetime, until: datetime
     ) -> list[Measurement]:
-        return self.find_all(user_id=user_id, data_types=data_types, since=since, until=until)
+        return self.find_all(
+            user_id=user_id, data_types=data_types, since=since, until=until
+        )
 
-    def find_recent_entries(
-        self, user_id: int, limit: int = 20
-    ) -> list[Measurement]:
+    def find_recent_entries(self, user_id: int, limit: int = 20) -> list[Measurement]:
         stmt = (
             select(Measurement)
             .where(Measurement.user_id == user_id, Measurement.source == "manual")

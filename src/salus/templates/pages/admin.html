@@ -8,26 +8,30 @@
     <nav class="tabbed-sidebar" aria-label="Admin navigation">
         <a hx-get="/admin" hx-target="#admin-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'general' %}active{% endif %}"
-           {% if active_tab == 'general' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">settings</span>
+           {% if active_tab == 'general' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("settings", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("General") }}
         </a>
         <a hx-get="/admin/users" hx-target="#admin-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'users' %}active{% endif %}"
-           {% if active_tab == 'users' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">group</span>
+           {% if active_tab == 'users' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("group", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Users") }}
         </a>
         <a hx-get="/admin/stats" hx-target="#admin-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'stats' %}active{% endif %}"
-           {% if active_tab == 'stats' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">monitoring</span>
+           {% if active_tab == 'stats' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("monitoring", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Statistics") }}
         </a>
         <a hx-get="/admin/plugins" hx-target="#admin-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'plugins' %}active{% endif %}"
-           {% if active_tab == 'plugins' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">extension</span>
+           {% if active_tab == 'plugins' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("extension", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Plugins") }}
         </a>
     </nav>

@@ -26,12 +26,18 @@ class InsightService:
         """Retrieves a previously cached insight if it exists."""
         return self._uow.insights.find_by_user_and_date(user_id, date_str)
 
-    def generate_daily_insight(self, user_id: int, date_str: str, locale: str = "en") -> Insight:
+    def generate_daily_insight(
+        self, user_id: int, date_str: str, locale: str = "en"
+    ) -> Insight:
         """Generates, saves, and returns a personalized health insight for the user on a specific day."""
         # 1. Return cached insight if already present
         existing = self.get_insight_for_date(user_id, date_str)
         if existing is not None:
-            logger.info("Returning cached daily insight for user %d on date %s", user_id, date_str)
+            logger.info(
+                "Returning cached daily insight for user %d on date %s",
+                user_id,
+                date_str,
+            )
             return existing
 
         # 2. Parse query date
@@ -49,9 +55,7 @@ class InsightService:
         since = query_date - timedelta(days=7)
         until = query_date + timedelta(days=1)
         measurements = self._uow.measurements.find_all(
-            user_id=user_id,
-            since=since,
-            until=until
+            user_id=user_id, since=since, until=until
         )
 
         goals = self._uow.goals.find_by_user(user_id=user_id)
@@ -63,7 +67,11 @@ class InsightService:
             if m.start_time is None:
                 continue
             day_key = m.start_time.strftime("%Y-%m-%d")
-            metric_type = metric_map.get(m.metric_type_id) if m.metric_type_id is not None else None
+            metric_type = (
+                metric_map.get(m.metric_type_id)
+                if m.metric_type_id is not None
+                else None
+            )
             metric_name = metric_type.name if metric_type else m.data_type
 
             if day_key not in daily_logs:
@@ -82,19 +90,35 @@ class InsightService:
             for name, vals in day_metrics.items():
                 if vals:
                     # Calculate sum or average based on type
-                    val_str = f"{sum(vals):.1f}" if name.lower() in ("steps", "water", "calories") else f"{sum(vals)/len(vals):.1f}"
+                    val_str = (
+                        f"{sum(vals):.1f}"
+                        if name.lower() in ("steps", "water", "calories")
+                        else f"{sum(vals) / len(vals):.1f}"
+                    )
                     metrics_summary.append(f"{name}: {val_str}")
             history_lines.append(f"- {day}: {', '.join(metrics_summary)}")
 
-        history_context = "\n".join(history_lines) if history_lines else "No measurements logged in the last 7 days."
+        history_context = (
+            "\n".join(history_lines)
+            if history_lines
+            else "No measurements logged in the last 7 days."
+        )
 
         # Format goals summary
         goals_lines = []
         for g in goals:
-            mt = metric_map.get(g.metric_type_id) if g.metric_type_id is not None else None
+            mt = (
+                metric_map.get(g.metric_type_id)
+                if g.metric_type_id is not None
+                else None
+            )
             mt_name = mt.name if mt else "Unknown"
-            goals_lines.append(f"- Target: {g.direction.value} {mt_name} to {g.target_value} ({g.frequency.value})")
-        goals_context = "\n".join(goals_lines) if goals_lines else "No active goals configured."
+            goals_lines.append(
+                f"- Target: {g.direction.value} {mt_name} to {g.target_value} ({g.frequency.value})"
+            )
+        goals_context = (
+            "\n".join(goals_lines) if goals_lines else "No active goals configured."
+        )
 
         # 5. Build prompts
         system_instruction = (
@@ -125,7 +149,11 @@ class InsightService:
                     if p_ctx:
                         plugin_contexts.append(p_ctx)
                 except Exception as e:
-                    logger.error("Error fetching AI Coach Context from plugin: %s", str(e), exc_info=True)
+                    logger.error(
+                        "Error fetching AI Coach Context from plugin: %s",
+                        str(e),
+                        exc_info=True,
+                    )
 
         if plugin_contexts:
             plugin_context_str = "\n\n".join(plugin_contexts)
@@ -135,7 +163,11 @@ class InsightService:
 
         # 6. Generate content from provider
         try:
-            logger.info("Generating LLM health insight with model %s for date %s", self._model, date_str)
+            logger.info(
+                "Generating LLM health insight with model %s for date %s",
+                self._model,
+                date_str,
+            )
             content = self._provider.generate_insight(
                 prompt=user_prompt,
                 system_instruction=system_instruction,

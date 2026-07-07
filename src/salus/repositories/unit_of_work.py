@@ -27,6 +27,7 @@ from salus.repositories.protocols import (
     ICircadianProfileRepository,
     ILeaderboardGroupRepository,
     ILeaderboardMemberRepository,
+    INotificationRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -42,7 +43,11 @@ from salus.repositories.asymmetric_share import (
     AsymmetricShareRepository,
 )
 from salus.repositories.circadian import CircadianProfileRepository
-from salus.repositories.leaderboard import LeaderboardGroupRepository, LeaderboardMemberRepository
+from salus.repositories.leaderboard import (
+    LeaderboardGroupRepository,
+    LeaderboardMemberRepository,
+)
+from salus.repositories.notification import NotificationRepository
 
 
 class IUnitOfWork(Protocol):
@@ -65,18 +70,15 @@ class IUnitOfWork(Protocol):
     circadian_profiles: ICircadianProfileRepository
     leaderboard_groups: ILeaderboardGroupRepository
     leaderboard_members: ILeaderboardMemberRepository
+    notifications: INotificationRepository
 
-    def __enter__(self) -> "IUnitOfWork":
-        ...
+    def __enter__(self) -> "IUnitOfWork": ...
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        ...
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None: ...
 
-    def commit(self) -> None:
-        ...
+    def commit(self) -> None: ...
 
-    def rollback(self) -> None:
-        ...
+    def rollback(self) -> None: ...
 
 
 class SqlUnitOfWork:
@@ -98,6 +100,7 @@ class SqlUnitOfWork:
     circadian_profiles: ICircadianProfileRepository
     leaderboard_groups: ILeaderboardGroupRepository
     leaderboard_members: ILeaderboardMemberRepository
+    notifications: INotificationRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -119,6 +122,7 @@ class SqlUnitOfWork:
         self.circadian_profiles = CircadianProfileRepository(session)
         self.leaderboard_groups = LeaderboardGroupRepository(session)
         self.leaderboard_members = LeaderboardMemberRepository(session)
+        self.notifications = NotificationRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

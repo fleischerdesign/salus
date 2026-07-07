@@ -45,7 +45,9 @@ class LeaderboardGroup(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     creator_id: int = Field(foreign_key="user.id")
-    metric_type_code: str = Field(default="steps")  # "steps", "workouts", "sleep", "water"
+    metric_type_code: str = Field(
+        default="steps"
+    )  # "steps", "workouts", "sleep", "water"
     time_frame: str = Field(default="weekly")  # "weekly", "monthly", "custom"
     start_date: Optional[datetime] = Field(default=None)
     end_date: Optional[datetime] = Field(default=None)
@@ -54,7 +56,9 @@ class LeaderboardGroup(SQLModel, table=True):
 
     # Relationships
     creator: "User" = Relationship()
-    members: list["LeaderboardMember"] = Relationship(back_populates="group", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    members: list["LeaderboardMember"] = Relationship(
+        back_populates="group", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 
 class LeaderboardMember(SQLModel, table=True):
@@ -75,8 +79,8 @@ class FederatedMeasurementCache(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     owner_handle: str = Field(index=True)  # e.g. @alice:domain
-    data_type: str = Field(index=True)      # e.g. steps, weight
-    date_str: str = Field(index=True)       # e.g. 2026-07-03
+    data_type: str = Field(index=True)  # e.g. steps, weight
+    date_str: str = Field(index=True)  # e.g. 2026-07-03
     value_numeric: Optional[float] = Field(default=None)
     value_json: Optional[str] = Field(default=None)
     fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

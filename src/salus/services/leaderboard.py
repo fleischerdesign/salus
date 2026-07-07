@@ -1,3 +1,4 @@
+# pyright: reportOptionalOperand=false
 import secrets
 from datetime import datetime, timezone, timedelta
 from typing import Optional, TYPE_CHECKING
@@ -8,14 +9,21 @@ if TYPE_CHECKING:
 from sqlmodel import select
 
 from salus.exceptions import NotFoundError, ConflictError
-from salus.models.sharing import ConnectionStatus, LeaderboardGroup, LeaderboardMember, SharingRelationship
+from salus.models.sharing import (
+    ConnectionStatus,
+    LeaderboardGroup,
+    LeaderboardMember,
+    SharingRelationship,
+)
 from salus.models.workout import WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
 
 
 class LeaderboardService:
-    def __init__(self, uow: IUnitOfWork, sharing_svc: Optional["SharingService"] = None) -> None:
+    def __init__(
+        self, uow: IUnitOfWork, sharing_svc: Optional["SharingService"] = None
+    ) -> None:
         self.uow = uow
         self.sharing_svc = sharing_svc
 
@@ -88,7 +96,7 @@ class LeaderboardService:
                 raise NotFoundError("Creator of the group no longer exists")
 
             creator_handle = f"@{creator.username}"
-            
+
             # Check user -> creator sharing relationship
             stmt1 = select(SharingRelationship).where(
                 SharingRelationship.owner_id == user_id,
@@ -107,7 +115,9 @@ class LeaderboardService:
 
             # Exception if they aren't connected
             if not rel1 and not rel2 and creator.id != user_id:
-                raise PermissionError("Prerequisite: You must be connected with the challenge creator to join.")
+                raise PermissionError(
+                    "Prerequisite: You must be connected with the challenge creator to join."
+                )
 
             assert group.id is not None
             # Join
@@ -125,13 +135,13 @@ class LeaderboardService:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 return []
-            
+
             user_handle = f"@{user.username}"
             # Load created groups
             created = self.uow.leaderboard_groups.find_by_creator(user_id)
             # Load joined groups
             joined = self.uow.leaderboard_groups.find_joined_by_user(user_handle)
-            
+
             # Deduplicate by group id
             seen = set()
             res = []
@@ -154,7 +164,9 @@ class LeaderboardService:
 
             # Verify current user is a member
             current_handle = f"@{current_user.username}"
-            member_check = self.uow.leaderboard_members.get_member(group.id, current_handle)
+            member_check = self.uow.leaderboard_members.get_member(
+                group.id, current_handle
+            )
             if not member_check or member_check.status != "active":
                 raise PermissionError("You are not a member of this challenge group")
 
@@ -165,8 +177,12 @@ class LeaderboardService:
             elif group.time_frame == "monthly":
                 start_date = (now - timedelta(days=30)).date()
             else:
-                start_date = group.start_date.date() if group.start_date else (now - timedelta(days=7)).date()
-            
+                start_date = (
+                    group.start_date.date()
+                    if group.start_date
+                    else (now - timedelta(days=7)).date()
+                )
+
             end_date = group.end_date.date() if group.end_date else now.date()
 
             # Retrieve active members
@@ -177,7 +193,7 @@ class LeaderboardService:
             for m in active_members:
                 handle = m.user_handle
                 score = 0.0
-                
+
                 if ":" not in handle:
                     # Local User query
                     username = handle[1:]
@@ -187,8 +203,14 @@ class LeaderboardService:
                             # Count completed sessions
                             stmt_ws = select(WorkoutSession).where(
                                 WorkoutSession.user_id == local_user.id,
-                                WorkoutSession.completed_at >= datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc),  # type: ignore
-                                WorkoutSession.completed_at <= datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)  # type: ignore
+                                WorkoutSession.completed_at
+                                >= datetime.combine(
+                                    start_date, datetime.min.time(), tzinfo=timezone.utc
+                                ),
+                                WorkoutSession.completed_at
+                                <= datetime.combine(
+                                    end_date, datetime.max.time(), tzinfo=timezone.utc
+                                ),
                             )
                             sessions = self.uow.session.exec(stmt_ws).all()
                             score = float(len(sessions))
@@ -196,11 +218,14 @@ class LeaderboardService:
                             # Sum/Avg measurement metrics
                             measurements = self.uow.measurements.find_all(
                                 user_id=uid(local_user),
-                                data_types=[group.metric_type_code]
+                                data_types=[group.metric_type_code],
                             )
                             day_values = [
-                                ms.value_numeric for ms in measurements
-                                if ms.start_time.date() >= start_date and ms.start_time.date() <= end_date and ms.value_numeric is not None
+                                ms.value_numeric
+                                for ms in measurements
+                                if ms.start_time.date() >= start_date
+                                and ms.start_time.date() <= end_date
+                                and ms.value_numeric is not None
                             ]
                             if day_values:
                                 if group.metric_type_code in ("steps", "water"):
@@ -239,12 +264,14 @@ class LeaderboardService:
                         except Exception:
                             score = 0.0
 
-                rankings.append({
-                    "username": handle[1:],
-                    "user_handle": handle,
-                    "score": score,
-                    "is_me": handle == current_handle,
-                })
+                rankings.append(
+                    {
+                        "username": handle[1:],
+                        "user_handle": handle,
+                        "score": score,
+                        "is_me": handle == current_handle,
+                    }
+                )
 
             # Sort by score desc
             rankings.sort(key=lambda x: x["score"], reverse=True)
@@ -277,4 +304,3 @@ class LeaderboardService:
                 raise PermissionError("Only the creator can disband this challenge")
             self.uow.leaderboard_groups.delete(group)
             self.uow.commit()
-

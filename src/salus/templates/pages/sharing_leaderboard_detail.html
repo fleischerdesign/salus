@@ -7,17 +7,12 @@
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-slate-100);padding-bottom:16px">
         <div style="display:flex;flex-direction:column;gap:6px">
             <a href="/sharing/leaderboard" style="display:inline-flex;align-items:center;gap:6px;font:var(--font-body-sm);font-weight:600;color:var(--color-primary);text-decoration:none;margin-bottom:4px">
-                <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+                {{ icon("arrow_back", size=16) }}
                 {{ _("Back to Challenges") }}
             </a>
             <div style="display:flex;align-items:center;gap:10px">
-                <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:32px">
-                    {% if group.metric_type_code == 'steps' %}footprint
-                    {% elif group.metric_type_code == 'workouts' %}fitness_center
-                    {% elif group.metric_type_code == 'sleep' %}bedtime
-                    {% elif group.metric_type_code == 'water' %}local_drink
-                    {% else %}leaderboard{% endif %}
-                </span>
+                {% set detail_icon = 'footprint' if group.metric_type_code == 'steps' else ('fitness_center' if group.metric_type_code == 'workouts' else ('bedtime' if group.metric_type_code == 'sleep' else ('local_drink' if group.metric_type_code == 'water' else 'leaderboard'))) %}
+                {{ icon(detail_icon, style="color:var(--color-primary);font-size:32px") }}
                 <h1 style="font:var(--font-headline-lg);margin:0;font-weight:800">{{ group.name }}</h1>
             </div>
             <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0;display:flex;align-items:center;gap:6px">
@@ -49,11 +44,11 @@
                 <div style="display:flex;align-items:center;gap:16px">
                     <div style="width:32px;display:flex;justify-content:center;align-items:center;font-weight:800;font-size:16px">
                         {% if loop.index == 1 %}
-                            <span class="material-symbols-outlined" style="color:#d4af37;font-size:26px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                            {{ icon("workspace_premium", style="color:#d4af37;font-size:26px;font-variation-settings:'FILL' 1") }}
                         {% elif loop.index == 2 %}
-                            <span class="material-symbols-outlined" style="color:#aaa9ad;font-size:26px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                            {{ icon("workspace_premium", style="color:#aaa9ad;font-size:26px;font-variation-settings:'FILL' 1") }}
                         {% elif loop.index == 3 %}
-                            <span class="material-symbols-outlined" style="color:#b08d57;font-size:26px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                            {{ icon("workspace_premium", style="color:#b08d57;font-size:26px;font-variation-settings:'FILL' 1") }}
                         {% else %}
                             <span style="color:var(--color-slate-400)">{{ loop.index }}</span>
                         {% endif %}

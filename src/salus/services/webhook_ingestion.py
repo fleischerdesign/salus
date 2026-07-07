@@ -34,8 +34,11 @@ class WebhookIngestionService:
             logger.debug(
                 "Record | data_type=%s | source=%s | metric_type_id=%s | "
                 "value_numeric=%s | value_json_keys=%s | start_time=%s | external_id=%s",
-                rec.data_type, rec.source, rec.metric_type_id,
-                rec.value_numeric, vj_keys,
+                rec.data_type,
+                rec.source,
+                rec.metric_type_id,
+                rec.value_numeric,
+                vj_keys,
                 rec.start_time.isoformat() if rec.start_time else None,
                 rec.external_id,
             )
@@ -58,6 +61,8 @@ class WebhookIngestionService:
                     try:
                         sub.on_measurement_created(rec)
                     except Exception as e:
-                        logger.error(f"Error notifying event subscriber during ingestion: {e}")
+                        logger.error(
+                            f"Error notifying event subscriber during ingestion: {e}"
+                        )
 
         return res

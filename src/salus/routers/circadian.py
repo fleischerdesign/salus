@@ -19,7 +19,7 @@ async def circadian_dashboard(
     user_id = uid(current_user)
     profile = service.get_or_create_profile(user_id)
     advice = service.calculate_advice(user_id)
-    
+
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/circadian.html",
@@ -44,7 +44,7 @@ async def save_profile(
         latitude=latitude,
         longitude=longitude,
         timezone_offset_hours=timezone_offset_hours,
-        configured_chronotype=configured_chronotype
+        configured_chronotype=configured_chronotype,
     )
     service.save_profile(user_id=uid(current_user), data=profile_data)
     return RedirectResponse(url="/circadian", status_code=status.HTTP_303_SEE_OTHER)

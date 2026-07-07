@@ -75,17 +75,19 @@ class AdminService:
             user_id = uid(user) if user.id is not None else 0
             measurements = self._measurement_repo.find_all(user_id=user_id)
             goals = self._goal_repo.find_by_user(user_id)
-            result.append({
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "display_name": user.display_name,
-                "is_admin": user.is_admin,
-                "is_active": user.is_active,
-                "created_at": user.created_at,
-                "measurement_count": len(measurements),
-                "goal_count": len(goals),
-            })
+            result.append(
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "display_name": user.display_name,
+                    "is_admin": user.is_admin,
+                    "is_active": user.is_active,
+                    "created_at": user.created_at,
+                    "measurement_count": len(measurements),
+                    "goal_count": len(goals),
+                }
+            )
         return result
 
     def toggle_admin(self, user_id: int) -> User:
@@ -134,7 +136,9 @@ class AdminService:
             "created_at": user.created_at,
             "identities": user.identities,
             "metrics": user.metric_types,
-            "recent_entries": self._measurement_repo.find_all(user_id=user_id, limit=10),
+            "recent_entries": self._measurement_repo.find_all(
+                user_id=user_id, limit=10
+            ),
             "goals": self._goal_repo.find_by_user(user_id),
             "tokens": self._api_token_repo.find_all_by_user(user_id),
         }

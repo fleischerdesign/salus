@@ -95,9 +95,7 @@ def calc_tef(protein_g: float, carbs_g: float, fat_g: float) -> float:
     """Thermic effect of food from macro intake.
     Protein: 25%, Carbs: 6%, Fat: 2%.
     Returns kcal."""
-    return round(
-        (protein_g * 4 * 0.25) + (carbs_g * 4 * 0.06) + (fat_g * 9 * 0.02), 1
-    )
+    return round((protein_g * 4 * 0.25) + (carbs_g * 4 * 0.06) + (fat_g * 9 * 0.02), 1)
 
 
 def calc_tdee(

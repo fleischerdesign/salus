@@ -121,6 +121,19 @@
     --_btn-bg: var(--color-slate-100);
 }
 
+.btn[data-icon-only][data-variant="primary"] {
+    --_btn-bg: var(--btn-primary-bg);
+    --_btn-text: var(--btn-primary-text);
+    --_btn-hover-bg: var(--btn-primary-hover-bg);
+}
+
+.btn[data-icon-only][data-variant="secondary"] {
+    --_btn-bg: var(--btn-secondary-bg);
+    --_btn-border: var(--btn-secondary-border);
+    --_btn-text: var(--btn-secondary-text);
+    --_btn-hover-bg: var(--btn-secondary-hover-bg);
+}
+
 /* ── Loading ──────────────────────────────────────────────── */
 
 .btn[aria-busy="true"] .btn__label {

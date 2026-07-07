@@ -15,6 +15,7 @@
             class="checkbox__input"
             {% if checked %}checked{% endif %}
             {% if disabled %}disabled{% endif %}
+            {{ kwargs | render_attrs }}
         >
         {% if label %}{{ label }}{% endif %}
     </label>

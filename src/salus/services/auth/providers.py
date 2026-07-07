@@ -17,9 +17,14 @@ class LocalAuthProvider:
 
 
 class LdapAuthProvider:
-    def __init__(self, user_service: UserService, server_uri: str, base_dn: str,
-                 user_dn_template: str = "uid={username},{base_dn}",
-                 use_tls: bool = False) -> None:
+    def __init__(
+        self,
+        user_service: UserService,
+        server_uri: str,
+        base_dn: str,
+        user_dn_template: str = "uid={username},{base_dn}",
+        use_tls: bool = False,
+    ) -> None:
         self._user_svc = user_service
         self._server_uri = server_uri
         self._base_dn = base_dn
@@ -54,8 +59,14 @@ class LdapAuthProvider:
 
 
 class OidcAuthProvider:
-    def __init__(self, name: str, issuer_url: str, client_id: str, client_secret: str,
-                 user_service: UserService) -> None:
+    def __init__(
+        self,
+        name: str,
+        issuer_url: str,
+        client_id: str,
+        client_secret: str,
+        user_service: UserService,
+    ) -> None:
         from authlib.integrations.starlette_client import OAuth
 
         self.name = name

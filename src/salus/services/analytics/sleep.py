@@ -9,7 +9,9 @@ class SleepAnalysisService:
     def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
-    def last_night(self, user_id: int | None = None, date_str: str | None = None) -> SleepSummary | None:
+    def last_night(
+        self, user_id: int | None = None, date_str: str | None = None
+    ) -> SleepSummary | None:
         if date_str is None:
             today = datetime.today()
         else:
@@ -25,7 +27,9 @@ class SleepAnalysisService:
 
     def trend(self, days: int = 7, user_id: int | None = None) -> list[SleepSummary]:
         since = datetime.today() - timedelta(days=days)
-        records = self._repo.find_all(data_types=["sleep"], user_id=user_id, since=since)
+        records = self._repo.find_all(
+            data_types=["sleep"], user_id=user_id, since=since
+        )
         summaries: list[SleepSummary] = []
         seen_dates: set[str] = set()
         for rec in records:
@@ -39,6 +43,7 @@ class SleepAnalysisService:
 
     def _build_summary(self, record) -> SleepSummary:
         import json
+
         data = json.loads(record.value_json) if record.value_json else {}
         duration = data.get("duration_seconds", 0)
         stages = data.get("stages", [])

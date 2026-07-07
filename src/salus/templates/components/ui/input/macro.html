@@ -7,8 +7,9 @@
      {{ input(name="weight", label="Weight", unit="kg", error="Required") }}
  #}
 
-{% macro input(name, type="text", label=none, placeholder=none, value=none, required=false, disabled=false, readonly=false, icon_left=none, icon_right=none, hint=none, error=none, unit=none, id=none, style=none, attrs=none) %}
+{% macro input(name, type="text", label=none, placeholder=none, value=none, required=false, disabled=false, readonly=false, icon_left=none, icon_right=none, hint=none, error=none, unit=none, id=none) %}
     {% set field_id = id or name %}
+    {% set style = kwargs.get("style") %}
 
     <div class="input {% if error %}input--error{% endif %} {% if icon_left %}input--with-icon-left{% endif %} {% if icon_right %}input--with-icon-right{% endif %}" {% if style %}style="{{ style }}"{% endif %}>
         {% if label %}
@@ -31,7 +32,7 @@
                 {% if disabled %}disabled{% endif %}
                 {% if readonly %}readonly{% endif %}
                 {% if error %}aria-describedby="{{ field_id }}-error"{% endif %}
-                {% if attrs %}{% for k, v in attrs.items() %} {{ k }}="{{ v }}"{% endfor %}{% endif %}
+                {{ kwargs | render_attrs(exclude=['style']) }}
             >
 
             {% if icon_right %}

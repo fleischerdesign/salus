@@ -1,6 +1,0 @@
-{% macro checkbox(name, label, checked=False, id=None) %}
-<div class="input-group-checkbox" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-    <input type="checkbox" id="{{ id or name }}" name="{{ name }}" value="true" {% if checked %}checked{% endif %}>
-    <label for="{{ id or name }}" style="margin: 0; font-weight: normal; cursor: pointer;">{{ label }}</label>
-</div>
-{% endmacro %}

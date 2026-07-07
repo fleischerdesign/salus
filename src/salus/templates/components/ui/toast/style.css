@@ -1,20 +1,84 @@
 /* ==========================================================================
-   Toast — @component toast (positioned top-right, auto-dismiss)
+   Toast Notifications — @component toast
    ========================================================================== */
 
-.toast-container { position: fixed; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: var(--z-tooltip, 500); max-width: 360px; width: 100%; pointer-events: none; }
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 2000;
+    pointer-events: none;
+}
 
-.toast { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); font: var(--font-body-sm); pointer-events: auto; animation: toast-in 200ms var(--ease-out); }
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--color-surface-container-highest);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    min-width: 280px;
+    max-width: 400px;
+    pointer-events: auto;
+    
+    /* Slide in animation */
+    animation: toast-slide-in 300ms var(--ease-out) forwards;
+    transition: opacity 300ms var(--ease-out), transform 300ms var(--ease-out);
+}
 
-.toast[data-variant="success"] { background: var(--color-tertiary-50); color: var(--color-tertiary-800); border: 1px solid var(--color-tertiary-200); }
-.toast[data-variant="error"] { background: var(--color-error-50); color: var(--color-error-800); border: 1px solid var(--color-error-200); }
-.toast[data-variant="warning"] { background: var(--color-warning-50); color: var(--color-warning-800); border: 1px solid var(--color-warning-200); }
-.toast[data-variant="info"] { background: var(--color-secondary-50); color: var(--color-secondary-800); border: 1px solid var(--color-secondary-200); }
+.toast--success {
+    border-left: 4px solid var(--color-tertiary-600, #10b981);
+}
 
-.toast__icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-.toast__message { flex: 1; }
-.toast__close { background: transparent; border: none; cursor: pointer; padding: 0; font-size: 16px; color: inherit; opacity: 0.6; flex-shrink: 0; } .toast__close:hover { opacity: 1; }
+.toast--info {
+    border-left: 4px solid var(--color-primary-500, #3b82f6);
+}
 
-@media (max-width: 600px) { .toast-container { left: 16px; right: 16px; max-width: 100%; } }
+.toast--error {
+    border-left: 4px solid var(--color-error-500, #ef4444);
+}
 
-@keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+.toast__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.toast__content {
+    flex: 1;
+    font: var(--font-body-sm);
+    font-weight: 600;
+}
+
+.toast__close {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--color-slate-400);
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-sm);
+}
+
+.toast__close:hover {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-700);
+}
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

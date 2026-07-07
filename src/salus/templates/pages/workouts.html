@@ -1,19 +1,69 @@
 {% extends "base.html" %}
 {% block title_suffix %} — {{ _("Workouts") }}{% endblock %}
 {% block content %}
+<div id="workouts-wrapper" data-active-tab="plans">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+
+<style>
+    /* Hidden by default */
+    .edit-mode-only-btn {
+        display: none !important;
+    }
+    /* In page editing mode, show on desktop */
+    .page-editing #header-new-plan-btn {
+        display: inline-flex !important;
+    }
+    /* Show exercise delete buttons when editing */
+    .page-editing .edit-mode-only-btn {
+        display: inline-flex !important;
+    }
+    
+    /* On mobile, show only when plans tab is active */
+    @media (max-width: 767px) {
+        .page-editing #header-new-plan-btn {
+            display: none !important;
+        }
+        #workouts-wrapper[data-active-tab="plans"].page-editing #header-new-plan-btn {
+            display: inline-flex !important;
+        }
+    }
+
+    /* Force pointer cursor and clickability on edit actions in header */
+    .edit-mode .card .edit-chrome__actions,
+    .edit-mode .card .edit-chrome__actions *,
+    .edit-mode .card .card__header-action,
+    .edit-mode .card .card__header-action * {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+</style>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
         <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Workout Planner") }}</h1>
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:4px 0 0 0">{{ _("Create plans, track sets, and get dynamic recovery-aware intensity suggestions.") }}</p>
     </div>
-    <div style="display:flex;gap:8px">
-        {{ btn(_("New Plan"), variant="primary", hx_get="/workouts/plans/new", hx_target="#modal-container", hx_swap="innerHTML") }}
-        {{ btn(_("New Exercise"), variant="secondary", hx_get="/workouts/exercises/new", hx_target="#modal-container", hx_swap="innerHTML") }}
+    <div style="display:flex;align-items:center;gap:8px">
+        {{ btn(icon="add", variant="secondary", id="header-new-plan-btn", class="edit-mode-only-btn",
+               hx_get="/workouts/plans/new", hx_target="#modal-container", hx_swap="innerHTML",
+               attrs={"data-icon-only": "true", "title": _("New Plan"), "type": "button"}) }}
+        {{ btn(icon="edit", label=_("Edit"), variant="secondary", id="edit-layout-btn",
+               hyperscript="on click
+                              toggle .page-editing on #workouts-wrapper
+                              toggle .card-grid--edit on #plans-grid
+                              toggle .edit-mode on #plans-grid
+                              if #workouts-wrapper matches .page-editing
+                                set my.innerHTML to '<span class=\"material-symbols-outlined btn__icon\">check</span> ' + '" ~ _("Done") ~ "'
+                                add @data-editing='true' to #workouts-wrapper
+                                send startEdit to #workouts-wrapper
+                              else
+                                set my.innerHTML to '<span class=\"material-symbols-outlined btn__icon\">edit</span> ' + '" ~ _("Edit") ~ "'
+                                remove @data-editing from #workouts-wrapper
+                                send endEdit to #workouts-wrapper
+                              end
+                            end") }}
     </div>
 </div>
-
-<div id="modal-container"></div>
 
 {% if active_session %}
 {{ alert_banner(title=_("Active Workout Session in Progress"),
@@ -23,99 +73,242 @@
 
 {% call form_stack(style="gap:24px") %}
 
-    {% call card(title=_("Training Plans")) %}
-        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
-            {% for plan in plans %}
-            {% call card(variant="flat", style="display:flex;flex-direction:column;justify-content:space-between;gap:12px") %}
-                <div>
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                        <h4 style="margin:0;font:var(--font-body-md);font-weight:700">{{ plan.name }}</h4>
-                        {{ chip(plan.autoreg_mode, variant="success" if plan.autoreg_mode != "disabled" else "neutral") }}
-                    </div>
-                    {% if plan.description %}
-                    <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:8px 0 0 0">{{ plan.description }}</p>
-                    {% endif %}
-                    <div style="margin-top:12px">
-                        <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-600)">{{ _("Exercises") }} ({{ plan.plan_exercises|length }}):</span>
-                        <ul style="margin:4px 0 0 0;padding-left:16px;font:var(--font-caption);color:var(--color-slate-500)">
-                            {% for pe in plan.plan_exercises %}
-                            <li>{{ pe.exercise.name }} ({{ pe.target_sets }}x{{ pe.target_reps }} @ RPE {{ pe.target_rpe or 'N/A' }})</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-                    <form method="post" action="/workouts/sessions/start?plan_id={{ plan.id }}">
-                        {{ btn(_("Start Workout"), variant="primary", size="sm", type="submit") }}
-                    </form>
-                    {{ btn(icon="delete", variant="ghost", size="sm", style="color:var(--color-error-600)",
-                           hx_delete="/api/v1/workouts/plans/" + plan.id | string,
-                           hx_confirm=_("Are you sure you want to delete this plan?"),
-                           hx_swap="none",
-                           hyperscript="on click wait 200ms then reload() the location of the window") }}
-                </div>
-            {% endcall %}
-            {% else %}
-            {{ empty_state(icon="fitness_center", title=_("No training plans created yet."), style="grid-column:1/-1") }}
-            {% endfor %}
-        </div>
-    {% endcall %}
+    <style>
+        .workouts-tab-bar {
+            display: none;
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 767px) {
+            .workouts-tab-bar {
+                display: flex;
+            }
+            
+            .workouts-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+            
+            .workouts-grid-columns {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+            
+            /* Hide non-active tabs on mobile by default */
+            .workouts-section:not([data-active="true"]) {
+                display: none !important;
+            }
+        }
+    </style>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px">
-
-        {% call card(title=_("Exercise Library")) %}
-            {% call form_stack() %}
-                {% for ex in exercises %}
-                {% call list_item(style="justify-content:space-between") %}
-                    <div class="list-item__body">
-                        <div class="list-item__primary">{{ ex.name }}</div>
-                        <div class="list-item__secondary">
-                            <span style="text-transform:capitalize">{{ ex.equipment }}</span> &middot;
-                            {{ _("Target") }}: <span style="text-transform:capitalize;color:var(--color-primary)">{{ ex.primary_muscles.replace(',', ', ') }}</span>
-                        </div>
-                    </div>
-                    <div class="list-item__action" style="display:flex;gap:4px">
-                        {% if ex.video_url %}
-                        {{ btn(icon="smart_display", variant="ghost", size="sm", href=ex.video_url, attrs={"target": "_blank"}, aria_label=_("Watch tutorial")) }}
-                        {% endif %}
-                        {% if ex.user_id %}
-                        {{ btn(icon="delete", variant="ghost", size="sm", style="color:var(--color-error-600)",
-                               hx_delete="/api/v1/workouts/exercises/" + ex.id | string,
-                               hx_swap="none",
-                               hyperscript="on click wait 200ms then reload() the location of the window") }}
-                        {% endif %}
-                    </div>
-                {% endcall %}
-                {% else %}
-                {{ empty_state(icon="fitness_center", title=_("No exercises cataloged.")) }}
-                {% endfor %}
-            {% endcall %}
-        {% endcall %}
-
-        {% call card(title=_("Recent Workouts")) %}
-            {% call form_stack() %}
-                {% for sess in recent_sessions %}
-                {% call card(variant="flat", style="padding:12px") %}
-                    <div style="display:flex;justify-content:space-between;font:var(--font-caption);color:var(--color-slate-500)">
-                        <span>{{ sess.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                        {% if sess.recovery_score %}
-                        <span style="font-weight:600;color:var(--color-primary)">{{ _("Recovery") }}: {{ sess.recovery_score|round(0) }}%</span>
-                        {% endif %}
-                    </div>
-                    <div style="font-weight:600;font:var(--font-body-md);margin-top:4px;color:var(--color-on-surface)">
-                        {% if sess.plan %}{{ sess.plan.name }}{% else %}{{ _("Quick Workout") }}{% endif %}
-                    </div>
-                    {% if sess.notes %}
-                    <p style="margin:4px 0 0 0;font:var(--font-body-sm);color:var(--color-slate-500);font-style:italic">"{{ sess.notes }}"</p>
-                    {% endif %}
-                {% endcall %}
-                {% else %}
-                {{ empty_state(icon="history", title=_("No workout history recorded yet.")) }}
-                {% endfor %}
-            {% endcall %}
-        {% endcall %}
-
+    <div class="tab-bar workouts-tab-bar" role="tablist">
+        <button class="tab-bar__tab" role="tab" aria-selected="true"
+                _="on click
+                     set <button.tab-bar__tab/>'s @aria-selected to 'false'
+                     set my @aria-selected to 'true'
+                     set <section.workouts-section/>'s @data-active to 'false'
+                     set #tab-plans's @data-active to 'true'
+                     set #workouts-wrapper's @data-active-tab to 'plans'
+                   end">
+            {{ _("Plans") }}
+        </button>
+        <button class="tab-bar__tab" role="tab" aria-selected="false"
+                _="on click
+                     set <button.tab-bar__tab/>'s @aria-selected to 'false'
+                     set my @aria-selected to 'true'
+                     set <section.workouts-section/>'s @data-active to 'false'
+                     set #tab-exercises's @data-active to 'true'
+                     set #workouts-wrapper's @data-active-tab to 'exercises'
+                   end">
+            {{ _("Exercises") }}
+        </button>
+        <button class="tab-bar__tab" role="tab" aria-selected="false"
+                _="on click
+                     set <button.tab-bar__tab/>'s @aria-selected to 'false'
+                     set my @aria-selected to 'true'
+                     set <section.workouts-section/>'s @data-active to 'false'
+                     set #tab-history's @data-active to 'true'
+                     set #workouts-wrapper's @data-active-tab to 'history'
+                   end">
+            {{ _("History") }}
+        </button>
     </div>
 
+    <div class="workouts-grid" style="display:flex;flex-direction:column;gap:24px">
+        
+        <section id="tab-plans" class="workouts-section" data-active="true">
+            <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
+                {% for plan in plans %}
+                {% set plan_actions %}
+                    {{ btn(icon="settings", variant="ghost", size="sm", 
+                           hx_get="/workouts/plans/" + plan.id | string + "/edit", 
+                           hx_target="#modal-container", hx_swap="innerHTML", 
+                           attrs={"data-icon-only": "true", "type": "button"}) }}
+                    {{ btn(icon="delete", variant="ghost", size="sm", style="color:var(--color-error-600)", 
+                           hx_delete="/api/v1/workouts/plans/" + plan.id | string, 
+                           hx_confirm=_("Are you sure you want to delete this plan?"), 
+                           hx_target="#plan-card-" + plan.id | string, 
+                           hx_swap="outerHTML",
+                           attrs={"data-icon-only": "true", "type": "button"}) }}
+                {% endset %}
+                {% set plan_header_action %}
+                    {{ chip(plan.autoreg_mode, variant="success" if plan.autoreg_mode != "disabled" else "neutral") }}
+                {% endset %}
+                {% call card(id="plan-card-" + plan.id | string,
+                             title=plan.name,
+                             header_action=plan_header_action,
+                             drag_handle=true, card_actions=plan_actions,
+                             style="display:flex;flex-direction:column;justify-content:space-between;gap:12px",
+                             attrs={"data-plan-id": plan.id | string}) %}
+                    <div>
+                        {% if plan.description %}
+                        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:8px 0 0 0">{{ plan.description }}</p>
+                        {% endif %}
+                        <div style="margin-top:12px">
+                            <span style="font:var(--font-caption);font-weight:600;color:var(--color-slate-600)">{{ _("Exercises") }} ({{ plan.plan_exercises|length }}):</span>
+                            <ul style="margin:4px 0 0 0;padding-left:16px;font:var(--font-caption);color:var(--color-slate-500)">
+                                {% for pe in plan.plan_exercises %}
+                                <li>{{ pe.exercise.name }} ({{ pe.target_sets }}x{{ pe.target_reps }} @ RPE {{ pe.target_rpe or 'N/A' }})</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                        <form method="post" action="/workouts/sessions/start?plan_id={{ plan.id }}">
+                            {{ btn(_("Start Workout"), variant="primary", size="sm", type="submit") }}
+                        </form>
+                    </div>
+                {% endcall %}
+                {% else %}
+                {{ empty_state(icon="fitness_center", title=_("No training plans created yet."), style="grid-column:1/-1") }}
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="workouts-grid-columns" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px">
+            
+            <section id="tab-exercises" class="workouts-section" data-active="false">
+                {% call card(title=_("Exercise Library")) %}
+                    {% call form_stack(style="gap:8px") %}
+                        {% for ex in exercises %}
+                        {% call card(id="workout-exercise-row-" + ex.id | string, variant="flat", style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;gap:12px") %}
+                            <div style="flex:1">
+                                <div style="font-weight:600;font:var(--font-body-md);color:var(--color-on-surface)">{{ ex.name }}</div>
+                                <div style="font:var(--font-caption);color:var(--color-slate-500);margin-top:4px">
+                                    <span style="text-transform:capitalize">{{ ex.equipment }}</span> &middot;
+                                    {{ _("Target") }}: <span style="text-transform:capitalize;color:var(--color-primary)">{{ ex.primary_muscles.replace(',', ', ') }}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+                                {% if ex.video_url %}
+                                {{ btn(icon="smart_display", variant="ghost", size="sm", href=ex.video_url, attrs={"target": "_blank"}, aria_label=_("Watch tutorial")) }}
+                                {% endif %}
+                                {% if ex.user_id %}
+                                {{ btn(icon="delete", variant="ghost", size="sm", class="edit-mode-only-btn", style="color:var(--color-error-600)",
+                                       hx_delete="/api/v1/workouts/exercises/" + ex.id | string,
+                                       hx_target="#workout-exercise-row-" + ex.id | string,
+                                       hx_swap="outerHTML") }}
+                                {% endif %}
+                            </div>
+                        {% endcall %}
+                        {% else %}
+                        {{ empty_state(icon="fitness_center", title=_("No exercises cataloged.")) }}
+                        {% endfor %}
+                    {% endcall %}
+                {% endcall %}
+            </section>
+
+            <section id="tab-history" class="workouts-section" data-active="false">
+                {% call card(title=_("Recent Workouts")) %}
+                    {% call form_stack() %}
+                        {% for sess in recent_sessions %}
+                        {% call card(variant="flat", style="padding:12px") %}
+                            <div style="display:flex;justify-content:space-between;font:var(--font-caption);color:var(--color-slate-500)">
+                                <span>{{ sess.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                {% if sess.recovery_score %}
+                                <span style="font-weight:600;color:var(--color-primary)">{{ _("Recovery") }}: {{ sess.recovery_score|round(0) }}%</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-weight:600;font:var(--font-body-md);margin-top:4px;color:var(--color-on-surface)">
+                                {% if sess.plan %}{{ sess.plan.name }}{% else %}{{ _("Quick Workout") }}{% endif %}
+                            </div>
+                            {% if sess.notes %}
+                            <p style="margin:4px 0 0 0;font:var(--font-body-sm);color:var(--color-slate-500);font-style:italic">"{{ sess.notes }}"</p>
+                            {% endif %}
+                        {% endcall %}
+                        {% else %}
+                        {{ empty_state(icon="history", title=_("No workout history recorded yet.")) }}
+                        {% endfor %}
+                    {% endcall %}
+                {% endcall %}
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        let sortableInstance = null;
+        let startEditHandler = null;
+        let endEditHandler = null;
+
+        function setupPlansSortable() {
+            const grid = document.getElementById('plans-grid');
+            const wrapper = document.getElementById('workouts-wrapper');
+            if (!grid || !wrapper) return;
+
+            // Clean up previous event listeners to prevent duplicate bindings on HTMX swaps
+            if (startEditHandler) wrapper.removeEventListener('startEdit', startEditHandler);
+            if (endEditHandler) wrapper.removeEventListener('endEdit', endEditHandler);
+
+            startEditHandler = function() {
+                if (sortableInstance) sortableInstance.destroy();
+                sortableInstance = new Sortable(grid, {
+                    handle: '.card__header',
+                    filter: '.edit-chrome__actions,.edit-chrome__actions *,.card__header-action,.card__header-action *',
+                    preventOnFilter: false,
+                    animation: 150,
+                    ghostClass: 'card-grid__ghost',
+                    onEnd: function(evt) {
+                        var ids = Array.from(evt.to.children)
+                            .map(function(el) { return el.getAttribute('data-plan-id'); })
+                            .filter(Boolean);
+                        htmx.ajax('POST', '/workouts/plans/reorder', {
+                            values: { 'ids': ids.join(',') }
+                        });
+                    }
+                });
+            };
+
+            endEditHandler = function() {
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                    sortableInstance = null;
+                }
+            };
+
+            wrapper.addEventListener('startEdit', startEditHandler);
+            wrapper.addEventListener('endEdit', endEditHandler);
+
+            // Trigger immediately if already in edit mode (e.g. after tab swap)
+            if (wrapper.classList.contains('page-editing')) {
+                startEditHandler();
+            }
+        }
+
+        // Initialize when DOM is ready or after swap
+        if (document.readyState === 'loading') {
+            document.addEventListener("DOMContentLoaded", setupPlansSortable);
+        } else {
+            setupPlansSortable();
+        }
+        document.body.addEventListener("htmx:afterSwap", function(e) {
+            setupPlansSortable();
+        });
+    })();
+    </script>
 {% endcall %}
+</div>
 {% endblock %}

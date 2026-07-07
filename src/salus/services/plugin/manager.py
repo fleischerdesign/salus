@@ -40,21 +40,28 @@ class PluginManager:
 
         # 2. Try to query database configs
         from sqlalchemy.exc import OperationalError
+
         try:
             with self.uow:
                 config = self.uow.system_configs.get_by_key("enabled_plugins")
                 if not config:
-                    self.uow.system_configs.upsert("enabled_plugins", json.dumps(list(all_ids)))
+                    self.uow.system_configs.upsert(
+                        "enabled_plugins", json.dumps(list(all_ids))
+                    )
                     return all_ids
                 return set(json.loads(config.value))
         except (OperationalError, Exception):
-            logger.info("Database or system_config table not yet initialized. Defaulting to loading all discovered plugins on disk.")
+            logger.info(
+                "Database or system_config table not yet initialized. Defaulting to loading all discovered plugins on disk."
+            )
             return all_ids
 
     def discover_and_load_all(self) -> None:
         """Scans the plugins directory and loads plugins that are enabled in config."""
         if not self.plugins_dir.exists():
-            logger.warning(f"Plugins directory {self.plugins_dir} does not exist. Creating it.")
+            logger.warning(
+                f"Plugins directory {self.plugins_dir} does not exist. Creating it."
+            )
             self.plugins_dir.mkdir(parents=True, exist_ok=True)
             return
 
@@ -64,7 +71,9 @@ class PluginManager:
             if path.is_dir() and not path.name.startswith("__"):
                 manifest_path = path / "manifest.json"
                 if not manifest_path.exists():
-                    logger.debug(f"Skipping directory {path.name}: manifest.json not found")
+                    logger.debug(
+                        f"Skipping directory {path.name}: manifest.json not found"
+                    )
                     continue
 
                 try:
@@ -76,16 +85,19 @@ class PluginManager:
                     else:
                         logger.info(f"Plugin {plugin_id} is disabled. Skipping load.")
                 except Exception as e:
-                    logger.error(f"Failed to load plugin from {path.name}: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Failed to load plugin from {path.name}: {str(e)}",
+                        exc_info=True,
+                    )
 
     def get_discovered_plugins(self) -> list[dict]:
         """Scans disk to find all plugins and checks database for active status."""
         discovered = []
         enabled_ids = self._get_enabled_plugin_ids()
-        
+
         if not self.plugins_dir.exists():
             return []
-            
+
         for path in self.plugins_dir.iterdir():
             if path.is_dir() and not path.name.startswith("__"):
                 manifest_path = path / "manifest.json"
@@ -110,10 +122,12 @@ class PluginManager:
             enabled_ids.add(plugin_id)
         else:
             enabled_ids.discard(plugin_id)
-            
+
         with self.uow:
-            self.uow.system_configs.upsert("enabled_plugins", json.dumps(list(enabled_ids)))
-            
+            self.uow.system_configs.upsert(
+                "enabled_plugins", json.dumps(list(enabled_ids))
+            )
+
         # Dynamically load or unload in memory
         if enable:
             if plugin_id not in self.loaded_plugins:
@@ -142,22 +156,27 @@ class PluginManager:
 
     def install_plugin(self, zip_file_bytes: bytes) -> str:
         """Securely extracts a plugin ZIP file to the plugins directory."""
-        temp_dir = self.plugins_dir / f"temp_install_{int(datetime.now(timezone.utc).timestamp())}"
+        temp_dir = (
+            self.plugins_dir
+            / f"temp_install_{int(datetime.now(timezone.utc).timestamp())}"
+        )
         temp_dir.mkdir(parents=True, exist_ok=True)
-        
+
         try:
             with zipfile.ZipFile(io.BytesIO(zip_file_bytes)) as z:
                 # Security Check: path traversal / zip slip
                 for name in z.namelist():
                     target_path = (temp_dir / name).resolve()
                     if temp_dir not in target_path.parents and target_path != temp_dir:
-                        raise ValueError(f"Security validation failed: invalid path in zip file: {name}")
-                
+                        raise ValueError(
+                            f"Security validation failed: invalid path in zip file: {name}"
+                        )
+
                 z.extractall(temp_dir)
-                
+
             manifest_path = temp_dir / "manifest.json"
             src_dir = temp_dir
-            
+
             if not manifest_path.exists():
                 # Check if there is exactly one subfolder containing manifest.json
                 subdirs = [p for p in temp_dir.iterdir() if p.is_dir()]
@@ -165,26 +184,28 @@ class PluginManager:
                     manifest_path = subdirs[0] / "manifest.json"
                     src_dir = subdirs[0]
                 else:
-                    raise ValueError("manifest.json not found in ZIP archive root or single subdirectory")
-                    
+                    raise ValueError(
+                        "manifest.json not found in ZIP archive root or single subdirectory"
+                    )
+
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
-                
+
             plugin_id = manifest.get("id")
             if not plugin_id:
                 raise ValueError("Plugin manifest missing 'id'")
-                
+
             final_dir = self.plugins_dir / plugin_id
             if final_dir.exists():
                 self.toggle_plugin(plugin_id, enable=False)
                 shutil.rmtree(final_dir)
-                
+
             shutil.copytree(src_dir, final_dir)
             logger.info(f"Successfully installed plugin files to {final_dir}")
-            
+
             self.toggle_plugin(plugin_id, enable=True)
             return plugin_id
-            
+
         finally:
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
@@ -192,12 +213,14 @@ class PluginManager:
     def uninstall_plugin(self, plugin_id: str) -> None:
         """Disables the plugin, unloads it, and removes its directory from disk."""
         self.toggle_plugin(plugin_id, enable=False)
-        
+
         enabled_ids = self._get_enabled_plugin_ids()
         enabled_ids.discard(plugin_id)
         with self.uow:
-            self.uow.system_configs.upsert("enabled_plugins", json.dumps(list(enabled_ids)))
-            
+            self.uow.system_configs.upsert(
+                "enabled_plugins", json.dumps(list(enabled_ids))
+            )
+
         final_dir = self.plugins_dir / plugin_id
         if final_dir.exists() and final_dir.is_dir():
             shutil.rmtree(final_dir)
@@ -211,20 +234,28 @@ class PluginManager:
         entrypoint = manifest.get("entrypoint")
 
         if not plugin_id or not entrypoint:
-            raise ValueError("Plugin manifest missing required 'id' or 'entrypoint' fields")
+            raise ValueError(
+                "Plugin manifest missing required 'id' or 'entrypoint' fields"
+            )
 
-        logger.info(f"Loading plugin: {plugin_id} (version {manifest.get('version', '0.0.0')})")
+        logger.info(
+            f"Loading plugin: {plugin_id} (version {manifest.get('version', '0.0.0')})"
+        )
 
         parts = entrypoint.split(".")
         if len(parts) != 2:
-            raise ValueError(f"Invalid entrypoint format: '{entrypoint}'. Expected 'module_name.ClassName'")
+            raise ValueError(
+                f"Invalid entrypoint format: '{entrypoint}'. Expected 'module_name.ClassName'"
+            )
         module_name, class_name = parts
 
         module_file = plugin_dir / f"{module_name}.py"
         if not module_file.exists():
             raise FileNotFoundError(f"Entrypoint module file '{module_file}' not found")
 
-        spec = importlib.util.spec_from_file_location(f"salus.plugins.{plugin_id}.{module_name}", module_file)
+        spec = importlib.util.spec_from_file_location(
+            f"salus.plugins.{plugin_id}.{module_name}", module_file
+        )
         if spec is None or spec.loader is None:
             raise ImportError(f"Could not load spec for module {module_file}")
 
@@ -233,10 +264,14 @@ class PluginManager:
 
         plugin_class = getattr(module, class_name, None)
         if plugin_class is None:
-            raise AttributeError(f"Class '{class_name}' not found in module '{module_name}'")
+            raise AttributeError(
+                f"Class '{class_name}' not found in module '{module_name}'"
+            )
 
         if not issubclass(plugin_class, BasePlugin):
-            raise TypeError(f"Plugin class '{class_name}' must inherit from salus.services.plugin.base.BasePlugin")
+            raise TypeError(
+                f"Plugin class '{class_name}' must inherit from salus.services.plugin.base.BasePlugin"
+            )
 
         context = PluginContext(self.uow, manifest)
         plugin_instance = plugin_class(context)
@@ -255,6 +290,8 @@ class PluginManager:
                 plugin.on_unload()
                 logger.info(f"Unloaded plugin: {plugin_id}")
             except Exception as e:
-                logger.error(f"Error unloading plugin {plugin_id}: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Error unloading plugin {plugin_id}: {str(e)}", exc_info=True
+                )
         self.loaded_plugins.clear()
         self.registry = HookRegistry()

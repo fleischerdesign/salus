@@ -4,7 +4,9 @@ from salus.services.insight.providers.base import ILlmProvider
 
 
 class OpenAiProvider(ILlmProvider):
-    def __init__(self, api_key: str, api_url: str = "https://api.openai.com/v1") -> None:
+    def __init__(
+        self, api_key: str, api_url: str = "https://api.openai.com/v1"
+    ) -> None:
         self.api_key = api_key
         self.api_url = api_url
 

@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta
 import json
 
-from salus.models.analytics import ExerciseSession, HROHLC, HRSummary, HRTimelinePoint, StepDay
+from salus.models.analytics import (
+    ExerciseSession,
+    HROHLC,
+    HRSummary,
+    HRTimelinePoint,
+    StepDay,
+)
 from salus.repositories.protocols import IMeasurementRepository
 from salus.services.analytics.calculations import map_exercise_type
 
@@ -10,9 +16,13 @@ class ActivityAnalysisService:
     def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
-    def steps_trend(self, days: int = 7, user_id: int | None = None, date: str | None = None) -> list[StepDay]:
-        anchor = datetime.today() if date is None else datetime.strptime(date, "%Y-%m-%d")
-        
+    def steps_trend(
+        self, days: int = 7, user_id: int | None = None, date: str | None = None
+    ) -> list[StepDay]:
+        anchor = (
+            datetime.today() if date is None else datetime.strptime(date, "%Y-%m-%d")
+        )
+
         # Query the entire range in a single database lookup
         start_date_str = (anchor - timedelta(days=days - 1)).strftime("%Y-%m-%d")
         since = datetime.fromisoformat(start_date_str + "T00:00:00")
@@ -41,7 +51,9 @@ class ActivityAnalysisService:
         result.sort(key=lambda s: s.date)
         return result
 
-    def heart_rate_summary(self, user_id: int | None = None, date_str: str | None = None) -> HRSummary | None:
+    def heart_rate_summary(
+        self, user_id: int | None = None, date_str: str | None = None
+    ) -> HRSummary | None:
         if date_str is None:
             date_str = datetime.today().strftime("%Y-%m-%d")
         since = datetime.fromisoformat(date_str + "T00:00:00")
@@ -113,7 +125,7 @@ class ActivityAnalysisService:
 
         result: list[HROHLC] = []
         for i in range(days - 1, -1, -1):
-            d = (anchor - timedelta(days=i))
+            d = anchor - timedelta(days=i)
             d_str = d.strftime("%Y-%m-%d")
             day_records = by_date.get(d_str, [])
             bpms = [
@@ -147,7 +159,9 @@ class ActivityAnalysisService:
                 )
         return result
 
-    def exercise_history(self, days: int = 30, user_id: int | None = None, limit: int = 10) -> list[ExerciseSession]:
+    def exercise_history(
+        self, days: int = 30, user_id: int | None = None, limit: int = 10
+    ) -> list[ExerciseSession]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
             data_types=["exercise"], user_id=user_id, since=since, limit=limit

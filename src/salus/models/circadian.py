@@ -13,6 +13,8 @@ class CircadianProfile(SQLModel, table=True):
     latitude: float = Field(default=52.52)  # Default Berlin
     longitude: float = Field(default=13.40)
     timezone_offset_hours: float = Field(default=1.0)
-    configured_chronotype: str = Field(default="intermediate")  # lark, owl, intermediate
+    configured_chronotype: str = Field(
+        default="intermediate"
+    )  # lark, owl, intermediate
 
     user: "User" = Relationship(back_populates="circadian_profile")

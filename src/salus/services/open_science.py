@@ -24,29 +24,33 @@ class OpenScienceService:
         sgn = 1.0 if u >= 0 else -1.0
         return loc - scale * sgn * math.log(1.0 - 2.0 * abs(u))
 
-    def synthesize(self, user_id: int, req: OpenScienceSynthesizeRequest) -> dict[str, Any]:
+    def synthesize(
+        self, user_id: int, req: OpenScienceSynthesizeRequest
+    ) -> dict[str, Any]:
         """
         Aggregates metrics by week, applies demographic binning, and adds Laplace noise
         to implement Local Differential Privacy (LDP) for research data donation.
         """
         # Sensitivity settings (delta f) representing maximum daily change divided by 7 days
         sensitivities = {
-            "steps": 2142.0,                # Max 15,000 steps per day variation / 7
-            "sleep_duration": 7200.0,        # Max 14 hours sleep variation in seconds / 7
-            "resting_heart_rate": 17.0,     # Max 120 bpm variation / 7
-            "active_calories": 285.0,       # Max 2000 kcal variation / 7
+            "steps": 2142.0,  # Max 15,000 steps per day variation / 7
+            "sleep_duration": 7200.0,  # Max 14 hours sleep variation in seconds / 7
+            "resting_heart_rate": 17.0,  # Max 120 bpm variation / 7
+            "active_calories": 285.0,  # Max 2000 kcal variation / 7
         }
 
         # 1. Fetch metrics from the past N weeks
         start_date = datetime.now(timezone.utc) - timedelta(weeks=req.weeks)
-        
+
         with self.uow:
             # Query all metric types owned by the user
             metric_types = self.uow.metric_types.find_all(user_id)
-            
+
             # Build case-insensitive mapping: e.g., "steps" -> MetricType
-            metric_map = {mt.name.lower(): mt for mt in metric_types if mt.id is not None}
-            
+            metric_map = {
+                mt.name.lower(): mt for mt in metric_types if mt.id is not None
+            }
+
             # Map common variants to pre-seeded metric types
             aliases = {
                 "sleep_duration": "sleep",
@@ -61,7 +65,7 @@ class OpenScienceService:
                 mt = metric_map.get(normalized_name)
                 if not mt:
                     continue
-                
+
                 print("DEBUG: found mt = ", mt.name, "id =", mt.id)
                 # Fetch raw measurements
                 measurements = self.uow.measurements.find_by_metric_type(
@@ -70,42 +74,55 @@ class OpenScienceService:
                 )
                 print("DEBUG: measurements count =", len(measurements))
                 for m in measurements:
-                    print("DEBUG: m id =", m.id, "m.start_time =", m.start_time, "m.value_numeric =", m.value_numeric, "m.user_id =", m.user_id, "m.metric_type_id =", m.metric_type_id)
-                
+                    print(
+                        "DEBUG: m id =",
+                        m.id,
+                        "m.start_time =",
+                        m.start_time,
+                        "m.value_numeric =",
+                        m.value_numeric,
+                        "m.user_id =",
+                        m.user_id,
+                        "m.metric_type_id =",
+                        m.metric_type_id,
+                    )
+
                 for m in measurements:
                     if m.start_time.replace(tzinfo=timezone.utc) < start_date:
                         continue
-                    
+
                     # Group by ISO week: "YYYY-Www"
                     year, week, _ = m.start_time.isocalendar()
                     week_key = f"{year}-W{week:02d}"
-                    
+
                     if m.value_numeric is not None:
-                        weekly_data.setdefault(week_key, {}).setdefault(metric_name, []).append(float(m.value_numeric))
+                        weekly_data.setdefault(week_key, {}).setdefault(
+                            metric_name, []
+                        ).append(float(m.value_numeric))
 
             # 2. Aggregate and apply Differential Privacy
             synthesized_records = []
             for week_key in sorted(weekly_data.keys()):
                 record: dict[str, Any] = {"week": week_key}
-                
+
                 for metric_name in req.metrics:
                     values = weekly_data[week_key].get(metric_name, [])
                     if not values:
                         continue
-                    
+
                     raw_average = sum(values) / len(values)
-                    
+
                     # Calculate noise scale (b = sensitivity / epsilon)
                     sensitivity = sensitivities.get(metric_name, 1.0)
                     scale = sensitivity / req.epsilon
-                    
+
                     # Add Laplace noise
                     noise = self.sample_laplace(0.0, scale)
                     noisy_value = raw_average + noise
-                    
+
                     # Ensure positive bounds
                     record[metric_name] = max(0.0, noisy_value)
-                    
+
                 if len(record) > 1:  # Contains more than just the week key
                     synthesized_records.append(record)
 
@@ -128,5 +145,5 @@ class OpenScienceService:
                 "differential_privacy": {
                     "epsilon": req.epsilon,
                     "noise_distribution": "Laplace",
-                }
+                },
             }

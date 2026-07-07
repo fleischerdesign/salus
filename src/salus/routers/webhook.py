@@ -32,12 +32,15 @@ def run_background_ingest(payload: dict | list, user_id: int, db_engine):
             inserted, duplicates = service.ingest(payload, user_id)
             logger.info(
                 "Background ingestion complete | user_id=%d | inserted=%d | duplicates=%d",
-                user_id, inserted, duplicates
+                user_id,
+                inserted,
+                duplicates,
             )
 
             if inserted > 0:
                 from salus.services.sharing import SharingService
                 from salus.repositories.unit_of_work import SqlUnitOfWork
+
                 uow = SqlUnitOfWork(session)
                 sharing_svc = SharingService(uow)
 
@@ -51,9 +54,16 @@ def run_background_ingest(payload: dict | list, user_id: int, db_engine):
                     try:
                         sharing_svc.notify_peers_of_update(user_id, data_type, date_str)
                     except Exception as exc:
-                        logger.warning(f"Failed to notify peer of webhook update: {exc}")
+                        logger.warning(
+                            f"Failed to notify peer of webhook update: {exc}"
+                        )
     except Exception as e:
-        logger.error("Background ingestion failed | user_id=%d | error=%s", user_id, str(e), exc_info=True)
+        logger.error(
+            "Background ingestion failed | user_id=%d | error=%s",
+            user_id,
+            str(e),
+            exc_info=True,
+        )
 
 
 @router.post("/webhook", status_code=202)
@@ -67,8 +77,12 @@ async def webhook_ingest(
     except JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 
-    keys = list(payload) if isinstance(payload, dict) else f"[list, {len(payload)} items]"
+    keys = (
+        list(payload) if isinstance(payload, dict) else f"[list, {len(payload)} items]"
+    )
     logger.info("Webhook received | user=%s | keys=%s", current_user.username, keys)
 
-    background_tasks.add_task(run_background_ingest, payload, uid(current_user), request.app.state.engine)
+    background_tasks.add_task(
+        run_background_ingest, payload, uid(current_user), request.app.state.engine
+    )
     return {"status": "accepted", "message": "Ingestion task queued successfully"}

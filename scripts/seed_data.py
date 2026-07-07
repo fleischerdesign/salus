@@ -29,6 +29,7 @@ import salus.models.measurement  # noqa: F401
 import salus.models.system_config  # noqa: F401
 import salus.models.user  # noqa: F401
 import salus.models.user_identity  # noqa: F401
+import salus.models.workout  # noqa: F401
 from salus.database import engine
 from salus.models import MetricType
 from salus.models.measurement import Measurement
@@ -316,6 +317,127 @@ def _resolve_user(session: Session, username: str, password: str) -> int:
     return user.id
 
 
+def _seed_workout_plans_and_sessions(session: Session, user_id: int, dry_run: bool = False) -> None:
+    from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, WorkoutSession, WorkoutLogEntry
+
+    default_exercises = [
+        {"name": "Squat", "equipment": "barbell", "primary_muscles": "quadriceps,gluteus_maximus", "secondary_muscles": "hamstrings,core"},
+        {"name": "Bench Press", "equipment": "barbell", "primary_muscles": "pectoralis_major", "secondary_muscles": "triceps,deltoids"},
+        {"name": "Deadlift", "equipment": "barbell", "primary_muscles": "hamstrings,gluteus_maximus,erector_spinae", "secondary_muscles": "forearms,core"},
+        {"name": "Overhead Press", "equipment": "barbell", "primary_muscles": "deltoids", "secondary_muscles": "triceps"},
+        {"name": "Pull-Up", "equipment": "bodyweight", "primary_muscles": "latissimus_dorsi,biceps", "secondary_muscles": "forearms"},
+    ]
+
+    exercise_objs = {}
+    for ex_data in default_exercises:
+        ex = session.exec(select(Exercise).where(Exercise.name == ex_data["name"])).first()
+        if not ex:
+            if dry_run:
+                print(f"  [DRY RUN] Would create exercise: {ex_data['name']}")
+                # create a dummy so the rest of the dry run script doesn't key error
+                ex = Exercise(id=999, name=ex_data["name"], equipment=ex_data["equipment"], primary_muscles=ex_data["primary_muscles"])
+            else:
+                ex = Exercise(
+                    name=ex_data["name"],
+                    equipment=ex_data["equipment"],
+                    primary_muscles=ex_data["primary_muscles"],
+                    secondary_muscles=ex_data["secondary_muscles"],
+                    description=f"Standard {ex_data['name']} exercise.",
+                    user_id=None,
+                )
+                session.add(ex)
+                session.flush()
+        exercise_objs[ex_data["name"]] = ex
+
+    plan_name = "Starting Strength"
+    plan = session.exec(select(WorkoutPlan).where(WorkoutPlan.name == plan_name, WorkoutPlan.user_id == user_id)).first()
+    if not plan:
+        if dry_run:
+            print(f"  [DRY RUN] Would create workout plan: {plan_name}")
+            plan = WorkoutPlan(id=999, name=plan_name, user_id=user_id)
+        else:
+            print(f"Creating workout plan '{plan_name}'...")
+            plan = WorkoutPlan(
+                name=plan_name,
+                description="Classic 3x5 barbell training program.",
+                user_id=user_id,
+                autoreg_mode="advisory",
+            )
+            session.add(plan)
+            session.flush()
+
+            plan_ex_data = [
+                {"name": "Squat", "seq": 0, "sets": 3, "reps": 5, "rpe": 8.0},
+                {"name": "Bench Press", "seq": 1, "sets": 3, "reps": 5, "rpe": 8.0},
+                {"name": "Deadlift", "seq": 2, "sets": 1, "reps": 5, "rpe": 9.0},
+            ]
+            for item in plan_ex_data:
+                ex = exercise_objs[item["name"]]
+                pe = WorkoutPlanExercise(
+                    plan_id=plan.id,
+                    exercise_id=ex.id,
+                    sequence=item["seq"],
+                    target_sets=item["sets"],
+                    target_reps=item["reps"],
+                    target_rpe=item["rpe"],
+                )
+                session.add(pe)
+            session.flush()
+
+    existing_sessions = session.exec(select(WorkoutSession).where(WorkoutSession.user_id == user_id)).first()
+    if not existing_sessions:
+        if dry_run:
+            print("  [DRY RUN] Would create 2 completed workout sessions and log entries.")
+        else:
+            print("Seeding past completed workout sessions...")
+            now = datetime.now(timezone.utc)
+            session_dates = [now - timedelta(days=5), now - timedelta(days=2)]
+            
+            for i, sess_dt in enumerate(session_dates):
+                ws = WorkoutSession(
+                    user_id=user_id,
+                    plan_id=plan.id,
+                    started_at=sess_dt - timedelta(minutes=60),
+                    completed_at=sess_dt,
+                    autoreg_mode="advisory",
+                    recovery_score=82.0 + (i * 5.0),
+                    notes=f"Workout session {i+1} completed successfully.",
+                )
+                session.add(ws)
+                session.flush()
+
+                for s in range(1, 4):
+                    log = WorkoutLogEntry(
+                        session_id=ws.id,
+                        exercise_id=exercise_objs["Squat"].id,
+                        set_number=s,
+                        weight=80.0 + (i * 5.0),
+                        reps=5,
+                        rpe=8.0,
+                    )
+                    session.add(log)
+                for s in range(1, 4):
+                    log = WorkoutLogEntry(
+                        session_id=ws.id,
+                        exercise_id=exercise_objs["Bench Press"].id,
+                        set_number=s,
+                        weight=60.0 + (i * 2.5),
+                        reps=5,
+                        rpe=7.5,
+                    )
+                    session.add(log)
+                log = WorkoutLogEntry(
+                    session_id=ws.id,
+                    exercise_id=exercise_objs["Deadlift"].id,
+                    set_number=1,
+                    weight=100.0 + (i * 10.0),
+                    reps=5,
+                    rpe=9.0,
+                )
+                session.add(log)
+            session.flush()
+
+
 # ── CLI ─────────────────────────────────────────────────────────────────
 def main() -> None:
     parser = argparse.ArgumentParser(description="Seed salus with sample health data.")
@@ -387,6 +509,8 @@ def main() -> None:
         print(f"\n{'[DRY RUN] ' if args.dry_run else ''}Would insert {len(all_measurements)} measurements:")
         for dt, cnt in sorted(counts.items()):
             print(f"  {dt:>14s}: {cnt:>3d}")
+
+        _seed_workout_plans_and_sessions(session, user_id, args.dry_run)
 
         if not args.dry_run:
             for m in all_measurements:

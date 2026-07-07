@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from salus.models.workout import WorkoutPlan, WorkoutSession  # noqa: F401
     from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare  # noqa: F401
     from salus.models.circadian import CircadianProfile  # noqa: F401
+    from salus.models.notification import Notification  # noqa: F401
 
 
 class User(SQLModel, table=True):
@@ -30,14 +31,47 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    metric_types: list["MetricType"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    measurements: list["Measurement"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    identities: list["UserIdentity"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    goals: list["Goal"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    insights: list["Insight"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    sharing_relationships: list["SharingRelationship"] = Relationship(back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    workout_plans: list["WorkoutPlan"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    workout_sessions: list["WorkoutSession"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    share_recipients: list["ShareRecipient"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    asymmetric_shares: list["AsymmetricShare"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    circadian_profile: Optional["CircadianProfile"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan", "uselist": False})
+    metric_types: list["MetricType"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    measurements: list["Measurement"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    identities: list["UserIdentity"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    goals: list["Goal"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    insights: list["Insight"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    sharing_relationships: list["SharingRelationship"] = Relationship(
+        back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    workout_plans: list["WorkoutPlan"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    workout_sessions: list["WorkoutSession"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    share_recipients: list["ShareRecipient"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    asymmetric_shares: list["AsymmetricShare"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    circadian_profile: Optional["CircadianProfile"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "uselist": False},
+    )
+    notifications: list["Notification"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+    @property
+    def active_workout_session(self) -> Optional["WorkoutSession"]:
+        for s in self.workout_sessions:
+            if s.completed_at is None:
+                return s
+        return None

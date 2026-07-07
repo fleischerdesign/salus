@@ -4,7 +4,9 @@ from jose import JWTError, jwt
 
 
 class JwtService:
-    def __init__(self, secret: str, algorithm: str = "HS256", expire_minutes: int = 1440) -> None:
+    def __init__(
+        self, secret: str, algorithm: str = "HS256", expire_minutes: int = 1440
+    ) -> None:
         self.secret = secret
         self.algorithm = algorithm
         self.expire_minutes = expire_minutes

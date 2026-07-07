@@ -107,6 +107,8 @@
     padding: 8px 12px;
     background: var(--color-slate-50);
     border-bottom: 1px solid var(--color-slate-100);
+    border-top-left-radius: calc(var(--card-radius) - 1px);
+    border-top-right-radius: calc(var(--card-radius) - 1px);
 }
 
 .edit-mode .card .card__header-title {

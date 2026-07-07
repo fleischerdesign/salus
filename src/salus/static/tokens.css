@@ -934,3 +934,15 @@
   --color-rank-silver: #aaa9ad;
   --color-rank-bronze: #b08d57;
 }
+
+/* ── Theme Transition ────────────────────────────────── */
+.theme-transition,
+.theme-transition *,
+.theme-transition *:before,
+.theme-transition *:after {
+  transition: background-color 300ms ease,
+              border-color 300ms ease,
+              color 300ms ease,
+              box-shadow 300ms ease !important;
+  transition-delay: 0s !important;
+}

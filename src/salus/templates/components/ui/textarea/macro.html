@@ -1,0 +1,42 @@
+{# vim: set ft=htmldjango:
+   Textarea — @component textarea
+
+   Usage:
+     {{ textarea(name="instructions", label="Instructions", rows=3) }}
+#}
+
+{% macro textarea(name, label=none, placeholder=none, value=none, required=false, disabled=false, readonly=false, hint=none, error=none, rows=3, id=none) %}
+    {% set field_id = id or name %}
+    {% set style = kwargs.get("style") %}
+
+    <div class="input {% if error %}input--error{% endif %}" {% if style %}style="{{ style }}"{% endif %}>
+        {% if label %}
+        <label for="{{ field_id }}" class="input__label {% if required %}input__label--required{% endif %}">{{ label }}</label>
+        {% endif %}
+
+        <div class="input__wrapper">
+            <textarea
+                id="{{ field_id }}"
+                name="{{ name }}"
+                class="input__field"
+                placeholder="{{ placeholder or '' }}"
+                rows="{{ rows }}"
+                {% if required %}required aria-required="true"{% endif %}
+                {% if disabled %}disabled{% endif %}
+                {% if readonly %}readonly{% endif %}
+                {% if error %}aria-describedby="{{ field_id }}-error"{% endif %}
+                style="resize:vertical;min-height:80px;padding-top:10px;padding-bottom:10px"
+                {{ kwargs | render_attrs(exclude=['style', 'rows']) }}
+            >{{ value or '' }}</textarea>
+        </div>
+
+        {% if error %}
+        <span id="{{ field_id }}-error" class="input__error" role="alert">
+            <span class="input__error-icon material-symbols-outlined" aria-hidden="true">error</span>
+            {{ error }}
+        </span>
+        {% elif hint %}
+        <span class="input__hint">{{ hint }}</span>
+        {% endif %}
+    </div>
+{% endmacro %}

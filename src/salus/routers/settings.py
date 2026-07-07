@@ -35,13 +35,13 @@ def _settings_context(
     metrics = metric_svc.find_all(user_id)
     connected_providers = [i.provider for i in identities]
     api_tokens = api_token_svc.list_tokens(user_id) if api_token_svc else []
-    
+
     recipients = []
     shares = []
     if share_svc:
         recipients = share_svc.list_recipients(user_id)
         shares = share_svc.list_shares(user_id)
-        
+
     return {
         "current_user": current_user,
         "identities": identities,
@@ -75,7 +75,9 @@ async def settings_page(
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
 ):
-    context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc)
+    context = _settings_context(
+        request, current_user, user_svc, metric_svc, api_token_svc
+    )
     return _render_settings_tab(request, "account", context)
 
 
@@ -87,7 +89,9 @@ async def settings_privacy_page(
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
 ):
-    context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc)
+    context = _settings_context(
+        request, current_user, user_svc, metric_svc, api_token_svc
+    )
     return _render_settings_tab(request, "privacy", context)
 
 
@@ -100,7 +104,9 @@ async def settings_shares_page(
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
     share_svc: AsymmetricShareService = Depends(get_asymmetric_share_service),
 ):
-    context = _settings_context(request, current_user, user_svc, metric_svc, api_token_svc, share_svc)
+    context = _settings_context(
+        request, current_user, user_svc, metric_svc, api_token_svc, share_svc
+    )
     return _render_settings_tab(request, "shares", context)
 
 
@@ -118,13 +124,21 @@ async def change_password(
         user_svc.change_password(uid(current_user), current_password, new_password)
     except ConflictError as exc:
         context = _settings_context(
-            request, current_user, user_svc, metric_svc, api_token_svc,
+            request,
+            current_user,
+            user_svc,
+            metric_svc,
+            api_token_svc,
             error=exc.message,
         )
         return _render_settings_tab(request, "account", context)
 
     context = _settings_context(
-        request, current_user, user_svc, metric_svc, api_token_svc,
+        request,
+        current_user,
+        user_svc,
+        metric_svc,
+        api_token_svc,
         success="Password changed successfully.",
     )
     return _render_settings_tab(request, "account", context)
@@ -132,7 +146,9 @@ async def change_password(
 
 @router.get("/api-tokens/new", response_class=HTMLResponse)
 async def new_token_form(request: Request):
-    return request.app.state.templates.TemplateResponse(request, "components/api_token_form.html", {})
+    return request.app.state.templates.TemplateResponse(
+        request, "components/api_token_form.html", {}
+    )
 
 
 @router.post("/api-tokens", response_class=HTMLResponse)
@@ -164,11 +180,15 @@ async def revoke_api_token(
 
 @router.post("/theme")
 async def set_theme(
+    request: Request,
     theme: Annotated[str, Form()],
     current_user: User = Depends(get_current_user),
     user_svc: UserService = Depends(get_user_service),
 ):
     user_svc.set_theme(uid(current_user), theme)
+    if request.headers.get("HX-Request"):
+        from fastapi import Response
+        return Response(status_code=204)
     return RedirectResponse(url="/settings", status_code=303)
 
 

@@ -8,20 +8,23 @@
     <nav class="tabbed-sidebar" aria-label="Settings navigation">
         <a hx-get="/settings" hx-target="#settings-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'account' %}active{% endif %}"
-           {% if active_tab == 'account' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">person</span>
+           {% if active_tab == 'account' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("person", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Account") }}
         </a>
         <a hx-get="/settings/privacy" hx-target="#settings-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'privacy' %}active{% endif %}"
-           {% if active_tab == 'privacy' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">security</span>
+           {% if active_tab == 'privacy' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("security", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Privacy") }}
         </a>
         <a hx-get="/settings/shares" hx-target="#settings-content" hx-push-url="true"
            class="tabbed-sidebar__link {% if active_tab == 'shares' %}active{% endif %}"
-           {% if active_tab == 'shares' %}aria-current="page"{% endif %}>
-            <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:8px">share</span>
+           {% if active_tab == 'shares' %}aria-current="page"{% endif %}
+           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
+            {{ icon("share", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Shares") }}
         </a>
     </nav>

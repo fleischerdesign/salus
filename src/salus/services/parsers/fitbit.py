@@ -22,14 +22,18 @@ class FitbitParser:
                 continue
             date_time = item.get("dateTime", "")
             ext_id = make_external_id("fitbit", "heart_rate", date_time)
-            records.append(Measurement(
-                data_type="heart_rate",
-                source="fitbit",
-                value_json=json.dumps({
-                    "zones": item.get("value", {}).get("heartRateZones", []),
-                    "resting": item.get("value", {}).get("restingHeartRate"),
-                }),
-                start_time=_to_dt(date_time),
-                external_id=ext_id,
-            ))
+            records.append(
+                Measurement(
+                    data_type="heart_rate",
+                    source="fitbit",
+                    value_json=json.dumps(
+                        {
+                            "zones": item.get("value", {}).get("heartRateZones", []),
+                            "resting": item.get("value", {}).get("restingHeartRate"),
+                        }
+                    ),
+                    start_time=_to_dt(date_time),
+                    external_id=ext_id,
+                )
+            )
         return records

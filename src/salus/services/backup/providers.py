@@ -43,7 +43,8 @@ class LocalBackupProvider:
         if not os.path.exists(self.directory):
             return []
         return [
-            f for f in os.listdir(self.directory)
+            f
+            for f in os.listdir(self.directory)
             if os.path.isfile(os.path.join(self.directory, f))
         ]
 
@@ -83,7 +84,7 @@ class WebdavBackupProvider:
                 resp = client.request("PROPFIND", self.url, headers=headers)
                 if resp.status_code >= 400:
                     return []
-                
+
                 root = ET.fromstring(resp.content)
                 filenames = []
                 ns = {"d": "DAV:"}

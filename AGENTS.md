@@ -426,11 +426,9 @@ uv run pyright src/
 # Install after adding dependencies
 uv sync
 
-# Build component CSS from all style.css files
+# Build component CSS from all style.css files (compiled automatically on server startup)
 uv run python tools/build_components.py
 
-# Regenerate design tokens from DESIGN.md
-uv run python tools/generate_tokens.py
 
 # Nix checks
 nix flake check               # verify devShell + packages + modules

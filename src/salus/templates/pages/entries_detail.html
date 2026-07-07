@@ -6,7 +6,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div style="display:flex;align-items:center;gap:12px">
-        <span class="material-symbols-outlined" style="font-size:32px;color:{{ metric.color }}">{{ metric.icon }}</span>
+        {{ icon(metric.icon, style="font-size:32px;color:" ~ metric.color) }}
         <div>
             <h1 style="font:var(--font-headline-lg);margin:0">{{ metric.name }}</h1>
             {% if metric.unit %}
@@ -18,8 +18,6 @@
            hx_get="/entries/new?metric_type_id=" + metric.id|string,
            hx_target="#modal-container", hx_swap="innerHTML") }}
 </div>
-
-<div id="modal-container"></div>
 
 <div id="entries-table">
     {% include "components/entries_table_partial.html" %}

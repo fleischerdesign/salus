@@ -9,9 +9,13 @@ class NutritionAnalysisService:
     def __init__(self, repo: IMeasurementRepository) -> None:
         self._repo = repo
 
-    def daily_totals(self, days: int = 7, user_id: int | None = None) -> list[NutritionDay]:
+    def daily_totals(
+        self, days: int = 7, user_id: int | None = None
+    ) -> list[NutritionDay]:
         since = datetime.today() - timedelta(days=days)
-        records = self._repo.find_all(data_types=["nutrition"], user_id=user_id, since=since)
+        records = self._repo.find_all(
+            data_types=["nutrition"], user_id=user_id, since=since
+        )
         daily: dict[str, dict[str, float]] = {}
         for rec in records:
             date = rec.start_time.strftime("%Y-%m-%d")
@@ -36,11 +40,15 @@ class NutritionAnalysisService:
             key=lambda n: n.date,
         )
 
-    def today(self, user_id: int | None = None, date_str: str | None = None) -> NutritionDay | None:
+    def today(
+        self, user_id: int | None = None, date_str: str | None = None
+    ) -> NutritionDay | None:
         target = datetime.today().strftime("%Y-%m-%d") if date_str is None else date_str
         since = datetime.strptime(target, "%Y-%m-%d")
         until = datetime.strptime(target + "T23:59:59", "%Y-%m-%dT%H:%M:%S")
-        records = self._repo.find_all(data_types=["nutrition"], user_id=user_id, since=since, until=until)
+        records = self._repo.find_all(
+            data_types=["nutrition"], user_id=user_id, since=since, until=until
+        )
         if not records:
             return None
         totals = {"kcal": 0.0, "protein": 0.0, "carbs": 0.0, "fat": 0.0}

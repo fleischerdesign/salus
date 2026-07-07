@@ -9,19 +9,13 @@ class UserRepository(Repository[User]):
     model = User
 
     def get_by_username(self, username: str) -> User | None:
-        return self.session.exec(
-            select(User).where(User.username == username)
-        ).first()
+        return self.session.exec(select(User).where(User.username == username)).first()
 
     def get_by_email(self, email: str) -> User | None:
-        return self.session.exec(
-            select(User).where(User.email == email)
-        ).first()
+        return self.session.exec(select(User).where(User.email == email)).first()
 
     def find_first_admin(self) -> User | None:
-        return self.session.exec(
-            select(User).where(User.is_admin).limit(1)
-        ).first()
+        return self.session.exec(select(User).where(User.is_admin).limit(1)).first()
 
     def list_all(self) -> list[User]:
         return list(self.session.exec(select(User)).all())

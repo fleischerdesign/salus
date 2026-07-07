@@ -90,13 +90,17 @@ def _delta_str(
 
 
 def _yesterday(date_str: str) -> str:
-    return (datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+    return (datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
 
 
 def _rounded_segments(stages: list[tuple[str, float, str]]) -> list[dict]:
     total = sum(v for _, v, _ in stages)
     if total <= 0:
-        return [{"label": label, "pct": 0, "css_class": css} for label, _, css in stages]
+        return [
+            {"label": label, "pct": 0, "css_class": css} for label, _, css in stages
+        ]
     raw = [v / total * 100 for _, v, _ in stages]
     pcts = [round(r) for r in raw]
     diff = 100 - sum(pcts)
@@ -235,7 +239,9 @@ def _compute_pill_chart(
         "pills": pills,
         "resting_y_fraction": round(_y_frac(resting_bpm), 3),
         "resting_bpm": round(resting_bpm),
-        "target_y_fraction": round(_y_frac(target_bpm), 3) if target_bpm is not None else None,
+        "target_y_fraction": round(_y_frac(target_bpm), 3)
+        if target_bpm is not None
+        else None,
         "target_bpm": round(target_bpm) if target_bpm is not None else None,
         "y_min": y_min,
         "y_max": y_max,
@@ -298,7 +304,9 @@ class DashboardWidgetService:
             raise ValueError("Widget not found")
         return w
 
-    def add_widget(self, user_id: int, metric_type_id: int, size: WidgetSize) -> DashboardWidget:
+    def add_widget(
+        self, user_id: int, metric_type_id: int, size: WidgetSize
+    ) -> DashboardWidget:
         existing = self._widget_repo.find_by_user(user_id)
         position = len(existing)
         metric = self._metric_type_repo.get_by_id(metric_type_id)
@@ -317,7 +325,9 @@ class DashboardWidgetService:
         )
         return self._widget_repo.create(w)
 
-    def update_widget(self, widget_id: int, user_id: int, size: WidgetSize) -> DashboardWidget:
+    def update_widget(
+        self, widget_id: int, user_id: int, size: WidgetSize
+    ) -> DashboardWidget:
         w = self.get_widget(widget_id, user_id)
         w.size = size
         return self._widget_repo.update(w)
@@ -329,10 +339,17 @@ class DashboardWidgetService:
     def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
         self._widget_repo.reorder(user_id, ordered_ids)
 
-    def widget_data(self, widget: DashboardWidget, user_id: int, date: str | None = None) -> dict:
+    def widget_data(
+        self, widget: DashboardWidget, user_id: int, date: str | None = None
+    ) -> dict:
         metric = self._metric_type_repo.get_by_id(widget.metric_type_id)
         if metric is None:
-            return {"widget": widget, "metric": None, "empty": True, "empty_text": "Unknown metric"}
+            return {
+                "widget": widget,
+                "metric": None,
+                "empty": True,
+                "empty_text": "Unknown metric",
+            }
 
         sd = metric.source_data_type
         today_str = datetime.today().strftime("%Y-%m-%d")
@@ -345,7 +362,9 @@ class DashboardWidgetService:
             config = {}
         viz_type = config.get("viz_type") or _VIZ_TYPE_DEFAULTS.get(sd or "", "number")
 
-        viz = self._build_viz(sd, user_id, target, metric.color if metric.color else "#64748b")
+        viz = self._build_viz(
+            sd, user_id, target, metric.color if metric.color else "#64748b"
+        )
         if viz is None:
             ctx["empty"] = True
             ctx["empty_text"] = _EMPTY_TEXTS.get(sd or "", "No data recorded yet.")
@@ -427,7 +446,9 @@ class DashboardWidgetService:
             base["has_goal"] = False
         return base
 
-    def _build_heart_rate_viz(self, user_id: int, target: str, color: str) -> dict | None:
+    def _build_heart_rate_viz(
+        self, user_id: int, target: str, color: str
+    ) -> dict | None:
         hr = self._activity.heart_rate_summary(user_id=user_id, date_str=target)
         if not hr:
             return None
@@ -438,7 +459,9 @@ class DashboardWidgetService:
         timeline = self._activity.heart_rate_timeline(user_id=user_id, date_str=target)
 
         goal = self._resolve_goal(user_id, "heart_rate")
-        target_bpm = goal.target_value if goal and goal.direction.value == "decrease" else None
+        target_bpm = (
+            goal.target_value if goal and goal.direction.value == "decrease" else None
+        )
         chart = _compute_pill_chart(timeline, hr.resting_bpm, color, target_bpm)
 
         base: dict = {
@@ -504,7 +527,9 @@ class DashboardWidgetService:
             "color": color,
         }
 
-    def _build_nutrition_viz(self, user_id: int, target: str, color: str) -> dict | None:
+    def _build_nutrition_viz(
+        self, user_id: int, target: str, color: str
+    ) -> dict | None:
         n = self._nutrition.today(user_id=user_id, date_str=target)
         if not n:
             return None
@@ -513,13 +538,17 @@ class DashboardWidgetService:
             user_id=user_id, date_str=_yesterday(target)
         )
         total = n.protein_g + n.carbs_g + n.fat_g
-        segments = _rounded_segments(
-            [
-                ("Protein", n.protein_g, "segment-protein"),
-                ("Carbs", n.carbs_g, "segment-carbs"),
-                ("Fat", n.fat_g, "segment-fat"),
-            ]
-        ) if total > 0 else []
+        segments = (
+            _rounded_segments(
+                [
+                    ("Protein", n.protein_g, "segment-protein"),
+                    ("Carbs", n.carbs_g, "segment-carbs"),
+                    ("Fat", n.fat_g, "segment-fat"),
+                ]
+            )
+            if total > 0
+            else []
+        )
         for seg in segments:
             label = seg["label"]
             if label == "Protein":
@@ -548,9 +577,7 @@ class DashboardWidgetService:
         if not w:
             return None
 
-        yesterday_w = self._weight.current(
-            user_id=user_id, date_str=_yesterday(target)
-        )
+        yesterday_w = self._weight.current(user_id=user_id, date_str=_yesterday(target))
         return {
             "primary_label": "Gewicht",
             "primary_value": f"{w.weight_kg:.1f}",

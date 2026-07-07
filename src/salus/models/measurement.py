@@ -19,7 +19,9 @@ class Measurement(SQLModel, table=True):
     value_numeric: float | None = Field(default=None)
     value_text: str | None = Field(default=None)
     value_json: str | None = Field(default=None)
-    start_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
+    start_time: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc), index=True
+    )
     end_time: datetime | None = Field(default=None)
     notes: str | None = Field(default=None)
     external_id: str | None = Field(default=None, index=True)
@@ -35,5 +37,24 @@ class Measurement(SQLModel, table=True):
         if self.value_numeric is not None:
             return str(self.value_numeric)
         if self.value_json is not None:
+            import json
+            try:
+                data = json.loads(self.value_json)
+                if isinstance(data, dict):
+                    if "duration_seconds" in data:
+                        secs = data["duration_seconds"]
+                        hours = secs // 3600
+                        mins = (secs % 3600) // 60
+                        if hours > 0:
+                            return f"{hours}h {mins}m"
+                        return f"{mins}m"
+                    elif "total_kcal" in data:
+                        kcal = data["total_kcal"]
+                        p = data.get("protein_g", 0)
+                        c = data.get("carbs_g", 0)
+                        f = data.get("fat_g", 0)
+                        return f"{kcal} kcal ({p}g P, {c}g C, {f}g F)"
+            except Exception:
+                pass
             return self.value_json
         return ""

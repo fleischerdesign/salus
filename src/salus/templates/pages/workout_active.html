@@ -2,6 +2,44 @@
 {% block title_suffix %} — {{ _("Active Session") }}{% endblock %}
 {% block content %}
 
+<style>
+.workout-set-checkbox {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--color-slate-300);
+    background-color: var(--color-surface-container-lowest);
+    color: var(--color-slate-400);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 150ms ease;
+    padding: 0;
+    outline: none;
+    flex-shrink: 0;
+}
+
+.workout-set-checkbox:hover {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-600);
+    border-color: var(--color-slate-400);
+}
+
+.workout-set-checkbox[disabled] {
+    background-color: var(--color-tertiary) !important;
+    color: var(--color-on-tertiary) !important;
+    border-color: var(--color-tertiary) !important;
+    cursor: default;
+    box-shadow: none;
+}
+
+.workout-set-checkbox .material-symbols-outlined {
+    font-size: 18px;
+    font-weight: bold;
+}
+</style>
+
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
         <h1 style="font:var(--font-headline-lg);margin:0">{{ _("Active Workout Session") }}</h1>
@@ -23,9 +61,9 @@
                         <h3 style="margin:0;font:var(--font-headline-md);font-weight:700;display:flex;align-items:center;gap:8px">
                             {{ target.name }}
                             {% if target.is_autoreg_exempt %}
-                            <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-slate-400)" title="{{ _('Autoregulation disabled for this exercise') }}">lock</span>
+                            {{ icon("lock", style="font-size:18px;color:var(--color-slate-400)", title=_("Autoregulation disabled for this exercise")) }}
                             {% else %}
-                            <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-primary)" title="{{ _('Autoregulated targets active') }}">auto_awesome</span>
+                            {{ icon("auto_awesome", style="font-size:18px;color:var(--color-primary)", title=_("Autoregulated targets active")) }}
                             {% endif %}
                         </h3>
                         <p style="margin:4px 0 0 0;font:var(--font-caption);color:var(--color-slate-500)">
@@ -49,24 +87,40 @@
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">{{ _("Weight") }}:</label>
-                            <input type="number" id="weight-{{ target.exercise_id }}-{{ set_num }}" step="0.5" placeholder="kg" class="input__field" style="width:80px;height:auto;padding:6px;font-size:13px">
+                            <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', -2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})">-</button>
+                                <input type="number" id="weight-{{ target.exercise_id }}-{{ set_num }}" step="0.5" value="{{ target.last_weight or 40.0 }}" placeholder="kg" class="input__field" style="width:65px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', 2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                            </div>
                         </div>
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">{{ _("Reps") }}:</label>
-                            <input type="number" id="reps-{{ target.exercise_id }}-{{ set_num }}" placeholder="reps" class="input__field" style="width:70px;height:auto;padding:6px;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
+                            <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', -1, 0, true, {{ target.exercise_id }}, {{ set_num }})">-</button>
+                                <input type="number" id="reps-{{ target.exercise_id }}-{{ set_num }}" value="{{ target.suggested_reps }}" placeholder="reps" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', 1, 0, true, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                            </div>
                         </div>
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">RPE:</label>
-                            <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" placeholder="RPE" class="input__field" style="width:70px;height:auto;padding:6px;font-size:13px">
+                            <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', -0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})">-</button>
+                                <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" value="{{ target.suggested_rpe }}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px">
+                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', 0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                            </div>
                         </div>
 
                         <span id="est1rm-{{ target.exercise_id }}-{{ set_num }}" style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500);margin-left:auto">Est. 1RM: --</span>
 
-                        {{ btn(icon="check", variant="primary", size="sm",
-                               id="btn-" + target.exercise_id|string + "-" + set_num|string,
-                               onclick="logSet(" + session.id|string + ", " + target.exercise_id|string + ", " + set_num|string + ")") }}
+                        <button type="button" 
+                                id="btn-{{ target.exercise_id }}-{{ set_num }}"
+                                class="workout-set-checkbox"
+                                onclick="logSet({{ session.id }}, {{ target.exercise_id }}, {{ set_num }})"
+                                aria-label="{{ _('Log Set') }}">
+                            <span class="material-symbols-outlined">check</span>
+                        </button>
                     </div>
                     {% endfor %}
                 {% endcall %}
@@ -94,6 +148,17 @@
 {% endcall %}
 
 <script>
+function adjustValue(inputId, delta, minVal, isReps, exId, setNum) {
+    const input = document.getElementById(inputId);
+    let val = parseFloat(input.value);
+    if (isNaN(val)) {
+        val = isReps ? 8 : 40.0;
+    }
+    val = Math.max(minVal || 0, val + delta);
+    input.value = isReps ? Math.round(val) : parseFloat(val.toFixed(1));
+    update1RM(exId, setNum);
+}
+
 function update1RM(exId, setNum) {
     const weightVal = parseFloat(document.getElementById(`weight-${exId}-${setNum}`).value);
     const repsVal = parseInt(document.getElementById(`reps-${exId}-${setNum}`).value);
@@ -113,22 +178,54 @@ async function logSet(sessionId, exerciseId, setNumber) {
     const rpe = rpeInput ? parseFloat(rpeInput) : null;
     const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
     const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
-    if (isNaN(weight) || isNaN(reps)) { alert("Please enter a valid weight and reps count."); return; }
+    if (isNaN(weight) || isNaN(reps)) {
+        if (typeof showToast === "function") {
+            showToast("Please enter a valid weight and reps count.", "error");
+        } else {
+            alert("Please enter a valid weight and reps count.");
+        }
+        return;
+    }
     try {
         const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}`, {
             method: "POST", headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ exercise_id: exerciseId, set_number: setNumber, weight: weight, reps: reps, rpe: rpe })
         });
         if (response.ok) {
-            btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;color:var(--color-on-primary)">done_all</span> Logged`;
-            btn.style.background = "var(--color-tertiary)";
+            btn.innerHTML = `<span class="material-symbols-outlined">done</span>`;
             btn.disabled = true;
             row.style.opacity = "0.75";
+            if (typeof showToast === "function") {
+                showToast("Set logged successfully!", "success");
+            }
+            // Trigger the global persistent rest-timer (90 seconds)
+            window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
         } else {
             const err = await response.json();
-            alert("Failed to log set: " + (err.detail || "Unknown error"));
+            const errMsg = "Failed to log set: " + (err.detail || "Unknown error");
+            if (typeof showToast === "function") {
+                showToast(errMsg, "error");
+            } else {
+                alert(errMsg);
+            }
         }
-    } catch (e) { alert("Error connecting to server."); }
+    } catch (e) {
+        if (typeof showToast === "function") {
+            showToast("Error connecting to server.", "error");
+        } else {
+            alert("Error connecting to server.");
+        }
+    }
 }
+
+// Calculate initial 1RMs on page load
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll("[id^='est1rm-']").forEach(function(span) {
+        const idParts = span.id.split("-");
+        if (idParts.length === 3) {
+            update1RM(idParts[1], idParts[2]);
+        }
+    });
+});
 </script>
 {% endblock %}

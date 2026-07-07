@@ -16,9 +16,7 @@ class ExerciseRepository(Repository[Exercise]):
         )
 
     def find_by_name(self, name: str) -> Exercise | None:
-        return self.session.exec(
-            select(Exercise).where(Exercise.name == name)
-        ).first()
+        return self.session.exec(select(Exercise).where(Exercise.name == name)).first()
 
 
 class WorkoutPlanRepository(Repository[WorkoutPlan]):
@@ -27,15 +25,27 @@ class WorkoutPlanRepository(Repository[WorkoutPlan]):
     def find_by_user(self, user_id: int) -> list[WorkoutPlan]:
         return list(
             self.session.exec(
-                select(WorkoutPlan).where(WorkoutPlan.user_id == user_id)
+                select(WorkoutPlan)
+                .where(WorkoutPlan.user_id == user_id)
+                .order_by(WorkoutPlan.position, WorkoutPlan.created_at)  # pyright: ignore[reportArgumentType]
             ).all()
         )
+
+    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+        for pos, plan_id in enumerate(ordered_ids):
+            plan = self.get_by_id(plan_id)
+            if plan is not None and plan.user_id == user_id:
+                plan.position = pos
+                self.session.add(plan)
+        self.session.commit()
 
 
 class WorkoutSessionRepository(Repository[WorkoutSession]):
     model = WorkoutSession
 
-    def find_recent_by_user(self, user_id: int, limit: int = 10) -> list[WorkoutSession]:
+    def find_recent_by_user(
+        self, user_id: int, limit: int = 10
+    ) -> list[WorkoutSession]:
         return list(
             self.session.exec(
                 select(WorkoutSession)
@@ -45,13 +55,15 @@ class WorkoutSessionRepository(Repository[WorkoutSession]):
             ).all()
         )
 
-    def get_last_session_for_plan(self, user_id: int, plan_id: int) -> WorkoutSession | None:
+    def get_last_session_for_plan(
+        self, user_id: int, plan_id: int
+    ) -> WorkoutSession | None:
         return self.session.exec(
             select(WorkoutSession)
             .where(
                 WorkoutSession.user_id == user_id,
                 WorkoutSession.plan_id == plan_id,
-                WorkoutSession.completed_at != None  # type: ignore # noqa: E711
+                WorkoutSession.completed_at != None,  # type: ignore # noqa: E711
             )
             .order_by(desc(WorkoutSession.completed_at))
             .limit(1)

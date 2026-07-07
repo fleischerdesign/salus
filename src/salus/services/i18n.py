@@ -11,7 +11,6 @@ TRANSLATIONS = {
         "Logout": "Abmelden",
         "Login": "Anmelden",
         "Register": "Registrieren",
-
         # Dashboard / Welcome
         "Welcome to Salus": "Willkommen bei Salus",
         "Health data tracker": "Gesundheitsdaten-Tracker",
@@ -23,7 +22,6 @@ TRANSLATIONS = {
         "Done": "Fertig",
         "Add Widget": "Widget hinzufügen",
         "No widgets yet. Add one to get started.": "Noch keine Widgets vorhanden. Füge eines hinzu, um zu beginnen.",
-
         # General Actions
         "Save": "Speichern",
         "Cancel": "Abbrechen",
@@ -33,7 +31,6 @@ TRANSLATIONS = {
         "Edit": "Bearbeiten",
         "Back": "Zurück",
         "Close": "Schließen",
-
         # Metrics Page
         "Metric Types": "Metriktypen",
         "System Metrics": "Systemmetriken",
@@ -45,7 +42,6 @@ TRANSLATIONS = {
         "Actions": "Aktionen",
         "Create Custom Metric": "Eigene Metrik erstellen",
         "New Metric": "Neue Metrik",
-
         # Goals Page
         "Your Goals": "Deine Ziele",
         "Target Value": "Zielwert",
@@ -62,7 +58,6 @@ TRANSLATIONS = {
         "No goals yet.": "Noch keine Ziele vorhanden.",
         "Create your first goal": "Erstelle dein erstes Ziel",
         "Delete goal": "Ziel löschen",
-
         # Dynamic Goal status & frequencies
         "daily": "Täglich",
         "weekly": "Wöchentlich",
@@ -72,7 +67,6 @@ TRANSLATIONS = {
         "pending": "Ausstehend",
         "daily reset": "Täglicher Reset",
         "weekly reset": "Wöchentlicher Reset",
-
         # Settings Page
         "Account Settings": "Kontoeinstellungen",
         "Language": "Sprache",
@@ -85,7 +79,6 @@ TRANSLATIONS = {
         "Change Password": "Passwort ändern",
         "Export Data": "Daten exportieren",
         "Import Data": "Daten importieren",
-
         # New Menu & Tabs
         "Logbook": "Logbuch",
         "Plans": "Pläne",
@@ -161,7 +154,6 @@ TRANSLATIONS = {
         "Configure metrics and click generate to preview.": "Konfiguriere Metriken und klicke auf Generieren für die Vorschau.",
         "JSON Dataset Output": "JSON-Datensatz-Ausgabe",
         "Donate to Research": "Für die Forschung spenden",
-
         # Auth & Login / Register
         "Sign In": "Anmelden",
         "Access your health data dashboard": "Greife auf dein Dashboard zu",
@@ -182,18 +174,15 @@ TRANSLATIONS = {
         "Email (optional)": "E-Mail (optional)",
         "Display Name (optional)": "Anzeigename (optional)",
         "Already have an account?": "Bereits ein Konto?",
-
         # Analytics Page
         "Metabolic & Activity Trends": "Stoffwechsel- & Aktivitätstrends",
         "7 Days": "7 Tage",
         "30 Days": "30 Tage",
         "90 Days": "90 Tage",
         "All Time": "Alle",
-
         # Entries Page
         "New Entry": "Neuer Eintrag",
         "No entries for this metric yet.": "Noch keine Einträge für diese Metrik vorhanden.",
-
         # Admin Panel
         "Admin Panel": "Admin-Panel",
         "System Statistics": "Systemstatistiken",
@@ -207,7 +196,6 @@ TRANSLATIONS = {
         "Value": "Wert",
         "Source": "Quelle",
         "Settings marked ENV are controlled by environment variables and cannot be edited here.": "Mit ENV markierte Einstellungen werden durch Umgebungsvariablen gesteuert und können hier nicht bearbeitet werden.",
-
         # Modal fields
         "Metric": "Metrik",
         "Select": "Auswählen",
@@ -217,7 +205,7 @@ TRANSLATIONS = {
         "Daily": "Täglich",
         "Weekly": "Wöchentlich",
         "Once": "Einmalig",
-        "Deadline (only for \"once\")": "Frist (nur für \"einmalig\")",
+        'Deadline (only for "once")': 'Frist (nur für "einmalig")',
         "Timestamp": "Zeitstempel",
         "Notes": "Notizen",
         "Number": "Zahl",
@@ -236,7 +224,6 @@ TRANSLATIONS = {
         "Blood Type": "Blutwerte",
         "Vital Signs": "Vitalwerte",
         "Body Fat": "Körperfett",
-
         # Onboarding wizard
         "Getting Started": "Erste Schritte",
         "Connect a data source": "Datenquelle verbinden",

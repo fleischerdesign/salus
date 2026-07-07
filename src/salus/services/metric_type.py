@@ -26,7 +26,9 @@ class MetricTypeService:
         metric_type = MetricType(**data.model_dump(), user_id=user_id)
         return self.repo.create(metric_type)
 
-    def update(self, metric_type_id: int, user_id: int, data: MetricTypeCreate) -> MetricType:
+    def update(
+        self, metric_type_id: int, user_id: int, data: MetricTypeCreate
+    ) -> MetricType:
         metric_type = self.get(metric_type_id, user_id)
         existing = self.repo.find_by_name_and_user(data.name, user_id)
         if existing is not None and existing.id != metric_type_id:

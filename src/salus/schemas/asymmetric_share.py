@@ -21,7 +21,7 @@ class ShareRecipientResponse(BaseModel):
 class AsymmetricShareCreate(BaseModel):
     recipient_id: int
     encrypted_data: str  # Base64 encoded payload
-    encrypted_key: str   # Base64 encoded key
+    encrypted_key: str  # Base64 encoded key
     expires_in_hours: Optional[int] = None
 
 

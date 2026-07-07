@@ -23,12 +23,18 @@ class GoogleFitParser:
                 data_type = ds_data.get("dataSourceId", "")
                 for point in ds_data.get("point", []):
                     p_data = point if isinstance(point, dict) else {}
-                    ext_id = make_external_id("google_fit", data_type, p_data.get("startTimeNanos", start_time))
-                    records.append(Measurement(
-                        data_type=data_type,
-                        source="google_fit",
-                        value_json=json.dumps(p_data.get("value", [])),
-                        start_time=_to_dt(start_time),
-                        external_id=ext_id,
-                    ))
+                    ext_id = make_external_id(
+                        "google_fit",
+                        data_type,
+                        p_data.get("startTimeNanos", start_time),
+                    )
+                    records.append(
+                        Measurement(
+                            data_type=data_type,
+                            source="google_fit",
+                            value_json=json.dumps(p_data.get("value", [])),
+                            start_time=_to_dt(start_time),
+                            external_id=ext_id,
+                        )
+                    )
         return records

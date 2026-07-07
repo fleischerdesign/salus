@@ -4,7 +4,11 @@ from typing import Any
 
 from salus.models.circadian import CircadianProfile
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.schemas.circadian import CircadianProfileCreate, CircadianAdviceResponse, SolarTimes
+from salus.schemas.circadian import (
+    CircadianProfileCreate,
+    CircadianAdviceResponse,
+    SolarTimes,
+)
 
 
 class CircadianService:
@@ -26,22 +30,26 @@ class CircadianService:
                 self.uow.commit()
             return profile
 
-    def save_profile(self, user_id: int, data: CircadianProfileCreate) -> CircadianProfile:
+    def save_profile(
+        self, user_id: int, data: CircadianProfileCreate
+    ) -> CircadianProfile:
         with self.uow:
             profile = self.uow.circadian_profiles.find_by_user(user_id)
             if not profile:
                 profile = CircadianProfile(user_id=user_id)
                 self.uow.circadian_profiles.add(profile)
-            
+
             profile.latitude = data.latitude
             profile.longitude = data.longitude
             profile.timezone_offset_hours = data.timezone_offset_hours
             profile.configured_chronotype = data.configured_chronotype
-            
+
             self.uow.commit()
             return profile
 
-    def calculate_solar_times(self, date: datetime, latitude: float, longitude: float, tz_offset: float) -> dict[str, Any]:
+    def calculate_solar_times(
+        self, date: datetime, latitude: float, longitude: float, tz_offset: float
+    ) -> dict[str, Any]:
         """
         Pure-Python local solar calculation following the NOAA Solar Calculator.
         """
@@ -51,37 +59,53 @@ class CircadianService:
             m += 12
         a = math.floor(y / 100)
         b = 2 - a + math.floor(a / 4)
-        jd = math.floor(365.25 * (y + 4716)) + math.floor(30.6001 * (m + 1)) + d + b - 1524.5
+        jd = (
+            math.floor(365.25 * (y + 4716))
+            + math.floor(30.6001 * (m + 1))
+            + d
+            + b
+            - 1524.5
+        )
 
         t = (jd - 2451545.0) / 36525.0
         l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)) % 360
         g = (357.52911 + t * (35999.05029 - 0.0001537 * t)) % 360
         e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t)
-        
+
         sec = (
             (1.914602 - t * (0.004817 + 0.000014 * t)) * math.sin(math.radians(g))
             + (0.019993 - 0.000101 * t) * math.sin(math.radians(2 * g))
             + 0.002893 * math.sin(math.radians(3 * g))
         )
         sun_true_long = (l0 + sec) % 360
-        obliquity = (23.439291 - t * (0.013004167 + t * (0.000000164 - t * 0.0000005036)))
-        declination = math.degrees(math.asin(math.sin(math.radians(obliquity)) * math.sin(math.radians(sun_true_long))))
+        obliquity = 23.439291 - t * (0.013004167 + t * (0.000000164 - t * 0.0000005036))
+        declination = math.degrees(
+            math.asin(
+                math.sin(math.radians(obliquity))
+                * math.sin(math.radians(sun_true_long))
+            )
+        )
 
         y_var = math.tan(math.radians(obliquity / 2.0)) ** 2
         eq_time = 4.0 * math.degrees(
             y_var * math.sin(math.radians(2.0 * l0))
             - 2.0 * e * math.sin(math.radians(g))
-            + 4.0 * e * y_var * math.sin(math.radians(g)) * math.cos(math.radians(2.0 * l0))
-            - 0.5 * (y_var ** 2) * math.sin(math.radians(4.0 * l0))
-            - 1.25 * (e ** 2) * math.sin(math.radians(2.0 * g))
+            + 4.0
+            * e
+            * y_var
+            * math.sin(math.radians(g))
+            * math.cos(math.radians(2.0 * l0))
+            - 0.5 * (y_var**2) * math.sin(math.radians(4.0 * l0))
+            - 1.25 * (e**2) * math.sin(math.radians(2.0 * g))
         )
 
         solar_noon_mins = 720.0 - 4.0 * longitude - eq_time + tz_offset * 60.0
 
         # Sunrise / Sunset Hour Angle
-        cos_ha = (math.cos(math.radians(90.833)) - math.sin(math.radians(latitude)) * math.sin(math.radians(declination))) / (
-            math.cos(math.radians(latitude)) * math.cos(math.radians(declination))
-        )
+        cos_ha = (
+            math.cos(math.radians(90.833))
+            - math.sin(math.radians(latitude)) * math.sin(math.radians(declination))
+        ) / (math.cos(math.radians(latitude)) * math.cos(math.radians(declination)))
 
         if cos_ha < -1.0:
             sunrise_mins = solar_noon_mins - 720.0
@@ -95,9 +119,10 @@ class CircadianService:
             sunset_mins = solar_noon_mins + ha * 4.0
 
         # Dawn / Dusk Civil Twilight Hour Angle (zenith = 96.0 degrees)
-        cos_ha_civil = (math.cos(math.radians(96.0)) - math.sin(math.radians(latitude)) * math.sin(math.radians(declination))) / (
-            math.cos(math.radians(latitude)) * math.cos(math.radians(declination))
-        )
+        cos_ha_civil = (
+            math.cos(math.radians(96.0))
+            - math.sin(math.radians(latitude)) * math.sin(math.radians(declination))
+        ) / (math.cos(math.radians(latitude)) * math.cos(math.radians(declination)))
 
         if cos_ha_civil < -1.0:
             dawn_mins = solar_noon_mins - 720.0
@@ -127,7 +152,7 @@ class CircadianService:
 
     def calculate_advice(self, user_id: int) -> CircadianAdviceResponse:
         profile = self.get_or_create_profile(user_id)
-        
+
         # Calculate solar times for today
         today = datetime.now()
         solar = self.calculate_solar_times(
@@ -137,7 +162,7 @@ class CircadianService:
         # Retrieve recent sleep measurements
         actual_onset = "23:00"
         actual_offset = "07:00"
-        
+
         with self.uow:
             sleep_mt = self.uow.metric_types.find_by_name_and_user("Sleep", user_id)
             if sleep_mt and sleep_mt.id is not None:
@@ -176,7 +201,7 @@ class CircadianService:
         diff = abs(actual_onset_mins - target_onset_mins)
         if diff > 720:
             diff = 1440 - diff
-        
+
         score_deduction = int(diff / 10)  # Deduct 1 point for every 10 minutes offset
         alignment_score = max(0, 100 - score_deduction)
 
@@ -192,13 +217,13 @@ class CircadianService:
             {
                 "time_window": f"{solar['sunrise']} - {mins_to_str(solar['sunrise_mins'] + 120)}",
                 "action": "Morning Daylight Anchor",
-                "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer."
+                "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.",
             },
             {
                 "time_window": f"After {solar['sunset']}",
                 "action": "Minimize Blue Light",
-                "description": "Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset."
-            }
+                "description": "Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset.",
+            },
         ]
 
         # Generate eating advice (Time-restricted eating window: wake + 1h to sleep - 3h)
@@ -209,7 +234,7 @@ class CircadianService:
         eating_window = {
             "start": mins_to_str(eating_start_mins),
             "end": mins_to_str(eating_end_mins),
-            "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality."
+            "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
         }
 
         # Chronotype detection
@@ -221,7 +246,7 @@ class CircadianService:
                 sunset=solar["sunset"],
                 solar_noon=solar["solar_noon"],
                 dawn=solar["dawn"],
-                dusk=solar["dusk"]
+                dusk=solar["dusk"],
             ),
             chronotype=chronotype,
             alignment_score=alignment_score,
@@ -230,8 +255,8 @@ class CircadianService:
                 "target_offset": target_offset,
                 "actual_onset": actual_onset,
                 "actual_offset": actual_offset,
-                "advice": sleep_advice
+                "advice": sleep_advice,
             },
             light_advice=light_advice,
-            eating_window=eating_window
+            eating_window=eating_window,
         )

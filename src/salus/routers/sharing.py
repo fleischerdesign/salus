@@ -3,13 +3,27 @@ import logging
 from datetime import datetime, timezone
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Form, Request, HTTPException, Security, Query
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import select
 
-from salus.dependencies import get_current_user, get_sharing_service, get_metric_type_service, get_leaderboard_service
+from salus.dependencies import (
+    get_current_user,
+    get_sharing_service,
+    get_metric_type_service,
+    get_leaderboard_service,
+)
 from salus.models.user import User
-from salus.models.sharing import ConnectionStatus, FederatedAccessLog, SharingRelationship
+from salus.models.sharing import (
+    ConnectionStatus,
+    FederatedAccessLog,
+    SharingRelationship,
+)
 from salus.services._helpers import uid
 from salus.services.sharing import SharingService
 from salus.services.metric_type import MetricTypeService
@@ -29,6 +43,7 @@ async def sharing_base_redirect(request: Request):
 # ---------------------------------------------------------------------------
 # Feed
 # ---------------------------------------------------------------------------
+
 
 @router.get("/sharing/feed", response_class=HTMLResponse)
 async def sharing_feed_page(
@@ -50,6 +65,7 @@ async def sharing_feed_page(
 # ---------------------------------------------------------------------------
 # Leaderboard
 # ---------------------------------------------------------------------------
+
 
 @router.get("/sharing/leaderboard", response_class=HTMLResponse)
 async def sharing_leaderboard_page(
@@ -79,13 +95,15 @@ async def sharing_leaderboard_page(
             my_score = 0.0
             rankings = []
 
-        group_infos.append({
-            "group": g,
-            "rankings": rankings,
-            "my_rank": my_rank,
-            "my_score": my_score,
-            "member_count": len(g.members),
-        })
+        group_infos.append(
+            {
+                "group": g,
+                "rankings": rankings,
+                "my_rank": my_rank,
+                "my_score": my_score,
+                "member_count": len(g.members),
+            }
+        )
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -96,7 +114,11 @@ async def sharing_leaderboard_page(
             "error": error,
             "supported_metrics": [
                 {"code": "steps", "name": "Steps", "icon": "footprint"},
-                {"code": "workouts", "name": "Workouts Completed", "icon": "fitness_center"},
+                {
+                    "code": "workouts",
+                    "name": "Workouts Completed",
+                    "icon": "fitness_center",
+                },
                 {"code": "sleep", "name": "Sleep Duration", "icon": "bedtime"},
                 {"code": "water", "name": "Water Intake", "icon": "local_drink"},
             ],
@@ -138,12 +160,16 @@ async def sharing_leaderboard_create(
     if time_frame == "custom":
         if start_date:
             try:
-                dt_start = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                dt_start = datetime.strptime(start_date, "%Y-%m-%d").replace(
+                    tzinfo=timezone.utc
+                )
             except ValueError:
                 pass
         if end_date:
             try:
-                dt_end = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                dt_end = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    tzinfo=timezone.utc
+                )
             except ValueError:
                 pass
 
@@ -220,6 +246,7 @@ async def sharing_leaderboard_delete(
 # Connections
 # ---------------------------------------------------------------------------
 
+
 def _build_connections_context(
     request: Request,
     current_user: User,
@@ -252,9 +279,11 @@ async def sharing_access_log_page(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     with sharing_svc.uow:
-        stmt = select(FederatedAccessLog).where(
-            FederatedAccessLog.owner_id == uid(current_user)
-        ).order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        stmt = (
+            select(FederatedAccessLog)
+            .where(FederatedAccessLog.owner_id == uid(current_user))
+            .order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        )
         logs = sharing_svc.uow.session.exec(stmt).all()
 
     return request.app.state.templates.TemplateResponse(
@@ -313,10 +342,14 @@ async def create_sharing(
             )
             raw_token = getattr(rel, "raw_token", None)
             if raw_token:
-                new_tokens.append({
-                    "metric": rel.metric_type.name if rel.metric_type else f"Metric {m_id}",
-                    "token": raw_token
-                })
+                new_tokens.append(
+                    {
+                        "metric": rel.metric_type.name
+                        if rel.metric_type
+                        else f"Metric {m_id}",
+                        "token": raw_token,
+                    }
+                )
         except ConflictError:
             continue
         except NotFoundError as e:
@@ -426,6 +459,7 @@ async def invite_qr(
 # Federation API
 # ---------------------------------------------------------------------------
 
+
 @router.get("/api/v1/federation/sharing", response_class=JSONResponse)
 async def federated_shared_data(
     request: Request,
@@ -433,7 +467,9 @@ async def federated_shared_data(
     data_type: Annotated[str, Query()],
     date: Annotated[str, Query()],
     sharing_svc: SharingService = Depends(get_sharing_service),
-    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Security(security)] = None,
+    credentials: Annotated[
+        Optional[HTTPAuthorizationCredentials], Security(security)
+    ] = None,
 ):
     sig_header = request.headers.get("Signature")
     sig_input_header = request.headers.get("Signature-Input")
@@ -444,7 +480,9 @@ async def federated_shared_data(
             raise HTTPException(status_code=404, detail="Owner not found")
 
         metric_types = sharing_svc.uow.metric_types.find_all(owner.id)
-        metric = next((m for m in metric_types if m.source_data_type == data_type), None)
+        metric = next(
+            (m for m in metric_types if m.source_data_type == data_type), None
+        )
         if not metric or metric.id is None:
             return JSONResponse({"status": "ok", "data": []})
 
@@ -458,7 +496,7 @@ async def federated_shared_data(
                     method=request.method,
                     path_with_query=path_with_query,
                     authority=request.url.netloc,
-                    body=None
+                    body=None,
                 )
                 stmt = select(SharingRelationship).where(
                     SharingRelationship.owner_id == owner.id,
@@ -468,15 +506,22 @@ async def federated_shared_data(
                 )
                 rel = sharing_svc.uow.session.exec(stmt).first()
                 if not rel:
-                    raise HTTPException(status_code=401, detail="Unauthorized remote grantee")
+                    raise HTTPException(
+                        status_code=401, detail="Unauthorized remote grantee"
+                    )
             except Exception as exc:
                 logger.warning(f"Signature authentication failed: {exc}")
-                raise HTTPException(status_code=401, detail="Invalid cryptographic signature")
+                raise HTTPException(
+                    status_code=401, detail="Invalid cryptographic signature"
+                )
         else:
             if not credentials or not credentials.credentials:
-                raise HTTPException(status_code=401, detail="Missing authorization credentials")
+                raise HTTPException(
+                    status_code=401, detail="Missing authorization credentials"
+                )
             token = credentials.credentials
             import hashlib
+
             token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
 
             ctx = select(SharingRelationship).where(
@@ -491,6 +536,7 @@ async def federated_shared_data(
 
         # Log this query in the GDPR audit log
         from salus.models.sharing import FederatedAccessLog
+
         access_log = FederatedAccessLog(
             owner_id=uid(owner),
             requester_handle=rel.grantee_handle,
@@ -507,8 +553,7 @@ async def federated_shared_data(
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(
-                status_code=400,
-                detail="Invalid date format. Expected YYYY-MM-DD."
+                status_code=400, detail="Invalid date format. Expected YYYY-MM-DD."
             )
 
         day_measurements = [
@@ -569,7 +614,9 @@ async def federated_accept(
         sharing_svc.process_federation_accept(token, body.get("owner_handle", ""))
     except NotFoundError as e:
         logger.warning(f"Federation accept failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid token or relationship not found")
+        raise HTTPException(
+            status_code=401, detail="Invalid token or relationship not found"
+        )
     except Exception:
         logger.exception("Unexpected error processing federation accept")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -588,7 +635,9 @@ async def federated_notify_update(
 
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+        raise HTTPException(
+            status_code=401, detail="Missing or invalid Authorization header"
+        )
     token_hash = auth_header.split(" ", 1)[1]
 
     owner_handle = body.get("owner_handle")
@@ -596,7 +645,10 @@ async def federated_notify_update(
     date_str = body.get("date")
 
     if not owner_handle or not data_type or not date_str:
-        raise HTTPException(status_code=400, detail="Missing required fields: owner_handle, data_type, date")
+        raise HTTPException(
+            status_code=400,
+            detail="Missing required fields: owner_handle, data_type, date",
+        )
 
     with sharing_svc.uow:
         stmt = select(SharingRelationship).where(
@@ -609,6 +661,7 @@ async def federated_notify_update(
         local_user_id = rel.owner_id
 
     import threading
+
     threading.Thread(
         target=sharing_svc.resolve_and_fetch,
         args=(local_user_id, owner_handle, data_type, date_str, True),
@@ -624,7 +677,9 @@ async def webfinger_discover(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     if not resource.startswith("acct:"):
-        raise HTTPException(status_code=400, detail="Invalid resource scheme. Expected acct:")
+        raise HTTPException(
+            status_code=400, detail="Invalid resource scheme. Expected acct:"
+        )
 
     parts = resource[5:].split("@", 1)
     username = parts[0]
@@ -635,18 +690,24 @@ async def webfinger_discover(
             raise HTTPException(status_code=404, detail="Actor not found")
 
     host = parts[1] if len(parts) > 1 else "localhost"
-    scheme = "http" if "localhost" in host or "127.0.0.1" in host or "testserver" in host else "https"
+    scheme = (
+        "http"
+        if "localhost" in host or "127.0.0.1" in host or "testserver" in host
+        else "https"
+    )
 
-    return JSONResponse({
-        "subject": f"acct:{username}@{host}",
-        "links": [
-            {
-                "rel": "self",
-                "type": "application/activity+json",
-                "href": f"{scheme}://{host}/api/v1/federation/actors/{username}"
-            }
-        ]
-    })
+    return JSONResponse(
+        {
+            "subject": f"acct:{username}@{host}",
+            "links": [
+                {
+                    "rel": "self",
+                    "type": "application/activity+json",
+                    "href": f"{scheme}://{host}/api/v1/federation/actors/{username}",
+                }
+            ],
+        }
+    )
 
 
 @router.get("/api/v1/federation/actors/{username}", response_class=JSONResponse)
@@ -664,19 +725,19 @@ async def federated_actor_profile(
     if base_url.endswith("/"):
         base_url = base_url[:-1]
 
-    return JSONResponse({
-        "@context": [
-            "https://www.w3.org/ns/activitystreams"
-        ],
-        "id": f"{base_url}/api/v1/federation/actors/{username}",
-        "type": "Person",
-        "preferredUsername": username,
-        "endpoints": {
-            "sharing": f"{base_url}/api/v1/federation/sharing",
-            "accept": f"{base_url}/api/v1/federation/accept",
-            "notify": f"{base_url}/api/v1/federation/notify-update"
+    return JSONResponse(
+        {
+            "@context": ["https://www.w3.org/ns/activitystreams"],
+            "id": f"{base_url}/api/v1/federation/actors/{username}",
+            "type": "Person",
+            "preferredUsername": username,
+            "endpoints": {
+                "sharing": f"{base_url}/api/v1/federation/sharing",
+                "accept": f"{base_url}/api/v1/federation/accept",
+                "notify": f"{base_url}/api/v1/federation/notify-update",
+            },
         }
-    })
+    )
 
 
 @router.get("/api/v1/federation/access-log", response_class=JSONResponse)
@@ -685,22 +746,27 @@ async def federated_access_log(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     from salus.models.sharing import FederatedAccessLog
+
     with sharing_svc.uow:
-        stmt = select(FederatedAccessLog).where(
-            FederatedAccessLog.owner_id == current_user.id
-        ).order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        stmt = (
+            select(FederatedAccessLog)
+            .where(FederatedAccessLog.owner_id == current_user.id)
+            .order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        )
         logs = sharing_svc.uow.session.exec(stmt).all()
 
-    return JSONResponse({
-        "status": "ok",
-        "logs": [
-            {
-                "id": log.id,
-                "requester_handle": log.requester_handle,
-                "data_type": log.data_type,
-                "target_date": log.target_date,
-                "accessed_at": log.accessed_at.isoformat(),
-            }
-            for log in logs
-        ]
-    })
+    return JSONResponse(
+        {
+            "status": "ok",
+            "logs": [
+                {
+                    "id": log.id,
+                    "requester_handle": log.requester_handle,
+                    "data_type": log.data_type,
+                    "target_date": log.target_date,
+                    "accessed_at": log.accessed_at.isoformat(),
+                }
+                for log in logs
+            ],
+        }
+    )

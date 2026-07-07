@@ -19,7 +19,9 @@ class ApiTokenService:
         self._repo = repo
         self._user_repo = user_repo
 
-    def create_token(self, user_id: int, label: str, scopes: str = "") -> tuple[str, ApiToken]:
+    def create_token(
+        self, user_id: int, label: str, scopes: str = ""
+    ) -> tuple[str, ApiToken]:
         plaintext = _generate_token()
         token_hash = bcrypt.hashpw(plaintext.encode(), bcrypt.gensalt()).decode()
         prefix = plaintext[:12]

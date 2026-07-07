@@ -21,22 +21,34 @@ def _to_dt(time_str: str) -> datetime:
 METADATA_KEYS = {"timestamp", "app_version", "date", "user_id", "source"}
 
 RECORD_SKIP_KEYS = {
-    "start_time", "startTime", "end_time", "endTime",
-    "id", "uuid", "stages", "session_end_time",
-    "created_at", "updated_at",
+    "start_time",
+    "startTime",
+    "end_time",
+    "endTime",
+    "id",
+    "uuid",
+    "stages",
+    "session_end_time",
+    "created_at",
+    "updated_at",
 }
 
-NUMERIC_KEYS = ("value", "count", "bpm", "kilograms", "calories",
-                "duration_seconds", "distance_meters")
+NUMERIC_KEYS = (
+    "value",
+    "count",
+    "bpm",
+    "kilograms",
+    "calories",
+    "duration_seconds",
+    "distance_meters",
+)
 
 
 @runtime_checkable
 class RecordParser(Protocol):
-    def parse(self, payload: dict | list) -> list[Measurement]:
-        ...
+    def parse(self, payload: dict | list) -> list[Measurement]: ...
 
-    def can_handle(self, payload: dict | list) -> bool:
-        ...
+    def can_handle(self, payload: dict | list) -> bool: ...
 
 
 def make_external_id(source: str, data_type: str, start_time: str) -> str:
@@ -82,9 +94,15 @@ class HealthConnectWebhookParser:
         records: list[Measurement] = []
         data_type_keys = [k for k in payload if k not in METADATA_KEYS]
 
-        logger.info("HealthConnectWebhookParser | data_type_keys=%s | record_counts=%s",
-                     data_type_keys, {k: len(payload[k]) for k in data_type_keys
-                                      if isinstance(payload.get(k), list)})
+        logger.info(
+            "HealthConnectWebhookParser | data_type_keys=%s | record_counts=%s",
+            data_type_keys,
+            {
+                k: len(payload[k])
+                for k in data_type_keys
+                if isinstance(payload.get(k), list)
+            },
+        )
 
         for dtype in data_type_keys:
             items = payload[dtype]
@@ -96,9 +114,13 @@ class HealthConnectWebhookParser:
                     continue
 
                 start_time = (
-                    item.get("start_time") or item.get("startTime")
-                    or item.get("time") or item.get("timestamp")
-                    or item.get("date") or item.get("session_end_time") or ""
+                    item.get("start_time")
+                    or item.get("startTime")
+                    or item.get("time")
+                    or item.get("timestamp")
+                    or item.get("date")
+                    or item.get("session_end_time")
+                    or ""
                 )
                 end_time = item.get("end_time") or item.get("endTime") or ""
                 rec_id = item.get("id") or item.get("uuid") or ""
@@ -111,23 +133,32 @@ class HealthConnectWebhookParser:
                 if "stages" in item:
                     value["stages"] = item["stages"]
 
-                external_id = rec_id if rec_id else make_external_id(
-                    "health_connect", dtype, start_time
+                external_id = (
+                    rec_id
+                    if rec_id
+                    else make_external_id("health_connect", dtype, start_time)
                 )
                 value_json = json.dumps(value, ensure_ascii=False)
 
-                logger.debug("HC record | dtype=%s | value_numeric=%s | external_id=%s | keys_in_value=%s",
-                             dtype, value_numeric, external_id, list(value.keys()))
+                logger.debug(
+                    "HC record | dtype=%s | value_numeric=%s | external_id=%s | keys_in_value=%s",
+                    dtype,
+                    value_numeric,
+                    external_id,
+                    list(value.keys()),
+                )
 
-                records.append(Measurement(
-                    data_type=dtype,
-                    source="health_connect",
-                    value_numeric=value_numeric,
-                    value_json=value_json,
-                    start_time=_to_dt(start_time),
-                    end_time=_to_dt(end_time) if end_time else None,
-                    external_id=external_id,
-                ))
+                records.append(
+                    Measurement(
+                        data_type=dtype,
+                        source="health_connect",
+                        value_numeric=value_numeric,
+                        value_json=value_json,
+                        start_time=_to_dt(start_time),
+                        end_time=_to_dt(end_time) if end_time else None,
+                        external_id=external_id,
+                    )
+                )
 
         return records
 
@@ -155,10 +186,15 @@ class FlatArrayParser:
 
             rec_id = item.get("id") or item.get("uuid") or ""
             start_time = (
-                item.get("startTime") or item.get("start_time")
-                or item.get("timestamp") or item.get("date") or ""
+                item.get("startTime")
+                or item.get("start_time")
+                or item.get("timestamp")
+                or item.get("date")
+                or ""
             )
-            data_type = item.get("type") or item.get("dataType") or item.get("name") or ""
+            data_type = (
+                item.get("type") or item.get("dataType") or item.get("name") or ""
+            )
             end_time = item.get("endTime") or item.get("end_time") or ""
             raw_val = item.get("value") or item.get("data")
             if raw_val is None:
@@ -172,23 +208,27 @@ class FlatArrayParser:
                 except (TypeError, ValueError):
                     continue
 
-            external_id = rec_id if rec_id else make_external_id(
-                "flat_array", data_type, start_time
+            external_id = (
+                rec_id
+                if rec_id
+                else make_external_id("flat_array", data_type, start_time)
             )
 
             value_numeric = _extract_value_numeric(item)
             if value_numeric is None:
                 value_numeric = _extract_single_numeric(item)
 
-            records.append(Measurement(
-                data_type=data_type,
-                source="flat_array",
-                value_numeric=value_numeric,
-                value_json=value_json,
-                start_time=_to_dt(start_time),
-                end_time=_to_dt(end_time) if end_time else None,
-                external_id=external_id,
-            ))
+            records.append(
+                Measurement(
+                    data_type=data_type,
+                    source="flat_array",
+                    value_numeric=value_numeric,
+                    value_json=value_json,
+                    start_time=_to_dt(start_time),
+                    end_time=_to_dt(end_time) if end_time else None,
+                    external_id=external_id,
+                )
+            )
 
         return records
 
@@ -211,6 +251,7 @@ class FlexiblePayloadParser:
                 from salus.services.parsers.fitbit import FitbitParser
                 from salus.services.parsers.google_fit import GoogleFitParser
                 from salus.services.parsers.oura import OuraParser
+
                 self._parsers = [
                     AppleHealthExportParser(),
                     GoogleFitParser(),
@@ -235,7 +276,9 @@ class FlexiblePayloadParser:
         all_parsers = self._parsers + EXTRA_PARSERS
         for parser in all_parsers:
             if parser.can_handle(payload):
-                logger.info("FlexiblePayloadParser | selected=%s", type(parser).__name__)
+                logger.info(
+                    "FlexiblePayloadParser | selected=%s", type(parser).__name__
+                )
                 result = parser.parse(payload)
                 if result:
                     return result
@@ -248,4 +291,6 @@ class FlexiblePayloadParser:
 
         keys = list(payload) if isinstance(payload, dict) else []
         logger.warning("Unknown payload format. Keys: %s", keys)
-        raise ValueError(f"unexpected payload format: {keys}" if keys else "unknown payload format")
+        raise ValueError(
+            f"unexpected payload format: {keys}" if keys else "unknown payload format"
+        )

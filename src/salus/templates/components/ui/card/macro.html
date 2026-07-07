@@ -18,20 +18,19 @@
 
 {% from "components/ui/edit-chrome/macro.html" import edit_chrome_drag, edit_chrome_actions %}
 
-{% macro card(title=none, icon=none, header_action=none, drag_handle=false, card_actions=none, variant=none, hoverable=false, clickable=false, href=none, id=none, style=none, class=none, hx_get=none, hx_target=none, hx_swap=none, hx_post=none) %}
+{% macro card(title=none, icon=none, header_action=none, drag_handle=false, card_actions=none, variant=none, hoverable=false, clickable=false) %}
+    {% set href = kwargs.get("href") %}
     {% set tag = "a" if href else "div" %}
+    {% set extra_class = kwargs.get("class") %}
+    {% set style = kwargs.get("style") %}
     <{{ tag }}
-        class="card{% if class %} {{ class }}{% endif %}"
+        class="card{% if extra_class %} {{ extra_class }}{% endif %}"
+        {% if href %}href="{{ href }}"{% endif %}
         {% if variant %}data-variant="{{ variant }}"{% endif %}
         {% if hoverable or variant == "elevated" %}data-hoverable{% endif %}
         {% if clickable or href %}data-clickable{% endif %}
-        {% if id %}id="{{ id }}"{% endif %}
         {% if style %}style="{{ style }}"{% endif %}
-        {% if href %}href="{{ href }}"{% endif %}
-        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-        {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
-        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-        {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
+        {{ kwargs | render_attrs(exclude=['href', 'class', 'style']) }}
     >
         {% if title or icon or header_action or drag_handle or card_actions %}
         <div class="card__header">

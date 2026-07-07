@@ -102,7 +102,9 @@ class SharingService:
 
             expiration_date = None
             if expiration_days is not None:
-                expiration_date = datetime.now(timezone.utc) + timedelta(days=expiration_days)
+                expiration_date = datetime.now(timezone.utc) + timedelta(
+                    days=expiration_days
+                )
 
             raw_token = secrets.token_hex(20)
             token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
@@ -121,7 +123,9 @@ class SharingService:
             object.__setattr__(rel, "raw_token", raw_token)
             return rel
 
-    def accept_relationship(self, grantee_user_id: int, relationship_id: int) -> SharingRelationship:
+    def accept_relationship(
+        self, grantee_user_id: int, relationship_id: int
+    ) -> SharingRelationship:
         with self.uow:
             user = self.uow.users.get_by_id(grantee_user_id)
             if not user:
@@ -141,10 +145,15 @@ class SharingService:
             self.uow.commit()
 
             import threading
-            threading.Thread(target=self._notify_federation_accept, args=(rel,), daemon=True).start()
+
+            threading.Thread(
+                target=self._notify_federation_accept, args=(rel,), daemon=True
+            ).start()
             return rel
 
-    def decline_relationship(self, grantee_user_id: int, relationship_id: int) -> SharingRelationship:
+    def decline_relationship(
+        self, grantee_user_id: int, relationship_id: int
+    ) -> SharingRelationship:
         with self.uow:
             user = self.uow.users.get_by_id(grantee_user_id)
             if not user:
@@ -227,12 +236,19 @@ class SharingService:
                     peer.expiration is None or rel.expiration_date < peer.expiration
                 ):
                     peer.expiration = rel.expiration_date
-                if (rel_is_active or rel_is_pending) and rel.api_token_hash and self._is_remote(handle):
+                if (
+                    (rel_is_active or rel_is_pending)
+                    and rel.api_token_hash
+                    and self._is_remote(handle)
+                ):
                     # We do not expose the hashed API token in the peer list for security (G4)
                     peer.api_token = None
                 if rel.last_sync_at:
                     key = _peer_key(handle)
-                    if key not in peer_sync_times or rel.last_sync_at > peer_sync_times[key]:
+                    if (
+                        key not in peer_sync_times
+                        or rel.last_sync_at > peer_sync_times[key]
+                    ):
                         peer_sync_times[key] = rel.last_sync_at
 
             for rel in all_incoming:
@@ -301,11 +317,14 @@ class SharingService:
             requester_handle = f"@{req_user.username}"
 
         if not self._is_remote(owner_handle):
-            return self._resolve_local(owner_handle, requester_handle, data_type, date_str)
+            return self._resolve_local(
+                owner_handle, requester_handle, data_type, date_str
+            )
         else:
             if not force_refresh:
                 from salus.models.sharing import FederatedMeasurementCache
                 from datetime import timedelta
+
                 cutoff = datetime.now(timezone.utc) - timedelta(minutes=15)
                 with self.uow:
                     stmt = select(FederatedMeasurementCache).where(
@@ -317,8 +336,13 @@ class SharingService:
                     cached = self.uow.session.exec(stmt).first()
                     if cached:
                         import json
+
                         try:
-                            return json.loads(cached.value_json) if cached.value_json else []
+                            return (
+                                json.loads(cached.value_json)
+                                if cached.value_json
+                                else []
+                            )
                         except Exception:
                             pass
 
@@ -326,6 +350,7 @@ class SharingService:
 
             from salus.models.sharing import FederatedMeasurementCache
             import json
+
             with self.uow:
                 stmt_exist = select(FederatedMeasurementCache).where(
                     FederatedMeasurementCache.owner_handle == owner_handle,
@@ -360,7 +385,9 @@ class SharingService:
                 raise NotFoundError(f"User {owner_username} not found")
 
             metric_types = self.uow.metric_types.find_all(owner_user.id)
-            metric = next((m for m in metric_types if m.source_data_type == data_type), None)
+            metric = next(
+                (m for m in metric_types if m.source_data_type == data_type), None
+            )
             if not metric:
                 return []
             if metric.id is None:
@@ -428,12 +455,17 @@ class SharingService:
 
     def get_instance_keys(self) -> tuple[str, str]:
         from salus.models.system_config import SystemConfig
+
         with self.uow:
             priv_conf = self.uow.session.exec(
-                select(SystemConfig).where(SystemConfig.key == "federation_private_key_pem")
+                select(SystemConfig).where(
+                    SystemConfig.key == "federation_private_key_pem"
+                )
             ).first()
             pub_conf = self.uow.session.exec(
-                select(SystemConfig).where(SystemConfig.key == "federation_public_key_pem")
+                select(SystemConfig).where(
+                    SystemConfig.key == "federation_public_key_pem"
+                )
             ).first()
 
             if priv_conf and pub_conf:
@@ -448,12 +480,12 @@ class SharingService:
             priv_pem = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.NoEncryption(),
             ).decode("utf-8")
 
             pub_pem = public_key.public_bytes(
                 encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
             ).decode("utf-8")
 
             if not priv_conf:
@@ -462,7 +494,7 @@ class SharingService:
                     value=priv_pem,
                     description="Federation instance Ed25519 private key",
                     category="federation",
-                    is_secret=True
+                    is_secret=True,
                 )
                 self.uow.session.add(priv_conf)
             else:
@@ -475,7 +507,7 @@ class SharingService:
                     value=pub_pem,
                     description="Federation instance Ed25519 public key",
                     category="federation",
-                    is_secret=False
+                    is_secret=False,
                 )
                 self.uow.session.add(pub_conf)
             else:
@@ -494,7 +526,11 @@ class SharingService:
             raise ValueError(f"Invalid remote handle: {sender_handle}")
         username, domain = parts
 
-        scheme = "http" if "localhost" in domain or "127.0.0.1" in domain or "testserver" in domain else "https"
+        scheme = (
+            "http"
+            if "localhost" in domain or "127.0.0.1" in domain or "testserver" in domain
+            else "https"
+        )
         webfinger_url = f"{scheme}://{domain}/.well-known/webfinger"
 
         try:
@@ -527,7 +563,9 @@ class SharingService:
             logger.error(f"Failed to resolve public key for {sender_handle}: {exc}")
             raise ValueError(f"Could not resolve public key for {sender_handle}")
 
-    def sign_request(self, sender_handle: str, method: str, url_str: str, body: bytes | None = None) -> dict[str, str]:
+    def sign_request(
+        self, sender_handle: str, method: str, url_str: str, body: bytes | None = None
+    ) -> dict[str, str]:
         import uuid
         import time
         import hashlib
@@ -553,7 +591,13 @@ class SharingService:
             digest_str = "sha-256=:" + base64.b64encode(body_hash).decode("utf-8") + ":"
             headers["Content-Digest"] = digest_str
 
-        signed_fields = ["@method", "@path", "@authority", "x-salus-nonce", "x-salus-timestamp"]
+        signed_fields = [
+            "@method",
+            "@path",
+            "@authority",
+            "x-salus-nonce",
+            "x-salus-timestamp",
+        ]
         if body is not None:
             signed_fields.append("content-digest")
 
@@ -575,7 +619,9 @@ class SharingService:
         from cryptography.hazmat.primitives.asymmetric import ed25519
         from cryptography.hazmat.primitives import serialization
 
-        private_key = serialization.load_pem_private_key(priv_pem.encode("utf-8"), password=None)
+        private_key = serialization.load_pem_private_key(
+            priv_pem.encode("utf-8"), password=None
+        )
         assert isinstance(private_key, ed25519.Ed25519PrivateKey)
 
         sig_bytes = private_key.sign(signature_base)
@@ -585,7 +631,14 @@ class SharingService:
         headers["Signature"] = sig_str
         return headers
 
-    def verify_request_signature(self, headers_dict: dict[str, str], method: str, path_with_query: str, authority: str, body: bytes | None = None) -> str:
+    def verify_request_signature(
+        self,
+        headers_dict: dict[str, str],
+        method: str,
+        path_with_query: str,
+        authority: str,
+        body: bytes | None = None,
+    ) -> str:
         import time
         import base64
         import hashlib
@@ -614,7 +667,7 @@ class SharingService:
             raise ValueError("Missing keyid in Signature-Input")
         sender_handle = match_keyid.group(1)
 
-        match_fields = re.search(r'sig1=\(([^)]+)\)', sig_input)
+        match_fields = re.search(r"sig1=\(([^)]+)\)", sig_input)
         if not match_fields:
             raise ValueError("Invalid sig1 format in Signature-Input")
         fields_str = match_fields.group(1)
@@ -679,7 +732,11 @@ class SharingService:
             raise ValueError(f"Invalid remote handle format: {owner_handle}")
         username, domain = parts
 
-        scheme = "http" if "localhost" in domain or "127.0.0.1" in domain or "testserver" in domain else "https"
+        scheme = (
+            "http"
+            if "localhost" in domain or "127.0.0.1" in domain or "testserver" in domain
+            else "https"
+        )
         webfinger_url = f"{scheme}://{domain}/.well-known/webfinger"
 
         try:
@@ -704,14 +761,22 @@ class SharingService:
             actor = resp_actor.json()
             endpoints = actor.get("endpoints", {})
             resolved = {
-                "sharing": endpoints.get("sharing", f"{scheme}://{domain}/api/v1/federation/sharing"),
-                "accept": endpoints.get("accept", f"{scheme}://{domain}/api/v1/federation/accept"),
-                "notify": endpoints.get("notify", f"{scheme}://{domain}/api/v1/federation/notify-update"),
+                "sharing": endpoints.get(
+                    "sharing", f"{scheme}://{domain}/api/v1/federation/sharing"
+                ),
+                "accept": endpoints.get(
+                    "accept", f"{scheme}://{domain}/api/v1/federation/accept"
+                ),
+                "notify": endpoints.get(
+                    "notify", f"{scheme}://{domain}/api/v1/federation/notify-update"
+                ),
             }
             self._endpoint_cache[owner_handle] = resolved
             return resolved
         except Exception as exc:
-            logger.debug(f"WebFinger resolution failed for {owner_handle}: {exc}. Using fallback paths.")
+            logger.debug(
+                f"WebFinger resolution failed for {owner_handle}: {exc}. Using fallback paths."
+            )
             fallback = {
                 "sharing": f"{scheme}://{domain}/api/v1/federation/sharing",
                 "accept": f"{scheme}://{domain}/api/v1/federation/accept",
@@ -733,6 +798,7 @@ class SharingService:
 
         with self.uow:
             from salus.models import MetricType
+
             ctx = (
                 select(SharingRelationship)
                 .join(MetricType)
@@ -752,6 +818,7 @@ class SharingService:
 
         from urllib.parse import urlparse
         from salus.config import settings
+
         local_domain = urlparse(settings.oauth_redirect_base).netloc
         requester_handle = f"@{local_username}:{local_domain}"
 
@@ -768,6 +835,7 @@ class SharingService:
             sig_headers["Authorization"] = f"Bearer {token}"
 
         import time
+
         max_retries = 3
         backoff = 1.0
 
@@ -780,20 +848,33 @@ class SharingService:
                     timeout=5.0,
                 )
                 if resp.status_code in (401, 403, 404):
-                    logger.warning(f"Permanent remote federation failure {resp.status_code} for {owner_handle}")
+                    logger.warning(
+                        f"Permanent remote federation failure {resp.status_code} for {owner_handle}"
+                    )
                     break
                 resp.raise_for_status()
                 payload = resp.json()
                 return payload.get("data", [])
-            except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError) as exc:
+            except (
+                httpx.ConnectError,
+                httpx.TimeoutException,
+                httpx.NetworkError,
+                httpx.RemoteProtocolError,
+            ) as exc:
                 if attempt == max_retries - 1:
-                    logger.error(f"Remote federation fetch failed after {max_retries} attempts for {owner_handle}: {exc}")
+                    logger.error(
+                        f"Remote federation fetch failed after {max_retries} attempts for {owner_handle}: {exc}"
+                    )
                     break
-                logger.warning(f"Transient error fetching from {owner_handle} (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s...")
+                logger.warning(
+                    f"Transient error fetching from {owner_handle} (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s..."
+                )
                 time.sleep(backoff)
                 backoff *= 2.0
             except Exception as exc:
-                logger.exception(f"Unexpected remote federation fetch failure for {owner_handle}: {exc}")
+                logger.exception(
+                    f"Unexpected remote federation fetch failure for {owner_handle}: {exc}"
+                )
                 break
 
         return []
@@ -809,6 +890,7 @@ class SharingService:
         url = endpoints["accept"]
 
         import time
+
         max_retries = 3
         backoff = 1.0
 
@@ -823,19 +905,32 @@ class SharingService:
                     timeout=5.0,
                 )
                 if resp.status_code in (401, 403, 404):
-                    logger.warning(f"Permanent remote accept notification failure {resp.status_code} for {rel.grantee_handle}")
+                    logger.warning(
+                        f"Permanent remote accept notification failure {resp.status_code} for {rel.grantee_handle}"
+                    )
                     break
                 resp.raise_for_status()
                 return
-            except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError) as exc:
+            except (
+                httpx.ConnectError,
+                httpx.TimeoutException,
+                httpx.NetworkError,
+                httpx.RemoteProtocolError,
+            ) as exc:
                 if attempt == max_retries - 1:
-                    logger.error(f"Remote accept notification failed after {max_retries} attempts for {rel.grantee_handle}: {exc}")
+                    logger.error(
+                        f"Remote accept notification failed after {max_retries} attempts for {rel.grantee_handle}: {exc}"
+                    )
                     break
-                logger.warning(f"Transient error calling remote accept (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s...")
+                logger.warning(
+                    f"Transient error calling remote accept (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s..."
+                )
                 time.sleep(backoff)
                 backoff *= 2.0
             except Exception as exc:
-                logger.exception(f"Unexpected remote accept notification failure for {rel.grantee_handle}: {exc}")
+                logger.exception(
+                    f"Unexpected remote accept notification failure for {rel.grantee_handle}: {exc}"
+                )
                 break
 
     def process_federation_accept(self, token: str, owner_handle: str) -> None:
@@ -847,7 +942,9 @@ class SharingService:
             )
             rel = self.uow.session.exec(ctx).first()
             if not rel:
-                raise NotFoundError("Pending sharing relationship not found for the provided token")
+                raise NotFoundError(
+                    "Pending sharing relationship not found for the provided token"
+                )
             rel.status = ConnectionStatus.ACTIVE
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
@@ -883,13 +980,16 @@ class SharingService:
                         "user": rel.owner,
                         "metrics": [],
                     }
-                friends_dict[rel.owner_id]["metrics"].append(rel.metric_type.source_data_type)
+                friends_dict[rel.owner_id]["metrics"].append(
+                    rel.metric_type.source_data_type
+                )
 
             for friend_id, friend_data in friends_dict.items():
                 friend_user = friend_data["user"]
                 shared_types = friend_data["metrics"]
 
                 from salus.models.workout import WorkoutSession
+
                 stmt_sessions = (
                     select(WorkoutSession)
                     .where(
@@ -902,14 +1002,16 @@ class SharingService:
                 sessions = self.uow.session.exec(stmt_sessions).all()
 
                 for sess in sessions:
-                    activities.append({
-                        "type": "workout",
-                        "friend_name": friend_user.username,
-                        "time": sess.completed_at,
-                        "title": sess.plan.name if sess.plan else "Workout Session",
-                        "notes": sess.notes,
-                        "id": f"workout-{sess.id}",
-                    })
+                    activities.append(
+                        {
+                            "type": "workout",
+                            "friend_name": friend_user.username,
+                            "time": sess.completed_at,
+                            "title": sess.plan.name if sess.plan else "Workout Session",
+                            "notes": sess.notes,
+                            "id": f"workout-{sess.id}",
+                        }
+                    )
 
                 for data_type in shared_types:
                     if data_type not in ("steps", "weight"):
@@ -921,36 +1023,57 @@ class SharingService:
                     for offset in range(3):
                         day = today - timedelta(days=offset)
                         day_measurements = [
-                            m for m in raw_measurements if m.start_time.date() == day and m.value_numeric is not None
+                            m
+                            for m in raw_measurements
+                            if m.start_time.date() == day
+                            and m.value_numeric is not None
                         ]
                         if day_measurements:
                             if data_type == "steps":
-                                val = sum(m.value_numeric for m in day_measurements if m.value_numeric is not None)
+                                val = sum(
+                                    m.value_numeric
+                                    for m in day_measurements
+                                    if m.value_numeric is not None
+                                )
                                 if val > 0:
-                                    activities.append({
-                                        "type": "steps",
-                                        "friend_name": friend_user.username,
-                                        "time": datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc),
-                                        "value": int(val),
-                                        "id": f"steps-{friend_id}-{day.isoformat()}",
-                                    })
+                                    activities.append(
+                                        {
+                                            "type": "steps",
+                                            "friend_name": friend_user.username,
+                                            "time": datetime.combine(
+                                                day,
+                                                datetime.min.time(),
+                                                tzinfo=timezone.utc,
+                                            ),
+                                            "value": int(val),
+                                            "id": f"steps-{friend_id}-{day.isoformat()}",
+                                        }
+                                    )
                             elif data_type == "weight":
                                 val = day_measurements[-1].value_numeric
                                 if val is not None and val > 0:
-                                    activities.append({
-                                        "type": "weight",
-                                        "friend_name": friend_user.username,
-                                        "time": datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc),
-                                        "value": val,
-                                        "id": f"weight-{friend_id}-{day.isoformat()}",
-                                    })
+                                    activities.append(
+                                        {
+                                            "type": "weight",
+                                            "friend_name": friend_user.username,
+                                            "time": datetime.combine(
+                                                day,
+                                                datetime.min.time(),
+                                                tzinfo=timezone.utc,
+                                            ),
+                                            "value": val,
+                                            "id": f"weight-{friend_id}-{day.isoformat()}",
+                                        }
+                                    )
 
             remote_peers = {}
             for rel in remote_connections:
                 if self._is_remote(rel.grantee_handle):
                     if rel.grantee_handle not in remote_peers:
                         remote_peers[rel.grantee_handle] = []
-                    remote_peers[rel.grantee_handle].append(rel.metric_type.source_data_type)
+                    remote_peers[rel.grantee_handle].append(
+                        rel.metric_type.source_data_type
+                    )
 
         for remote_handle, shared_types in remote_peers.items():
             for data_type in shared_types:
@@ -969,23 +1092,39 @@ class SharingService:
                         for item in data:
                             val = item.get("value_numeric")
                             if val is not None and val > 0:
-                                activities.append({
-                                    "type": data_type,
-                                    "friend_name": remote_handle,
-                                    "time": datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc),
-                                    "value": int(val) if data_type == "steps" else val,
-                                    "id": f"{data_type}-{remote_handle}-{day_str}",
-                                })
+                                activities.append(
+                                    {
+                                        "type": data_type,
+                                        "friend_name": remote_handle,
+                                        "time": datetime.combine(
+                                            day,
+                                            datetime.min.time(),
+                                            tzinfo=timezone.utc,
+                                        ),
+                                        "value": int(val)
+                                        if data_type == "steps"
+                                        else val,
+                                        "id": f"{data_type}-{remote_handle}-{day_str}",
+                                    }
+                                )
                     except Exception as exc:
-                        logger.warning(f"Failed to fetch remote data for {remote_handle}: {exc}")
+                        logger.warning(
+                            f"Failed to fetch remote data for {remote_handle}: {exc}"
+                        )
 
         activities.sort(
-            key=lambda x: x["time"] if isinstance(x["time"], datetime) else datetime.now(timezone.utc),
+            key=lambda x: (
+                x["time"]
+                if isinstance(x["time"], datetime)
+                else datetime.now(timezone.utc)
+            ),
             reverse=True,
         )
         return activities
 
-    def notify_peers_of_update(self, user_id: int, data_type: str, date_str: str) -> None:
+    def notify_peers_of_update(
+        self, user_id: int, data_type: str, date_str: str
+    ) -> None:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
@@ -993,6 +1132,7 @@ class SharingService:
             owner_handle = f"@{user.username}"
 
             from salus.models import MetricType
+
             stmt = (
                 select(SharingRelationship)
                 .join(MetricType)
@@ -1014,6 +1154,7 @@ class SharingService:
             self.uow.commit()
 
         import threading
+
         for handle, token_hash in remote_grantees:
             if token_hash:
                 threading.Thread(
@@ -1022,7 +1163,14 @@ class SharingService:
                     daemon=True,
                 ).start()
 
-    def _send_push_notification(self, grantee_handle: str, token_hash: str, owner_handle: str, data_type: str, date_str: str) -> None:
+    def _send_push_notification(
+        self,
+        grantee_handle: str,
+        token_hash: str,
+        owner_handle: str,
+        data_type: str,
+        date_str: str,
+    ) -> None:
         endpoints = self._resolve_remote_endpoints(grantee_handle)
         url = endpoints["notify"]
         try:
@@ -1039,4 +1187,6 @@ class SharingService:
             resp.raise_for_status()
             logger.debug(f"Successfully pushed update notification to {grantee_handle}")
         except Exception as exc:
-            logger.warning(f"Failed to push update notification to {grantee_handle}: {exc}")
+            logger.warning(
+                f"Failed to push update notification to {grantee_handle}: {exc}"
+            )

@@ -15,3 +15,52 @@
 /* Mobile */
 .top-app-bar__hamburger { display: none; background: transparent; border: none; cursor: pointer; padding: 8px; color: var(--color-slate-700); font-size: 24px; }
 @media (max-width: 1024px) { .top-app-bar__nav { display: none; } .top-app-bar__hamburger { display: flex; } }
+
+/* Active Workout Indicator */
+.active-workout-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: var(--color-tertiary-50, #ecfdf5);
+    color: var(--color-tertiary-700, #047857);
+    border: 1px solid var(--color-tertiary-200, #a7f3d0);
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    font: var(--font-label-md);
+    font-weight: 700;
+    transition: background-color var(--duration-fast) var(--ease-default),
+                box-shadow var(--duration-fast) var(--ease-default);
+    animation: workout-pulse 2s infinite;
+}
+
+.active-workout-indicator:hover {
+    background-color: var(--color-tertiary-100, #d1fae5);
+}
+
+.active-workout-indicator__icon {
+    display: flex;
+    align-items: center;
+}
+
+@keyframes workout-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+@media (max-width: 640px) {
+    .active-workout-indicator {
+        padding: 8px;
+    }
+    .active-workout-indicator__text {
+        display: none;
+    }
+}
+

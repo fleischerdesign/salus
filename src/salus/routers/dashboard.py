@@ -55,7 +55,10 @@ async def dashboard(
     nav = _date_nav_context(target_date)
 
     plugin_widgets = []
-    if hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+    if (
+        hasattr(request.app.state, "plugin_manager")
+        and request.app.state.plugin_manager
+    ):
         plugin_widgets = request.app.state.plugin_manager.registry.widgets
 
     return request.app.state.templates.TemplateResponse(
@@ -94,7 +97,10 @@ async def dashboard_grid(
     nav = _date_nav_context(target_date)
 
     plugin_widgets = []
-    if hasattr(request.app.state, "plugin_manager") and request.app.state.plugin_manager:
+    if (
+        hasattr(request.app.state, "plugin_manager")
+        and request.app.state.plugin_manager
+    ):
         plugin_widgets = request.app.state.plugin_manager.registry.widgets
 
     return request.app.state.templates.TemplateResponse(

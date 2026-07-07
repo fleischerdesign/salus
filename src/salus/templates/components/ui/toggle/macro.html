@@ -8,7 +8,8 @@
         <input type="checkbox" id="{{ field_id }}" name="{{ name }}" class="toggle__input"
             {% if checked %}checked{% endif %}
             {% if disabled %}disabled{% endif %}
-            role="switch" aria-checked="{{ 'true' if checked else 'false' }}">
+            role="switch" aria-checked="{{ 'true' if checked else 'false' }}"
+            {{ kwargs | render_attrs }}>
         <span class="toggle__track">
             <span class="toggle__thumb"></span>
         </span>

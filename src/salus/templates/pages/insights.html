@@ -35,7 +35,7 @@
                     padding:16px;background:var(--color-surface-container-lowest);
                     border:1px solid var(--color-slate-200);border-radius:var(--radius-md)">
             <div style="display:flex;align-items:center;gap:8px">
-                <span class="material-symbols-outlined" style="color:var(--color-slate-500)">calendar_today</span>
+                {{ icon("calendar_today", style="color:var(--color-slate-500)") }}
                 <strong style="font:var(--font-label-md);color:var(--color-slate-700)">{{ _("Active Day Selection:") }}</strong>
             </div>
             <input type="date" name="date" value="{{ display_date }}"
@@ -52,7 +52,7 @@
     <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);
                 border-radius:var(--radius-md);padding:20px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--color-slate-100)">
-            <span class="material-symbols-outlined" style="color:var(--color-slate-400)">history</span>
+            {{ icon("history", style="color:var(--color-slate-400)") }}
             <strong style="font:var(--font-headline-md);color:var(--color-on-surface)">{{ _("Insight History") }}</strong>
         </div>
         {% if history %}

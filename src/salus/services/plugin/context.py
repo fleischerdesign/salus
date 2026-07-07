@@ -27,7 +27,9 @@ class PluginContext:
     ) -> list[Measurement]:
         self._check_permission("measurements:read")
         data_types = [data_type] if data_type else None
-        return self._uow.measurements.find_all(user_id=user_id, data_types=data_types, limit=limit)
+        return self._uow.measurements.find_all(
+            user_id=user_id, data_types=data_types, limit=limit
+        )
 
     def create_measurement(self, measurement: Measurement) -> Measurement:
         self._check_permission("measurements:write")

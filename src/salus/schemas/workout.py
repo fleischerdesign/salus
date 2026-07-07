@@ -52,6 +52,7 @@ class WorkoutPlanCreate(BaseModel):
     name: str
     description: Optional[str] = None
     autoreg_mode: str = "advisory"  # "guided", "advisory", "disabled"
+    position: int = 0
     exercises: list[WorkoutPlanExerciseCreate] = Field(default_factory=list)
 
 
@@ -60,6 +61,7 @@ class WorkoutPlanResponse(BaseModel):
     name: str
     description: Optional[str] = None
     autoreg_mode: str
+    position: int
     created_at: datetime
     plan_exercises: list[WorkoutPlanExerciseResponse]
 

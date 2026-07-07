@@ -2,7 +2,11 @@ from salus.exceptions import ConflictError, NotFoundError
 from salus.models import MetricType
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
-from salus.repositories.protocols import IUserRepository, IUserIdentityRepository, IMetricTypeRepository
+from salus.repositories.protocols import (
+    IUserRepository,
+    IUserIdentityRepository,
+    IMetricTypeRepository,
+)
 from salus.services._helpers import uid
 from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
 from salus.services.password import hash_password, verify_password
@@ -24,7 +28,16 @@ class UserService:
         return len(all_users) == 0
 
     def _seed_default_metric_types(self, user_id: int) -> None:
-        for name, unit, data_type, color, source_data_type, icon, widget_size, widget_enabled in DEFAULT_METRIC_TYPES:
+        for (
+            name,
+            unit,
+            data_type,
+            color,
+            source_data_type,
+            icon,
+            widget_size,
+            widget_enabled,
+        ) in DEFAULT_METRIC_TYPES:
             existing = self._metric_type_repo.find_by_name_and_user(name, user_id)
             if existing is None:
                 mt = MetricType(
@@ -96,7 +109,9 @@ class UserService:
         email: str | None = None,
         display_name: str | None = None,
     ) -> User:
-        existing = self.identity_repo.get_by_provider_user_id(provider, provider_user_id)
+        existing = self.identity_repo.get_by_provider_user_id(
+            provider, provider_user_id
+        )
         if existing is not None:
             return self.get_by_id(existing.user_id)
 
@@ -135,7 +150,9 @@ class UserService:
         self._seed_default_metric_types(uid(user))
         return user
 
-    def change_password(self, user_id: int, old_password: str, new_password: str) -> User:
+    def change_password(
+        self, user_id: int, old_password: str, new_password: str
+    ) -> User:
         user = self.get_by_id(user_id)
         if user.password_hash and not verify_password(old_password, user.password_hash):
             raise ConflictError("Current password is incorrect")

@@ -43,7 +43,10 @@ def _render_login_template(request: Request, extra: dict | None = None) -> HTMLR
 
 def _register_error(request: Request, message: str) -> HTMLResponse:
     return request.app.state.templates.TemplateResponse(
-        request, "pages/register.html", {"error": message, "current_user": None}, status_code=409
+        request,
+        "pages/register.html",
+        {"error": message, "current_user": None},
+        status_code=409,
     )
 
 
@@ -67,7 +70,9 @@ async def login(
     try:
         token, user = auth_svc.login_local(username=username, password=password)
     except InvalidCredentialsError:
-        return _render_login_template(request, {"error": "Invalid username or password"})
+        return _render_login_template(
+            request, {"error": "Invalid username or password"}
+        )
 
     response = RedirectResponse(url="/", status_code=303)
     _set_auth_cookie(response, token)
@@ -139,7 +144,9 @@ async def ldap_login(
     try:
         token, user = auth_svc.login_ldap(username=username, password=password)
     except InvalidCredentialsError:
-        return _render_login_template(request, {"error": "LDAP authentication failed", "ldap_mode": True})
+        return _render_login_template(
+            request, {"error": "LDAP authentication failed", "ldap_mode": True}
+        )
 
     response = RedirectResponse(url="/", status_code=303)
     _set_auth_cookie(response, token)

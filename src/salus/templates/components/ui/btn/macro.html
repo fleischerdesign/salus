@@ -12,33 +12,21 @@
    Attributes: any via attrs dict for edge-cases
  #}
 
-{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, aria_label=none, href=none, type="submit", full_width_mobile=true, class=none, id=none, style=none, hx_get=none, hx_post=none, hx_delete=none, hx_put=none, hx_confirm=none, hx_target=none, hx_swap=none, hx_push_url=none, onclick=none, hyperscript=none, attrs=none) %}
+{% macro btn(label=none, variant="primary", icon=none, size=none, disabled=false, loading=false, full_width_mobile=true) %}
+    {% set href = kwargs.get("href") %}
     {% set tag = "a" if href else "button" %}
-    {% set btn_type = "submit" if type == "submit" else "button" %}
+    {% set btn_type = kwargs.get("type", "submit") %}
+    {% set extra_class = kwargs.get("class") %}
     <{{ tag }}
-        class="btn{% if class %} {{ class }}{% endif %}"
+        class="btn{% if extra_class %} {{ extra_class }}{% endif %}"
         data-variant="{{ variant }}"
         {% if size %}data-size="{{ size }}"{% endif %}
         {% if icon and not label %}data-icon-only{% endif %}
-        {% if disabled %}disabled{% endif %}
-        {% if loading %}aria-busy="true" disabled{% endif %}
-        {% if id %}id="{{ id }}"{% endif %}
-        {% if style %}style="{{ style }}"{% endif %}
-        {% if href %}href="{{ href }}"{% endif %}
-        {% if full_width_mobile and not class %}data-full-width-mobile{% endif %}
-        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% if disabled or loading %}disabled{% endif %}
+        {% if loading %}aria-busy="true"{% endif %}
         {% if not href %}type="{{ btn_type }}"{% endif %}
-        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-        {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
-        {% if hx_delete %}hx-delete="{{ hx_delete }}"{% endif %}
-        {% if hx_put %}hx-put="{{ hx_put }}"{% endif %}
-        {% if hx_confirm %}hx-confirm="{{ hx_confirm }}"{% endif %}
-        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-        {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
-        {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}
-        {% if onclick %}onclick="{{ onclick }}"{% endif %}
-        {% if hyperscript %} _="{{ hyperscript }}"{% endif %}
-        {% if attrs %}{% for k, v in attrs.items() %} {{ k }}="{{ v }}"{% endfor %}{% endif %}
+        {% if full_width_mobile and not extra_class %}data-full-width-mobile{% endif %}
+        {{ kwargs | render_attrs(exclude=['href', 'type', 'class']) }}
     >
         {% if loading %}
         <span class="btn__spinner" aria-hidden="true"></span>
@@ -51,3 +39,4 @@
         {% endif %}
     </{{ tag }}>
 {% endmacro %}
+

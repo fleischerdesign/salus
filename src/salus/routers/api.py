@@ -36,8 +36,11 @@ async def api_create_metric(
     result = metric_svc.create(data, uid(current_user))
     assert result.id is not None
     return MetricTypeResponse(
-        id=result.id, name=result.name, unit=result.unit,
-        data_type=result.data_type, color=result.color,
+        id=result.id,
+        name=result.name,
+        unit=result.unit,
+        data_type=result.data_type,
+        color=result.color,
     )
 
 
@@ -50,8 +53,11 @@ async def api_get_metric(
     result = metric_svc.get(metric_id, uid(current_user))
     assert result.id is not None
     return MetricTypeResponse(
-        id=result.id, name=result.name, unit=result.unit,
-        data_type=result.data_type, color=result.color,
+        id=result.id,
+        name=result.name,
+        unit=result.unit,
+        data_type=result.data_type,
+        color=result.color,
     )
 
 
@@ -65,8 +71,11 @@ async def api_update_metric(
     result = metric_svc.update(metric_id, uid(current_user), data)
     assert result.id is not None
     return MetricTypeResponse(
-        id=result.id, name=result.name, unit=result.unit,
-        data_type=result.data_type, color=result.color,
+        id=result.id,
+        name=result.name,
+        unit=result.unit,
+        data_type=result.data_type,
+        color=result.color,
     )
 
 

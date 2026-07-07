@@ -31,7 +31,9 @@ class BackupService:
         Returns: the filename of the uploaded backup.
         """
         if not self.password:
-            raise ValueError("Backup service is disabled. Set SALUS_BACKUP_PASSWORD to enable.")
+            raise ValueError(
+                "Backup service is disabled. Set SALUS_BACKUP_PASSWORD to enable."
+            )
 
         # 1. Capture Database Bytes
         if "postgresql" in self.database_url or "postgres" in self.database_url:
@@ -79,10 +81,12 @@ class BackupService:
         backups = self.provider.list_backups()
         deleted_count = 0
         now = datetime.now()
-        
+
         for fname in backups:
             # Match salus_backup_YYYY-MM-DD_HH-MM-SS.enc
-            match = re.match(r"salus_backup_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.enc", fname)
+            match = re.match(
+                r"salus_backup_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.enc", fname
+            )
             if match:
                 dt_str = f"{match.group(1)} {match.group(2).replace('-', ':')}"
                 try:

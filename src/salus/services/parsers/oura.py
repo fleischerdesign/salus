@@ -21,20 +21,24 @@ class OuraParser:
         for item in sleep_data:
             if not isinstance(item, dict):
                 continue
-            records.append(Measurement(
-                data_type="sleep",
-                source="oura",
-                value_json=json.dumps({
-                    "duration_seconds": item.get("total_sleep_duration", 0),
-                    "deep_sleep_seconds": item.get("deep_sleep_duration", 0),
-                    "rem_sleep_seconds": item.get("rem_sleep_duration", 0),
-                    "efficiency": item.get("efficiency", 0),
-                    "score": item.get("score", 0),
-                }),
-                start_time=_to_dt(item.get("bedtime_start", "")),
-                end_time=_to_dt(item.get("bedtime_end", "")),
-                external_id=str(item.get("id", "")),
-            ))
+            records.append(
+                Measurement(
+                    data_type="sleep",
+                    source="oura",
+                    value_json=json.dumps(
+                        {
+                            "duration_seconds": item.get("total_sleep_duration", 0),
+                            "deep_sleep_seconds": item.get("deep_sleep_duration", 0),
+                            "rem_sleep_seconds": item.get("rem_sleep_duration", 0),
+                            "efficiency": item.get("efficiency", 0),
+                            "score": item.get("score", 0),
+                        }
+                    ),
+                    start_time=_to_dt(item.get("bedtime_start", "")),
+                    end_time=_to_dt(item.get("bedtime_end", "")),
+                    external_id=str(item.get("id", "")),
+                )
+            )
 
         readiness_data = payload.get("readiness", [])
         if isinstance(readiness_data, dict):
@@ -42,15 +46,21 @@ class OuraParser:
         for item in readiness_data:
             if not isinstance(item, dict):
                 continue
-            records.append(Measurement(
-                data_type="readiness",
-                source="oura",
-                value_json=json.dumps({
-                    "score": item.get("score", 0),
-                    "temperature_deviation": item.get("temperature_deviation", 0),
-                }),
-                start_time=_to_dt(item.get("day", "")),
-                external_id=str(item.get("id", "")),
-            ))
+            records.append(
+                Measurement(
+                    data_type="readiness",
+                    source="oura",
+                    value_json=json.dumps(
+                        {
+                            "score": item.get("score", 0),
+                            "temperature_deviation": item.get(
+                                "temperature_deviation", 0
+                            ),
+                        }
+                    ),
+                    start_time=_to_dt(item.get("day", "")),
+                    external_id=str(item.get("id", "")),
+                )
+            )
 
         return records

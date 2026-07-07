@@ -10,7 +10,9 @@ class AsymmetricShareService:
     def __init__(self, uow: IUnitOfWork) -> None:
         self.uow = uow
 
-    def create_recipient(self, user_id: int, data: ShareRecipientCreate) -> ShareRecipient:
+    def create_recipient(
+        self, user_id: int, data: ShareRecipientCreate
+    ) -> ShareRecipient:
         with self.uow:
             recipient = ShareRecipient(
                 user_id=user_id,
@@ -33,7 +35,9 @@ class AsymmetricShareService:
             self.uow.share_recipients.delete(recipient)
             self.uow.commit()
 
-    def create_share(self, user_id: int, data: AsymmetricShareCreate) -> AsymmetricShare:
+    def create_share(
+        self, user_id: int, data: AsymmetricShareCreate
+    ) -> AsymmetricShare:
         with self.uow:
             recipient = self.uow.share_recipients.get_by_id(data.recipient_id)
             if not recipient or recipient.user_id != user_id:
@@ -41,7 +45,9 @@ class AsymmetricShareService:
 
             expires_at = None
             if data.expires_in_hours is not None:
-                expires_at = datetime.now(timezone.utc) + timedelta(hours=data.expires_in_hours)
+                expires_at = datetime.now(timezone.utc) + timedelta(
+                    hours=data.expires_in_hours
+                )
 
             share = AsymmetricShare(
                 user_id=user_id,
@@ -66,7 +72,9 @@ class AsymmetricShareService:
 
             # Enforce expiration
             if share.expires_at is not None:
-                if datetime.now(timezone.utc) > share.expires_at.replace(tzinfo=timezone.utc):
+                if datetime.now(timezone.utc) > share.expires_at.replace(
+                    tzinfo=timezone.utc
+                ):
                     # Auto clean up expired share
                     self.uow.asymmetric_shares.delete(share)
                     self.uow.commit()

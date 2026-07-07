@@ -1,34 +1,26 @@
-<div class="modal-backdrop" id="upload-plugin-modal" onclick="if(event.target===this) document.getElementById('upload-plugin-modal').remove();" style="display:flex">
-    <div class="modal-content">
-        <h2 class="modal__title">{{ _("Install Developer Plugin") }}</h2>
-        <button class="modal__close" aria-label="Close" type="button"
-                onclick="document.getElementById('upload-plugin-modal').remove()">
-            <span class="material-symbols-outlined">close</span>
-        </button>
+{% call modal(title=_("Install Developer Plugin"), id="upload-plugin-modal", open=true) %}
+    <form hx-post="/admin/plugins/upload"
+          hx-encoding="multipart/form-data"
+          hx-target="#admin-plugins-container"
+          hx-swap="innerHTML"
+          onsubmit="document.getElementById('upload-plugin-modal').remove();">
+        
+        <p style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:13px;margin:0">
+            Select a <strong>ZIP archive</strong> containing the plugin code. The ZIP file must contain a <code>manifest.json</code> in its root folder.
+        </p>
 
-        <form hx-post="/admin/plugins/upload"
-              hx-encoding="multipart/form-data"
-              hx-target="#admin-plugins-container"
-              hx-swap="innerHTML"
-              onsubmit="document.getElementById('upload-plugin-modal').remove();">
-            <div class="modal__body">
-                <p style="font:var(--font-body-sm);color:var(--color-slate-500);font-size:13px;margin:0">
-                    Select a <strong>ZIP archive</strong> containing the plugin code. The ZIP file must contain a <code>manifest.json</code> in its root folder.
-                </p>
+        <div style="border:2px dashed var(--color-slate-300);border-radius:8px;padding:24px;text-align:center;background:var(--color-slate-50);cursor:pointer;margin-top:16px"
+             onclick="document.getElementById('plugin-file-input').click()">
+            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-400)">upload_file</span>
+            <div style="font-weight:600;margin-top:8px">Click to select plugin ZIP</div>
+            <input type="file" id="plugin-file-input" name="file" accept=".zip" required style="display:none"
+                   onchange="document.getElementById('selected-file-name').textContent = this.files[0] ? this.files[0].name : ''">
+            <div id="selected-file-name" style="font-size:12px;color:var(--color-primary);margin-top:8px;font-weight:bold"></div>
+        </div>
 
-                <div style="border:2px dashed var(--color-slate-300);border-radius:8px;padding:24px;text-align:center;background:var(--color-slate-50);cursor:pointer;margin-top:16px"
-                     onclick="document.getElementById('plugin-file-input').click()">
-                    <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-400)">upload_file</span>
-                    <div style="font-weight:600;margin-top:8px">Click to select plugin ZIP</div>
-                    <input type="file" id="plugin-file-input" name="file" accept=".zip" required style="display:none"
-                           onchange="document.getElementById('selected-file-name').textContent = this.files[0] ? this.files[0].name : ''">
-                    <div id="selected-file-name" style="font-size:12px;color:var(--color-primary);margin-top:8px;font-weight:bold"></div>
-                </div>
-            </div>
-            <div class="modal__footer">
-                {{ btn("Cancel", variant="ghost", onclick="document.getElementById('upload-plugin-modal').remove()") }}
-                {{ btn("Install & Enable", variant="primary", type="submit") }}
-            </div>
-        </form>
-    </div>
-</div>
+        {% call modal_footer() %}
+            {{ btn("Cancel", variant="ghost", type="button", onclick="document.getElementById('upload-plugin-modal').remove()") }}
+            {{ btn("Install & Enable", variant="primary", type="submit") }}
+        {% endcall %}
+    </form>
+{% endcall %}

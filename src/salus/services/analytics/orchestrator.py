@@ -2,7 +2,11 @@ import json
 
 from salus.models.analytics import TDEEResult
 from salus.services.analytics.activity import ActivityAnalysisService
-from salus.services.analytics.calculations import calc_bmr_cunningham, calc_tef, calc_tdee
+from salus.services.analytics.calculations import (
+    calc_bmr_cunningham,
+    calc_tef,
+    calc_tdee,
+)
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
@@ -37,7 +41,9 @@ class AnalyticsService:
         sleep_list = self._sleep.trend(days=days, user_id=user_id)
         weight_trend = self._weight.trend(days=days, user_id=user_id)
         nutrition_list = self._nutrition.daily_totals(days=days, user_id=user_id)
-        exercise_sessions = self._activity.exercise_history(days=days, user_id=user_id, limit=5)
+        exercise_sessions = self._activity.exercise_history(
+            days=days, user_id=user_id, limit=5
+        )
 
         tdee = self._compute_tdee(user_id=user_id, weight_trend=weight_trend)
 
@@ -55,7 +61,9 @@ class AnalyticsService:
             "latest_sleep": sleep_list[-1] if sleep_list else None,
             "weight_trend": weight_trend,
             "bmr": tdee.bmr_kcal if tdee else None,
-            "tdee_data": (tdee.tdee_kcal, tdee.pal_factor, tdee.hrr_pct) if tdee else None,
+            "tdee_data": (tdee.tdee_kcal, tdee.pal_factor, tdee.hrr_pct)
+            if tdee
+            else None,
             "exercise_sessions": exercise_sessions,
             "nutrition_list": nutrition_list,
             "days": days,

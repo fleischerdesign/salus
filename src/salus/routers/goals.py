@@ -31,12 +31,14 @@ def _render_goals_page(
     for g in goals:
         progress = goal_service.progress(g)
         metric = metrics.get(g.metric_type_id)
-        goal_cards.append({
-            "goal": g,
-            "progress": progress,
-            "metric_name": metric.name if metric else "?",
-            "metric_unit": metric.unit if metric else "",
-        })
+        goal_cards.append(
+            {
+                "goal": g,
+                "progress": progress,
+                "metric_name": metric.name if metric else "?",
+                "metric_unit": metric.unit if metric else "",
+            }
+        )
 
     return request.app.state.templates.TemplateResponse(
         request,
@@ -45,8 +47,7 @@ def _render_goals_page(
             "current_user": current_user,
             "goal_cards": goal_cards,
             "all_metrics": [
-                {"id": m.id, "name": m.name, "unit": m.unit}
-                for m in metrics.values()
+                {"id": m.id, "name": m.name, "unit": m.unit} for m in metrics.values()
             ],
         },
     )
@@ -77,7 +78,9 @@ async def new_goal_form(
         "components/goal_form.html",
         {
             "goal": None,
-            "all_metrics": [{"id": m.id, "name": m.name, "unit": m.unit} for m in metrics],
+            "all_metrics": [
+                {"id": m.id, "name": m.name, "unit": m.unit} for m in metrics
+            ],
         },
     )
 

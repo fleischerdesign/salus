@@ -25,7 +25,11 @@ from salus.services.analytics.weight import WeightAnalysisService
 from salus.services.admin import AdminService
 from salus.services.config import ConfigService
 from salus.services.api_token import ApiTokenService
-from salus.services.auth.providers import LdapAuthProvider, LocalAuthProvider, OidcAuthProvider
+from salus.services.auth.providers import (
+    LdapAuthProvider,
+    LocalAuthProvider,
+    OidcAuthProvider,
+)
 from salus.services.auth.service import AuthService
 from salus.services.dashboard_widget import DashboardWidgetService
 from salus.services.export import ExportService
@@ -40,6 +44,7 @@ from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.repositories.insight import InsightRepository
 from salus.services.sharing import SharingService
 from salus.services.leaderboard import LeaderboardService
+from salus.services.notification import NotificationService
 from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LlmProviderFactory
 from salus.services.insight.service import InsightService
@@ -86,7 +91,9 @@ async def verify_webhook_token(
     if result is not None:
         user, api_token = result
         if not api_token.has_scope("ingest:write"):
-            raise HTTPException(status_code=403, detail="Token lacks ingest:write scope")
+            raise HTTPException(
+                status_code=403, detail="Token lacks ingest:write scope"
+            )
         return user
 
     if token == settings.api_token:
@@ -117,11 +124,15 @@ def get_jwt_service() -> JwtService:
     )
 
 
-def get_user_identity_repo(session: Session = Depends(get_session)) -> UserIdentityRepository:
+def get_user_identity_repo(
+    session: Session = Depends(get_session),
+) -> UserIdentityRepository:
     return UserIdentityRepository(session)
 
 
-def get_metric_type_repo(session: Session = Depends(get_session)) -> MetricTypeRepository:
+def get_metric_type_repo(
+    session: Session = Depends(get_session),
+) -> MetricTypeRepository:
     return MetricTypeRepository(session)
 
 
@@ -149,7 +160,6 @@ def get_user_service(
     return UserService(repo, identity_repo, metric_type_repo)
 
 
-
 def _build_oidc_providers(user_svc: UserService) -> dict[str, OidcAuthProvider]:
     providers: dict[str, OidcAuthProvider] = {}
 
@@ -171,7 +181,11 @@ def _build_oidc_providers(user_svc: UserService) -> dict[str, OidcAuthProvider]:
             user_service=user_svc,
         )
 
-    if settings.oidc_issuer_url and settings.oidc_client_id and settings.oidc_client_secret:
+    if (
+        settings.oidc_issuer_url
+        and settings.oidc_client_id
+        and settings.oidc_client_secret
+    ):
         providers["oidc"] = OidcAuthProvider(
             name="oidc",
             issuer_url=settings.oidc_issuer_url,
@@ -225,11 +239,15 @@ def get_metric_type_mapping_service(
 
 def get_webhook_ingestion_service(
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
-    mapping_service: MetricTypeMappingService = Depends(get_metric_type_mapping_service),
+    mapping_service: MetricTypeMappingService = Depends(
+        get_metric_type_mapping_service
+    ),
     registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> WebhookIngestionService:
     parser = FlexiblePayloadParser()
-    return WebhookIngestionService(parser, measurement_repo, mapping_service, registry=registry)
+    return WebhookIngestionService(
+        parser, measurement_repo, mapping_service, registry=registry
+    )
 
 
 def get_goal_repo(session: Session = Depends(get_session)) -> GoalRepository:
@@ -292,7 +310,9 @@ def get_analytics_service(
     return AnalyticsService(sleep_svc, activity_svc, weight_svc, nutrition_svc)
 
 
-def get_dashboard_widget_repo(session: Session = Depends(get_session)) -> DashboardWidgetRepository:
+def get_dashboard_widget_repo(
+    session: Session = Depends(get_session),
+) -> DashboardWidgetRepository:
     return DashboardWidgetRepository(session)
 
 
@@ -307,8 +327,14 @@ def get_dashboard_widget_service(
     goal_svc: GoalService = Depends(get_goal_service),
 ) -> DashboardWidgetService:
     return DashboardWidgetService(
-        widget_repo, metric_type_repo, measurement_repo,
-        activity_svc, sleep_svc, nutrition_svc, weight_svc, goal_svc,
+        widget_repo,
+        metric_type_repo,
+        measurement_repo,
+        activity_svc,
+        sleep_svc,
+        nutrition_svc,
+        weight_svc,
+        goal_svc,
     )
 
 
@@ -340,12 +366,23 @@ def get_admin_service(
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
     api_token_repo: ApiTokenRepository = Depends(get_api_token_repo),
     goal_repo: GoalRepository = Depends(get_goal_repo),
-    dashboard_widget_repo: DashboardWidgetRepository = Depends(get_dashboard_widget_repo),
+    dashboard_widget_repo: DashboardWidgetRepository = Depends(
+        get_dashboard_widget_repo
+    ),
 ) -> AdminService:
-    return AdminService(user_repo, metric_type_repo, measurement_repo, api_token_repo, goal_repo, dashboard_widget_repo)
+    return AdminService(
+        user_repo,
+        metric_type_repo,
+        measurement_repo,
+        api_token_repo,
+        goal_repo,
+        dashboard_widget_repo,
+    )
 
 
-def get_system_config_repo(session: Session = Depends(get_session)) -> SystemConfigRepository:
+def get_system_config_repo(
+    session: Session = Depends(get_session),
+) -> SystemConfigRepository:
     return SystemConfigRepository(session)
 
 
@@ -388,9 +425,7 @@ async def get_current_user_or_api(
             from sqlmodel import select
             from salus.models.user import User as UserModel
 
-            user = session.exec(
-                select(UserModel).where(UserModel.is_admin)
-            ).first()
+            user = session.exec(select(UserModel).where(UserModel.is_admin)).first()
             if user is not None:
                 return user
 
@@ -422,7 +457,9 @@ def get_insight_service(
         api_key=settings.llm_api_key,
         api_url=settings.llm_api_url,
     )
-    return InsightService(uow=uow, provider=provider, model=settings.llm_model, registry=registry)
+    return InsightService(
+        uow=uow, provider=provider, model=settings.llm_model, registry=registry
+    )
 
 
 def get_sharing_service(
@@ -446,10 +483,16 @@ def get_workout_service(
 
 
 def get_backup_provider() -> IBackupStorageProvider:
-    from salus.services.backup.providers import LocalBackupProvider, WebdavBackupProvider
+    from salus.services.backup.providers import (
+        LocalBackupProvider,
+        WebdavBackupProvider,
+    )
+
     if settings.backup_provider == "webdav":
         if not settings.backup_webdav_url:
-            raise ValueError("SALUS_BACKUP_WEBDAV_URL must be configured for WebDAV backup provider.")
+            raise ValueError(
+                "SALUS_BACKUP_WEBDAV_URL must be configured for WebDAV backup provider."
+            )
         return WebdavBackupProvider(
             url=settings.backup_webdav_url,
             username=settings.backup_webdav_username,
@@ -462,6 +505,7 @@ def get_backup_service(
     provider: IBackupStorageProvider = Depends(get_backup_provider),
 ) -> BackupService:
     from salus.database import engine
+
     return BackupService(
         engine=engine,
         database_url=settings.database_url,
@@ -494,3 +538,9 @@ def get_leaderboard_service(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ) -> LeaderboardService:
     return LeaderboardService(uow, sharing_svc)
+
+
+def get_notification_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> NotificationService:
+    return NotificationService(uow)

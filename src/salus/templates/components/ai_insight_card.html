@@ -26,8 +26,13 @@
     </div>
 
     <div id="insight-gen-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top:12px">
-        <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm);padding:12px 0">
-            {{ spinner("sm") }} {{ _("Re-analyzing biometrics...") }}
+        <div style="display:flex;flex-direction:column;gap:12px;padding:12px 0">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm)">
+                {{ spinner("sm") }} {{ _("Re-analyzing biometrics...") }}
+            </div>
+            {{ skeleton_line(width="50%", height="14px") }}
+            {{ skeleton_line(width="90%", height="12px") }}
+            {{ skeleton_line(width="75%", height="12px") }}
         </div>
     </div>
 
@@ -47,8 +52,13 @@
                hx_target="#ai-insight-card-" + display_date,
                hx_swap="outerHTML") }}
         <div id="insight-gen-spinner-{{ display_date }}" class="htmx-indicator" style="margin-top:16px">
-            <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm);justify-content:center">
-                {{ spinner("sm") }} {{ _("Analyzing health telemetry...") }}
+            <div style="display:flex;flex-direction:column;gap:12px;padding:12px 0">
+                <div style="display:flex;align-items:center;gap:8px;color:var(--color-primary);font:var(--font-label-sm);justify-content:center">
+                    {{ spinner("sm") }} {{ _("Analyzing health telemetry...") }}
+                </div>
+                {{ skeleton_line(width="40%", height="14px", style="margin: 0 auto") }}
+                {{ skeleton_line(width="90%", height="12px", style="margin: 0 auto") }}
+                {{ skeleton_line(width="70%", height="12px", style="margin: 0 auto") }}
             </div>
         </div>
     </div>

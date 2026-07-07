@@ -45,16 +45,31 @@ class ExportService:
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "source", "data_type", "metric_type_id", "value_numeric",
-            "value_text", "value_json", "start_time", "end_time", "notes",
-        ])
+        writer.writerow(
+            [
+                "source",
+                "data_type",
+                "metric_type_id",
+                "value_numeric",
+                "value_text",
+                "value_json",
+                "start_time",
+                "end_time",
+                "notes",
+            ]
+        )
         for r in records:
-            writer.writerow([
-                r.source, r.data_type, r.metric_type_id, r.value_numeric,
-                r.value_text or "", (r.value_json or "")[:200],
-                r.start_time.isoformat(),
-                r.end_time.isoformat() if r.end_time else "",
-                r.notes or "",
-            ])
+            writer.writerow(
+                [
+                    r.source,
+                    r.data_type,
+                    r.metric_type_id,
+                    r.value_numeric,
+                    r.value_text or "",
+                    (r.value_json or "")[:200],
+                    r.start_time.isoformat(),
+                    r.end_time.isoformat() if r.end_time else "",
+                    r.notes or "",
+                ]
+            )
         return output.getvalue(), "salus-export.csv", "text/csv"

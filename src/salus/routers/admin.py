@@ -39,7 +39,7 @@ def _admin_context(
         item["editing"] = False
 
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
-    
+
     backups = []
     if settings.backup_password:
         try:
@@ -81,7 +81,9 @@ async def admin_general_page(
     plugin_mgr: PluginManager = Depends(get_plugin_manager),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
-    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    context = _admin_context(
+        request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc
+    )
     return _render_admin_tab(request, "general", context)
 
 
@@ -94,7 +96,9 @@ async def admin_users_page(
     plugin_mgr: PluginManager = Depends(get_plugin_manager),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
-    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    context = _admin_context(
+        request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc
+    )
     return _render_admin_tab(request, "users", context)
 
 
@@ -107,7 +111,9 @@ async def admin_stats_page(
     plugin_mgr: PluginManager = Depends(get_plugin_manager),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
-    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    context = _admin_context(
+        request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc
+    )
     return _render_admin_tab(request, "stats", context)
 
 
@@ -120,7 +126,9 @@ async def admin_plugins_page(
     plugin_mgr: PluginManager = Depends(get_plugin_manager),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
-    context = _admin_context(request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc)
+    context = _admin_context(
+        request, current_user, admin_svc, config_svc, plugin_mgr, backup_svc
+    )
     return _render_admin_tab(request, "plugins", context)
 
 
@@ -288,9 +296,7 @@ async def admin_upload_modal(
     current_user: User = Depends(require_admin),
 ):
     return request.app.state.templates.TemplateResponse(
-        request,
-        "components/admin/upload_modal.html",
-        {}
+        request, "components/admin/upload_modal.html", {}
     )
 
 
@@ -306,9 +312,7 @@ async def admin_toggle_plugin(
         plugin_mgr.toggle_plugin(plugin_id, enable)
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
     return request.app.state.templates.TemplateResponse(
-        request,
-        "components/admin/plugin_table.html",
-        {"plugins": plugins}
+        request, "components/admin/plugin_table.html", {"plugins": plugins}
     )
 
 
@@ -327,9 +331,7 @@ async def admin_upload_plugin(
             pass
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
     return request.app.state.templates.TemplateResponse(
-        request,
-        "components/admin/plugin_table.html",
-        {"plugins": plugins}
+        request, "components/admin/plugin_table.html", {"plugins": plugins}
     )
 
 
@@ -344,9 +346,7 @@ async def admin_uninstall_plugin(
         plugin_mgr.uninstall_plugin(plugin_id)
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
     return request.app.state.templates.TemplateResponse(
-        request,
-        "components/admin/plugin_table.html",
-        {"plugins": plugins}
+        request, "components/admin/plugin_table.html", {"plugins": plugins}
     )
 
 

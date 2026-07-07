@@ -9,10 +9,11 @@ class InsightRepository(Repository[Insight]):
     model = Insight
 
     def find_by_user_and_date(self, user_id: int, query_date: str) -> Insight | None:
-        stmt = select(Insight).where(
-            Insight.user_id == user_id,
-            Insight.query_date == query_date
-        ).limit(1)
+        stmt = (
+            select(Insight)
+            .where(Insight.user_id == user_id, Insight.query_date == query_date)
+            .limit(1)
+        )
         return self.session.exec(stmt).first()
 
     def list_by_user(self, user_id: int, limit: int = 30) -> list[Insight]:

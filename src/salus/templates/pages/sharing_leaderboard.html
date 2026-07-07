@@ -12,7 +12,7 @@
 <div style="display:grid;grid-template-columns:2fr 1.2fr;gap:24px;align-items:start">
     <div style="display:flex;flex-direction:column;gap:20px">
         <h2 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
-            <span class="material-symbols-outlined" style="color:var(--color-primary)">emoji_events</span>
+            {{ icon("emoji_events", style="color:var(--color-primary)") }}
             {{ _("My Active Challenges") }}
         </h2>
 
@@ -24,13 +24,8 @@
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
                     <div>
                         <div style="display:flex;align-items:center;gap:8px">
-                            <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:24px">
-                                {% if g_info.group.metric_type_code == 'steps' %}footprint
-                                {% elif g_info.group.metric_type_code == 'workouts' %}fitness_center
-                                {% elif g_info.group.metric_type_code == 'sleep' %}bedtime
-                                {% elif g_info.group.metric_type_code == 'water' %}local_drink
-                                {% else %}leaderboard{% endif %}
-                            </span>
+                            {% set group_icon = 'footprint' if g_info.group.metric_type_code == 'steps' else ('fitness_center' if g_info.group.metric_type_code == 'workouts' else ('bedtime' if g_info.group.metric_type_code == 'sleep' else ('local_drink' if g_info.group.metric_type_code == 'water' else 'leaderboard'))) %}
+                            {{ icon(group_icon, style="color:var(--color-primary);font-size:24px") }}
                             <h3 style="font:var(--font-headline-md);margin:0">{{ g_info.group.name }}</h3>
                         </div>
                         <p style="font:var(--font-caption);color:var(--color-slate-500);margin:4px 0 0 32px;text-transform:capitalize">
@@ -47,13 +42,13 @@
                         <span style="font:var(--font-caption);font-weight:600;text-transform:uppercase;color:var(--color-slate-500);letter-spacing:0.5px">{{ _("Your Ranking") }}</span>
                         <div style="display:flex;align-items:center;gap:4px">
                             {% if g_info.my_rank == 1 %}
-                                <span class="material-symbols-outlined" style="color:#d4af37;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                {{ icon("workspace_premium", style="color:#d4af37;font-size:20px;font-variation-settings:'FILL' 1") }}
                                 <span style="font-size:16px;font-weight:800;color:#d4af37">1st Place</span>
                             {% elif g_info.my_rank == 2 %}
-                                <span class="material-symbols-outlined" style="color:#aaa9ad;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                {{ icon("workspace_premium", style="color:#aaa9ad;font-size:20px;font-variation-settings:'FILL' 1") }}
                                 <span style="font-size:16px;font-weight:800;color:#aaa9ad">2nd Place</span>
                             {% elif g_info.my_rank == 3 %}
-                                <span class="material-symbols-outlined" style="color:#b08d57;font-size:20px;font-variation-settings:'FILL' 1">workspace_premium</span>
+                                {{ icon("workspace_premium", style="color:#b08d57;font-size:20px;font-variation-settings:'FILL' 1") }}
                                 <span style="font-size:16px;font-weight:800;color:#b08d57">3rd Place</span>
                             {% elif g_info.my_rank %}
                                 <span style="font-size:16px;font-weight:800;color:var(--color-on-surface)">#{{ g_info.my_rank }}</span>
@@ -82,14 +77,14 @@
 
                     <div style="margin-left:auto;display:flex;align-items:center;gap:4px;font:var(--font-body-sm);font-weight:600;color:var(--color-primary)">
                         <span>{{ _("View Details") }}</span>
-                        <span class="material-symbols-outlined" style="font-size:16px;font-weight:800">arrow_forward</span>
+                        {{ icon("arrow_forward", style="font-size:16px;font-weight:800") }}
                     </div>
                 </div>
             </div>
         </a>
         {% else %}
         <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);text-align:center;padding:48px 24px">
-            <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-300)">leaderboard</span>
+            {{ icon("leaderboard", style="font-size:48px;color:var(--color-slate-300)") }}
             <h3 style="font:var(--font-headline-md);color:var(--color-on-surface);margin:12px 0 6px 0">{{ _("No Active Challenges") }}</h3>
             <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("Join an existing challenge with an invite code or create your own custom challenge.") }}</p>
         </div>
@@ -100,7 +95,7 @@
         <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px">
             <div style="padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);margin-bottom:16px">
                 <h3 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
-                    <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:20px">vpn_key</span>
+                    {{ icon("vpn_key", style="color:var(--color-primary);font-size:20px") }}
                     {{ _("Join via Code") }}
                 </h3>
             </div>
@@ -119,7 +114,7 @@
         <div style="background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-md);padding:20px">
             <div style="padding-bottom:12px;border-bottom:1px solid var(--color-slate-100);margin-bottom:16px">
                 <h3 style="font:var(--font-headline-md);margin:0;display:flex;align-items:center;gap:8px">
-                    <span class="material-symbols-outlined" style="color:var(--color-primary);font-size:20px">add_circle</span>
+                    {{ icon("add_circle", style="color:var(--color-primary);font-size:20px") }}
                     {{ _("Create Custom Challenge") }}
                 </h3>
             </div>

@@ -29,7 +29,8 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
             SharingRelationship.grantee_handle == grantee_handle,
             SharingRelationship.metric_type_id == metric_type_id,
             SharingRelationship.status == ConnectionStatus.ACTIVE,
-            (SharingRelationship.expiration_date == None) | (SharingRelationship.expiration_date > now)  # type: ignore  # noqa: E711
+            (SharingRelationship.expiration_date == None)  # type: ignore # noqa: E711
+            | (SharingRelationship.expiration_date > now),  # type: ignore
         )
         return self.session.exec(stmt).first()
 
@@ -45,6 +46,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         stmt = select(SharingRelationship).where(
             SharingRelationship.grantee_handle == grantee_handle,
             SharingRelationship.status == ConnectionStatus.ACTIVE,
-            (SharingRelationship.expiration_date == None) | (SharingRelationship.expiration_date > now)  # type: ignore  # noqa: E711
+            (SharingRelationship.expiration_date == None)  # type: ignore # noqa: E711
+            | (SharingRelationship.expiration_date > now),  # type: ignore
         )
         return list(self.session.exec(stmt).all())

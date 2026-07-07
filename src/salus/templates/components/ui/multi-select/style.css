@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Multi-Select — @component multi-select
+   ========================================================================== */
+
+.multi-select {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.multi-select__wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select__control {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 12px;
+    border: var(--input-border);
+    border-radius: var(--input-radius);
+    background: var(--input-bg);
+    box-sizing: border-box;
+    cursor: text;
+    transition: border-color var(--duration-fast) var(--ease-default),
+                box-shadow var(--duration-fast) var(--ease-default),
+                background var(--duration-fast) var(--ease-default);
+}
+
+.multi-select__control:hover {
+    border-color: var(--color-slate-400);
+}
+
+.multi-select__control:focus-within {
+    border-color: var(--color-primary-500);
+    background: var(--color-surface-container-lowest);
+    box-shadow: var(--input-focus-shadow);
+}
+
+.multi-select__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.multi-select__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    background: var(--color-primary-50);
+    color: var(--color-primary);
+    border-radius: var(--radius-sm);
+    font: var(--font-caption);
+    font-weight: 600;
+    user-select: none;
+}
+
+.multi-select__chip-close {
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--color-primary-400);
+    transition: color var(--duration-fast);
+}
+
+.multi-select__chip-close:hover {
+    color: var(--color-primary-700);
+}
+
+.multi-select__search {
+    border: none;
+    outline: none;
+    background: transparent;
+    font: var(--font-body-md);
+    color: var(--color-on-surface);
+    flex: 1;
+    min-width: 60px;
+    padding: 2px 0;
+}
+
+.multi-select__search::placeholder {
+    color: var(--color-slate-400);
+}
+
+/* ── Dropdown list ────────────────────────────────────────── */
+
+.multi-select__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    margin-top: 4px;
+    background: var(--color-surface-container-lowest);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    max-height: 220px;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+}
+
+.multi-select[data-open="true"] .multi-select__dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.multi-select__dropdown-inner {
+    padding: 4px 0;
+}
+
+.multi-select__option {
+    padding: 8px 12px;
+    font: var(--font-body-sm);
+    color: var(--color-slate-700);
+    cursor: pointer;
+    transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.multi-select__option:hover {
+    background: var(--color-slate-100);
+    color: var(--color-on-surface);
+}
+
+.multi-select__option[data-selected="true"] {
+    background: var(--color-primary-50);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.multi-select__option[data-selected="true"]::after {
+    content: " ✓";
+    float: right;
+    font-weight: bold;
+}
+
+/* ── Dark Mode overrides ───────────────────────────────────── */
+
+[data-theme="dark"] .multi-select__chip {
+    background: rgba(79, 70, 229, 0.2); /* Semi-transparent primary */
+    color: var(--color-primary-300);
+}
+
+[data-theme="dark"] .multi-select__chip-close:hover {
+    color: var(--color-primary-200);
+}
+
+[data-theme="dark"] .multi-select__option {
+    color: var(--color-slate-300);
+}
+
+[data-theme="dark"] .multi-select__option:hover {
+    background: var(--color-slate-800);
+}
+
+[data-theme="dark"] .multi-select__option[data-selected="true"] {
+    background: rgba(79, 70, 229, 0.25);
+    color: var(--color-primary-200);
+}

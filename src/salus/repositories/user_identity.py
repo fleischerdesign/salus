@@ -7,7 +7,9 @@ from salus.repositories.base import Repository
 class UserIdentityRepository(Repository[UserIdentity]):
     model = UserIdentity
 
-    def get_by_provider_user_id(self, provider: str, provider_user_id: str) -> UserIdentity | None:
+    def get_by_provider_user_id(
+        self, provider: str, provider_user_id: str
+    ) -> UserIdentity | None:
         return self.session.exec(
             select(UserIdentity).where(
                 UserIdentity.provider == provider,

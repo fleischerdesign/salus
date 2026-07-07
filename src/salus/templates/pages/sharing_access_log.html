@@ -36,7 +36,7 @@
     </table>
     {% else %}
     <div style="text-align:center;padding:32px">
-        <span class="material-symbols-outlined" style="font-size:48px;color:var(--color-slate-400);opacity:0.4">visibility_off</span>
+        {{ icon("visibility_off", style="font-size:48px;color:var(--color-slate-400);opacity:0.4") }}
         <h3 style="font:var(--font-headline-md);color:var(--color-slate-700);margin:16px 0 8px 0">{{ _("No Access Events") }}</h3>
         <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:0">{{ _("No peer has accessed your shared data via federation yet.") }}</p>
     </div>

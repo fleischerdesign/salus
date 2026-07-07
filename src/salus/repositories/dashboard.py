@@ -23,7 +23,9 @@ class DashboardWidgetRepository(Repository[DashboardWidget]):
                 widget.position = pos
                 self.update(widget)
 
-    def find_by_user_and_metric(self, user_id: int, metric_type_id: int) -> DashboardWidget | None:
+    def find_by_user_and_metric(
+        self, user_id: int, metric_type_id: int
+    ) -> DashboardWidget | None:
         stmt = select(DashboardWidget).where(
             DashboardWidget.user_id == user_id,
             DashboardWidget.metric_type_id == metric_type_id,

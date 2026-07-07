@@ -10,8 +10,6 @@
     {{ btn(_("New Goal"), variant="primary", hx_get="/goals/new", hx_target="#modal-container", hx_swap="innerHTML") }}
 </div>
 
-<div id="modal-container"></div>
-
 {% if goal_cards %}
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="goal-cards">
     {% for goal_card_data in goal_cards %}

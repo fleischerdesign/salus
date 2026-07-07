@@ -57,10 +57,14 @@ class DemoPlugin(BasePlugin):
 
     # HookEventSubscriber
     def on_measurement_created(self, measurement: Measurement) -> None:
-        self.context.log_info(f"DEMO PLUGIN | Captured created measurement of type: {measurement.data_type}")
+        self.context.log_info(
+            f"DEMO PLUGIN | Captured created measurement of type: {measurement.data_type}"
+        )
 
     def on_goal_achieved(self, goal: Goal) -> None:
-        self.context.log_info(f"DEMO PLUGIN | Goal achieved! User ID: {goal.user_id}, Metric ID: {goal.metric_type_id}")
+        self.context.log_info(
+            f"DEMO PLUGIN | Goal achieved! User ID: {goal.user_id}, Metric ID: {goal.metric_type_id}"
+        )
 
     # HookAiCoachContext
     def get_additional_prompt_context(self, user_id: int, date_str: str) -> str:

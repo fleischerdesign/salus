@@ -7,7 +7,7 @@
                    hx_get="/dashboard/widgets/" + widget.id|string + "/edit",
                    hx_target="#modal-container", hx_swap="innerHTML",
                    aria_label=_("Edit size")) }}
-            {{ btn(icon="close", variant="ghost",
+            {{ btn(icon="delete", variant="ghost", style="color:var(--color-error-600)",
                    hx_delete="/dashboard/widgets/" + widget.id|string,
                    hx_target="#widget-" + widget.id|string, hx_swap="outerHTML",
                    hx_confirm=_("Remove this widget?"),

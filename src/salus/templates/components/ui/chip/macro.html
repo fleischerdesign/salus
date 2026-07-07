@@ -3,8 +3,9 @@
    Usage: {{ chip("Active", variant="success") }}
           {{ chip("Protein", variant="neutral", icon="fitness_center", dismissible=true) }}
  #}
-{% macro chip(label, variant="neutral", icon=none, dismissible=false, id=none, style=none, class=none, aria_label=none) %}
-    <span class="chip{% if class %} {{ class }}{% endif %}" data-variant="{{ variant }}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %} {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+{% macro chip(label, variant="neutral", icon=none, dismissible=false) %}
+    {% set extra_class = kwargs.get("class") %}
+    <span class="chip{% if extra_class %} {{ extra_class }}{% endif %}" data-variant="{{ variant }}" {{ kwargs | render_attrs(exclude=['class']) }}>
         {% if icon %}
         <span class="chip__icon material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
         {% endif %}

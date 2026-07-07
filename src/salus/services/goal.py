@@ -92,7 +92,9 @@ class GoalService:
                 try:
                     sub.on_goal_achieved(goal)
                 except Exception as e:
-                    logger.error(f"Error notifying event subscriber on goal achieved: {e}")
+                    logger.error(
+                        f"Error notifying event subscriber on goal achieved: {e}"
+                    )
 
         return GoalProgress(
             goal_id=goal.id or 0,
@@ -122,8 +124,11 @@ def _extract_current_value(
         return None
     try:
         values = [float(e.value_text) for e in entries if e.value_text]
-        values += [float(e.value_numeric) for e in entries
-                   if e.value_numeric is not None and e.value_text is None]
+        values += [
+            float(e.value_numeric)
+            for e in entries
+            if e.value_numeric is not None and e.value_text is None
+        ]
     except (ValueError, TypeError):
         return None
     if not values:

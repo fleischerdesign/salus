@@ -11,13 +11,10 @@
        <div class="list-item__action">{{ btn("Edit") }} {{ btn("Delete") }}</div>
      {% endcall %}
  #}
-{% macro list_item(primary=none, secondary=none, icon=none, action=none, id=none, style=none, class=none, hx_get=none, hx_target=none, hx_swap=none, hx_push_url=none, hx_post=none) %}
-    <div class="list-item{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}
-         {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-         {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
-         {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-         {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
-         {% if hx_push_url %}hx-push-url="{{ hx_push_url }}"{% endif %}>
+{% macro list_item(primary=none, secondary=none, icon=none, action=none) %}
+    {% set extra_class = kwargs.get("class") %}
+    {% set style = kwargs.get("style") %}
+    <div class="list-item{% if extra_class %} {{ extra_class }}{% endif %}" {% if style %}style="{{ style }}"{% endif %} {{ kwargs | render_attrs(exclude=['class', 'style']) }}>
         {% if caller is defined %}
             {{ caller() }}
         {% else %}

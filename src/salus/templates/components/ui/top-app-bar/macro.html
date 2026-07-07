@@ -15,6 +15,8 @@
 
 {% from "components/ui/user-menu/macro.html" import user_menu %}
 {% from "components/ui/btn/macro.html" import btn %}
+{% from "components/ui/notifications/bell/macro.html" import notifications_bell %}
+{% from "components/ui/icon/macro.html" import icon %}
 
 {% macro top_app_bar(logo_text="salus", logo_href="/", current_user=none) %}
     <header class="top-app-bar" role="banner"
@@ -37,6 +39,17 @@
 
             <div class="top-app-bar__actions">
                 {% if current_user %}
+                    {% if current_user.active_workout_session %}
+                        <a href="/workouts/sessions/active" 
+                           class="active-workout-indicator" 
+                           id="active-workout-indicator"
+                           data-start-time="{{ current_user.active_workout_session.started_at.isoformat() }}"
+                           title="{{ _('Active Workout Running') }}">
+                            {{ icon("exercise", size=18) }}
+                            <span class="active-workout-indicator__text" id="active-workout-timer">{{ _("Active") }}</span>
+                        </a>
+                    {% endif %}
+                    {{ notifications_bell() }}
                     {{ user_menu(current_user) }}
                 {% else %}
                     {{ btn("Sign In", variant="primary", href="/auth/login", full_width_mobile=false) }}
