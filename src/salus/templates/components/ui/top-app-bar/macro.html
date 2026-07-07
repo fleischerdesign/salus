@@ -49,6 +49,9 @@
                             <span class="active-workout-indicator__text" id="active-workout-timer">{{ _("Active") }}</span>
                         </a>
                     {% endif %}
+                    <!-- Global Sync Status Badge -->
+                    <div id="global-sync-badge" class="global-sync-badge" style="display:none;"></div>
+
                     {{ notifications_bell() }}
                     {{ user_menu(current_user) }}
                 {% else %}

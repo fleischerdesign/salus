@@ -42,6 +42,17 @@
     font-size: 18px;
     font-weight: bold;
 }
+.workout-set-checkbox[data-status="pending"] {
+    background-color: var(--color-warning, #f59e0b) !important;
+    border-color: var(--color-warning, #f59e0b) !important;
+    color: white !important;
+    cursor: wait;
+}
+.workout-set-checkbox[data-status="failed"] {
+    background-color: var(--color-error, #ef4444) !important;
+    border-color: var(--color-error, #ef4444) !important;
+    color: white !important;
+}
 </style>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
@@ -314,49 +325,50 @@ function update1RM(exId, setNum) {
         display.innerText = "Est. 1RM: --";
         display.style.color = "var(--color-slate-500)";
         display.style.fontWeight = "600";
-    }
-}
+    async function logSet(sessionId, exerciseId, setNumber) {
+    const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
+    const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
+    if (!btn || !row) return;
 
-async function logSet(sessionId, exerciseId, setNumber) {
+    // Block interaction if currently pending sync
+    if (btn.getAttribute("data-status") === "pending") return;
+
+    const isLogged = btn.getAttribute("data-logged") === "true";
     const weight = parseFloat(document.getElementById(`weight-${exerciseId}-${setNumber}`).value);
     const reps = parseInt(document.getElementById(`reps-${exerciseId}-${setNumber}`).value);
     const rpeInput = document.getElementById(`rpe-${exerciseId}-${setNumber}`).value;
     const rpe = rpeInput ? parseFloat(rpeInput) : null;
-    const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
-    const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
-    
-    if (!btn || !row) return;
-
-    const isLogged = btn.getAttribute("data-logged") === "true";
 
     if (isLogged) {
-        // Toggle OFF (Unsubmit)
-        try {
-            const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}&exercise_id=${exerciseId}&set_number=${setNumber}`, {
-                method: "DELETE"
-            });
-            if (response.ok) {
-                btn.setAttribute("data-logged", "false");
-                btn.innerHTML = `<span class="material-symbols-outlined">check</span>`;
-                row.style.opacity = "1.0";
+        // Toggle OFF (Unsubmit) - Optimistic update
+        btn.setAttribute("data-logged", "false");
+        btn.setAttribute("data-status", "pending");
+        btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite">sync</span>`;
+        row.style.opacity = "1.0";
 
-                // Re-enable inputs and adjust buttons
-                row.querySelectorAll("input").forEach(i => i.disabled = false);
-                row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = false);
-            } else {
-                const err = await response.json();
-                const errMsg = "Failed to unlog set: " + (err.detail || "Unknown error");
-                if (typeof showToast === "function") {
-                    showToast(errMsg, "error");
-                } else {
-                    alert(errMsg);
-                }
+        // Re-enable inputs
+        row.querySelectorAll("input").forEach(i => i.disabled = false);
+        row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = false);
+
+        // Queue DELETE transaction
+        window.SalusSyncManager.enqueue({
+            method: "DELETE",
+            url: `/api/v1/workouts/sessions/log?session_id=${sessionId}&exercise_id=${exerciseId}&set_number=${setNumber}`,
+            meta: {
+                domain: "workout",
+                elementId: btn.id,
+                type: "unlog",
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                setNumber: setNumber
             }
-        } catch (e) {
-            if (typeof showToast === "function") {
-                showToast("Error connecting to server.", "error");
+        });
+
+        if (typeof showToast === "function") {
+            if (navigator.onLine) {
+                showToast("Set unlogged.", "info");
             } else {
-                alert("Error connecting to server.");
+                showToast("Set unlog queued offline.", "warning");
             }
         }
     } else {
@@ -369,101 +381,91 @@ async function logSet(sessionId, exerciseId, setNumber) {
             }
             return;
         }
-        try {
-            const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ exercise_id: exerciseId, set_number: setNumber, weight: weight, reps: reps, rpe: rpe })
-            });
-            if (response.ok) {
-                btn.setAttribute("data-logged", "true");
-                btn.innerHTML = `<span class="material-symbols-outlined">done</span>`;
-                row.style.opacity = "0.75";
 
-                // Disable inputs and adjust buttons
-                row.querySelectorAll("input").forEach(i => i.disabled = true);
-                row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = true);
+        // Optimistic update
+        btn.setAttribute("data-logged", "true");
+        btn.setAttribute("data-status", "pending");
+        btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite">sync</span>`;
+        row.style.opacity = "0.75";
 
-                // PR check for toast notification
-                const prWeight = parseFloat(row.getAttribute("data-pr-weight") || "0.0");
-                const prEst1RM = parseFloat(row.getAttribute("data-pr-est-1rm") || "0.0");
+        // Disable inputs
+        row.querySelectorAll("input").forEach(i => i.disabled = true);
+        row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = true);
 
-                let est1rm = 0.0;
-                if (reps === 1) {
-                    est1rm = weight;
-                } else {
-                    est1rm = weight / (1.0278 - (0.0278 * reps));
-                }
+        // PR check for toast notification
+        const prWeight = parseFloat(row.getAttribute("data-pr-weight") || "0.0");
+        const prEst1RM = parseFloat(row.getAttribute("data-pr-est-1rm") || "0.0");
 
-                let isPR = false;
-                if ((prWeight > 0 && weight > prWeight) || (prEst1RM > 0 && est1rm > prEst1RM)) {
-                    isPR = true;
-                }
+        let est1rm = reps === 1 ? weight : weight / (1.0278 - (0.0278 * reps));
+        let isPR = (prWeight > 0 && weight > prWeight) || (prEst1RM > 0 && est1rm > prEst1RM);
 
-                if (isPR) {
-                    if (typeof showToast === "function") {
-                        showToast(`🎉 New Personal Record! ${weight} kg x ${reps} reps!`, "success");
-                    } else {
-                        alert(`🎉 New Personal Record! ${weight} kg x ${reps} reps!`);
-                    }
-                } else {
-                    if (typeof showToast === "function") {
-                        showToast("Set logged successfully!", "success");
-                    }
-                }
-
-                // Trigger the global persistent rest-timer (90 seconds)
-                window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
-
-                // RPE 10 Auto-Scaling Guardrail check
-                const parsedRpe = rpe;
-                const parsedExId = parseInt(exerciseId);
-                const parsedSetNum = parseInt(setNumber);
-                console.log("[RPE Guardrail] Evaluating logged set:", { exerciseId: parsedExId, setNumber: parsedSetNum, rpe: parsedRpe });
-                if (parsedRpe >= 10.0) {
-                    const promptContainer = document.getElementById("rpe-prompt-" + parsedExId);
-                    console.log("[RPE Guardrail] Prompt container element found:", !!promptContainer);
-                    if (promptContainer) {
-                        let hasSubsequent = false;
-                        let s = parsedSetNum + 1;
-                        console.log("[RPE Guardrail] Checking subsequent sets starting from:", s);
-                        while (true) {
-                            const nextBtn = document.getElementById(`btn-${parsedExId}-${s}`);
-                            if (!nextBtn) {
-                                console.log("[RPE Guardrail] No button element found for set:", s);
-                                break;
-                            }
-                            const loggedStatus = nextBtn.getAttribute("data-logged");
-                            console.log(`[RPE Guardrail] Set ${s} button status:`, loggedStatus);
-                            if (loggedStatus === "false") {
-                                hasSubsequent = true;
-                                break;
-                            }
-                            s++;
-                        }
-                        console.log("[RPE Guardrail] Has subsequent unlogged sets:", hasSubsequent);
-                        if (hasSubsequent) {
-                            promptContainer.style.display = "flex";
-                            promptContainer.setAttribute("data-trigger-set", parsedSetNum);
-                            console.log("[RPE Guardrail] Displayed prompt container for exercise:", parsedExId);
-                        }
-                    }
-                }
-            } else {
-                const err = await response.json();
-                const errMsg = "Failed to log set: " + (err.detail || "Unknown error");
-                if (typeof showToast === "function") {
-                    showToast(errMsg, "error");
-                } else {
-                    alert(errMsg);
-                }
-            }
-        } catch (e) {
+        if (isPR) {
             if (typeof showToast === "function") {
-                showToast("Error connecting to server.", "error");
-            } else {
-                alert("Error connecting to server.");
+                showToast(`🎉 New Personal Record! ${weight} kg x ${reps} reps!`, "success");
+            }
+        } else {
+            if (typeof showToast === "function") {
+                if (navigator.onLine) {
+                    showToast("Set logged successfully!", "success");
+                } else {
+                    showToast("Set saved offline!", "warning");
+                }
             }
         }
+
+        // Trigger the global persistent rest-timer (90 seconds)
+        window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
+
+        // RPE 10 Auto-Scaling Guardrail check
+        const parsedRpe = rpe;
+        const parsedExId = parseInt(exerciseId);
+        const parsedSetNum = parseInt(setNumber);
+        console.log("[RPE Guardrail] Evaluating logged set:", { exerciseId: parsedExId, setNumber: parsedSetNum, rpe: parsedRpe });
+        if (parsedRpe >= 10.0) {
+            const promptContainer = document.getElementById("rpe-prompt-" + parsedExId);
+            console.log("[RPE Guardrail] Prompt container element found:", !!promptContainer);
+            if (promptContainer) {
+                let hasSubsequent = false;
+                let s = parsedSetNum + 1;
+                console.log("[RPE Guardrail] Checking subsequent sets starting from:", s);
+                while (true) {
+                    const nextBtn = document.getElementById(`btn-${parsedExId}-${s}`);
+                    if (!nextBtn) {
+                        console.log("[RPE Guardrail] No button element found for set:", s);
+                        break;
+                    }
+                    const loggedStatus = nextBtn.getAttribute("data-logged");
+                    console.log(`[RPE Guardrail] Set ${s} button status:`, loggedStatus);
+                    if (loggedStatus === "false") {
+                        hasSubsequent = true;
+                        break;
+                    }
+                    s++;
+                }
+                console.log("[RPE Guardrail] Has subsequent unlogged sets:", hasSubsequent);
+                if (hasSubsequent) {
+                    promptContainer.style.display = "flex";
+                    promptContainer.setAttribute("data-trigger-set", parsedSetNum);
+                    console.log("[RPE Guardrail] Displayed prompt container for exercise:", parsedExId);
+                }
+            }
+        }
+
+        // Queue POST transaction
+        window.SalusSyncManager.enqueue({
+            method: "POST",
+            url: `/api/v1/workouts/sessions/log?session_id=${sessionId}`,
+            body: { exercise_id: exerciseId, set_number: setNumber, weight: weight, reps: reps, rpe: rpe },
+            meta: {
+                domain: "workout",
+                elementId: btn.id,
+                type: "log",
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                setNumber: setNumber,
+                rpe: rpe
+            }
+        });
     }
 }
 
@@ -479,6 +481,43 @@ document.addEventListener("DOMContentLoaded", function() {
         const idParts = input.id.split("-");
         if (idParts.length === 3) {
             checkRpeFailure(idParts[1], idParts[2]);
+        }
+    });
+
+    // Listen for sync updates from global SyncManager
+    window.addEventListener('salus:sync-completed', function(e) {
+        const item = e.detail.item;
+        if (item.meta.domain !== 'workout') return;
+        
+        const btn = document.getElementById(item.meta.elementId);
+        if (!btn) return;
+
+        btn.removeAttribute('data-status');
+        if (item.meta.type === 'log') {
+            btn.innerHTML = `<span class="material-symbols-outlined">done</span>`;
+        } else {
+            btn.innerHTML = `<span class="material-symbols-outlined">check</span>`;
+        }
+    });
+
+    window.addEventListener('salus:sync-failed', function(e) {
+        const item = e.detail.item;
+        if (item.meta.domain !== 'workout') return;
+
+        const btn = document.getElementById(item.meta.elementId);
+        const row = document.getElementById(`row-${item.meta.exerciseId}-${item.meta.setNumber}`);
+        if (!btn || !row) return;
+
+        btn.setAttribute('data-status', 'failed');
+        btn.innerHTML = `<span class="material-symbols-outlined">sync_problem</span>`;
+        
+        // Re-enable row inputs so the user can fix the input and retry
+        row.style.opacity = "1.0";
+        row.querySelectorAll("input").forEach(i => i.disabled = false);
+        row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = false);
+
+        if (typeof showToast === "function") {
+            showToast(`Failed to sync set ${item.meta.setNumber} for exercise.`, 'error');
         }
     });
 });
