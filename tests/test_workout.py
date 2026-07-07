@@ -439,5 +439,35 @@ def test_exercise_detail_page(authenticated_client):
     assert "Lift it up." in response.text
 
 
+def test_plan_detail_page(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import WorkoutPlan
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        alice = session.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        user_id = alice.id
+
+        plan = WorkoutPlan(
+            name="Hypertrophy Phase 1",
+            description="High volume muscle building.",
+            autoreg_mode="recovery_based",
+            user_id=user_id
+        )
+        session.add(plan)
+        session.commit()
+        plan_id = plan.id
+
+    response = authenticated_client.get(f"/workouts/plans/{plan_id}")
+    assert response.status_code == 200
+    assert "Hypertrophy Phase 1" in response.text
+    assert "High volume muscle building." in response.text
+    assert "Autoregulation: Enabled" in response.text
+
+
+
+
 
 

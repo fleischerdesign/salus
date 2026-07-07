@@ -437,3 +437,43 @@ class WorkoutService:
                 "pr_weight": pr_weight,
                 "pr_est_1rm": pr_est_1rm
             }
+
+    def get_plan_history(self, user_id: int, plan_id: int) -> list[WorkoutSession]:
+        with self.uow as sql_uow:
+            from sqlmodel import select, desc
+            from sqlalchemy.orm import selectinload
+            from salus.models.workout import WorkoutSession
+            from typing import cast, Any
+            
+            stmt = (
+                select(WorkoutSession)
+                .where(WorkoutSession.user_id == user_id)
+                .where(WorkoutSession.plan_id == plan_id)
+                .where(WorkoutSession.completed_at.is_not(None))  # type: ignore
+                .order_by(desc(WorkoutSession.completed_at))
+                .options(selectinload(cast(Any, WorkoutSession.logs)))
+            )
+            return list(sql_uow.session.exec(stmt).all())
+
+    def get_plan_details(self, user_id: int, plan_id: int) -> dict:
+        with self.uow:
+            plan = self.uow.workout_plans.get_by_id(plan_id)
+            if not plan or plan.user_id != user_id:
+                raise NotFoundError("Workout plan not found.")
+                
+            exercises_with_details = []
+            for plan_ex in plan.plan_exercises:
+                ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
+                if ex:
+                    exercises_with_details.append({
+                        "plan_exercise": plan_ex,
+                        "exercise": ex
+                    })
+                    
+            history = self.get_plan_history(user_id, plan_id)
+            
+            return {
+                "plan": plan,
+                "exercises": exercises_with_details,
+                "history": history
+            }

@@ -160,6 +160,12 @@
                              title=plan.name,
                              header_action=plan_header_action,
                              drag_handle=true, card_actions=plan_actions,
+                             clickable=true,
+                             hyperscript="on click
+                                             if event.target.closest('.card__header-action, .edit-chrome__actions, button, form, a') is null
+                                                 go to url '/workouts/plans/" ~ plan.id | string ~ "'
+                                             end
+                                          end",
                              style="display:flex;flex-direction:column;justify-content:space-between;gap:12px",
                              attrs={"data-plan-id": plan.id | string}) %}
                     <div>

@@ -219,6 +219,99 @@ async def reorder_plans(
     return Response(status_code=204)
 
 
+@router.get("/workouts/plans/{plan_id}", response_class=HTMLResponse)
+async def workout_plan_detail_page(
+    request: Request,
+    plan_id: int,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    details = service.get_plan_details(user_id=uid(current_user), plan_id=plan_id)
+    plan = details["plan"]
+    exercises_with_details = details["exercises"]
+    history = details["history"]
+    
+    # Calculate muscle sets distribution
+    muscle_sets = {}
+    for item in exercises_with_details:
+        ex = item["exercise"]
+        plan_ex = item["plan_exercise"]
+        sets = plan_ex.target_sets or 3
+        if ex.primary_muscles:
+            for muscle in ex.primary_muscles.split(","):
+                m = muscle.strip().replace("_", " ").capitalize()
+                if m:
+                    muscle_sets[m] = muscle_sets.get(m, 0) + sets
+                    
+    sorted_muscles = sorted(muscle_sets.items(), key=lambda x: x[1], reverse=True)
+    
+    # Calculate overall stats
+    total_completed_sessions = len(history)
+    
+    # Build chart data (group by session date)
+    session_points = []
+    for sess in reversed(history):
+        total_volume = sum(log.weight * log.reps for log in sess.logs)
+        duration_mins = int((sess.completed_at - sess.started_at).total_seconds() // 60) if sess.started_at and sess.completed_at else 0
+        date_str = sess.completed_at.strftime('%Y-%m-%d') if sess.completed_at else ""
+        
+        session_points.append({
+            "date": date_str,
+            "volume": total_volume,
+            "duration": duration_mins
+        })
+        
+    # Calculate SVG coordinates if we have enough points (at least 2 for a line)
+    svg_path_volume = ""
+    svg_points = []
+    
+    if len(session_points) >= 2:
+        max_val = max(pt["volume"] for pt in session_points) * 1.1
+        min_val = min(pt["volume"] for pt in session_points) * 0.9
+        if max_val == min_val:
+            max_val += 100
+            min_val -= 100
+            if min_val < 0:
+                min_val = 0
+        val_range = max_val - min_val
+        
+        width = 600
+        height = 250
+        padding = 40
+        
+        for idx, pt in enumerate(session_points):
+            x = padding + (idx / (len(session_points) - 1)) * (width - 2 * padding)
+            y_volume = height - padding - ((pt["volume"] - min_val) / val_range) * (height - 2 * padding)
+            
+            svg_points.append({
+                "date": pt["date"],
+                "volume": pt["volume"],
+                "x": x,
+                "y_volume": y_volume
+            })
+            
+            if idx == 0:
+                svg_path_volume = f"M {x} {y_volume}"
+            else:
+                svg_path_volume += f" L {x} {y_volume}"
+                
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "pages/workout_plan_detail.html",
+        {
+            "current_user": current_user,
+            "plan": plan,
+            "exercises": exercises_with_details,
+            "history": history,
+            "muscle_sets": sorted_muscles,
+            "total_sets_dist": sum(s for m, s in sorted_muscles),
+            "total_completed_sessions": total_completed_sessions,
+            "svg_points": svg_points,
+            "svg_path_volume": svg_path_volume
+        }
+    )
+
+
 @router.get("/workouts/exercises", response_class=HTMLResponse)
 async def list_exercises_page(
     request: Request,
