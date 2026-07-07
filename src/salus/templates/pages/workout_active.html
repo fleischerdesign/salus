@@ -212,7 +212,7 @@ function checkRpeFailure(exId, setNum) {
         rpeInput.style.color = "var(--color-error, #ef4444)";
         rpeInput.style.fontWeight = "700";
     } else {
-        wrapper.style.borderColor = "";
+        wrapper.style.borderColor = "var(--color-slate-200)";
         rpeInput.style.color = "";
         rpeInput.style.fontWeight = "";
     }
@@ -462,12 +462,10 @@ document.addEventListener("DOMContentLoaded", function() {
             update1RM(idParts[1], idParts[2]);
         }
     });
-    document.querySelectorAll("[id^='rpe-']").forEach(function(input) {
-        if (!input.id.includes("wrapper")) {
-            const idParts = input.id.split("-");
-            if (idParts.length === 3) {
-                checkRpeFailure(idParts[1], idParts[2]);
-            }
+    document.querySelectorAll("input[id^='rpe-']").forEach(function(input) {
+        const idParts = input.id.split("-");
+        if (idParts.length === 3) {
+            checkRpeFailure(idParts[1], idParts[2]);
         }
     });
 });
