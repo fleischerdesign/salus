@@ -125,9 +125,10 @@
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">RPE:</label>
-                            <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                            {% set is_rpe10 = ns.logged_entry and ns.logged_entry.rpe and ns.logged_entry.rpe >= 10.0 %}
+                            <div id="rpe-wrapper-{{ target.exercise_id }}-{{ set_num }}" style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid {% if is_rpe10 %}var(--color-error, #ef4444){% else %}var(--color-slate-200){% endif %};border-radius:var(--radius-sm);overflow:hidden">
                                 <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', -0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>-</button>
-                                <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" value="{{ ns.logged_entry.rpe if ns.logged_entry and ns.logged_entry.rpe is not none else target.suggested_rpe }}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" {% if ns.logged_entry %}disabled{% endif %}>
+                                <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" value="{{ ns.logged_entry.rpe if ns.logged_entry and ns.logged_entry.rpe is not none else target.suggested_rpe }}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px;{% if is_rpe10 %}color:var(--color-error, #ef4444);font-weight:700;{% endif %}" oninput="checkRpeFailure({{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>
                                 <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', 0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>+</button>
                             </div>
                         </div>
@@ -145,6 +146,21 @@
                     </div>
                     {% endfor %}
                 {% endcall %}
+
+                <!-- Inline RPE 10 Prompt Container -->
+                <div id="rpe-prompt-{{ target.exercise_id }}" class="rpe-prompt" style="display:none;margin-top:16px;background:var(--color-error-50, #fef2f2);border:1px solid var(--color-error-200, #fecaca);border-radius:8px;padding:12px;flex-direction:column;gap:8px">
+                    <div style="display:flex;align-items:center;gap:8px;color:var(--color-error-700, #b91c1c)">
+                        <span class="material-symbols-outlined" style="font-size:20px">warning</span>
+                        <span style="font-weight:700;font:var(--font-body-sm)">{{ _("Muscle Failure (RPE 10) Detected") }}</span>
+                    </div>
+                    <p style="margin:0;font:var(--font-caption);color:var(--color-slate-700)">
+                        {{ _("You hit muscle failure on this set. Would you like to automatically scale down the weight by 5% for all subsequent sets of this exercise?") }}
+                    </p>
+                    <div style="display:flex;gap:8px;margin-top:4px">
+                        {{ btn(label=_("Yes, scale down"), variant="primary", size="sm", type="button", onclick="applyWeightScaling(" ~ target.exercise_id ~ ", " ~ target.suggested_sets ~ ")") }}
+                        {{ btn(label=_("No, keep weight"), variant="secondary", size="sm", type="button", onclick="dismissRpePrompt(" ~ target.exercise_id ~ ")") }}
+                    </div>
+                </div>
             {% endcall %}
             {% endfor %}
         {% endcall %}
@@ -185,6 +201,66 @@ function showToast(message, type) {
     }
 }
 
+function checkRpeFailure(exId, setNum) {
+    const wrapper = document.getElementById(`rpe-wrapper-${exId}-${setNum}`);
+    const rpeInput = document.getElementById(`rpe-${exId}-${setNum}`);
+    if (!wrapper || !rpeInput) return;
+    
+    const rpeVal = parseFloat(rpeInput.value);
+    if (!isNaN(rpeVal) && rpeVal >= 10.0) {
+        wrapper.style.borderColor = "var(--color-error, #ef4444)";
+        rpeInput.style.color = "var(--color-error, #ef4444)";
+        rpeInput.style.fontWeight = "700";
+    } else {
+        wrapper.style.borderColor = "";
+        rpeInput.style.color = "";
+        rpeInput.style.fontWeight = "";
+    }
+}
+
+function applyWeightScaling(exerciseId, totalSets) {
+    const promptContainer = document.getElementById("rpe-prompt-" + exerciseId);
+    if (!promptContainer) return;
+
+    const triggerSet = parseInt(promptContainer.getAttribute("data-trigger-set") || "1");
+    let scaledCount = 0;
+
+    for (let s = triggerSet + 1; s <= totalSets; s++) {
+        const weightInput = document.getElementById(`weight-${exerciseId}-${s}`);
+        const checkBtn = document.getElementById(`btn-${exerciseId}-${s}`);
+        
+        if (weightInput && checkBtn && checkBtn.getAttribute("data-logged") === "false") {
+            const oldWeight = parseFloat(weightInput.value);
+            if (!isNaN(oldWeight) && oldWeight > 0) {
+                let newWeight = oldWeight * 0.95;
+                // Round to nearest 0.5 kg
+                newWeight = Math.round(newWeight * 2) / 2;
+                if (newWeight >= oldWeight && newWeight > 0) {
+                    newWeight -= 0.5;
+                }
+                weightInput.value = newWeight;
+                update1RM(exerciseId, s);
+                scaledCount++;
+            }
+        }
+    }
+
+    promptContainer.style.display = "none";
+    
+    if (scaledCount > 0) {
+        if (typeof showToast === "function") {
+            showToast(`Scaled remaining sets down by 5%`, "info");
+        }
+    }
+}
+
+function dismissRpePrompt(exerciseId) {
+    const promptContainer = document.getElementById("rpe-prompt-" + exerciseId);
+    if (promptContainer) {
+        promptContainer.style.display = "none";
+    }
+}
+
 function adjustValue(inputId, delta, minVal, isReps, exId, setNum) {
     const input = document.getElementById(inputId);
     let val = parseFloat(input.value);
@@ -194,6 +270,9 @@ function adjustValue(inputId, delta, minVal, isReps, exId, setNum) {
     val = Math.max(minVal || 0, val + delta);
     input.value = isReps ? Math.round(val) : parseFloat(val.toFixed(1));
     update1RM(exId, setNum);
+    if (inputId.startsWith("rpe-")) {
+        checkRpeFailure(exId, setNum);
+    }
 }
 
 function update1RM(exId, setNum) {
@@ -334,6 +413,28 @@ async function logSet(sessionId, exerciseId, setNumber) {
 
                 // Trigger the global persistent rest-timer (90 seconds)
                 window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
+
+                // RPE 10 Auto-Scaling Guardrail check
+                if (rpe === 10.0) {
+                    const promptContainer = document.getElementById("rpe-prompt-" + exerciseId);
+                    if (promptContainer) {
+                        let hasSubsequent = false;
+                        let s = setNumber + 1;
+                        while (true) {
+                            const nextBtn = document.getElementById(`btn-${exerciseId}-${s}`);
+                            if (!nextBtn) break;
+                            if (nextBtn.getAttribute("data-logged") === "false") {
+                                hasSubsequent = true;
+                                break;
+                            }
+                            s++;
+                        }
+                        if (hasSubsequent) {
+                            promptContainer.style.display = "flex";
+                            promptContainer.setAttribute("data-trigger-set", setNumber);
+                        }
+                    }
+                }
             } else {
                 const err = await response.json();
                 const errMsg = "Failed to log set: " + (err.detail || "Unknown error");
@@ -353,12 +454,20 @@ async function logSet(sessionId, exerciseId, setNumber) {
     }
 }
 
-// Calculate initial 1RMs on page load
+// Calculate initial 1RMs and check RPE failures on page load
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll("[id^='est1rm-']").forEach(function(span) {
         const idParts = span.id.split("-");
         if (idParts.length === 3) {
             update1RM(idParts[1], idParts[2]);
+        }
+    });
+    document.querySelectorAll("[id^='rpe-']").forEach(function(input) {
+        if (!input.id.includes("wrapper")) {
+            const idParts = input.id.split("-");
+            if (idParts.length === 3) {
+                checkRpeFailure(idParts[1], idParts[2]);
+            }
         }
     });
 });
