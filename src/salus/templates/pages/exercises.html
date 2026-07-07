@@ -89,7 +89,6 @@
     <div id="exercise-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px;margin-bottom:24px">
         {% for ex in exercises %}
         {% set header_act %}
-            {{ btn(icon="monitoring", variant="ghost", size="sm", href="/workouts/exercises/" + ex.id | string, aria_label=_("View analytics and history")) }}
             {% if ex.video_url %}
             {{ btn(icon="smart_display", variant="ghost", size="sm", href=ex.video_url, attrs={"target": "_blank"}, aria_label=_("Watch tutorial")) }}
             {% endif %}
