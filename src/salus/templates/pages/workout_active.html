@@ -26,12 +26,16 @@
     border-color: var(--color-slate-400);
 }
 
-.workout-set-checkbox[disabled] {
+.workout-set-checkbox[data-logged="true"] {
     background-color: var(--color-tertiary) !important;
     color: var(--color-on-tertiary) !important;
     border-color: var(--color-tertiary) !important;
-    cursor: default;
-    box-shadow: none;
+}
+
+.workout-set-checkbox[data-logged="true"]:hover {
+    background-color: var(--color-error-600) !important;
+    color: #ffffff !important;
+    border-color: var(--color-error-600) !important;
 }
 
 .workout-set-checkbox .material-symbols-outlined {
@@ -71,6 +75,11 @@
                             {% if target.weight_multiplier != 1.0 %}
                             ({{ _("Weight") }}: {{ (target.weight_multiplier * 100)|round(0) }}%)
                             {% endif %}
+                            {% if target.pr_weight and target.pr_weight > 0 %}
+                            <span style="margin-left:8px;color:var(--color-tertiary);font-weight:700">
+                                🏆 PR: {{ target.pr_weight }} kg {% if target.pr_est_1rm and target.pr_est_1rm > 0 %}(1RM: {{ target.pr_est_1rm|round(1) }} kg){% endif %}
+                            </span>
+                            {% endif %}
                         </p>
                     </div>
                     {% if not target.is_autoreg_exempt %}
@@ -82,33 +91,44 @@
 
                 {% call form_stack(style="gap:8px") %}
                     {% for set_num in range(1, target.suggested_sets + 1) %}
-                    <div id="row-{{ target.exercise_id }}-{{ set_num }}" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--color-slate-50);padding:8px 12px;border-radius:6px">
+                    {% set ns = namespace(logged_entry=none) %}
+                    {% if session.logs %}
+                        {% for log in session.logs %}
+                            {% if log.exercise_id == target.exercise_id and log.set_number == set_num %}
+                                {% set ns.logged_entry = log %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <div id="row-{{ target.exercise_id }}-{{ set_num }}" 
+                         data-pr-weight="{{ target.pr_weight or 0.0 }}"
+                         data-pr-est-1rm="{{ target.pr_est_1rm or 0.0 }}"
+                         style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--color-slate-50);padding:8px 12px;border-radius:6px;{% if ns.logged_entry %}opacity:0.75;{% endif %}transition:opacity var(--duration-fast)">
                         <span style="font-weight:700;font:var(--font-body-sm);color:var(--color-slate-500);min-width:40px">{{ _("Set") }} {{ set_num }}</span>
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">{{ _("Weight") }}:</label>
                             <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
-                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', -2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})">-</button>
-                                <input type="number" id="weight-{{ target.exercise_id }}-{{ set_num }}" step="0.5" value="{{ target.last_weight or 40.0 }}" placeholder="kg" class="input__field" style="width:65px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
-                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', 2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', -2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>-</button>
+                                <input type="number" id="weight-{{ target.exercise_id }}-{{ set_num }}" step="0.5" value="{{ ns.logged_entry.weight if ns.logged_entry else target.last_weight or 40.0 }}" placeholder="kg" class="input__field" style="width:65px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-{{ target.exercise_id }}-{{ set_num }}', 2.5, 0, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>+</button>
                             </div>
                         </div>
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">{{ _("Reps") }}:</label>
                             <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
-                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', -1, 0, true, {{ target.exercise_id }}, {{ set_num }})">-</button>
-                                <input type="number" id="reps-{{ target.exercise_id }}-{{ set_num }}" value="{{ target.suggested_reps }}" placeholder="reps" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})">
-                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', 1, 0, true, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', -1, 0, true, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>-</button>
+                                <input type="number" id="reps-{{ target.exercise_id }}-{{ set_num }}" value="{{ ns.logged_entry.reps if ns.logged_entry else target.suggested_reps }}" placeholder="reps" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM({{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>
+                                <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-{{ target.exercise_id }}-{{ set_num }}', 1, 0, true, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>+</button>
                             </div>
                         </div>
 
                         <div class="input" style="flex-direction:row;align-items:center;gap:6px">
                             <label class="input__label" style="font:var(--font-caption);font-weight:600">RPE:</label>
                             <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
-                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', -0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})">-</button>
-                                <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" value="{{ target.suggested_rpe }}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px">
-                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', 0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})">+</button>
+                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', -0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>-</button>
+                                <input type="number" id="rpe-{{ target.exercise_id }}-{{ set_num }}" step="0.5" min="5" max="10" value="{{ ns.logged_entry.rpe if ns.logged_entry and ns.logged_entry.rpe is not none else target.suggested_rpe }}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" {% if ns.logged_entry %}disabled{% endif %}>
+                                <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-{{ target.exercise_id }}-{{ set_num }}', 0.5, 5, false, {{ target.exercise_id }}, {{ set_num }})" {% if ns.logged_entry %}disabled{% endif %}>+</button>
                             </div>
                         </div>
 
@@ -118,8 +138,9 @@
                                 id="btn-{{ target.exercise_id }}-{{ set_num }}"
                                 class="workout-set-checkbox"
                                 onclick="logSet({{ session.id }}, {{ target.exercise_id }}, {{ set_num }})"
+                                data-logged="{% if ns.logged_entry %}true{% else %}false{% endif %}"
                                 aria-label="{{ _('Log Set') }}">
-                            <span class="material-symbols-outlined">check</span>
+                            <span class="material-symbols-outlined">{% if ns.logged_entry %}done{% else %}check{% endif %}</span>
                         </button>
                     </div>
                     {% endfor %}
@@ -148,6 +169,22 @@
 {% endcall %}
 
 <script>
+function showToast(message, type) {
+    type = type || "success";
+    const hasToast = !!document.getElementById("toast-container");
+    if (hasToast) {
+        document.dispatchEvent(new CustomEvent("show-toast", {
+            detail: { message: message, type: type }
+        }));
+    } else {
+        if (type === "error") {
+            alert("Error: " + message);
+        } else {
+            alert(message);
+        }
+    }
+}
+
 function adjustValue(inputId, delta, minVal, isReps, exId, setNum) {
     const input = document.getElementById(inputId);
     let val = parseFloat(input.value);
@@ -160,14 +197,44 @@ function adjustValue(inputId, delta, minVal, isReps, exId, setNum) {
 }
 
 function update1RM(exId, setNum) {
-    const weightVal = parseFloat(document.getElementById(`weight-${exId}-${setNum}`).value);
-    const repsVal = parseInt(document.getElementById(`reps-${exId}-${setNum}`).value);
+    const weightInput = document.getElementById(`weight-${exId}-${setNum}`);
+    const repsInput = document.getElementById(`reps-${exId}-${setNum}`);
     const display = document.getElementById(`est1rm-${exId}-${setNum}`);
+    const row = document.getElementById(`row-${exId}-${setNum}`);
+    if (!weightInput || !repsInput || !display || !row) return;
+
+    const weightVal = parseFloat(weightInput.value);
+    const repsVal = parseInt(repsInput.value);
+
+    const prWeight = parseFloat(row.getAttribute("data-pr-weight") || "0.0");
+    const prEst1RM = parseFloat(row.getAttribute("data-pr-est-1rm") || "0.0");
+
     if (!isNaN(weightVal) && !isNaN(repsVal) && repsVal > 0) {
-        const est1rm = weightVal / (1.0278 - (0.0278 * repsVal));
-        display.innerText = `Est. 1RM: ${est1rm.toFixed(1)} kg`;
+        let est1rm = 0.0;
+        if (repsVal === 1) {
+            est1rm = weightVal;
+        } else {
+            est1rm = weightVal / (1.0278 - (0.0278 * repsVal));
+        }
+
+        let isPR = false;
+        if ((prWeight > 0 && weightVal > prWeight) || (prEst1RM > 0 && est1rm > prEst1RM)) {
+            isPR = true;
+        }
+
+        if (isPR) {
+            display.innerHTML = `Est. 1RM: ${est1rm.toFixed(1)} kg <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;color:var(--color-warning-500);margin-left:4px" title="New personal record!">trophy</span>`;
+            display.style.color = "var(--color-warning-600)";
+            display.style.fontWeight = "700";
+        } else {
+            display.innerText = `Est. 1RM: ${est1rm.toFixed(1)} kg`;
+            display.style.color = "var(--color-slate-500)";
+            display.style.fontWeight = "600";
+        }
     } else {
         display.innerText = "Est. 1RM: --";
+        display.style.color = "var(--color-slate-500)";
+        display.style.fontWeight = "600";
     }
 }
 
@@ -178,42 +245,114 @@ async function logSet(sessionId, exerciseId, setNumber) {
     const rpe = rpeInput ? parseFloat(rpeInput) : null;
     const btn = document.getElementById(`btn-${exerciseId}-${setNumber}`);
     const row = document.getElementById(`row-${exerciseId}-${setNumber}`);
-    if (isNaN(weight) || isNaN(reps)) {
-        if (typeof showToast === "function") {
-            showToast("Please enter a valid weight and reps count.", "error");
-        } else {
-            alert("Please enter a valid weight and reps count.");
-        }
-        return;
-    }
-    try {
-        const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}`, {
-            method: "POST", headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ exercise_id: exerciseId, set_number: setNumber, weight: weight, reps: reps, rpe: rpe })
-        });
-        if (response.ok) {
-            btn.innerHTML = `<span class="material-symbols-outlined">done</span>`;
-            btn.disabled = true;
-            row.style.opacity = "0.75";
-            if (typeof showToast === "function") {
-                showToast("Set logged successfully!", "success");
-            }
-            // Trigger the global persistent rest-timer (90 seconds)
-            window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
-        } else {
-            const err = await response.json();
-            const errMsg = "Failed to log set: " + (err.detail || "Unknown error");
-            if (typeof showToast === "function") {
-                showToast(errMsg, "error");
+    
+    if (!btn || !row) return;
+
+    const isLogged = btn.getAttribute("data-logged") === "true";
+
+    if (isLogged) {
+        // Toggle OFF (Unsubmit)
+        try {
+            const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}&exercise_id=${exerciseId}&set_number=${setNumber}`, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                btn.setAttribute("data-logged", "false");
+                btn.innerHTML = `<span class="material-symbols-outlined">check</span>`;
+                row.style.opacity = "1.0";
+
+                // Re-enable inputs and adjust buttons
+                row.querySelectorAll("input").forEach(i => i.disabled = false);
+                row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = false);
+
+                if (typeof showToast === "function") {
+                    showToast("Set unlogged successfully!", "success");
+                }
             } else {
-                alert(errMsg);
+                const err = await response.json();
+                const errMsg = "Failed to unlog set: " + (err.detail || "Unknown error");
+                if (typeof showToast === "function") {
+                    showToast(errMsg, "error");
+                } else {
+                    alert(errMsg);
+                }
+            }
+        } catch (e) {
+            if (typeof showToast === "function") {
+                showToast("Error connecting to server.", "error");
+            } else {
+                alert("Error connecting to server.");
             }
         }
-    } catch (e) {
-        if (typeof showToast === "function") {
-            showToast("Error connecting to server.", "error");
-        } else {
-            alert("Error connecting to server.");
+    } else {
+        // Toggle ON (Submit)
+        if (isNaN(weight) || isNaN(reps)) {
+            if (typeof showToast === "function") {
+                showToast("Please enter a valid weight and reps count.", "error");
+            } else {
+                alert("Please enter a valid weight and reps count.");
+            }
+            return;
+        }
+        try {
+            const response = await fetch(`/api/v1/workouts/sessions/log?session_id=${sessionId}`, {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ exercise_id: exerciseId, set_number: setNumber, weight: weight, reps: reps, rpe: rpe })
+            });
+            if (response.ok) {
+                btn.setAttribute("data-logged", "true");
+                btn.innerHTML = `<span class="material-symbols-outlined">done</span>`;
+                row.style.opacity = "0.75";
+
+                // Disable inputs and adjust buttons
+                row.querySelectorAll("input").forEach(i => i.disabled = true);
+                row.querySelectorAll("button:not(.workout-set-checkbox)").forEach(b => b.disabled = true);
+
+                // PR check for toast notification
+                const prWeight = parseFloat(row.getAttribute("data-pr-weight") || "0.0");
+                const prEst1RM = parseFloat(row.getAttribute("data-pr-est-1rm") || "0.0");
+
+                let est1rm = 0.0;
+                if (reps === 1) {
+                    est1rm = weight;
+                } else {
+                    est1rm = weight / (1.0278 - (0.0278 * reps));
+                }
+
+                let isPR = false;
+                if ((prWeight > 0 && weight > prWeight) || (prEst1RM > 0 && est1rm > prEst1RM)) {
+                    isPR = true;
+                }
+
+                if (isPR) {
+                    if (typeof showToast === "function") {
+                        showToast(`🎉 New Personal Record! ${weight} kg x ${reps} reps!`, "success");
+                    } else {
+                        alert(`🎉 New Personal Record! ${weight} kg x ${reps} reps!`);
+                    }
+                } else {
+                    if (typeof showToast === "function") {
+                        showToast("Set logged successfully!", "success");
+                    }
+                }
+
+                // Trigger the global persistent rest-timer (90 seconds)
+                window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
+            } else {
+                const err = await response.json();
+                const errMsg = "Failed to log set: " + (err.detail || "Unknown error");
+                if (typeof showToast === "function") {
+                    showToast(errMsg, "error");
+                } else {
+                    alert(errMsg);
+                }
+            }
+        } catch (e) {
+            if (typeof showToast === "function") {
+                showToast("Error connecting to server.", "error");
+            } else {
+                alert("Error connecting to server.");
+            }
         }
     }
 }

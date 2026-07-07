@@ -239,14 +239,19 @@ class WorkoutService:
     def get_active_session(self, user_id: int) -> Optional[WorkoutSession]:
         with self.uow:
             from sqlmodel import select
-            from typing import cast
+            from sqlalchemy.orm import selectinload
+            from typing import cast, Any
             from salus.repositories.unit_of_work import SqlUnitOfWork
 
             sql_uow = cast(SqlUnitOfWork, self.uow)
 
-            stmt = select(WorkoutSession).where(
-                WorkoutSession.user_id == user_id,
-                WorkoutSession.completed_at.is_(None),  # type: ignore # noqa: E711
+            stmt = (
+                select(WorkoutSession)
+                .where(
+                    WorkoutSession.user_id == user_id,
+                    WorkoutSession.completed_at.is_(None),  # type: ignore # noqa: E711
+                )
+                .options(selectinload(cast(Any, WorkoutSession.logs)))
             )
             return sql_uow.session.exec(stmt).first()
 
@@ -273,6 +278,31 @@ class WorkoutService:
             sql_uow.session.add(log)
             self.uow.commit()
             return log
+
+    def delete_logged_set(
+        self, user_id: int, session_id: int, exercise_id: int, set_number: int
+    ) -> None:
+        with self.uow:
+            session = self.uow.workout_sessions.get_by_id(session_id)
+            if not session or session.user_id != user_id:
+                raise NotFoundError("Workout session not found.")
+
+            from sqlmodel import select
+            from salus.models.workout import WorkoutLogEntry
+            from typing import cast
+            from salus.repositories.unit_of_work import SqlUnitOfWork
+
+            sql_uow = cast(SqlUnitOfWork, self.uow)
+            stmt = (
+                select(WorkoutLogEntry)
+                .where(WorkoutLogEntry.session_id == session_id)
+                .where(WorkoutLogEntry.exercise_id == exercise_id)
+                .where(WorkoutLogEntry.set_number == set_number)
+            )
+            entry = sql_uow.session.exec(stmt).first()
+            if entry:
+                sql_uow.session.delete(entry)
+                self.uow.commit()
 
     def complete_session(
         self, user_id: int, session_id: int, notes: Optional[str] = None
@@ -340,7 +370,13 @@ class WorkoutService:
                     date_str=date_str,
                 )
 
+            exercise_ids = [t["exercise_id"] for t in targets]
+            prs = self.uow.workout_sessions.get_personal_records(user_id, exercise_ids)
+
             for t in targets:
                 t["last_weight"] = last_weights.get(t["exercise_id"], None)
+                ex_pr = prs.get(t["exercise_id"], {})
+                t["pr_weight"] = ex_pr.get("max_weight", 0.0)
+                t["pr_est_1rm"] = ex_pr.get("max_est_1rm", 0.0)
 
             return targets

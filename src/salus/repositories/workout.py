@@ -1,5 +1,5 @@
-from sqlmodel import select, or_, desc
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
+from sqlmodel import select, or_, desc, col
+from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
 
 
@@ -68,3 +68,38 @@ class WorkoutSessionRepository(Repository[WorkoutSession]):
             .order_by(desc(WorkoutSession.completed_at))
             .limit(1)
         ).first()
+
+    def get_personal_records(
+        self, user_id: int, exercise_ids: list[int]
+    ) -> dict[int, dict]:
+        if not exercise_ids:
+            return {}
+
+        stmt = (
+            select(WorkoutLogEntry)
+            .join(WorkoutSession)
+            .where(
+                WorkoutSession.user_id == user_id,
+                WorkoutSession.completed_at != None,  # type: ignore # noqa: E711
+                col(WorkoutLogEntry.exercise_id).in_(exercise_ids),
+            )
+        )
+        entries = self.session.exec(stmt).all()
+
+        results = {}
+        for entry in entries:
+            ex_id = entry.exercise_id
+            if ex_id not in results:
+                results[ex_id] = {"max_weight": 0.0, "max_est_1rm": 0.0}
+
+            est_1rm = 0.0
+            if entry.reps > 0:
+                if entry.reps == 1:
+                    est_1rm = entry.weight
+                else:
+                    est_1rm = entry.weight / (1.0278 - (0.0278 * entry.reps))
+
+            results[ex_id]["max_weight"] = max(results[ex_id]["max_weight"], entry.weight)
+            results[ex_id]["max_est_1rm"] = max(results[ex_id]["max_est_1rm"], est_1rm)
+
+        return results

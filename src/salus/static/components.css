@@ -2316,7 +2316,7 @@ img {
     transition: opacity var(--duration-normal) var(--ease-out);
 
     /* Solid color tokens - 100% Design System compliant */
-    background-color: var(--color-surface-container-highest, var(--color-slate-100));
+    background-color: var(--color-surface-container-lowest, var(--color-slate-50));
     color: var(--color-on-surface, var(--color-slate-900));
     border: 1px solid var(--color-slate-200);
 }
@@ -2946,7 +2946,7 @@ img {
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background-color: var(--color-surface-container-highest);
+    background-color: var(--color-surface-container-lowest);
     color: var(--color-on-surface);
     border: 1px solid var(--color-slate-200);
     border-radius: var(--radius-md);

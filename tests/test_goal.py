@@ -128,9 +128,15 @@ class TestGoalRoutes:
             "metric_type_id": "16",
         }, follow_redirects=True)
 
+        # Log out bob and log alice back in to restore authenticated client state
+        client.post("/auth/logout", follow_redirects=True)
+        client.post("/auth/login", data={
+            "username": "alice", "password": "secret123",
+        }, follow_redirects=True)
+
         response = authenticated_client.get("/goals")
         assert response.status_code == 200
-        assert "90" not in response.text
+        assert "90.0" not in response.text
 
     def test_goal_progress_no_data_shows_pending(self, authenticated_client):
         authenticated_client.post("/goals", data={

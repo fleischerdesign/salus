@@ -356,6 +356,9 @@ async def active_session_page(
     if active_session.plan_id:
         targets = service.get_session_targets(user_id, active_session.plan_id)
 
+    print("DEBUG: Active session ID:", active_session.id)
+    print("DEBUG: Active session logs:", getattr(active_session, "logs", None))
+
     return request.app.state.templates.TemplateResponse(
         request,
         "pages/workout_active.html",
@@ -504,6 +507,22 @@ async def log_set(
 ):
     return service.log_set(
         user_id=uid(current_user), session_id=session_id, entry=entry
+    )
+
+
+@router.delete("/api/v1/workouts/sessions/log", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_logged_set(
+    session_id: int,
+    exercise_id: int,
+    set_number: int,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    service.delete_logged_set(
+        user_id=uid(current_user),
+        session_id=session_id,
+        exercise_id=exercise_id,
+        set_number=set_number,
     )
 
 

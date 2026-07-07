@@ -197,3 +197,92 @@ def test_session_starting_and_logging(session: Session, workout_services):
     assert completed.completed_at is not None
     assert completed.notes == "Felt a good pump."
     assert len(completed.logs) == 2
+
+
+def test_personal_records_and_unlogging(session: Session, workout_services):
+    uow, _, workout_svc = workout_services
+
+    with uow:
+        user = UserModel(username="pr_guy", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        user_id = user.id
+
+        ex = Exercise(name="Overhead Press", equipment="barbell", primary_muscles="shoulders")
+        uow.exercises.add(ex)
+        uow.commit()
+        ex_id = ex.id
+
+    # 1. Start and complete a session to establish historical records
+    sess1 = workout_svc.start_session(user_id=user_id)
+    workout_svc.log_set(user_id=user_id, session_id=sess1.id, entry=WorkoutLogEntryCreate(
+        exercise_id=ex_id, set_number=1, weight=50.0, reps=5, rpe=8.0
+    ))
+    workout_svc.complete_session(user_id=user_id, session_id=sess1.id)
+
+    # Calculate Est 1RM: 50.0 / (1.0278 - (0.0278 * 5)) = 50.0 / 0.8888 = ~56.25
+    prs = workout_svc.uow.workout_sessions.get_personal_records(user_id, [ex_id])
+    assert prs[ex_id]["max_weight"] == 50.0
+    assert prs[ex_id]["max_est_1rm"] > 56.0
+
+    # 2. Start a new session and verify unlogging a set
+    sess2 = workout_svc.start_session(user_id=user_id)
+    logged = workout_svc.log_set(user_id=user_id, session_id=sess2.id, entry=WorkoutLogEntryCreate(
+        exercise_id=ex_id, set_number=1, weight=55.0, reps=5, rpe=9.0
+    ))
+    assert logged.id is not None
+
+    # Verify log entry is in the database
+    with uow:
+        assert len(sess2.logs) == 1
+
+    # Unlog the set
+    workout_svc.delete_logged_set(user_id=user_id, session_id=sess2.id, exercise_id=ex_id, set_number=1)
+    
+    # Verify it is deleted
+    with uow:
+        # Get fresh session from DB
+        sess2_fresh = uow.workout_sessions.get_by_id(sess2.id)
+        assert sess2_fresh is not None
+        assert len(sess2_fresh.logs) == 0
+
+
+def test_active_session_page_shows_logged_sets(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise
+    from salus.services.workout.planner import WorkoutService
+    from salus.services.workout.autoregulation import AutoregulationService
+    from salus.services.analytics.sleep import SleepAnalysisService
+    from salus.services.analytics.activity import ActivityAnalysisService
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        uow = SqlUnitOfWork(session)
+        sleep_svc = SleepAnalysisService(uow.measurements)
+        activity_svc = ActivityAnalysisService(uow.measurements)
+        autoreg_svc = AutoregulationService(sleep_svc, activity_svc)
+        workout_svc = WorkoutService(uow, autoreg_svc)
+
+        alice = session.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        user_id = alice.id
+
+        ex = Exercise(name="Curls", equipment="dumbbell", primary_muscles="biceps")
+        session.add(ex)
+        session.commit()
+        ex_id = ex.id
+
+        # Start session
+        sess = workout_svc.start_session(user_id=user_id)
+
+        # Log a set
+        workout_svc.log_set(user_id=user_id, session_id=sess.id, entry=WorkoutLogEntryCreate(
+            exercise_id=ex_id, set_number=1, weight=15.0, reps=8, rpe=8.0
+        ))
+
+    # Request active session page
+    response = authenticated_client.get("/workouts/sessions/active")
+    assert response.status_code == 200
+    assert 'data-logged="true"' in response.text

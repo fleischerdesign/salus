@@ -210,6 +210,10 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
         self, user_id: int, plan_id: int
     ) -> WorkoutSession | None: ...
 
+    def get_personal_records(
+        self, user_id: int, exercise_ids: list[int]
+    ) -> dict[int, dict]: ...
+
 
 @runtime_checkable
 class IShareRecipientRepository(IRepository[ShareRecipient], Protocol):
