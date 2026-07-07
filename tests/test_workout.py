@@ -286,3 +286,47 @@ def test_active_session_page_shows_logged_sets(authenticated_client):
     response = authenticated_client.get("/workouts/sessions/active")
     assert response.status_code == 200
     assert 'data-logged="true"' in response.text
+
+
+def test_rpe10_prompt_presence(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise
+    from salus.services.workout.planner import WorkoutService
+    from salus.services.workout.autoregulation import AutoregulationService
+    from salus.services.analytics.sleep import SleepAnalysisService
+    from salus.services.analytics.activity import ActivityAnalysisService
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        uow = SqlUnitOfWork(session)
+        sleep_svc = SleepAnalysisService(uow.measurements)
+        activity_svc = ActivityAnalysisService(uow.measurements)
+        autoreg_svc = AutoregulationService(sleep_svc, activity_svc)
+        workout_svc = WorkoutService(uow, autoreg_svc)
+
+        alice = session.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        user_id = alice.id
+
+        ex = Exercise(name="Curls", equipment="dumbbell", primary_muscles="biceps")
+        session.add(ex)
+        session.commit()
+        ex_id = ex.id
+
+        plan = WorkoutPlan(name="Test Plan", user_id=user_id, autoreg_mode="disabled")
+        session.add(plan)
+        session.commit()
+        plan_id = plan.id
+
+        plan_ex = WorkoutPlanExercise(plan_id=plan_id, exercise_id=ex_id, order=0, target_sets=3, target_reps=8, target_rpe=8.0)
+        session.add(plan_ex)
+        session.commit()
+
+        # Start session
+        workout_svc.start_session(user_id=user_id, plan_id=plan_id)
+
+    response = authenticated_client.get("/workouts/sessions/active")
+    assert response.status_code == 200
+    assert 'id="rpe-prompt-' in response.text

@@ -415,23 +415,36 @@ async function logSet(sessionId, exerciseId, setNumber) {
                 window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
 
                 // RPE 10 Auto-Scaling Guardrail check
-                if (rpe === 10.0) {
-                    const promptContainer = document.getElementById("rpe-prompt-" + exerciseId);
+                const parsedRpe = rpe;
+                const parsedExId = parseInt(exerciseId);
+                const parsedSetNum = parseInt(setNumber);
+                console.log("[RPE Guardrail] Evaluating logged set:", { exerciseId: parsedExId, setNumber: parsedSetNum, rpe: parsedRpe });
+                if (parsedRpe === 10.0 || parsedRpe === 10) {
+                    const promptContainer = document.getElementById("rpe-prompt-" + parsedExId);
+                    console.log("[RPE Guardrail] Prompt container element found:", !!promptContainer);
                     if (promptContainer) {
                         let hasSubsequent = false;
-                        let s = setNumber + 1;
+                        let s = parsedSetNum + 1;
+                        console.log("[RPE Guardrail] Checking subsequent sets starting from:", s);
                         while (true) {
-                            const nextBtn = document.getElementById(`btn-${exerciseId}-${s}`);
-                            if (!nextBtn) break;
-                            if (nextBtn.getAttribute("data-logged") === "false") {
+                            const nextBtn = document.getElementById(`btn-${parsedExId}-${s}`);
+                            if (!nextBtn) {
+                                console.log("[RPE Guardrail] No button element found for set:", s);
+                                break;
+                            }
+                            const loggedStatus = nextBtn.getAttribute("data-logged");
+                            console.log(`[RPE Guardrail] Set ${s} button status:`, loggedStatus);
+                            if (loggedStatus === "false") {
                                 hasSubsequent = true;
                                 break;
                             }
                             s++;
                         }
+                        console.log("[RPE Guardrail] Has subsequent unlogged sets:", hasSubsequent);
                         if (hasSubsequent) {
                             promptContainer.style.display = "flex";
-                            promptContainer.setAttribute("data-trigger-set", setNumber);
+                            promptContainer.setAttribute("data-trigger-set", parsedSetNum);
+                            console.log("[RPE Guardrail] Displayed prompt container for exercise:", parsedExId);
                         }
                     }
                 }
