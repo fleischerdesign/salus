@@ -100,6 +100,8 @@
                         });
                         
                         if (response.ok) {
+                            const cacheCopy = response.clone();
+                            await cache.put(url, cacheCopy);
                             this.fetchedUrls.add(url);
                             console.log(`[PrefetchManager] Delta prefetch cached: ${url}`);
                         }
