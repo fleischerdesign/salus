@@ -502,13 +502,21 @@ def get_backup_provider() -> IBackupStorageProvider:
 
 
 def get_backup_service(
+    request: Request,
     provider: IBackupStorageProvider = Depends(get_backup_provider),
 ) -> BackupService:
-    from salus.database import engine
+    # Retrieve engine and url from request app state if present (for test environments)
+    engine = getattr(request.app.state, "engine", None)
+    if engine is None:
+        from salus.database import engine as prod_engine
+        engine = prod_engine
+        database_url = settings.database_url
+    else:
+        database_url = str(engine.url)
 
     return BackupService(
         engine=engine,
-        database_url=settings.database_url,
+        database_url=database_url,
         password=settings.backup_password,
         provider=provider,
         retention_days=settings.backup_retention_days,

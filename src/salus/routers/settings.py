@@ -1,4 +1,6 @@
 from typing import Annotated
+import os
+import re
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -9,6 +11,7 @@ from salus.dependencies import (
     get_metric_type_service,
     get_user_service,
     get_asymmetric_share_service,
+    get_backup_service,
 )
 from salus.exceptions import ConflictError
 from salus.models.user import User
@@ -17,6 +20,7 @@ from salus.services.api_token import ApiTokenService
 from salus.services.metric_type import MetricTypeService
 from salus.services.user import UserService
 from salus.services.asymmetric_share import AsymmetricShareService
+from salus.services.backup.service import BackupService
 
 router = APIRouter()
 
@@ -199,3 +203,177 @@ async def set_locale(
     response = RedirectResponse(url="/settings", status_code=303)
     response.set_cookie("salus_locale", locale, max_age=31536000, httponly=True)
     return response
+
+
+# ---------------------------------------------------------------------------
+# Backups
+# ---------------------------------------------------------------------------
+
+@router.get("/backups", response_class=HTMLResponse)
+async def settings_backups_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    backup_svc: BackupService = Depends(get_backup_service),
+    success: str | None = None,
+    error: str | None = None,
+):
+    from salus.dependencies import require_admin
+    # Ensure only admins can access backups
+    require_admin(current_user)
+
+    backups = []
+    error_msg = error
+    
+    try:
+        raw_backups = backup_svc.provider.list_backups()
+        
+        # Sort backups by parsed date in descending order
+        parsed_backups = []
+        for fname in raw_backups:
+            # Parse size
+            size_bytes = 0
+            from salus.services.backup.providers import LocalBackupProvider
+            if isinstance(backup_svc.provider, LocalBackupProvider):
+                try:
+                    size_bytes = os.path.getsize(os.path.join(backup_svc.provider.directory, fname))
+                except Exception:
+                    pass
+            
+            # Format size
+            if size_bytes > 1024 * 1024:
+                size_str = f"{size_bytes / (1024 * 1024):.2f} MB"
+            elif size_bytes > 1024:
+                size_str = f"{size_bytes / 1024:.1f} KB"
+            else:
+                size_str = f"{size_bytes} B" if size_bytes > 0 else "--"
+
+            # Parse datetime from filename salus_backup_YYYY-MM-DD_HH-MM-SS.enc
+            created_at_str = "--"
+            match = re.match(r"salus_backup_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.enc", fname)
+            if match:
+                created_at_str = f"{match.group(1)} {match.group(2)}:{match.group(3)}:{match.group(4)}"
+
+            parsed_backups.append({
+                "filename": fname,
+                "created_at": created_at_str,
+                "size_str": size_str,
+                "raw_date": created_at_str
+            })
+            
+        parsed_backups.sort(key=lambda x: x["raw_date"], reverse=True)
+        backups = parsed_backups
+    except Exception as e:
+        error_msg = f"Failed to list backups: {str(e)}"
+
+    from salus.config import settings as app_settings
+    
+    # Determine local directory path or WebDAV URL for display
+    from salus.services.backup.providers import LocalBackupProvider
+    if isinstance(backup_svc.provider, LocalBackupProvider):
+        storage_location = backup_svc.provider.directory
+    else:
+        storage_location = getattr(backup_svc.provider, "url", "Remote WebDAV Storage")
+
+    context = _settings_context(
+        request, current_user, user_svc, metric_svc, api_token_svc,
+        backups=backups,
+        backup_provider=app_settings.backup_provider,
+        backup_password_configured=bool(app_settings.backup_password),
+        storage_location=storage_location,
+        error=error_msg,
+        success=success,
+    )
+    return _render_settings_tab(request, "backups", context)
+
+
+@router.post("/backups/create", response_class=HTMLResponse)
+async def trigger_backup_post(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    from salus.dependencies import require_admin
+    require_admin(current_user)
+
+    success_msg = None
+    error_msg = None
+    
+    try:
+        filename = backup_svc.run_backup()
+        success_msg = f"Backup '{filename}' created and uploaded successfully."
+    except Exception as e:
+        error_msg = f"Backup failed: {str(e)}"
+
+    # Re-render list
+    return await settings_backups_page(
+        request=request,
+        current_user=current_user,
+        user_svc=user_svc,
+        metric_svc=metric_svc,
+        api_token_svc=api_token_svc,
+        backup_svc=backup_svc,
+        success=success_msg,
+        error=error_msg,
+    )
+
+
+@router.post("/backups/restore/{filename}", response_class=HTMLResponse)
+async def restore_backup_post(
+    request: Request,
+    filename: str,
+    current_user: User = Depends(get_current_user),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    from salus.dependencies import require_admin
+    require_admin(current_user)
+    
+    from salus.config import settings as app_settings
+    if not app_settings.database_url.startswith("sqlite:///"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Database restoration is only supported for SQLite databases.")
+
+    db_path = app_settings.database_url.replace("sqlite:///", "")
+    
+    try:
+        backup_svc.restore_backup(filename, db_path)
+        # Return a client-side reload triggers
+        return HTMLResponse(
+            content="<script>alert('Database successfully restored from backup! The page will now reload.'); window.location.reload();</script>"
+        )
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Restoration failed: {str(e)}")
+
+
+@router.delete("/backups/{filename}", response_class=HTMLResponse)
+async def delete_backup_route(
+    request: Request,
+    filename: str,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    from salus.dependencies import require_admin
+    require_admin(current_user)
+
+    try:
+        backup_svc.provider.delete_backup(filename)
+    except Exception:
+        pass
+
+    return await settings_backups_page(
+        request=request,
+        current_user=current_user,
+        user_svc=user_svc,
+        metric_svc=metric_svc,
+        api_token_svc=api_token_svc,
+        backup_svc=backup_svc,
+    )
