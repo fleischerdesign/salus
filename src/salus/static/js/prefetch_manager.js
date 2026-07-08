@@ -61,8 +61,10 @@
             const urls = new Set();
             
             // Add static pages
+            urls.add('/workouts');
             urls.add('/workouts/plans');
             urls.add('/workouts/exercises');
+            urls.add('/workouts/sessions/active');
             urls.add('/settings');
             urls.add('/entries');
             
@@ -89,9 +91,10 @@
         isValidRoute(href) {
             if (!href) return false;
             
-            // Filter to local, non-action routes for plans and exercises
+            // Filter to local, non-action routes for plans, exercises, and sessions
             return href.startsWith('/workouts/plans/') || 
                    href.startsWith('/workouts/exercises/') || 
+                   href.startsWith('/workouts/sessions/') || 
                    href.startsWith('/entries/');
         }
     }
