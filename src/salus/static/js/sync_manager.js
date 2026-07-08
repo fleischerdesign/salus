@@ -10,13 +10,17 @@
             this.isOnline = navigator.onLine;
 
             this.initListeners();
-            this.updateBadge();
+            
             // Try to sync on load if online
             setTimeout(() => this.processQueue(), 500);
 
-            // Re-hydrate optimistic UI placeholders on page load (Durable Offline State)
-            window.addEventListener('DOMContentLoaded', () => this.rehydrateOptimisticUI());
+            // Update badge and re-hydrate optimistic UI placeholders on page load (Durable Offline State)
+            window.addEventListener('DOMContentLoaded', () => {
+                this.updateBadge();
+                this.rehydrateOptimisticUI();
+            });
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                this.updateBadge();
                 this.rehydrateOptimisticUI();
             }
         }
