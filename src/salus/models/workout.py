@@ -46,6 +46,10 @@ class WorkoutPlan(SQLModel, table=True):
     position: int = Field(default=0)  # Reorder position in plans grid
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)}
+    )
 
     # Relations
     plan_exercises: list["WorkoutPlanExercise"] = Relationship(

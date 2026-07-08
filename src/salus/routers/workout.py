@@ -200,7 +200,23 @@ async def workouts_update_plan_post(
         autoreg_mode=autoreg_mode,
         exercises=exercises,
     )
-    service.update_plan(user_id=uid(current_user), plan_id=plan_id, data=plan_data)
+    
+    client_updated_at_str = form_data.get("client_updated_at")
+    client_dt = None
+    if client_updated_at_str:
+        try:
+            from datetime import datetime, timezone
+            client_ms = float(str(client_updated_at_str))
+            client_dt = datetime.fromtimestamp(client_ms / 1000.0, tz=timezone.utc)
+        except ValueError:
+            pass
+
+    service.update_plan(
+        user_id=uid(current_user),
+        plan_id=plan_id,
+        data=plan_data,
+        client_updated_at=client_dt,
+    )
     return RedirectResponse("/workouts/plans", status_code=303)
 
 

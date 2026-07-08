@@ -76,8 +76,8 @@ def test_dashboard_today_button_visible_for_past_date(client):
 def test_service_worker_and_offline_fallback(client):
     # Test service worker root mapping
     response = client.get("/sw.js")
-    assert "salus-static-v7" in response.text
-    assert "salus-data-v7" in response.text
+    assert "salus-static-v8" in response.text
+    assert "salus-data-v8" in response.text
     assert "sync_manager.js" in response.text
     assert "offline.html" in response.text
 

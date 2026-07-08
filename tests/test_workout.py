@@ -535,6 +535,58 @@ def test_pwa_static_assets(client):
     assert "/login?pwa=true" in assets
 
 
+def test_pwa_health(client):
+    response = client.get("/api/v1/pwa/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_plan_conflict_resolution(authenticated_client, session, workout_services):
+    uow, _, workout_svc = workout_services
+    from salus.exceptions import ConflictError
+    from salus.models.user import User as UserModel
+    import pytest
+    from datetime import datetime, timezone, timedelta
+
+    # 1. Create plan
+    with uow:
+        user = UserModel(username="lww_lifter", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        user_id = user.id
+
+    plan_data = WorkoutPlanCreate(
+        name="LWW Plan",
+        description="Initial",
+        autoreg_mode="disabled",
+        exercises=[]
+    )
+    plan = workout_svc.create_plan(user_id=user_id, data=plan_data)
+    plan_id = plan.id
+
+    # 2. Update plan with a newer client timestamp (succeeds)
+    future_time = datetime.now(timezone.utc) + timedelta(minutes=5)
+    plan_data.name = "Updated Name"
+    updated_plan = workout_svc.update_plan(
+        user_id=user_id,
+        plan_id=plan_id,
+        data=plan_data,
+        client_updated_at=future_time
+    )
+    assert updated_plan.name == "Updated Name"
+
+    # 3. Update plan with an older client timestamp (fails with ConflictError)
+    past_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+    plan_data.name = "Stale Update"
+    with pytest.raises(ConflictError):
+        workout_svc.update_plan(
+            user_id=user_id,
+            plan_id=plan_id,
+            data=plan_data,
+            client_updated_at=past_time
+        )
+
+
 
 
 

@@ -152,11 +152,26 @@ class WorkoutService:
             self.uow.workout_plans.reorder(user_id, ordered_ids)
             self.uow.commit()
 
-    def update_plan(self, user_id: int, plan_id: int, data: WorkoutPlanCreate) -> WorkoutPlan:
+    def update_plan(
+        self,
+        user_id: int,
+        plan_id: int,
+        data: WorkoutPlanCreate,
+        client_updated_at: Optional[datetime] = None,
+    ) -> WorkoutPlan:
         with self.uow:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:
                 raise NotFoundError("Workout plan not found.")
+
+            if client_updated_at is not None and plan.updated_at is not None:
+                client_naive = client_updated_at.replace(tzinfo=None) if client_updated_at.tzinfo else client_updated_at
+                plan_naive = plan.updated_at.replace(tzinfo=None) if plan.updated_at.tzinfo else plan.updated_at
+                if plan_naive > client_naive:
+                    from salus.exceptions import ConflictError
+                    raise ConflictError(
+                        "Workout plan was modified online. Stale offline update rejected."
+                    )
 
             plan.name = data.name
             plan.description = data.description

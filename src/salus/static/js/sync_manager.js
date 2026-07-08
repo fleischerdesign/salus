@@ -3,9 +3,111 @@
  * Resilient, transaction-oriented queue manager for offline-first actions.
  */
 (function() {
+    class SalusDatabase {
+        constructor() {
+            this.dbName = 'salus_db';
+            this.dbVersion = 1;
+            this.db = null;
+        }
+
+        open() {
+            return new Promise((resolve, reject) => {
+                if (this.db) {
+                    resolve(this.db);
+                    return;
+                }
+                const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                request.onupgradeneeded = (evt) => {
+                    const db = evt.target.result;
+                    if (!db.objectStoreNames.contains('sync_queue')) {
+                        db.createObjectStore('sync_queue', { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = (evt) => {
+                    this.db = evt.target.result;
+                    resolve(this.db);
+                };
+
+                request.onerror = (evt) => {
+                    reject(evt.target.error);
+                };
+            });
+        }
+
+        async getQueue() {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sync_queue'], 'readonly');
+                const store = transaction.objectStore('sync_queue');
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    resolve(request.result || []);
+                };
+
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+
+        async enqueue(action) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sync_queue'], 'readwrite');
+                const store = transaction.objectStore('sync_queue');
+                const request = store.add(action);
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+
+        async dequeue(id) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sync_queue'], 'readwrite');
+                const store = transaction.objectStore('sync_queue');
+                const request = store.delete(id);
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+
+        async clearQueue() {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sync_queue'], 'readwrite');
+                const store = transaction.objectStore('sync_queue');
+                const request = store.clear();
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = () => {
+                    reject(request.error);
+                };
+            });
+        }
+    }
+
     class SyncManager {
         constructor() {
-            this.queueKey = 'salus_sync_queue';
+            this.db = new SalusDatabase();
             this.isSyncing = false;
             this.isOnline = navigator.onLine;
 
@@ -24,6 +126,24 @@
                 this.updateBadge();
                 this.checkServerHealth();
                 this.rehydrateOptimisticUI();
+            }
+
+            // React to HTMX swaps resetting the badge element in the DOM
+            document.addEventListener('htmx:afterSwap', () => {
+                this.updateBadge();
+            });
+
+            // Listen to messages from the Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data) {
+                        if (event.data.type === 'salus:sync-item-completed') {
+                            this.handleSyncItemCompleted(event.data.itemId, event.data.url, event.data.status);
+                        } else if (event.data.type === 'salus:sync-completed') {
+                            this.handleSyncCompleted();
+                        }
+                    }
+                });
             }
         }
 
@@ -71,7 +191,7 @@
         }
 
         async rehydrateOptimisticUI() {
-            const queue = this.getQueue();
+            const queue = await this.db.getQueue();
             queue.forEach(item => {
                 if (typeof renderOptimisticUI === 'function') {
                     renderOptimisticUI(item, item.id);
@@ -91,8 +211,9 @@
             console.log(`[SyncManager] Rehydrating active session layout for plan ${planId} offline...`);
             
             try {
+                const queue = await this.db.getQueue();
                 const cacheKeys = await caches.keys();
-                const dataCacheName = cacheKeys.find(k => k.startsWith('salus-data-')) || 'salus-data-v5';
+                const dataCacheName = cacheKeys.find(k => k.startsWith('salus-data-')) || 'salus-data-v7';
                 
                 const cache = await caches.open(dataCacheName);
                 const planResponse = await cache.match(`/workouts/plans/${planId}`);
@@ -179,7 +300,6 @@
                     
                     let rowsHtml = '';
                     for (let setNum = 1; setNum <= target.suggested_sets; setNum++) {
-                        const queue = this.getQueue();
                         const isLogged = queue.some(item => 
                             item.method === 'POST' && 
                             item.url.includes('/sessions/log') && 
@@ -221,47 +341,42 @@
                                     <label class="input__label" style="font:var(--font-caption);font-weight:600">Reps:</label>
                                     <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
                                         <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-${target.id}-${setNum}', -1, 0, true, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>-</button>
-                                        <input type="number" id="reps-${target.id}-${setNum}" value="${loggedReps}" placeholder="reps" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
+                                        <input type="number" id="reps-${target.id}-${setNum}" value="${loggedReps}" class="input__field" style="width:50px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
                                         <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-${target.id}-${setNum}', 1, 0, true, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>+</button>
                                     </div>
                                 </div>
 
                                 <div class="input" style="flex-direction:row;align-items:center;gap:6px;margin:0">
                                     <label class="input__label" style="font:var(--font-caption);font-weight:600">RPE:</label>
-                                    <div id="rpe-wrapper-${target.id}-${setNum}" style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
-                                        <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-${target.id}-${setNum}', -0.5, 5, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>-</button>
-                                        <input type="number" id="rpe-${target.id}-${setNum}" step="0.5" min="5" max="10" value="${target.suggested_rpe}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="checkRpeFailure(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
-                                        <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-${target.id}-${setNum}', 0.5, 5, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>+</button>
-                                    </div>
+                                    <select id="rpe-${target.id}-${setNum}" class="input__field" style="padding:6px 8px;font-size:13px;border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);height:auto" ${isLogged ? 'disabled' : ''}>
+                                        <option value="10" ${target.suggested_rpe === 10 ? 'selected' : ''}>10</option>
+                                        <option value="9.5" ${target.suggested_rpe === 9.5 ? 'selected' : ''}>9.5</option>
+                                        <option value="9" ${target.suggested_rpe === 9 ? 'selected' : ''}>9</option>
+                                        <option value="8.5" ${target.suggested_rpe === 8.5 ? 'selected' : ''}>8.5</option>
+                                        <option value="8" ${target.suggested_rpe === 8 ? 'selected' : ''}>8</option>
+                                        <option value="7.5" ${target.suggested_rpe === 7.5 ? 'selected' : ''}>7.5</option>
+                                        <option value="7" ${target.suggested_rpe === 7 ? 'selected' : ''}>7</option>
+                                        <option value="6.5" ${target.suggested_rpe === 6.5 ? 'selected' : ''}>6.5</option>
+                                        <option value="6" ${target.suggested_rpe === 6 ? 'selected' : ''}>6</option>
+                                    </select>
                                 </div>
 
-                                <span id="est1rm-${target.id}-${setNum}" style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500);margin-left:auto">Est. 1RM: --</span>
+                                <span id="est1rm-${target.id}-${setNum}" style="font:var(--font-caption);color:var(--color-slate-400);min-width:70px">e1RM: 0kg</span>
 
-                                <button type="button" 
-                                        id="btn-${target.id}-${setNum}"
-                                        class="workout-set-checkbox"
-                                        onclick="logSet(0, ${target.id}, ${setNum})"
-                                        data-logged="${isLogged ? 'true' : 'false'}"
-                                        aria-label="Log Set">
-                                    <span class="material-symbols-outlined">${isLogged ? 'done' : 'check'}</span>
+                                <button id="btn-${target.id}-${setNum}" type="button" class="btn" data-variant="secondary" style="padding:6px 12px;font-size:13px;height:auto;margin-left:auto" 
+                                        onclick="logOfflineSet(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
+                                    ${isLogged ? 'Logged' : 'Log Set'}
                                 </button>
                             </div>
                         `;
                     }
 
                     card.innerHTML = `
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--color-slate-100);padding-bottom:10px;margin-bottom:12px">
-                            <div>
-                                <h3 style="margin:0;font:var(--font-headline-md);font-weight:700;display:flex;align-items:center;gap:8px">
-                                    ${target.name}
-                                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-slate-400)">cloud_off</span>
-                                </h3>
-                                <p style="margin:4px 0 0 0;font:var(--font-caption);color:var(--color-slate-500)">
-                                    Target: ${target.suggested_sets} sets x ${target.suggested_reps} reps
-                                </p>
-                            </div>
+                        <div style="display:flex;justify-content:between;align-items:center;margin-bottom:12px">
+                            <span style="font-weight:700;font:var(--font-body-md);color:var(--color-slate-800)">${target.name}</span>
+                            <span style="font:var(--font-caption);color:var(--color-slate-400);margin-left:auto">Target: ${target.suggested_sets}x${target.suggested_reps} @ RPE ${target.suggested_rpe}</span>
                         </div>
-                        <div class="form-stack" style="gap:8px">
+                        <div style="display:flex;flex-direction:column">
                             ${rowsHtml}
                         </div>
                     `;
@@ -286,53 +401,41 @@
             }
         }
 
-        getQueue() {
-            try {
-                return JSON.parse(localStorage.getItem(this.queueKey)) || [];
-            } catch (e) {
-                console.error('[SyncManager] Error reading queue from localStorage:', e);
-                return [];
-            }
-        }
-
-        saveQueue(queue) {
-            try {
-                localStorage.setItem(this.queueKey, JSON.stringify(queue));
-            } catch (e) {
-                console.error('[SyncManager] Error saving queue to localStorage:', e);
-            }
-            this.updateBadge();
-        }
-
-        /**
-         * Enqueue a new request action.
-         * @param {Object} request - The request payload
-         * @param {string} request.method - GET | POST | DELETE | PUT
-         * @param {string} request.url - API endpoint URL
-         * @param {Object} [request.body] - Optional request payload body
-         * @param {Object} [request.headers] - Custom request headers
-         * @param {Object} [request.meta] - Custom target element bindings and descriptors
-         */
         enqueue(request) {
-            const queue = this.getQueue();
+            const tempId = 'sync-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             const queueItem = {
-                id: 'sync-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                id: tempId,
                 method: request.method || 'POST',
                 url: request.url,
                 body: request.body || null,
                 headers: request.headers || {},
                 meta: request.meta || {},
-                timestamp: Date.now()
+                client_updated_at: Date.now()
             };
 
-            queue.push(queueItem);
-            this.saveQueue(queue);
+            // Write asynchronously to IndexedDB
+            this.db.enqueue(queueItem).then(() => {
+                this.updateBadge();
+                this.registerBackgroundSync();
+            });
 
-            console.log('[SyncManager] Enqueued transaction:', queueItem);
-            
-            // Trigger background queue execution
-            this.processQueue();
-            return queueItem.id;
+            console.log('[SyncManager] Enqueued transaction into IndexedDB:', queueItem);
+            return tempId;
+        }
+
+        async registerBackgroundSync() {
+            if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    await reg.sync.register('salus-sync');
+                    console.log('[SyncManager] Registered background sync tag: salus-sync');
+                } catch (err) {
+                    console.warn('[SyncManager] Background sync registration failed, falling back to processQueue:', err);
+                    this.processQueue();
+                }
+            } else {
+                this.processQueue();
+            }
         }
 
         async processQueue() {
@@ -342,7 +445,7 @@
                 return;
             }
 
-            const queue = this.getQueue();
+            const queue = await this.db.getQueue();
             if (queue.length === 0) {
                 this.updateBadge();
                 return;
@@ -353,27 +456,33 @@
 
             console.log(`[SyncManager] Starting sync of ${queue.length} items...`);
 
-            while (queue.length > 0) {
-                const item = queue[0];
+            for (let item of queue) {
                 try {
+                    let body = item.body;
+                    let headers = { ...item.headers };
+                    
+                    if (item.method !== 'GET' && typeof body === 'object') {
+                        const params = new URLSearchParams();
+                        for (const [key, val] of Object.entries(body)) {
+                            params.append(key, val);
+                        }
+                        if (item.client_updated_at) {
+                            params.append('client_updated_at', item.client_updated_at);
+                        }
+                        body = params;
+                        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                    }
+
                     const fetchOptions = {
                         method: item.method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...item.headers
-                        }
+                        headers: headers,
+                        body: item.method !== 'GET' ? body : undefined
                     };
-                    if (item.body && item.method !== 'GET' && item.method !== 'HEAD') {
-                        fetchOptions.body = JSON.stringify(item.body);
-                    }
 
                     const response = await fetch(item.url, fetchOptions);
 
                     if (response.ok) {
-                        // Success: remove from queue and notify listeners
-                        queue.shift();
-                        this.saveQueue(queue);
-
+                        await this.db.dequeue(item.id);
                         console.log('[SyncManager] Sync success for item:', item.id);
                         
                         let htmlContent = '';
@@ -385,23 +494,21 @@
                         window.dispatchEvent(new CustomEvent('salus:sync-completed', {
                             detail: { item: item, response: response, html: htmlContent }
                         }));
+                    } else if (response.status === 409) {
+                        await this.db.dequeue(item.id);
+                        console.warn(`[SyncManager] Sync conflict (409) for item: ${item.id}. Discarded.`);
                     } else if (response.status >= 400 && response.status < 500) {
-                        // Client error (400, 404, 409 etc.): discard item and dispatch error event to unblock queue
-                        queue.shift();
-                        this.saveQueue(queue);
-
+                        await this.db.dequeue(item.id);
                         console.warn(`[SyncManager] Client error ${response.status} for item: ${item.id}. Discarded.`);
                         window.dispatchEvent(new CustomEvent('salus:sync-failed', {
                             detail: { item: item, error: `Client error: ${response.status}` }
                         }));
                     } else {
-                        // Server error (500, 503 etc.): pause queue and try again later
                         console.error(`[SyncManager] Server error ${response.status} for item: ${item.id}. Pausing sync.`);
-                        this.isOnline = false; // Treat server error as offline temporarily
+                        this.isOnline = false;
                         break;
                     }
                 } catch (err) {
-                    // Network / timeout error: pause queue
                     console.error('[SyncManager] Network error during sync:', err);
                     this.isOnline = false;
                     break;
@@ -410,8 +517,7 @@
 
             this.isSyncing = false;
             
-            // Clean active offline plan ID when queue is fully synced
-            const finalQueue = this.getQueue();
+            const finalQueue = await this.db.getQueue();
             if (finalQueue.length === 0) {
                 localStorage.removeItem('salus_offline_active_plan');
             }
@@ -419,7 +525,40 @@
             this.updateBadge();
         }
 
-        updateBadge() {
+        handleSyncItemCompleted(itemId, url, status) {
+            console.log('[SyncManager] Sync item completed from Service Worker:', itemId);
+            const optimisticEl = document.querySelector(`[data-optimistic-id="${itemId}"]`);
+            if (optimisticEl) {
+                if (url.includes('/delete') || (url.includes('/sessions/log') && status === 200)) {
+                    const row = document.getElementById(itemId);
+                    if (row) {
+                        row.style.opacity = '1';
+                        const checkbox = row.querySelector('.workout-set-checkbox');
+                        if (checkbox) {
+                            checkbox.setAttribute('data-logged', 'true');
+                            const icon = checkbox.querySelector('.material-symbols-outlined');
+                            if (icon) icon.innerText = 'done';
+                        }
+                    }
+                } else {
+                    optimisticEl.remove();
+                }
+            }
+        }
+
+        handleSyncCompleted() {
+            console.log('[SyncManager] All sync items completed from Service Worker.');
+            localStorage.removeItem('salus_offline_active_plan');
+            this.updateBadge();
+            if (typeof showToast === 'function') {
+                showToast('Synchronisierung abgeschlossen!', 'success');
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        async updateBadge() {
             let badge = document.getElementById('global-sync-badge');
             if (!badge) {
                 const actionsContainer = document.querySelector('.top-app-bar__actions');
@@ -435,7 +574,7 @@
                 }
             }
 
-            const queue = this.getQueue();
+            const queue = await this.db.getQueue();
             const count = queue.length;
             
             console.log('[SyncManager] updateBadge called. isOnline:', this.isOnline, 'queue count:', count, 'badge:', badge);
