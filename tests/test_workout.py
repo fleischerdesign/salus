@@ -501,6 +501,7 @@ def test_pwa_manifest_routes(authenticated_client):
     assert f"/workouts/plans/{plan_id}" in routes
     assert f"/workouts/exercises/{ex_id}" in routes
     assert f"/workouts/exercises/{ex_id}/instructions" in routes
+    assert "/sharing/connections/invite-modal" in routes
 
     # 3. Test Conditional 304 response if etag matches
     response_304 = authenticated_client.get(

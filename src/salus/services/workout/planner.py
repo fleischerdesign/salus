@@ -557,6 +557,19 @@ class WorkoutService:
             widget_count = session.exec(select(func.count(cast(Any, DashboardWidget.id))).where(DashboardWidget.user_id == user_id)).first() or 0
             max_widget_id = session.exec(select(func.max(cast(Any, DashboardWidget.id))).where(DashboardWidget.user_id == user_id)).first() or 0
 
+            # 7. Query leaderboard groups
+            from salus.models.user import User as UserModel
+            user = session.exec(select(UserModel).where(UserModel.id == user_id)).first()
+            user_handle = f"@{user.username}" if user else ""
+            
+            created_groups = self.uow.leaderboard_groups.find_by_creator(user_id)
+            joined_groups = self.uow.leaderboard_groups.find_joined_by_user(user_handle)
+            seen_group_ids = set()
+            for g in created_groups + joined_groups:
+                if g.id is not None:
+                    seen_group_ids.add(g.id)
+            group_ids_str = ",".join(str(g_id) for g_id in sorted(seen_group_ids))
+
             # Hash construction
             state_str = (
                 f"user:{user_id}:"
@@ -565,7 +578,8 @@ class WorkoutService:
                 f"logs:{log_count}:"
                 f"meas:{meas_count}:{max_meas_time}:"
                 f"goals:{goal_count}:{max_goal_time}:"
-                f"widgets:{widget_count}:{max_widget_id}"
+                f"widgets:{widget_count}:{max_widget_id}:"
+                f"groups:{group_ids_str}"
             )
             etag = hashlib.md5(state_str.encode("utf-8")).hexdigest()
             
@@ -584,10 +598,15 @@ class WorkoutService:
                 "/sharing/feed",
                 "/sharing/leaderboard",
                 "/sharing/connections",
+                "/sharing/connections/invite-modal",
                 "/sharing/access-log",
                 "/notifications/dropdown",
                 "/notifications/count",
             ]
+
+            # Add dynamic leaderboard URLs
+            for g_id in seen_group_ids:
+                routes.append(f"/sharing/leaderboard/{g_id}")
             
             # Add plan URLs
             plans = self.list_plans(user_id)
