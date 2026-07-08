@@ -163,12 +163,16 @@
                     </thead>
                     <tbody>
                         {% for log in history %}
-                        <tr style="border-bottom:1px solid var(--color-slate-100);color:var(--color-slate-700)">
+                        <tr class="clickable-row" 
+                            {% if log.session %}
+                            _="on click go to url '/workouts/sessions/{{ log.session.id }}'"
+                            {% endif %}
+                            style="border-bottom:1px solid var(--color-slate-100);color:var(--color-slate-700)">
                             <td style="padding:8px 2px">
                                 {% if log.session %}
-                                <a href="/workouts/sessions/{{ log.session.id }}" style="text-decoration:none;color:var(--color-primary);font-weight:600" title="{{ _('View Session Details') }}">
+                                <span style="color:var(--color-primary);font-weight:700" title="{{ _('View Session Details') }}">
                                     {{ log.session.completed_at.strftime('%m-%d') }}
-                                </a>
+                                </span>
                                 {% else %}
                                 —
                                 {% endif %}
@@ -199,6 +203,13 @@
 </div>
 
 <style>
+.clickable-row {
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+}
+.clickable-row:hover {
+    background-color: var(--color-slate-100) !important;
+}
 @media (max-width: 800px) {
     .exercise-detail-layout {
         grid-template-columns: 1fr !important;

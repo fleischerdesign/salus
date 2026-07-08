@@ -133,11 +133,6 @@
                     <span style="font:var(--font-caption);color:var(--color-slate-400)">+{{ ex.primary_muscles.split(',')|length - 1 }} {{ _("more") }}</span>
                     {% endif %}
                 </div>
-                <div style="display:flex;align-items:center;margin-top:12px">
-                    <a href="/workouts/exercises/{{ ex.id }}" style="font:var(--font-caption);font-weight:700;color:var(--color-primary);text-decoration:none;display:inline-flex;align-items:center;gap:4px">
-                        {{ _("View Details & Analytics") }} <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span>
-                    </a>
-                </div>
             </div>
         {% endcall %}
         {% else %}

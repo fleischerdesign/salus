@@ -62,16 +62,11 @@
                             {{ _("Target") }}: <span style="text-transform:capitalize;color:var(--color-primary)">{{ ex.primary_muscles.split(',')[0] }}</span>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:16px">
-                        <div style="text-align:right;font:var(--font-body-sm);font-weight:600;color:var(--color-slate-700)">
-                            {{ pe.target_sets }} {{ _("sets") }} x {{ pe.target_reps }} {{ _("reps") }}
-                            {% if pe.target_rpe %}
-                            <span style="color:var(--color-slate-400)">@ RPE {{ pe.target_rpe }}</span>
-                            {% endif %}
-                        </div>
-                        <a href="/workouts/exercises/{{ ex.id }}" style="color:var(--color-slate-400);display:flex;align-items:center" title="{{ _('View Strength Analytics') }}">
-                            <span class="material-symbols-outlined">arrow_forward</span>
-                        </a>
+                    <div style="text-align:right;font:var(--font-body-sm);font-weight:600;color:var(--color-slate-700)">
+                        {{ pe.target_sets }} {{ _("sets") }} x {{ pe.target_reps }} {{ _("reps") }}
+                        {% if pe.target_rpe %}
+                        <span style="color:var(--color-slate-400)">@ RPE {{ pe.target_rpe }}</span>
+                        {% endif %}
                     </div>
                 {% endcall %}
                 {% endfor %}

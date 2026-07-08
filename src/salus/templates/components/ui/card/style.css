@@ -24,7 +24,8 @@
     box-shadow: none;
 }
 
-.card[data-hoverable]:hover,
+.card[data-hoverable]:not([data-variant="flat"]):hover,
+.card[data-clickable]:not([data-variant="flat"]):hover,
 .card[data-variant="elevated"]:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
@@ -32,6 +33,11 @@
 
 .card[data-clickable] {
     cursor: pointer;
+}
+
+.card[data-variant="flat"][data-clickable]:hover,
+.card[data-variant="flat"][data-hoverable]:hover {
+    background: var(--color-slate-100);
 }
 
 /* ── Card sections ────────────────────────────────────────── */
