@@ -1,6 +1,6 @@
 /**
- * Salus PWA Agnostic Cache-Warming Prefetch Manager
- * Dynamically crawls all local GET routes in the DOM and pre-warms the service worker cache.
+ * Salus PWA Server-Driven Route Prefetch Manager (ETag + Delta Cache enabled)
+ * Fetches the dynamic list of navigable routes from the server and warms the cache incrementally.
  */
 (function() {
     class PrefetchManager {
@@ -13,7 +13,7 @@
             if (!navigator.onLine) return;
 
             window.addEventListener('load', () => {
-                // Fetch everything in the background once main page is loaded
+                // Wait for browser idle to warm the cache without blocking
                 if ('requestIdleCallback' in window) {
                     requestIdleCallback(() => this.startPrefetching());
                 } else {
@@ -27,103 +27,78 @@
         }
 
         async startPrefetching() {
-            console.log('[PrefetchManager] Agnostically scanning for offline routes...');
-            const urls = this.collectUrls();
+            console.log('[PrefetchManager] Querying route manifest from server...');
             
-            for (const url of urls) {
-                if (this.fetchedUrls.has(url)) continue;
-                
-                try {
-                    const response = await fetch(url, {
-                        headers: {
-                            'Accept': 'text/html'
-                        },
-                        priority: 'low'
-                    });
-                    
-                    if (response.ok) {
-                        this.fetchedUrls.add(url);
-                        console.log(`[PrefetchManager] Prefetched and cached: ${url}`);
-                    }
-                } catch (e) {
-                    console.warn(`[PrefetchManager] Failed to prefetch ${url}:`, e);
+            try {
+                const storedEtag = localStorage.getItem('salus_routes_etag');
+                const headers = { 'Accept': 'application/json' };
+                if (storedEtag) {
+                    headers['If-None-Match'] = storedEtag;
                 }
                 
-                // Yield thread control to prevent page jank
-                await new Promise(r => setTimeout(r, 200));
-            }
-        }
-
-        collectUrls() {
-            const urls = new Set();
-            
-            // 1. Scan standard anchor tags (ignoring HTMX write mutations)
-            document.querySelectorAll('a[href]').forEach(el => {
-                if (el.hasAttribute('hx-post') || el.hasAttribute('hx-delete') || el.hasAttribute('hx-put') || el.hasAttribute('hx-patch')) {
+                const manifestResponse = await fetch('/api/v1/pwa/manifest-routes', { headers });
+                
+                if (manifestResponse.status === 304) {
+                    console.log('[PrefetchManager] Route manifest unchanged (304). Skipping cache warming.');
                     return;
                 }
-                try {
-                    const resolved = new URL(el.href, window.location.origin);
-                    if (resolved.origin === window.location.origin) {
-                        const path = resolved.pathname + resolved.search;
-                        if (this.isValidRoute(resolved.pathname)) {
-                            urls.add(path);
-                        }
+                
+                if (!manifestResponse.ok) {
+                    if (manifestResponse.status === 401) {
+                        console.log('[PrefetchManager] User is not logged in. Skipping prefetch.');
+                    } else {
+                        console.warn(`[PrefetchManager] Server returned status ${manifestResponse.status} for manifest routes.`);
                     }
-                } catch (e) {}
-            });
-
-            // 2. Scan HTMX GET requests (for tab changes, modals, overlays)
-            document.querySelectorAll('[hx-get]').forEach(el => {
-                const path = el.getAttribute('hx-get') || '';
-                try {
-                    const resolved = new URL(path, window.location.origin);
-                    if (resolved.origin === window.location.origin) {
-                        const cleanPath = resolved.pathname + resolved.search;
-                        if (this.isValidRoute(resolved.pathname)) {
-                            urls.add(cleanPath);
-                        }
-                    }
-                } catch (e) {}
-            });
-
-            // 3. Scan Hyperscript navigation patterns (e.g. go to url '/...')
-            document.querySelectorAll('[hyperscript]').forEach(el => {
-                const hs = el.getAttribute('hyperscript') || '';
-                const match = hs.match(/go to url\s+['"]([^'"]+)['"]/);
-                if (match && match[1]) {
-                    try {
-                        const resolved = new URL(match[1], window.location.origin);
-                        if (resolved.origin === window.location.origin) {
-                            const cleanPath = resolved.pathname + resolved.search;
-                            if (this.isValidRoute(resolved.pathname)) {
-                                urls.add(cleanPath);
-                            }
-                        }
-                    } catch (e) {}
+                    return;
                 }
-            });
-
-            return Array.from(urls);
-        }
-
-        isValidRoute(path) {
-            if (!path) return false;
-            
-            // Blacklisted URL prefixes that should never be prefetched
-            const excludedPrefixes = ['/static/', '/api/', '/auth/', '/docs', '/redoc', '/openapi.json'];
-            if (excludedPrefixes.some(prefix => path.startsWith(prefix))) {
-                return false;
+                
+                // Save ETag for future requests
+                const responseEtag = manifestResponse.headers.get('ETag');
+                if (responseEtag) {
+                    localStorage.setItem('salus_routes_etag', responseEtag);
+                }
+                
+                const urls = await manifestResponse.json();
+                console.log(`[PrefetchManager] Server-driven route manifest loaded: ${urls.length} routes found.`);
+                
+                // Get list of currently cached URLs for Delta Caching
+                const cache = await caches.open('salus-data-v5');
+                const cachedRequests = await cache.keys();
+                const cachedPaths = new Set(cachedRequests.map(req => new URL(req.url).pathname));
+                
+                for (const url of urls) {
+                    const resolvedPath = new URL(url, window.location.origin).pathname;
+                    
+                    // Skip caching if already present in data cache (Incremental Caching)
+                    if (cachedPaths.has(resolvedPath)) {
+                        continue;
+                    }
+                    if (this.fetchedUrls.has(url)) continue;
+                    
+                    try {
+                        const response = await fetch(url, {
+                            headers: { 'Accept': 'text/html' },
+                            priority: 'low'
+                        });
+                        
+                        if (response.ok) {
+                            this.fetchedUrls.add(url);
+                            console.log(`[PrefetchManager] Delta prefetch cached: ${url}`);
+                        }
+                    } catch (err) {
+                        console.warn(`[PrefetchManager] Failed to prefetch route ${url}:`, err);
+                    }
+                    
+                    // Throttle requests slightly
+                    await new Promise(r => setTimeout(r, 150));
+                }
+                
+            } catch (err) {
+                console.warn('[PrefetchManager] Failed to fetch PWA route manifest:', err);
             }
-
-            // Blacklist static files and extensions
-            if (path.match(/\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|json|xml|zip|pdf|csv|xlsx)$/i)) {
-                return false;
-            }
-
-            return true;
         }
     }
 
+    // Initialize globally
     window.SalusPrefetchManager = new PrefetchManager();
 })();

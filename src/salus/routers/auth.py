@@ -54,9 +54,11 @@ def _register_error(request: Request, message: str) -> HTMLResponse:
 async def login_page(
     request: Request,
     current_user: User | None = Depends(get_current_user_optional),
+    pwa: bool = False,
 ):
-    if redirect := _redirect_if_authenticated(current_user):
-        return redirect
+    if not pwa:
+        if redirect := _redirect_if_authenticated(current_user):
+            return redirect
     return _render_login_template(request)
 
 

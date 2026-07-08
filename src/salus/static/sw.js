@@ -1,4 +1,6 @@
-const CACHE_NAME = 'salus-cache-v5';
+const STATIC_CACHE_NAME = 'salus-static-v5';
+const DATA_CACHE_NAME = 'salus-data-v5';
+
 const STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
     '/static/vendor/hyperscript.min.js',
@@ -10,13 +12,14 @@ const STATIC_ASSETS = [
     '/static/js/prefetch_manager.js',
     '/static/manifest.json',
     '/static/vendor/icon-192.png',
-    '/static/offline.html'
+    '/static/offline.html',
+    '/login?pwa=true'
 ];
 
 // Install Event - Precache core static shell
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
+        caches.open(STATIC_CACHE_NAME).then(cache => {
             return cache.addAll(STATIC_ASSETS);
         }).then(() => self.skipWaiting())
     );
@@ -28,7 +31,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(keys => {
             return Promise.all(
                 keys.map(key => {
-                    if (key !== CACHE_NAME) {
+                    if (key !== STATIC_CACHE_NAME && key !== DATA_CACHE_NAME) {
                         return caches.delete(key);
                     }
                 })
@@ -39,14 +42,44 @@ self.addEventListener('activate', event => {
 
 // Fetch Event - Caching strategies
 self.addEventListener('fetch', event => {
-    // Skip non-GET requests (e.g. POST for logging sets - handled by sync queue)
+    // Skip non-GET requests (handled by sync queue)
     if (event.request.method !== 'GET') {
         return;
     }
 
     const url = new URL(event.request.url);
 
-    // Cache-First strategy for static assets
+    // 1. Intercept offline logout
+    if (url.pathname === '/auth/logout') {
+        event.respondWith(
+            caches.delete(DATA_CACHE_NAME).then(() => {
+                console.log('[ServiceWorker] Logged out offline. Purged data cache.');
+                return Response.redirect('/login', 303);
+            })
+        );
+        return;
+    }
+
+    // 2. Serve /login offline using the precached PWA login shell
+    if (url.pathname === '/login') {
+        event.respondWith(
+            fetch(event.request).then(networkResponse => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const cacheCopy = networkResponse.clone();
+                    caches.open(STATIC_CACHE_NAME).then(cache => {
+                        cache.put('/login?pwa=true', cacheCopy);
+                    });
+                }
+                return networkResponse;
+            }).catch(() => {
+                // Fallback to precached PWA login shell offline
+                return caches.match('/login?pwa=true', { ignoreSearch: true });
+            })
+        );
+        return;
+    }
+
+    // 3. Cache-First strategy for static assets
     if (url.pathname.startsWith('/static/')) {
         event.respondWith(
             caches.match(event.request, { ignoreVary: true, ignoreSearch: true }).then(cachedResponse => {
@@ -56,7 +89,7 @@ self.addEventListener('fetch', event => {
                 return fetch(event.request).then(networkResponse => {
                     if (networkResponse && networkResponse.status === 200) {
                         const cacheCopy = networkResponse.clone();
-                        caches.open(CACHE_NAME).then(cache => {
+                        caches.open(STATIC_CACHE_NAME).then(cache => {
                             cache.put(event.request, cacheCopy);
                         });
                     }
@@ -67,20 +100,20 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Network-First falling back to Cache strategy for HTML pages
+    // 4. Network-First falling back to Cache strategy for HTML pages (user data)
     event.respondWith(
         fetch(event.request).then(networkResponse => {
             // Cache page if it is a successful HTML response
             const acceptHeader = event.request.headers.get('accept') || '';
             if (networkResponse && networkResponse.status === 200 && acceptHeader.includes('text/html')) {
                 const cacheCopy = networkResponse.clone();
-                caches.open(CACHE_NAME).then(cache => {
+                caches.open(DATA_CACHE_NAME).then(cache => {
                     cache.put(event.request, cacheCopy);
                 });
             }
             return networkResponse;
         }).catch(() => {
-            // Fallback to cache on network failure (offline)
+            // Fallback to data cache on network failure (offline)
             return caches.match(event.request, { ignoreVary: true, ignoreSearch: true }).then(cachedResponse => {
                 if (cachedResponse) {
                     return cachedResponse;

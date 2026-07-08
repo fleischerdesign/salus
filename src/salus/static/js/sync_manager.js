@@ -286,6 +286,9 @@
         const item = evt.detail.item;
         const html = evt.detail.html;
 
+        // Invalidate PWA route manifest ETag cache on data changes
+        localStorage.removeItem('salus_routes_etag');
+
         // Delete optimistic UI placeholder
         const tempCard = document.getElementById(item.id);
         if (tempCard) {
@@ -326,6 +329,52 @@
 
         if (typeof showToast === 'function') {
             showToast(`Sync failed: ${error}`, 'error');
+        }
+    });
+
+    // ── Offline Logout Interceptor ────────────────────────────────────────────
+    document.addEventListener('submit', function(evt) {
+        if (!navigator.onLine) {
+            const form = evt.target;
+            const action = form.getAttribute('action') || '';
+            if (action.includes('/auth/logout')) {
+                evt.preventDefault(); // Stop standard form submission
+                
+                // Clear cached route manifest ETag client-side
+                localStorage.removeItem('salus_routes_etag');
+
+                // Queue logout transaction in sync manager
+                window.SalusSyncManager.enqueue({
+                    method: 'POST',
+                    url: '/auth/logout',
+                    body: {},
+                    headers: {},
+                    meta: { action: 'logout' }
+                });
+                
+                // Immediately trigger offline logout cache clean and redirect in SW
+                window.location.href = '/auth/logout';
+            }
+        }
+    });
+
+    document.addEventListener('click', function(evt) {
+        const link = evt.target.closest('a[href="/auth/logout"]');
+        if (link && !navigator.onLine) {
+            evt.preventDefault();
+            
+            // Clear cached route manifest ETag client-side
+            localStorage.removeItem('salus_routes_etag');
+
+            window.SalusSyncManager.enqueue({
+                method: 'GET',
+                url: '/auth/logout',
+                body: {},
+                headers: {},
+                meta: { action: 'logout' }
+            });
+            
+            window.location.href = '/auth/logout';
         }
     });
 })();

@@ -477,3 +477,86 @@ class WorkoutService:
                 "exercises": exercises_with_details,
                 "history": history
             }
+
+    def get_pwa_manifest_routes_and_etag(self, user_id: int) -> tuple[list[str], str]:
+        from typing import Any, cast
+        from sqlmodel import select, func
+        import hashlib
+        from salus.models.workout import WorkoutPlan, WorkoutSession, WorkoutLogEntry
+        from salus.models.measurement import Measurement
+        from salus.models.goal import Goal
+        
+        session = self.uow.session
+        
+        with self.uow:
+            # 1. Query plans count & max ID
+            plan_count = session.exec(select(func.count(cast(Any, WorkoutPlan.id))).where(WorkoutPlan.user_id == user_id)).first() or 0
+            max_plan_id = session.exec(select(func.max(cast(Any, WorkoutPlan.id))).where(WorkoutPlan.user_id == user_id)).first() or 0
+            
+            # 2. Query sessions count, max ID & max completed_at date
+            session_count = session.exec(select(func.count(cast(Any, WorkoutSession.id))).where(WorkoutSession.user_id == user_id)).first() or 0
+            max_session_id = session.exec(select(func.max(cast(Any, WorkoutSession.id))).where(WorkoutSession.user_id == user_id)).first() or 0
+            max_session_time = session.exec(select(func.max(cast(Any, WorkoutSession.completed_at))).where(WorkoutSession.user_id == user_id)).first()
+            
+            # 3. Query log entry count
+            log_count = session.exec(
+                select(func.count(cast(Any, WorkoutLogEntry.id)))
+                .join(WorkoutSession)
+                .where(WorkoutSession.user_id == user_id)
+            ).first() or 0
+            
+            # 4. Query measurements count & max created_at timestamp
+            meas_count = session.exec(select(func.count(cast(Any, Measurement.id))).where(Measurement.user_id == user_id)).first() or 0
+            max_meas_time = session.exec(select(func.max(cast(Any, Measurement.created_at))).where(Measurement.user_id == user_id)).first()
+            
+            # 5. Query goals count & max created_at timestamp
+            goal_count = session.exec(select(func.count(cast(Any, Goal.id))).where(Goal.user_id == user_id)).first() or 0
+            max_goal_time = session.exec(select(func.max(cast(Any, Goal.created_at))).where(Goal.user_id == user_id)).first()
+
+            # Hash construction
+            state_str = (
+                f"user:{user_id}:"
+                f"plans:{plan_count}:{max_plan_id}:"
+                f"sessions:{session_count}:{max_session_id}:{max_session_time}:"
+                f"logs:{log_count}:"
+                f"meas:{meas_count}:{max_meas_time}:"
+                f"goals:{goal_count}:{max_goal_time}"
+            )
+            etag = hashlib.md5(state_str.encode("utf-8")).hexdigest()
+            
+            # Manifest routes list
+            routes = [
+                "/",
+                "/workouts/plans",
+                "/workouts/exercises",
+                "/workouts/sessions/active",
+                "/settings",
+                "/entries",
+                "/analytics",
+                "/circadian",
+                "/insights",
+                "/sharing/feed",
+                "/sharing/leaderboard",
+                "/sharing/connections",
+                "/sharing/access-log",
+                "/notifications/dropdown",
+                "/notifications/count",
+            ]
+            
+            # Add plan URLs
+            plans = self.list_plans(user_id)
+            for p in plans:
+                routes.append(f"/workouts/plans/{p.id}")
+                
+            # Add exercise URLs
+            exercises = self.get_exercise_catalog(user_id)
+            for ex in exercises:
+                routes.append(f"/workouts/exercises/{ex.id}")
+                routes.append(f"/workouts/exercises/{ex.id}/instructions")
+                
+            # Add session URLs
+            recent_sessions = self.get_recent_sessions(user_id, limit=30)
+            for s in recent_sessions:
+                routes.append(f"/workouts/sessions/{s.id}")
+                
+            return routes, etag

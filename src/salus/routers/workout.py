@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Form, Query, Request, status
+from fastapi import APIRouter, Depends, Form, Query, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from salus.dependencies import get_current_user, get_workout_service
@@ -830,3 +830,24 @@ async def list_recent_sessions(
     service: WorkoutService = Depends(get_workout_service),
 ):
     return service.get_recent_sessions(user_id=uid(current_user), limit=limit)
+
+
+@router.get("/api/v1/pwa/manifest-routes")
+async def get_pwa_manifest_routes(
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    user_id = uid(current_user)
+    routes, etag = service.get_pwa_manifest_routes_and_etag(user_id)
+
+    # Check client-side ETag header
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match == f'"{etag}"' or if_none_match == etag:
+        return Response(status_code=304)
+
+    # Set headers for caching validation
+    response.headers["ETag"] = f'"{etag}"'
+    response.headers["Cache-Control"] = "no-cache"
+    return routes

@@ -467,6 +467,65 @@ def test_plan_detail_page(authenticated_client):
     assert "Autoregulation: Enabled" in response.text
 
 
+def test_pwa_manifest_routes(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise, WorkoutPlan
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as session:
+        alice = session.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        user_id = alice.id
+
+        ex = Exercise(name="Lat Pulldowns", equipment="cable", primary_muscles="lats")
+        session.add(ex)
+        session.commit()
+        ex_id = ex.id
+
+        plan = WorkoutPlan(name="PWA Test Plan", user_id=user_id, autoreg_mode="disabled")
+        session.add(plan)
+        session.commit()
+        plan_id = plan.id
+
+    response = authenticated_client.get("/api/v1/pwa/manifest-routes")
+    assert response.status_code == 200
+    etag = response.headers.get("ETag")
+    assert etag is not None
+
+    routes = response.json()
+    assert isinstance(routes, list)
+    assert "/" in routes
+    assert "/workouts/plans" in routes
+    assert "/settings" in routes
+    assert f"/workouts/plans/{plan_id}" in routes
+    assert f"/workouts/exercises/{ex_id}" in routes
+    assert f"/workouts/exercises/{ex_id}/instructions" in routes
+
+    # 3. Test Conditional 304 response if etag matches
+    response_304 = authenticated_client.get(
+        "/api/v1/pwa/manifest-routes",
+        headers={"If-None-Match": etag}
+    )
+    assert response_304.status_code == 304
+
+    # 4. Test ETag invalidation after database update
+    with Session(engine) as session:
+        plan2 = WorkoutPlan(name="PWA Test Plan 2", user_id=user_id, autoreg_mode="disabled")
+        session.add(plan2)
+        session.commit()
+        plan2_id = plan2.id
+
+    response_200 = authenticated_client.get(
+        "/api/v1/pwa/manifest-routes",
+        headers={"If-None-Match": etag}
+    )
+    assert response_200.status_code == 200
+    assert response_200.headers.get("ETag") != etag
+    assert f"/workouts/plans/{plan2_id}" in response_200.json()
+
+
+
 
 
 
