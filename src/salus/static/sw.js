@@ -1,11 +1,15 @@
-const CACHE_NAME = 'salus-cache-v1';
+const CACHE_NAME = 'salus-cache-v2';
 const STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
     '/static/vendor/hyperscript.min.js',
     '/static/components.css',
     '/static/components.js',
     '/static/tokens.css',
-    '/static/vendor/fonts.css'
+    '/static/vendor/fonts.css',
+    '/static/js/sync_manager.js',
+    '/static/manifest.json',
+    '/static/vendor/icon-192.png',
+    '/static/offline.html'
 ];
 
 // Install Event - Precache core static shell
@@ -80,7 +84,11 @@ self.addEventListener('fetch', event => {
                 if (cachedResponse) {
                     return cachedResponse;
                 }
-                // Let request fail naturally if not in cache
+                // If requesting an HTML page, return the cached offline fallback
+                const acceptHeader = event.request.headers.get('accept') || '';
+                if (acceptHeader && acceptHeader.includes('text/html')) {
+                    return caches.match('/static/offline.html');
+                }
             });
         })
     );

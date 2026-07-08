@@ -71,3 +71,19 @@ def test_dashboard_today_button_visible_for_past_date(client):
     response = client.get("/dashboard/grid?date=2024-01-15")
     assert response.status_code == 200
     assert "Today" in response.text
+
+
+def test_service_worker_and_offline_fallback(client):
+    # Test service worker root mapping
+    response = client.get("/sw.js")
+    assert response.status_code == 200
+    assert "salus-cache-v2" in response.text
+    assert "sync_manager.js" in response.text
+    assert "offline.html" in response.text
+
+    # Test static offline fallback page
+    response = client.get("/static/offline.html")
+    assert response.status_code == 200
+    assert "You are Offline" in response.text
+    assert "Try Reconnecting" in response.text
+
