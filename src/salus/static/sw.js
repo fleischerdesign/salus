@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salus-cache-v3';
+const CACHE_NAME = 'salus-cache-v4';
 const STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
     '/static/vendor/hyperscript.min.js',

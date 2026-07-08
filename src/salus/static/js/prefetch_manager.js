@@ -68,11 +68,18 @@
             urls.add('/settings');
             urls.add('/entries');
             
-            // Find all anchor links and card routes in the page
+            // Find all anchor links in the page and resolve them
             document.querySelectorAll('a[href]').forEach(el => {
-                const href = el.getAttribute('href');
-                if (this.isValidRoute(href)) {
-                    urls.add(href);
+                try {
+                    const resolved = new URL(el.href, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        const path = resolved.pathname;
+                        if (this.isValidRoute(path)) {
+                            urls.add(path);
+                        }
+                    }
+                } catch (e) {
+                    // Ignore invalid URLs
                 }
             });
 
