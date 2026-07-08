@@ -878,3 +878,8 @@ async def get_pwa_static_assets():
         "/static/offline.html",
         "/login?pwa=true",
     ]
+
+
+@router.get("/api/v1/pwa/health")
+async def get_pwa_health():
+    return {"status": "ok"}

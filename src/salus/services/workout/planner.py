@@ -563,6 +563,7 @@ class WorkoutService:
                 "/settings",
                 "/entries",
                 "/analytics",
+                "/goals",
                 "/circadian",
                 "/insights",
                 "/sharing/feed",

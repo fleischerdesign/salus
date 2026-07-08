@@ -1,5 +1,5 @@
-const STATIC_CACHE_NAME = 'salus-static-v6';
-const DATA_CACHE_NAME = 'salus-data-v6';
+const STATIC_CACHE_NAME = 'salus-static-v7';
+const DATA_CACHE_NAME = 'salus-data-v7';
 
 const FALLBACK_STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
@@ -29,7 +29,8 @@ self.addEventListener('install', event => {
             } catch (err) {
                 console.warn('[ServiceWorker] Failed to fetch static assets list from server, using fallback:', err);
             }
-            return cache.addAll(assets);
+            const requests = assets.map(url => new Request(url, { cache: 'reload' }));
+            return cache.addAll(requests);
         }).then(() => self.skipWaiting())
     );
 });

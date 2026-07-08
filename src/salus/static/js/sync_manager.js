@@ -17,18 +17,23 @@
             // Update badge and re-hydrate optimistic UI placeholders on page load (Durable Offline State)
             window.addEventListener('DOMContentLoaded', () => {
                 this.updateBadge();
+                this.checkServerHealth();
                 this.rehydrateOptimisticUI();
             });
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
                 this.updateBadge();
+                this.checkServerHealth();
                 this.rehydrateOptimisticUI();
             }
         }
 
         initListeners() {
             window.addEventListener('online', () => {
-                this.isOnline = true;
-                this.processQueue();
+                this.checkServerHealth().then(() => {
+                    if (this.isOnline) {
+                        this.processQueue();
+                    }
+                });
             });
 
             window.addEventListener('offline', () => {
@@ -40,6 +45,29 @@
             document.addEventListener('htmx:afterSwap', () => {
                 this.updateBadge();
             });
+        }
+
+        async checkServerHealth() {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+                
+                const response = await fetch('/api/v1/pwa/health', {
+                    method: 'GET',
+                    signal: controller.signal,
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    this.isOnline = true;
+                } else {
+                    this.isOnline = false;
+                }
+            } catch (err) {
+                this.isOnline = false;
+            }
+            this.updateBadge();
         }
 
         async rehydrateOptimisticUI() {
