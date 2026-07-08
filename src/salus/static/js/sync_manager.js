@@ -409,6 +409,8 @@
 
             const queue = this.getQueue();
             const count = queue.length;
+            
+            console.log('[SyncManager] updateBadge called. isOnline:', this.isOnline, 'queue count:', count, 'badge:', badge);
 
             if (this.isSyncing) {
                 // Syncing state: Show spinning icon
