@@ -115,8 +115,15 @@
                         this.saveQueue(queue);
 
                         console.log('[SyncManager] Sync success for item:', item.id);
+                        
+                        let htmlContent = '';
+                        const contentType = response.headers.get('content-type') || '';
+                        if (contentType.includes('text/html')) {
+                            htmlContent = await response.text();
+                        }
+
                         window.dispatchEvent(new CustomEvent('salus:sync-completed', {
-                            detail: { item: item, response: response }
+                            detail: { item: item, response: response, html: htmlContent }
                         }));
                     } else if (response.status >= 400 && response.status < 500) {
                         // Client error (400, 404, 409 etc.): discard item and dispatch error event to unblock queue
@@ -177,4 +184,133 @@
 
     // Initialize globally
     window.SalusSyncManager = new SyncManager();
+
+    // ── HTMX Offline Mutation Interceptor ─────────────────────────────────────
+    document.addEventListener('htmx:confirm', function(evt) {
+        // If offline and it's a mutation (POST, PUT, DELETE), queue it!
+        if (!navigator.onLine && evt.detail.verb !== 'GET') {
+            evt.preventDefault(); // Halt HTMX request execution
+
+            // Extract request body parameters
+            let body = {};
+            if (evt.detail.elt instanceof HTMLFormElement) {
+                body = Object.fromEntries(new FormData(evt.detail.elt));
+            } else {
+                const form = evt.detail.elt.closest('form');
+                if (form) {
+                    body = Object.fromEntries(new FormData(form));
+                }
+            }
+
+            const request = {
+                method: evt.detail.verb.toUpperCase(),
+                url: evt.detail.path,
+                body: body,
+                headers: evt.detail.headers || {},
+                meta: {
+                    target: evt.detail.target ? evt.detail.target.id : null,
+                    trigger: evt.detail.elt ? evt.detail.elt.id : null,
+                    swap: evt.detail.swap || 'innerHTML'
+                }
+            };
+
+            const itemId = window.SalusSyncManager.enqueue(request);
+
+            // Optimistic UI updates
+            renderOptimisticUI(request, itemId);
+
+            if (typeof showToast === 'function') {
+                showToast('Action queued. Will sync when online.', 'info');
+            }
+        }
+    });
+
+    // Helper to render immediate local placeholder states
+    function renderOptimisticUI(request, itemId) {
+        // Optimistic rendering for new plan cards
+        if (request.method === 'POST' && request.url.includes('/workouts/plans')) {
+            const grid = document.getElementById('plans-grid');
+            if (grid) {
+                const tempCard = document.createElement('div');
+                tempCard.id = itemId;
+                tempCard.className = 'card';
+                tempCard.setAttribute('data-variant', 'flat');
+                tempCard.style.opacity = '0.75';
+                tempCard.style.border = '1.5px dashed var(--color-primary)';
+                tempCard.style.display = 'flex';
+                tempCard.style.flexDirection = 'column';
+                tempCard.style.justifyContent = 'space-between';
+                tempCard.style.gap = '12px';
+                tempCard.innerHTML = `
+                    <div>
+                        <div class="card__header" style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3 class="card__title" style="margin:0;font:var(--font-headline-sm);">${request.body.name || 'New Plan'}</h3>
+                            <span class="material-symbols-outlined" style="animation: spin 1.5s linear infinite;color:var(--color-primary);">sync</span>
+                        </div>
+                        <p style="font:var(--font-body-sm);color:var(--color-slate-500);margin:8px 0 0 0;">
+                            ${request.body.description || 'Queued for sync...'}
+                        </p>
+                    </div>
+                    <div style="margin-top:12px;font:var(--font-caption);color:var(--color-warning-600);font-weight:600;display:flex;align-items:center;gap:4px;">
+                        <span class="material-symbols-outlined" style="font-size:14px;">cloud_off</span>
+                        Syncing once online...
+                    </div>
+                `;
+                
+                // Hide empty state if visible
+                const empty = grid.querySelector('.empty-state');
+                if (empty) empty.style.display = 'none';
+
+                grid.appendChild(tempCard);
+            }
+        }
+    }
+
+    // ── Reconnection DOM Reconciliation & Hydration ─────────────────────────
+    window.addEventListener('salus:sync-completed', function(evt) {
+        const item = evt.detail.item;
+        const html = evt.detail.html;
+
+        // Delete optimistic UI placeholder
+        const tempCard = document.getElementById(item.id);
+        if (tempCard) {
+            tempCard.remove();
+        }
+
+        // Hydrate live DOM if the sync server-returned HTML content is present
+        if (item.meta.target && html) {
+            const targetEl = document.getElementById(item.meta.target);
+            if (targetEl) {
+                if (item.meta.swap === 'beforeend') {
+                    targetEl.insertAdjacentHTML('beforeend', html);
+                } else if (item.meta.swap === 'outerHTML') {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = html.trim();
+                    targetEl.replaceWith(wrapper.firstChild);
+                } else {
+                    targetEl.innerHTML = html;
+                }
+
+                // Process DOM fragment so HTMX attributes and triggers are compiled
+                if (window.htmx) {
+                    window.htmx.process(targetEl);
+                }
+            }
+        }
+    });
+
+    window.addEventListener('salus:sync-failed', function(evt) {
+        const item = evt.detail.item;
+        const error = evt.detail.error;
+
+        // Discard optimistic card placeholder
+        const tempCard = document.getElementById(item.id);
+        if (tempCard) {
+            tempCard.remove();
+        }
+
+        if (typeof showToast === 'function') {
+            showToast(`Sync failed: ${error}`, 'error');
+        }
+    });
 })();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salus-cache-v2';
+const CACHE_NAME = 'salus-cache-v3';
 const STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
     '/static/vendor/hyperscript.min.js',
@@ -7,6 +7,7 @@ const STATIC_ASSETS = [
     '/static/tokens.css',
     '/static/vendor/fonts.css',
     '/static/js/sync_manager.js',
+    '/static/js/prefetch_manager.js',
     '/static/manifest.json',
     '/static/vendor/icon-192.png',
     '/static/offline.html'
@@ -48,7 +49,7 @@ self.addEventListener('fetch', event => {
     // Cache-First strategy for static assets
     if (url.pathname.startsWith('/static/')) {
         event.respondWith(
-            caches.match(event.request).then(cachedResponse => {
+            caches.match(event.request, { ignoreVary: true, ignoreSearch: true }).then(cachedResponse => {
                 if (cachedResponse) {
                     return cachedResponse;
                 }
@@ -80,7 +81,7 @@ self.addEventListener('fetch', event => {
             return networkResponse;
         }).catch(() => {
             // Fallback to cache on network failure (offline)
-            return caches.match(event.request).then(cachedResponse => {
+            return caches.match(event.request, { ignoreVary: true, ignoreSearch: true }).then(cachedResponse => {
                 if (cachedResponse) {
                     return cachedResponse;
                 }

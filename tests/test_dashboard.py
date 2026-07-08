@@ -77,7 +77,7 @@ def test_service_worker_and_offline_fallback(client):
     # Test service worker root mapping
     response = client.get("/sw.js")
     assert response.status_code == 200
-    assert "salus-cache-v2" in response.text
+    assert "salus-cache-v3" in response.text
     assert "sync_manager.js" in response.text
     assert "offline.html" in response.text
 
