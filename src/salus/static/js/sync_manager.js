@@ -12,6 +12,12 @@
             this.initListeners();
             // Try to sync on load if online
             setTimeout(() => this.processQueue(), 500);
+
+            // Re-hydrate optimistic UI placeholders on page load (Durable Offline State)
+            window.addEventListener('DOMContentLoaded', () => this.rehydrateOptimisticUI());
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                this.rehydrateOptimisticUI();
+            }
         }
 
         initListeners() {
@@ -23,6 +29,15 @@
             window.addEventListener('offline', () => {
                 this.isOnline = false;
                 this.updateBadge();
+            });
+        }
+
+        rehydrateOptimisticUI() {
+            const queue = this.getQueue();
+            queue.forEach(item => {
+                if (typeof renderOptimisticUI === 'function') {
+                    renderOptimisticUI(item, item.id);
+                }
             });
         }
 

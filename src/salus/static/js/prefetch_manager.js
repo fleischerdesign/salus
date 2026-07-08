@@ -1,6 +1,6 @@
 /**
- * Salus PWA Cache-Warming Prefetch Manager
- * Asynchronously prefetches key dynamic user routes to warm the service worker cache.
+ * Salus PWA Agnostic Cache-Warming Prefetch Manager
+ * Dynamically crawls all local GET routes in the DOM and pre-warms the service worker cache.
  */
 (function() {
     class PrefetchManager {
@@ -10,11 +10,10 @@
         }
 
         init() {
-            // Only prefetch if online and supported
             if (!navigator.onLine) return;
 
             window.addEventListener('load', () => {
-                // Wait for the main thread to be idle
+                // Fetch everything in the background once main page is loaded
                 if ('requestIdleCallback' in window) {
                     requestIdleCallback(() => this.startPrefetching());
                 } else {
@@ -22,21 +21,19 @@
                 }
             });
 
-            // Listen for reconnection to re-warm caches if needed
             window.addEventListener('online', () => {
                 this.startPrefetching();
             });
         }
 
         async startPrefetching() {
-            console.log('[PrefetchManager] Scanning for offline routes...');
+            console.log('[PrefetchManager] Agnostically scanning for offline routes...');
             const urls = this.collectUrls();
             
             for (const url of urls) {
                 if (this.fetchedUrls.has(url)) continue;
                 
                 try {
-                    // Fetch with low priority and explicit Accept headers
                     const response = await fetch(url, {
                         headers: {
                             'Accept': 'text/html'
@@ -46,66 +43,87 @@
                     
                     if (response.ok) {
                         this.fetchedUrls.add(url);
-                        console.log(`[PrefetchManager] Warmed cache for: ${url}`);
+                        console.log(`[PrefetchManager] Prefetched and cached: ${url}`);
                     }
                 } catch (e) {
                     console.warn(`[PrefetchManager] Failed to prefetch ${url}:`, e);
                 }
                 
-                // Yield thread control
-                await new Promise(r => setTimeout(r, 300));
+                // Yield thread control to prevent page jank
+                await new Promise(r => setTimeout(r, 200));
             }
         }
 
         collectUrls() {
             const urls = new Set();
             
-            // Add static pages
-            urls.add('/workouts');
-            urls.add('/workouts/plans');
-            urls.add('/workouts/exercises');
-            urls.add('/workouts/sessions/active');
-            urls.add('/settings');
-            urls.add('/entries');
-            
-            // Find all anchor links in the page and resolve them
+            // 1. Scan standard anchor tags (ignoring HTMX write mutations)
             document.querySelectorAll('a[href]').forEach(el => {
+                if (el.hasAttribute('hx-post') || el.hasAttribute('hx-delete') || el.hasAttribute('hx-put') || el.hasAttribute('hx-patch')) {
+                    return;
+                }
                 try {
                     const resolved = new URL(el.href, window.location.origin);
                     if (resolved.origin === window.location.origin) {
-                        const path = resolved.pathname;
-                        if (this.isValidRoute(path)) {
+                        const path = resolved.pathname + resolved.search;
+                        if (this.isValidRoute(resolved.pathname)) {
                             urls.add(path);
                         }
                     }
-                } catch (e) {
-                    // Ignore invalid URLs
-                }
+                } catch (e) {}
             });
 
-            // Find all hyperscript-based card click URLs
+            // 2. Scan HTMX GET requests (for tab changes, modals, overlays)
+            document.querySelectorAll('[hx-get]').forEach(el => {
+                const path = el.getAttribute('hx-get') || '';
+                try {
+                    const resolved = new URL(path, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        const cleanPath = resolved.pathname + resolved.search;
+                        if (this.isValidRoute(resolved.pathname)) {
+                            urls.add(cleanPath);
+                        }
+                    }
+                } catch (e) {}
+            });
+
+            // 3. Scan Hyperscript navigation patterns (e.g. go to url '/...')
             document.querySelectorAll('[hyperscript]').forEach(el => {
                 const hs = el.getAttribute('hyperscript') || '';
                 const match = hs.match(/go to url\s+['"]([^'"]+)['"]/);
-                if (match && match[1] && this.isValidRoute(match[1])) {
-                    urls.add(match[1]);
+                if (match && match[1]) {
+                    try {
+                        const resolved = new URL(match[1], window.location.origin);
+                        if (resolved.origin === window.location.origin) {
+                            const cleanPath = resolved.pathname + resolved.search;
+                            if (this.isValidRoute(resolved.pathname)) {
+                                urls.add(cleanPath);
+                            }
+                        }
+                    } catch (e) {}
                 }
             });
 
             return Array.from(urls);
         }
 
-        isValidRoute(href) {
-            if (!href) return false;
+        isValidRoute(path) {
+            if (!path) return false;
             
-            // Filter to local, non-action routes for plans, exercises, and sessions
-            return href.startsWith('/workouts/plans/') || 
-                   href.startsWith('/workouts/exercises/') || 
-                   href.startsWith('/workouts/sessions/') || 
-                   href.startsWith('/entries/');
+            // Blacklisted URL prefixes that should never be prefetched
+            const excludedPrefixes = ['/static/', '/api/', '/auth/', '/docs', '/redoc', '/openapi.json'];
+            if (excludedPrefixes.some(prefix => path.startsWith(prefix))) {
+                return false;
+            }
+
+            // Blacklist static files and extensions
+            if (path.match(/\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|json|xml|zip|pdf|csv|xlsx)$/i)) {
+                return false;
+            }
+
+            return true;
         }
     }
 
-    // Initialize prefetch manager
     window.SalusPrefetchManager = new PrefetchManager();
 })();

@@ -22,6 +22,16 @@
                     console.log('ServiceWorker registration failed:', err);
                 });
             });
+
+            // Hot-Update: Force reload when a new service worker takes control
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (!refreshing) {
+                    refreshing = true;
+                    console.log('New service worker version active, reloading page...');
+                    window.location.reload();
+                }
+            });
         }
     </script>
     {% if plugin_custom_css %}
