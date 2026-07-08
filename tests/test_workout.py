@@ -525,6 +525,16 @@ def test_pwa_manifest_routes(authenticated_client):
     assert f"/workouts/plans/{plan2_id}" in response_200.json()
 
 
+def test_pwa_static_assets(client):
+    response = client.get("/api/v1/pwa/static-assets")
+    assert response.status_code == 200
+    assets = response.json()
+    assert isinstance(assets, list)
+    assert "/static/vendor/htmx.min.js" in assets
+    assert "/static/js/prefetch_manager.js" in assets
+    assert "/login?pwa=true" in assets
+
+
 
 
 

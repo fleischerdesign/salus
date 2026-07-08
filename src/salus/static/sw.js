@@ -1,7 +1,7 @@
 const STATIC_CACHE_NAME = 'salus-static-v5';
 const DATA_CACHE_NAME = 'salus-data-v5';
 
-const STATIC_ASSETS = [
+const FALLBACK_STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
     '/static/vendor/hyperscript.min.js',
     '/static/components.css',
@@ -16,11 +16,20 @@ const STATIC_ASSETS = [
     '/login?pwa=true'
 ];
 
-// Install Event - Precache core static shell
+// Install Event - Precache core static shell (dynamic fetch + local fallback)
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(STATIC_CACHE_NAME).then(cache => {
-            return cache.addAll(STATIC_ASSETS);
+        caches.open(STATIC_CACHE_NAME).then(async cache => {
+            let assets = FALLBACK_STATIC_ASSETS;
+            try {
+                const response = await fetch('/api/v1/pwa/static-assets');
+                if (response.ok) {
+                    assets = await response.json();
+                }
+            } catch (err) {
+                console.warn('[ServiceWorker] Failed to fetch static assets list from server, using fallback:', err);
+            }
+            return cache.addAll(assets);
         }).then(() => self.skipWaiting())
     );
 });

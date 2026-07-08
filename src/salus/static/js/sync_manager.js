@@ -10,6 +10,7 @@
             this.isOnline = navigator.onLine;
 
             this.initListeners();
+            this.updateBadge();
             // Try to sync on load if online
             setTimeout(() => this.processQueue(), 500);
 
@@ -32,13 +33,220 @@
             });
         }
 
-        rehydrateOptimisticUI() {
+        async rehydrateOptimisticUI() {
             const queue = this.getQueue();
             queue.forEach(item => {
                 if (typeof renderOptimisticUI === 'function') {
                     renderOptimisticUI(item, item.id);
                 }
             });
+
+            // Special Case: Rehydrate the entire Active Workout Session offline from the plan details!
+            if (!navigator.onLine && window.location.pathname === '/workouts/sessions/active') {
+                const planId = localStorage.getItem('salus_offline_active_plan');
+                if (planId) {
+                    await this.rehydrateOfflineActiveSession(planId);
+                }
+            }
+        }
+
+        async rehydrateOfflineActiveSession(planId) {
+            console.log(`[SyncManager] Rehydrating active session layout for plan ${planId} offline...`);
+            
+            try {
+                const cacheKeys = await caches.keys();
+                const dataCacheName = cacheKeys.find(k => k.startsWith('salus-data-')) || 'salus-data-v5';
+                
+                const cache = await caches.open(dataCacheName);
+                const planResponse = await cache.match(`/workouts/plans/${planId}`);
+                if (!planResponse) {
+                    console.warn(`[SyncManager] Cached plan detail page not found for plan ${planId}`);
+                    return;
+                }
+                
+                const htmlText = await planResponse.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const planTitle = doc.querySelector('h1')?.innerText.trim() || 'Offline Workout';
+                
+                const exercises = [];
+                const cards = doc.querySelectorAll('.card');
+                
+                cards.forEach(card => {
+                    const header = card.querySelector('div[style*="font-weight:700"]');
+                    if (header) {
+                        const name = header.innerText.trim();
+                        const targetTextEl = card.querySelector('div[style*="text-align:right"]');
+                        let sets = 3;
+                        let reps = 10;
+                        let rpe = 8;
+                        
+                        if (targetTextEl) {
+                            const text = targetTextEl.innerText;
+                            const setsMatch = text.match(/(\d+)\s*sets?/i);
+                            const repsMatch = text.match(/(\d+)\s*reps?/i);
+                            const rpeMatch = text.match(/RPE\s*(\d+(\.\d+)?)/i);
+                            if (setsMatch) sets = parseInt(setsMatch[1], 10);
+                            if (repsMatch) reps = parseInt(repsMatch[1], 10);
+                            if (rpeMatch) rpe = parseFloat(rpeMatch[1]);
+                        }
+                        
+                        const hsAttr = card.getAttribute('hyperscript') || card.getAttribute('_') || '';
+                        const idMatch = hsAttr.match(/\/exercises\/(\d+)/) || card.outerHTML.match(/\/exercises\/(\d+)/);
+                        const exerciseId = idMatch ? parseInt(idMatch[1], 10) : Math.floor(Math.random() * 1000);
+                        
+                        exercises.push({
+                            id: exerciseId,
+                            name: name,
+                            suggested_sets: sets,
+                            suggested_reps: reps,
+                            suggested_rpe: rpe
+                        });
+                    }
+                });
+
+                if (exercises.length === 0) {
+                    console.warn('[SyncManager] No target exercises scraped from plan detail page.');
+                    return;
+                }
+                
+                const mainForm = document.querySelector('form[action="/workouts/sessions/complete"]') || document.body;
+                if (!mainForm) return;
+
+                let exercisesContainer = document.querySelector('form-stack') || document.querySelector('.form-stack');
+                if (!exercisesContainer) {
+                    exercisesContainer = document.createElement('div');
+                    exercisesContainer.className = 'form-stack';
+                    exercisesContainer.style.display = 'flex';
+                    exercisesContainer.style.flexDirection = 'column';
+                    exercisesContainer.style.gap = '24px';
+                    mainForm.insertBefore(exercisesContainer, mainForm.firstChild);
+                } else {
+                    exercisesContainer.innerHTML = '';
+                }
+
+                const h1 = document.querySelector('h1');
+                if (h1) {
+                    h1.innerText = `${planTitle} (Offline Active)`;
+                }
+
+                exercises.forEach(target => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.setAttribute('data-variant', 'flat');
+                    card.style.border = '1px solid var(--color-slate-200)';
+                    card.style.padding = '16px';
+                    card.style.borderRadius = '8px';
+                    card.style.backgroundColor = 'var(--color-surface-container-lowest)';
+                    card.style.marginBottom = '24px';
+                    
+                    let rowsHtml = '';
+                    for (let setNum = 1; setNum <= target.suggested_sets; setNum++) {
+                        const queue = this.getQueue();
+                        const isLogged = queue.some(item => 
+                            item.method === 'POST' && 
+                            item.url.includes('/sessions/log') && 
+                            item.body?.exercise_id == target.id && 
+                            item.body?.set_number == setNum
+                        );
+                        
+                        const loggedWeight = queue.find(item => 
+                            item.method === 'POST' && 
+                            item.url.includes('/sessions/log') && 
+                            item.body?.exercise_id == target.id && 
+                            item.body?.set_number == setNum
+                        )?.body?.weight || 40.0;
+                        
+                        const loggedReps = queue.find(item => 
+                            item.method === 'POST' && 
+                            item.url.includes('/sessions/log') && 
+                            item.body?.exercise_id == target.id && 
+                            item.body?.set_number == setNum
+                        )?.body?.reps || target.suggested_reps;
+
+                        rowsHtml += `
+                            <div id="row-${target.id}-${setNum}" 
+                                 data-pr-weight="0.0"
+                                 data-pr-est-1rm="0.0"
+                                 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--color-slate-50);padding:8px 12px;border-radius:6px;margin-bottom:8px;${isLogged ? 'opacity:0.75;' : ''}transition:opacity var(--duration-fast)">
+                                <span style="font-weight:700;font:var(--font-body-sm);color:var(--color-slate-500);min-width:40px">Set ${setNum}</span>
+
+                                <div class="input" style="flex-direction:row;align-items:center;gap:6px;margin:0">
+                                    <label class="input__label" style="font:var(--font-caption);font-weight:600">Weight:</label>
+                                    <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                        <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-${target.id}-${setNum}', -2.5, 0, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>-</button>
+                                        <input type="number" id="weight-${target.id}-${setNum}" step="0.5" value="${loggedWeight}" placeholder="kg" class="input__field" style="width:65px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
+                                        <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('weight-${target.id}-${setNum}', 2.5, 0, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>+</button>
+                                    </div>
+                                </div>
+
+                                <div class="input" style="flex-direction:row;align-items:center;gap:6px;margin:0">
+                                    <label class="input__label" style="font:var(--font-caption);font-weight:600">Reps:</label>
+                                    <div style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                        <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-${target.id}-${setNum}', -1, 0, true, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>-</button>
+                                        <input type="number" id="reps-${target.id}-${setNum}" value="${loggedReps}" placeholder="reps" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="update1RM(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
+                                        <button type="button" style="background:none;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('reps-${target.id}-${setNum}', 1, 0, true, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>+</button>
+                                    </div>
+                                </div>
+
+                                <div class="input" style="flex-direction:row;align-items:center;gap:6px;margin:0">
+                                    <label class="input__label" style="font:var(--font-caption);font-weight:600">RPE:</label>
+                                    <div id="rpe-wrapper-${target.id}-${setNum}" style="display:flex;align-items:center;background:var(--color-surface-container-lowest);border:1px solid var(--color-slate-200);border-radius:var(--radius-sm);overflow:hidden">
+                                        <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-${target.id}-${setNum}', -0.5, 5, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>-</button>
+                                        <input type="number" id="rpe-${target.id}-${setNum}" step="0.5" min="5" max="10" value="${target.suggested_rpe}" placeholder="RPE" class="input__field" style="width:45px;border:none;text-align:center;padding:6px 0;height:auto;font-size:13px" oninput="checkRpeFailure(${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>
+                                        <button type="button" style="background:none;border:none;padding:6px 8px;cursor:pointer;font-weight:bold;color:var(--color-slate-600)" onclick="adjustValue('rpe-${target.id}-${setNum}', 0.5, 5, false, ${target.id}, ${setNum})" ${isLogged ? 'disabled' : ''}>+</button>
+                                    </div>
+                                </div>
+
+                                <span id="est1rm-${target.id}-${setNum}" style="font:var(--font-caption);font-weight:600;color:var(--color-slate-500);margin-left:auto">Est. 1RM: --</span>
+
+                                <button type="button" 
+                                        id="btn-${target.id}-${setNum}"
+                                        class="workout-set-checkbox"
+                                        onclick="logSet(0, ${target.id}, ${setNum})"
+                                        data-logged="${isLogged ? 'true' : 'false'}"
+                                        aria-label="Log Set">
+                                    <span class="material-symbols-outlined">${isLogged ? 'done' : 'check'}</span>
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    card.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--color-slate-100);padding-bottom:10px;margin-bottom:12px">
+                            <div>
+                                <h3 style="margin:0;font:var(--font-headline-md);font-weight:700;display:flex;align-items:center;gap:8px">
+                                    ${target.name}
+                                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-slate-400)">cloud_off</span>
+                                </h3>
+                                <p style="margin:4px 0 0 0;font:var(--font-caption);color:var(--color-slate-500)">
+                                    Target: ${target.suggested_sets} sets x ${target.suggested_reps} reps
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-stack" style="gap:8px">
+                            ${rowsHtml}
+                        </div>
+                    `;
+                    exercisesContainer.appendChild(card);
+                });
+
+                document.querySelectorAll("[id^='est1rm-']").forEach(span => {
+                    const idParts = span.id.split("-");
+                    if (idParts.length === 3) {
+                        update1RM(idParts[1], idParts[2]);
+                    }
+                });
+
+                const sessIdInput = document.querySelector('input[name="session_id"]');
+                if (sessIdInput) {
+                    sessIdInput.value = "0";
+                }
+
+                console.log('[SyncManager] Dynamic offline session rehydration complete.');
+            } catch (err) {
+                console.error('[SyncManager] Error in offline session rehydration:', err);
+            }
         }
 
         getQueue() {
@@ -164,6 +372,13 @@
             }
 
             this.isSyncing = false;
+            
+            // Clean active offline plan ID when queue is fully synced
+            const finalQueue = this.getQueue();
+            if (finalQueue.length === 0) {
+                localStorage.removeItem('salus_offline_active_plan');
+            }
+
             this.updateBadge();
         }
 
@@ -233,6 +448,19 @@
 
             // Optimistic UI updates
             renderOptimisticUI(request, itemId);
+
+            // Special Case: Starting a workout session offline
+            if (evt.detail.path.includes('/workouts/sessions/start')) {
+                const urlParams = new URLSearchParams(evt.detail.path.split('?')[1] || '');
+                const planId = urlParams.get('plan_id') || body.plan_id;
+                if (planId) {
+                    localStorage.setItem('salus_offline_active_plan', planId);
+                    setTimeout(() => {
+                        window.location.href = '/workouts/sessions/active';
+                    }, 150);
+                    return;
+                }
+            }
 
             if (typeof showToast === 'function') {
                 showToast('Action queued. Will sync when online.', 'info');
@@ -333,29 +561,66 @@
         }
     });
 
-    // ── Offline Logout Interceptor ────────────────────────────────────────────
+    // ── Offline Submit Interceptor (HTMX + Standard Forms) ───────────────────
     document.addEventListener('submit', function(evt) {
         if (!navigator.onLine) {
             const form = evt.target;
-            const action = form.getAttribute('action') || '';
-            if (action.includes('/auth/logout')) {
+            const action = form.getAttribute('action') || form.action || '';
+            const method = (form.getAttribute('method') || 'POST').toUpperCase();
+            
+            if (method !== 'GET') {
                 evt.preventDefault(); // Stop standard form submission
                 
                 // Clear cached route manifest ETag and check cooldown client-side
-                localStorage.removeItem('salus_routes_etag');
-                sessionStorage.removeItem('salus_last_manifest_check');
+                if (action.includes('/auth/logout')) {
+                    localStorage.removeItem('salus_routes_etag');
+                    sessionStorage.removeItem('salus_last_manifest_check');
+                    window.SalusSyncManager.enqueue({
+                        method: 'POST',
+                        url: '/auth/logout',
+                        body: {},
+                        headers: {},
+                        meta: { action: 'logout' }
+                    });
+                    window.location.href = '/auth/logout';
+                    return;
+                }
 
-                // Queue logout transaction in sync manager
+                // Handle starting a workout offline
+                if (action.includes('/workouts/sessions/start')) {
+                    const urlParams = new URLSearchParams(action.split('?')[1] || '');
+                    const planId = urlParams.get('plan_id') || form.querySelector('[name="plan_id"]')?.value;
+                    if (planId) {
+                        localStorage.setItem('salus_offline_active_plan', planId);
+                        
+                        window.SalusSyncManager.enqueue({
+                            method: 'POST',
+                            url: `/api/v1/workouts/sessions/start?plan_id=${planId}`,
+                            body: {},
+                            headers: {},
+                            meta: { action: 'start-session', planId: planId }
+                        });
+                        
+                        setTimeout(() => {
+                            window.location.href = '/workouts/sessions/active';
+                        }, 150);
+                        return;
+                    }
+                }
+
+                // General Form enqueuing
+                const body = Object.fromEntries(new FormData(form));
                 window.SalusSyncManager.enqueue({
-                    method: 'POST',
-                    url: '/auth/logout',
-                    body: {},
+                    method: method,
+                    url: action,
+                    body: body,
                     headers: {},
-                    meta: { action: 'logout' }
+                    meta: { target: form.id || null, swap: 'outerHTML' }
                 });
                 
-                // Immediately trigger offline logout cache clean and redirect in SW
-                window.location.href = '/auth/logout';
+                if (typeof showToast === 'function') {
+                    showToast('Action saved offline.', 'warning');
+                }
             }
         }
     });

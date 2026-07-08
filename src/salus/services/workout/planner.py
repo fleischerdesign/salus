@@ -262,9 +262,17 @@ class WorkoutService:
         self, user_id: int, session_id: int, entry: WorkoutLogEntryCreate
     ) -> WorkoutLogEntry:
         with self.uow:
-            session = self.uow.workout_sessions.get_by_id(session_id)
-            if not session or session.user_id != user_id:
-                raise NotFoundError("Active workout session not found.")
+            if session_id <= 0:
+                session = self.get_active_session(user_id)
+                if not session:
+                    raise NotFoundError("No active workout session found for this user.")
+                if session.id is None:
+                    raise ValueError("Workout session has no persisted ID")
+                session_id = session.id
+            else:
+                session = self.uow.workout_sessions.get_by_id(session_id)
+                if not session or session.user_id != user_id:
+                    raise NotFoundError("Active workout session not found.")
 
             log = WorkoutLogEntry(
                 session_id=session_id,
@@ -286,9 +294,17 @@ class WorkoutService:
         self, user_id: int, session_id: int, exercise_id: int, set_number: int
     ) -> None:
         with self.uow:
-            session = self.uow.workout_sessions.get_by_id(session_id)
-            if not session or session.user_id != user_id:
-                raise NotFoundError("Workout session not found.")
+            if session_id <= 0:
+                session = self.get_active_session(user_id)
+                if not session:
+                    raise NotFoundError("No active workout session found for this user.")
+                if session.id is None:
+                    raise ValueError("Workout session has no persisted ID")
+                session_id = session.id
+            else:
+                session = self.uow.workout_sessions.get_by_id(session_id)
+                if not session or session.user_id != user_id:
+                    raise NotFoundError("Workout session not found.")
 
             from sqlmodel import select
             from salus.models.workout import WorkoutLogEntry
@@ -311,9 +327,17 @@ class WorkoutService:
         self, user_id: int, session_id: int, notes: Optional[str] = None
     ) -> WorkoutSession:
         with self.uow:
-            session = self.uow.workout_sessions.get_by_id(session_id)
-            if not session or session.user_id != user_id:
-                raise NotFoundError("Workout session not found.")
+            if session_id <= 0:
+                session = self.get_active_session(user_id)
+                if not session:
+                    raise NotFoundError("No active workout session found for this user.")
+                if session.id is None:
+                    raise ValueError("Workout session has no persisted ID")
+                session_id = session.id
+            else:
+                session = self.uow.workout_sessions.get_by_id(session_id)
+                if not session or session.user_id != user_id:
+                    raise NotFoundError("Workout session not found.")
 
             session.completed_at = datetime.now(timezone.utc)
             if notes is not None:
@@ -485,6 +509,7 @@ class WorkoutService:
         from salus.models.workout import WorkoutPlan, WorkoutSession, WorkoutLogEntry
         from salus.models.measurement import Measurement
         from salus.models.goal import Goal
+        from salus.models.dashboard import DashboardWidget
         
         session = self.uow.session
         
@@ -513,6 +538,10 @@ class WorkoutService:
             goal_count = session.exec(select(func.count(cast(Any, Goal.id))).where(Goal.user_id == user_id)).first() or 0
             max_goal_time = session.exec(select(func.max(cast(Any, Goal.created_at))).where(Goal.user_id == user_id)).first()
 
+            # 6. Query dashboard widgets count & max ID
+            widget_count = session.exec(select(func.count(cast(Any, DashboardWidget.id))).where(DashboardWidget.user_id == user_id)).first() or 0
+            max_widget_id = session.exec(select(func.max(cast(Any, DashboardWidget.id))).where(DashboardWidget.user_id == user_id)).first() or 0
+
             # Hash construction
             state_str = (
                 f"user:{user_id}:"
@@ -520,7 +549,8 @@ class WorkoutService:
                 f"sessions:{session_count}:{max_session_id}:{max_session_time}:"
                 f"logs:{log_count}:"
                 f"meas:{meas_count}:{max_meas_time}:"
-                f"goals:{goal_count}:{max_goal_time}"
+                f"goals:{goal_count}:{max_goal_time}:"
+                f"widgets:{widget_count}:{max_widget_id}"
             )
             etag = hashlib.md5(state_str.encode("utf-8")).hexdigest()
             
@@ -529,7 +559,7 @@ class WorkoutService:
                 "/",
                 "/workouts/plans",
                 "/workouts/exercises",
-                "/workouts/sessions/active",
+                "/workouts/sessions/active?pwa=true",
                 "/settings",
                 "/entries",
                 "/analytics",
@@ -558,5 +588,10 @@ class WorkoutService:
             recent_sessions = self.get_recent_sessions(user_id, limit=30)
             for s in recent_sessions:
                 routes.append(f"/workouts/sessions/{s.id}")
+
+            # Add dashboard widget URLs
+            widgets = self.uow.dashboard_widgets.find_by_user(user_id)
+            for w in widgets:
+                routes.append(f"/dashboard/widgets/{w.id}")
                 
             return routes, etag

@@ -78,7 +78,9 @@
                 console.log(`[PrefetchManager] Server-driven route manifest loaded: ${urls.length} routes found.`);
                 
                 // Get list of currently cached URLs for Delta Caching
-                const cache = await caches.open('salus-data-v5');
+                const cacheKeys = await caches.keys();
+                const dataCacheName = cacheKeys.find(k => k.startsWith('salus-data-')) || 'salus-data-v5';
+                const cache = await caches.open(dataCacheName);
                 const cachedRequests = await cache.keys();
                 const cachedPaths = new Set(cachedRequests.map(req => new URL(req.url).pathname));
                 

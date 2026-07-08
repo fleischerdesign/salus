@@ -439,13 +439,22 @@ async def start_session_post(
 @router.get("/workouts/sessions/active", response_class=HTMLResponse)
 async def active_session_page(
     request: Request,
+    pwa: bool = Query(False),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
     user_id = uid(current_user)
     active_session = service.get_active_session(user_id)
     if not active_session:
-        return RedirectResponse("/workouts/plans", status_code=303)
+        if pwa:
+            from salus.models.workout import WorkoutSession
+            active_session = WorkoutSession(
+                id=0,
+                user_id=user_id,
+                plan_id=None
+            )
+        else:
+            return RedirectResponse("/workouts/plans", status_code=303)
 
     targets = []
     if active_session.plan_id:
@@ -851,3 +860,21 @@ async def get_pwa_manifest_routes(
     response.headers["ETag"] = f'"{etag}"'
     response.headers["Cache-Control"] = "no-cache"
     return routes
+
+
+@router.get("/api/v1/pwa/static-assets", response_model=list[str])
+async def get_pwa_static_assets():
+    return [
+        "/static/vendor/htmx.min.js",
+        "/static/vendor/hyperscript.min.js",
+        "/static/components.css",
+        "/static/components.js",
+        "/static/tokens.css",
+        "/static/vendor/fonts.css",
+        "/static/js/sync_manager.js",
+        "/static/js/prefetch_manager.js",
+        "/static/manifest.json",
+        "/static/vendor/icon-192.png",
+        "/static/offline.html",
+        "/login?pwa=true",
+    ]
