@@ -31,6 +31,11 @@
                 this.isOnline = false;
                 this.updateBadge();
             });
+
+            // React to HTMX swaps resetting the badge element in the DOM
+            document.addEventListener('htmx:afterSwap', () => {
+                this.updateBadge();
+            });
         }
 
         async rehydrateOptimisticUI() {
@@ -383,8 +388,20 @@
         }
 
         updateBadge() {
-            const badge = document.getElementById('global-sync-badge');
-            if (!badge) return;
+            let badge = document.getElementById('global-sync-badge');
+            if (!badge) {
+                const actionsContainer = document.querySelector('.top-app-bar__actions');
+                if (actionsContainer) {
+                    badge = document.createElement('div');
+                    badge.id = 'global-sync-badge';
+                    badge.className = 'global-sync-badge';
+                    badge.style.display = 'none';
+                    const refEl = actionsContainer.querySelector('.notifications-bell') || actionsContainer.firstChild;
+                    actionsContainer.insertBefore(badge, refEl);
+                } else {
+                    return;
+                }
+            }
 
             const queue = this.getQueue();
             const count = queue.length;

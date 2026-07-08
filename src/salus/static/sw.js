@@ -103,6 +103,8 @@ self.addEventListener('fetch', event => {
                         });
                     }
                     return networkResponse;
+                }).catch(() => {
+                    return new Response('Asset Offline', { status: 404, statusText: 'Not Found' });
                 });
             })
         );
@@ -132,6 +134,8 @@ self.addEventListener('fetch', event => {
                 if (acceptHeader && acceptHeader.includes('text/html')) {
                     return caches.match('/static/offline.html');
                 }
+                // Return a basic offline response to avoid TypeError (resolving fetch with undefined)
+                return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
             });
         })
     );
