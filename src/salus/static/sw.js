@@ -1,5 +1,5 @@
-const STATIC_CACHE_NAME = 'salus-static-v5';
-const DATA_CACHE_NAME = 'salus-data-v5';
+const STATIC_CACHE_NAME = 'salus-static-v6';
+const DATA_CACHE_NAME = 'salus-data-v6';
 
 const FALLBACK_STATIC_ASSETS = [
     '/static/vendor/htmx.min.js',
