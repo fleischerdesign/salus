@@ -286,8 +286,9 @@
         const item = evt.detail.item;
         const html = evt.detail.html;
 
-        // Invalidate PWA route manifest ETag cache on data changes
+        // Invalidate PWA route manifest ETag cache and check cooldown on data changes
         localStorage.removeItem('salus_routes_etag');
+        sessionStorage.removeItem('salus_last_manifest_check');
 
         // Delete optimistic UI placeholder
         const tempCard = document.getElementById(item.id);
@@ -340,8 +341,9 @@
             if (action.includes('/auth/logout')) {
                 evt.preventDefault(); // Stop standard form submission
                 
-                // Clear cached route manifest ETag client-side
+                // Clear cached route manifest ETag and check cooldown client-side
                 localStorage.removeItem('salus_routes_etag');
+                sessionStorage.removeItem('salus_last_manifest_check');
 
                 // Queue logout transaction in sync manager
                 window.SalusSyncManager.enqueue({
@@ -363,8 +365,9 @@
         if (link && !navigator.onLine) {
             evt.preventDefault();
             
-            // Clear cached route manifest ETag client-side
+            // Clear cached route manifest ETag and check cooldown client-side
             localStorage.removeItem('salus_routes_etag');
+            sessionStorage.removeItem('salus_last_manifest_check');
 
             window.SalusSyncManager.enqueue({
                 method: 'GET',
