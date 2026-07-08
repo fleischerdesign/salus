@@ -32,6 +32,7 @@ class WorkoutPlanExerciseCreate(BaseModel):
     target_reps: int = 8
     target_rpe: Optional[float] = 8.0
     is_autoreg_exempt: bool = False
+    rest_seconds: Optional[int] = None
 
 
 class WorkoutPlanExerciseResponse(BaseModel):
@@ -43,6 +44,7 @@ class WorkoutPlanExerciseResponse(BaseModel):
     target_reps: int
     target_rpe: Optional[float]
     is_autoreg_exempt: bool
+    rest_seconds: Optional[int] = None
     exercise: ExerciseResponse
 
     model_config = ConfigDict(from_attributes=True)

@@ -130,6 +130,7 @@ class WorkoutService:
                     target_reps=item.target_reps,
                     target_rpe=item.target_rpe,
                     is_autoreg_exempt=item.is_autoreg_exempt,
+                    rest_seconds=item.rest_seconds,
                 )
                 sql_uow.session.add(plan_ex)
 
@@ -206,6 +207,7 @@ class WorkoutService:
                     target_reps=item.target_reps,
                     target_rpe=item.target_rpe,
                     is_autoreg_exempt=item.is_autoreg_exempt,
+                    rest_seconds=item.rest_seconds,
                 )
                 sql_uow.session.add(plan_ex)
 
@@ -432,11 +434,21 @@ class WorkoutService:
             exercise_ids = [t["exercise_id"] for t in targets]
             prs = self.uow.workout_sessions.get_personal_records(user_id, exercise_ids)
 
+            # Map exercise ID to plan/exercise objects for rest duration resolution
+            plan_ex_map = {pe.exercise_id: (pe, e) for pe, e in exercises_with_targets}
+
             for t in targets:
                 t["last_weight"] = last_weights.get(t["exercise_id"], None)
                 ex_pr = prs.get(t["exercise_id"], {})
                 t["pr_weight"] = ex_pr.get("max_weight", 0.0)
                 t["pr_est_1rm"] = ex_pr.get("max_est_1rm", 0.0)
+                
+                # Resolve rest duration override or default
+                pe, e = plan_ex_map.get(t["exercise_id"], (None, None))
+                rest_val = pe.rest_seconds if pe else None
+                if rest_val is None and e:
+                    rest_val = e.suggested_rest_seconds
+                t["rest_seconds"] = rest_val if rest_val is not None else 90
 
             return targets
 

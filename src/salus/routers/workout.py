@@ -106,6 +106,8 @@ async def workouts_create_plan_post(
             rpe_val = form_data.get(f"rpe_{idx}")
             rpe = float(str(rpe_val)) if rpe_val else 8.0
             lock = bool(form_data.get(f"lock_{idx}"))
+            rest_val = form_data.get(f"rest_{idx}")
+            rest = int(str(rest_val)) if rest_val and str(rest_val).strip() else None
 
             exercises.append(
                 WorkoutPlanExerciseCreate(
@@ -115,6 +117,7 @@ async def workouts_create_plan_post(
                     target_reps=reps,
                     target_rpe=rpe,
                     is_autoreg_exempt=lock,
+                    rest_seconds=rest,
                 )
             )
 
@@ -182,6 +185,8 @@ async def workouts_update_plan_post(
             rpe_val = form_data.get(f"rpe_{idx}")
             rpe = float(str(rpe_val)) if rpe_val else 8.0
             lock = bool(form_data.get(f"lock_{idx}"))
+            rest_val = form_data.get(f"rest_{idx}")
+            rest = int(str(rest_val)) if rest_val and str(rest_val).strip() else None
 
             exercises.append(
                 WorkoutPlanExerciseCreate(
@@ -191,6 +196,7 @@ async def workouts_update_plan_post(
                     target_reps=reps,
                     target_rpe=rpe,
                     is_autoreg_exempt=lock,
+                    rest_seconds=rest,
                 )
             )
 

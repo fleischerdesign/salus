@@ -67,6 +67,16 @@
                         {% if pe.target_rpe %}
                         <span style="color:var(--color-slate-400)">@ RPE {{ pe.target_rpe }}</span>
                         {% endif %}
+                        <div style="font:var(--font-caption);color:var(--color-slate-500);margin-top:2px">
+                            {{ _("Rest") }}: 
+                            {% if pe.rest_seconds %}
+                                {{ pe.rest_seconds }}s
+                            {% elif ex.suggested_rest_seconds %}
+                                {{ ex.suggested_rest_seconds }}s (default)
+                            {% else %}
+                                90s (default)
+                            {% endif %}
+                        </div>
                     </div>
                 {% endcall %}
                 {% endfor %}

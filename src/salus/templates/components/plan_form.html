@@ -73,7 +73,7 @@
                         {% if plan %}
                             {% for pe in plan.plan_exercises %}
                             {% set idx = loop.index0 %}
-                            <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="{{ idx }}">
+                            <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="{{ idx }}">
                                 <div style="display:flex;align-items:center;justify-content:center;padding-bottom:10px;cursor:grab" class="exercise-row-drag">
                                     <span class="material-symbols-outlined" style="color:var(--color-slate-400)">drag_indicator</span>
                                 </div>
@@ -98,6 +98,10 @@
                                     <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Target RPE") }}</label>
                                     <input type="number" name="rpe_{{ idx }}" value="{{ pe.target_rpe or 8.0 }}" step="0.5" min="5" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
                                 </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Rest (s)") }}</label>
+                                    <input type="number" name="rest_{{ idx }}" value="{{ pe.rest_seconds or '' }}" placeholder="Default" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+                                </div>
                                 <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:6px">
                                      <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;text-align:center">{{ _("Lock") }}</label>
                                      <input type="checkbox" name="lock_{{ idx }}" value="1" {% if pe.is_autoreg_exempt %}checked{% endif %} style="width:16px;height:16px;cursor:pointer">
@@ -111,7 +115,7 @@
                             {% endfor %}
                         {% else %}
                             {% for idx in range(0, 3) %}
-                            <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="{{ idx }}">
+                            <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="{{ idx }}">
                                 <div style="display:flex;align-items:center;justify-content:center;padding-bottom:10px;cursor:grab" class="exercise-row-drag">
                                     <span class="material-symbols-outlined" style="color:var(--color-slate-400)">drag_indicator</span>
                                 </div>
@@ -135,6 +139,10 @@
                                 <div>
                                     <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Target RPE") }}</label>
                                     <input type="number" name="rpe_{{ idx }}" value="8.0" step="0.5" min="5" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Rest (s)") }}</label>
+                                    <input type="number" name="rest_{{ idx }}" value="" placeholder="Default" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
                                 </div>
                                 <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:6px">
                                      <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;text-align:center">{{ _("Lock") }}</label>
@@ -161,7 +169,7 @@
 </div>
 
 <template id="exercise-row-template">
-    <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="__IDX__">
+    <div class="exercise-form-row" style="display:grid;grid-template-columns:auto 2fr 1fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;background:var(--color-surface-container-low);padding:8px;border-radius:var(--radius-sm);margin-bottom:8px" data-index="__IDX__">
         <div style="display:flex;align-items:center;justify-content:center;padding-bottom:10px;cursor:grab" class="exercise-row-drag">
             <span class="material-symbols-outlined" style="color:var(--color-slate-400)">drag_indicator</span>
         </div>
@@ -185,6 +193,10 @@
         <div>
             <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Target RPE") }}</label>
             <input type="number" name="rpe___IDX__" value="8.0" step="0.5" min="5" max="10" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
+        </div>
+        <div>
+            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">{{ _("Rest (s)") }}</label>
+            <input type="number" name="rest___IDX__" value="" placeholder="Default" style="width:100%;padding:6px;border:1px solid var(--color-slate-200);border-radius:4px;font-size:13px">
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:6px">
             <label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px;text-align:center">{{ _("Lock") }}</label>
@@ -226,6 +238,9 @@
             
             const lockInput = row.querySelector('input[name^="lock_"]');
             if (lockInput) lockInput.name = `lock_${index}`;
+
+            const restInput = row.querySelector('input[name^="rest_"]');
+            if (restInput) restInput.name = `rest_${index}`;
         });
     };
 

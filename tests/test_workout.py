@@ -85,6 +85,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
             equipment="barbell",
             primary_muscles="quadriceps,gluteus_maximus",
             secondary_muscles="hamstrings",
+            suggested_rest_seconds=120,
         )
         bench = Exercise(
             name="Bench Press",
@@ -104,7 +105,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
         description="Heavy compounds",
         autoreg_mode="advisory",
         exercises=[
-            WorkoutPlanExerciseCreate(exercise_id=squat_id, sequence=0, target_sets=3, target_reps=8, target_rpe=8.0),
+            WorkoutPlanExerciseCreate(exercise_id=squat_id, sequence=0, target_sets=3, target_reps=8, target_rpe=8.0, rest_seconds=180),
             WorkoutPlanExerciseCreate(exercise_id=bench_id, sequence=1, target_sets=3, target_reps=8, target_rpe=7.5, is_autoreg_exempt=True),
         ]
     )
@@ -119,8 +120,10 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
 
     assert squat_target["suggested_sets"] == 3
     assert squat_target["weight_multiplier"] == 1.0  # standard
+    assert squat_target["rest_seconds"] == 180       # Plan override (180s) takes precedence over catalog (120s)
     assert bench_target["weight_multiplier"] == 1.0
     assert bench_target["is_autoreg_exempt"] is True
+    assert bench_target["rest_seconds"] == 90        # No override, no catalog suggestion -> falls back to 90s
 
     # 2. Seed severe fatigue last night (deficit sleep)
     # Average sleep = 8 hours, last night = 4 hours

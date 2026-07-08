@@ -136,6 +136,7 @@
                     <div id="row-{{ target.exercise_id }}-{{ set_num }}" 
                          data-pr-weight="{{ target.pr_weight or 0.0 }}"
                          data-pr-est-1rm="{{ target.pr_est_1rm or 0.0 }}"
+                         data-rest-seconds="{{ target.rest_seconds }}"
                          style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--color-slate-50);padding:8px 12px;border-radius:6px;{% if ns.logged_entry %}opacity:0.75;{% endif %}transition:opacity var(--duration-fast)">
                         <span style="font-weight:700;font:var(--font-body-sm);color:var(--color-slate-500);min-width:40px">{{ _("Set") }} {{ set_num }}</span>
 
@@ -441,8 +442,9 @@ async function logSet(sessionId, exerciseId, setNumber) {
         }
         speak(`Set ${setNumber} logged.`);
 
-        // Trigger the global persistent rest-timer (90 seconds)
-        window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: 90 } }));
+        // Trigger the global persistent rest-timer
+        const restDuration = parseInt(row.getAttribute("data-rest-seconds")) || 90;
+        window.dispatchEvent(new CustomEvent("start-rest-timer", { detail: { duration: restDuration } }));
 
         // RPE 10 Auto-Scaling Guardrail check
         const parsedRpe = rpe;

@@ -26,6 +26,7 @@ class Exercise(SQLModel, table=True):
     instructions: Optional[str] = Field(default=None)  # Markdown instructions
     video_url: Optional[str] = Field(default=None)  # e.g., YouTube/Vimeo tutorial link
     image_url: Optional[str] = Field(default=None)  # Local path or illustration URL
+    suggested_rest_seconds: Optional[int] = Field(default=None)
 
     # Ownership (null if system-default)
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
@@ -75,6 +76,7 @@ class WorkoutPlanExercise(SQLModel, table=True):
 
     # Per-exercise exemption toggle
     is_autoreg_exempt: bool = Field(default=False)
+    rest_seconds: Optional[int] = Field(default=None)
 
     # Relations
     plan: "WorkoutPlan" = Relationship(back_populates="plan_exercises")
