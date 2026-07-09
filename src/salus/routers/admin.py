@@ -1,4 +1,6 @@
 from typing import Annotated
+import os
+import re
 
 from fastapi import APIRouter, Depends, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
@@ -21,6 +23,50 @@ from salus.services.backup.service import BackupService
 router = APIRouter()
 
 
+def _get_formatted_backups(backup_svc: BackupService) -> list[dict]:
+    backups = []
+    if settings.backup_password:
+        try:
+            raw_backups = backup_svc.provider.list_backups()
+            parsed_backups = []
+            for fname in raw_backups:
+                # Parse size
+                size_bytes = 0
+                from salus.services.backup.providers import LocalBackupProvider
+                if isinstance(backup_svc.provider, LocalBackupProvider):
+                    try:
+                        size_bytes = os.path.getsize(os.path.join(backup_svc.provider.directory, fname))
+                    except Exception:
+                        pass
+                
+                # Format size
+                if size_bytes > 1024 * 1024:
+                    size_str = f"{size_bytes / (1024 * 1024):.2f} MB"
+                elif size_bytes > 1024:
+                    size_str = f"{size_bytes / 1024:.1f} KB"
+                else:
+                    size_str = f"{size_bytes} B" if size_bytes > 0 else "--"
+
+                # Parse datetime from filename salus_backup_YYYY-MM-DD_HH-MM-SS.enc
+                created_at_str = "--"
+                match = re.match(r"salus_backup_(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.enc", fname)
+                if match:
+                    created_at_str = f"{match.group(1)} {match.group(2)}:{match.group(3)}:{match.group(4)}"
+
+                parsed_backups.append({
+                    "filename": fname,
+                    "created_at": created_at_str,
+                    "size_str": size_str,
+                    "raw_date": created_at_str
+                })
+            
+            parsed_backups.sort(key=lambda x: x["raw_date"], reverse=True)
+            backups = parsed_backups
+        except Exception:
+            pass
+    return backups
+
+
 def _admin_context(
     request: Request,
     current_user: User,
@@ -39,13 +85,13 @@ def _admin_context(
         item["editing"] = False
 
     plugins = plugin_mgr.get_discovered_plugins() if plugin_mgr else []
+    backups = _get_formatted_backups(backup_svc)
 
-    backups = []
-    if settings.backup_password:
-        try:
-            backups = backup_svc.provider.list_backups()
-        except Exception:
-            pass
+    from salus.services.backup.providers import LocalBackupProvider
+    if isinstance(backup_svc.provider, LocalBackupProvider):
+        storage_location = backup_svc.provider.directory
+    else:
+        storage_location = getattr(backup_svc.provider, "url", "Remote WebDAV Storage")
 
     return {
         "current_user": current_user,
@@ -58,6 +104,11 @@ def _admin_context(
         "plugins": plugins,
         "backups": backups,
         "settings": settings,
+        "backup_password_configured": bool(settings.backup_password),
+        "backup_provider": settings.backup_provider,
+        "storage_location": storage_location,
+        "error": None,
+        "success": None,
     }
 
 
@@ -356,18 +407,34 @@ async def admin_run_backup(
     current_user: User = Depends(require_admin),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
+    success_msg = None
+    error_msg = None
     if settings.backup_password:
         try:
-            backup_svc.run_backup()
-        except Exception:
-            pass
-    backups = backup_svc.provider.list_backups() if settings.backup_password else []
+            filename = backup_svc.run_backup()
+            success_msg = f"Backup '{filename}' created and uploaded successfully."
+        except Exception as e:
+            error_msg = f"Backup failed: {str(e)}"
+            
+    backups = _get_formatted_backups(backup_svc)
+    
+    from salus.services.backup.providers import LocalBackupProvider
+    if isinstance(backup_svc.provider, LocalBackupProvider):
+        storage_location = backup_svc.provider.directory
+    else:
+        storage_location = getattr(backup_svc.provider, "url", "Remote WebDAV Storage")
+
     return request.app.state.templates.TemplateResponse(
         request,
         "components/admin/backup_table.html",
         {
             "backups": backups,
             "settings": settings,
+            "success": success_msg,
+            "error": error_msg,
+            "backup_password_configured": bool(settings.backup_password),
+            "backup_provider": settings.backup_provider,
+            "storage_location": storage_location,
         },
     )
 
@@ -379,17 +446,99 @@ async def admin_delete_backup(
     current_user: User = Depends(require_admin),
     backup_svc: BackupService = Depends(get_backup_service),
 ):
+    success_msg = None
+    error_msg = None
     if settings.backup_password:
         try:
             backup_svc.provider.delete_backup(filename)
-        except Exception:
-            pass
-    backups = backup_svc.provider.list_backups() if settings.backup_password else []
+            success_msg = f"Backup '{filename}' deleted successfully."
+        except Exception as e:
+            error_msg = f"Deletion failed: {str(e)}"
+            
+    backups = _get_formatted_backups(backup_svc)
+    
+    from salus.services.backup.providers import LocalBackupProvider
+    if isinstance(backup_svc.provider, LocalBackupProvider):
+        storage_location = backup_svc.provider.directory
+    else:
+        storage_location = getattr(backup_svc.provider, "url", "Remote WebDAV Storage")
+
     return request.app.state.templates.TemplateResponse(
         request,
         "components/admin/backup_table.html",
         {
             "backups": backups,
             "settings": settings,
+            "success": success_msg,
+            "error": error_msg,
+            "backup_password_configured": bool(settings.backup_password),
+            "backup_provider": settings.backup_provider,
+            "storage_location": storage_location,
+        },
+    )
+
+
+@router.post("/admin/backups/restore/{filename}", response_class=HTMLResponse)
+async def admin_restore_backup(
+    filename: str,
+    request: Request,
+    current_user: User = Depends(require_admin),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    if not settings.database_url.startswith("sqlite:///"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Database restoration is only supported for SQLite databases.")
+
+    db_path = settings.database_url.replace("sqlite:///", "")
+    
+    try:
+        backup_svc.restore_backup(filename, db_path)
+        return HTMLResponse(
+            content="<script>alert('Database successfully restored from backup! The page will now reload.'); window.location.reload();</script>"
+        )
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Restoration failed: {str(e)}")
+
+
+@router.post("/admin/backups/upload", response_class=HTMLResponse)
+async def admin_upload_backup(
+    request: Request,
+    backup_file: UploadFile = File(...),
+    current_user: User = Depends(require_admin),
+    backup_svc: BackupService = Depends(get_backup_service),
+):
+    success_msg = None
+    error_msg = None
+    
+    if not backup_file.filename or not backup_file.filename.endswith(".enc"):
+        error_msg = "Invalid file type. Only .enc backup files are allowed."
+    else:
+        try:
+            content = await backup_file.read()
+            backup_svc.provider.upload_backup(backup_file.filename, content)
+            success_msg = f"Backup '{backup_file.filename}' uploaded successfully."
+        except Exception as e:
+            error_msg = f"Upload failed: {str(e)}"
+            
+    backups = _get_formatted_backups(backup_svc)
+    
+    from salus.services.backup.providers import LocalBackupProvider
+    if isinstance(backup_svc.provider, LocalBackupProvider):
+        storage_location = backup_svc.provider.directory
+    else:
+        storage_location = getattr(backup_svc.provider, "url", "Remote WebDAV Storage")
+
+    return request.app.state.templates.TemplateResponse(
+        request,
+        "components/admin/backup_table.html",
+        {
+            "backups": backups,
+            "settings": settings,
+            "success": success_msg,
+            "error": error_msg,
+            "backup_password_configured": bool(settings.backup_password),
+            "backup_provider": settings.backup_provider,
+            "storage_location": storage_location,
         },
     )

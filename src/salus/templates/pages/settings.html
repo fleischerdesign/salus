@@ -27,15 +27,6 @@
             {{ icon("share", size=20, style="vertical-align:middle;margin-right:8px") }}
             {{ _("Shares") }}
         </a>
-        {% if current_user.is_admin %}
-        <a hx-get="/settings/backups" hx-target="#settings-content" hx-push-url="true"
-           class="tabbed-sidebar__link {% if active_tab == 'backups' %}active{% endif %}"
-           {% if active_tab == 'backups' %}aria-current="page"{% endif %}
-           _="on click remove @aria-current from .tabbed-sidebar__link then take .active from .tabbed-sidebar__link then set @aria-current to 'page'">
-            {{ icon("backup", size=20, style="vertical-align:middle;margin-right:8px") }}
-            {{ _("Backups") }}
-        </a>
-        {% endif %}
     </nav>
 
     <div id="settings-content" style="flex:1;min-width:0;padding:24px">
