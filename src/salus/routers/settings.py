@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Form, Request, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from salus.dependencies import (
     get_api_token_service,
@@ -9,6 +9,7 @@ from salus.dependencies import (
     get_metric_type_service,
     get_user_service,
     get_asymmetric_share_service,
+    get_data_portability_service,
 )
 from salus.exceptions import ConflictError
 from salus.models.user import User
@@ -17,6 +18,7 @@ from salus.services.api_token import ApiTokenService
 from salus.services.metric_type import MetricTypeService
 from salus.services.user import UserService
 from salus.services.asymmetric_share import AsymmetricShareService
+from salus.services.portability import DataPortabilityService
 
 router = APIRouter()
 
@@ -88,9 +90,13 @@ async def settings_privacy_page(
     user_svc: UserService = Depends(get_user_service),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    success: str | None = None,
+    error: str | None = None,
 ):
     context = _settings_context(
-        request, current_user, user_svc, metric_svc, api_token_svc
+        request, current_user, user_svc, metric_svc, api_token_svc,
+        success=success,
+        error=error
     )
     return _render_settings_tab(request, "privacy", context)
 
@@ -199,3 +205,65 @@ async def set_locale(
     response = RedirectResponse(url="/settings", status_code=303)
     response.set_cookie("salus_locale", locale, max_age=31536000, httponly=True)
     return response
+
+
+@router.get("/privacy/export")
+async def settings_privacy_export(
+    current_user: User = Depends(get_current_user),
+    portability_svc: DataPortabilityService = Depends(get_data_portability_service),
+):
+    from datetime import datetime
+    zip_buffer = portability_svc.export_user_data(uid(current_user))
+    filename = f"salus_data_export_{current_user.username}_{datetime.now().strftime('%Y-%m-%d')}.zip"
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.post("/privacy/import", response_class=HTMLResponse)
+async def settings_privacy_import(
+    request: Request,
+    import_file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+    metric_svc: MetricTypeService = Depends(get_metric_type_service),
+    api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    portability_svc: DataPortabilityService = Depends(get_data_portability_service),
+):
+    success_msg = None
+    error_msg = None
+    
+    if not import_file.filename or not import_file.filename.endswith(".zip"):
+        error_msg = "Invalid file format. Please upload a valid .zip archive."
+    else:
+        try:
+            content = await import_file.read()
+            results = portability_svc.import_user_data(uid(current_user), content)
+            
+            if results["errors"]:
+                error_msg = "Import completed with errors: " + "; ".join(results["errors"])
+            
+            success_parts = []
+            if results["measurements_imported"] > 0:
+                success_parts.append(f"{results['measurements_imported']} measurements")
+            if results["plans_imported"] > 0:
+                success_parts.append(f"{results['plans_imported']} workout plans")
+            if results["goals_imported"] > 0:
+                success_parts.append(f"{results['goals_imported']} goals")
+                
+            if success_parts:
+                success_msg = f"Successfully imported: {', '.join(success_parts)}."
+            elif not results["errors"]:
+                success_msg = "Import finished. No new data was added (all records were duplicates)."
+        except Exception as e:
+            error_msg = f"Failed to parse ZIP file: {str(e)}"
+            
+    context = _settings_context(
+        request, current_user, user_svc, metric_svc, api_token_svc,
+        success=success_msg,
+        error=error_msg
+    )
+    return _render_settings_tab(request, "privacy", context)

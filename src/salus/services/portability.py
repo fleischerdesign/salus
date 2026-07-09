@@ -1,0 +1,301 @@
+import io
+import zipfile
+import json
+import csv
+from datetime import datetime
+from sqlmodel import select
+
+from salus.repositories.unit_of_work import IUnitOfWork
+from salus.models.user import User
+from salus.models.measurement import Measurement
+from salus.models.goal import Goal
+from salus.models import MetricType
+from salus.models.workout import WorkoutPlan, WorkoutPlanExercise, WorkoutSession, Exercise
+
+
+class DataPortabilityService:
+    def __init__(self, uow: IUnitOfWork) -> None:
+        self.uow = uow
+
+    def export_user_data(self, user_id: int) -> io.BytesIO:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            # 1. Profile Data
+            user = self.uow.session.exec(select(User).where(User.id == user_id)).first()
+            if user:
+                profile_data = {
+                    "username": user.username,
+                    "email": user.email,
+                    "display_name": user.display_name,
+                    "theme": user.theme,
+                }
+                zip_file.writestr(
+                    "profile.json",
+                    json.dumps(profile_data, indent=2, ensure_ascii=False)
+                )
+
+            # 2. Measurements (CSV)
+            measurements = self.uow.session.exec(
+                select(Measurement).where(Measurement.user_id == user_id)
+            ).all()
+            
+            csv_buffer = io.StringIO()
+            csv_writer = csv.writer(csv_buffer)
+            csv_writer.writerow([
+                "source", "data_type", "metric_type_id", "value_numeric",
+                "value_text", "value_json", "start_time", "end_time", "notes", "external_id"
+            ])
+            for m in measurements:
+                csv_writer.writerow([
+                    m.source, m.data_type, m.metric_type_id, m.value_numeric,
+                    m.value_text or "", m.value_json or "",
+                    m.start_time.isoformat(),
+                    m.end_time.isoformat() if m.end_time else "",
+                    m.notes or "", m.external_id or ""
+                ])
+            zip_file.writestr("measurements.csv", csv_buffer.getvalue())
+
+            # 3. Workout Plans (JSON)
+            plans = self.uow.session.exec(
+                select(WorkoutPlan).where(WorkoutPlan.user_id == user_id)
+            ).all()
+            plans_data = []
+            for p in plans:
+                plan_exercises = []
+                for pe in p.plan_exercises:
+                    plan_exercises.append({
+                        "exercise_name": pe.exercise.name,
+                        "sequence": pe.sequence,
+                        "target_sets": pe.target_sets,
+                        "target_reps": pe.target_reps,
+                        "target_rpe": pe.target_rpe,
+                        "is_autoreg_exempt": pe.is_autoreg_exempt,
+                        "rest_seconds": pe.rest_seconds,
+                    })
+                plans_data.append({
+                    "name": p.name,
+                    "description": p.description,
+                    "autoreg_mode": p.autoreg_mode,
+                    "position": p.position,
+                    "exercises": plan_exercises,
+                })
+            zip_file.writestr(
+                "workout_plans.json",
+                json.dumps(plans_data, indent=2, ensure_ascii=False)
+            )
+
+            # 4. Workout History (CSV)
+            sessions = self.uow.session.exec(
+                select(WorkoutSession).where(WorkoutSession.user_id == user_id)
+            ).all()
+            
+            history_buffer = io.StringIO()
+            history_writer = csv.writer(history_buffer)
+            history_writer.writerow([
+                "session_id", "started_at", "completed_at", "plan_name",
+                "exercise_name", "set_number", "weight", "reps", "rpe"
+            ])
+            for s in sessions:
+                plan_name = s.plan.name if s.plan else "Custom Workout"
+                for entry in s.logs:
+                    history_writer.writerow([
+                        s.id,
+                        s.started_at.isoformat(),
+                        s.completed_at.isoformat() if s.completed_at else "",
+                        plan_name,
+                        entry.exercise.name,
+                        entry.set_number,
+                        entry.weight,
+                        entry.reps,
+                        entry.rpe or ""
+                    ])
+            zip_file.writestr("workout_history.csv", history_buffer.getvalue())
+
+            # 5. Goals (JSON)
+            goals = self.uow.session.exec(
+                select(Goal).where(Goal.user_id == user_id)
+            ).all()
+            goals_data = []
+            for g in goals:
+                metric_type = self.uow.session.exec(
+                    select(MetricType).where(MetricType.id == g.metric_type_id)
+                ).first()
+                metric_name = metric_type.name if metric_type else ""
+                goals_data.append({
+                    "metric_type_name": metric_name,
+                    "target_value": g.target_value,
+                    "direction": g.direction,
+                    "frequency": g.frequency,
+                    "deadline": g.deadline.isoformat() if g.deadline else None,
+                    "is_active": g.is_active,
+                    "created_at": g.created_at.isoformat(),
+                })
+            zip_file.writestr(
+                "goals.json",
+                json.dumps(goals_data, indent=2, ensure_ascii=False)
+            )
+
+        zip_buffer.seek(0)
+        return zip_buffer
+
+    def import_user_data(self, user_id: int, zip_bytes: bytes) -> dict:
+        results = {
+            "measurements_imported": 0,
+            "plans_imported": 0,
+            "goals_imported": 0,
+            "errors": []
+        }
+        
+        try:
+            with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
+                # 1. Profile Data Import
+                if "profile.json" in zip_file.namelist():
+                    try:
+                        profile_data = json.loads(zip_file.read("profile.json").decode("utf-8"))
+                        user = self.uow.session.exec(select(User).where(User.id == user_id)).first()
+                        if user:
+                            if "theme" in profile_data:
+                                user.theme = profile_data["theme"]
+                            self.uow.session.add(user)
+                    except Exception as e:
+                        results["errors"].append(f"Failed to import profile: {str(e)}")
+
+                # 2. Measurements Import
+                if "measurements.csv" in zip_file.namelist():
+                    try:
+                        csv_data = zip_file.read("measurements.csv").decode("utf-8")
+                        csv_reader = csv.DictReader(io.StringIO(csv_data))
+                        
+                        existing_records = self.uow.session.exec(
+                            select(Measurement).where(Measurement.user_id == user_id)
+                        ).all()
+                        existing_keys = {
+                            (r.start_time.isoformat(), r.metric_type_id, float(r.value_numeric) if r.value_numeric is not None else 0.0)
+                            for r in existing_records
+                        }
+                        
+                        for row in csv_reader:
+                            start_time = datetime.fromisoformat(row["start_time"])
+                            metric_type_id = int(row["metric_type_id"])
+                            value_numeric = float(row["value_numeric"])
+                            
+                            key = (start_time.isoformat(), metric_type_id, value_numeric)
+                            if key in existing_keys:
+                                continue
+                                
+                            end_time = datetime.fromisoformat(row["end_time"]) if row.get("end_time") else None
+                            m = Measurement(
+                                user_id=user_id,
+                                source=row["source"],
+                                data_type=row["data_type"],
+                                metric_type_id=metric_type_id,
+                                value_numeric=value_numeric,
+                                value_text=row.get("value_text") or None,
+                                value_json=row.get("value_json") or None,
+                                start_time=start_time,
+                                end_time=end_time,
+                                notes=row.get("notes") or None,
+                                external_id=row.get("external_id") or None,
+                            )
+                            self.uow.session.add(m)
+                            results["measurements_imported"] += 1
+                    except Exception as e:
+                        results["errors"].append(f"Failed to import measurements: {str(e)}")
+
+                # 3. Workout Plans Import
+                if "workout_plans.json" in zip_file.namelist():
+                    try:
+                        plans_data = json.loads(zip_file.read("workout_plans.json").decode("utf-8"))
+                        
+                        existing_plans = self.uow.session.exec(
+                            select(WorkoutPlan).where(WorkoutPlan.user_id == user_id)
+                        ).all()
+                        existing_plan_names = {p.name for p in existing_plans}
+                        
+                        for p_data in plans_data:
+                            if p_data["name"] in existing_plan_names:
+                                continue
+                                
+                            plan = WorkoutPlan(
+                                name=p_data["name"],
+                                description=p_data.get("description"),
+                                user_id=user_id,
+                                autoreg_mode=p_data.get("autoreg_mode", "advisory"),
+                                position=p_data.get("position", 0),
+                            )
+                            self.uow.session.add(plan)
+                            self.uow.session.flush()
+                            
+                            for ex_data in p_data.get("exercises", []):
+                                exercise = self.uow.session.exec(
+                                    select(Exercise).where(Exercise.name == ex_data["exercise_name"])
+                                ).first()
+                                if exercise:
+                                    pe = WorkoutPlanExercise(
+                                        plan_id=plan.id,  # type: ignore
+                                        exercise_id=exercise.id,  # type: ignore
+                                        sequence=ex_data["sequence"],
+                                        target_sets=ex_data["target_sets"],
+                                        target_reps=ex_data["target_reps"],
+                                        target_rpe=ex_data.get("target_rpe", 8.0),
+                                        is_autoreg_exempt=ex_data.get("is_autoreg_exempt", False),
+                                        rest_seconds=ex_data.get("rest_seconds"),
+                                    )
+                                    self.uow.session.add(pe)
+                            results["plans_imported"] += 1
+                    except Exception as e:
+                        results["errors"].append(f"Failed to import workout plans: {str(e)}")
+
+                # 4. Goals Import
+                if "goals.json" in zip_file.namelist():
+                    try:
+                        goals_data = json.loads(zip_file.read("goals.json").decode("utf-8"))
+                        existing_goals = self.uow.session.exec(
+                            select(Goal).where(Goal.user_id == user_id)
+                        ).all()
+                        
+                        metric_types = self.uow.session.exec(select(MetricType)).all()
+                        metric_type_map = {mt.name: mt.id for mt in metric_types}
+                        
+                        for g_data in goals_data:
+                            metric_type_id = metric_type_map.get(g_data["metric_type_name"])
+                            if not metric_type_id:
+                                continue
+                                
+                            created_at = datetime.fromisoformat(g_data["created_at"])
+                            
+                            is_duplicate = any(
+                                eg.metric_type_id == metric_type_id and 
+                                eg.created_at.date() == created_at.date() and 
+                                float(eg.target_value) == float(g_data["target_value"])
+                                for eg in existing_goals
+                            )
+                            if is_duplicate:
+                                continue
+                                
+                            deadline = None
+                            if g_data.get("deadline"):
+                                from datetime import date
+                                deadline = date.fromisoformat(g_data["deadline"])
+                                
+                            goal = Goal(
+                                user_id=user_id,
+                                metric_type_id=metric_type_id,
+                                target_value=float(g_data["target_value"]),
+                                direction=g_data.get("direction", "increase"),
+                                frequency=g_data.get("frequency", "daily"),
+                                deadline=deadline,
+                                is_active=g_data.get("is_active", True),
+                                created_at=created_at,
+                            )
+                            self.uow.session.add(goal)
+                            results["goals_imported"] += 1
+                    except Exception as e:
+                        results["errors"].append(f"Failed to import goals: {str(e)}")
+
+                self.uow.commit()
+                
+        except Exception as e:
+            results["errors"].append(f"Invalid ZIP file structure: {str(e)}")
+            
+        return results

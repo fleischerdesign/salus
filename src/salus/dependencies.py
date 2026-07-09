@@ -53,6 +53,7 @@ from salus.services.workout.planner import WorkoutService
 from salus.services.backup.providers import IBackupStorageProvider
 from salus.services.backup.service import BackupService
 from salus.services.asymmetric_share import AsymmetricShareService
+from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
 
@@ -552,3 +553,9 @@ def get_notification_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> NotificationService:
     return NotificationService(uow)
+
+
+def get_data_portability_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> DataPortabilityService:
+    return DataPortabilityService(uow)

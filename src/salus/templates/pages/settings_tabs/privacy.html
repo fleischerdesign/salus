@@ -39,3 +39,41 @@
     </div>
 {% endcall %}
 </div>
+
+<div style="margin-top:24px">
+{% call card(title=_("Personal Data Portability (GDPR / DSGVO)")) %}
+    {% if error %}
+        {{ alert_banner(error, variant="error") }}
+    {% endif %}
+    {% if success %}
+        {{ alert_banner(success, variant="success") }}
+    {% endif %}
+
+    <div class="form-stack" style="gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+            {{ icon("download_for_offline", style="font-size:32px;color:var(--color-primary)") }}
+            <h3 style="font:var(--font-headline-md);margin:0">{{ _("Export & Import Data") }}</h3>
+        </div>
+
+        <p style="font:var(--font-body-md);line-height:1.6;color:var(--color-on-surface-variant)">
+            {{ _("Under GDPR Article 20, you have the right to request all your personal records. You can download a complete ZIP archive containing your profile, medical timelines, metabolic stats, and training histories in open, standard CSV and JSON formats, or restore your backup by uploading a previously exported archive.") }}
+        </p>
+
+        <div style="border-top:1px solid var(--color-outline-variant);padding-top:16px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+            <div>
+                <a href="/settings/privacy/export" class="btn btn--primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px">
+                    {{ icon("download", size=20) }}
+                    {{ _("Export Data (ZIP)") }}
+                </a>
+            </div>
+            
+            <div>
+                <form hx-post="/settings/privacy/import" hx-encoding="multipart/form-data" hx-target="#settings-content" style="display:flex;gap:8px;align-items:center">
+                    <input type="file" name="import_file" accept=".zip" required style="font-size:12px;border:1px solid var(--color-slate-200);padding:5px 8px;border-radius:4px;background:var(--color-surface-container-lowest);color:var(--color-slate-700)">
+                    {{ btn(_("Import / Restore"), icon="upload", variant="secondary", size="md", attrs={"type": "submit"}) }}
+                </form>
+            </div>
+        </div>
+    </div>
+{% endcall %}
+</div>
