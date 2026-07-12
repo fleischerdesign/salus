@@ -4,14 +4,12 @@ import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
 import { toast, dismissToast, updateToast } from '$components/ui/toast-state.svelte';
 
-let _online = $state(typeof navigator !== 'undefined' ? navigator.onLine : true);
 let _sessionExpired = $state(false);
 let _syncToastId: number | null = null;
-let _wasOffline = !_online;
+let _wasOffline = typeof navigator === 'undefined' ? false : !navigator.onLine;
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    _online = true;
     if (_wasOffline) {
       toast('Connection restored.', 'success', { duration: 4000 });
     }
@@ -19,7 +17,6 @@ if (typeof window !== 'undefined') {
     syncEngine.flush();
   });
   window.addEventListener('offline', () => {
-    _online = false;
     _wasOffline = true;
     toast('You are offline. Changes sync when reconnected.', 'warning', { duration: 4000 });
   });
