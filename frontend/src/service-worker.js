@@ -6,7 +6,7 @@
 import { build, files, version } from '$service-worker';
 
 const CACHE = `salus-${version}`;
-const ASSETS = [...build, ...files];
+const ASSETS = [...build, ...files, '/_app/version.json', '/index.html'];
 const API_RE = /^\/(?:api|auth)\//;
 const IMMUTABLE = '/_app/immutable/';
 
@@ -70,6 +70,9 @@ self.addEventListener('fetch', (event) => {
 					}
 					return response;
 				} catch {
+					if (url.pathname === '/_app/version.json') {
+						return Response.json({});
+					}
 					return new Response('Offline', { status: 503 });
 				}
 			})()
@@ -80,10 +83,17 @@ self.addEventListener('fetch', (event) => {
 	if (request.mode === 'navigate') {
 		event.respondWith(
 			(async () => {
+				const cache = await caches.open(CACHE);
+				const cachedIndex = await cache.match('/index.html');
+				if (cachedIndex) return cachedIndex;
 				try {
-					return await fetch(request);
+					const response = await fetch(request);
+					if (response.ok) {
+						cache.put('/index.html', response.clone());
+					}
+					return response;
 				} catch {
-					const fallback = await caches.match('/offline.html');
+					const fallback = await cache.match('/offline.html');
 					return fallback || new Response('Offline', { status: 503 });
 				}
 			})()
