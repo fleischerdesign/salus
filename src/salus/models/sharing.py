@@ -27,8 +27,12 @@ class SharingRelationship(SQLModel, table=True):
     status: str = Field(default=ConnectionStatus.PENDING.value)
     api_token_hash: Optional[str] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
     last_sync_at: Optional[datetime] = Field(default=None)
+    deleted_at: datetime | None = Field(default=None)
 
     @property
     def is_active(self) -> bool:
@@ -53,6 +57,11 @@ class LeaderboardGroup(SQLModel, table=True):
     end_date: Optional[datetime] = Field(default=None)
     invite_code: str = Field(unique=True, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relationships
     creator: "User" = Relationship()
@@ -69,6 +78,11 @@ class LeaderboardMember(SQLModel, table=True):
     user_handle: str = Field(index=True)  # @username or @username:domain
     status: str = Field(default="active")  # "pending", "active", "declined"
     joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relationships
     group: "LeaderboardGroup" = Relationship(back_populates="members")

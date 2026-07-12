@@ -31,6 +31,7 @@ from salus.models.sharing import SharingRelationship, LeaderboardGroup, Leaderbo
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, WorkoutSession, WorkoutLogEntry
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
+from salus.models.sync_push_log import SyncPushLog
 
 
 # Dynamically load plugins to register custom tables/models in SQLModel.metadata

@@ -31,16 +31,3 @@ class TestExportService:
         data = json.loads(response.content.decode())
         assert isinstance(data, list)
         assert len(data) >= 1
-
-    def test_export_on_settings_page(self, authenticated_client):
-        authenticated_client.post(
-            "/api/v1/metrics",
-            json={"name": "Weight", "unit": "kg", "data_type": "number"},
-        )
-        response_acc = authenticated_client.get("/settings")
-        assert response_acc.status_code == 200
-        assert "Connected Sources" in response_acc.text
-
-        response_shares = authenticated_client.get("/settings/shares")
-        assert response_shares.status_code == 200
-        assert "Data Export" in response_shares.text

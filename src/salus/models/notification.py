@@ -16,5 +16,10 @@ class Notification(SQLModel, table=True):
     is_read: bool = Field(default=False)
     category: str = Field(default="system")  # "federation", "challenge", "system"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="notifications")

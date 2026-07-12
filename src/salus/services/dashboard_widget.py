@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timedelta
+from typing import Protocol, runtime_checkable
 
 from salus.models.analytics import HROHLC, HRTimelinePoint
-from salus.models.dashboard import DashboardWidget, WidgetSize
+from salus.models.dashboard import DashboardWidget, WidgetSize, WidgetViz
 from salus.models.goal import Goal
 from salus.models import MetricType
 from salus.repositories.protocols import (
@@ -17,6 +19,8 @@ from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
 from salus.services.goal import GoalService
+
+logger = logging.getLogger(__name__)
 
 _EMPTY_TEXTS: dict[str, str] = {
     "steps": "No step data yet. Connect a health source to get started.",
@@ -42,6 +46,10 @@ _VIZ_TYPE_DEFAULTS: dict[str, str] = {
     "exercise": "number",
 }
 
+
+# ---------------------------------------------------------------------------
+#  Free functions (pure helpers, no state)
+# ---------------------------------------------------------------------------
 
 def _compute_sparkline(values: list[float]) -> str:
     if not values or max(values) == 0:
@@ -249,6 +257,274 @@ def _compute_pill_chart(
     }
 
 
+# ---------------------------------------------------------------------------
+#  Viz Builder Strategy (OCP — new metric types = new builder class, no edits)
+# ---------------------------------------------------------------------------
+
+@runtime_checkable
+class VizBuilder(Protocol):
+    """Strategy: build a WidgetViz for a specific source_data_type."""
+
+    def build(
+        self,
+        ctx: DashboardWidgetService,
+        user_id: int,
+        target: str,
+        color: str,
+    ) -> WidgetViz | None: ...
+
+
+class StepsVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        trend = ctx._activity.steps_trend(days=1, user_id=user_id, date=target)
+        today = trend[-1] if trend else None
+        if not today or today.count <= 0:
+            return None
+
+        yesterday_trend = ctx._activity.steps_trend(
+            days=1, user_id=user_id, date=_yesterday(target)
+        )
+        yesterday = yesterday_trend[-1] if yesterday_trend else None
+
+        goal = ctx._resolve_goal(user_id, "steps")
+        viz = WidgetViz(
+            type="progress",
+            title="Steps",
+            value=f"{today.count:,}",
+            unit="steps",
+            subtitle="today",
+            color=color,
+            delta=_delta_str(
+                today.count, yesterday.count if yesterday else None, is_integer=True
+            ),
+        )
+        if goal is not None:
+            progress = ctx._goal.progress(goal)
+            viz.goal_label = f"Target: {int(goal.target_value):,} / day"
+            viz.goal_percent = progress.percent
+            viz.goal_target = float(goal.target_value)
+        return viz
+
+
+class HeartRateVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        hr = ctx._activity.heart_rate_summary(user_id=user_id, date_str=target)
+        if not hr:
+            return None
+
+        yesterday_hr = ctx._activity.heart_rate_summary(
+            user_id=user_id, date_str=_yesterday(target)
+        )
+        timeline = ctx._activity.heart_rate_timeline(user_id=user_id, date_str=target)
+
+        goal = ctx._resolve_goal(user_id, "heart_rate")
+        target_bpm = (
+            goal.target_value if goal and goal.direction.value == "decrease" else None
+        )
+        _chart = _compute_pill_chart(timeline, hr.resting_bpm, color, target_bpm)
+
+        viz = WidgetViz(
+            type="pills",
+            title="Heart Rate",
+            value=f"{hr.resting_bpm:.0f}",
+            unit="bpm",
+            color=color,
+            delta=_delta_str(
+                hr.resting_bpm,
+                yesterday_hr.resting_bpm if yesterday_hr else None,
+                unit=" bpm",
+                is_integer=True,
+                up_is_good=False,
+            ),
+            subtitle=f"Min {hr.min_bpm} · Max {hr.max_bpm} · Ø {hr.avg_bpm:.0f}",
+        )
+        if goal is not None:
+            progress = ctx._goal.progress(goal)
+            viz.goal_label = f"Target: <{int(goal.target_value)} bpm"
+            viz.goal_percent = progress.percent
+        return viz
+
+
+class SleepVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        sl = ctx._sleep.last_night(user_id=user_id, date_str=target)
+        if not sl:
+            return None
+
+        yesterday_sleep = ctx._sleep.last_night(
+            user_id=user_id, date_str=_yesterday(target)
+        )
+        segments = _rounded_segments(
+            [
+                ("Deep", sl.deep_seconds, "segment-deep"),
+                ("REM", sl.rem_seconds, "segment-rem"),
+                ("Light", sl.light_seconds, "segment-light"),
+                ("Awake", sl.awake_seconds, "segment-awake"),
+            ]
+        )
+        for seg in segments:
+            label = seg["label"]
+            pct = seg["pct"]
+            seg["label"] = f"{label}: {pct:.0f}%"
+
+        return WidgetViz(
+            type="bar",
+            title="Sleep",
+            value=f"{sl.duration_hours:.1f}",
+            unit="h",
+            color=color,
+            delta=_delta_str(
+                sl.duration_hours,
+                yesterday_sleep.duration_hours if yesterday_sleep else None,
+                unit="h",
+            ),
+            segments=segments,
+        )
+
+
+class NutritionVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        n = ctx._nutrition.today(user_id=user_id, date_str=target)
+        if not n:
+            return None
+
+        yesterday_n = ctx._nutrition.today(
+            user_id=user_id, date_str=_yesterday(target)
+        )
+        total = n.protein_g + n.carbs_g + n.fat_g
+        segments = (
+            _rounded_segments(
+                [
+                    ("Protein", n.protein_g, "segment-protein"),
+                    ("Carbs", n.carbs_g, "segment-carbs"),
+                    ("Fat", n.fat_g, "segment-fat"),
+                ]
+            )
+            if total > 0
+            else []
+        )
+        for seg in segments:
+            label = seg["label"]
+            if label == "Protein":
+                seg["label"] = f"Protein: {n.protein_g:.0f}g"
+            elif label == "Carbs":
+                seg["label"] = f"Carbs: {n.carbs_g:.0f}g"
+            elif label == "Fat":
+                seg["label"] = f"Fat: {n.fat_g:.0f}g"
+
+        return WidgetViz(
+            type="bar",
+            title="Nutrition",
+            value=f"{n.total_kcal:.0f}",
+            unit="kcal",
+            color=color,
+            delta=_delta_str(
+                n.total_kcal,
+                yesterday_n.total_kcal if yesterday_n else None,
+                unit=" kcal",
+                is_integer=True,
+            ),
+            segments=segments,
+        )
+
+
+class WeightVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        w = ctx._weight.current(user_id=user_id, date_str=target)
+        if not w:
+            return None
+
+        yesterday_w = ctx._weight.current(user_id=user_id, date_str=_yesterday(target))
+        return WidgetViz(
+            type="number",
+            title="Weight",
+            value=f"{w.weight_kg:.1f}",
+            unit="kg",
+            color=color,
+            delta=_delta_str(
+                w.weight_kg,
+                yesterday_w.weight_kg if yesterday_w else None,
+                unit=" kg",
+                up_is_good=False,
+            ),
+        )
+
+
+class ExerciseVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        sessions = ctx._activity.exercise_history(days=7, user_id=user_id, limit=5)
+        target_sessions = [s for s in sessions if s.date == target]
+        if not target_sessions:
+            return None
+
+        total_min = sum(s.duration_seconds for s in target_sessions) / 60
+        names = set(s.type_name for s in target_sessions)
+        return WidgetViz(
+            type="number",
+            title="Exercise",
+            value=f"{total_min:.0f}",
+            unit="min",
+            subtitle=", ".join(names),
+            color=color,
+        )
+
+
+class GenericVizBuilder:
+    """Fallback builder for metric types without a dedicated builder.
+
+    Shows the latest measurement value as a simple number widget.
+    """
+
+    def __init__(self, title: str, unit: str) -> None:
+        self._title = title
+        self._unit = unit
+
+    def build(self, ctx, user_id, target, color):
+        latest = ctx._measurement_repo.get_latest_by_metric_type(
+            metric_type_id=ctx._current_metric_id,
+            user_id=user_id,
+        )
+        if latest is None:
+            return None
+
+        if latest.value_numeric is not None:
+            value = f"{latest.value_numeric:.1f}" if latest.value_numeric % 1 else f"{latest.value_numeric:.0f}"
+        elif latest.value_text is not None:
+            value = latest.value_text
+        elif latest.value_json is not None:
+            try:
+                j = json.loads(latest.value_json)
+                value = str(j) if not isinstance(j, dict) else next(
+                    (str(v) for v in j.values()), "—"
+                )
+            except Exception:
+                value = latest.value_json
+        else:
+            value = "—"
+
+        return WidgetViz(
+            type="number",
+            title=self._title,
+            value=value,
+            unit=self._unit or None,
+            color=color,
+        )
+
+
+_VIZ_BUILDERS: dict[str, VizBuilder] = {
+    "steps": StepsVizBuilder(),
+    "heart_rate": HeartRateVizBuilder(),
+    "sleep": SleepVizBuilder(),
+    "nutrition": NutritionVizBuilder(),
+    "weight": WeightVizBuilder(),
+    "exercise": ExerciseVizBuilder(),
+}
+
+
+# ---------------------------------------------------------------------------
+#  Service
+# ---------------------------------------------------------------------------
+
 class DashboardWidgetService:
     def __init__(
         self,
@@ -273,6 +549,9 @@ class DashboardWidgetService:
         # Request-level caches to optimize N+1 query patterns
         self._goals_cache: list[Goal] | None = None
         self._metrics_cache: dict[int, MetricType] = {}
+
+        # Set per-widget during widget_data() for GenericVizBuilder access
+        self._current_metric_id: int | None = None
 
     def ensure_defaults(self, user_id: int) -> list[DashboardWidget]:
         existing = self._widget_repo.find_by_user(user_id)
@@ -341,20 +620,24 @@ class DashboardWidgetService:
 
     def widget_data(
         self, widget: DashboardWidget, user_id: int, date: str | None = None
-    ) -> dict:
+    ) -> WidgetViz:
+        """Build a WidgetViz for a single widget.
+
+        Always returns a WidgetViz with at least ``title`` and ``type``
+        set — even when no data exists (``empty=True``).
+        """
         metric = self._metric_type_repo.get_by_id(widget.metric_type_id)
         if metric is None:
-            return {
-                "widget": widget,
-                "metric": None,
-                "empty": True,
-                "empty_text": "Unknown metric",
-            }
+            return WidgetViz(
+                type="number",
+                title=f"Metric #{widget.metric_type_id}",
+                empty=True,
+                empty_text="Unknown metric",
+            )
 
         sd = metric.source_data_type
         today_str = datetime.today().strftime("%Y-%m-%d")
         target = date if date else today_str
-        ctx: dict = {"widget": widget, "metric": metric, "display_date": target}
 
         try:
             config = json.loads(widget.config_json)
@@ -362,39 +645,38 @@ class DashboardWidgetService:
             config = {}
         viz_type = config.get("viz_type") or _VIZ_TYPE_DEFAULTS.get(sd or "", "number")
 
-        viz = self._build_viz(
-            sd, user_id, target, metric.color if metric.color else "#64748b"
-        )
+        builder = _VIZ_BUILDERS.get(sd or "")
+        if builder is None:
+            builder = GenericVizBuilder(title=metric.name, unit=metric.unit)
+            self._current_metric_id = widget.metric_type_id
+
+        try:
+            viz = builder.build(self, user_id=user_id, target=target, color=metric.color or "#64748b")
+        except Exception:
+            logger.exception("Error building viz for widget %s (sd=%s)", widget.id, sd)
+            viz = None
+
+        self._current_metric_id = None
+
         if viz is None:
-            ctx["empty"] = True
-            ctx["empty_text"] = _EMPTY_TEXTS.get(sd or "", "No data recorded yet.")
-            return ctx
+            return WidgetViz(
+                type=viz_type,
+                title=metric.name,
+                icon=metric.icon,
+                color=metric.color,
+                empty=True,
+                empty_text=_EMPTY_TEXTS.get(sd or "", "No data recorded yet."),
+            )
 
-        viz["type"] = viz_type
-        ctx["viz"] = viz
-        ctx["empty"] = False
-        return ctx
+        # Override viz type with configured type (allows user to change display)
+        viz.type = viz_type
+        viz.icon = metric.icon
+        viz.color = metric.color or viz.color
+        return viz
 
     # ------------------------------------------------------------------
-    #  Viz builders
+    #  Helpers used by VizBuilder strategies
     # ------------------------------------------------------------------
-
-    def _build_viz(
-        self, sd: str | None, user_id: int, target: str, color: str
-    ) -> dict | None:
-        if sd == "steps":
-            return self._build_steps_viz(user_id, target, color)
-        if sd == "heart_rate":
-            return self._build_heart_rate_viz(user_id, target, color)
-        if sd == "sleep":
-            return self._build_sleep_viz(user_id, target, color)
-        if sd == "nutrition":
-            return self._build_nutrition_viz(user_id, target, color)
-        if sd == "weight":
-            return self._build_weight_viz(user_id, target, color)
-        if sd == "exercise":
-            return self._build_exercise_viz(user_id, target, color)
-        return None
 
     def _resolve_goal(self, user_id: int, source_data_type: str) -> Goal | None:
         if self._goals_cache is None:
@@ -413,196 +695,3 @@ class DashboardWidgetService:
                 daily_goals.append(g)
         daily_goals.sort(key=lambda g: g.created_at, reverse=True)
         return daily_goals[0] if daily_goals else None
-
-    def _build_steps_viz(self, user_id: int, target: str, color: str) -> dict | None:
-        trend = self._activity.steps_trend(days=1, user_id=user_id, date=target)
-        today = trend[-1] if trend else None
-        if not today or today.count <= 0:
-            return None
-
-        yesterday_trend = self._activity.steps_trend(
-            days=1, user_id=user_id, date=_yesterday(target)
-        )
-        yesterday = yesterday_trend[-1] if yesterday_trend else None
-
-        goal = self._resolve_goal(user_id, "steps")
-        base: dict = {
-            "primary_label": "Schritte",
-            "primary_value": f"{today.count:,}",
-            "primary_unit": "steps",
-            "sub": "today",
-            "delta": _delta_str(
-                today.count, yesterday.count if yesterday else None, is_integer=True
-            ),
-            "color": color,
-        }
-        if goal is not None:
-            progress = self._goal.progress(goal)
-            base["has_goal"] = True
-            base["goal"] = int(goal.target_value)
-            base["target_label"] = f"Ziel: {int(goal.target_value):,} / Tag"
-            base["percent"] = progress.percent
-        else:
-            base["has_goal"] = False
-        return base
-
-    def _build_heart_rate_viz(
-        self, user_id: int, target: str, color: str
-    ) -> dict | None:
-        hr = self._activity.heart_rate_summary(user_id=user_id, date_str=target)
-        if not hr:
-            return None
-
-        yesterday_hr = self._activity.heart_rate_summary(
-            user_id=user_id, date_str=_yesterday(target)
-        )
-        timeline = self._activity.heart_rate_timeline(user_id=user_id, date_str=target)
-
-        goal = self._resolve_goal(user_id, "heart_rate")
-        target_bpm = (
-            goal.target_value if goal and goal.direction.value == "decrease" else None
-        )
-        chart = _compute_pill_chart(timeline, hr.resting_bpm, color, target_bpm)
-
-        base: dict = {
-            "primary_value": f"{hr.resting_bpm:.0f}",
-            "primary_unit": "bpm",
-            "primary_label": "Puls",
-            "delta": _delta_str(
-                hr.resting_bpm,
-                yesterday_hr.resting_bpm if yesterday_hr else None,
-                unit=" bpm",
-                is_integer=True,
-                up_is_good=False,
-            ),
-            "stats_line": (
-                f"Min {hr.min_bpm} &middot; Max {hr.max_bpm}"
-                f" &middot; &Oslash; {hr.avg_bpm:.0f}"
-            ),
-            "chart": chart,
-            "color": color,
-        }
-        if goal is not None:
-            progress = self._goal.progress(goal)
-            base["has_goal"] = True
-            base["goal"] = int(goal.target_value)
-            base["target_label"] = f"Ziel: <{int(goal.target_value)} bpm"
-            base["percent"] = progress.percent
-            base["goal_direction"] = goal.direction.value
-        else:
-            base["has_goal"] = False
-        return base
-
-    def _build_sleep_viz(self, user_id: int, target: str, color: str) -> dict | None:
-        sl = self._sleep.last_night(user_id=user_id, date_str=target)
-        if not sl:
-            return None
-
-        yesterday_sleep = self._sleep.last_night(
-            user_id=user_id, date_str=_yesterday(target)
-        )
-        segments = _rounded_segments(
-            [
-                ("Deep", sl.deep_seconds, "segment-deep"),
-                ("REM", sl.rem_seconds, "segment-rem"),
-                ("Light", sl.light_seconds, "segment-light"),
-                ("Awake", sl.awake_seconds, "segment-awake"),
-            ]
-        )
-        for seg in segments:
-            label = seg["label"]
-            pct = seg["pct"]
-            seg["label"] = f"{label}: {pct:.0f}%"
-
-        return {
-            "primary_label": "Schlaf",
-            "primary_value": f"{sl.duration_hours:.1f}",
-            "primary_unit": "h",
-            "delta": _delta_str(
-                sl.duration_hours,
-                yesterday_sleep.duration_hours if yesterday_sleep else None,
-                unit="h",
-            ),
-            "segments": segments,
-            "color": color,
-        }
-
-    def _build_nutrition_viz(
-        self, user_id: int, target: str, color: str
-    ) -> dict | None:
-        n = self._nutrition.today(user_id=user_id, date_str=target)
-        if not n:
-            return None
-
-        yesterday_n = self._nutrition.today(
-            user_id=user_id, date_str=_yesterday(target)
-        )
-        total = n.protein_g + n.carbs_g + n.fat_g
-        segments = (
-            _rounded_segments(
-                [
-                    ("Protein", n.protein_g, "segment-protein"),
-                    ("Carbs", n.carbs_g, "segment-carbs"),
-                    ("Fat", n.fat_g, "segment-fat"),
-                ]
-            )
-            if total > 0
-            else []
-        )
-        for seg in segments:
-            label = seg["label"]
-            if label == "Protein":
-                seg["label"] = f"Protein: {n.protein_g:.0f}g"
-            elif label == "Carbs":
-                seg["label"] = f"Carbs: {n.carbs_g:.0f}g"
-            elif label == "Fat":
-                seg["label"] = f"Fat: {n.fat_g:.0f}g"
-
-        return {
-            "primary_label": "Ernährung",
-            "primary_value": f"{n.total_kcal:.0f}",
-            "primary_unit": "kcal",
-            "delta": _delta_str(
-                n.total_kcal,
-                yesterday_n.total_kcal if yesterday_n else None,
-                unit=" kcal",
-                is_integer=True,
-            ),
-            "segments": segments,
-            "color": color,
-        }
-
-    def _build_weight_viz(self, user_id: int, target: str, color: str) -> dict | None:
-        w = self._weight.current(user_id=user_id, date_str=target)
-        if not w:
-            return None
-
-        yesterday_w = self._weight.current(user_id=user_id, date_str=_yesterday(target))
-        return {
-            "primary_label": "Gewicht",
-            "primary_value": f"{w.weight_kg:.1f}",
-            "primary_unit": "kg",
-            "delta": _delta_str(
-                w.weight_kg,
-                yesterday_w.weight_kg if yesterday_w else None,
-                unit=" kg",
-                up_is_good=False,
-            ),
-            "color": color,
-        }
-
-    def _build_exercise_viz(self, user_id: int, target: str, color: str) -> dict | None:
-        sessions = self._activity.exercise_history(days=7, user_id=user_id, limit=5)
-        target_sessions = [s for s in sessions if s.date == target]
-        if not target_sessions:
-            return None
-
-        total_min = sum(s.duration_seconds for s in target_sessions) / 60
-        names = set(s.type_name for s in target_sessions)
-        return {
-            "primary_label": "Training",
-            "primary_value": f"{total_min:.0f}",
-            "primary_unit": "min",
-            "sub": ", ".join(names),
-            "color": color,
-        }

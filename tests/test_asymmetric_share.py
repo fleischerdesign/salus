@@ -23,10 +23,15 @@ def clean_db():
 def auth_client():
     from salus.main import app
     import uuid
+
     username = f"alice_asym_{uuid.uuid4().hex[:6]}"
     with TestClient(app) as client:
-        client.post("/auth/register", data={"username": username, "password": "password123"})
-        client.post("/auth/login", data={"username": username, "password": "password123"})
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={"username": username, "password": "password123"},
+        )
+        token = resp.json()["token"]
+        client.headers = {"Authorization": f"Bearer {token}"}
         yield client
 
 
@@ -69,12 +74,7 @@ def test_recipient_crud_and_asymmetric_share_flow(clean_db, auth_client):
     public_share = get_resp.json()
     assert public_share["encrypted_data"] == "base64-payload-here"
 
-    # 5. Render share view page
-    html_resp = public_client.get(f"/share/doctor/{share['id']}")
-    assert html_resp.status_code == 200
-    assert "Decrypt Health Record" in html_resp.text
-
-    # 6. Delete share
+    # 5. Delete share
     del_resp = auth_client.delete(f"/api/v1/shares/asymmetric/{share['id']}")
     assert del_resp.status_code == 204
 

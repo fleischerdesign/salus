@@ -27,6 +27,7 @@ class MeasurementRepository(Repository[Measurement]):
         stmt = select(Measurement).where(
             Measurement.metric_type_id == metric_type_id,
             Measurement.user_id == user_id,
+            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue]
         )
         count_stmt = (
             select(func.count())
@@ -34,6 +35,7 @@ class MeasurementRepository(Repository[Measurement]):
             .where(
                 Measurement.metric_type_id == metric_type_id,
                 Measurement.user_id == user_id,
+                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue]
             )
         )
         total = self.session.exec(count_stmt).one()
@@ -64,6 +66,7 @@ class MeasurementRepository(Repository[Measurement]):
             .where(
                 Measurement.metric_type_id == metric_type_id,
                 Measurement.user_id == user_id,
+                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue]
             )
         )
         return self.session.exec(count_stmt).one()
@@ -76,6 +79,7 @@ class MeasurementRepository(Repository[Measurement]):
             .where(
                 Measurement.metric_type_id == metric_type_id,
                 Measurement.user_id == user_id,
+                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue]
             )
             .order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
             .limit(1)

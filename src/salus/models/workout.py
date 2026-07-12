@@ -30,6 +30,12 @@ class Exercise(SQLModel, table=True):
 
     # Ownership (null if system-default)
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
 
 class WorkoutPlan(SQLModel, table=True):
@@ -51,6 +57,7 @@ class WorkoutPlan(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)}
     )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relations
     plan_exercises: list["WorkoutPlanExercise"] = Relationship(
@@ -77,6 +84,12 @@ class WorkoutPlanExercise(SQLModel, table=True):
     # Per-exercise exemption toggle
     is_autoreg_exempt: bool = Field(default=False)
     rest_seconds: Optional[int] = Field(default=None)
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relations
     plan: "WorkoutPlan" = Relationship(back_populates="plan_exercises")
@@ -98,6 +111,12 @@ class WorkoutSession(SQLModel, table=True):
     autoreg_mode: str = Field(default="advisory")
     recovery_score: Optional[float] = Field(default=None)
     notes: Optional[str] = Field(default=None)
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relations
     logs: list["WorkoutLogEntry"] = Relationship(
@@ -120,6 +139,12 @@ class WorkoutLogEntry(SQLModel, table=True):
     weight: float
     reps: int
     rpe: Optional[float] = Field(default=None)  # Actual RPE logged
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relations
     session: "WorkoutSession" = Relationship(back_populates="logs")

@@ -11,6 +11,8 @@ class MetricTypeResponse(BaseModel):
     unit: str
     data_type: DataType
     color: str
+    icon: str
+    is_system: bool
 
 
 class EntryResponse(BaseModel):
@@ -19,6 +21,27 @@ class EntryResponse(BaseModel):
     value: str
     timestamp: datetime
     notes: str | None
+
+
+class EntryUpdate(BaseModel):
+    value: str | None = None
+    timestamp: datetime | None = None
+    notes: str | None = None
+
+
+class MetricOverviewResponse(BaseModel):
+    metric_id: int
+    latest_value: str | None
+    latest_date: str | None
+    entry_count: int
+
+
+class EntryListResponse(BaseModel):
+    entries: list[EntryResponse]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
 
 
 class HealthRecordResponse(BaseModel):

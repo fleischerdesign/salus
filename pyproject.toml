@@ -5,12 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "salus"
 version = "0.1.0"
-description = "A health data tracker built with FastAPI, Jinja2, and HTMX"
+description = "A health data tracker built with FastAPI and SvelteKit"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
-    "jinja2",
     "sqlmodel",
     "python-multipart",
     "pydantic-settings",

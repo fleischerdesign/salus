@@ -1,7 +1,0 @@
-/* ==========================================================================
-   Form Layout — @component form-layout
-   ========================================================================== */
-.form-stack { display: flex; flex-direction: column; gap: 16px; }
-.form-row { display: flex; gap: 16px; }
-.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-@media (max-width: 600px) { .form-row { flex-direction: column; } .form-actions { flex-direction: column; } }

@@ -1,6 +1,0 @@
-{# vim: set ft=htmldjango: Chip Row #}
-{% macro chip_row(id=none, style=none, class=none) %}
-    <div class="chip-row{% if class %} {{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %} {% if style %}style="{{ style }}"{% endif %}>
-        {% if caller is defined %}{{ caller() }}{% endif %}
-    </div>
-{% endmacro %}

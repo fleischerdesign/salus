@@ -1,7 +1,0 @@
-{% set install_btn = btn(_("Install Plugin"), variant="primary", size="sm", hx_get="/admin/plugins/upload-modal", hx_target="#modal-container", hx_swap="innerHTML") %}
-{% call card(title=_("Developer Plugins"), header_action=install_btn) %}
-    <div id="admin-plugins-container">
-        {% include "components/admin/plugin_table.html" %}
-    </div>
-{% endcall %}
-

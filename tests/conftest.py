@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy.pool import StaticPool
 
 from salus.database import get_session
-from salus.main import app, templates
+from salus.main import app
 from salus.models.user import User
 from salus.repositories.system_config import SystemConfigRepository
 from salus.services.config import ConfigService
@@ -60,10 +60,10 @@ def client():
     SQLModel.metadata.create_all(engine)
 
     def override_get_session():
-        return Session(engine)
+        with Session(engine) as session:
+            yield session
 
     app.dependency_overrides[get_session] = override_get_session
-    app.state.templates = templates
     app.state.engine = engine
 
     _seed_admin(Session(engine))
@@ -82,15 +82,17 @@ def client():
 
 @pytest.fixture
 def authenticated_client(client):
-    """Registered + logged-in user."""
-    client.post(
-        "/auth/register",
-        data={
+    """Registered + logged-in user via JSON API, stores JWT for Bearer auth."""
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={
             "username": "alice",
             "password": "secret123",
             "email": "alice@example.com",
             "display_name": "Alice",
         },
-        follow_redirects=True,
     )
+    data = resp.json()
+    token = data.get("token", "")
+    client.headers = {"Authorization": f"Bearer {token}"}
     return client

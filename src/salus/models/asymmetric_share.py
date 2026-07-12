@@ -14,6 +14,11 @@ class ShareRecipient(SQLModel, table=True):
     name: str
     public_key: str  # PEM format RSA public key
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relationships
     user: "User" = Relationship(back_populates="share_recipients")
@@ -33,6 +38,11 @@ class AsymmetricShare(SQLModel, table=True):
     encrypted_key: str  # Base64 encoded AES key encrypted with recipient's public key
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     # Relationships
     user: "User" = Relationship(back_populates="asymmetric_shares")

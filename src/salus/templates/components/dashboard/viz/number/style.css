@@ -1,5 +1,0 @@
-/* ==========================================================================
-   Viz Number — @component viz-number
-   ========================================================================== */
-.viz-number { display: flex; flex-direction: column; gap: 4px; }
-.viz-number__row { display: flex; align-items: flex-start; gap: 12px; }

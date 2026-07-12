@@ -60,3 +60,18 @@ jobs:
         run: nix develop --command uv run pytest -v
         env:
           SALUS_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/salus_test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: DeterminateSystems/magic-nix-cache-action@v14
+      - name: Install dependencies
+        run: nix develop --command bash -c "cd frontend && npm ci"
+      - name: Build
+        run: nix develop --command bash -c "cd frontend && npm run build"
+      - name: Type check
+        run: nix develop --command bash -c "cd frontend && npm run check"

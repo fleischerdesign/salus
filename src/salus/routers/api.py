@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -10,7 +9,12 @@ from salus.dependencies import (
 )
 from salus.models.user import User
 from salus.schemas import MetricTypeCreate
-from salus.schemas.api import EntryResponse, HealthRecordResponse, MetricTypeResponse
+from salus.schemas.api import (
+    EntryListResponse,
+    EntryResponse,
+    EntryUpdate,
+    MetricTypeResponse,
+)
 from salus.schemas.measurement import MeasurementCreate
 from salus.services._helpers import uid
 from salus.services.measurement import MeasurementService
@@ -19,12 +23,39 @@ from salus.services.metric_type import MetricTypeService
 router = APIRouter(prefix="/api/v1")
 
 
+def _metric_response(m) -> MetricTypeResponse:
+    return MetricTypeResponse(
+        id=m.id,
+        name=m.name,
+        unit=m.unit,
+        data_type=m.data_type,
+        color=m.color,
+        icon=m.icon,
+        is_system=m.is_system,
+    )
+
+
+def _entry_response(e) -> EntryResponse:
+    return EntryResponse(
+        id=e.id or 0,
+        metric_type_id=e.metric_type_id or 0,
+        value=e.display_value,
+        timestamp=e.start_time,
+        notes=e.notes,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Metrics
+# ---------------------------------------------------------------------------
+
+
 @router.get("/metrics", response_model=list[MetricTypeResponse])
 async def api_list_metrics(
     current_user: User = Depends(get_current_user_or_api),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
-    return metric_svc.find_all(uid(current_user))
+    return [_metric_response(m) for m in metric_svc.find_all(uid(current_user))]
 
 
 @router.post("/metrics", response_model=MetricTypeResponse, status_code=201)
@@ -34,14 +65,8 @@ async def api_create_metric(
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
     result = metric_svc.create(data, uid(current_user))
-    assert result.id is not None
-    return MetricTypeResponse(
-        id=result.id,
-        name=result.name,
-        unit=result.unit,
-        data_type=result.data_type,
-        color=result.color,
-    )
+    return _metric_response(result)
+
 
 
 @router.get("/metrics/{metric_id}", response_model=MetricTypeResponse)
@@ -51,14 +76,7 @@ async def api_get_metric(
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
     result = metric_svc.get(metric_id, uid(current_user))
-    assert result.id is not None
-    return MetricTypeResponse(
-        id=result.id,
-        name=result.name,
-        unit=result.unit,
-        data_type=result.data_type,
-        color=result.color,
-    )
+    return _metric_response(result)
 
 
 @router.put("/metrics/{metric_id}", response_model=MetricTypeResponse)
@@ -69,14 +87,7 @@ async def api_update_metric(
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
     result = metric_svc.update(metric_id, uid(current_user), data)
-    assert result.id is not None
-    return MetricTypeResponse(
-        id=result.id,
-        name=result.name,
-        unit=result.unit,
-        data_type=result.data_type,
-        color=result.color,
-    )
+    return _metric_response(result)
 
 
 @router.delete("/metrics/{metric_id}", status_code=204)
@@ -89,28 +100,34 @@ async def api_delete_metric(
     return Response(status_code=204)
 
 
-@router.get("/entries", response_model=list[EntryResponse])
+# ---------------------------------------------------------------------------
+# Entries
+# ---------------------------------------------------------------------------
+
+
+@router.get("/entries", response_model=EntryListResponse)
 async def api_list_entries(
     metric_type_id: int | None = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=1, le=100),
     current_user: User = Depends(get_current_user_or_api),
     measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):
     user_id = uid(current_user)
-    entries = (
-        measurement_svc.find_by_metric_type(metric_type_id, user_id)
-        if metric_type_id
-        else []
-    )
-    return [
-        EntryResponse(
-            id=e.id or 0,
-            metric_type_id=e.metric_type_id or 0,
-            value=e.display_value,
-            timestamp=e.start_time,
-            notes=e.notes,
+    if not metric_type_id:
+        return EntryListResponse(
+            entries=[], total=0, page=page, per_page=per_page, total_pages=1
         )
-        for e in entries
-    ]
+    entries, total, total_pages = measurement_svc.find_by_metric_type_paginated(
+        metric_type_id, user_id, page=page, per_page=per_page
+    )
+    return EntryListResponse(
+        entries=[_entry_response(e) for e in entries],
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
+    )
 
 
 @router.post("/entries", response_model=EntryResponse, status_code=201)
@@ -121,37 +138,31 @@ async def api_create_entry(
     measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):
     result = measurement_svc.create(data, metric_type_id, uid(current_user))
-    assert result.id is not None
-    return EntryResponse(
-        id=result.id,
-        metric_type_id=result.metric_type_id or 0,
-        value=result.display_value,
-        timestamp=result.start_time,
-        notes=result.notes,
-    )
+    return _entry_response(result)
 
 
-@router.get("/health", response_model=list[HealthRecordResponse])
-async def api_list_health(
-    data_types: str = Query(None, description="Comma-separated"),
-    since: str | None = Query(None),
-    until: str | None = Query(None),
-    limit: int = Query(100, le=1000),
+@router.put("/entries/{entry_id}", response_model=EntryResponse)
+async def api_update_entry(
+    entry_id: int,
+    data: EntryUpdate,
+    current_user: User = Depends(get_current_user_or_api),
     measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):
-    types = data_types.split(",") if data_types else None
-    dt_since = datetime.fromisoformat(since) if since else None
-    dt_until = datetime.fromisoformat(until) if until else None
-    records = measurement_svc.repo.find_all(
-        data_types=types, since=dt_since, until=dt_until, limit=limit
+    existing = measurement_svc.get(entry_id, uid(current_user))
+    create_data = MeasurementCreate(
+        value=data.value if data.value is not None else existing.display_value,
+        timestamp=data.timestamp,
+        notes=data.notes,
     )
-    return [
-        HealthRecordResponse(
-            id=str(r.id or 0),
-            data_type=r.data_type,
-            start_time=r.start_time.isoformat(),
-            end_time=r.end_time.isoformat() if r.end_time else "",
-            value=r.value_json or r.value_text or str(r.value_numeric or ""),
-        )
-        for r in records
-    ]
+    result = measurement_svc.update(entry_id, uid(current_user), create_data)
+    return _entry_response(result)
+
+
+@router.delete("/entries/{entry_id}", status_code=204)
+async def api_delete_entry(
+    entry_id: int,
+    current_user: User = Depends(get_current_user_or_api),
+    measurement_svc: MeasurementService = Depends(get_measurement_service),
+):
+    measurement_svc.delete(entry_id, uid(current_user))
+    return Response(status_code=204)

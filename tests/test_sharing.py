@@ -1,7 +1,5 @@
 import pytest
-import json
-from datetime import datetime, timezone, date
-from pathlib import Path
+from datetime import datetime, timezone
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
@@ -9,7 +7,7 @@ from fastapi.testclient import TestClient
 from salus.models.user import User as UserModel
 from salus.models import MetricType, DataType
 from salus.models.measurement import Measurement
-from salus.models.sharing import ConnectionStatus, SharingRelationship
+from salus.models.sharing import ConnectionStatus
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.sharing import SharingService
 from salus.services.leaderboard import LeaderboardService
@@ -278,7 +276,6 @@ def test_resolution_requires_acceptance(seeded_users):
             data_type="steps", date_str="2026-07-02",
         )
 
-    # Accept then retry
     with uow:
         rels = uow.sharing_relationships.find_by_owner(owner_id)
         rel = rels[0]
@@ -360,13 +357,11 @@ def test_get_peer_connections_mutual(seeded_users):
         assert grantee_metric.id is not None
         grantee_metric_id = grantee_metric.id
 
-    # Owner -> Grantee
     rel1 = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
     )
     svc.accept_relationship(grantee_id, rel1.id)
 
-    # Grantee -> Owner
     rel2 = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
         metric_type_id=grantee_metric_id,
@@ -376,7 +371,6 @@ def test_get_peer_connections_mutual(seeded_users):
         assert owner_user is not None
     svc.accept_relationship(owner_id, rel2.id)
 
-    # From owner's view: one peer, mutual
     peers = svc.get_peer_connections(owner_id)
     assert len(peers) == 1
     assert peers[0].handle == "@grantee"
@@ -386,7 +380,6 @@ def test_get_peer_connections_mutual(seeded_users):
 
 def test_get_peer_connections_incoming(seeded_users):
     svc = SharingService(seeded_users["uow"])
-    uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -396,7 +389,6 @@ def test_get_peer_connections_incoming(seeded_users):
     )
     svc.accept_relationship(grantee_id, rel.id)
 
-    # From grantee's view: one incoming peer
     peers = svc.get_peer_connections(grantee_id)
     assert len(peers) == 1
     assert peers[0].handle == "@owner"
@@ -481,7 +473,6 @@ def test_federated_api_endpoint(session: Session):
     token = rel.raw_token
 
     with TestClient(app) as client:
-        # Pending relationship — should NOT have access yet
         response = client.get(
             "/api/v1/federation/sharing",
             params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
@@ -489,7 +480,6 @@ def test_federated_api_endpoint(session: Session):
         )
         assert response.status_code == 401
 
-    # Accept via direct status update (simulating federation accept callback)
     with uow:
         db_rel = uow.sharing_relationships.get_by_id(rel.id)
         assert db_rel is not None
@@ -509,7 +499,6 @@ def test_federated_api_endpoint(session: Session):
         assert len(res_data["data"]) == 1
         assert res_data["data"][0]["value_numeric"] == 9500.0
 
-        # Invalid token
         response = client.get(
             "/api/v1/federation/sharing",
             params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
@@ -573,10 +562,10 @@ def test_federation_accept_endpoint(session: Session):
 
 
 # ---------------------------------------------------------------------------
-# Sharing POST route
+# Sharing API routes (JSON)
 # ---------------------------------------------------------------------------
 
-def test_sharing_post_route():
+def test_sharing_connections_api():
     from salus.main import app
     from salus.dependencies import get_session, get_current_user
 
@@ -596,45 +585,57 @@ def test_sharing_post_route():
             name="Steps", unit="steps", data_type=DataType.NUMBER,
             user_id=owner_id, is_system=True, source_data_type="steps",
         )
-        m2 = MetricType(
-            name="Weight", unit="kg", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="weight",
-        )
         uow.metric_types.add(m1)
-        uow.metric_types.add(m2)
         uow.commit()
         assert m1.id is not None
-        assert m2.id is not None
         m1_id = m1.id
-        m2_id = m2.id
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
     app.dependency_overrides[get_current_user] = lambda: owner
 
     with TestClient(app) as client:
         response = client.post(
-            "/sharing",
-            data={
+            "/api/v1/sharing/connections",
+            json={
                 "grantee_handle": "@grantee:external.com",
-                "metric_type_ids": [str(m1_id), str(m2_id)],
-                f"aggregation_level_{m1_id}": "raw",
-                f"aggregation_level_{m2_id}": "daily_summary",
+                "metric_type_id": m1_id,
+                "aggregation_level": "raw",
             },
-            follow_redirects=False,
         )
-        assert response.status_code == 200
-        assert "Sharing Invitation Created for" in response.text
+        assert response.status_code == 201
+        data = response.json()
+        assert data["grantee_handle"] == "@grantee:external.com"
 
-        with uow:
-            rels = uow.sharing_relationships.find_by_owner(owner_id)
-            assert len(rels) == 2
-            # Both are pending
-            assert all(r.status == ConnectionStatus.PENDING for r in rels)
-            assert {r.metric_type_id for r in rels} == {m1_id, m2_id}
-            m1_rel = next(r for r in rels if r.metric_type_id == m1_id)
-            m2_rel = next(r for r in rels if r.metric_type_id == m2_id)
-            assert m1_rel.aggregation_level == "raw"
-            assert m2_rel.aggregation_level == "daily_summary"
+        response = client.get("/api/v1/sharing/connections")
+        assert response.status_code == 200
+        connections = response.json()
+        assert len(connections) == 1
+        assert connections[0]["handle"] == "@grantee:external.com"
+
+    app.dependency_overrides.clear()
+
+
+def test_sharing_feed_api():
+    from salus.main import app
+    from salus.dependencies import get_session, get_current_user
+
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    uow = SqlUnitOfWork(Session(engine))
+    with uow:
+        user = UserModel(username="testuser", password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+
+    app.dependency_overrides[get_session] = lambda: Session(engine)
+    app.dependency_overrides[get_current_user] = lambda: user
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/sharing/feed")
+        assert response.status_code == 200
 
     app.dependency_overrides.clear()
 
@@ -665,8 +666,6 @@ def test_sharing_expiration_after_acceptance(seeded_users):
     )
     svc.accept_relationship(grantee_id, rel.id)
 
-    # Access should be denied due to expiration (even though status is active,
-    # get_active_relationship checks expiration date)
     with pytest.raises(PermissionError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
@@ -674,7 +673,6 @@ def test_sharing_expiration_after_acceptance(seeded_users):
             date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         )
 
-    # Remove expiration
     with uow:
         db_rel = uow.sharing_relationships.get_by_id(rel.id)
         assert db_rel is not None
@@ -730,7 +728,6 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     leaderboard_svc = LeaderboardService(uow)
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
 
     with uow:
         grantee_metric = MetricType(
@@ -748,19 +745,16 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     )
     assert group.id is not None
 
-    # Without connection: should fail
     with pytest.raises(PermissionError) as exc_info:
         leaderboard_svc.join_by_code(grantee_id, group.invite_code)
     assert "connected" in str(exc_info.value)
 
-    # Create and accept sharing relationship
     rel = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
         metric_type_id=grantee_metric_id,
     )
     svc.accept_relationship(owner_id, rel.id)
 
-    # Now join should succeed
     joined = leaderboard_svc.join_by_code(grantee_id, group.invite_code)
     assert joined.id == group.id
 
@@ -820,10 +814,10 @@ def test_leaderboard_rankings(seeded_users):
 
 
 # ---------------------------------------------------------------------------
-# Leaderboard routes
+# Leaderboard API routes
 # ---------------------------------------------------------------------------
 
-def test_leaderboard_routes():
+def test_leaderboard_api_routes():
     from salus.main import app
     from salus.dependencies import get_session, get_current_user
 
@@ -855,38 +849,25 @@ def test_leaderboard_routes():
 
     with TestClient(app) as client:
         app.dependency_overrides[get_current_user] = lambda: creator
-        response = client.get("/sharing/leaderboard")
+
+        response = client.get("/api/v1/sharing/leaderboard")
         assert response.status_code == 200
+        assert response.json() == []
 
         response = client.post(
-            "/sharing/leaderboard/create",
-            data={
+            "/api/v1/sharing/leaderboard",
+            json={
                 "name": "Step Challenge 2026",
                 "metric_type_code": "steps",
                 "time_frame": "weekly",
             },
-            follow_redirects=False,
         )
-        assert response.status_code == 303
-        redirect_url = response.headers["location"]
-        group_id = int(redirect_url.split("/")[-1])
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "Step Challenge 2026"
+        group_id = data["id"]
 
-        with uow:
-            group = uow.leaderboard_groups.get_by_id(group_id)
-            assert group is not None
-            invite_code = group.invite_code
-
-        # Invitee tries to join without connection -> redirect with error
         app.dependency_overrides[get_current_user] = lambda: invitee
-        response = client.post(
-            "/sharing/leaderboard/join",
-            data={"invite_code": invite_code},
-            follow_redirects=False,
-        )
-        assert response.status_code == 303
-        assert "error=" in response.headers["location"]
-
-        # Create and accept connection
         svc = SharingService(uow)
         rel = svc.create_relationship(
             owner_id=invitee_id, grantee_handle="@creator",
@@ -894,93 +875,42 @@ def test_leaderboard_routes():
         )
         svc.accept_relationship(creator_id, rel.id)
 
-        # Now join succeeds
         response = client.post(
-            "/sharing/leaderboard/join",
-            data={"invite_code": invite_code},
-            follow_redirects=False,
+            f"/api/v1/sharing/leaderboard/{group_id}/join",
+            json={"invite_code": data["invite_code"]},
         )
-        assert response.status_code == 303
-        assert response.headers["location"] == f"/sharing/leaderboard/{group_id}"
+        assert response.status_code == 200
 
-        # Leave
-        response = client.post(
-            f"/sharing/leaderboard/{group_id}/leave",
-            follow_redirects=False,
-        )
-        assert response.status_code == 303
-        assert response.headers["location"] == "/sharing/leaderboard"
+        response = client.post(f"/api/v1/sharing/leaderboard/{group_id}/leave")
+        assert response.status_code == 204
 
-        # Creator deletes
         app.dependency_overrides[get_current_user] = lambda: creator
-        response = client.post(
-            f"/sharing/leaderboard/{group_id}/delete",
-            follow_redirects=False,
-        )
-        assert response.status_code == 303
+        response = client.delete(f"/api/v1/sharing/leaderboard/{group_id}")
+        assert response.status_code == 204
 
     app.dependency_overrides.clear()
 
 
 # ---------------------------------------------------------------------------
-# Connections page route
+# Invite QR
 # ---------------------------------------------------------------------------
 
-def test_connections_page():
+def test_invite_qr_route():
     from salus.main import app
-    from salus.dependencies import get_session, get_current_user
-
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
-    )
-    SQLModel.metadata.create_all(engine)
-
-    uow = SqlUnitOfWork(Session(engine))
-    with uow:
-        user = UserModel(username="testuser", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-
-    app.dependency_overrides[get_session] = lambda: Session(engine)
-    app.dependency_overrides[get_current_user] = lambda: user
 
     with TestClient(app) as client:
-        response = client.get("/sharing/connections")
+        response = client.get("/sharing/connections/invite-qr?url=test")
         assert response.status_code == 200
-        assert "Connections" in response.text
-        assert "Invite a Peer" in response.text
-
-    app.dependency_overrides.clear()
+        assert response.headers["content-type"] == "image/png"
 
 
-def test_invite_modal_route():
-    from salus.main import app
-    from salus.dependencies import get_session, get_current_user
-
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
-    )
-    SQLModel.metadata.create_all(engine)
-
-    uow = SqlUnitOfWork(Session(engine))
-    with uow:
-        user = UserModel(username="testuser", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-
-    app.dependency_overrides[get_session] = lambda: Session(engine)
-    app.dependency_overrides[get_current_user] = lambda: user
-
-    with TestClient(app) as client:
-        response = client.get("/sharing/connections/invite-modal")
-        assert response.status_code == 200
-        assert "/sharing/connections/invite-qr" in response.text
-
-    app.dependency_overrides.clear()
-
+# ---------------------------------------------------------------------------
+# Federation cache, notify, webfinger, access log, message signatures
+# ---------------------------------------------------------------------------
 
 def test_federated_measurement_cache_and_ttl():
     from salus.models.sharing import FederatedMeasurementCache
+
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
     )
@@ -995,7 +925,6 @@ def test_federated_measurement_cache_and_ttl():
 
     svc = SharingService(uow)
 
-    # Pre-populate cache for @alice:remote.com
     with uow:
         cache_entry = FederatedMeasurementCache(
             owner_handle="@alice:remote.com",
@@ -1008,10 +937,12 @@ def test_federated_measurement_cache_and_ttl():
         uow.commit()
 
     called_remote = False
+
     def mock_fetch_remote(handle, data_type, date_str):
         nonlocal called_remote
         called_remote = True
         return []
+
     svc._fetch_remote = mock_fetch_remote
 
     data = svc.resolve_and_fetch(bob_id, "@alice:remote.com", "steps", "2026-07-03")
@@ -1019,10 +950,10 @@ def test_federated_measurement_cache_and_ttl():
     assert data[0]["value_numeric"] == 8200.0
     assert not called_remote
 
-    # Expire cache (set fetched_at to 20 minutes ago)
     with uow:
         from sqlmodel import select
         from datetime import timedelta
+
         entry = uow.session.exec(select(FederatedMeasurementCache)).first()
         assert entry is not None
         entry.fetched_at = datetime.now(timezone.utc) - timedelta(minutes=20)
@@ -1077,6 +1008,7 @@ def test_federated_notify_update_route():
 
     def mock_fetch_remote(handle, data_type, date_str):
         return [{"value_numeric": 12000.0}]
+
     svc._fetch_remote = mock_fetch_remote
 
     with TestClient(app) as client:
@@ -1112,7 +1044,7 @@ def test_webfinger_and_actor_discovery():
         user = UserModel(username="bob", password_hash="hash")
         uow.users.add(user)
         uow.commit()
-        bob_id = uid(user)
+        uid(user)
 
     svc = SharingService(uow)
 
@@ -1120,15 +1052,12 @@ def test_webfinger_and_actor_discovery():
     app.dependency_overrides[get_sharing_service] = lambda: svc
 
     with TestClient(app) as client:
-        # Invalid resource scheme
         resp = client.get("/.well-known/webfinger", params={"resource": "invalid_scheme"})
         assert resp.status_code == 400
 
-        # Non-existing user
         resp = client.get("/.well-known/webfinger", params={"resource": "acct:alice@testserver"})
         assert resp.status_code == 404
 
-        # Valid user
         resp = client.get("/.well-known/webfinger", params={"resource": "acct:bob@testserver"})
         assert resp.status_code == 200
         jrd = resp.json()
@@ -1138,14 +1067,12 @@ def test_webfinger_and_actor_discovery():
         actor_url = jrd["links"][0]["href"]
         assert "/api/v1/federation/actors/bob" in actor_url
 
-        # Fetch actor profile
         resp = client.get("/api/v1/federation/actors/bob")
         assert resp.status_code == 200
         profile = resp.json()
         assert profile["preferredUsername"] == "bob"
         assert profile["endpoints"]["sharing"].endswith("/api/v1/federation/sharing")
 
-        # Non-existing profile
         resp = client.get("/api/v1/federation/actors/alice")
         assert resp.status_code == 404
 
@@ -1156,35 +1083,44 @@ def test_webfinger_and_actor_discovery():
         nonlocal called_webfinger, called_actor
         if "/.well-known/webfinger" in url:
             called_webfinger = True
+
             class MockResponse:
                 status_code = 200
+
                 def json(self):
                     return {
                         "subject": "acct:alice@remote.com",
-                        "links": [{"rel": "self", "href": "http://remote.com/api/v1/federation/actors/alice"}]
+                        "links": [{"rel": "self", "href": "http://remote.com/api/v1/federation/actors/alice"}],
                     }
+
                 def raise_for_status(self):
                     pass
+
             return MockResponse()
         elif "/actors/alice" in url:
             called_actor = True
+
             class MockResponse:
                 status_code = 200
+
                 def json(self):
                     return {
                         "preferredUsername": "alice",
                         "endpoints": {
                             "sharing": "http://remote.com/custom/sharing",
                             "accept": "http://remote.com/custom/accept",
-                            "notify": "http://remote.com/custom/notify"
-                        }
+                            "notify": "http://remote.com/custom/notify",
+                        },
                     }
+
                 def raise_for_status(self):
                     pass
+
             return MockResponse()
         raise ValueError(f"Unmocked URL: {url}")
 
     import httpx
+
     original_get = httpx.get
     httpx.get = mock_httpx_get
 
@@ -1244,6 +1180,7 @@ def test_federated_access_log():
 
     with TestClient(app) as client:
         import hashlib
+
         raw_token = "some_raw_token"
         with uow:
             db_rel = uow.sharing_relationships.get_by_id(rel.id)
@@ -1313,13 +1250,14 @@ def test_federated_http_message_signatures():
 
     def mock_resolve_actor_public_key(sender_handle):
         return pub
+
     svc.resolve_actor_public_key = mock_resolve_actor_public_key
 
     url = "http://testserver/api/v1/federation/sharing?owner_username=bob&data_type=steps&date=2026-07-03"
     sig_headers = svc.sign_request(
         sender_handle="@alice:remote.com",
         method="GET",
-        url_str=url
+        url_str=url,
     )
 
     assert "Signature" in sig_headers
@@ -1334,7 +1272,7 @@ def test_federated_http_message_signatures():
         resp = client.get(
             "/api/v1/federation/sharing",
             params={"owner_username": "bob", "data_type": "steps", "date": "2026-07-03"},
-            headers=sig_headers
+            headers=sig_headers,
         )
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"

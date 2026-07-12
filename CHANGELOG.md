@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+* **sync refactor** — comprehensive sync system overhaul for security, completeness, idempotency, pagination, and reactivity
+  * Delta sync with per-entity security filtering (`user_scoped`, `shared_nullable`, `relational`, `global`, `append_only`, `special`)
+  * Cursor-based paginated full sync (`GET /api/v1/sync?cursor=<base64>`)
+  * WritePipeline deduplication via `sync_push_log` table (24h TTL)
+  * UoW auto-commit (Generator `try/yield/except/rollback/else/commit`)
+  * Entity meta single source of truth (`entity_meta.py` derives all registries + validators)
+  * Dynamic entity discovery (`GET /api/v1/sync/entities` + frontend `entity-info.ts`)
+  * Sync protocol versioning (`X-Salus-Sync-Version: 1`)
+  * Conflict resolution with field-level merge (`ConflictDialog` with per-field radio buttons)
+* **live sync via SSE** — real-time cross-device sync without polling
+  * `EventBus` ABC + `InMemoryEventBus` (asyncio `Queue`, maxsize 32)
+  * SSE endpoint (`GET /api/v1/sync/events`) with per-user subscription
+  * Frontend `EventSource` manager with 2s debounce (`live-events.ts`)
+  * Auto-connects after initial `syncAll()`, disconnects on session expiry
+
 ## 0.1.0 (2026-06-30)
 
 

@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 from fastapi import Depends, Header, HTTPException, Request
 from sqlmodel import Session
 
@@ -56,6 +58,7 @@ from salus.services.asymmetric_share import AsymmetricShareService
 from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
+from salus.services.event_bus import EventBus
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -387,8 +390,15 @@ def get_system_config_repo(
     return SystemConfigRepository(session)
 
 
-def get_unit_of_work(session: Session = Depends(get_session)) -> IUnitOfWork:
-    return SqlUnitOfWork(session)
+def get_unit_of_work(session: Session = Depends(get_session)) -> Generator[IUnitOfWork, None, None]:
+    uow = SqlUnitOfWork(session)
+    try:
+        yield uow
+    except Exception:
+        uow.rollback()
+        raise
+    else:
+        uow.commit()
 
 
 def get_config_service(
@@ -559,3 +569,7 @@ def get_data_portability_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> DataPortabilityService:
     return DataPortabilityService(uow)
+
+
+def get_event_bus(request: Request) -> EventBus:
+    return request.app.state.event_bus
