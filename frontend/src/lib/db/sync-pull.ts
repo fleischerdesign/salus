@@ -1,6 +1,6 @@
 import { db } from './database';
 import { getAuthHeaders } from '$lib/api/headers';
-import { fetchEntityNames, getEntityNames } from './entity-info';
+import { fetchEntityNames } from './entity-info';
 
 const SYNC_META_KEYS = new Set([
   'cursors', 'has_more', 'synced_at',
@@ -25,14 +25,20 @@ interface FullSyncResponse {
   [table: string]: unknown;
 }
 
-export async function pullFull(): Promise<boolean | 'unauthorized'> {
+export async function pullFull(
+  onProgress?: (message: string) => void,
+): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   let cursors: Record<string, number> = {};
   let hasMore = true;
   const allRows: Record<string, Record<string, unknown>[]> = {};
   let syncedAt: string | null = null;
+  let batch = 0;
 
   while (hasMore) {
+    batch++;
+    onProgress?.(`Fetching data (batch ${batch})...`);
+
     const cursorParam = Object.keys(cursors).length > 0
       ? `?cursor=${btoa(JSON.stringify(cursors))}`
       : '';
@@ -61,6 +67,8 @@ export async function pullFull(): Promise<boolean | 'unauthorized'> {
     hasMore = data.has_more;
   }
 
+  onProgress?.('Applying changes to local database...');
+
   await db.transaction('rw', db.tables, async () => {
     for (const [table, rows] of Object.entries(allRows)) {
       await db.table(table).clear();
@@ -87,15 +95,21 @@ interface DeltaResponse {
   synced_at: string;
 }
 
-export async function pullDelta(): Promise<boolean | 'unauthorized'> {
+export async function pullDelta(
+  onProgress?: (message: string) => void,
+): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   const last = await db.meta.get('lastSyncAt');
   const since = last?.value as number | undefined;
   const sinceParam = since ? `?since=${new Date(since).toISOString()}` : '';
 
+  onProgress?.('Fetching recent changes...');
+
   const { data, status } = await apiGet<DeltaResponse>(`/api/v1/sync${sinceParam}`);
   if (status === 401) return 'unauthorized';
   if (!data) return false;
+
+  onProgress?.('Applying changes...');
 
   await db.transaction('rw', db.tables, async () => {
     for (const [table, rows] of Object.entries(data.changed)) {

@@ -2,18 +2,26 @@ import { syncEngine } from './sync-engine.svelte';
 import { offlineService } from './offline-service';
 import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
+import { toast, dismissToast, updateToast } from '$components/ui/toast-state.svelte';
 
 let _online = $state(typeof navigator !== 'undefined' ? navigator.onLine : true);
-let _syncing = $state(false);
 let _sessionExpired = $state(false);
+let _syncToastId: number | null = null;
+let _wasOffline = !_online;
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     _online = true;
+    if (_wasOffline) {
+      toast('Connection restored.', 'success', { duration: 4000 });
+    }
+    _wasOffline = false;
     syncEngine.flush();
   });
   window.addEventListener('offline', () => {
     _online = false;
+    _wasOffline = true;
+    toast('You are offline. Changes sync when reconnected.', 'warning', { duration: 4000 });
   });
 }
 
@@ -26,17 +34,8 @@ async function _liveSyncCallback() {
 }
 
 export const useOffline = {
-  get isOnline() {
-    return _online;
-  },
-  get syncing() {
-    return _syncing;
-  },
   get queueLength() {
     return syncEngine.queueLength;
-  },
-  get syncError() {
-    return syncEngine.error;
   },
   get sessionExpired() {
     return _sessionExpired || syncEngine.sessionExpired;
@@ -47,25 +46,38 @@ export const useOffline = {
   stopLiveSync: () => disconnectLiveSync(),
 
   async syncAll(): Promise<void> {
-    _syncing = true;
+    if (_syncToastId !== null) {
+      dismissToast(_syncToastId);
+    }
+
     _sessionExpired = false;
-    const start = Date.now();
+    _syncToastId = toast('Connecting...', 'loading', { persistent: true, progress: true });
+
+    const onProgress = (message: string) => {
+      if (_syncToastId !== null) {
+        updateToast(_syncToastId, message);
+      }
+    };
 
     if ('serviceWorker' in navigator) {
       await navigator.serviceWorker.ready;
     }
 
-    const result = await offlineService.syncAll();
-    if (result === 'unauthorized') {
-      _sessionExpired = true;
-    } else {
-      connectLiveSync(_liveSyncCallback);
+    const result = await offlineService.syncAll(onProgress);
+
+    if (_syncToastId !== null) {
+      dismissToast(_syncToastId);
+      _syncToastId = null;
     }
 
-    const elapsed = Date.now() - start;
-    if (elapsed < 1000) {
-      await new Promise((r) => setTimeout(r, 1000 - elapsed));
+    if (result === 'unauthorized') {
+      _sessionExpired = true;
+      toast('Session expired. Please log in again.', 'error');
+    } else if (result === false) {
+      toast('You are offline. Sync skipped.', 'warning', { duration: 4000 });
+    } else {
+      connectLiveSync(_liveSyncCallback);
+      toast('Sync complete.', 'success', { duration: 3000 });
     }
-    _syncing = false;
   },
 };

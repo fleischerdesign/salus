@@ -17,7 +17,7 @@
   import { goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
   import TopAppBar from '$components/layout/TopAppBar.svelte';
-  import OfflineIndicator from '$components/feedback/OfflineIndicator.svelte';
+  import Toast from '$components/ui/Toast.svelte';
   import ConflictResolver from '$components/feedback/ConflictResolver.svelte';
 
   let { children } = $props();
@@ -102,7 +102,7 @@
       <main class="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 md:px-10">
         {@render children()}
       </main>
-      <OfflineIndicator />
+      <Toast />
       <ConflictResolver />
     </div>
   {/if}
