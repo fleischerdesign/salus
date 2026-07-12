@@ -18,6 +18,10 @@ function isRecordArray(value: unknown): value is Record<string, unknown>[] {
   return Array.isArray(value);
 }
 
+function saturatingProgress(batch: number): number {
+  return 0.05 + 0.55 * (1 - Math.exp(-batch * 0.4));
+}
+
 interface FullSyncResponse {
   cursors: Record<string, number>;
   has_more: boolean;
@@ -26,7 +30,7 @@ interface FullSyncResponse {
 }
 
 export async function pullFull(
-  onProgress?: (message: string) => void,
+  onProgress?: (message: string, progress?: number) => void,
 ): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   let cursors: Record<string, number> = {};
@@ -37,7 +41,7 @@ export async function pullFull(
 
   while (hasMore) {
     batch++;
-    onProgress?.(`Fetching data (batch ${batch})...`);
+    onProgress?.(`Fetching data (batch ${batch})...`, saturatingProgress(batch));
 
     const cursorParam = Object.keys(cursors).length > 0
       ? `?cursor=${btoa(JSON.stringify(cursors))}`
@@ -67,10 +71,15 @@ export async function pullFull(
     hasMore = data.has_more;
   }
 
-  onProgress?.('Applying changes to local database...');
+  const entities = Object.keys(allRows);
+  const total = entities.length;
+  let idx = 0;
 
   await db.transaction('rw', db.tables, async () => {
     for (const [table, rows] of Object.entries(allRows)) {
+      const applyProgress = total > 0 ? 0.6 + (idx / total) * 0.35 : 0.6;
+      onProgress?.(`Saving ${table} (${idx + 1}/${total})...`, applyProgress);
+
       await db.table(table).clear();
 
       if (rows.length > 0) {
@@ -79,6 +88,8 @@ export async function pullFull(
           await db.table(table).bulkPut(rows);
         }
       }
+
+      idx++;
     }
 
     if (syncedAt) {
@@ -96,30 +107,43 @@ interface DeltaResponse {
 }
 
 export async function pullDelta(
-  onProgress?: (message: string) => void,
+  onProgress?: (message: string, progress?: number) => void,
 ): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   const last = await db.meta.get('lastSyncAt');
   const since = last?.value as number | undefined;
   const sinceParam = since ? `?since=${new Date(since).toISOString()}` : '';
 
-  onProgress?.('Fetching recent changes...');
+  onProgress?.('Fetching recent changes...', 0.1);
 
   const { data, status } = await apiGet<DeltaResponse>(`/api/v1/sync${sinceParam}`);
   if (status === 401) return 'unauthorized';
   if (!data) return false;
 
-  onProgress?.('Applying changes...');
+  const changedEntities = Object.entries(data.changed).filter(
+    ([table, rows]) => tableNames.has(table) && isRecordArray(rows) && rows.length > 0,
+  );
+  const deletedEntities = Object.entries(data.deleted).filter(
+    ([table]) => tableNames.has(table),
+  );
+  const totalOps = changedEntities.length + deletedEntities.length;
+  let opIdx = 0;
 
   await db.transaction('rw', db.tables, async () => {
-    for (const [table, rows] of Object.entries(data.changed)) {
-      if (!tableNames.has(table) || !isRecordArray(rows) || rows.length === 0) continue;
+    for (const [table, rows] of changedEntities) {
+      const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+      onProgress?.(`Saving ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
       await db.table(table).bulkPut(rows);
+      opIdx++;
     }
-    for (const [table, ids] of Object.entries(data.deleted)) {
-      if (!tableNames.has(table)) continue;
+
+    for (const [table, ids] of deletedEntities) {
+      const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+      onProgress?.(`Cleaning ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
       await db.table(table).bulkDelete(ids);
+      opIdx++;
     }
+
     await db.meta.put({ key: 'lastSyncAt', value: new Date(data.synced_at).getTime() });
   });
 

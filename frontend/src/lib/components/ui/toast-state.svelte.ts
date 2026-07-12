@@ -9,6 +9,7 @@ interface ToastItem {
   message: string;
   type: 'success' | 'error' | 'info' | 'loading' | 'warning';
   progress?: boolean;
+  progressValue?: number;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -26,7 +27,10 @@ function addToast(
   options: ToastOptions = {},
 ): number {
   const id = nextId++;
-  toasts = [...toasts, { id, message, type, progress: options.progress ?? false }];
+  toasts = [
+    ...toasts,
+    { id, message, type, progress: options.progress ?? false },
+  ];
 
   if (!options.persistent) {
     const duration = options.duration ?? DEFAULT_DURATION;
@@ -52,6 +56,12 @@ export function dismissToast(id: number): void {
 
 export function updateToast(id: number, message: string): void {
   toasts = toasts.map((t) => (t.id === id ? { ...t, message } : t));
+}
+
+export function updateToastProgress(id: number, message: string, value: number): void {
+  toasts = toasts.map((t) =>
+    t.id === id ? { ...t, message, progressValue: value } : t,
+  );
 }
 
 export function getToasts(): ToastItem[] {

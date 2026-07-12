@@ -19,6 +19,11 @@
     loading: 'border-primary-500',
     warning: 'border-warning-700',
   };
+
+  function fillPct(t: { progress?: boolean; progressValue?: number }): number | null {
+    if (!t.progress || t.progressValue == null) return null;
+    return Math.max(0, Math.min(1, t.progressValue)) * 100;
+  }
 </script>
 
 {#if toasts.length > 0}
@@ -29,18 +34,27 @@
   >
     {#each toasts as t (t.id)}
       <div
-        class="flex items-center gap-3 min-w-[280px] max-w-[420px] rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg animate-[slide-in_300ms_ease-out] {colorMap[t.type]} {t.progress ? 'toast-loading' : ''}"
+        class="relative overflow-hidden flex items-center gap-3 min-w-[280px] max-w-[420px] rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg animate-[slide-in_300ms_ease-out] {colorMap[t.type]}"
         role="alert"
       >
+        {#if fillPct(t) !== null}
+          <div
+            class="absolute inset-0 origin-left bg-primary-500/10 transition-transform duration-500 ease-out"
+            style="transform: scaleX({fillPct(t)! / 100})"
+          ></div>
+        {/if}
+
         <Icon
           name={iconMap[t.type]}
           size="md"
-          class={`shrink-0 text-surface-600 ${t.type === 'loading' || t.progress ? 'animate-spin' : ''}`}
+          class="relative z-10 shrink-0 text-surface-600 {t.type === 'loading' || t.progress ? 'animate-spin' : ''}"
         />
-        <span class="flex-1 text-sm text-surface-900">{t.message}</span>
+
+        <span class="relative z-10 flex-1 text-sm text-surface-900">{t.message}</span>
+
         {#if !t.progress}
           <button
-            class="ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-surface-600"
+            class="relative z-10 ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-surface-600"
             onclick={() => dismissToast(t.id)}
             aria-label="Dismiss"
           >
@@ -62,29 +76,5 @@
       opacity: 1;
       transform: translateY(0) scale(1);
     }
-  }
-
-  @keyframes toast-progress {
-    0% {
-      background-position: 200% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  .toast-loading {
-    background:
-      linear-gradient(
-        90deg,
-        oklch(0.511 0.195 290 / 0) 0%,
-        oklch(0.438 0.175 290 / 0.15) 15%,
-        oklch(0.635 0.155 290 / 0.35) 30%,
-        oklch(0.438 0.175 290 / 0.15) 45%,
-        oklch(0.511 0.195 290 / 0) 60%
-      ),
-      var(--color-surface-0);
-    background-size: 200% 100%;
-    animation: toast-progress 2s ease-in-out infinite;
   }
 </style>

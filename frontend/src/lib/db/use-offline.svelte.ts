@@ -2,7 +2,7 @@ import { syncEngine } from './sync-engine.svelte';
 import { offlineService } from './offline-service';
 import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
-import { toast, dismissToast, updateToast } from '$components/ui/toast-state.svelte';
+import { toast, dismissToast, updateToastProgress } from '$components/ui/toast-state.svelte';
 
 let _sessionExpired = $state(false);
 let _syncToastId: number | null = null;
@@ -50,9 +50,9 @@ export const useOffline = {
     _sessionExpired = false;
     _syncToastId = toast('Connecting...', 'loading', { persistent: true, progress: true });
 
-    const onProgress = (message: string) => {
+    const onProgress = (message: string, progress?: number) => {
       if (_syncToastId !== null) {
-        updateToast(_syncToastId, message);
+        updateToastProgress(_syncToastId, message, progress ?? 0);
       }
     };
 
