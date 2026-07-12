@@ -98,5 +98,23 @@ self.addEventListener('fetch', (event) => {
 				}
 			})()
 		);
+		return;
 	}
+
+	event.respondWith(
+		(async () => {
+			const cache = await caches.open(CACHE);
+			const cached = await cache.match(request);
+			if (cached) return cached;
+			try {
+				const response = await fetch(request);
+				if (response.ok) {
+					cache.put(request, response.clone());
+				}
+				return response;
+			} catch {
+				return new Response('', { status: 408 });
+			}
+		})()
+	);
 });

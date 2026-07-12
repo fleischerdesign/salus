@@ -1,18 +1,10 @@
 import { db } from './database';
-import { getAuthHeaders } from '$lib/api/headers';
+import { rawGet } from '$lib/api/client';
 import { fetchEntityNames } from './entity-info';
 
 const SYNC_META_KEYS = new Set([
   'cursors', 'has_more', 'synced_at',
 ]);
-
-async function apiGet<T>(url: string): Promise<{ data: T | null; status: number }> {
-  const headers = { ...getAuthHeaders(), Accept: 'application/json' };
-
-  const res = await fetch(url, { headers });
-  if (!res.ok) return { data: null, status: res.status };
-  return { data: (await res.json()) as T, status: res.status };
-}
 
 function isRecordArray(value: unknown): value is Record<string, unknown>[] {
   return Array.isArray(value);
@@ -46,10 +38,16 @@ export async function pullFull(
     const cursorParam = Object.keys(cursors).length > 0
       ? `?cursor=${btoa(JSON.stringify(cursors))}`
       : '';
-    const { data, status } = await apiGet<FullSyncResponse>(`/api/v1/sync${cursorParam}`);
 
-    if (status === 401) return 'unauthorized';
-    if (!data) return false;
+    let res: Response;
+    try {
+      res = await rawGet(`/api/v1/sync${cursorParam}`);
+    } catch {
+      return false;
+    }
+    if (res.status === 401) return 'unauthorized';
+    if (!res.ok) return false;
+    const data = (await res.json()) as FullSyncResponse;
 
     syncedAt = data.synced_at ?? syncedAt;
 
@@ -116,9 +114,15 @@ export async function pullDelta(
 
   onProgress?.('Fetching recent changes...', 0.1);
 
-  const { data, status } = await apiGet<DeltaResponse>(`/api/v1/sync${sinceParam}`);
-  if (status === 401) return 'unauthorized';
-  if (!data) return false;
+  let res: Response;
+  try {
+    res = await rawGet(`/api/v1/sync${sinceParam}`);
+  } catch {
+    return false;
+  }
+  if (res.status === 401) return 'unauthorized';
+  if (!res.ok) return false;
+  const data = (await res.json()) as DeltaResponse;
 
   const changedEntities = Object.entries(data.changed).filter(
     ([table, rows]) => tableNames.has(table) && isRecordArray(rows) && rows.length > 0,
