@@ -299,9 +299,9 @@ class StepsVizBuilder:
             ),
         )
         if goal is not None:
-            progress = ctx._goal.progress(goal)
+            compute_progress = ctx._goal.compute_progress(goal)
             viz.goal_label = f"Target: {int(goal.target_value):,} / day"
-            viz.goal_percent = progress.percent
+            viz.goal_percent = compute_progress.percent
             viz.goal_target = float(goal.target_value)
         return viz
 
@@ -339,9 +339,9 @@ class HeartRateVizBuilder:
             subtitle=f"Min {hr.min_bpm} · Max {hr.max_bpm} · Ø {hr.avg_bpm:.0f}",
         )
         if goal is not None:
-            progress = ctx._goal.progress(goal)
+            compute_progress = ctx._goal.compute_progress(goal)
             viz.goal_label = f"Target: <{int(goal.target_value)} bpm"
-            viz.goal_percent = progress.percent
+            viz.goal_percent = compute_progress.percent
         return viz
 
 

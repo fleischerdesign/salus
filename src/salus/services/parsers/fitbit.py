@@ -2,17 +2,14 @@ import json
 
 from salus.models.measurement import Measurement
 from salus.services.parser import _parse_datetime, make_external_id
+from salus.services.parsers.base import BaseParser
 
 
-class FitbitParser:
-    def can_handle(self, payload: dict | list) -> bool:
-        if not isinstance(payload, dict):
-            return False
+class FitbitParser(BaseParser):
+    def _can_handle_impl(self, payload: dict) -> bool:
         return "activities-heart" in payload
 
-    def parse(self, payload: dict | list) -> list[Measurement]:
-        if not isinstance(payload, dict):
-            return []
+    def _parse_impl(self, payload: dict) -> list[Measurement]:
         records: list[Measurement] = []
         activities = payload.get("activities-heart", [])
         if isinstance(activities, dict):

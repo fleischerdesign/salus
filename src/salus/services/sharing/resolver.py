@@ -1,6 +1,5 @@
 import json as _json
 import logging
-import time as _time
 from datetime import datetime, timezone, timedelta
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
@@ -11,6 +10,7 @@ from salus.config import settings
 from salus.exceptions import ForbiddenError, NotFoundError
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, parse_date
+from salus.services.sharing._http import retry_http_request
 
 if TYPE_CHECKING:
     from salus.services.sharing.keys import FederationKeyService
@@ -195,46 +195,21 @@ class FederationDataResolver:
         if token:
             sig_headers["Authorization"] = f"Bearer {token}"
 
-        max_retries = 3
-        backoff = 1.0
+        def _do_request():
+            return httpx.get(
+                remote_url,
+                params=query_params,
+                headers=sig_headers,
+                timeout=5.0,
+            )
 
-        for attempt in range(max_retries):
-            try:
-                resp = httpx.get(
-                    remote_url,
-                    params=query_params,
-                    headers=sig_headers,
-                    timeout=5.0,
-                )
-                if resp.status_code in (401, 403, 404):
-                    logger.warning(
-                        f"Permanent remote federation failure {resp.status_code} for {owner_handle}"
-                    )
-                    break
-                resp.raise_for_status()
-                payload = resp.json()
-                return payload.get("data", [])
-            except (
-                httpx.ConnectError,
-                httpx.TimeoutException,
-                httpx.NetworkError,
-                httpx.RemoteProtocolError,
-            ) as exc:
-                if attempt == max_retries - 1:
-                    logger.error(
-                        f"Remote federation fetch failed after {max_retries} attempts for {owner_handle}: {exc}"
-                    )
-                    break
-                logger.warning(
-                    f"Transient error fetching from {owner_handle} (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s..."
-                )
-                _time.sleep(backoff)
-                backoff *= 2.0
-            except Exception as exc:
-                logger.exception(
-                    f"Unexpected remote federation fetch failure for {owner_handle}: {exc}"
-                )
-                break
+        resp = retry_http_request(
+            _do_request,
+            operation_name=f"remote federation fetch for {owner_handle}",
+        )
+        if resp is not None and resp.is_success:
+            payload = resp.json()
+            return payload.get("data", [])
 
         return []
 

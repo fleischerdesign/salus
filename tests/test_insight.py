@@ -4,7 +4,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from salus.models.insight import Insight
 from salus.repositories.unit_of_work import SqlUnitOfWork
-from salus.services.insight.factory import LlmProviderFactory
+from salus.services.insight.factory import LLMProviderFactory
 from salus.services.insight.providers import (
     AnthropicProvider,
     OllamaProvider,
@@ -37,39 +37,39 @@ def uow():
         yield SqlUnitOfWork(session)
 
 
-class TestLlmProviderFactory:
+class TestLLMProviderFactory:
     def test_creates_ollama_provider(self):
-        p = LlmProviderFactory.create_provider("ollama")
+        p = LLMProviderFactory.create_provider("ollama")
         assert isinstance(p, OllamaProvider)
         assert p.api_url == "http://localhost:11434"
 
     def test_creates_openai_provider(self):
-        p = LlmProviderFactory.create_provider("openai", api_key="test-key")
+        p = LLMProviderFactory.create_provider("openai", api_key="test-key")
         assert isinstance(p, OpenAiProvider)
         assert p.api_key == "test-key"
         assert p.api_url == "https://api.openai.com/v1"
 
     def test_creates_anthropic_provider(self):
-        p = LlmProviderFactory.create_provider("anthropic", api_key="anthropic-key")
+        p = LLMProviderFactory.create_provider("anthropic", api_key="anthropic-key")
         assert isinstance(p, AnthropicProvider)
         assert p.api_key == "anthropic-key"
         assert p.api_url == "https://api.anthropic.com/v1"
 
     def test_creates_deepseek_provider_via_openai_adapter(self):
-        p = LlmProviderFactory.create_provider("deepseek", api_key="ds-key")
+        p = LLMProviderFactory.create_provider("deepseek", api_key="ds-key")
         assert isinstance(p, OpenAiProvider)
         assert p.api_key == "ds-key"
         assert p.api_url == "https://api.deepseek.com"
 
     def test_creates_openrouter_provider_via_openai_adapter(self):
-        p = LlmProviderFactory.create_provider("openrouter", api_key="or-key")
+        p = LLMProviderFactory.create_provider("openrouter", api_key="or-key")
         assert isinstance(p, OpenAiProvider)
         assert p.api_key == "or-key"
         assert p.api_url == "https://openrouter.ai/api/v1"
 
     def test_raises_on_unknown_provider(self):
         with pytest.raises(ValueError, match="Unknown LLM provider"):
-            LlmProviderFactory.create_provider("unknown-provider")
+            LLMProviderFactory.create_provider("unknown-provider")
 
 
 class TestInsightService:

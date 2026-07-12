@@ -105,8 +105,8 @@ class AdminService:
             token.is_active = False
             self._api_token_repo.update(token)
 
-    def delete_user(self, user_id: int, by_user_id: int) -> None:
-        if user_id == by_user_id:
+    def delete_user(self, user_id: int, deleted_by: int) -> None:
+        if user_id == deleted_by:
             raise ConflictError("Cannot delete your own account")
 
         user = self._user_repo.get_by_id(user_id)

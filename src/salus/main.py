@@ -40,6 +40,7 @@ from salus.routers import (
 )
 from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
+from salus.services.background_ingestion import BackgroundIngestionService
 from salus.services.i18n import translate
 
 locale_ctx: ContextVar[str] = ContextVar("salus_locale", default="en")
@@ -96,6 +97,7 @@ async def lifespan(app: FastAPI):
 
     app.state.plugin_manager = plugin_manager
     app.state.event_bus = InMemoryEventBus()
+    app.state.background_ingestion = BackgroundIngestionService(lifespan_engine)
 
     for trans_hook in plugin_manager.registry.translations:
         try:

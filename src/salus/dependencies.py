@@ -55,7 +55,7 @@ from salus.services.sharing import (
 from salus.services.leaderboard import LeaderboardService
 from salus.services.notification import NotificationService
 from salus.repositories.protocols import IInsightRepository
-from salus.services.insight.factory import LlmProviderFactory
+from salus.services.insight.factory import LLMProviderFactory
 from salus.services.insight.service import InsightService
 from salus.services.workout.autoregulation import AutoregulationService
 from salus.services.workout.planner import WorkoutService
@@ -467,7 +467,7 @@ def get_insight_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
     registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> InsightService:
-    provider = LlmProviderFactory.create_provider(
+    provider = LLMProviderFactory.create_provider(
         provider_name=settings.llm_provider,
         api_key=settings.llm_api_key,
         api_url=settings.llm_api_url,

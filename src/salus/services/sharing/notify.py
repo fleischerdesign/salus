@@ -1,6 +1,5 @@
 import logging
 import threading
-import time as _time
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -9,6 +8,7 @@ import httpx
 from salus.models.sharing import SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.sharing.relationship import RelationshipService
+from salus.services.sharing._http import retry_http_request
 
 if TYPE_CHECKING:
     from salus.services.sharing.discovery import FederationDiscoveryService
@@ -31,47 +31,20 @@ class PeerNotificationService:
         endpoints = self.discovery_svc.resolve_remote_endpoints(rel.grantee_handle)
         url = endpoints["accept"]
 
-        max_retries = 3
-        backoff = 1.0
+        def _do_post():
+            return httpx.post(
+                url,
+                json={
+                    "token": rel.api_token_hash,
+                    "owner_handle": f"@{rel.owner.username}" if rel.owner else "",
+                },
+                timeout=5.0,
+            )
 
-        for attempt in range(max_retries):
-            try:
-                resp = httpx.post(
-                    url,
-                    json={
-                        "token": rel.api_token_hash,
-                        "owner_handle": f"@{rel.owner.username}" if rel.owner else "",
-                    },
-                    timeout=5.0,
-                )
-                if resp.status_code in (401, 403, 404):
-                    logger.warning(
-                        f"Permanent remote accept notification failure {resp.status_code} for {rel.grantee_handle}"
-                    )
-                    break
-                resp.raise_for_status()
-                return
-            except (
-                httpx.ConnectError,
-                httpx.TimeoutException,
-                httpx.NetworkError,
-                httpx.RemoteProtocolError,
-            ) as exc:
-                if attempt == max_retries - 1:
-                    logger.error(
-                        f"Remote accept notification failed after {max_retries} attempts for {rel.grantee_handle}: {exc}"
-                    )
-                    break
-                logger.warning(
-                    f"Transient error calling remote accept (attempt {attempt + 1}/{max_retries}): {exc}. Retrying in {backoff}s..."
-                )
-                _time.sleep(backoff)
-                backoff *= 2.0
-            except Exception as exc:
-                logger.exception(
-                    f"Unexpected remote accept notification failure for {rel.grantee_handle}: {exc}"
-                )
-                break
+        retry_http_request(
+            _do_post,
+            operation_name=f"remote accept notification for {rel.grantee_handle}",
+        )
 
     def notify_peers_of_update(
         self, user_id: int, data_type: str, date_str: str

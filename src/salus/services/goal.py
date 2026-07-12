@@ -50,7 +50,7 @@ class GoalService:
         goal = self.get(goal_id, user_id)
         self._repo.delete(goal)
 
-    def progress(self, goal: Goal) -> GoalProgress:
+    def compute_progress(self, goal: Goal) -> GoalProgress:
         entries = self._measurement_repo.find_by_metric_type(
             goal.metric_type_id, goal.user_id
         )

@@ -6,7 +6,7 @@ from salus.services.insight.providers import (
 )
 
 
-class LlmProviderFactory:
+class LLMProviderFactory:
     @staticmethod
     def create_provider(
         provider_name: str,
