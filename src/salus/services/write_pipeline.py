@@ -5,7 +5,7 @@ from sqlmodel import Session, delete, select
 
 from salus.models.sync_push_log import SyncPushLog
 from salus.models.user import User
-from salus.repositories.entity_registry import ENTITY_REGISTRY, ENTITY_VALIDATORS
+from salus.repositories.entity_meta import ENTITY_REGISTRY, ENTITY_VALIDATORS
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation, SyncResult
 

@@ -21,7 +21,10 @@ export function getLocale(): string {
 }
 
 export function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = { 'Accept-Language': _locale };
+  const headers: Record<string, string> = {
+    'Accept-Language': _locale,
+    'X-Salus-Sync-Version': '1',
+  };
   const token = localStorage.getItem('salus_token');
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return headers;

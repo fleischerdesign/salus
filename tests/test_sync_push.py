@@ -1,4 +1,5 @@
 import uuid
+import pytest
 from starlette.testclient import TestClient
 
 
@@ -500,3 +501,100 @@ class TestDeltaSyncCompleteness:
         changed = data.get("changed", {})
         assert "user_profile" in changed
         assert "user" in changed
+
+
+class TestEventBusDirect:
+    """Unit tests for InMemoryEventBus."""
+
+    def test_publish_wakes_subscriber(self):
+        import asyncio
+        from salus.services.event_bus import InMemoryEventBus
+
+        async def scenario():
+            bus = InMemoryEventBus()
+            results = []
+
+            async def consumer():
+                async for _ in bus.subscribe(42):
+                    results.append(1)
+                    break
+
+            consumer_task = asyncio.create_task(consumer())
+            await asyncio.sleep(0)
+            await bus.publish(42)
+            await asyncio.sleep(0)
+            await consumer_task
+
+            return results
+
+        results = asyncio.run(scenario())
+        assert len(results) == 1
+
+    def test_no_event_for_different_user(self):
+        import asyncio
+        from salus.services.event_bus import InMemoryEventBus
+
+        async def scenario():
+            bus = InMemoryEventBus()
+            results = []
+
+            async def consumer():
+                async for _ in bus.subscribe(42):
+                    results.append(1)
+
+            consumer_task = asyncio.create_task(consumer())
+            await asyncio.sleep(0)
+            await bus.publish(99)
+            await asyncio.sleep(0)
+            consumer_task.cancel()
+            try:
+                await consumer_task
+            except asyncio.CancelledError:
+                pass
+
+            return results
+
+        results = asyncio.run(scenario())
+        assert len(results) == 0
+
+
+class TestSSEEndpoint:
+    """Test the SSE events endpoint."""
+
+    def test_requires_auth(self, client: TestClient):
+        resp = client.get("/api/v1/sync/events")
+        assert resp.status_code == 401
+
+
+class TestSyncPushPublishesEvent:
+    """Test that sync push publishes to EventBus."""
+
+    def test_sync_push_publishes_to_event_bus(self, authenticated_client: TestClient):
+        from salus.dependencies import get_event_bus
+        from salus.main import app as fastapi_app
+
+        published_user_ids: list[int] = []
+
+        class MockEventBus:
+            async def subscribe(self, user_id: int):
+                raise NotImplementedError
+
+            async def publish(self, user_id: int) -> None:
+                published_user_ids.append(user_id)
+
+        mock = MockEventBus()
+        fastapi_app.dependency_overrides[get_event_bus] = lambda: mock
+
+        try:
+            resp = authenticated_client.post("/api/v1/sync/push", json={
+                "operations": [{
+                    "type": "create",
+                    "entity": "metric_type",
+                    "data": {"name": "EventBus Test", "unit": "kg", "data_type": "number"},
+                }]
+            })
+            assert resp.status_code == 200
+            assert len(published_user_ids) == 1
+            assert published_user_ids[0] > 0
+        finally:
+            fastapi_app.dependency_overrides.pop(get_event_bus, None)

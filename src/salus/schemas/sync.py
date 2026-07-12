@@ -30,3 +30,4 @@ class SyncPushRequest(BaseModel):
 class SyncPushResponse(BaseModel):
     results: list[SyncResult]
     synced_at: str
+    sync_version: int = 1

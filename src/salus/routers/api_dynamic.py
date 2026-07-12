@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 
 from salus.dependencies import get_current_user, get_unit_of_work
 from salus.models.user import User
-from salus.repositories.entity_registry import ENTITY_REGISTRY
+from salus.repositories.entity_meta import ENTITY_REGISTRY
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
 from salus.services.write_pipeline import WritePipeline

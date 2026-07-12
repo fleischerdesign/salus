@@ -19,6 +19,7 @@ This file is written for LLM agents. Follow these rules exactly.
 | JWT | `python-jose[cryptography]` via `JwtService` in `services/jwt.py` |
 | OAuth/OIDC | `authlib` via `OidcAuthProvider` in `services/auth/providers.py` |
 | LDAP | `ldap3` via `LdapAuthProvider` in `services/auth/providers.py` |
+| Live Sync | SSE (Server-Sent Events) via `EventBus` + `EventSource` |
 | Lint / Format (Python) | ruff (`uv run ruff check src/`) |
 | Type check (Python) | pyright (`uv run pyright src/`) |
 | Lint / Format (Frontend) | prettier + eslint (`cd frontend && npm run lint`) |
@@ -31,9 +32,16 @@ src/salus/
 ├── models/          ← Dataclasses + SQLModel tables (DB structure)
 ├── schemas/         ← Pydantic API request/response models (API contract)
 ├── repositories/    ← Data access — Repository[T] base for SQLModel
+│   ├── entity_meta.py   ← Single source of truth: ENTITY_META → all registries + validators
+│   ├── unit_of_work.py  ← IUnitOfWork / SqlUnitOfWork (auto-commit Generator)
+│   └── ...              ← Entity-specific repositories
 ├── services/        ← Business logic — receives repos via constructor injection
+│   ├── sync.py          ← Full sync (cursor paginated) + delta sync (per-strategy security)
+│   ├── write_pipeline.py ← Sync push: create/update/delete, dedup, ownership, PK protection
+│   ├── event_bus.py     ← EventBus ABC + InMemoryEventBus (asyncio.Queue) for SSE live sync
+│   └── ...              ← Domain services
 ├── routers/         ← FastAPI route handlers — THIN: parse input, call service, return JSON
-│   ├── api.py           ← Core REST API (/api/v1/metrics, /api/v1/entries)
+│   ├── api_sync.py      ← Sync endpoints (/api/v1/sync, /sync/push, /sync/entities, /sync/events)
 │   ├── api_auth.py      ← Auth endpoints (/api/v1/auth/*)
 │   ├── api_dashboard.py ← Dashboard data (/api/v1/dashboard/*)
 │   ├── api_misc.py      ← Goals, Analytics, Insights, Circadian, Notifications, Onboarding
@@ -61,8 +69,17 @@ frontend/
 │   ├── lib/
 │   │   ├── api/        ← openapi-fetch typed client
 │   │   ├── components/ ← Svelte components (ui/, dashboard/, forms/, layout/)
+│   │   ├── db/         ← Dexie database + sync engine + live events
+│   │   │   ├── database.ts            ← Dexie schema (incremental versions)
+│   │   │   ├── sync-engine.svelte.ts  ← Reactive sync engine ($state)
+│   │   │   ├── sync-pull.ts           ← Paginated pullFull + pullDelta
+│   │   │   ├── offline-service.ts     ← Delta-first syncAll
+│   │   │   ├── mutate.ts / mutate-domain.ts ← Two write paths
+│   │   │   ├── entity-info.ts         ← Dynamic entity discovery from /sync/entities
+│   │   │   ├── live-events.ts         ← EventSource SSE manager (debounced)
+│   │   │   └── types.ts               ← QueueOp, DomainQueueOp
 │   │   ├── stores/     ← Svelte 5 runes ($state stores)
-│   │   └── utils/      ← Utilities
+│   │   └── utils/      ← Utilities (diff, formatting)
 │   └── routes/         ← File-based routing (31 pages)
 ├── static/             ← PWA icons, manifest
 ├── svelte.config.js
@@ -160,6 +177,49 @@ Auth token is automatically added via interceptor.
 - `ssr = false` in `+layout.ts`
 - Routes are purely client-side (no server-side rendering)
 - Service worker via `@vite-pwa/sveltekit`
+
+### 14. Sync architecture (Local-First)
+
+**Two write paths:**
+- `mutate()` — Entity CRUD via sync push (`POST /api/v1/sync/push`), generic, batchable
+- `mutateDomain()` — Domain Commands (dedicated HTTP, `domainQueue`)
+
+**Sync pull:**
+- Full sync: `GET /api/v1/sync` → paginated via `?cursor=<base64(json)>`, `WHERE id > cursor ORDER BY id LIMIT batch_size`
+- Delta sync: `GET /api/v1/sync?since=<ISO>` → per-entity strategy filtering (`user_scoped`, `shared_nullable`, `relational`, `global`, `append_only`, `special`)
+- Delta-first: `syncAll()` tries delta first (if last sync < 7 days old), falls back to full
+
+**Sync push:**
+- `POST /api/v1/sync/push { operations: [{ type, entity, client_id, data, id?, expected_updated_at? }] }`
+- WritePipeline: dedup via `sync_push_log` (24h TTL), ownership check (`user_id`/`owner_id`/`User`), PK protection, `updated_at` auto-set
+- UoW auto-commit: `get_unit_of_work` → Generator `try/yield/except/rollback/else/commit`
+
+**Entity registry:**
+- `entity_meta.py` — single source of truth: `ENTITY_META` list derives `ENTITY_REGISTRY`, `SYNC_ENTITY_SPECS`, `DELTA_ENTITY_SPECS`, `APPEND_ONLY_DELTA_SPECS` + validators
+- `GET /api/v1/sync/entities` — dynamic entity discovery for frontend
+- `entity-info.ts` — fetches from endpoint, caches result, falls back to hardcoded list
+
+**Conflict resolution:**
+- Background sync: auto-resolve with server version (last-write-wins)
+- Interactive `mutate()`: enqueue to `conflictStore` → `ConflictDialog` with field-level merge (per-field Server/Mine radio buttons)
+- `expected_updated_at` auto-extract from `opts.optimistic.updated_at`
+
+### 15. Live Sync (SSE)
+
+```
+WritePipeline commit → event_bus.publish(user_id)
+  → GET /api/v1/sync/events (SSE)
+    → EventSource (Browser) → debounce 2s → pullDelta()
+```
+
+- `EventBus` ABC + `InMemoryEventBus` (asyncio.Queue, maxsize 32) — `app.state.event_bus` singleton
+- Auth via `salus_session` cookie (EventSource sends cookies same-origin automatically)
+- `connectLiveSync(onSync)` / `disconnectLiveSync()` in `live-events.ts`
+- Started after successful `syncAll()`, stopped on session expiry
+- Debounce: multiple rapid events → single delta sync after 2s quiet period
+
+### 16. Sync protocol versioning
+`X-Salus-Sync-Version: 1` header sent by frontend via `getAuthHeaders()`, validated by backend `_check_sync_version` dependency. Backend rejects unsupported versions with 400.
 
 ## Adding a new entity (checklist)
 

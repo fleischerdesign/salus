@@ -37,6 +37,7 @@ from salus.routers import (
     workout,
 )
 from salus.services.config import ConfigService
+from salus.services.event_bus import InMemoryEventBus
 from salus.services.i18n import translate
 
 locale_ctx: ContextVar[str] = ContextVar("salus_locale", default="en")
@@ -92,6 +93,7 @@ async def lifespan(app: FastAPI):
         logging.error(f"Error loading plugins: {e}", exc_info=True)
 
     app.state.plugin_manager = plugin_manager
+    app.state.event_bus = InMemoryEventBus()
 
     for trans_hook in plugin_manager.registry.translations:
         try:
@@ -147,6 +149,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="salus", lifespan=lifespan)
 app.state.engine = engine
+app.state.event_bus = InMemoryEventBus()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

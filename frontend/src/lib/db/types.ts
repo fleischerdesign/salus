@@ -4,6 +4,7 @@ export interface QueueOp {
   entity: string;
   client_id: string;
   data?: Record<string, unknown>;
+  realId?: number;
   expected_updated_at?: string;
   createdAt: number;
   retries: number;
@@ -327,5 +328,6 @@ export interface DomainQueueOp {
   method: string;
   body?: Record<string, unknown>;
   responseTable?: string;
+  retries?: number;
   createdAt: string;
 }

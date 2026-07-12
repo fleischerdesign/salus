@@ -58,6 +58,7 @@ from salus.services.asymmetric_share import AsymmetricShareService
 from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
+from salus.services.event_bus import EventBus
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
@@ -568,3 +569,7 @@ def get_data_portability_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> DataPortabilityService:
     return DataPortabilityService(uow)
+
+
+def get_event_bus(request: Request) -> EventBus:
+    return request.app.state.event_bus

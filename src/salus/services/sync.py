@@ -9,11 +9,11 @@ from salus.models.sharing import SharingRelationship
 from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.workout import WorkoutSession
-from salus.repositories.sync_registry import (
+from salus.repositories.entity_meta import (
+    EntityMeta,
     SYNC_ENTITY_SPECS,
     DELTA_ENTITY_SPECS,
     APPEND_ONLY_DELTA_SPECS,
-    SyncEntitySpec,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
@@ -28,12 +28,12 @@ def _delta_timestamp_filter(model: type, since: datetime):
     return or_(*clauses) if clauses else None
 
 
-def _owner_attr(model: type, spec: SyncEntitySpec):
+def _owner_attr(model: type, spec: EntityMeta):
     field = spec.owner_field or "user_id"
     return getattr(model, field)
 
 
-def _parent_ids(sess, spec: SyncEntitySpec, user_id: int) -> list[int]:
+def _parent_ids(sess, spec: EntityMeta, user_id: int) -> list[int]:
     parent = spec.parent_model
     owner = spec.parent_owner_field or "user_id"
     stmt = select(parent.id).where(getattr(parent, owner) == user_id)
@@ -43,13 +43,13 @@ def _parent_ids(sess, spec: SyncEntitySpec, user_id: int) -> list[int]:
     return [r for r in rows if r is not None]
 
 
-def _soft_delete_filter(model: type, stmt, spec: SyncEntitySpec):
+def _soft_delete_filter(model: type, stmt, spec: EntityMeta):
     if not spec.no_soft_delete and hasattr(model, "deleted_at"):
         return stmt.where(getattr(model, "deleted_at").is_(None))  # pyright: ignore[reportAttributeAccessIssue]
     return stmt
 
 
-def _build_full_query(sess, spec: SyncEntitySpec, user_id: int, cursor: int):
+def _build_full_query(sess, spec: EntityMeta, user_id: int, cursor: int):
     model = spec.model
     if spec.strategy == "user_scoped":
         stmt = select(model).where(_owner_attr(model, spec) == user_id)

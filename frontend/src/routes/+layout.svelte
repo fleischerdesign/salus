@@ -65,6 +65,7 @@
   async function runSync() {
     await useOffline.syncAll();
     if (useOffline.sessionExpired) {
+      useOffline.stopLiveSync();
       sessionExpired = true;
       setTimeout(async () => {
         auth.clear();

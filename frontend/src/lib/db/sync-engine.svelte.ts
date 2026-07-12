@@ -5,6 +5,7 @@ import { getAuthHeaders } from '$lib/api/headers';
 let _status = $state<SyncStatus>('idle');
 let _queueLength = $state(0);
 let _error = $state<string | null>(null);
+let _sessionExpired = $state(false);
 
 export const syncEngine = {
   get status() {
@@ -16,18 +17,25 @@ export const syncEngine = {
   get error() {
     return _error;
   },
+  get sessionExpired() {
+    return _sessionExpired;
+  },
 
   async enqueue(
     type: QueueOp['type'],
     entity: string,
     client_id: string,
     data?: Record<string, unknown>,
+    realId?: number,
+    expectedUpdatedAt?: string,
   ): Promise<void> {
     await db.queue.put({
       type,
       entity,
       client_id,
       data,
+      realId,
+      expected_updated_at: expectedUpdatedAt,
       createdAt: Date.now(),
       retries: 0,
     });
@@ -72,7 +80,9 @@ export const syncEngine = {
         type: op.type,
         entity: op.entity,
         client_id: op.client_id,
+        ...(op.realId != null && op.realId > 0 ? { id: op.realId } : {}),
         ...(op.data ? { data: op.data } : {}),
+        ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {}),
       }));
 
       const res = await fetch('/api/v1/sync/push', {
@@ -82,6 +92,11 @@ export const syncEngine = {
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          _sessionExpired = true;
+          _status = 'idle';
+          return;
+        }
         _status = 'error';
         _error = `Sync push failed: ${res.status}`;
         return;
@@ -94,6 +109,7 @@ export const syncEngine = {
         id?: number;
         status: string;
         record?: Record<string, unknown>;
+        conflict?: Record<string, unknown>;
       }>;
 
       const succeeded = new Set<string>();
@@ -108,8 +124,8 @@ export const syncEngine = {
           succeeded.add(r.client_id);
         }
         if (r.status === 'conflict') {
-          if (r.record && r.entity) {
-            await db.table(r.entity).put(r.record);
+          if (r.conflict && r.entity) {
+            await db.table(r.entity).put(r.conflict as Record<string, unknown>);
           }
           if (r.client_id) succeeded.add(r.client_id);
         }
@@ -162,12 +178,12 @@ export const syncEngine = {
         }
       } catch {
         if (item.id != null) {
-          const retries = ((item as unknown as Record<string, unknown>).retries as number ?? 0) + 1;
+          const retries = (item.retries ?? 0) + 1;
           if (retries >= MAX_RETRIES) {
             await db.domainQueue.delete(item.id);
             _error = `Domain op exceeded max retries: ${item.url}`;
           } else {
-            await db.domainQueue.update(item.id, { retries } as unknown as Record<string, unknown>);
+            await db.domainQueue.update(item.id, { retries });
           }
         }
       }
@@ -176,6 +192,10 @@ export const syncEngine = {
 
   async retryFailed(): Promise<void> {
     _error = null;
+    _sessionExpired = false;
     await this.flush();
+  },
+  resetSessionExpired(): void {
+    _sessionExpired = false;
   },
 };

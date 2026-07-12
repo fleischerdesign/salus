@@ -1,16 +1,6 @@
 import { db } from './database';
 import { getAuthHeaders } from '$lib/api/headers';
-
-const TABLE_NAMES = new Set<string>([
-  'metric_type', 'measurement', 'goal', 'circadian_profile',
-  'exercise', 'workout_plan', 'workout_plan_exercise',
-  'workout_session', 'workout_log_entry', 'insight',
-  'notification', 'dashboard_widget', 'sharing_relationship',
-  'leaderboard_group', 'leaderboard_member',
-  'share_recipient', 'asymmetric_share',
-  'user_profile', 'admin_user', 'admin_stats', 'system_config',
-  'api_token', 'user', 'community_activity', 'federated_access_log',
-]);
+import { fetchEntityNames, getEntityNames } from './entity-info';
 
 const SYNC_META_KEYS = new Set([
   'cursors', 'has_more', 'synced_at',
@@ -36,6 +26,7 @@ interface FullSyncResponse {
 }
 
 export async function pullFull(): Promise<boolean | 'unauthorized'> {
+  const tableNames = await fetchEntityNames();
   let cursors: Record<string, number> = {};
   let hasMore = true;
   const allRows: Record<string, Record<string, unknown>[]> = {};
@@ -54,7 +45,7 @@ export async function pullFull(): Promise<boolean | 'unauthorized'> {
 
     for (const [table, rows] of Object.entries(data)) {
       if (SYNC_META_KEYS.has(table)) continue;
-      if (!TABLE_NAMES.has(table)) continue;
+      if (!tableNames.has(table)) continue;
       if (rows == null) continue;
 
       if (!allRows[table]) allRows[table] = [];
@@ -97,6 +88,7 @@ interface DeltaResponse {
 }
 
 export async function pullDelta(): Promise<boolean | 'unauthorized'> {
+  const tableNames = await fetchEntityNames();
   const last = await db.meta.get('lastSyncAt');
   const since = last?.value as number | undefined;
   const sinceParam = since ? `?since=${new Date(since).toISOString()}` : '';
@@ -107,11 +99,11 @@ export async function pullDelta(): Promise<boolean | 'unauthorized'> {
 
   await db.transaction('rw', db.tables, async () => {
     for (const [table, rows] of Object.entries(data.changed)) {
-      if (!TABLE_NAMES.has(table) || !isRecordArray(rows) || rows.length === 0) continue;
+      if (!tableNames.has(table) || !isRecordArray(rows) || rows.length === 0) continue;
       await db.table(table).bulkPut(rows);
     }
     for (const [table, ids] of Object.entries(data.deleted)) {
-      if (!TABLE_NAMES.has(table)) continue;
+      if (!tableNames.has(table)) continue;
       await db.table(table).bulkDelete(ids);
     }
     await db.meta.put({ key: 'lastSyncAt', value: new Date(data.synced_at).getTime() });

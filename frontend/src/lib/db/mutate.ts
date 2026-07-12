@@ -84,12 +84,18 @@ export async function mutate(opts: MutateOpts): Promise<{ ok: boolean; error?: s
       return { ok: false, error: result?.message || result?.status || 'Unknown error' };
     } catch (e) {
       await db.table(opts.table).put(opts.optimistic);
-      await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data);
+      const expectedUpdatedAt = opts.type === 'update' && opts.optimistic.updated_at
+        ? (opts.optimistic.updated_at as string | undefined)
+        : undefined;
+      await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data, opts.realId, expectedUpdatedAt);
       return { ok: true };
     }
   }
 
   await db.table(opts.table).put(opts.optimistic);
-  await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data);
+  const expectedUpdatedAt = opts.type === 'update' && opts.optimistic.updated_at
+    ? (opts.optimistic.updated_at as string | undefined)
+    : undefined;
+  await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data, opts.realId, expectedUpdatedAt);
   return { ok: true };
 }
