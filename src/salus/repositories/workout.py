@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlmodel import select, or_, desc, col
+from sqlalchemy.orm import selectinload
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
 
@@ -108,6 +109,49 @@ class WorkoutSessionRepository(Repository[WorkoutSession]):
             .order_by(desc(WorkoutSession.completed_at))
             .limit(1)
         ).first()
+
+    def find_active_by_user(
+        self, user_id: int
+    ) -> WorkoutSession | None:
+        return self.session.exec(
+            select(WorkoutSession)
+            .where(
+                WorkoutSession.user_id == user_id,
+                WorkoutSession.completed_at.is_(None),  # type: ignore[union-attr]
+            )
+            .options(selectinload(WorkoutSession.logs))  # type: ignore[arg-type]
+        ).first()
+
+    def get_by_id_with_relations(
+        self, session_id: int, user_id: int
+    ) -> WorkoutSession | None:
+        return self.session.exec(
+            select(WorkoutSession)
+            .where(
+                WorkoutSession.id == session_id,
+                WorkoutSession.user_id == user_id,
+            )
+            .options(
+                selectinload(WorkoutSession.logs),  # type: ignore[arg-type]
+                selectinload(WorkoutSession.plan),  # type: ignore[arg-type]
+            )
+        ).first()
+
+    def find_completed_by_plan(
+        self, user_id: int, plan_id: int
+    ) -> list[WorkoutSession]:
+        return list(
+            self.session.exec(
+                select(WorkoutSession)
+                .where(
+                    WorkoutSession.user_id == user_id,
+                    WorkoutSession.plan_id == plan_id,
+                    WorkoutSession.completed_at.is_not(None),  # type: ignore[union-attr]
+                )
+                .options(selectinload(WorkoutSession.logs))  # type: ignore[arg-type]
+                .order_by(desc(WorkoutSession.completed_at))
+            ).all()
+        )
 
     def get_personal_records(
         self, user_id: int, exercise_ids: list[int]

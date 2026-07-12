@@ -17,7 +17,7 @@ from salus.models.sharing import (
     LeaderboardMember,
     SharingRelationship,
 )
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
+from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutPlanExercise, WorkoutLogEntry
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.notification import Notification
@@ -258,6 +258,36 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
     def find_completed_in_range(
         self, user_id: int, since: "datetime", until: "datetime"
     ) -> list[WorkoutSession]: ...
+
+    def find_active_by_user(self, user_id: int) -> WorkoutSession | None: ...
+
+    def get_by_id_with_relations(
+        self, session_id: int, user_id: int
+    ) -> WorkoutSession | None: ...
+
+    def find_completed_by_plan(
+        self, user_id: int, plan_id: int
+    ) -> list[WorkoutSession]: ...
+
+
+@runtime_checkable
+class IWorkoutPlanExerciseRepository(IRepository[WorkoutPlanExercise], Protocol):
+    def find_by_plan(self, plan_id: int) -> list[WorkoutPlanExercise]: ...
+
+    def replace_exercises_for_plan(
+        self, plan_id: int, exercises: list[WorkoutPlanExercise]
+    ) -> None: ...
+
+
+@runtime_checkable
+class IWorkoutLogEntryRepository(IRepository[WorkoutLogEntry], Protocol):
+    def find_by_session_exercise_set(
+        self, session_id: int, exercise_id: int, set_number: int
+    ) -> WorkoutLogEntry | None: ...
+
+    def find_exercise_history(
+        self, user_id: int, exercise_id: int
+    ) -> list[WorkoutLogEntry]: ...
 
 
 @runtime_checkable

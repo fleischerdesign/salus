@@ -31,6 +31,8 @@ from salus.repositories.protocols import (
     ISyncPushLogRepository,
     IFederatedMeasurementCacheRepository,
     IFederatedAccessLogRepository,
+    IWorkoutPlanExerciseRepository,
+    IWorkoutLogEntryRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -54,6 +56,8 @@ from salus.repositories.notification import NotificationRepository
 from salus.repositories.sync_push_log import SyncPushLogRepository
 from salus.repositories.federated_measurement_cache import FederatedMeasurementCacheRepository
 from salus.repositories.federated_access_log import FederatedAccessLogRepository
+from salus.repositories.workout_plan_exercise import WorkoutPlanExerciseRepository
+from salus.repositories.workout_log_entry import WorkoutLogEntryRepository
 
 
 class IUnitOfWork(Protocol):
@@ -80,6 +84,8 @@ class IUnitOfWork(Protocol):
     sync_push_logs: ISyncPushLogRepository
     federated_measurement_cache: IFederatedMeasurementCacheRepository
     federated_access_logs: IFederatedAccessLogRepository
+    workout_plan_exercises: IWorkoutPlanExerciseRepository
+    workout_log_entries: IWorkoutLogEntryRepository
 
     def __enter__(self) -> "IUnitOfWork": ...
 
@@ -113,6 +119,8 @@ class SqlUnitOfWork:
     sync_push_logs: ISyncPushLogRepository
     federated_measurement_cache: IFederatedMeasurementCacheRepository
     federated_access_logs: IFederatedAccessLogRepository
+    workout_plan_exercises: IWorkoutPlanExerciseRepository
+    workout_log_entries: IWorkoutLogEntryRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -138,6 +146,8 @@ class SqlUnitOfWork:
         self.sync_push_logs = SyncPushLogRepository(session)
         self.federated_measurement_cache = FederatedMeasurementCacheRepository(session)
         self.federated_access_logs = FederatedAccessLogRepository(session)
+        self.workout_plan_exercises = WorkoutPlanExerciseRepository(session)
+        self.workout_log_entries = WorkoutLogEntryRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

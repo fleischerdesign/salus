@@ -108,11 +108,6 @@ class WorkoutService:
             self.uow.commit()
 
             # Add plan exercises
-            from typing import cast
-            from salus.repositories.unit_of_work import SqlUnitOfWork
-
-            sql_uow = cast(SqlUnitOfWork, self.uow)
-
             plan_id = plan.id
             if plan_id is None:
                 raise ValueError("Plan was not persisted correctly.")
@@ -132,7 +127,7 @@ class WorkoutService:
                     is_autoreg_exempt=item.is_autoreg_exempt,
                     rest_seconds=item.rest_seconds,
                 )
-                sql_uow.session.add(plan_ex)
+                self.uow.workout_plan_exercises.add(plan_ex)
 
             self.uow.commit()
             return plan
@@ -180,20 +175,11 @@ class WorkoutService:
             self.uow.workout_plans.update(plan)
 
             # Replace plan exercises
-            from typing import cast
-            from salus.repositories.unit_of_work import SqlUnitOfWork
-            from sqlmodel import select
-            
-            sql_uow = cast(SqlUnitOfWork, self.uow)
+            plan_id = plan.id
+            if plan_id is None:
+                raise ValueError("Plan was not persisted correctly.")
 
-            # Delete old plan exercises
-            stmt = select(WorkoutPlanExercise).where(WorkoutPlanExercise.plan_id == plan_id)
-            old_exercises = sql_uow.session.exec(stmt).all()
-            for old_ex in old_exercises:
-                sql_uow.session.delete(old_ex)
-            sql_uow.session.flush()
-
-            # Add new plan exercises
+            new_exercises = []
             for item in data.exercises:
                 ex = self.uow.exercises.get_by_id(item.exercise_id)
                 if not ex:
@@ -209,7 +195,11 @@ class WorkoutService:
                     is_autoreg_exempt=item.is_autoreg_exempt,
                     rest_seconds=item.rest_seconds,
                 )
-                sql_uow.session.add(plan_ex)
+                new_exercises.append(plan_ex)
+
+            self.uow.workout_plan_exercises.replace_exercises_for_plan(
+                plan_id, new_exercises
+            )
 
             self.uow.commit()
             return plan
@@ -258,22 +248,7 @@ class WorkoutService:
 
     def get_active_session(self, user_id: int) -> Optional[WorkoutSession]:
         with self.uow:
-            from sqlmodel import select
-            from sqlalchemy.orm import selectinload
-            from typing import cast, Any
-            from salus.repositories.unit_of_work import SqlUnitOfWork
-
-            sql_uow = cast(SqlUnitOfWork, self.uow)
-
-            stmt = (
-                select(WorkoutSession)
-                .where(
-                    WorkoutSession.user_id == user_id,
-                    WorkoutSession.completed_at.is_(None),  # type: ignore # noqa: E711
-                )
-                .options(selectinload(cast(Any, WorkoutSession.logs)))
-            )
-            return sql_uow.session.exec(stmt).first()
+            return self.uow.workout_sessions.find_active_by_user(user_id)
 
     def log_set(
         self, user_id: int, session_id: int, entry: WorkoutLogEntryCreate
@@ -299,11 +274,7 @@ class WorkoutService:
                 reps=entry.reps,
                 rpe=entry.rpe,
             )
-            from typing import cast
-            from salus.repositories.unit_of_work import SqlUnitOfWork
-
-            sql_uow = cast(SqlUnitOfWork, self.uow)
-            sql_uow.session.add(log)
+            self.uow.workout_log_entries.add(log)
             self.uow.commit()
             return log
 
@@ -323,21 +294,11 @@ class WorkoutService:
                 if not session or session.user_id != user_id:
                     raise NotFoundError("Workout session not found.")
 
-            from sqlmodel import select
-            from salus.models.workout import WorkoutLogEntry
-            from typing import cast
-            from salus.repositories.unit_of_work import SqlUnitOfWork
-
-            sql_uow = cast(SqlUnitOfWork, self.uow)
-            stmt = (
-                select(WorkoutLogEntry)
-                .where(WorkoutLogEntry.session_id == session_id)
-                .where(WorkoutLogEntry.exercise_id == exercise_id)
-                .where(WorkoutLogEntry.set_number == set_number)
+            entry = self.uow.workout_log_entries.find_by_session_exercise_set(
+                session_id, exercise_id, set_number
             )
-            entry = sql_uow.session.exec(stmt).first()
             if entry:
-                sql_uow.session.delete(entry)
+                self.uow.session.delete(entry)
                 self.uow.commit()
 
     def complete_session(
@@ -370,21 +331,10 @@ class WorkoutService:
             return self.uow.workout_sessions.find_recent_by_user(user_id, limit)
 
     def get_session(self, user_id: int, session_id: int) -> Optional[WorkoutSession]:
-        with self.uow as sql_uow:
-            from sqlalchemy.orm import selectinload
-            from sqlmodel import select
-            from typing import Any, cast
-
-            stmt = (
-                select(WorkoutSession)
-                .where(WorkoutSession.user_id == user_id)
-                .where(WorkoutSession.id == session_id)
-                .options(
-                    selectinload(cast(Any, WorkoutSession.logs)),
-                    selectinload(cast(Any, WorkoutSession.plan))
-                )
+        with self.uow:
+            return self.uow.workout_sessions.get_by_id_with_relations(
+                session_id, user_id
             )
-            return sql_uow.session.exec(stmt).first()
 
     def get_session_targets(
         self, user_id: int, plan_id: int, date_str: Optional[str] = None
@@ -453,22 +403,10 @@ class WorkoutService:
             return targets
 
     def get_exercise_history(self, user_id: int, exercise_id: int) -> list[WorkoutLogEntry]:
-        with self.uow as sql_uow:
-            from sqlmodel import select, desc
-            from sqlalchemy.orm import selectinload
-            from salus.models.workout import WorkoutSession, WorkoutLogEntry
-            from typing import cast, Any
-            
-            stmt = (
-                select(WorkoutLogEntry)
-                .join(WorkoutSession)
-                .where(WorkoutSession.user_id == user_id)
-                .where(WorkoutLogEntry.exercise_id == exercise_id)
-                .where(WorkoutSession.completed_at.is_not(None))  # type: ignore
-                .order_by(desc(WorkoutSession.completed_at))
-                .options(selectinload(cast(Any, WorkoutLogEntry.session)))
+        with self.uow:
+            return self.uow.workout_log_entries.find_exercise_history(
+                user_id, exercise_id
             )
-            return list(sql_uow.session.exec(stmt).all())
 
     def get_exercise_details(self, user_id: int, exercise_id: int) -> dict:
         with self.uow:
@@ -490,21 +428,10 @@ class WorkoutService:
             }
 
     def get_plan_history(self, user_id: int, plan_id: int) -> list[WorkoutSession]:
-        with self.uow as sql_uow:
-            from sqlmodel import select, desc
-            from sqlalchemy.orm import selectinload
-            from salus.models.workout import WorkoutSession
-            from typing import cast, Any
-            
-            stmt = (
-                select(WorkoutSession)
-                .where(WorkoutSession.user_id == user_id)
-                .where(WorkoutSession.plan_id == plan_id)
-                .where(WorkoutSession.completed_at.is_not(None))  # type: ignore
-                .order_by(desc(WorkoutSession.completed_at))
-                .options(selectinload(cast(Any, WorkoutSession.logs)))
+        with self.uow:
+            return self.uow.workout_sessions.find_completed_by_plan(
+                user_id, plan_id
             )
-            return list(sql_uow.session.exec(stmt).all())
 
     def get_plan_details(self, user_id: int, plan_id: int) -> dict:
         with self.uow:
