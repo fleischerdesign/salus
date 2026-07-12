@@ -123,7 +123,7 @@
   }
 
   $effect(() => {
-    $page.url.pathname;
+    void $page.url.pathname;
     for (const entry of mobileNav) {
       if (entry.type === 'group' && isGroupActive(entry) && !expandedGroups.has(entry.label)) {
         const next = new Set(expandedGroups);
@@ -141,6 +141,17 @@
 
 <header class="sticky top-0 z-200 h-16 border-b border-surface-200 bg-surface-0" data-scrolled>
   <div class="mx-auto flex h-full max-w-[1440px] items-center gap-6 px-6">
+    {#if auth.isAuthenticated}
+      <button
+        class="flex h-9 w-9 items-center justify-center rounded-md text-surface-600 hover:bg-surface-100 hover:text-surface-900 lg:hidden shrink-0"
+        aria-label="Toggle navigation"
+        aria-expanded={mobileOpen}
+        onclick={() => (mobileOpen = !mobileOpen)}
+      >
+        <Icon name={mobileOpen ? 'close' : 'menu'} size="lg" />
+      </button>
+    {/if}
+
     <a href="/" class="text-xl font-semibold leading-7 -track-[0.01em] text-primary-600 no-underline shrink-0">
       salus
     </a>
@@ -170,14 +181,6 @@
       {#if auth.isAuthenticated}
         <NotificationBell />
         <UserMenu />
-        <button
-          class="flex h-9 w-9 items-center justify-center rounded-md text-surface-600 hover:bg-surface-100 hover:text-surface-900 lg:hidden"
-          aria-label="Toggle navigation"
-          aria-expanded={mobileOpen}
-          onclick={() => (mobileOpen = !mobileOpen)}
-        >
-          <Icon name={mobileOpen ? 'close' : 'menu'} size="lg" />
-        </button>
       {:else}
         <Btn href="/auth/login" variant="secondary">Sign In</Btn>
       {/if}
