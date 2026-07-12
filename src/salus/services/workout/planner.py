@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-from salus.exceptions import NotFoundError
+from salus.exceptions import ForbiddenError, NotFoundError
 from salus.models.workout import (
     Exercise,
     WorkoutPlan,
@@ -54,7 +54,7 @@ class WorkoutService:
             if not ex:
                 raise NotFoundError("Exercise not found.")
             if ex.user_id != user_id:
-                raise PermissionError("Cannot edit system default exercise.")
+                raise ForbiddenError("Cannot edit system default exercise.")
 
             # Check if name is taken by another exercise
             existing = self.uow.exercises.find_by_name(data.name)
@@ -88,7 +88,7 @@ class WorkoutService:
             if not ex:
                 raise NotFoundError("Exercise not found.")
             if ex.user_id != user_id:
-                raise PermissionError("Cannot delete system default exercise.")
+                raise ForbiddenError("Cannot delete system default exercise.")
             self.uow.exercises.delete(ex)
             self.uow.commit()
 

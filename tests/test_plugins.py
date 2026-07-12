@@ -1,21 +1,18 @@
 import pytest
-import os
 import json
 from pathlib import Path
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy.pool import StaticPool
 
+from salus.exceptions import ForbiddenError
 from salus.models.measurement import Measurement
-from salus.models.goal import Goal, GoalDirection, GoalFrequency
+from salus.models.goal import Goal
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.plugin import BasePlugin, PluginContext, PluginManager
-from salus.services.plugin.hooks import HookParser, HookWidget, HookRegistry
+from salus.services.plugin.hooks import HookRegistry
 from salus.services.parser import FlexiblePayloadParser, register_parser
-from salus.services.measurement import MeasurementService
 from salus.services.webhook_ingestion import WebhookIngestionService
-from salus.services.goal import GoalService
 from salus.services.insight.service import InsightService
-from salus.schemas.measurement import MeasurementCreate
 
 
 @pytest.fixture
@@ -45,7 +42,7 @@ def test_plugin_context_permissions(session: Session):
     }
     context_restricted = PluginContext(uow, manifest_restricted)
     
-    with pytest.raises(PermissionError) as exc_info:
+    with pytest.raises(ForbiddenError) as exc_info:
         context_restricted.get_measurements(user_id=1, data_type="steps")
     assert "Permission denied: Plugin 'restricted' lacks required permission 'measurements:read'" in str(exc_info.value)
 
@@ -55,7 +52,7 @@ def test_plugin_context_permissions(session: Session):
         "permissions": ["measurements:read"]
     }
     context_allowed = PluginContext(uow, manifest_allowed)
-    # This should not raise PermissionError (even if empty results return)
+    # This should not raise ForbiddenError (even if empty results return)
     res = context_allowed.get_measurements(user_id=1, data_type="steps")
     assert isinstance(res, list)
 
@@ -227,7 +224,6 @@ def test_ai_coach_context_hook_injection(session: Session):
 
     # Seed some user info to satisfy service loading
     from salus.models.user import User as UserModel
-    from salus.models.insight import Insight as InsightModel
     
     with uow:
         user = UserModel(username="testcoach", password_hash="hash")

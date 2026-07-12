@@ -18,25 +18,28 @@ class Repository(Generic[T]):
             return None
         return obj
 
-    def create(self, obj: T) -> T:
+    def create(self, obj: T, auto_commit: bool = True) -> T:
         self.session.add(obj)
-        self.session.commit()
-        self.session.refresh(obj)
+        if auto_commit:
+            self.session.commit()
+            self.session.refresh(obj)
         return obj
 
-    def update(self, obj: T) -> T:
+    def update(self, obj: T, auto_commit: bool = True) -> T:
         self.session.add(obj)
-        self.session.commit()
-        self.session.refresh(obj)
+        if auto_commit:
+            self.session.commit()
+            self.session.refresh(obj)
         return obj
 
-    def delete(self, obj: T) -> None:
+    def delete(self, obj: T, auto_commit: bool = True) -> None:
         if hasattr(obj, 'deleted_at'):
             obj.deleted_at = datetime.now(timezone.utc)
             self.session.add(obj)
         else:
             self.session.delete(obj)
-        self.session.commit()
+        if auto_commit:
+            self.session.commit()
 
     def add(self, obj: T) -> None:
         """Add an entity to the session without committing immediately."""

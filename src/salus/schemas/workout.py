@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -93,7 +93,7 @@ class WorkoutLogEntryResponse(BaseModel):
 
 class WorkoutSessionCreate(BaseModel):
     plan_id: Optional[int] = None
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     autoreg_mode: str = "advisory"
     recovery_score: Optional[float] = None

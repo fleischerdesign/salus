@@ -27,4 +27,7 @@ class OllamaProvider(ILlmProvider):
             )
             response.raise_for_status()
             data = response.json()
-            return str(data["message"]["content"])
+            try:
+                return str(data["message"]["content"])
+            except (KeyError, TypeError) as e:
+                raise ValueError(f"Malformed response from Ollama: {e}") from e

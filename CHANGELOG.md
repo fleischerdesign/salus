@@ -18,6 +18,11 @@
   * SSE endpoint (`GET /api/v1/sync/events`) with per-user subscription
   * Frontend `EventSource` manager with 2s debounce (`live-events.ts`)
   * Auto-connects after initial `syncAll()`, disconnects on session expiry
+* **audit refresh** — post-SPA migration audit update
+  * Removed ~140 obsolete issues (Jinja2/HTMX templates, inline CSS — replaced by SvelteKit + Tailwind)
+  * Updated all remaining issue counts and line numbers
+  * Total: ~150 issues (55 HIGH, 50 MEDIUM, 45 LOW), down from ~290
+  * Key findings: SharingService at 1192 lines (+150), 51 DIP violations (+15 from 36)
 
 ## 0.1.0 (2026-06-30)
 

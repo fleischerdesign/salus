@@ -6,16 +6,11 @@ from typing import Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from salus.services.sharing import SharingService
 
-from sqlmodel import select
-
-from salus.exceptions import NotFoundError, ConflictError
+from salus.exceptions import ForbiddenError, NotFoundError, ConflictError
 from salus.models.sharing import (
-    ConnectionStatus,
     LeaderboardGroup,
     LeaderboardMember,
-    SharingRelationship,
 )
-from salus.models.workout import WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
 
@@ -97,25 +92,17 @@ class LeaderboardService:
 
             creator_handle = f"@{creator.username}"
 
-            # Check user -> creator sharing relationship
-            stmt1 = select(SharingRelationship).where(
-                SharingRelationship.owner_id == user_id,
-                SharingRelationship.grantee_handle == creator_handle,
-                SharingRelationship.status == ConnectionStatus.ACTIVE,
+            rel1 = self.uow.sharing_relationships.find_active_between(
+                user_id, creator_handle
             )
-            rel1 = self.uow.session.exec(stmt1).first()
 
-            # Check creator -> user sharing relationship
-            stmt2 = select(SharingRelationship).where(
-                SharingRelationship.owner_id == creator.id,
-                SharingRelationship.grantee_handle == user_handle,
-                SharingRelationship.status == ConnectionStatus.ACTIVE,
+            rel2 = self.uow.sharing_relationships.find_active_between(
+                uid(creator), user_handle
             )
-            rel2 = self.uow.session.exec(stmt2).first()
 
             # Exception if they aren't connected
             if not rel1 and not rel2 and creator.id != user_id:
-                raise PermissionError(
+                raise ForbiddenError(
                     "Prerequisite: You must be connected with the challenge creator to join."
                 )
 
@@ -168,7 +155,7 @@ class LeaderboardService:
                 group.id, current_handle
             )
             if not member_check or member_check.status != "active":
-                raise PermissionError("You are not a member of this challenge group")
+                raise ForbiddenError("You are not a member of this challenge group")
 
             # Determine timeframe start/end dates
             now = datetime.now(timezone.utc)
@@ -200,20 +187,17 @@ class LeaderboardService:
                     local_user = self.uow.users.get_by_username(username)
                     if local_user:
                         if group.metric_type_code == "workouts":
-                            # Count completed sessions
-                            stmt_ws = select(WorkoutSession).where(
-                                WorkoutSession.user_id == local_user.id,
-                                WorkoutSession.completed_at
-                                >= datetime.combine(
-                                    start_date, datetime.min.time(), tzinfo=timezone.utc
-                                ),
-                                WorkoutSession.completed_at
-                                <= datetime.combine(
-                                    end_date, datetime.max.time(), tzinfo=timezone.utc
-                                ),
+                            since_dt = datetime.combine(
+                                start_date, datetime.min.time(), tzinfo=timezone.utc
                             )
-                            sessions = self.uow.session.exec(stmt_ws).all()
-                            score = float(len(sessions))
+                            until_dt = datetime.combine(
+                                end_date, datetime.max.time(), tzinfo=timezone.utc
+                            )
+                            score = float(
+                                self.uow.workout_sessions.count_completed_in_range(
+                                    uid(local_user), since_dt, until_dt
+                                )
+                            )
                         else:
                             # Sum/Avg measurement metrics
                             measurements = self.uow.measurements.find_all(
@@ -301,6 +285,6 @@ class LeaderboardService:
             if not group:
                 raise NotFoundError("Challenge group not found")
             if group.creator_id != creator_id:
-                raise PermissionError("Only the creator can disband this challenge")
+                raise ForbiddenError("Only the creator can disband this challenge")
             self.uow.leaderboard_groups.delete(group)
             self.uow.commit()

@@ -3,14 +3,11 @@ import zipfile
 import json
 import csv
 from datetime import datetime
-from sqlmodel import select
 
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.models.user import User
 from salus.models.measurement import Measurement
 from salus.models.goal import Goal
-from salus.models import MetricType
-from salus.models.workout import WorkoutPlan, WorkoutPlanExercise, WorkoutSession, Exercise
+from salus.models.workout import WorkoutPlan, WorkoutPlanExercise
 
 
 class DataPortabilityService:
@@ -21,7 +18,7 @@ class DataPortabilityService:
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             # 1. Profile Data
-            user = self.uow.session.exec(select(User).where(User.id == user_id)).first()
+            user = self.uow.users.get_by_id(user_id)
             if user:
                 profile_data = {
                     "username": user.username,
@@ -35,9 +32,7 @@ class DataPortabilityService:
                 )
 
             # 2. Measurements (CSV)
-            measurements = self.uow.session.exec(
-                select(Measurement).where(Measurement.user_id == user_id)
-            ).all()
+            measurements = self.uow.measurements.find_all(user_id=user_id)
             
             csv_buffer = io.StringIO()
             csv_writer = csv.writer(csv_buffer)
@@ -56,9 +51,7 @@ class DataPortabilityService:
             zip_file.writestr("measurements.csv", csv_buffer.getvalue())
 
             # 3. Workout Plans (JSON)
-            plans = self.uow.session.exec(
-                select(WorkoutPlan).where(WorkoutPlan.user_id == user_id)
-            ).all()
+            plans = self.uow.workout_plans.find_by_user(user_id)
             plans_data = []
             for p in plans:
                 plan_exercises = []
@@ -85,9 +78,7 @@ class DataPortabilityService:
             )
 
             # 4. Workout History (CSV)
-            sessions = self.uow.session.exec(
-                select(WorkoutSession).where(WorkoutSession.user_id == user_id)
-            ).all()
+            sessions = self.uow.workout_sessions.find_all_by_user(user_id)
             
             history_buffer = io.StringIO()
             history_writer = csv.writer(history_buffer)
@@ -112,14 +103,10 @@ class DataPortabilityService:
             zip_file.writestr("workout_history.csv", history_buffer.getvalue())
 
             # 5. Goals (JSON)
-            goals = self.uow.session.exec(
-                select(Goal).where(Goal.user_id == user_id)
-            ).all()
+            goals = self.uow.goals.find_by_user(user_id)
             goals_data = []
             for g in goals:
-                metric_type = self.uow.session.exec(
-                    select(MetricType).where(MetricType.id == g.metric_type_id)
-                ).first()
+                metric_type = self.uow.metric_types.get_by_id(g.metric_type_id) if g.metric_type_id else None
                 metric_name = metric_type.name if metric_type else ""
                 goals_data.append({
                     "metric_type_name": metric_name,
@@ -152,7 +139,7 @@ class DataPortabilityService:
                 if "profile.json" in zip_file.namelist():
                     try:
                         profile_data = json.loads(zip_file.read("profile.json").decode("utf-8"))
-                        user = self.uow.session.exec(select(User).where(User.id == user_id)).first()
+                        user = self.uow.users.get_by_id(user_id)
                         if user:
                             if "theme" in profile_data:
                                 user.theme = profile_data["theme"]
@@ -166,9 +153,7 @@ class DataPortabilityService:
                         csv_data = zip_file.read("measurements.csv").decode("utf-8")
                         csv_reader = csv.DictReader(io.StringIO(csv_data))
                         
-                        existing_records = self.uow.session.exec(
-                            select(Measurement).where(Measurement.user_id == user_id)
-                        ).all()
+                        existing_records = self.uow.measurements.find_all(user_id=user_id)
                         existing_keys = {
                             (r.start_time.isoformat(), r.metric_type_id, float(r.value_numeric) if r.value_numeric is not None else 0.0)
                             for r in existing_records
@@ -207,9 +192,7 @@ class DataPortabilityService:
                     try:
                         plans_data = json.loads(zip_file.read("workout_plans.json").decode("utf-8"))
                         
-                        existing_plans = self.uow.session.exec(
-                            select(WorkoutPlan).where(WorkoutPlan.user_id == user_id)
-                        ).all()
+                        existing_plans = self.uow.workout_plans.find_by_user(user_id)
                         existing_plan_names = {p.name for p in existing_plans}
                         
                         for p_data in plans_data:
@@ -227,9 +210,7 @@ class DataPortabilityService:
                             self.uow.session.flush()
                             
                             for ex_data in p_data.get("exercises", []):
-                                exercise = self.uow.session.exec(
-                                    select(Exercise).where(Exercise.name == ex_data["exercise_name"])
-                                ).first()
+                                exercise = self.uow.exercises.find_by_name(ex_data["exercise_name"])
                                 if exercise:
                                     pe = WorkoutPlanExercise(
                                         plan_id=plan.id,  # type: ignore
@@ -250,11 +231,9 @@ class DataPortabilityService:
                 if "goals.json" in zip_file.namelist():
                     try:
                         goals_data = json.loads(zip_file.read("goals.json").decode("utf-8"))
-                        existing_goals = self.uow.session.exec(
-                            select(Goal).where(Goal.user_id == user_id)
-                        ).all()
-                        
-                        metric_types = self.uow.session.exec(select(MetricType)).all()
+                        existing_goals = self.uow.goals.find_by_user(user_id)
+
+                        metric_types = self.uow.metric_types.find_all(user_id=None)
                         metric_type_map = {mt.name: mt.id for mt in metric_types}
                         
                         for g_data in goals_data:

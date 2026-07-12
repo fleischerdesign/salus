@@ -44,10 +44,7 @@ async def delete_exercise(
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
-    try:
-        service.delete_exercise(user_id=uid(current_user), exercise_id=exercise_id)
-    except PermissionError as e:
-        return JSONResponse(status_code=403, content={"detail": str(e)})
+    service.delete_exercise(user_id=uid(current_user), exercise_id=exercise_id)
 
 
 @router.post(

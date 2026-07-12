@@ -50,3 +50,16 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
             | (SharingRelationship.expiration_date > now),  # type: ignore
         )
         return list(self.session.exec(stmt).all())
+
+    def find_active_between(
+        self, user_a_id: int, user_b_handle: str
+    ) -> SharingRelationship | None:
+        now = datetime.now(timezone.utc)
+        stmt = select(SharingRelationship).where(
+            SharingRelationship.owner_id == user_a_id,
+            SharingRelationship.grantee_handle == user_b_handle,
+            SharingRelationship.status == ConnectionStatus.ACTIVE,
+            (SharingRelationship.expiration_date == None)  # type: ignore # noqa: E711
+            | (SharingRelationship.expiration_date > now),  # type: ignore
+        )
+        return self.session.exec(stmt).first()

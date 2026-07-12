@@ -1,14 +1,12 @@
 import pytest
-from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 
-from salus.config import settings
 from sqlmodel import select
 from salus.database import Session, engine
 from salus.models.user import User
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.asymmetric_share import AsymmetricShareService
-from salus.schemas.asymmetric_share import ShareRecipientCreate, AsymmetricShareCreate
+from salus.schemas.asymmetric_share import AsymmetricShareCreate
 
 
 @pytest.fixture

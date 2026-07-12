@@ -103,10 +103,7 @@ async def api_leaderboard_get(
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
-    try:
-        result = leaderboard_svc.get_group_rankings(group_id, uid(current_user))
-    except PermissionError as exc:
-        return JSONResponse(status_code=403, content={"error": str(exc)})
+    result = leaderboard_svc.get_group_rankings(group_id, uid(current_user))
 
     group = result["group"]
     rankings = result["rankings"]
@@ -135,13 +132,7 @@ async def api_leaderboard_join(
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
-    try:
-        group = leaderboard_svc.join_by_code(uid(current_user), body.invite_code)
-    except (NotFoundError, ConflictError) as exc:
-        status = 404 if isinstance(exc, NotFoundError) else 409
-        return JSONResponse(status_code=status, content={"error": exc.message})
-    except PermissionError as exc:
-        return JSONResponse(status_code=403, content={"error": str(exc)})
+    group = leaderboard_svc.join_by_code(uid(current_user), body.invite_code)
 
     return {
         "id": group.id,
@@ -171,10 +162,7 @@ async def api_leaderboard_delete(
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
-    try:
-        leaderboard_svc.delete_group(uid(current_user), group_id)
-    except PermissionError as exc:
-        return JSONResponse(status_code=403, content={"error": str(exc)})
+    leaderboard_svc.delete_group(uid(current_user), group_id)
     return Response(status_code=204)
 
 
@@ -197,7 +185,6 @@ async def api_connections_list(
             "is_mutual": c.is_mutual,
             "expiration": c.expiration.isoformat() if c.expiration else None,
             "last_sync": c.last_sync,
-            "api_token": c.api_token,
             "metrics": [
                 {
                     "metric_name": m.metric_name,

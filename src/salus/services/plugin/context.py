@@ -1,5 +1,7 @@
 import logging
 from typing import Any
+
+from salus.exceptions import ForbiddenError
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.models.measurement import Measurement
 from salus.models.goal import Goal
@@ -18,7 +20,7 @@ class PluginContext:
     def _check_permission(self, permission: str) -> None:
         permissions = self.manifest.get("permissions", [])
         if permission not in permissions:
-            raise PermissionError(
+            raise ForbiddenError(
                 f"Permission denied: Plugin '{self.plugin_id}' lacks required permission '{permission}'"
             )
 

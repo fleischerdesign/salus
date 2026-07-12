@@ -32,4 +32,7 @@ class OpenAiProvider(ILlmProvider):
             )
             response.raise_for_status()
             data = response.json()
-            return str(data["choices"][0]["message"]["content"])
+            try:
+                return str(data["choices"][0]["message"]["content"])
+            except (KeyError, IndexError, TypeError) as e:
+                raise ValueError(f"Malformed response from OpenAI: {e}") from e

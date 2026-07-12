@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import subprocess
@@ -95,7 +96,9 @@ class BackupService:
                         self.provider.delete_backup(fname)
                         deleted_count += 1
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).warning(
+                        "Failed to parse backup filename for retention cleanup: %s", fname
+                    )
         return deleted_count
 
     def _dump_sqlite(self) -> bytes:

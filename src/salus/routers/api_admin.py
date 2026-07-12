@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 
@@ -36,6 +37,7 @@ def _format_backup_size(filepath: str) -> str:
     try:
         size_bytes = os.path.getsize(filepath)
     except Exception:
+        logging.getLogger(__name__).warning("Failed to get file size for %s", filepath)
         return "--"
     if size_bytes > 1024 * 1024:
         return f"{size_bytes / (1024 * 1024):.2f} MB"
@@ -79,7 +81,7 @@ def _list_backups(backup_svc: BackupService) -> list[dict]:
         parsed.sort(key=lambda x: x["raw_date"], reverse=True)
         backups = parsed
     except Exception:
-        pass
+        logging.getLogger(__name__).warning("Failed to parse backup listing filename", exc_info=True)
     return backups
 
 

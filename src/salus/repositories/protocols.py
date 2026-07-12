@@ -185,6 +185,10 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
         self, grantee_handle: str
     ) -> list[SharingRelationship]: ...
 
+    def find_active_between(
+        self, user_a_id: int, user_b_handle: str
+    ) -> SharingRelationship | None: ...
+
 
 @runtime_checkable
 class IExerciseRepository(IRepository[Exercise], Protocol):
@@ -213,6 +217,12 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
     def get_personal_records(
         self, user_id: int, exercise_ids: list[int]
     ) -> dict[int, dict]: ...
+
+    def find_all_by_user(self, user_id: int) -> list[WorkoutSession]: ...
+
+    def count_completed_in_range(
+        self, user_id: int, since: "datetime", until: "datetime"
+    ) -> int: ...
 
 
 @runtime_checkable

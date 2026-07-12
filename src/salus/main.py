@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from salus.config import settings
 from salus.database import Session, engine
 from salus.exceptions import (
     AuthenticationError,
@@ -25,6 +26,7 @@ from salus.routers import (
     api_admin,
     api_auth,
     api_dashboard,
+    api_dynamic,
     api_misc,
     api_settings,
     api_sharing,
@@ -152,7 +154,7 @@ app.state.engine = engine
 app.state.event_bus = InMemoryEventBus()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -173,6 +175,7 @@ app.include_router(workout.router)
 app.include_router(asymmetric_share.router)
 app.include_router(open_science.router)
 app.include_router(api_sync.router)
+api_dynamic.register_crud_routes(app)
 
 frontend_build = os.path.join(
     os.path.dirname(__file__), "..", "..", "frontend", "build"

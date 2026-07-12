@@ -11,7 +11,7 @@ from salus.models.sharing import ConnectionStatus
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.sharing import SharingService
 from salus.services.leaderboard import LeaderboardService
-from salus.exceptions import NotFoundError, ConflictError
+from salus.exceptions import ForbiddenError, NotFoundError, ConflictError
 from salus.services._helpers import uid
 
 
@@ -270,7 +270,7 @@ def test_resolution_requires_acceptance(seeded_users):
         aggregation_level="daily_summary",
     )
 
-    with pytest.raises(PermissionError):
+    with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
             data_type="steps", date_str="2026-07-02",
@@ -311,7 +311,7 @@ def test_resolution_after_revoke_denies(seeded_users):
     svc.accept_relationship(grantee_id, rel.id)
     svc.deactivate_relationship(owner_id, rel.id)
 
-    with pytest.raises(PermissionError):
+    with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
             data_type="steps", date_str="2026-07-02",
@@ -666,7 +666,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
     )
     svc.accept_relationship(grantee_id, rel.id)
 
-    with pytest.raises(PermissionError):
+    with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
             data_type="steps",
@@ -745,7 +745,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     )
     assert group.id is not None
 
-    with pytest.raises(PermissionError) as exc_info:
+    with pytest.raises(ForbiddenError) as exc_info:
         leaderboard_svc.join_by_code(grantee_id, group.invite_code)
     assert "connected" in str(exc_info.value)
 

@@ -3,6 +3,10 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from salus.models import MetricType  # noqa: F401
     from salus.models.user import User  # noqa: F401
@@ -60,6 +64,6 @@ class Measurement(SQLModel, table=True):
                         f = data.get("fat_g", 0)
                         return f"{kcal} kcal ({p}g P, {c}g C, {f}g F)"
             except Exception:
-                pass
+                logger.debug("Failed to format measurement display value", exc_info=True)
             return self.value_json
         return ""

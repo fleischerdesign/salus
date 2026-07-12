@@ -32,4 +32,7 @@ class AnthropicProvider(ILlmProvider):
             )
             response.raise_for_status()
             data = response.json()
-            return str(data["content"][0]["text"])
+            try:
+                return str(data["content"][0]["text"])
+            except (KeyError, IndexError, TypeError) as e:
+                raise ValueError(f"Malformed response from Anthropic: {e}") from e

@@ -1,3 +1,4 @@
+import logging
 import os
 import xml.etree.ElementTree as ET
 from typing import Optional, Protocol, runtime_checkable
@@ -97,6 +98,7 @@ class WebdavBackupProvider:
                             filenames.append(fname)
                 return filenames
             except Exception:
+                logging.getLogger(__name__).warning("Failed to list WebDAV backups", exc_info=True)
                 return []
 
     def delete_backup(self, filename: str) -> None:

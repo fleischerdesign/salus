@@ -7,7 +7,7 @@ from typing import Optional
 import httpx
 from sqlmodel import select
 
-from salus.exceptions import NotFoundError, ConflictError
+from salus.exceptions import ForbiddenError, NotFoundError, ConflictError
 from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sharing import PeerConnection, PeerMetricInfo
@@ -236,13 +236,6 @@ class SharingService:
                     peer.expiration is None or rel.expiration_date < peer.expiration
                 ):
                     peer.expiration = rel.expiration_date
-                if (
-                    (rel_is_active or rel_is_pending)
-                    and rel.api_token_hash
-                    and self._is_remote(handle)
-                ):
-                    # We do not expose the hashed API token in the peer list for security (G4)
-                    peer.api_token = None
                 if rel.last_sync_at:
                     key = _peer_key(handle)
                     if (
@@ -344,7 +337,7 @@ class SharingService:
                                 else []
                             )
                         except Exception:
-                            pass
+                            logger.debug("Failed to parse cached measurement JSON", exc_info=True)
 
             data = self._fetch_remote(owner_handle, data_type, date_str)
 
@@ -400,7 +393,7 @@ class SharingService:
                 metric_type_id=metric_id,
             )
             if not rel:
-                raise PermissionError(
+                raise ForbiddenError(
                     f"Access denied: no active sharing relationship from {owner_handle}"
                 )
 
@@ -454,19 +447,13 @@ class SharingService:
                 ]
 
     def get_instance_keys(self) -> tuple[str, str]:
-        from salus.models.system_config import SystemConfig
-
         with self.uow:
-            priv_conf = self.uow.session.exec(
-                select(SystemConfig).where(
-                    SystemConfig.key == "federation_private_key_pem"
-                )
-            ).first()
-            pub_conf = self.uow.session.exec(
-                select(SystemConfig).where(
-                    SystemConfig.key == "federation_public_key_pem"
-                )
-            ).first()
+            priv_conf = self.uow.system_configs.get_by_key(
+                "federation_private_key_pem"
+            )
+            pub_conf = self.uow.system_configs.get_by_key(
+                "federation_public_key_pem"
+            )
 
             if priv_conf and pub_conf:
                 return priv_conf.value, pub_conf.value
@@ -488,31 +475,20 @@ class SharingService:
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,
             ).decode("utf-8")
 
-            if not priv_conf:
-                priv_conf = SystemConfig(
-                    key="federation_private_key_pem",
-                    value=priv_pem,
-                    description="Federation instance Ed25519 private key",
-                    category="federation",
-                    is_secret=True,
-                )
-                self.uow.session.add(priv_conf)
-            else:
-                priv_conf.value = priv_pem
-                self.uow.session.add(priv_conf)
-
-            if not pub_conf:
-                pub_conf = SystemConfig(
-                    key="federation_public_key_pem",
-                    value=pub_pem,
-                    description="Federation instance Ed25519 public key",
-                    category="federation",
-                    is_secret=False,
-                )
-                self.uow.session.add(pub_conf)
-            else:
-                pub_conf.value = pub_pem
-                self.uow.session.add(pub_conf)
+            self.uow.system_configs.upsert(
+                key="federation_private_key_pem",
+                value=priv_pem,
+                description="Federation instance Ed25519 private key",
+                category="federation",
+                is_secret=True,
+            )
+            self.uow.system_configs.upsert(
+                key="federation_public_key_pem",
+                value=pub_pem,
+                description="Federation instance Ed25519 public key",
+                category="federation",
+                is_secret=False,
+            )
 
             self.uow.commit()
             return priv_pem, pub_pem

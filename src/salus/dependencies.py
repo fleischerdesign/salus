@@ -80,6 +80,7 @@ async def verify_webhook_token(
     x_api_token: str | None = Header(None, alias="X-API-Token"),
     authorization: str | None = Header(None),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
+    user_repo: UserRepository = Depends(get_user_repo),
 ) -> User:
     token: str | None = None
 
@@ -101,8 +102,7 @@ async def verify_webhook_token(
         return user
 
     if token == settings.api_token:
-        repo = api_token_svc._user_repo
-        admin = repo.find_first_admin()
+        admin = user_repo.find_first_admin()
         if admin is not None:
             return admin
         raise HTTPException(status_code=401, detail="No admin user configured")
@@ -422,7 +422,7 @@ async def get_current_user_or_api(
     auth_svc: AuthService = Depends(get_auth_service),
     x_api_key: str | None = Header(None, alias="X-API-Key"),
     authorization: str | None = Header(None),
-    session: Session = Depends(get_session),
+    user_repo: UserRepository = Depends(get_user_repo),
 ) -> User:
     token: str | None = None
 
@@ -433,12 +433,9 @@ async def get_current_user_or_api(
 
     if token:
         if token == settings.api_token:
-            from sqlmodel import select
-            from salus.models.user import User as UserModel
-
-            user = session.exec(select(UserModel).where(UserModel.is_admin)).first()
-            if user is not None:
-                return user
+            admin = user_repo.find_first_admin()
+            if admin is not None:
+                return admin
 
         user = auth_svc.get_user_from_token(token)
         if user is not None:

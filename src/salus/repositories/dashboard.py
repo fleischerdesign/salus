@@ -21,7 +21,8 @@ class DashboardWidgetRepository(Repository[DashboardWidget]):
             widget = self.get_by_id(widget_id)
             if widget is not None and widget.user_id == user_id:
                 widget.position = pos
-                self.update(widget)
+                self.update(widget, auto_commit=False)
+        self.session.commit()
 
     def find_by_user_and_metric(
         self, user_id: int, metric_type_id: int

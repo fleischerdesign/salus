@@ -1,3 +1,4 @@
+import logging
 import math
 import random
 from datetime import datetime, timedelta, timezone
@@ -7,6 +8,8 @@ from salus.schemas.open_science import OpenScienceSynthesizeRequest
 
 if TYPE_CHECKING:
     from salus.models.measurement import Measurement  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 
 class OpenScienceService:
@@ -66,26 +69,15 @@ class OpenScienceService:
                 if not mt:
                     continue
 
-                print("DEBUG: found mt = ", mt.name, "id =", mt.id)
+                logger.debug("found mt = %s id = %s", mt.name, mt.id)
                 # Fetch raw measurements
                 measurements = self.uow.measurements.find_by_metric_type(
                     metric_type_id=mt.id,  # type: ignore
                     user_id=user_id,
                 )
-                print("DEBUG: measurements count =", len(measurements))
+                logger.debug("measurements count = %d", len(measurements))
                 for m in measurements:
-                    print(
-                        "DEBUG: m id =",
-                        m.id,
-                        "m.start_time =",
-                        m.start_time,
-                        "m.value_numeric =",
-                        m.value_numeric,
-                        "m.user_id =",
-                        m.user_id,
-                        "m.metric_type_id =",
-                        m.metric_type_id,
-                    )
+                    logger.debug("m id=%s start_time=%s value_numeric=%s user_id=%s metric_type_id=%s", m.id, m.start_time, m.value_numeric, m.user_id, m.metric_type_id)
 
                 for m in measurements:
                     if m.start_time.replace(tzinfo=timezone.utc) < start_date:

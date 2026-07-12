@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 from sqlmodel import SQLModel
 
 from salus.database import engine
-from salus.models.user import User
 from salus.models import MetricType
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import SqlUnitOfWork

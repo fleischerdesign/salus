@@ -1,11 +1,9 @@
 import os
-import time
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 from cryptography.exceptions import InvalidTag
-from sqlmodel import SQLModel, create_engine, select
+from sqlmodel import SQLModel, create_engine
 
-from salus.config import settings
 from salus.services.backup.crypto import encrypt, decrypt
 from salus.services.backup.providers import LocalBackupProvider
 from salus.services.backup.service import BackupService

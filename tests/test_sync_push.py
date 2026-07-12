@@ -1,5 +1,4 @@
 import uuid
-import pytest
 from starlette.testclient import TestClient
 
 

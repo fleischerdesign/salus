@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlmodel import select, or_, desc, col
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
@@ -54,6 +55,29 @@ class WorkoutSessionRepository(Repository[WorkoutSession]):
                 .limit(limit)
             ).all()
         )
+
+    def find_all_by_user(self, user_id: int) -> list[WorkoutSession]:
+        return list(
+            self.session.exec(
+                select(WorkoutSession).where(WorkoutSession.user_id == user_id)
+            ).all()
+        )
+
+    def count_completed_in_range(
+        self, user_id: int, since: datetime, until: datetime
+    ) -> int:
+        from sqlalchemy import func
+
+        stmt = (
+            select(func.count(WorkoutSession.id))  # type: ignore[arg-type]
+            .where(
+                WorkoutSession.user_id == user_id,
+                WorkoutSession.completed_at >= since,  # type: ignore[operator]
+                WorkoutSession.completed_at <= until,  # type: ignore[operator]
+            )
+        )
+        result = self.session.exec(stmt).first()
+        return int(result[0]) if result is not None and result[0] is not None else 0  # type: ignore[index]
 
     def get_last_session_for_plan(
         self, user_id: int, plan_id: int

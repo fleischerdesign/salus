@@ -20,5 +20,4 @@ class PeerConnection(BaseModel):
     is_pending: bool = False
     metrics: list[PeerMetricInfo] = []
     expiration: Optional[datetime] = None
-    api_token: Optional[str] = None
     last_sync: Optional[str] = None  # human-readable, e.g. "2 min ago"

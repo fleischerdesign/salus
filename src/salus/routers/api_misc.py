@@ -1,9 +1,7 @@
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel
-from sqlmodel import Session
 
-from salus.database import get_session
 from salus.dependencies import (
     get_api_token_service,
     get_circadian_service,
@@ -12,8 +10,10 @@ from salus.dependencies import (
     get_insight_service,
     get_measurement_service,
     get_notification_service,
+    get_user_repo,
 )
 from salus.models.user import User
+from salus.repositories.user import UserRepository
 from salus.schemas.analytics import InsightResponse
 from salus.schemas.circadian import CircadianProfileCreate
 from salus.schemas.goal import GoalCreate
@@ -181,11 +181,10 @@ async def api_mark_all_notifications_read(
 @router.post("/onboarding/dismiss", status_code=204)
 async def api_dismiss_onboarding(
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session),
+    user_repo: UserRepository = Depends(get_user_repo),
 ):
     current_user.onboarding_dismissed = True
-    session.add(current_user)
-    session.commit()
+    user_repo.update(current_user)
     return Response(status_code=204)
 
 
