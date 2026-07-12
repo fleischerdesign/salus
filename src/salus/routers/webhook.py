@@ -42,7 +42,7 @@ def run_background_ingest(payload: dict | list, user_id: int, db_engine):
                 from salus.repositories.unit_of_work import SqlUnitOfWork
 
                 uow = SqlUnitOfWork(session)
-                sharing_svc = SharingService(uow)
+                sharing_svc = SharingService.create(uow)
 
                 unique_updates = set()
                 for rec in records:

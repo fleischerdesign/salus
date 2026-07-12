@@ -67,7 +67,7 @@ def seeded_users(session: Session):
 
 def test_create_relationship_creates_pending(session: Session):
     uow = SqlUnitOfWork(session)
-    service = SharingService(uow)
+    service = SharingService.create(uow)
 
     with uow:
         owner = UserModel(username="owner", password_hash="hash")
@@ -96,7 +96,7 @@ def test_create_relationship_creates_pending(session: Session):
 
 def test_create_relationship_rejects_duplicate_pending(session: Session):
     uow = SqlUnitOfWork(session)
-    service = SharingService(uow)
+    service = SharingService.create(uow)
 
     with uow:
         owner = UserModel(username="owner", password_hash="hash")
@@ -126,7 +126,7 @@ def test_create_relationship_rejects_duplicate_pending(session: Session):
 
 def test_create_relationship_remote_no_local_check(session: Session):
     uow = SqlUnitOfWork(session)
-    service = SharingService(uow)
+    service = SharingService.create(uow)
 
     with uow:
         owner = UserModel(username="owner", password_hash="hash")
@@ -158,7 +158,7 @@ def test_create_relationship_remote_no_local_check(session: Session):
 # ---------------------------------------------------------------------------
 
 def test_accept_relationship(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -174,7 +174,7 @@ def test_accept_relationship(seeded_users):
 
 
 def test_decline_relationship(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -189,7 +189,7 @@ def test_decline_relationship(seeded_users):
 
 
 def test_accept_wrong_grantee_raises(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     metric_id = seeded_users["metric_id"]
@@ -209,7 +209,7 @@ def test_accept_wrong_grantee_raises(seeded_users):
 
 
 def test_accept_twice_raises(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -228,7 +228,7 @@ def test_accept_twice_raises(seeded_users):
 # ---------------------------------------------------------------------------
 
 def test_deactivate_relationship(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -250,7 +250,7 @@ def test_deactivate_relationship(seeded_users):
 # ---------------------------------------------------------------------------
 
 def test_resolution_requires_acceptance(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -290,7 +290,7 @@ def test_resolution_requires_acceptance(seeded_users):
 
 
 def test_resolution_after_revoke_denies(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -323,7 +323,7 @@ def test_resolution_after_revoke_denies(seeded_users):
 # ---------------------------------------------------------------------------
 
 def test_get_peer_connections_outgoing(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -341,7 +341,7 @@ def test_get_peer_connections_outgoing(seeded_users):
 
 
 def test_get_peer_connections_mutual(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -379,7 +379,7 @@ def test_get_peer_connections_mutual(seeded_users):
 
 
 def test_get_peer_connections_incoming(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -397,7 +397,7 @@ def test_get_peer_connections_incoming(seeded_users):
 
 
 def test_get_pending_invitations(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -412,7 +412,7 @@ def test_get_pending_invitations(seeded_users):
 
 
 def test_get_pending_invitations_empty_after_accept(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
     metric_id = seeded_users["metric_id"]
@@ -465,7 +465,7 @@ def test_federated_api_endpoint(session: Session):
         uow.measurements.add(m)
         uow.commit()
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
         metric_type_id=metric_id, aggregation_level="raw",
@@ -534,7 +534,7 @@ def test_federation_accept_endpoint(session: Session):
         assert metric.id is not None
         metric_id = metric.id
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
         metric_type_id=metric_id,
@@ -543,7 +543,7 @@ def test_federation_accept_endpoint(session: Session):
     token = rel.raw_token
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
-    app.dependency_overrides[get_sharing_service] = lambda: SharingService(uow)
+    app.dependency_overrides[get_sharing_service] = lambda: SharingService.create(uow)
 
     with TestClient(app) as client:
         response = client.post(
@@ -645,7 +645,7 @@ def test_sharing_feed_api():
 # ---------------------------------------------------------------------------
 
 def test_sharing_expiration_after_acceptance(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -690,7 +690,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
 
 
 def test_resolution_invalid_date_fallback(seeded_users):
-    svc = SharingService(seeded_users["uow"])
+    svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -724,7 +724,7 @@ def test_resolution_invalid_date_fallback(seeded_users):
 
 def test_leaderboard_connection_prerequisite(seeded_users):
     uow = seeded_users["uow"]
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     leaderboard_svc = LeaderboardService(uow)
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -761,7 +761,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
 
 def test_leaderboard_rankings(seeded_users):
     uow = seeded_users["uow"]
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     leaderboard_svc = LeaderboardService(uow)
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
@@ -868,7 +868,7 @@ def test_leaderboard_api_routes():
         group_id = data["id"]
 
         app.dependency_overrides[get_current_user] = lambda: invitee
-        svc = SharingService(uow)
+        svc = SharingService.create(uow)
         rel = svc.create_relationship(
             owner_id=invitee_id, grantee_handle="@creator",
             metric_type_id=metric_i_id,
@@ -923,7 +923,7 @@ def test_federated_measurement_cache_and_ttl():
         uow.commit()
         bob_id = uid(user)
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
 
     with uow:
         cache_entry = FederatedMeasurementCache(
@@ -943,7 +943,7 @@ def test_federated_measurement_cache_and_ttl():
         called_remote = True
         return []
 
-    svc._fetch_remote = mock_fetch_remote
+    svc._resolver._fetch_remote = mock_fetch_remote
 
     data = svc.resolve_and_fetch(bob_id, "@alice:remote.com", "steps", "2026-07-03")
     assert len(data) == 1
@@ -988,7 +988,7 @@ def test_federated_notify_update_route():
         uow.commit()
         metric_id = metric.id
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_type_id=metric_id,
@@ -1009,7 +1009,7 @@ def test_federated_notify_update_route():
     def mock_fetch_remote(handle, data_type, date_str):
         return [{"value_numeric": 12000.0}]
 
-    svc._fetch_remote = mock_fetch_remote
+    svc._resolver._fetch_remote = mock_fetch_remote
 
     with TestClient(app) as client:
         resp = client.post(
@@ -1046,7 +1046,7 @@ def test_webfinger_and_actor_discovery():
         uow.commit()
         uid(user)
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
     app.dependency_overrides[get_sharing_service] = lambda: svc
@@ -1161,7 +1161,7 @@ def test_federated_access_log():
         uow.commit()
         metric_id = metric.id
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_type_id=metric_id,
@@ -1231,7 +1231,7 @@ def test_federated_http_message_signatures():
         uow.commit()
         metric_id = metric.id
 
-    svc = SharingService(uow)
+    svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_type_id=metric_id,
@@ -1251,7 +1251,7 @@ def test_federated_http_message_signatures():
     def mock_resolve_actor_public_key(sender_handle):
         return pub
 
-    svc.resolve_actor_public_key = mock_resolve_actor_public_key
+    svc._keys.resolve_actor_public_key = mock_resolve_actor_public_key
 
     url = "http://testserver/api/v1/federation/sharing?owner_username=bob&data_type=steps&date=2026-07-03"
     sig_headers = svc.sign_request(

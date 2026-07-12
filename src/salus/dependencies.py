@@ -44,7 +44,14 @@ from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.repositories.insight import InsightRepository
-from salus.services.sharing import SharingService
+from salus.services.sharing import (
+    SharingService,
+    RelationshipService,
+    FederationKeyService,
+    FederationDiscoveryService,
+    FederationDataResolver,
+    PeerNotificationService,
+)
 from salus.services.leaderboard import LeaderboardService
 from salus.services.notification import NotificationService
 from salus.repositories.protocols import IInsightRepository
@@ -473,7 +480,16 @@ def get_insight_service(
 def get_sharing_service(
     uow: SqlUnitOfWork = Depends(get_unit_of_work),
 ) -> SharingService:
-    return SharingService(uow)
+    relationship_svc = RelationshipService(uow)
+    key_svc = FederationKeyService(uow)
+    discovery_svc = FederationDiscoveryService()
+    resolver_svc = FederationDataResolver(
+        uow, key_svc, discovery_svc, relationship_svc,
+    )
+    notify_svc = PeerNotificationService(uow, discovery_svc)
+    return SharingService(
+        relationship_svc, key_svc, discovery_svc, resolver_svc, notify_svc,
+    )
 
 
 def get_autoregulation_service(
