@@ -96,6 +96,15 @@
   --z-modal-backdrop: 300;
   --z-modal: 400;
   --z-tooltip: 500;
+
+  /* Animation Duration — four-tier rhythm */
+  --duration-micro: 150ms;
+  --duration-fast: 200ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* Animation Easing */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @layer base {

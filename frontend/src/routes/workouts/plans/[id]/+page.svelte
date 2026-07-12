@@ -98,7 +98,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   <div class="space-y-6">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <a href="/workouts/plans" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700">
+        <a href="/workouts/plans" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
           <Icon name="arrow-back" size="sm" />Plans
         </a>
         <h1 class="mt-1 text-2xl font-semibold text-surface-900">{$plan.name}</h1>

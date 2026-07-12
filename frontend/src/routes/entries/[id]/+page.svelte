@@ -216,7 +216,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       <div class="flex items-center gap-3">
         <a
           href="/entries"
-          class="flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+          class="flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
           aria-label="Back to Logbook"
         >
           <Icon name="arrow-back" size="sm" />
@@ -309,7 +309,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                 >
                   <button
                     type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
                     aria-label="Edit entry"
                     onclick={() => openEditModal(e)}
                   >
@@ -317,7 +317,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                   </button>
                   <button
                     type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
                     aria-label="Delete entry"
                     onclick={() => {
                       entryToDelete = e;

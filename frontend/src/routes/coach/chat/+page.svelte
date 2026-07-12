@@ -99,7 +99,7 @@ import type { Insight } from '$lib/db/types';
       <input
         type="date"
         bind:value={date}
-        class="h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors hover:border-surface-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        class="h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
       />
       <Btn
         variant="primary"

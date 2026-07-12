@@ -69,7 +69,7 @@
 <div class="relative {extraClass}" bind:this={containerEl}>
   <button
     type="button"
-    class="flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
+    class="flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-200"
     aria-label={triggerLabel}
     aria-haspopup="menu"
     aria-expanded={open}
@@ -90,7 +90,7 @@
         {#each items as item, i}
           <button
             type="button"
-            class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-50 {item.variant === 'danger' ? 'text-error-600 hover:bg-error-50' : 'text-surface-700'}"
+            class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-50 {item.variant === 'danger' ? 'text-error-600 hover:bg-error-50' : 'text-surface-700'}"
             role="menuitem"
             onclick={() => handleItemClick(item)}
           >

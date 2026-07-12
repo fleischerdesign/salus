@@ -83,10 +83,10 @@
           </div>
 
           <div class="mt-3 flex items-center gap-4 border-t border-surface-100 px-5 py-2.5">
-            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors hover:text-primary-600">
+            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600">
               <Icon name="favorite" size="sm" />Kudos
             </button>
-            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors hover:text-primary-600">
+            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600">
               <Icon name="chat-bubble-outline" size="sm" />Comment
             </button>
           </div>

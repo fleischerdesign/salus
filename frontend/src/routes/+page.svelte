@@ -277,7 +277,7 @@
   {:else}
     <div
       bind:this={gridEl}
-      class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6 transition-opacity duration-fast {editing
+      class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6 transition-opacity duration-150 {editing
         ? 'rounded-lg bg-surface-100 p-2 ring-1 ring-primary-200'
         : ''}"
     >
@@ -299,14 +299,14 @@
         >
           {#snippet editActions()}
             <button
-              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-fast hover:bg-surface-100 hover:text-surface-600"
+              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600"
               onclick={() => openEditModal(widget)}
               aria-label="Edit widget size"
             >
               <Icon name="tune" size="sm" />
             </button>
             <button
-              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-fast hover:bg-error-50 hover:text-error-500"
+              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
               onclick={() => {
                 deleteWidgetId = widget.id;
                 deleteConfirmOpen = true;

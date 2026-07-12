@@ -74,7 +74,7 @@
   const isRpe10 = $derived(rpe >= 10);
 
   const stepperClass = 'flex items-center rounded-md border border-surface-200 bg-surface-0 overflow-hidden';
-  const btnClass = 'flex h-7 w-7 items-center justify-center text-xs font-semibold text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600';
+  const btnClass = 'flex h-7 w-7 items-center justify-center text-xs font-semibold text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600';
   const inputClass = 'h-7 w-14 border-none bg-transparent text-center text-xs tabular-nums text-surface-900 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 
   const checkBtn = $derived(

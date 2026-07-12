@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { fly, fade } from 'svelte/transition';
   import Icon from '$components/ui/Icon.svelte';
   import { dismissToast, getToasts } from './toast-state.svelte';
 
@@ -34,12 +35,14 @@
   >
     {#each toasts as t (t.id)}
       <div
-        class="relative overflow-hidden flex items-center gap-3 min-w-[280px] max-w-[420px] rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg animate-[slide-in_300ms_ease-out] {colorMap[t.type]}"
+        class="relative overflow-hidden flex items-center gap-3 min-w-[280px] max-w-[420px] rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg {colorMap[t.type]}"
         role="alert"
+        in:fly={{ y: 16, duration: 350 }}
+        out:fade={{ duration: 250 }}
       >
         {#if fillPct(t) !== null}
           <div
-            class="absolute inset-0 origin-left bg-primary-500/10 transition-transform duration-500 ease-out"
+            class="absolute inset-0 origin-left bg-primary-500/10 transition-transform duration-[350ms] ease-out"
             style="transform: scaleX({fillPct(t)! / 100})"
           ></div>
         {/if}
@@ -65,16 +68,3 @@
     {/each}
   </div>
 {/if}
-
-<style>
-  @keyframes slide-in {
-    from {
-      opacity: 0;
-      transform: translateY(12px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-</style>

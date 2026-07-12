@@ -84,7 +84,7 @@
   <div class="space-y-6">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <a href="/workouts/sessions" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700">
+        <a href="/workouts/sessions" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
           <Icon name="arrow-back" size="sm" />Sessions
         </a>
         <h1 class="mt-1 text-2xl font-semibold text-surface-900">Workout Session</h1>

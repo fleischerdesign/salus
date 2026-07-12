@@ -131,7 +131,7 @@
   </div>
 {:else if $detail}
   <div class="max-w-4xl space-y-6">
-    <a href="/community/leaderboard" class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 no-underline transition-colors hover:text-surface-700">
+    <a href="/community/leaderboard" class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
       <Icon name="arrow-back" size="sm" />Back to Challenges
     </a>
 

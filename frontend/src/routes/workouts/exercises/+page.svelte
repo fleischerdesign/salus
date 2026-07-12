@@ -142,7 +142,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     <div>
       <a
         href="/workouts"
-        class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
+        class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
       >
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
@@ -169,7 +169,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
           type="text"
           placeholder="Search exercises…"
           bind:value={searchQuery}
-          class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pl-9 pr-3 text-sm text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pl-9 pr-3 text-sm text-surface-900 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:outline-none focus:ring-1 focus:ring-primary-500"
         />
       </div>
       <div class="w-40">

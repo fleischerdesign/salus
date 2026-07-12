@@ -145,7 +145,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <a href="/workouts" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700">
+      <a href="/workouts" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
       <h1 class="mt-1 text-2xl font-semibold text-surface-900">Training Plans</h1>
@@ -180,7 +180,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
               </div>
               <button
                 type="button"
-                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
                 aria-label="Delete plan"
                 onclick={() => { planToDelete = plan; deleteDialogOpen = true; }}
               >

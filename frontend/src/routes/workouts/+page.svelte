@@ -70,7 +70,7 @@
     {#if activeSession}
       <a href="/workouts/active" class="no-underline block">
         <div
-          class="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3 transition-colors hover:bg-primary-100"
+          class="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3 transition-colors duration-150 hover:bg-primary-100"
         >
           <div class="flex items-center gap-3">
             <Icon name="play-circle" class="text-primary-600" />

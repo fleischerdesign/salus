@@ -173,8 +173,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                  <div class="flex items-center gap-0.5">
                    <button
                      type="button"
-                     class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
-                     aria-label="Edit metric"
+                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
+                      aria-label="Edit metric"
                      onclick={(e) => { e.preventDefault(); e.stopPropagation(); openEditModal(m); }}
                    >
                      <Icon name="edit" size="sm" />
@@ -182,8 +182,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                    {#if !m.is_system}
                      <button
                        type="button"
-                       class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
-                       aria-label="Delete metric"
+                        class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
+                        aria-label="Delete metric"
                        onclick={(e) => { e.preventDefault(); e.stopPropagation(); metricToDelete = m; deleteDialogOpen = true; }}
                      >
                        <Icon name="delete" size="sm" />
