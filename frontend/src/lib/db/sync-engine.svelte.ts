@@ -27,7 +27,7 @@ export const syncEngine = {
     client_id: string,
     data?: Record<string, unknown>,
     realId?: number,
-    expectedUpdatedAt?: string,
+    expectedUpdatedAt?: string
   ): Promise<void> {
     await db.queue.put({
       type,
@@ -37,25 +37,25 @@ export const syncEngine = {
       realId,
       expected_updated_at: expectedUpdatedAt,
       createdAt: Date.now(),
-      retries: 0,
+      retries: 0
     });
-    _queueLength = await db.queue.count() + await db.domainQueue.count();
+    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
   },
 
   async enqueueDomain(
     url: string,
     method: string,
     body?: Record<string, unknown>,
-    responseTable?: string,
+    responseTable?: string
   ): Promise<void> {
     await db.domainQueue.put({
       url,
       method,
       body,
       responseTable,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
-    _queueLength = await db.queue.count() + await db.domainQueue.count();
+    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
   },
 
   async flush(): Promise<void> {
@@ -65,7 +65,7 @@ export const syncEngine = {
     await this._flushEntityQueue();
     await this._flushDomainQueue();
 
-    _queueLength = await db.queue.count() + await db.domainQueue.count();
+    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
     if (_status === 'syncing') _status = 'idle';
   },
 
@@ -73,7 +73,10 @@ export const syncEngine = {
     const items = await db.queue.orderBy('createdAt').toArray();
     if (items.length === 0) return;
 
-    const headers: Record<string, string> = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    };
 
     try {
       const operations = items.map((op) => ({
@@ -82,13 +85,13 @@ export const syncEngine = {
         client_id: op.client_id,
         ...(op.realId != null && op.realId > 0 ? { id: op.realId } : {}),
         ...(op.data ? { data: op.data } : {}),
-        ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {}),
+        ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {})
       }));
 
       const res = await fetch('/api/v1/sync/push', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ operations }),
+        body: JSON.stringify({ operations })
       });
 
       if (!res.ok) {
@@ -165,7 +168,7 @@ export const syncEngine = {
         const res = await fetch(item.url, {
           method: item.method,
           headers,
-          body: item.body && item.method !== 'DELETE' ? JSON.stringify(item.body) : undefined,
+          body: item.body && item.method !== 'DELETE' ? JSON.stringify(item.body) : undefined
         });
 
         if (res.ok && item.responseTable && res.status !== 204) {
@@ -197,5 +200,5 @@ export const syncEngine = {
   },
   resetSessionExpired(): void {
     _sessionExpired = false;
-  },
+  }
 };

@@ -4,7 +4,11 @@
   import { onDestroy } from 'svelte';
   import { db } from '$lib/db/database';
   import { mutate, nextTempId } from '$lib/db/mutate';
-  import { fetchDashboard, type DashboardWidgetView, type DashboardData } from '$lib/analytics/views/dashboard';
+  import {
+    fetchDashboard,
+    type DashboardWidgetView,
+    type DashboardData
+  } from '$lib/analytics/views/dashboard';
   import Btn from '$components/ui/Btn.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Modal from '$components/ui/Modal.svelte';
@@ -25,12 +29,10 @@
     new Date().toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric',
-    }),
+      day: 'numeric'
+    })
   );
-  const isToday = $derived(
-    displayDate === new Date().toISOString().split('T')[0],
-  );
+  const isToday = $derived(displayDate === new Date().toISOString().split('T')[0]);
 
   let dashboardData = liveQuery(() => fetchDashboard(displayDate));
 
@@ -59,7 +61,7 @@
     displayDateFormatted = d.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric',
+      day: 'numeric'
     });
   }
 
@@ -78,18 +80,20 @@
         type: 'create',
         data: {
           metric_type_id: Number(selectedMetricId),
-          size: selectedSize,
+          size: selectedSize
         },
         optimistic: {
           id: tempId,
           metric_type_id: Number(selectedMetricId),
           size: selectedSize,
-          position: widgets.length,
-        },
+          position: widgets.length
+        }
       });
       addModalOpen = false;
       selectedMetricId = '';
-    } catch { /* error */ }
+    } catch {
+      /* error */
+    }
     adding = false;
   }
 
@@ -98,7 +102,7 @@
       table: 'dashboard_widget',
       type: 'delete',
       realId: id,
-      optimistic: { id },
+      optimistic: { id }
     });
   }
 
@@ -111,11 +115,13 @@
         type: 'update',
         realId: editWidget.id,
         data: { size: editSize },
-        optimistic: { ...editWidget, size: editSize },
+        optimistic: { ...editWidget, size: editSize }
       });
       editModalOpen = false;
       editWidget = null;
-    } catch { /* error */ }
+    } catch {
+      /* error */
+    }
     editSaving = false;
   }
 
@@ -126,8 +132,8 @@
         type: 'update',
         data: { position: idx },
         optimistic: { id, position: idx },
-        realId: id,
-      }),
+        realId: id
+      })
     );
     await Promise.all(updates);
   }
@@ -166,7 +172,7 @@
         const [moved] = reordered.splice(evt.oldIndex!, 1);
         reordered.splice(evt.newIndex!, 0, moved);
         reorderWidgets(reordered.map((w) => w.id));
-      },
+      }
     });
   }
 
@@ -186,7 +192,7 @@
   const metricOptions = $derived(
     (metrics ?? [])
       .filter((m) => !widgets.some((w) => w.metric_type_id === m.id))
-      .map((m) => ({ value: String(m.id), label: m.name })),
+      .map((m) => ({ value: String(m.id), label: m.name }))
   );
 
   let loading = $derived($dashboardData == null);
@@ -200,36 +206,18 @@
 
     <DayNavigator
       dateDisplay={displayDateFormatted}
-      onPrev={() =>
-        setDate(
-          new Date(
-            new Date(displayDate).getTime() - 86400000,
-          ),
-        )}
-      onNext={() =>
-        setDate(
-          new Date(
-            new Date(displayDate).getTime() + 86400000,
-          ),
-        )}
+      onPrev={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
+      onNext={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
       onDateChange={handleDateChange}
       {isToday}
     />
 
     <div class="flex items-center gap-2">
-      <Btn
-        variant={editing ? 'primary' : 'secondary'}
-        size="sm"
-        onclick={toggleEdit}
-      >
+      <Btn variant={editing ? 'primary' : 'secondary'} size="sm" onclick={toggleEdit}>
         {editing ? 'Done' : 'Edit Layout'}
       </Btn>
       {#if editing}
-        <Btn
-          variant="secondary"
-          size="sm"
-          onclick={() => (addModalOpen = true)}
-        >
+        <Btn variant="secondary" size="sm" onclick={() => (addModalOpen = true)}>
           <Icon name="add" size="sm" />Add Widget
         </Btn>
       {/if}
@@ -237,25 +225,15 @@
   </div>
 
   {#if loading}
-    <div
-      class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6"
-    >
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
       {#each Array(4) as _, i (i)}
-        <div
-          class="overflow-hidden rounded-lg border border-surface-200 bg-surface-0"
-        >
+        <div class="overflow-hidden rounded-lg border border-surface-200 bg-surface-0">
           <div class="border-b border-surface-100 px-3 py-2">
-            <div
-              class="h-3 w-24 animate-pulse rounded bg-surface-100"
-            ></div>
+            <div class="h-3 w-24 animate-pulse rounded bg-surface-100"></div>
           </div>
-          <div class="min-h-[80px] space-y-3 px-4 pb-4 pt-2">
-            <div
-              class="h-8 w-16 animate-pulse rounded bg-surface-100"
-            ></div>
-            <div
-              class="h-20 w-full animate-pulse rounded bg-surface-100"
-            ></div>
+          <div class="min-h-[80px] space-y-3 px-4 pt-2 pb-4">
+            <div class="h-8 w-16 animate-pulse rounded bg-surface-100"></div>
+            <div class="h-20 w-full animate-pulse rounded bg-surface-100"></div>
           </div>
         </div>
       {/each}
@@ -266,18 +244,12 @@
       title="No widgets yet"
       description="Add widgets to start tracking your health data on the dashboard."
     >
-      <Btn
-        variant="primary"
-        size="sm"
-        onclick={() => (addModalOpen = true)}
-      >
-        + Add Widget
-      </Btn>
+      <Btn variant="primary" size="sm" onclick={() => (addModalOpen = true)}>+ Add Widget</Btn>
     </EmptyState>
   {:else}
     <div
       bind:this={gridEl}
-      class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6 transition-opacity duration-150 {editing
+      class="grid grid-cols-1 gap-4 transition-opacity duration-150 sm:grid-cols-3 lg:grid-cols-6 {editing
         ? 'rounded-lg bg-surface-100 p-2 ring-1 ring-primary-200'
         : ''}"
     >
@@ -318,12 +290,8 @@
           {/snippet}
 
           {#if viz.empty}
-            <div
-              class="flex min-h-[60px] items-center justify-center py-6 text-center"
-            >
-              <span
-                class="max-w-[240px] text-sm text-surface-500"
-              >
+            <div class="flex min-h-[60px] items-center justify-center py-6 text-center">
+              <span class="max-w-[240px] text-sm text-surface-500">
                 {viz.empty_text ?? 'No data'}
               </span>
             </div>
@@ -345,14 +313,12 @@
           {:else if viz.type === 'pills'}
             <VizPills
               items={viz.segments as
-                | { label: string; value: number; unit?: string; color?: string }[]
-                | undefined}
+                { label: string; value: number; unit?: string; color?: string }[] | undefined}
             />
           {:else if viz.type === 'bar'}
             <VizBar
               segments={viz.segments as
-                | { label: string; value: number; color: string }[]
-                | undefined}
+                { label: string; value: number; color: string }[] | undefined}
             />
           {:else if viz.type === 'sparkline'}
             <VizSparkline
@@ -362,10 +328,7 @@
               color={viz.color ?? undefined}
             />
           {:else if viz.type === 'candlestick'}
-            <VizCandlestick
-              data={undefined}
-              color={viz.color ?? undefined}
-            />
+            <VizCandlestick data={undefined} color={viz.color ?? undefined} />
           {:else}
             <VizNumber
               value={viz.value ?? '—'}
@@ -395,24 +358,13 @@
           options={[
             { value: 'small', label: 'Small (1 column)' },
             { value: 'medium', label: 'Medium (2 columns)' },
-            { value: 'large', label: 'Large (4 columns)' },
+            { value: 'large', label: 'Large (4 columns)' }
           ]}
           bind:value={selectedSize}
         />
         <div class="flex justify-end gap-2">
-          <Btn
-            variant="ghost"
-            onclick={() => (addModalOpen = false)}
-          >
-            Cancel
-          </Btn>
-          <Btn
-            variant="primary"
-            loading={adding}
-            onclick={addWidget}
-          >
-            Add
-          </Btn>
+          <Btn variant="ghost" onclick={() => (addModalOpen = false)}>Cancel</Btn>
+          <Btn variant="primary" loading={adding} onclick={addWidget}>Add</Btn>
         </div>
       {:else}
         <EmptyState
@@ -434,24 +386,13 @@
         options={[
           { value: 'small', label: 'Small (1 column)' },
           { value: 'medium', label: 'Medium (2 columns)' },
-          { value: 'large', label: 'Large (4 columns)' },
+          { value: 'large', label: 'Large (4 columns)' }
         ]}
         bind:value={editSize}
       />
       <div class="flex justify-end gap-2">
-        <Btn
-          variant="ghost"
-          onclick={() => (editModalOpen = false)}
-        >
-          Cancel
-        </Btn>
-        <Btn
-          variant="primary"
-          loading={editSaving}
-          onclick={updateWidgetSize}
-        >
-          Save
-        </Btn>
+        <Btn variant="ghost" onclick={() => (editModalOpen = false)}>Cancel</Btn>
+        <Btn variant="primary" loading={editSaving} onclick={updateWidgetSize}>Save</Btn>
       </div>
     </div>
   </Modal>

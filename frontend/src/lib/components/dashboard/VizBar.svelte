@@ -11,11 +11,7 @@
     showLegend?: boolean;
   }
 
-  let {
-    segments = [],
-    total,
-    showLegend = true
-  }: Props = $props();
+  let { segments = [], total, showLegend = true }: Props = $props();
 
   let computedTotal = $derived(total ?? segments.reduce((sum, s) => sum + s.value, 0));
 </script>

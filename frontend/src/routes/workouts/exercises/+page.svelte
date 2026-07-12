@@ -2,7 +2,7 @@
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Exercise } from '$lib/db/types';
-import { mutate, nextTempId } from '$lib/db/mutate';
+  import { mutate, nextTempId } from '$lib/db/mutate';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Modal from '$components/ui/Modal.svelte';
@@ -17,7 +17,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
 
   let allExercises = liveQuery(() =>
-    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at)),
+    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
 
   let searchQuery = $state('');
@@ -44,7 +44,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     { value: 'machine', label: 'Machine' },
     { value: 'bodyweight', label: 'Bodyweight' },
     { value: 'cable', label: 'Cable' },
-    { value: 'kettlebell', label: 'Kettlebell' },
+    { value: 'kettlebell', label: 'Kettlebell' }
   ];
 
   let muscleOptions = $derived.by(() => {
@@ -61,8 +61,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         .sort()
         .map((m) => ({
           value: m,
-          label: m.charAt(0).toUpperCase() + m.slice(1),
-        })),
+          label: m.charAt(0).toUpperCase() + m.slice(1)
+        }))
     ];
   });
 
@@ -71,12 +71,9 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     const m = muscleFilter.toLowerCase();
     const e = equipFilter.toLowerCase();
     return ($allExercises ?? []).filter((ex) => {
-      const matchesQuery =
-        !q || ex.name.toLowerCase().includes(q);
-      const matchesMuscle =
-        !m || (ex.primary_muscles ?? '').toLowerCase().includes(m);
-      const matchesEquip =
-        !e || (ex.equipment ?? '').toLowerCase() === e;
+      const matchesQuery = !q || ex.name.toLowerCase().includes(q);
+      const matchesMuscle = !m || (ex.primary_muscles ?? '').toLowerCase().includes(m);
+      const matchesEquip = !e || (ex.equipment ?? '').toLowerCase() === e;
       return matchesQuery && matchesMuscle && matchesEquip;
     });
   });
@@ -102,13 +99,22 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       primary_muscles: exPrimaryMuscles,
       description: exDescription || undefined,
       instructions: exInstructions || undefined,
-      video_url: exVideoUrl || undefined,
+      video_url: exVideoUrl || undefined
     };
     const { ok, error } = await mutate({
       table: 'exercise',
       type: 'create',
       data: data as Record<string, unknown>,
-      optimistic: { id: nextTempId(), user_id: 0, ...data, secondary_muscles: null, suggested_rest_seconds: null, created_at: new Date().toISOString(), updated_at: null, deleted_at: null },
+      optimistic: {
+        id: nextTempId(),
+        user_id: 0,
+        ...data,
+        secondary_muscles: null,
+        suggested_rest_seconds: null,
+        created_at: new Date().toISOString(),
+        updated_at: null,
+        deleted_at: null
+      }
     });
     saving = false;
     if (!ok) {
@@ -126,7 +132,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       table: 'exercise',
       type: 'delete',
       optimistic: { id: target.id },
-      realId: target.id,
+      realId: target.id
     });
   }
 
@@ -146,9 +152,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       >
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
-      <h1 class="mt-1 text-2xl font-semibold text-surface-900">
-        Exercise Library
-      </h1>
+      <h1 class="mt-1 text-2xl font-semibold text-surface-900">Exercise Library</h1>
     </div>
     <Btn variant="primary" onclick={openForm}>
       <Icon name="add" size="sm" />New Exercise
@@ -159,32 +163,22 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else}
     <div class="flex flex-wrap gap-3">
-      <div class="relative flex-1 min-w-[200px]">
-        <span
-          class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"
-        >
+      <div class="relative min-w-[200px] flex-1">
+        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-surface-400">
           <Icon name="search" size="sm" />
         </span>
         <input
           type="text"
           placeholder="Search exercises…"
           bind:value={searchQuery}
-          class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pl-9 pr-3 text-sm text-surface-900 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-3 pl-9 text-sm text-surface-900 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
         />
       </div>
       <div class="w-40">
-        <Select
-          name="muscle"
-          options={muscleOptions}
-          bind:value={muscleFilter}
-        />
+        <Select name="muscle" options={muscleOptions} bind:value={muscleFilter} />
       </div>
       <div class="w-40">
-        <Select
-          name="equipment"
-          options={equipmentOptions}
-          bind:value={equipFilter}
-        />
+        <Select name="equipment" options={equipmentOptions} bind:value={equipFilter} />
       </div>
     </div>
 
@@ -201,38 +195,25 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         {/if}
       </EmptyState>
     {:else}
-      <div
-        class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]"
-      >
+      <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
         {#each filteredExercises as ex (ex.id)}
-          <a
-            href="/workouts/exercises/{ex.id}"
-            class="no-underline"
-          >
+          <a href="/workouts/exercises/{ex.id}" class="no-underline">
             <Card padding={false} hoverable>
               {#snippet header()}
                 <div class="flex items-center gap-3">
                   <div class="min-w-0 flex-1">
-                    <p
-                      class="truncate text-sm font-semibold text-surface-900"
-                    >
+                    <p class="truncate text-sm font-semibold text-surface-900">
                       {ex.name}
                     </p>
                     <div class="mt-1 flex items-center gap-1.5">
-                      <Badge variant="default" class="capitalize"
-                        >{ex.equipment}</Badge
-                      >
+                      <Badge variant="default" class="capitalize">{ex.equipment}</Badge>
                       <Badge variant="primary" class="capitalize"
                         >{formatMuscle(ex.primary_muscles ?? '')}</Badge
                       >
                     </div>
                   </div>
                   {#if ex.video_url}
-                    <Icon
-                      name="smart-display"
-                      size="sm"
-                      class="text-surface-400"
-                    />
+                    <Icon name="smart-display" size="sm" class="text-surface-400" />
                   {/if}
                 </div>
               {/snippet}
@@ -254,12 +235,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 <Modal title="New Exercise" bind:open={showForm}>
   <form onsubmit={createExercise} class="flex flex-col gap-4">
     <FormField label="Name" required>
-      <Input
-        name="name"
-        bind:value={exName}
-        required
-        placeholder="e.g. Bench Press"
-      />
+      <Input name="name" bind:value={exName} required placeholder="e.g. Bench Press" />
     </FormField>
     <FormField label="Equipment">
       <Select
@@ -269,12 +245,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       />
     </FormField>
     <FormField label="Primary Muscles" required>
-      <Input
-        name="muscles"
-        bind:value={exPrimaryMuscles}
-        required
-        placeholder="chest,triceps"
-      />
+      <Input name="muscles" bind:value={exPrimaryMuscles} required placeholder="chest,triceps" />
     </FormField>
     <FormField label="Description">
       <Textarea
@@ -293,11 +264,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       />
     </FormField>
     <FormField label="Video URL">
-      <Input
-        name="video_url"
-        bind:value={exVideoUrl}
-        placeholder="https://…"
-      />
+      <Input name="video_url" bind:value={exVideoUrl} placeholder="https://…" />
     </FormField>
     {#if formError}
       <p class="text-sm text-error-500">{formError}</p>

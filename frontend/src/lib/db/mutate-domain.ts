@@ -17,17 +17,30 @@ interface DomainMutateOpts {
   responseTable?: string;
 }
 
-export async function mutateDomain(opts: DomainMutateOpts): Promise<{ ok: boolean; data?: unknown; queued: boolean; error?: string; conflict?: unknown }> {
-  const { url, method = 'POST', body, optimisticTable, optimisticData, optimisticId, responseTable } = opts;
+export async function mutateDomain(
+  opts: DomainMutateOpts
+): Promise<{ ok: boolean; data?: unknown; queued: boolean; error?: string; conflict?: unknown }> {
+  const {
+    url,
+    method = 'POST',
+    body,
+    optimisticTable,
+    optimisticData,
+    optimisticId,
+    responseTable
+  } = opts;
 
   if (isOnline()) {
     try {
-      const headers: Record<string, string> = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+      const headers: Record<string, string> = {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      };
 
       const res = await fetch(url, {
         method,
         headers: method !== 'DELETE' ? headers : { ...headers, 'Content-Type': '' },
-        body: body && method !== 'DELETE' ? JSON.stringify(body) : undefined,
+        body: body && method !== 'DELETE' ? JSON.stringify(body) : undefined
       });
 
       if (res.status === 409) {
@@ -38,7 +51,7 @@ export async function mutateDomain(opts: DomainMutateOpts): Promise<{ ok: boolea
             table: responseTable,
             clientRecord: optimisticData,
             serverRecord: conflictData as Record<string, unknown>,
-            retryData: body,
+            retryData: body
           });
         }
         return { ok: false, queued: false, error: 'Conflict', conflict: conflictData };

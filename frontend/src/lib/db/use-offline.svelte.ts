@@ -25,7 +25,7 @@ if (typeof window !== 'undefined') {
 async function _liveSyncCallback() {
   const last = await (await import('./database')).db.meta.get('lastSyncAt');
   const lastSync = (last?.value as number) ?? 0;
-  if (lastSync > 0 && (Date.now() - lastSync) < 7 * 24 * 3600 * 1000) {
+  if (lastSync > 0 && Date.now() - lastSync < 7 * 24 * 3600 * 1000) {
     await pullDelta();
   }
 }
@@ -76,5 +76,5 @@ export const useOffline = {
       connectLiveSync(_liveSyncCallback);
       toast('Sync complete.', 'success', { duration: 3000 });
     }
-  },
+  }
 };

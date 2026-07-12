@@ -10,7 +10,7 @@
     error: 'error',
     info: 'info',
     loading: 'sync',
-    warning: 'warning',
+    warning: 'warning'
   };
 
   const colorMap: Record<string, string> = {
@@ -18,7 +18,7 @@
     error: 'border-error-500',
     info: 'border-primary-500',
     loading: 'border-primary-500',
-    warning: 'border-warning-700',
+    warning: 'border-warning-700'
   };
 
   function fillPct(t: { progress?: boolean; progressValue?: number }): number | null {
@@ -29,13 +29,15 @@
 
 {#if toasts.length > 0}
   <div
-    class="fixed bottom-6 right-6 z-2000 flex flex-col gap-2 pointer-events-auto"
+    class="pointer-events-auto fixed right-6 bottom-6 z-2000 flex flex-col gap-2"
     role="region"
     aria-label="Notifications"
   >
     {#each toasts as t (t.id)}
       <div
-        class="relative overflow-hidden flex items-center gap-3 min-w-[280px] max-w-[420px] rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg {colorMap[t.type]}"
+        class="relative flex max-w-[420px] min-w-[280px] items-center gap-3 overflow-hidden rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg {colorMap[
+          t.type
+        ]}"
         role="alert"
         in:fly={{ y: 16, duration: 350 }}
         out:fade={{ duration: 250 }}
@@ -50,7 +52,9 @@
         <Icon
           name={iconMap[t.type]}
           size="md"
-          class="relative z-10 shrink-0 text-surface-600 {t.type === 'loading' || t.progress ? 'animate-spin' : ''}"
+          class="relative z-10 shrink-0 text-surface-600 {t.type === 'loading' || t.progress
+            ? 'animate-spin'
+            : ''}"
         />
 
         <span class="relative z-10 flex-1 text-sm text-surface-900">{t.message}</span>

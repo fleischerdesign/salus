@@ -13,19 +13,13 @@
     db.workout_session.toArray().then((arr) =>
       arr
         .filter((s) => !s.deleted_at && s.completed_at != null)
-        .sort(
-          (a, b) =>
-            new Date(b.started_at).getTime() -
-            new Date(a.started_at).getTime(),
-        )
-        .slice(0, 50),
-    ),
+        .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+        .slice(0, 50)
+    )
   );
 
   let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) =>
-      arr.filter((l) => !l.deleted_at),
-    ),
+    db.workout_log_entry.toArray().then((arr) => arr.filter((l) => !l.deleted_at))
   );
 
   function formatDate(dt: string | null | undefined): string {
@@ -33,15 +27,13 @@
     return new Date(dt).toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
+      day: 'numeric'
     });
   }
 
   function formatDuration(sess: WorkoutSession): string {
     if (!sess.started_at || !sess.completed_at) return '—';
-    const diff =
-      new Date(sess.completed_at).getTime() -
-      new Date(sess.started_at).getTime();
+    const diff = new Date(sess.completed_at).getTime() - new Date(sess.started_at).getTime();
     return `${Math.round(diff / 60000)} min`;
   }
 
@@ -50,10 +42,7 @@
   }
 
   function sessionVolume(sessId: number): number {
-    return sessionLogs(sessId).reduce(
-      (sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0),
-      0,
-    );
+    return sessionLogs(sessId).reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
 
   function sessionSetCount(sessId: number): number {
@@ -71,9 +60,7 @@
     >
       <Icon name="arrow-back" size="sm" />Workouts
     </a>
-    <h1 class="mt-1 text-2xl font-semibold text-surface-900">
-      Session History
-    </h1>
+    <h1 class="mt-1 text-2xl font-semibold text-surface-900">Session History</h1>
   </div>
 
   {#if !$sessions || !$logs}
@@ -97,39 +84,26 @@
                 >
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
-                      <span
-                        class="text-sm font-semibold text-surface-900"
-                      >
+                      <span class="text-sm font-semibold text-surface-900">
                         {formatDate(sess.completed_at)}
                       </span>
                       {#if sess.recovery_score}
                         <Badge variant="success">
-                          <Icon name="bolt" size="sm" />{Math.round(
-                            sess.recovery_score,
-                          )}%
+                          <Icon name="bolt" size="sm" />{Math.round(sess.recovery_score)}%
                         </Badge>
                       {/if}
                     </div>
-                    <p
-                      class="mt-0.5 truncate text-xs text-surface-500"
-                    >
-                      {sessionSetCount(sess.id)} sets · {sessionVolume(
-                        sess.id,
-                      ).toFixed(0)} kg volume · {formatDuration(sess)}
+                    <p class="mt-0.5 truncate text-xs text-surface-500">
+                      {sessionSetCount(sess.id)} sets · {sessionVolume(sess.id).toFixed(0)} kg volume
+                      · {formatDuration(sess)}
                     </p>
                     {#if sess.notes}
-                      <p
-                        class="mt-0.5 truncate text-xs italic text-surface-400"
-                      >
+                      <p class="mt-0.5 truncate text-xs text-surface-400 italic">
                         "{sess.notes}"
                       </p>
                     {/if}
                   </div>
-                  <Icon
-                    name="chevron-right"
-                    size="sm"
-                    class="text-surface-400"
-                  />
+                  <Icon name="chevron-right" size="sm" class="text-surface-400" />
                 </a>
               {/snippet}
             </ListItem>

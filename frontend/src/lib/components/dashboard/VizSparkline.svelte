@@ -32,13 +32,7 @@
   </div>
 
   {#if points}
-    <svg
-      class="ml-auto"
-      width={width}
-      height={height}
-      viewBox="0 0 {width} {height}"
-      preserveAspectRatio="none"
-    >
+    <svg class="ml-auto" {width} {height} viewBox="0 0 {width} {height}" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color={color} stop-opacity="0.3" />
@@ -46,10 +40,7 @@
         </linearGradient>
       </defs>
 
-      <polygon
-        fill={`url(#${gradientId})`}
-        points="0,{height} {points} {width},{height}"
-      />
+      <polygon fill={`url(#${gradientId})`} points="0,{height} {points} {width},{height}" />
 
       <polyline
         fill="none"
@@ -57,7 +48,7 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        points={points}
+        {points}
       />
     </svg>
   {/if}

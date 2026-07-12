@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import type { WorkoutPlan } from '$lib/db/types';
-import { mutate, nextTempId } from '$lib/db/mutate';
+  import { mutate, nextTempId } from '$lib/db/mutate';
   import { mutateDomain } from '$lib/db/mutate-domain';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -19,18 +19,16 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
 
   let plans = liveQuery(() =>
-    db.workout_plan.toArray().then((arr) =>
-      arr.filter((p) => !p.deleted_at).sort((a, b) => a.position - b.position),
-    ),
+    db.workout_plan
+      .toArray()
+      .then((arr) => arr.filter((p) => !p.deleted_at).sort((a, b) => a.position - b.position))
   );
 
   let exercises = liveQuery(() =>
-    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at)),
+    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
   let planExercises = liveQuery(() =>
-    db.workout_plan_exercise.toArray().then((arr) =>
-      arr.filter((pe) => !pe.deleted_at),
-    ),
+    db.workout_plan_exercise.toArray().then((arr) => arr.filter((pe) => !pe.deleted_at))
   );
 
   let showForm = $state(false);
@@ -46,7 +44,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   const autoregOptions = [
     { value: 'advisory', label: 'Advisory' },
     { value: 'guided', label: 'Guided' },
-    { value: 'disabled', label: 'Disabled' },
+    { value: 'disabled', label: 'Disabled' }
   ];
 
   function openForm() {
@@ -61,7 +59,12 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     return ($planExercises ?? []).filter((pe) => pe.plan_id === planId).length;
   }
 
-  function exerciseNames(planId: number): { name: string; target_sets: number | null; target_reps: number | null; target_rpe: number | null }[] {
+  function exerciseNames(planId: number): {
+    name: string;
+    target_sets: number | null;
+    target_reps: number | null;
+    target_rpe: number | null;
+  }[] {
     const exById = new Map(($exercises ?? []).map((e) => [e.id, e]));
     return ($planExercises ?? [])
       .filter((pe) => pe.plan_id === planId)
@@ -70,7 +73,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         name: exById.get(pe.exercise_id)?.name ?? 'Unknown',
         target_sets: pe.target_sets,
         target_reps: pe.target_reps,
-        target_rpe: pe.target_rpe,
+        target_rpe: pe.target_rpe
       }));
   }
 
@@ -82,13 +85,20 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       name: planName,
       description: planDescription || undefined,
       autoreg_mode: planAutoreg,
-      position: ($plans ?? []).length,
+      position: ($plans ?? []).length
     };
     const { ok, error } = await mutate({
       table: 'workout_plan',
       type: 'create',
       data: data as Record<string, unknown>,
-      optimistic: { id: nextTempId(), user_id: 0, ...data, created_at: new Date().toISOString(), updated_at: null, deleted_at: null },
+      optimistic: {
+        id: nextTempId(),
+        user_id: 0,
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: null,
+        deleted_at: null
+      }
     });
     saving = false;
     if (!ok) {
@@ -106,7 +116,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       table: 'workout_plan',
       type: 'delete',
       optimistic: { id: target.id },
-      realId: target.id,
+      realId: target.id
     });
   }
 
@@ -131,10 +141,10 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         effort_rating: null,
         created_at: now,
         updated_at: null,
-        deleted_at: null,
+        deleted_at: null
       },
       optimisticId: tempId,
-      responseTable: 'workout_session',
+      responseTable: 'workout_session'
     });
     if (ok) await goto('/workouts/active');
   }
@@ -145,7 +155,10 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <a href="/workouts" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
+      <a
+        href="/workouts"
+        class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+      >
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
       <h1 class="mt-1 text-2xl font-semibold text-surface-900">Training Plans</h1>
@@ -158,11 +171,15 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   {#if !$plans}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if $plans.length === 0}
-    <EmptyState title="No workout plans" description="Create your first training plan to get started." icon="assignment">
+    <EmptyState
+      title="No workout plans"
+      description="Create your first training plan to get started."
+      icon="assignment"
+    >
       <Btn variant="primary" onclick={openForm}>+ New Plan</Btn>
     </EmptyState>
   {:else}
-    <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
+    <div class="grid [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))] gap-4">
       {#each $plans as plan (plan.id)}
         <Card padding={false} hoverable>
           {#snippet header()}
@@ -182,7 +199,10 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                 type="button"
                 class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
                 aria-label="Delete plan"
-                onclick={() => { planToDelete = plan; deleteDialogOpen = true; }}
+                onclick={() => {
+                  planToDelete = plan;
+                  deleteDialogOpen = true;
+                }}
               >
                 <Icon name="delete" size="sm" />
               </button>
@@ -199,7 +219,9 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                 {#each exerciseNames(plan.id) as pe (pe.name)}
                   <li class="flex items-center justify-between gap-2">
                     <span class="truncate">{pe.name}</span>
-                    <span class="shrink-0 font-medium text-surface-400">{pe.target_sets}×{pe.target_reps} @ RPE {pe.target_rpe ?? '—'}</span>
+                    <span class="shrink-0 font-medium text-surface-400"
+                      >{pe.target_sets}×{pe.target_reps} @ RPE {pe.target_rpe ?? '—'}</span
+                    >
                   </li>
                 {/each}
               </ul>
@@ -225,7 +247,12 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       <Input name="name" bind:value={planName} required placeholder="e.g. Push/Pull/Legs" />
     </FormField>
     <FormField label="Description">
-      <Textarea name="description" bind:value={planDescription} rows={2} placeholder="Optional description" />
+      <Textarea
+        name="description"
+        bind:value={planDescription}
+        rows={2}
+        placeholder="Optional description"
+      />
     </FormField>
     <FormField label="Autoregulation Mode">
       <Select name="autoreg_mode" options={autoregOptions} bind:value={planAutoreg} />
@@ -245,5 +272,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   message="Delete &quot;{planToDelete?.name}&quot;? This cannot be undone."
   confirmLabel="Delete"
   onconfirm={confirmDelete}
-  oncancel={() => { planToDelete = null; }}
+  oncancel={() => {
+    planToDelete = null;
+  }}
 />

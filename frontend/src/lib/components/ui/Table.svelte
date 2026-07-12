@@ -33,12 +33,16 @@
     <thead>
       <tr class="bg-surface-50">
         {#each columns as col}
-          <th class="border-b border-surface-200 px-4 py-2 text-left text-xs font-semibold uppercase text-surface-500">
+          <th
+            class="border-b border-surface-200 px-4 py-2 text-left text-xs font-semibold text-surface-500 uppercase"
+          >
             {col.label}
           </th>
         {/each}
         {#if hasActions}
-          <th class="border-b border-surface-200 px-4 py-2 text-right text-xs font-semibold uppercase text-surface-500">
+          <th
+            class="border-b border-surface-200 px-4 py-2 text-right text-xs font-semibold text-surface-500 uppercase"
+          >
             Actions
           </th>
         {/if}

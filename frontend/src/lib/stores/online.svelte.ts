@@ -7,6 +7,6 @@ export function useOnline() {
   return {
     get isOnline() {
       return online;
-    },
+    }
   };
 }

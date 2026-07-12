@@ -4,7 +4,7 @@ const SLEEP_STAGE_MAP: Record<string, string> = {
   '1': 'Awake',
   '4': 'Light',
   '5': 'Deep',
-  '6': 'REM',
+  '6': 'REM'
 };
 
 export function mapSleepStage(code: string): string {
@@ -74,7 +74,7 @@ const EXERCISE_TYPE_MAP: Record<number, string> = {
   80: 'Water Polo',
   81: 'Weightlifting',
   82: 'Wheelchair',
-  83: 'Yoga',
+  83: 'Yoga'
 };
 
 export function mapExerciseType(code: number): string {
@@ -83,10 +83,7 @@ export function mapExerciseType(code: number): string {
 
 /* ── BMR via Cunningham formula ── */
 
-export function calcBmrCunningham(
-  weightKg: number,
-  bodyFatPct?: number | null,
-): number {
+export function calcBmrCunningham(weightKg: number, bodyFatPct?: number | null): number {
   if (bodyFatPct != null && bodyFatPct >= 0 && bodyFatPct < 1) {
     const lbm = weightKg * (1.0 - bodyFatPct);
     return Math.round((500 + 22.0 * lbm) * 10) / 10;
@@ -97,14 +94,8 @@ export function calcBmrCunningham(
 
 /* ── Thermic effect of food ── */
 
-export function calcTef(
-  proteinG: number,
-  carbsG: number,
-  fatG: number,
-): number {
-  return Math.round(
-    (proteinG * 4 * 0.25 + carbsG * 4 * 0.06 + fatG * 9 * 0.02) * 10,
-  ) / 10;
+export function calcTef(proteinG: number, carbsG: number, fatG: number): number {
+  return Math.round((proteinG * 4 * 0.25 + carbsG * 4 * 0.06 + fatG * 9 * 0.02) * 10) / 10;
 }
 
 /* ── TDEE ── */
@@ -115,7 +106,7 @@ export function calcTdee(
   hrResting: number,
   age: number = 30,
   tef: number = 0,
-  calibrationFactor: number = 1.5,
+  calibrationFactor: number = 1.5
 ): { tdeeKcal: number; palFactor: number; hrrPct: number } | null {
   const hrMax = 208 - 0.7 * age;
   if (hrMax <= hrResting) return null;
@@ -129,7 +120,7 @@ export function calcTdee(
   return {
     tdeeKcal: tdee,
     palFactor: Math.round(pal * 1000) / 1000,
-    hrrPct: Math.round(hrrPct * 1000) / 1000,
+    hrrPct: Math.round(hrrPct * 1000) / 1000
   };
 }
 
@@ -144,16 +135,14 @@ export function computeGoalProgress(
   targetValue: number,
   direction: GoalDirection,
   frequency: GoalFrequency,
-  deadlinePassed: boolean = false,
+  deadlinePassed: boolean = false
 ): { percent: number; status: GoalStatus; isFulfilled: boolean } {
   if (currentValue == null) {
     return { percent: 0, status: 'pending', isFulfilled: false };
   }
 
   const fulfilled =
-    direction === 'INCREASE'
-      ? currentValue >= targetValue
-      : currentValue <= targetValue;
+    direction === 'INCREASE' ? currentValue >= targetValue : currentValue <= targetValue;
 
   if (fulfilled) {
     return { percent: 100, status: 'fulfilled', isFulfilled: true };

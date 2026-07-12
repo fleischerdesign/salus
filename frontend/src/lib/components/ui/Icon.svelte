@@ -15,6 +15,6 @@
   let px = $derived(typeof size === 'number' ? size : (sizeMap[size] ?? 20));
 </script>
 
-<span class="inline-flex shrink-0 {extraClass}" style={style} aria-hidden={ariaHidden} role="img">
+<span class="inline-flex shrink-0 {extraClass}" {style} aria-hidden={ariaHidden} role="img">
   <IconComponent icon="material-symbols:{name}" width={px} height={px} />
 </span>

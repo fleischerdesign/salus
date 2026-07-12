@@ -14,7 +14,11 @@
     <li>
       <span
         class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-150
-          {state === 'completed' ? 'bg-primary-500 text-white' : state === 'active' ? 'border-2 border-primary-500 bg-primary-50 text-primary-600' : 'bg-surface-100 text-surface-400'}"
+          {state === 'completed'
+          ? 'bg-primary-500 text-white'
+          : state === 'active'
+            ? 'border-2 border-primary-500 bg-primary-50 text-primary-600'
+            : 'bg-surface-100 text-surface-400'}"
         aria-current={state === 'active' ? 'step' : undefined}
         aria-label="Step {i + 1} of {total}"
       >

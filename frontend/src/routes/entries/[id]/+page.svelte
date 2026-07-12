@@ -4,7 +4,7 @@
   import { db } from '$lib/db/database';
   import type { Measurement as Entry, MetricType as Metric } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-import { mutate, nextTempId } from '$lib/db/mutate';
+  import { mutate, nextTempId } from '$lib/db/mutate';
   import Card from '$components/ui/Card.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import Menu, { type MenuItem } from '$components/ui/Menu.svelte';
@@ -21,12 +21,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   import Pagination from '$components/ui/Pagination.svelte';
   import { page } from '$app/state';
 
-  let metric = liveQuery(() =>
-    db.metric_type.get(metricId),
-  );
-  let overviews = liveQuery(() =>
-    fetchMetricOverview(),
-  );
+  let metric = liveQuery(() => db.metric_type.get(metricId));
+  let overviews = liveQuery(() => fetchMetricOverview());
 
   let allEntries = liveQuery(() =>
     db.measurement
@@ -36,23 +32,14 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       .then((arr) =>
         arr
           .filter((e) => !e.deleted_at)
-          .sort(
-            (a, b) =>
-              new Date(b.start_time).getTime() -
-              new Date(a.start_time).getTime(),
-          ),
-      ),
+          .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+      )
   );
 
   let pageNum = $state(1);
   const perPage = 25;
 
-  let entries = $derived(
-    ($allEntries ?? []).slice(
-      (pageNum - 1) * perPage,
-      pageNum * perPage,
-    ),
-  );
+  let entries = $derived(($allEntries ?? []).slice((pageNum - 1) * perPage, pageNum * perPage));
   let total = $derived($allEntries?.length ?? 0);
   let totalPages = $derived(Math.max(1, Math.ceil(total / perPage)));
 
@@ -71,9 +58,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
   const metricId = $derived(Number(page.params.id));
 
-  let overview = $derived(
-    $overviews ? overviewForMetric($overviews, metricId) : null,
-  );
+  let overview = $derived($overviews ? overviewForMetric($overviews, metricId) : null);
 
   function toDatetimeLocal(ts: string): string {
     const dt = new Date(ts);
@@ -87,7 +72,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
+      minute: '2-digit'
     });
   }
 
@@ -101,8 +86,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         onclick: () => {
           entryToDelete = e;
           deleteDialogOpen = true;
-        },
-      },
+        }
+      }
     ];
   }
 
@@ -147,7 +132,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       notes: notesVal,
       metric_type_id: metricId,
       data_type: 'number',
-      source: 'manual',
+      source: 'manual'
     };
     if (editingEntry) {
       const { ok, error } = await mutate({
@@ -155,7 +140,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         type: 'update',
         data: body,
         optimistic: { ...editingEntry, ...body },
-        realId: editingEntry.id,
+        realId: editingEntry.id
       });
       saving = false;
       if (!ok) {
@@ -167,8 +152,32 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       const { ok, error } = await mutate({
         table: 'measurement',
         type: 'create',
-        data: { metric_type_id: metricId, value_numeric: isNaN(Number(value)) ? null : Number(value), value_text: isNaN(Number(value)) ? value : null, start_time: timestamp || new Date().toISOString(), notes: notesVal, data_type: 'number', source: 'manual' },
-        optimistic: { id: tempId, metric_type_id: metricId, user_id: 0, value_numeric: isNaN(Number(value)) ? null : Number(value), value_text: isNaN(Number(value)) ? value : null, value_json: null, start_time: timestamp || new Date().toISOString(), end_time: null, notes: notesVal, data_type: 'number', source: 'manual', external_id: null, created_at: new Date().toISOString(), updated_at: null, deleted_at: null },
+        data: {
+          metric_type_id: metricId,
+          value_numeric: isNaN(Number(value)) ? null : Number(value),
+          value_text: isNaN(Number(value)) ? value : null,
+          start_time: timestamp || new Date().toISOString(),
+          notes: notesVal,
+          data_type: 'number',
+          source: 'manual'
+        },
+        optimistic: {
+          id: tempId,
+          metric_type_id: metricId,
+          user_id: 0,
+          value_numeric: isNaN(Number(value)) ? null : Number(value),
+          value_text: isNaN(Number(value)) ? value : null,
+          value_json: null,
+          start_time: timestamp || new Date().toISOString(),
+          end_time: null,
+          notes: notesVal,
+          data_type: 'number',
+          source: 'manual',
+          external_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: null,
+          deleted_at: null
+        }
       });
       saving = false;
       if (!ok) {
@@ -187,7 +196,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       table: 'measurement',
       type: 'delete',
       optimistic: { id: target.id },
-      realId: target.id,
+      realId: target.id
     });
   }
 
@@ -205,9 +214,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   });
 </script>
 
-<svelte:head
-  ><title>Salus — {$metric?.name ?? 'Entries'}</title></svelte:head
->
+<svelte:head><title>Salus — {$metric?.name ?? 'Entries'}</title></svelte:head>
 
 <div class="space-y-6">
   <!-- Header -->
@@ -229,9 +236,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
             <Icon name={$metric.icon || 'monitoring'} />
           </div>
         {:else}
-          <div
-            class="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-surface-200"
-          ></div>
+          <div class="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-surface-200"></div>
         {/if}
         <div class="min-w-0 flex-1">
           <h1 class="truncate text-lg font-semibold text-surface-900">
@@ -249,11 +254,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
     {#if overview}
       <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
-        <Stat
-          value={overview.latest_value ?? '—'}
-          unit={$metric?.unit}
-          label="Latest"
-        />
+        <Stat value={overview.latest_value ?? '—'} unit={$metric?.unit} label="Latest" />
         <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
         <Stat value={overview.entry_count} label="Total Entries" />
       </div>
@@ -290,9 +291,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                       {displayValue(e)}
                     </span>
                     {#if $metric?.unit}
-                      <span class="text-xs text-surface-400"
-                        >{$metric.unit}</span
-                      >
+                      <span class="text-xs text-surface-400">{$metric.unit}</span>
                     {/if}
                   </div>
                   <p class="mt-0.5 truncate text-xs text-surface-500">
@@ -305,7 +304,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
                 <!-- Desktop: hover-to-reveal inline buttons -->
                 <div
-                  class="hidden items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 [@media(hover:none)]:opacity-60 md:flex"
+                  class="hidden items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 md:flex [@media(hover:none)]:opacity-60"
                 >
                   <button
                     type="button"
@@ -339,38 +338,20 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       </div>
     </Card>
 
-    <Pagination
-      page={pageNum}
-      {total}
-      perPage={perPage}
-      itemsLabel="entries"
-      onpage={onPageChange}
-    />
+    <Pagination page={pageNum} {total} {perPage} itemsLabel="entries" onpage={onPageChange} />
   {/if}
 </div>
 
-<Modal
-  title={editingEntry ? 'Edit Entry' : 'New Entry'}
-  bind:open={showEntryModal}
->
+<Modal title={editingEntry ? 'Edit Entry' : 'New Entry'} bind:open={showEntryModal}>
   <form onsubmit={saveEntry} class="flex flex-col gap-4">
     <FormField label="Value" required>
       <Input name="value" bind:value={entryValue} required />
     </FormField>
     <FormField label="Timestamp">
-      <Input
-        name="timestamp"
-        type="datetime-local"
-        bind:value={entryTimestamp}
-      />
+      <Input name="timestamp" type="datetime-local" bind:value={entryTimestamp} />
     </FormField>
     <FormField label="Notes">
-      <Textarea
-        name="notes"
-        bind:value={entryNotes}
-        rows={3}
-        placeholder="Optional notes…"
-      />
+      <Textarea name="notes" bind:value={entryNotes} rows={3} placeholder="Optional notes…" />
     </FormField>
     {#if entryError}
       <p class="text-sm text-error-500">{entryError}</p>

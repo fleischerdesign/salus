@@ -48,12 +48,10 @@
 <div class="flex min-h-[80vh] items-center justify-center">
   <Card variant="elevated">
     <div style="max-width:400px;width:340px">
-      <h2 class="mb-2 text-center text-[28px] font-bold leading-[36px] text-surface-900">
+      <h2 class="mb-2 text-center text-[28px] leading-[36px] font-bold text-surface-900">
         Sign In
       </h2>
-      <p class="mb-8 text-center text-base text-surface-500">
-        Access your health data dashboard
-      </p>
+      <p class="mb-8 text-center text-base text-surface-500">Access your health data dashboard</p>
 
       {#if error}
         <div class="mb-4">
@@ -62,13 +60,13 @@
       {/if}
 
       <form onsubmit={login} class="flex flex-col gap-4">
-		<Input
-			name="username"
-			label="Username"
-			bind:value={username}
-			autocomplete="username"
-			required
-		/>
+        <Input
+          name="username"
+          label="Username"
+          bind:value={username}
+          autocomplete="username"
+          required
+        />
         <Input
           name="password"
           type="password"
@@ -77,9 +75,7 @@
           autocomplete="current-password"
           required
         />
-        <Btn variant="primary" type="submit" fullWidth loading={loading}>
-          Sign In
-        </Btn>
+        <Btn variant="primary" type="submit" fullWidth {loading}>Sign In</Btn>
       </form>
 
       <div class="my-6">
@@ -87,15 +83,27 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <Btn variant="secondary" fullWidth onclick={() => window.location.href = '/api/v1/auth/oidc/google/login'}>
+        <Btn
+          variant="secondary"
+          fullWidth
+          onclick={() => (window.location.href = '/api/v1/auth/oidc/google/login')}
+        >
           <Icon name="login" />
           Sign in with Google
         </Btn>
-        <Btn variant="secondary" fullWidth onclick={() => window.location.href = '/api/v1/auth/oidc/github/login'}>
+        <Btn
+          variant="secondary"
+          fullWidth
+          onclick={() => (window.location.href = '/api/v1/auth/oidc/github/login')}
+        >
           <Icon name="login" />
           Sign in with GitHub
         </Btn>
-        <Btn variant="secondary" fullWidth onclick={() => window.location.href = '/api/v1/auth/oidc/oidc/login'}>
+        <Btn
+          variant="secondary"
+          fullWidth
+          onclick={() => (window.location.href = '/api/v1/auth/oidc/oidc/login')}
+        >
           <Icon name="login" />
           Sign in with OIDC
         </Btn>
@@ -103,7 +111,9 @@
 
       <p class="mt-6 text-center text-sm text-surface-500">
         Don't have an account?
-        <a href="/auth/register" class="font-medium text-primary-600 hover:text-primary-700">Create one</a>
+        <a href="/auth/register" class="font-medium text-primary-600 hover:text-primary-700"
+          >Create one</a
+        >
       </p>
     </div>
   </Card>

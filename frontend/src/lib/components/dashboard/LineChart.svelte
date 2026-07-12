@@ -14,13 +14,7 @@
     rightUnit?: string;
   }
 
-  let {
-    labels,
-    series,
-    height = 280,
-    leftUnit,
-    rightUnit,
-  }: Props = $props();
+  let { labels, series, height = 280, leftUnit, rightUnit }: Props = $props();
 
   const padLeft = 44;
   let padRight = $derived(series.some((s) => s.yAxis === 'right') ? 44 : 12);
@@ -57,9 +51,7 @@
     return { min, max, step };
   }
 
-  let leftScale = $derived(
-    niceScale(leftSeries.flatMap((s) => s.data))
-  );
+  let leftScale = $derived(niceScale(leftSeries.flatMap((s) => s.data)));
   let rightScale = $derived(
     rightSeries.length > 0
       ? niceScale(rightSeries.flatMap((s) => s.data))
@@ -109,9 +101,7 @@
     return ticks;
   });
 
-  let labelStep = $derived(
-    labels.length > 12 ? Math.ceil(labels.length / 8) : 1
-  );
+  let labelStep = $derived(labels.length > 12 ? Math.ceil(labels.length / 8) : 1);
 
   let gradientId = `linechart-grad-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -144,8 +134,20 @@
     <!-- Horizontal grid lines + left axis ticks -->
     {#each leftTicks as tick}
       {@const y = scaleY(tick, 'left')}
-      <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="var(--color-surface-100)" stroke-width="1" />
-      <text x={padLeft - 6} y={y + 4} text-anchor="end" class="fill-surface-400 text-[10px] tabular-nums">
+      <line
+        x1={padLeft}
+        y1={y}
+        x2={width - padRight}
+        y2={y}
+        stroke="var(--color-surface-100)"
+        stroke-width="1"
+      />
+      <text
+        x={padLeft - 6}
+        y={y + 4}
+        text-anchor="end"
+        class="fill-surface-400 text-[10px] tabular-nums"
+      >
         {tick >= 1000 ? (tick / 1000).toFixed(1) + 'k' : tick.toFixed(tick % 1 === 0 ? 0 : 1)}
       </text>
     {/each}
@@ -153,7 +155,12 @@
     <!-- Right axis ticks -->
     {#each rightTicks as tick}
       {@const y = scaleY(tick, 'right')}
-      <text x={width - padRight + 6} y={y + 4} text-anchor="start" class="fill-surface-400 text-[10px] tabular-nums">
+      <text
+        x={width - padRight + 6}
+        y={y + 4}
+        text-anchor="start"
+        class="fill-surface-400 text-[10px] tabular-nums"
+      >
         {tick >= 1000 ? (tick / 1000).toFixed(1) + 'k' : tick.toFixed(tick % 1 === 0 ? 0 : 1)}
       </text>
     {/each}
@@ -161,7 +168,12 @@
     <!-- X-axis labels (sparse) -->
     {#each labels as label, i}
       {#if i % labelStep === 0 || i === labels.length - 1}
-        <text x={scaleX(i)} y={height - 6} text-anchor="middle" class="fill-surface-400 text-[10px]">
+        <text
+          x={scaleX(i)}
+          y={height - 6}
+          text-anchor="middle"
+          class="fill-surface-400 text-[10px]"
+        >
           {label}
         </text>
       {/if}
@@ -169,12 +181,24 @@
 
     <!-- Axis labels -->
     {#if leftUnit}
-      <text x={4} y={padTop + chartH / 2} text-anchor="start" transform="rotate(-90 4 {padTop + chartH / 2})" class="fill-surface-400 text-[10px] font-medium">
+      <text
+        x={4}
+        y={padTop + chartH / 2}
+        text-anchor="start"
+        transform="rotate(-90 4 {padTop + chartH / 2})"
+        class="fill-surface-400 text-[10px] font-medium"
+      >
         {leftUnit}
       </text>
     {/if}
     {#if rightUnit && rightSeries.length > 0}
-      <text x={width - 4} y={padTop + chartH / 2} text-anchor="end" transform="rotate(-90 {width - 4} {padTop + chartH / 2})" class="fill-surface-400 text-[10px] font-medium">
+      <text
+        x={width - 4}
+        y={padTop + chartH / 2}
+        text-anchor="end"
+        transform="rotate(-90 {width - 4} {padTop + chartH / 2})"
+        class="fill-surface-400 text-[10px] font-medium"
+      >
         {rightUnit}
       </text>
     {/if}
@@ -182,7 +206,14 @@
     <!-- Series areas + lines -->
     {#each series as s, i}
       <path d={buildArea(s.data, s.yAxis)} fill="url(#{gradientId}-{i})" />
-      <path d={buildPath(s.data, s.yAxis)} fill="none" stroke={s.color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d={buildPath(s.data, s.yAxis)}
+        fill="none"
+        stroke={s.color}
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     {/each}
   </svg>
 

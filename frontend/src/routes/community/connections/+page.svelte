@@ -43,16 +43,12 @@
     const [rels, metricTypes, profiles] = await Promise.all([
       db.sharing_relationship.toArray(),
       db.metric_type.toArray(),
-      db.user_profile.toArray(),
+      db.user_profile.toArray()
     ]);
 
     const active = rels.filter((r) => !r.deleted_at);
-    const metricMap = new Map(
-      metricTypes.filter((m) => !m.deleted_at).map((m) => [m.id, m]),
-    );
-    const profileById = new Map(
-      profiles.map((p) => [p.id, p]),
-    );
+    const metricMap = new Map(metricTypes.filter((m) => !m.deleted_at).map((m) => [m.id, m]));
+    const profileById = new Map(profiles.map((p) => [p.id, p]));
 
     const peerMap = new Map<string, PeerConnection>();
 
@@ -73,7 +69,7 @@
         color: metric?.color ?? '#6b7280',
         aggregation: rel.aggregation_level,
         direction: isOwned ? 'outgoing' : 'incoming',
-        relationship_id: rel.id,
+        relationship_id: rel.id
       };
 
       let peer = peerMap.get(peerHandle);
@@ -87,7 +83,7 @@
           metrics: [],
           expiration: null,
           api_token: null,
-          last_sync: null,
+          last_sync: null
         };
         peerMap.set(peerHandle, peer);
       }
@@ -123,7 +119,7 @@
       body: {
         grantee_handle: granteeHandle,
         metric_type_ids: [],
-        expiration_days: 30,
+        expiration_days: 30
       },
       optimisticTable: 'sharing_relationship',
       optimisticData: {
@@ -132,11 +128,14 @@
         grantee_handle: granteeHandle,
         metric_type_id: 0,
         aggregation_level: 'daily_summary',
-        status: 'pending',
-      },
+        status: 'pending'
+      }
     });
     sharing = false;
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     granteeHandle = '';
   }
 
@@ -144,24 +143,30 @@
     if (!confirm('Revoke this connection?')) return;
     await mutateDomain({
       url: `/api/v1/sharing/connections/${id}`,
-      method: 'DELETE',
+      method: 'DELETE'
     });
   }
 
   async function accept(id: number) {
     const resp = await mutateDomain({
       url: `/api/v1/sharing/connections/${id}/accept`,
-      method: 'POST',
+      method: 'POST'
     });
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
   }
 
   async function decline(id: number) {
     const resp = await mutateDomain({
       url: `/api/v1/sharing/connections/${id}/decline`,
-      method: 'POST',
+      method: 'POST'
     });
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
   }
 </script>
 
@@ -170,7 +175,9 @@
 <div class="space-y-6">
   <div>
     <h1 class="text-2xl font-semibold text-surface-900">Connections</h1>
-    <p class="mt-1 text-sm text-surface-500">Manage your peer-to-peer health data sharing relationships.</p>
+    <p class="mt-1 text-sm text-surface-500">
+      Manage your peer-to-peer health data sharing relationships.
+    </p>
   </div>
 
   {#if error}
@@ -184,12 +191,19 @@
     <form onsubmit={invite} class="flex max-w-lg items-end gap-3">
       <div class="flex-1">
         <FormField label="Peer Handle">
-          <Input name="handle" bind:value={granteeHandle} placeholder="@username or @username:domain.com" required />
+          <Input
+            name="handle"
+            bind:value={granteeHandle}
+            placeholder="@username or @username:domain.com"
+            required
+          />
         </FormField>
       </div>
       <Btn variant="primary" type="submit" size="sm" loading={sharing}>Invite</Btn>
     </form>
-    <p class="mt-2 text-xs text-surface-400">Supports federation: use @username:domain for remote Salus instances.</p>
+    <p class="mt-2 text-xs text-surface-400">
+      Supports federation: use @username:domain for remote Salus instances.
+    </p>
   </Card>
 
   <Card padding={false}>
@@ -200,7 +214,11 @@
       <div class="flex justify-center py-12"><Spinner /></div>
     {:else if $peers.length === 0}
       <div class="py-12">
-        <EmptyState icon="groups" title="No Connections Yet" description="Invite a peer to start sharing health data securely." />
+        <EmptyState
+          icon="groups"
+          title="No Connections Yet"
+          description="Invite a peer to start sharing health data securely."
+        />
       </div>
     {:else}
       <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -208,7 +226,9 @@
           <div class="flex flex-col rounded-lg border border-surface-200 p-4">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-semibold text-surface-900">{peer.display_name || peer.handle}</p>
+                <p class="text-sm font-semibold text-surface-900">
+                  {peer.display_name || peer.handle}
+                </p>
                 <p class="text-xs text-surface-500">{peer.handle}</p>
               </div>
               <div class="flex gap-1.5">
@@ -231,7 +251,9 @@
                   <div class="flex items-center gap-2 text-xs text-surface-500">
                     <Icon name={m.icon} size="sm" style="color: {m.color}" />
                     <span>{m.metric_name}</span>
-                    <span class="rounded bg-surface-100 px-1.5 py-0.5 text-[10px] font-medium text-surface-400">
+                    <span
+                      class="rounded bg-surface-100 px-1.5 py-0.5 text-[10px] font-medium text-surface-400"
+                    >
                       {m.aggregation} · {m.direction}
                     </span>
                   </div>
@@ -241,10 +263,22 @@
 
             <div class="mt-auto flex items-center justify-end gap-2 pt-3">
               {#if peer.is_pending}
-                <Btn variant="primary" size="sm" onclick={() => accept(peer.metrics[0]?.relationship_id)}>Accept</Btn>
-                <Btn variant="ghost" size="sm" onclick={() => decline(peer.metrics[0]?.relationship_id)}>Decline</Btn>
+                <Btn
+                  variant="primary"
+                  size="sm"
+                  onclick={() => accept(peer.metrics[0]?.relationship_id)}>Accept</Btn
+                >
+                <Btn
+                  variant="ghost"
+                  size="sm"
+                  onclick={() => decline(peer.metrics[0]?.relationship_id)}>Decline</Btn
+                >
               {:else}
-                <Btn variant="ghost" size="sm" onclick={() => revoke(peer.metrics[0]?.relationship_id)}>Revoke</Btn>
+                <Btn
+                  variant="ghost"
+                  size="sm"
+                  onclick={() => revoke(peer.metrics[0]?.relationship_id)}>Revoke</Btn
+                >
               {/if}
             </div>
           </div>

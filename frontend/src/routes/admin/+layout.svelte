@@ -14,7 +14,7 @@
     { key: 'users', label: 'Users', icon: 'groups' },
     { key: 'stats', label: 'Statistics', icon: 'monitoring' },
     { key: 'plugins', label: 'Plugins', icon: 'extension' },
-    { key: 'backups', label: 'Backups', icon: 'cloud-done' },
+    { key: 'backups', label: 'Backups', icon: 'cloud-done' }
   ];
 
   let activeTab = $derived(
@@ -32,7 +32,10 @@
       {#each tabs as tab}
         <a
           href="/admin/{tab.key}"
-          class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 {activeTab === tab.key ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-transparent text-surface-600 hover:bg-surface-100'}"
+          class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 {activeTab ===
+          tab.key
+            ? 'border-primary-500 bg-primary-50 text-primary-600'
+            : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         >
           <Icon name={tab.icon} size="md" />
           {tab.label}

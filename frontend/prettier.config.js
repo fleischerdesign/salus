@@ -1,5 +1,6 @@
-{
-  "tabWidth": 2,
+export default {
+  tailwindStylesheet: './src/app.css',
+  tabWidth: 2,
   "useTabs": false,
   "semi": true,
   "singleQuote": true,

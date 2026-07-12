@@ -17,7 +17,7 @@
 
   let userProfiles = liveQuery(() => db.user_profile.toArray());
   let apiTokens = liveQuery(() =>
-    db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false)),
+    db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false))
   );
 
   let currentPassword = $state('');
@@ -37,17 +37,15 @@
   const themeOptions = [
     { value: 'system', label: 'System' },
     { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
+    { value: 'dark', label: 'Dark' }
   ];
 
   const localeOptions = [
     { value: 'en', label: 'English' },
-    { value: 'de', label: 'German' },
+    { value: 'de', label: 'German' }
   ];
 
-  let userProfile = $derived(
-    $userProfiles && $userProfiles.length > 0 ? $userProfiles[0] : null,
-  );
+  let userProfile = $derived($userProfiles && $userProfiles.length > 0 ? $userProfiles[0] : null);
 
   $effect(() => {
     if (userProfile) {
@@ -64,10 +62,13 @@
     const resp = await mutateDomain({
       url: '/api/v1/settings/password',
       method: 'POST',
-      body: { current_password: currentPassword, new_password: newPassword },
+      body: { current_password: currentPassword, new_password: newPassword }
     });
     changing = false;
-    if (!resp.ok) { pwError = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      pwError = resp.error ?? 'Request failed';
+      return;
+    }
     pwSuccess = 'Password changed.';
     currentPassword = '';
     newPassword = '';
@@ -80,7 +81,7 @@
       url: '/api/v1/settings/tokens',
       method: 'POST',
       body: { label: tokenLabel },
-      responseTable: 'api_token',
+      responseTable: 'api_token'
     });
     tokenCreating = false;
     if (!resp.ok) return;
@@ -97,7 +98,7 @@
       type: 'update',
       realId: id,
       data: { is_active: false },
-      optimistic: { ...token, is_active: false },
+      optimistic: { ...token, is_active: false }
     });
   }
 
@@ -110,7 +111,7 @@
         type: 'update',
         realId: userProfile.id,
         data: { theme: t },
-        optimistic: { ...userProfile, theme: t },
+        optimistic: { ...userProfile, theme: t }
       });
     }
   }
@@ -124,7 +125,7 @@
         type: 'update',
         realId: userProfile.id,
         data: { locale: loc },
-        optimistic: { ...userProfile, locale: loc },
+        optimistic: { ...userProfile, locale: loc }
       });
     }
   }
@@ -145,7 +146,9 @@
       <div class="flex items-center gap-4">
         <Avatar name={auth.user?.display_name || auth.user?.username || '?'} size="lg" />
         <div>
-          <p class="text-base font-semibold text-surface-900">{auth.user?.display_name || auth.user?.username}</p>
+          <p class="text-base font-semibold text-surface-900">
+            {auth.user?.display_name || auth.user?.username}
+          </p>
           {#if auth.user?.email}
             <p class="text-sm text-surface-500">{auth.user.email}</p>
           {:else}
@@ -162,11 +165,13 @@
       {/snippet}
       <div class="space-y-5">
         <div>
-          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">Theme</p>
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">Theme</p>
           <RadioGroup name="theme" options={themeOptions} value={theme} onchange={setTheme} />
         </div>
         <div class="border-t border-surface-100 pt-5">
-          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">Language</p>
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+            Language
+          </p>
           <RadioGroup name="locale" options={localeOptions} value={locale} onchange={setLocale} />
         </div>
       </div>
@@ -209,31 +214,43 @@
         </form>
 
         {#if newToken}
-          <AlertBanner variant="warning">Copy this token now — it won't be shown again.</AlertBanner>
-          <div class="flex items-center gap-2 rounded-lg border border-surface-200 bg-surface-50 p-3">
-            <code class="flex-1 break-all text-xs font-medium text-surface-700">{newToken}</code>
-            <Btn variant="secondary" size="sm" onclick={() => navigator.clipboard.writeText(newToken)}>Copy</Btn>
+          <AlertBanner variant="warning">Copy this token now — it won't be shown again.</AlertBanner
+          >
+          <div
+            class="flex items-center gap-2 rounded-lg border border-surface-200 bg-surface-50 p-3"
+          >
+            <code class="flex-1 text-xs font-medium break-all text-surface-700">{newToken}</code>
+            <Btn
+              variant="secondary"
+              size="sm"
+              onclick={() => navigator.clipboard.writeText(newToken)}>Copy</Btn
+            >
           </div>
         {/if}
 
         {#if $apiTokens && $apiTokens.filter((t) => t.is_active).length > 0}
-          <div class="pt-3 border-t border-surface-100">
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">Active Tokens</p>
+          <div class="border-t border-surface-100 pt-3">
+            <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+              Active Tokens
+            </p>
             <div class="space-y-2">
               {#each $apiTokens.filter((t) => t.is_active) as t}
-                <div class="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2">
+                <div
+                  class="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2"
+                >
                   <div>
                     <p class="text-sm font-medium text-surface-700">{t.label}</p>
                     <p class="text-xs text-surface-400">
                       {t.token_prefix}…
-                      {#if t.last_used_at} · Last used {new Date(t.last_used_at).toLocaleDateString()}{/if}
+                      {#if t.last_used_at}
+                        · Last used {new Date(t.last_used_at).toLocaleDateString()}{/if}
                     </p>
                   </div>
                   <button
                     type="button"
                     class="rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors duration-150 hover:bg-error-50"
-                    onclick={() => revokeToken(t.id)}
-                  >Revoke</button>
+                    onclick={() => revokeToken(t.id)}>Revoke</button
+                  >
                 </div>
               {/each}
             </div>
@@ -270,12 +287,31 @@
           <span class="text-sm font-semibold text-surface-900">Change Password</span>
         {/snippet}
         <form onsubmit={changePassword} class="flex max-w-sm flex-col gap-4">
-          <input type="text" name="username" value={auth.user.username ?? ''} autocomplete="username" hidden />
+          <input
+            type="text"
+            name="username"
+            value={auth.user.username ?? ''}
+            autocomplete="username"
+            hidden
+          />
           <FormField label="Current Password">
-            <Input name="current" type="password" bind:value={currentPassword} required autocomplete="current-password" />
+            <Input
+              name="current"
+              type="password"
+              bind:value={currentPassword}
+              required
+              autocomplete="current-password"
+            />
           </FormField>
           <FormField label="New Password">
-            <Input name="new" type="password" bind:value={newPassword} required minlength={6} autocomplete="new-password" />
+            <Input
+              name="new"
+              type="password"
+              bind:value={newPassword}
+              required
+              minlength={6}
+              autocomplete="new-password"
+            />
           </FormField>
           {#if pwError}<AlertBanner variant="error">{pwError}</AlertBanner>{/if}
           {#if pwSuccess}<AlertBanner variant="success">{pwSuccess}</AlertBanner>{/if}

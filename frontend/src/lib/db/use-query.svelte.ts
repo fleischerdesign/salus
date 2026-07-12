@@ -12,7 +12,7 @@ export function useQuery<T>(querier: () => Promise<T>): { value: T | undefined; 
     },
     error() {
       loading = false;
-    },
+    }
   });
 
   onDestroy(() => sub.unsubscribe());
@@ -23,6 +23,6 @@ export function useQuery<T>(querier: () => Promise<T>): { value: T | undefined; 
     },
     get loading() {
       return loading;
-    },
+    }
   };
 }

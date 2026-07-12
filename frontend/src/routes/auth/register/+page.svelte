@@ -24,7 +24,9 @@
     loading = true;
 
     const res = await rawPost('/api/v1/auth/register', {
-      username, password, email: email.trim() || undefined
+      username,
+      password,
+      email: email.trim() || undefined
     });
     const body = await res.json().catch(() => null);
     const data = res.ok ? (body as { token: string; user: Record<string, unknown> }) : null;
@@ -49,12 +51,10 @@
 <div class="flex min-h-[80vh] items-center justify-center">
   <Card variant="elevated">
     <div style="max-width:400px;width:340px">
-      <h2 class="mb-2 text-center text-[28px] font-bold leading-[36px] text-surface-900">
+      <h2 class="mb-2 text-center text-[28px] leading-[36px] font-bold text-surface-900">
         Create Account
       </h2>
-      <p class="mb-8 text-center text-base text-surface-500">
-        Start tracking your health data
-      </p>
+      <p class="mb-8 text-center text-base text-surface-500">Start tracking your health data</p>
 
       {#if error}
         <div class="mb-4">
@@ -63,19 +63,14 @@
       {/if}
 
       <form onsubmit={register} class="flex flex-col gap-4">
-	<Input
-		name="username"
-		label="Username"
-		bind:value={username}
-		autocomplete="username"
-		required
-	/>
         <Input
-          name="email"
-          type="email"
-          label="Email (optional)"
-          bind:value={email}
+          name="username"
+          label="Username"
+          bind:value={username}
+          autocomplete="username"
+          required
         />
+        <Input name="email" type="email" label="Email (optional)" bind:value={email} />
         <Input
           name="password"
           type="password"
@@ -84,14 +79,13 @@
           autocomplete="new-password"
           required
         />
-        <Btn variant="primary" type="submit" fullWidth loading={loading}>
-          Create Account
-        </Btn>
+        <Btn variant="primary" type="submit" fullWidth {loading}>Create Account</Btn>
       </form>
 
       <p class="mt-6 text-center text-sm text-surface-500">
         Already have an account?
-        <a href="/auth/login" class="font-medium text-primary-600 hover:text-primary-700">Sign in</a>
+        <a href="/auth/login" class="font-medium text-primary-600 hover:text-primary-700">Sign in</a
+        >
       </p>
     </div>
   </Card>

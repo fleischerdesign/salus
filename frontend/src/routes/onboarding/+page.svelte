@@ -24,7 +24,7 @@
   async function createToken() {
     const resp = await mutateDomain({
       url: '/api/v1/onboarding/token',
-      method: 'POST',
+      method: 'POST'
     });
     if (resp.ok && resp.data) {
       const data = resp.data as { token: string; webhook_url: string };
@@ -40,15 +40,18 @@
       type: 'create',
       data: {
         metric_type_id: entryMetricId,
-        value: entryValue,
+        value: entryValue
       },
       optimistic: {
         id: -1,
         metric_type_id: entryMetricId,
-        value: entryValue,
-      },
+        value: entryValue
+      }
     });
-    if (!resp.ok) { error = resp.error ?? 'Failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Failed';
+      return;
+    }
     step = 3;
   }
 
@@ -60,17 +63,20 @@
       data: {
         metric_type_id: goalMetricId,
         target_value: parseFloat(goalTarget),
-        direction: 'increase',
+        direction: 'increase'
       },
       optimistic: {
         id: -1,
         metric_type_id: goalMetricId,
         target_value: parseFloat(goalTarget),
         direction: 'increase',
-        frequency: 'daily',
-      },
+        frequency: 'daily'
+      }
     });
-    if (!resp.ok) { error = resp.error ?? 'Failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Failed';
+      return;
+    }
     step = 4;
   }
 
@@ -83,7 +89,7 @@
         type: 'update',
         realId: profile.id,
         data: { onboarding_dismissed: true },
-        optimistic: { ...profile, onboarding_dismissed: true },
+        optimistic: { ...profile, onboarding_dismissed: true }
       });
     }
     await goto('/');
@@ -99,7 +105,9 @@
 
   {#if step === 1}
     <Card title="Connect a Data Source">
-      <p class="text-sm text-surface-600 mb-4">Get an API token to push health data from apps and devices.</p>
+      <p class="mb-4 text-sm text-surface-600">
+        Get an API token to push health data from apps and devices.
+      </p>
       <Btn variant="primary" onclick={createToken}>
         <Icon name="key" size="sm" />Generate Token
       </Btn>
@@ -121,7 +129,6 @@
         <Btn variant="primary" onclick={() => (step = 2)}>Next</Btn>
       </div>
     </Card>
-
   {:else if step === 2}
     <Card title="Log Your First Entry">
       <div class="flex flex-col gap-4">
@@ -138,7 +145,6 @@
         </div>
       </div>
     </Card>
-
   {:else if step === 3}
     <Card title="Set a Goal">
       <div class="flex flex-col gap-4">
@@ -146,7 +152,14 @@
           <Input name="metric_id" type="number" bind:value={goalMetricId} required />
         </FormField>
         <FormField label="Target Value" required>
-          <Input name="target" type="number" step="0.1" bind:value={goalTarget} required placeholder="e.g. 70" />
+          <Input
+            name="target"
+            type="number"
+            step="0.1"
+            bind:value={goalTarget}
+            required
+            placeholder="e.g. 70"
+          />
         </FormField>
         {#if error}<p class="text-sm text-error-500">{error}</p>{/if}
         <div class="flex justify-between">
@@ -155,7 +168,6 @@
         </div>
       </div>
     </Card>
-
   {:else if step === 4}
     <Card>
       <div class="py-8 text-center">

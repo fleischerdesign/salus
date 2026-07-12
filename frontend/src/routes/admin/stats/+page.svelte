@@ -5,9 +5,7 @@
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
 
-  let stats = liveQuery(() =>
-    db.admin_stats.get('global'),
-  );
+  let stats = liveQuery(() => db.admin_stats.get('global'));
 </script>
 
 {#if !$stats}

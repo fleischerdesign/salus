@@ -23,5 +23,5 @@ export const conflictStore = {
 
   resolve(id: string): void {
     _pending = _pending.filter((c) => c.id !== id);
-  },
+  }
 };

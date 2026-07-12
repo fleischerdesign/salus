@@ -12,50 +12,73 @@
 
   const navLinks = [
     { href: '/', icon: 'dashboard', label: 'Dashboard' },
-    { href: '/entries', icon: 'receipt-long', label: 'Logbook' },
+    { href: '/entries', icon: 'receipt-long', label: 'Logbook' }
   ];
 
   const workoutItemsBase = [
     { href: '/workouts', icon: 'fitness-center', label: 'Overview' },
     { href: '/workouts/plans', icon: 'assignment', label: 'Plans' },
     { href: '/workouts/exercises', icon: 'exercise', label: 'Exercises' },
-    { href: '/workouts/sessions', icon: 'history', label: 'Sessions' },
+    { href: '/workouts/sessions', icon: 'history', label: 'Sessions' }
   ];
 
   const activeSession = liveQuery(() =>
-    db.workout_session.filter((s) => !s.deleted_at && !s.completed_at).first(),
+    db.workout_session.filter((s) => !s.deleted_at && !s.completed_at).first()
   );
   let hasActiveSession = $derived($activeSession != null);
 
   let workoutItems = $derived(
     hasActiveSession
-      ? [...workoutItemsBase, { href: '/workouts/active', icon: 'play-circle', label: 'Active Session', highlight: true as const }]
+      ? [
+          ...workoutItemsBase,
+          {
+            href: '/workouts/active',
+            icon: 'play-circle',
+            label: 'Active Session',
+            highlight: true as const
+          }
+        ]
       : workoutItemsBase
   );
 
   const coachItems = [
     { href: '/coach/circadian', icon: 'routine', label: 'Circadian' },
-    { href: '/coach/chat', icon: 'psychology', label: 'Chat' },
+    { href: '/coach/chat', icon: 'psychology', label: 'Chat' }
   ];
 
   const communityItems = [
     { href: '/community/feed', icon: 'rss-feed', label: 'Feed' },
     { href: '/community/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
     { href: '/community/connections', icon: 'groups', label: 'Connections' },
-    { href: '/community/access-log', icon: 'history', label: 'Access Log' },
+    { href: '/community/access-log', icon: 'history', label: 'Access Log' }
   ];
 
   let mobileOpen = $state(false);
 
   function navLinkClass(link: { href: string }) {
     const active = $page.url.pathname === link.href;
-    return 'flex h-full items-center border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 ' +
-      (active ? 'border-primary-500 text-primary-600' : 'border-transparent text-surface-600 hover:text-primary-600');
+    return (
+      'flex h-full items-center border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 ' +
+      (active
+        ? 'border-primary-500 text-primary-600'
+        : 'border-transparent text-surface-600 hover:text-primary-600')
+    );
   }
 
   // --- Mobile menu ---
-  interface NavLink { type: 'link'; href: string; icon: string; label: string; highlight?: boolean }
-  interface NavGroup { type: 'group'; label: string; icon: string; items: NavLink[] }
+  interface NavLink {
+    type: 'link';
+    href: string;
+    icon: string;
+    label: string;
+    highlight?: boolean;
+  }
+  interface NavGroup {
+    type: 'group';
+    label: string;
+    icon: string;
+    items: NavLink[];
+  }
   type NavEntry = NavLink | NavGroup;
 
   const baseMobileNav: NavEntry[] = [
@@ -64,31 +87,37 @@
     { type: 'link', href: '/analytics', icon: 'insights', label: 'Analytics' },
     { type: 'link', href: '/goals', icon: 'track-changes', label: 'Goals' },
     {
-      type: 'group', label: 'Workouts', icon: 'fitness-center',
+      type: 'group',
+      label: 'Workouts',
+      icon: 'fitness-center',
       items: [
         { type: 'link', href: '/workouts', icon: 'fitness-center', label: 'Overview' },
         { type: 'link', href: '/workouts/plans', icon: 'assignment', label: 'Plans' },
         { type: 'link', href: '/workouts/exercises', icon: 'exercise', label: 'Exercises' },
-        { type: 'link', href: '/workouts/sessions', icon: 'history', label: 'Sessions' },
-      ],
+        { type: 'link', href: '/workouts/sessions', icon: 'history', label: 'Sessions' }
+      ]
     },
     {
-      type: 'group', label: 'Coach', icon: 'psychology',
+      type: 'group',
+      label: 'Coach',
+      icon: 'psychology',
       items: [
         { type: 'link', href: '/coach/circadian', icon: 'routine', label: 'Circadian' },
-        { type: 'link', href: '/coach/chat', icon: 'psychology', label: 'Chat' },
-      ],
+        { type: 'link', href: '/coach/chat', icon: 'psychology', label: 'Chat' }
+      ]
     },
     {
-      type: 'group', label: 'Community', icon: 'share',
+      type: 'group',
+      label: 'Community',
+      icon: 'share',
       items: [
         { type: 'link', href: '/community/feed', icon: 'rss-feed', label: 'Feed' },
         { type: 'link', href: '/community/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
         { type: 'link', href: '/community/connections', icon: 'groups', label: 'Connections' },
-        { type: 'link', href: '/community/access-log', icon: 'history', label: 'Access Log' },
-      ],
+        { type: 'link', href: '/community/access-log', icon: 'history', label: 'Access Log' }
+      ]
     },
-    { type: 'link', href: '/settings', icon: 'settings', label: 'Settings' },
+    { type: 'link', href: '/settings', icon: 'settings', label: 'Settings' }
   ];
 
   let mobileNav = $derived.by(() => {
@@ -97,7 +126,19 @@
       const idx = nav.findIndex((e) => e.type === 'group' && e.label === 'Workouts');
       if (idx >= 0) {
         const group = nav[idx] as NavGroup;
-        nav[idx] = { ...group, items: [...group.items, { type: 'link', href: '/workouts/active', icon: 'play-circle', label: 'Active Session', highlight: true }] };
+        nav[idx] = {
+          ...group,
+          items: [
+            ...group.items,
+            {
+              type: 'link',
+              href: '/workouts/active',
+              icon: 'play-circle',
+              label: 'Active Session',
+              highlight: true
+            }
+          ]
+        };
       }
     }
     if (auth.isAdmin) {
@@ -143,7 +184,7 @@
   <div class="mx-auto flex h-full max-w-[1440px] items-center gap-6 px-6">
     {#if auth.isAuthenticated}
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-md text-surface-600 hover:bg-surface-100 hover:text-surface-900 lg:hidden shrink-0"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-surface-600 hover:bg-surface-100 hover:text-surface-900 lg:hidden"
         aria-label="Toggle navigation"
         aria-expanded={mobileOpen}
         onclick={() => (mobileOpen = !mobileOpen)}
@@ -152,21 +193,36 @@
       </button>
     {/if}
 
-    <a href="/" class="text-xl font-semibold leading-7 -track-[0.01em] text-primary-600 no-underline shrink-0">
+    <a
+      href="/"
+      class="-track-[0.01em] shrink-0 text-xl leading-7 font-semibold text-primary-600 no-underline"
+    >
       salus
     </a>
 
     <nav class="hidden h-full items-center gap-0 lg:flex" style="margin-left: 32px;">
       {#each navLinks as link}
-        <a href={link.href} class={navLinkClass(link)} aria-current={$page.url.pathname === link.href ? 'page' : undefined}>
+        <a
+          href={link.href}
+          class={navLinkClass(link)}
+          aria-current={$page.url.pathname === link.href ? 'page' : undefined}
+        >
           {link.label}
         </a>
       {/each}
 
-      <a href="/analytics" class={navLinkClass({ href: '/analytics' })} aria-current={$page.url.pathname === '/analytics' ? 'page' : undefined}>
+      <a
+        href="/analytics"
+        class={navLinkClass({ href: '/analytics' })}
+        aria-current={$page.url.pathname === '/analytics' ? 'page' : undefined}
+      >
         Analytics
       </a>
-      <a href="/goals" class={navLinkClass({ href: '/goals' })} aria-current={$page.url.pathname === '/goals' ? 'page' : undefined}>
+      <a
+        href="/goals"
+        class={navLinkClass({ href: '/goals' })}
+        aria-current={$page.url.pathname === '/goals' ? 'page' : undefined}
+      >
         Goals
       </a>
 
@@ -192,16 +248,24 @@
   <div
     class="fixed inset-0 z-300 bg-surface-900/30 lg:hidden"
     onclick={() => (mobileOpen = false)}
-    onkeydown={(e) => { if (e.key === 'Escape') mobileOpen = false; }}
-    role="dialog" aria-modal="true" tabindex="-1"
+    onkeydown={(e) => {
+      if (e.key === 'Escape') mobileOpen = false;
+    }}
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
     transition:fade={{ duration: 150 }}
   ></div>
-  <div class="fixed left-0 top-0 bottom-0 z-400 w-[280px] bg-surface-0 shadow-xl lg:hidden" transition:fly={{ x: -280, duration: 250 }}>
+  <div
+    class="fixed top-0 bottom-0 left-0 z-400 w-[280px] bg-surface-0 shadow-xl lg:hidden"
+    transition:fly={{ x: -280, duration: 250 }}
+  >
     <div class="flex h-16 items-center justify-between border-b border-surface-200 px-4">
       <h2 class="text-xl font-semibold text-surface-900">Navigation</h2>
       <button
         class="flex h-9 w-9 items-center justify-center rounded-full text-surface-500 hover:bg-surface-100 hover:text-surface-700"
-        onclick={() => (mobileOpen = false)} aria-label="Close navigation"
+        onclick={() => (mobileOpen = false)}
+        aria-label="Close navigation"
       >
         <Icon name="close" />
       </button>
@@ -212,12 +276,17 @@
           {@const active = isLinkActive(entry.href)}
           <a
             href={entry.href}
-            class="flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {entry.highlight ? 'text-success-600' : active ? 'bg-primary-50 text-primary-600' : 'text-surface-600'}"
+            class="flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {entry.highlight
+              ? 'text-success-600'
+              : active
+                ? 'bg-primary-50 text-primary-600'
+                : 'text-surface-600'}"
             aria-current={active ? 'page' : undefined}
             onclick={() => (mobileOpen = false)}
           >
             {#if entry.highlight}
-              <span class="inline-block h-2 w-2 shrink-0 rounded-full bg-success-500 animate-pulse"></span>
+              <span class="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-success-500"
+              ></span>
             {/if}
             <Icon name={entry.icon} size="md" class={entry.highlight ? 'text-success-500' : ''} />
             {entry.label}
@@ -236,7 +305,11 @@
             {#if groupHasActive && !expanded}
               <span class="ml-auto h-2 w-2 rounded-full bg-primary-500"></span>
             {/if}
-            <Icon name="expand-more" size="sm" class="ml-auto transition-transform duration-150 {expanded ? 'rotate-180' : ''}" />
+            <Icon
+              name="expand-more"
+              size="sm"
+              class="ml-auto transition-transform duration-150 {expanded ? 'rotate-180' : ''}"
+            />
           </button>
           {#if expanded}
             <div class="overflow-hidden" transition:slide={{ duration: 200 }}>
@@ -244,12 +317,18 @@
                 {@const active = isLinkActive(subItem.href)}
                 <a
                   href={subItem.href}
-                  class="flex items-center gap-3 rounded-md py-2.5 pl-8 pr-4 text-[13px] font-medium tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {subItem.highlight ? 'text-success-600' : active ? 'bg-primary-50 text-primary-600' : 'text-surface-500'}"
+                  class="flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-[13px] font-medium tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {subItem.highlight
+                    ? 'text-success-600'
+                    : active
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-surface-500'}"
                   aria-current={active ? 'page' : undefined}
                   onclick={() => (mobileOpen = false)}
                 >
                   {#if subItem.highlight}
-                    <span class="inline-block h-2 w-2 shrink-0 rounded-full bg-success-500 animate-pulse"></span>
+                    <span
+                      class="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-success-500"
+                    ></span>
                   {:else}
                     <Icon name={subItem.icon} size="sm" class="text-surface-400" />
                   {/if}

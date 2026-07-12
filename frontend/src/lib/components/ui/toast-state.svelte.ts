@@ -24,13 +24,10 @@ function dismiss(id: number) {
 function addToast(
   message: string,
   type: 'success' | 'error' | 'info' | 'loading' | 'warning' = 'info',
-  options: ToastOptions = {},
+  options: ToastOptions = {}
 ): number {
   const id = nextId++;
-  toasts = [
-    ...toasts,
-    { id, message, type, progress: options.progress ?? false },
-  ];
+  toasts = [...toasts, { id, message, type, progress: options.progress ?? false }];
 
   if (!options.persistent) {
     const duration = options.duration ?? DEFAULT_DURATION;
@@ -45,7 +42,7 @@ function addToast(
 export function toast(
   message: string,
   type: 'success' | 'error' | 'info' | 'loading' | 'warning' = 'info',
-  options: ToastOptions = {},
+  options: ToastOptions = {}
 ): number {
   return addToast(message, type, options);
 }
@@ -59,9 +56,7 @@ export function updateToast(id: number, message: string): void {
 }
 
 export function updateToastProgress(id: number, message: string, value: number): void {
-  toasts = toasts.map((t) =>
-    t.id === id ? { ...t, message, progressValue: value } : t,
-  );
+  toasts = toasts.map((t) => (t.id === id ? { ...t, message, progressValue: value } : t));
 }
 
 export function getToasts(): ToastItem[] {

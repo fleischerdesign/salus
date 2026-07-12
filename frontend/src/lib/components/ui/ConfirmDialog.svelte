@@ -67,7 +67,12 @@
     onclick={onBackdrop}
     role="presentation"
   >
-    <div class="relative z-10 mx-4 w-full max-w-sm rounded-lg bg-surface-0 p-6 shadow-lg {extraClass}" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      class="relative z-10 mx-4 w-full max-w-sm rounded-lg bg-surface-0 p-6 shadow-lg {extraClass}"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <div class="flex flex-col items-center text-center">
         <Icon name={icons[variant]} size="2xl" class="mb-3 {iconColors[variant]}" />
         <h2 class="text-lg font-semibold text-surface-900">{title}</h2>
@@ -75,7 +80,9 @@
       </div>
       <div class="mt-6 flex justify-center gap-3">
         <Btn variant="ghost" onclick={close}>{cancelLabel}</Btn>
-        <Btn variant={variant === 'danger' ? 'danger' : 'primary'} onclick={confirm}>{confirmLabel}</Btn>
+        <Btn variant={variant === 'danger' ? 'danger' : 'primary'} onclick={confirm}
+          >{confirmLabel}</Btn
+        >
       </div>
     </div>
   </div>

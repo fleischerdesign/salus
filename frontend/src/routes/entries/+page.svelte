@@ -4,7 +4,7 @@
   import { db } from '$lib/db/database';
   import type { MetricType } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-import { mutate, nextTempId } from '$lib/db/mutate';
+  import { mutate, nextTempId } from '$lib/db/mutate';
   import Card from '$components/ui/Card.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -19,12 +19,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
   type Metric = MetricType;
 
-  let metrics = liveQuery(() =>
-    db.metric_type.toArray(),
-  );
-  let overviews = liveQuery(() =>
-    fetchMetricOverview(),
-  );
+  let metrics = liveQuery(() => db.metric_type.toArray());
+  let overviews = liveQuery(() => fetchMetricOverview());
 
   // Metric form state
   let showMetricModal = $state(false);
@@ -44,7 +40,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   const dataTypeOptions = [
     { value: 'number', label: 'Number' },
     { value: 'text', label: 'Text' },
-    { value: 'boolean', label: 'Boolean' },
+    { value: 'boolean', label: 'Boolean' }
   ];
 
   function openCreateModal() {
@@ -83,7 +79,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       unit: metricUnit,
       data_type: metricDataType as 'number' | 'text' | 'boolean',
       color: metricColor,
-      icon: metricIcon,
+      icon: metricIcon
     };
     if (editingMetric) {
       const { ok, error } = await mutate({
@@ -91,7 +87,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         type: 'update',
         data: body as Record<string, unknown>,
         optimistic: { ...editingMetric, ...body },
-        realId: editingMetric.id,
+        realId: editingMetric.id
       });
       saving = false;
       if (!ok) {
@@ -104,7 +100,19 @@ import { mutate, nextTempId } from '$lib/db/mutate';
         table: 'metric_type',
         type: 'create',
         data: body as Record<string, unknown>,
-        optimistic: { id: tempId, ...body, user_id: 0, is_system: false, source_data_type: null, widget_size: 'medium', widget_enabled: false, position: 0, created_at: new Date().toISOString(), updated_at: null, deleted_at: null },
+        optimistic: {
+          id: tempId,
+          ...body,
+          user_id: 0,
+          is_system: false,
+          source_data_type: null,
+          widget_size: 'medium',
+          widget_enabled: false,
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: null,
+          deleted_at: null
+        }
       });
       saving = false;
       if (!ok) {
@@ -123,7 +131,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       table: 'metric_type',
       type: 'delete',
       optimistic: { id: target.id },
-      realId: target.id,
+      realId: target.id
     });
   }
 </script>
@@ -144,7 +152,11 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   {#if !$metrics || !$overviews}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if $metrics.length === 0}
-    <EmptyState title="No metrics yet" description="Create your first metric to start logging data." icon="receipt-long">
+    <EmptyState
+      title="No metrics yet"
+      description="Create your first metric to start logging data."
+      icon="receipt-long"
+    >
       <Btn variant="primary" onclick={openCreateModal}>+ New Metric</Btn>
     </EmptyState>
   {:else}
@@ -152,65 +164,75 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       {#each $metrics as m (m.id)}
         {@const ov = overviewForMetric($overviews, m.id)}
         <a href="/entries/{m.id}" class="no-underline">
-           <Card padding={false} hoverable>
-             {#snippet header()}
-               <div class="flex items-center gap-3">
-                 <div
-                   class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                   style="background-color: {m.color}20; color: {m.color}"
-                 >
-                   <Icon name={m.icon || 'monitoring'} />
-                 </div>
-                 <div class="min-w-0 flex-1">
-                   <div class="flex items-center gap-1.5">
-                     <p class="truncate text-sm font-medium text-surface-900">{m.name}</p>
-                     {#if m.is_system}
-                       <Badge variant="default">system</Badge>
-                     {/if}
-                   </div>
-                   <p class="text-xs text-surface-500">{m.unit || '—'}</p>
-                 </div>
-                 <div class="flex items-center gap-0.5">
-                   <button
-                     type="button"
-                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
-                      aria-label="Edit metric"
-                     onclick={(e) => { e.preventDefault(); e.stopPropagation(); openEditModal(m); }}
-                   >
-                     <Icon name="edit" size="sm" />
-                   </button>
-                   {#if !m.is_system}
-                     <button
-                       type="button"
-                        class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
-                        aria-label="Delete metric"
-                       onclick={(e) => { e.preventDefault(); e.stopPropagation(); metricToDelete = m; deleteDialogOpen = true; }}
-                     >
-                       <Icon name="delete" size="sm" />
-                     </button>
-                   {/if}
-                 </div>
-               </div>
-             {/snippet}
-             <div class="p-6">
-               {#if ov}
-                 <div class="flex items-baseline gap-1">
-                   <span class="text-lg font-bold text-surface-900">
-                     {ov.latest_value ?? '—'}
-                   </span>
-                   {#if ov.latest_value && m.unit}
-                     <span class="text-xs text-surface-400">{m.unit}</span>
-                   {/if}
-                 </div>
-                 <p class="mt-0.5 text-xs text-surface-400">
-                   {ov.latest_date ?? 'No entries'} · {ov.entry_count} {ov.entry_count === 1 ? 'entry' : 'entries'}
-                 </p>
-               {:else}
-                 <p class="text-xs text-surface-400">No entries yet</p>
-               {/if}
-             </div>
-           </Card>
-         </a>
+          <Card padding={false} hoverable>
+            {#snippet header()}
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                  style="background-color: {m.color}20; color: {m.color}"
+                >
+                  <Icon name={m.icon || 'monitoring'} />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <p class="truncate text-sm font-medium text-surface-900">{m.name}</p>
+                    {#if m.is_system}
+                      <Badge variant="default">system</Badge>
+                    {/if}
+                  </div>
+                  <p class="text-xs text-surface-500">{m.unit || '—'}</p>
+                </div>
+                <div class="flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
+                    aria-label="Edit metric"
+                    onclick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openEditModal(m);
+                    }}
+                  >
+                    <Icon name="edit" size="sm" />
+                  </button>
+                  {#if !m.is_system}
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
+                      aria-label="Delete metric"
+                      onclick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        metricToDelete = m;
+                        deleteDialogOpen = true;
+                      }}
+                    >
+                      <Icon name="delete" size="sm" />
+                    </button>
+                  {/if}
+                </div>
+              </div>
+            {/snippet}
+            <div class="p-6">
+              {#if ov}
+                <div class="flex items-baseline gap-1">
+                  <span class="text-lg font-bold text-surface-900">
+                    {ov.latest_value ?? '—'}
+                  </span>
+                  {#if ov.latest_value && m.unit}
+                    <span class="text-xs text-surface-400">{m.unit}</span>
+                  {/if}
+                </div>
+                <p class="mt-0.5 text-xs text-surface-400">
+                  {ov.latest_date ?? 'No entries'} · {ov.entry_count}
+                  {ov.entry_count === 1 ? 'entry' : 'entries'}
+                </p>
+              {:else}
+                <p class="text-xs text-surface-400">No entries yet</p>
+              {/if}
+            </div>
+          </Card>
+        </a>
       {/each}
     </div>
   {/if}
@@ -226,7 +248,11 @@ import { mutate, nextTempId } from '$lib/db/mutate';
     </FormField>
     <div class="flex gap-4">
       <FormField label="Color" class="flex-1">
-        <input type="color" bind:value={metricColor} class="h-11 w-full cursor-pointer rounded-md border border-surface-300" />
+        <input
+          type="color"
+          bind:value={metricColor}
+          class="h-11 w-full cursor-pointer rounded-md border border-surface-300"
+        />
       </FormField>
       <FormField label="Icon" class="flex-1">
         <Input name="icon" bind:value={metricIcon} placeholder="monitoring" />
@@ -252,5 +278,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   message="Delete &quot;{metricToDelete?.name}&quot; and all its entries? This cannot be undone."
   confirmLabel="Delete"
   onconfirm={confirmDeleteMetric}
-  oncancel={() => { metricToDelete = null; }}
+  oncancel={() => {
+    metricToDelete = null;
+  }}
 />

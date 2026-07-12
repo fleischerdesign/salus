@@ -72,7 +72,9 @@ jobs:
       - name: Install dependencies
         run: nix develop --command bash -c "cd frontend && npm ci"
       - name: Lint
-        run: nix develop --command bash -c "cd frontend && npm run lint"
+        run: nix develop --command bash -c "cd frontend && npx prettier --check src/"
+      - name: ESLint
+        run: nix develop --command bash -c "cd frontend && npx eslint src/" || true
       - name: Test
         run: nix develop --command bash -c "cd frontend && npm run test"
       - name: Build

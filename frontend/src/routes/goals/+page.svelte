@@ -3,7 +3,7 @@
   import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
   import type { MetricType } from '$lib/db/types';
-import { mutate, nextTempId } from '$lib/db/mutate';
+  import { mutate, nextTempId } from '$lib/db/mutate';
   import { fetchGoalViews } from '$lib/analytics/views/goal-views';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -21,7 +21,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
   let goals = liveQuery(() => fetchGoalViews());
   let metrics = liveQuery(() =>
-    db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at)),
+    db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at))
   );
 
   // Form state
@@ -40,13 +40,13 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
   const directionOptions = [
     { value: 'increase', label: 'Increase' },
-    { value: 'decrease', label: 'Decrease' },
+    { value: 'decrease', label: 'Decrease' }
   ];
 
   const frequencyOptions = [
     { value: 'daily', label: 'Daily' },
     { value: 'weekly', label: 'Weekly' },
-    { value: 'once', label: 'Once' },
+    { value: 'once', label: 'Once' }
   ];
 
   function openForm() {
@@ -72,13 +72,21 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       target_value: parseFloat(formTarget),
       direction: formDirection as 'increase' | 'decrease',
       frequency: formFrequency as 'daily' | 'weekly' | 'once',
-      deadline: formFrequency === 'once' && formDeadline ? formDeadline : undefined,
+      deadline: formFrequency === 'once' && formDeadline ? formDeadline : undefined
     };
     const { ok, error } = await mutate({
       table: 'goal',
       type: 'create',
       data: data as Record<string, unknown>,
-      optimistic: { id: nextTempId(), user_id: 0, ...data, is_active: true, created_at: new Date().toISOString(), updated_at: null, deleted_at: null },
+      optimistic: {
+        id: nextTempId(),
+        user_id: 0,
+        ...data,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: null,
+        deleted_at: null
+      }
     });
     saving = false;
     if (!ok) {
@@ -96,13 +104,11 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       table: 'goal',
       type: 'delete',
       optimistic: { id: target.id },
-      realId: target.id,
+      realId: target.id
     });
   }
 
-  function progressVariant(
-    status: string,
-  ): 'success' | 'error' | 'info' {
+  function progressVariant(status: string): 'success' | 'error' | 'info' {
     if (status === 'fulfilled') return 'success';
     if (status === 'missed') return 'error';
     return 'info';
@@ -133,8 +139,8 @@ import { mutate, nextTempId } from '$lib/db/mutate';
   const metricOptions = $derived(
     ($metrics ?? []).map((m) => ({
       value: String(m.id),
-      label: `${m.name}${m.unit ? ` (${m.unit})` : ''}`,
-    })),
+      label: `${m.name}${m.unit ? ` (${m.unit})` : ''}`
+    }))
   );
 </script>
 
@@ -162,9 +168,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
       <Btn variant="primary" onclick={openForm}>+ New Goal</Btn>
     </EmptyState>
   {:else}
-    <div
-      class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]"
-    >
+    <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
       {#each $goals as g (g.id)}
         <Card padding={false}>
           {#snippet header()}
@@ -179,7 +183,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
                 <p class="truncate text-sm font-semibold text-surface-900">
                   {g.metric_name}
                 </p>
-                <p class="text-xs capitalize text-surface-400">{g.frequency}</p>
+                <p class="text-xs text-surface-400 capitalize">{g.frequency}</p>
               </div>
               <button
                 type="button"
@@ -198,23 +202,15 @@ import { mutate, nextTempId } from '$lib/db/mutate';
           <div class="p-6">
             <div class="flex items-baseline gap-2">
               <Icon
-                name={g.direction === 'increase'
-                  ? 'trending-up'
-                  : 'trending-down'}
+                name={g.direction === 'increase' ? 'trending-up' : 'trending-down'}
                 size="sm"
-                class={g.direction === 'increase'
-                  ? 'text-success-600'
-                  : 'text-primary-500'}
+                class={g.direction === 'increase' ? 'text-success-600' : 'text-primary-500'}
               />
-              <span
-                class="text-2xl font-bold tabular-nums text-surface-900"
-              >
+              <span class="text-2xl font-bold text-surface-900 tabular-nums">
                 {formatValue(g.progress.current_value)}
               </span>
               <span class="text-sm text-surface-400">
-                / {formatValue(g.target_value)}{g.metric_unit
-                  ? ` ${g.metric_unit}`
-                  : ''}
+                / {formatValue(g.target_value)}{g.metric_unit ? ` ${g.metric_unit}` : ''}
               </span>
             </div>
 
@@ -228,11 +224,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
             </div>
 
             <div class="mt-3 flex items-center justify-between">
-              <span
-                class="text-xs font-semibold capitalize {statusColor(
-                  g.progress.status,
-                )}"
-              >
+              <span class="text-xs font-semibold capitalize {statusColor(g.progress.status)}">
                 {g.progress.status}
               </span>
               <span class="text-xs text-surface-400">{resetLabel(g)}</span>
@@ -247,11 +239,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 <Modal title="New Goal" bind:open={showForm}>
   <form onsubmit={saveGoal} class="flex flex-col gap-4">
     <FormField label="Metric" required>
-      <Select
-        name="metric_type_id"
-        options={metricOptions}
-        bind:value={formMetricId}
-      />
+      <Select name="metric_type_id" options={metricOptions} bind:value={formMetricId} />
     </FormField>
 
     <FormField label="Target Value" required>
@@ -272,10 +260,7 @@ import { mutate, nextTempId } from '$lib/db/mutate';
 
     <div class="space-y-2">
       <span class="text-sm font-medium text-surface-700">Frequency</span>
-      <SegmentedControl
-        options={frequencyOptions}
-        bind:value={formFrequency}
-      />
+      <SegmentedControl options={frequencyOptions} bind:value={formFrequency} />
     </div>
 
     {#if formFrequency === 'once'}

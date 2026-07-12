@@ -35,14 +35,18 @@
 </script>
 
 <div
-  class="chrome-card overflow-hidden rounded-lg border border-surface-200 bg-surface-0 transition-all duration-150 {editMode ? 'cursor-grab bg-surface-50 active:cursor-grabbing' : 'hover:border-surface-300 hover:shadow-md'} {extraClass}"
+  class="chrome-card overflow-hidden rounded-lg border border-surface-200 bg-surface-0 transition-all duration-150 {editMode
+    ? 'cursor-grab bg-surface-50 active:cursor-grabbing'
+    : 'hover:border-surface-300 hover:shadow-md'} {extraClass}"
   class:widget-chrome-handle={editMode && dragHandle}
 >
   <div class="flex items-center gap-1 border-b border-surface-100 px-3 py-2">
     <!-- Drag handle -->
     {#if dragHandle}
       <span
-        class="flex items-center overflow-hidden transition-all duration-150 ease-out {dragVisible ? 'max-w-[24px] opacity-100' : 'max-w-0 opacity-0'}"
+        class="flex items-center overflow-hidden transition-all duration-150 ease-out {dragVisible
+          ? 'max-w-[24px] opacity-100'
+          : 'max-w-0 opacity-0'}"
       >
         <Icon name="drag-indicator" size="sm" class="text-surface-400" />
       </span>
@@ -50,11 +54,16 @@
 
     <!-- Metric icon -->
     {#if icon}
-      <Icon name={icon} size="sm" class="text-surface-400" style={iconColor ? `color: ${iconColor}` : undefined} />
+      <Icon
+        name={icon}
+        size="sm"
+        class="text-surface-400"
+        style={iconColor ? `color: ${iconColor}` : undefined}
+      />
     {/if}
 
     <!-- Title -->
-    <span class="flex-1 text-xs font-medium uppercase tracking-wide text-surface-500">{title}</span>
+    <span class="flex-1 text-xs font-medium tracking-wide text-surface-500 uppercase">{title}</span>
     {#if unit}
       <span class="text-xs text-surface-400">{unit}</span>
     {/if}
@@ -69,7 +78,9 @@
     <!-- Edit-only actions (revealed via transition when editMode is active) -->
     {#if editActions}
       <div
-        class="edit-chrome-actions flex items-center gap-0.5 overflow-hidden transition-all duration-150 ease-out {editActionsVisible ? 'max-w-[120px] opacity-100' : 'max-w-0 opacity-0'}"
+        class="edit-chrome-actions flex items-center gap-0.5 overflow-hidden transition-all duration-150 ease-out {editActionsVisible
+          ? 'max-w-[120px] opacity-100'
+          : 'max-w-0 opacity-0'}"
       >
         {@render editActions()}
       </div>
@@ -77,7 +88,7 @@
   </div>
 
   <!-- Body -->
-  <div class="min-h-[80px] {dense ? 'px-4 pb-4 pt-2' : 'p-6'}">
+  <div class="min-h-[80px] {dense ? 'px-4 pt-2 pb-4' : 'p-6'}">
     {@render children?.()}
   </div>
 </div>

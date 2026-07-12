@@ -8,36 +8,28 @@
   import Spinner from '$components/ui/Spinner.svelte';
 
   let plans = liveQuery(() =>
-    db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at)),
+    db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at))
   );
   let exercises = liveQuery(() =>
-    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at)),
+    db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
   let sessions = liveQuery(() =>
-    db.workout_session.toArray().then((arr) =>
-      arr
-        .filter((s) => !s.deleted_at)
-        .sort(
-          (a, b) =>
-            new Date(b.started_at).getTime() -
-            new Date(a.started_at).getTime(),
-        ),
-    ),
+    db.workout_session
+      .toArray()
+      .then((arr) =>
+        arr
+          .filter((s) => !s.deleted_at)
+          .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+      )
   );
   let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) =>
-      arr.filter((l) => !l.deleted_at),
-    ),
+    db.workout_log_entry.toArray().then((arr) => arr.filter((l) => !l.deleted_at))
   );
 
   let recentSessions = $derived(($sessions ?? []).slice(0, 5));
-  let activeSession = $derived(
-    $sessions?.find((s) => s.completed_at == null) ?? null,
-  );
+  let activeSession = $derived($sessions?.find((s) => s.completed_at == null) ?? null);
 
-  let loaded = $derived(
-    $plans != null && $exercises != null && $sessions != null && $logs != null,
-  );
+  let loaded = $derived($plans != null && $exercises != null && $sessions != null && $logs != null);
 
   function sessionVolume(sessId: number): number {
     return ($logs ?? [])
@@ -49,7 +41,7 @@
     if (!dt) return '—';
     return new Date(dt).toLocaleDateString(undefined, {
       month: 'short',
-      day: 'numeric',
+      day: 'numeric'
     });
   }
 </script>
@@ -68,7 +60,7 @@
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else}
     {#if activeSession}
-      <a href="/workouts/active" class="no-underline block">
+      <a href="/workouts/active" class="block no-underline">
         <div
           class="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3 transition-colors duration-150 hover:bg-primary-100"
         >
@@ -99,12 +91,11 @@
                 <Icon name="assignment" />
               </div>
               <div class="flex-1">
-                <p class="text-sm font-semibold text-surface-900">
-                  Training Plans
+                <p class="text-sm font-semibold text-surface-900">Training Plans</p>
+                <p class="text-xs text-surface-400">
+                  {$plans.length}
+                  {$plans.length === 1 ? 'plan' : 'plans'}
                 </p>
-                <p class="text-xs text-surface-400"
-                  >{$plans.length} {$plans.length === 1 ? 'plan' : 'plans'}</p
-                >
               </div>
             </div>
           {/snippet}
@@ -134,13 +125,11 @@
                 <Icon name="exercise" />
               </div>
               <div class="flex-1">
-                <p class="text-sm font-semibold text-surface-900">
-                  Exercise Library
+                <p class="text-sm font-semibold text-surface-900">Exercise Library</p>
+                <p class="text-xs text-surface-400">
+                  {$exercises.length}
+                  {$exercises.length === 1 ? 'exercise' : 'exercises'}
                 </p>
-                <p class="text-xs text-surface-400"
-                  >{$exercises.length}
-                  {$exercises.length === 1 ? 'exercise' : 'exercises'}</p
-                >
               </div>
             </div>
           {/snippet}
@@ -151,15 +140,11 @@
                   <Badge variant="default">{ex.name}</Badge>
                 {/each}
                 {#if $exercises.length > 6}
-                  <span class="text-xs text-surface-400"
-                    >+{$exercises.length - 6} more</span
-                  >
+                  <span class="text-xs text-surface-400">+{$exercises.length - 6} more</span>
                 {/if}
               </div>
             {:else}
-              <p class="text-sm text-surface-400">
-                No exercises cataloged.
-              </p>
+              <p class="text-sm text-surface-400">No exercises cataloged.</p>
             {/if}
           </div>
         </Card>
@@ -175,13 +160,11 @@
                 <Icon name="history" />
               </div>
               <div class="flex-1">
-                <p class="text-sm font-semibold text-surface-900">
-                  Session History
+                <p class="text-sm font-semibold text-surface-900">Session History</p>
+                <p class="text-xs text-surface-400">
+                  {recentSessions.length} recent
+                  {recentSessions.length === 1 ? 'session' : 'sessions'}
                 </p>
-                <p class="text-xs text-surface-400"
-                  >{recentSessions.length} recent
-                  {recentSessions.length === 1 ? 'session' : 'sessions'}</p
-                >
               </div>
             </div>
           {/snippet}
@@ -189,9 +172,7 @@
             {#if recentSessions.length > 0}
               <div class="space-y-1.5">
                 {#each recentSessions.slice(0, 3) as sess (sess.id)}
-                  <div
-                    class="flex items-center justify-between text-sm"
-                  >
+                  <div class="flex items-center justify-between text-sm">
                     <span class="truncate text-surface-700">
                       {formatDate(sess.completed_at ?? sess.started_at)}
                     </span>
@@ -202,9 +183,7 @@
                 {/each}
               </div>
             {:else}
-              <p class="text-sm text-surface-400">
-                No sessions recorded.
-              </p>
+              <p class="text-sm text-surface-400">No sessions recorded.</p>
             {/if}
           </div>
         </Card>

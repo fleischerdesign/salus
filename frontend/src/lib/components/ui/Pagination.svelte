@@ -25,11 +25,7 @@
     const result: (number | '...')[] = [];
     const window = 2;
     for (let p = 1; p <= totalPages; p++) {
-      if (
-        p === 1 ||
-        p === totalPages ||
-        (p >= page - window && p <= page + window)
-      ) {
+      if (p === 1 || p === totalPages || (p >= page - window && p <= page + window)) {
         result.push(p);
       } else if (result[result.length - 1] === '...') {
         continue;
@@ -47,7 +43,10 @@
 </script>
 
 {#if totalPages > 1}
-  <nav class="flex flex-wrap items-center justify-center gap-1 {extraClass}" aria-label="Pagination">
+  <nav
+    class="flex flex-wrap items-center justify-center gap-1 {extraClass}"
+    aria-label="Pagination"
+  >
     <button
       class="flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors duration-150 hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={page <= 1}
@@ -62,7 +61,10 @@
         <span class="flex h-10 w-10 items-center justify-center text-sm text-surface-400">…</span>
       {:else}
         <button
-          class="flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors duration-150 {page === p ? 'bg-primary-50 text-primary-600' : 'text-surface-600 hover:bg-surface-100'}"
+          class="flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors duration-150 {page ===
+          p
+            ? 'bg-primary-50 text-primary-600'
+            : 'text-surface-600 hover:bg-surface-100'}"
           onclick={() => go(p)}
           aria-current={page === p ? 'page' : undefined}
         >

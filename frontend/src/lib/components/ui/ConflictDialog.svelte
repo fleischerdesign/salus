@@ -13,13 +13,7 @@
     onresolve?: (fields: Record<string, unknown> | null) => void;
   }
 
-  let {
-    open = $bindable(false),
-    table,
-    clientRecord,
-    serverRecord,
-    onresolve,
-  }: Props = $props();
+  let { open = $bindable(false), table, clientRecord, serverRecord, onresolve }: Props = $props();
 
   const diff = $derived(computeDiff(clientRecord ?? {}, serverRecord ?? {}));
 
@@ -52,7 +46,10 @@
 
 <Modal bind:open title="{entityLabel(table)} — Conflict" size="lg" onclose={discard}>
   <div class="flex flex-col gap-4">
-    <AlertBanner variant="warning" message="This record was modified by another session. Choose which version to keep for each changed field." />
+    <AlertBanner
+      variant="warning"
+      message="This record was modified by another session. Choose which version to keep for each changed field."
+    />
 
     {#if diff.length > 0}
       <div class="overflow-x-auto rounded-lg border border-surface-200">
@@ -69,26 +66,26 @@
               <tr class="border-b border-surface-100 last:border-b-0">
                 <td class="px-4 py-2 text-surface-700">{row.field}</td>
                 <td class="px-4 py-2">
-                  <label class="flex items-center gap-2 cursor-pointer">
+                  <label class="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
                       name="diff-{row.field}"
                       value="server"
                       checked={selection[row.field] === 'server'}
-                      onchange={() => selection[row.field] = 'server'}
+                      onchange={() => (selection[row.field] = 'server')}
                       class="h-4 w-4 accent-primary-500"
                     />
                     <span class="text-surface-600">{formatValue(row.server)}</span>
                   </label>
                 </td>
                 <td class="px-4 py-2">
-                  <label class="flex items-center gap-2 cursor-pointer">
+                  <label class="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
                       name="diff-{row.field}"
                       value="mine"
                       checked={selection[row.field] === 'mine'}
-                      onchange={() => selection[row.field] = 'mine'}
+                      onchange={() => (selection[row.field] = 'mine')}
                       class="h-4 w-4 accent-primary-500"
                     />
                     <span class="text-surface-600">{formatValue(row.client)}</span>
@@ -100,7 +97,9 @@
         </table>
       </div>
     {:else}
-      <p class="text-sm text-surface-500">No field differences detected. The server version will be used.</p>
+      <p class="text-sm text-surface-500">
+        No field differences detected. The server version will be used.
+      </p>
     {/if}
 
     <div class="flex justify-end gap-3">

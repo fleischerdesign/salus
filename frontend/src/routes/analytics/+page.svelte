@@ -17,7 +17,7 @@
     { value: '7d', label: '7D' },
     { value: '30d', label: '30D' },
     { value: '90d', label: '90D' },
-    { value: '1y', label: '1Y' },
+    { value: '1y', label: '1Y' }
   ];
 
   let data = liveQuery(() => fetchAnalytics(range));
@@ -36,10 +36,20 @@
     if (!data) return [];
     const s: { label: string; data: number[]; color: string; yAxis: 'left' | 'right' }[] = [];
     if (hasWeightData) {
-      s.push({ label: 'Weight (kg)', data: $data!.weight_data, color: 'var(--color-primary-500)', yAxis: 'left' });
+      s.push({
+        label: 'Weight (kg)',
+        data: $data!.weight_data,
+        color: 'var(--color-primary-500)',
+        yAxis: 'left'
+      });
     }
     if (hasStepsData) {
-      s.push({ label: 'Steps', data: $data!.steps_data, color: 'var(--color-success-500)', yAxis: 'right' });
+      s.push({
+        label: 'Steps',
+        data: $data!.steps_data,
+        color: 'var(--color-success-500)',
+        yAxis: 'right'
+      });
     }
     return s;
   });
@@ -94,13 +104,29 @@
           {#if $data.tdee}
             <Stat value={$data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
             <div class="mt-4 space-y-1.5 text-sm text-surface-500">
-              <div class="flex justify-between"><span>BMR (Cunningham)</span><span class="font-medium text-surface-700">{$data.tdee.bmr_kcal.toFixed(0)} kcal</span></div>
-              <div class="flex justify-between"><span>Activity Factor</span><span class="font-medium text-surface-700">{$data.tdee.pal_factor.toFixed(2)}x</span></div>
-              <div class="flex justify-between"><span>HRR Utilization</span><span class="font-medium text-surface-700">{($data.tdee.hrr_pct * 100).toFixed(0)}%</span></div>
+              <div class="flex justify-between">
+                <span>BMR (Cunningham)</span><span class="font-medium text-surface-700"
+                  >{$data.tdee.bmr_kcal.toFixed(0)} kcal</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span>Activity Factor</span><span class="font-medium text-surface-700"
+                  >{$data.tdee.pal_factor.toFixed(2)}x</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span>HRR Utilization</span><span class="font-medium text-surface-700"
+                  >{($data.tdee.hrr_pct * 100).toFixed(0)}%</span
+                >
+              </div>
             </div>
             {#if $data.weight_trend.current}
-              <div class="mt-3 flex justify-between border-t border-surface-100 pt-3 text-sm text-surface-500">
-                <span>Current Weight</span><span class="font-medium text-surface-700">{$data.weight_trend.current.toFixed(1)} kg</span>
+              <div
+                class="mt-3 flex justify-between border-t border-surface-100 pt-3 text-sm text-surface-500"
+              >
+                <span>Current Weight</span><span class="font-medium text-surface-700"
+                  >{$data.weight_trend.current.toFixed(1)} kg</span
+                >
               </div>
             {/if}
           {:else}
@@ -118,14 +144,33 @@
         {/snippet}
         <div class="p-6">
           {#if $data.latest_sleep}
-            <Stat value={`${$data.latest_sleep.duration_hours.toFixed(1)}h`} label="Latest Sleep Duration" />
+            <Stat
+              value={`${$data.latest_sleep.duration_hours.toFixed(1)}h`}
+              label="Latest Sleep Duration"
+            />
             <div class="mt-4">
               <VizBar
                 segments={[
-                  { label: 'Awake', value: $data.latest_sleep.awake_pct, color: 'var(--color-warning-400)' },
-                  { label: 'Light', value: $data.latest_sleep.light_pct, color: 'var(--color-primary-300)' },
-                  { label: 'Deep', value: $data.latest_sleep.deep_pct, color: 'var(--color-primary-500)' },
-                  { label: 'REM', value: $data.latest_sleep.rem_pct, color: 'var(--color-success-400)' },
+                  {
+                    label: 'Awake',
+                    value: $data.latest_sleep.awake_pct,
+                    color: 'var(--color-warning-400)'
+                  },
+                  {
+                    label: 'Light',
+                    value: $data.latest_sleep.light_pct,
+                    color: 'var(--color-primary-300)'
+                  },
+                  {
+                    label: 'Deep',
+                    value: $data.latest_sleep.deep_pct,
+                    color: 'var(--color-primary-500)'
+                  },
+                  {
+                    label: 'REM',
+                    value: $data.latest_sleep.rem_pct,
+                    color: 'var(--color-success-400)'
+                  }
                 ]}
                 total={100}
               />
@@ -151,21 +196,30 @@
                   {#snippet children()}
                     <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-medium text-surface-900">{session.type_name}</p>
+                        <p class="truncate text-sm font-medium text-surface-900">
+                          {session.type_name}
+                        </p>
                         <p class="mt-0.5 truncate text-xs text-surface-500">
-                          {session.date} {session.time}
-                          {#if session.distance_meters > 0} · {(session.distance_meters / 1000).toFixed(1)}km{/if}
-                          {#if session.calories > 0} · {session.calories.toFixed(0)} kcal{/if}
+                          {session.date}
+                          {session.time}
+                          {#if session.distance_meters > 0}
+                            · {(session.distance_meters / 1000).toFixed(1)}km{/if}
+                          {#if session.calories > 0}
+                            · {session.calories.toFixed(0)} kcal{/if}
                         </p>
                       </div>
-                      <span class="flex-shrink-0 text-sm text-surface-500">{formatDuration(session.duration_seconds)}</span>
+                      <span class="flex-shrink-0 text-sm text-surface-500"
+                        >{formatDuration(session.duration_seconds)}</span
+                      >
                     </div>
                   {/snippet}
                 </ListItem>
               {/each}
             </div>
           {:else}
-            <div class="px-4 py-8"><p class="text-sm text-surface-400">No exercise sessions recorded.</p></div>
+            <div class="px-4 py-8">
+              <p class="text-sm text-surface-400">No exercise sessions recorded.</p>
+            </div>
           {/if}
         </div>
       </Card>

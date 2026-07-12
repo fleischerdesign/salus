@@ -14,22 +14,20 @@
   const sessionId = $derived(Number(page.params.id));
 
   let session = liveQuery(() =>
-    db.workout_session
-      .get(sessionId)
-      .then((s) => (s && !s.deleted_at ? s : null)),
+    db.workout_session.get(sessionId).then((s) => (s && !s.deleted_at ? s : null))
   );
 
   let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) =>
-      arr.filter((l) => l.session_id === sessionId && !l.deleted_at),
-    ),
+    db.workout_log_entry
+      .toArray()
+      .then((arr) => arr.filter((l) => l.session_id === sessionId && !l.deleted_at))
   );
 
   let exercises = liveQuery(() =>
     db.exercise.toArray().then((arr) => {
       const map = new Map(arr.map((e) => [e.id, e]));
       return map;
-    }),
+    })
   );
 
   let groupedLogs = $derived.by(() => {
@@ -44,19 +42,14 @@
   });
 
   let totalVolume = $derived(
-    ($logs ?? []).reduce(
-      (sum, log) => sum + (log.weight ?? 0) * (log.reps ?? 0),
-      0,
-    ),
+    ($logs ?? []).reduce((sum, log) => sum + (log.weight ?? 0) * (log.reps ?? 0), 0)
   );
 
   let totalSets = $derived(($logs ?? []).length);
 
   let avgRpe = $derived.by(() => {
     if (!$logs || $logs.length === 0) return 0;
-    const rpes = $logs
-      .map((l) => l.rpe)
-      .filter((r): r is number => r != null);
+    const rpes = $logs.map((l) => l.rpe).filter((r): r is number => r != null);
     if (rpes.length === 0) return 0;
     return rpes.reduce((s, r) => s + r, 0) / rpes.length;
   });
@@ -64,9 +57,7 @@
   let durationMin = $derived.by(() => {
     if (!$session || !$session.started_at || !$session.completed_at) return 0;
     return Math.round(
-      (new Date($session.completed_at).getTime() -
-        new Date($session.started_at).getTime()) /
-        60000,
+      (new Date($session.completed_at).getTime() - new Date($session.started_at).getTime()) / 60000
     );
   });
 
@@ -84,7 +75,10 @@
   <div class="space-y-6">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <a href="/workouts/sessions" class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700">
+        <a
+          href="/workouts/sessions"
+          class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+        >
           <Icon name="arrow-back" size="sm" />Sessions
         </a>
         <h1 class="mt-1 text-2xl font-semibold text-surface-900">Workout Session</h1>
@@ -103,7 +97,7 @@
 
     {#if $session.notes}
       <Card>
-        <p class="text-sm italic text-surface-600">"{$session.notes}"</p>
+        <p class="text-sm text-surface-600 italic">"{$session.notes}"</p>
       </Card>
     {/if}
 
@@ -111,7 +105,11 @@
       <div class="space-y-4">
         <h2 class="text-lg font-semibold text-surface-900">Exercise Log</h2>
         {#if !$logs || groupedLogs.size === 0}
-          <EmptyState title="No exercises logged" description="No sets were logged in this session." icon="exercise" />
+          <EmptyState
+            title="No exercises logged"
+            description="No sets were logged in this session."
+            icon="exercise"
+          />
         {:else}
           {#each groupedLogs as [name, entryLogs] (name)}
             <Card padding={false}>
@@ -125,14 +123,14 @@
                     { key: 'weight', label: 'Weight (kg)' },
                     { key: 'reps', label: 'Reps' },
                     { key: 'rpe', label: 'RPE' },
-                    { key: 'one_rm', label: 'Est. 1RM' },
+                    { key: 'one_rm', label: 'Est. 1RM' }
                   ]}
                   rows={entryLogs.map((l) => ({
                     set: `#${l.set_number}`,
                     weight: l.weight,
                     reps: l.reps,
                     rpe: l.rpe ?? '—',
-                    one_rm: est1rm(l.weight, l.reps).toFixed(1),
+                    one_rm: est1rm(l.weight, l.reps).toFixed(1)
                   }))}
                 />
               </div>

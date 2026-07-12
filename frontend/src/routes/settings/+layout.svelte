@@ -12,7 +12,7 @@
   const tabs = [
     { key: 'account', label: 'Account', icon: 'person' },
     { key: 'privacy', label: 'Privacy', icon: 'shield' },
-    { key: 'shares', label: 'Shares', icon: 'share' },
+    { key: 'shares', label: 'Shares', icon: 'share' }
   ];
 
   let activeTab = $derived(
@@ -30,7 +30,10 @@
       {#each tabs as tab}
         <a
           href="/settings/{tab.key}"
-          class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 {activeTab === tab.key ? 'border-primary-500 bg-primary-50 text-primary-600' : 'border-transparent text-surface-600 hover:bg-surface-100'}"
+          class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 {activeTab ===
+          tab.key
+            ? 'border-primary-500 bg-primary-50 text-primary-600'
+            : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         >
           {#if tab.icon}
             <Icon name={tab.icon} size="md" />

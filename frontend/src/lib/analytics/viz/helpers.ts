@@ -16,7 +16,7 @@ export function computeSparkline(values: number[]): string {
 export function deltaStr(
   current: number | null,
   previous: number | null,
-  opts: { unit?: string; isInteger?: boolean; upIsGood?: boolean } = {},
+  opts: { unit?: string; isInteger?: boolean; upIsGood?: boolean } = {}
 ): string | null {
   if (current == null || previous == null || previous === 0) return null;
   const diff = current - previous;
@@ -32,7 +32,7 @@ export function yesterday(dateStr: string): string {
 }
 
 export function roundedSegments(
-  stages: Array<{ label: string; value: number }>,
+  stages: Array<{ label: string; value: number }>
 ): Array<{ label: string; pct: number }> {
   const total = stages.reduce((s, v) => s + v.value, 0);
   if (total <= 0) {

@@ -3,7 +3,7 @@
   import { mutateDomain } from '$lib/db/mutate-domain';
   import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-import type { Insight } from '$lib/db/types';
+  import type { Insight } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -18,19 +18,17 @@ import type { Insight } from '$lib/db/types';
       .where('query_date')
       .equals(date)
       .first()
-      .then((i) => (i && !i.deleted_at ? i : null)),
+      .then((i) => (i && !i.deleted_at ? i : null))
   );
 
   let history = liveQuery(() =>
-    db.insight.toArray().then((arr) =>
-      arr
-        .filter((i) => !i.deleted_at)
-        .sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime(),
-        ),
-    ),
+    db.insight
+      .toArray()
+      .then((arr) =>
+        arr
+          .filter((i) => !i.deleted_at)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      )
   );
 
   async function generate() {
@@ -38,48 +36,33 @@ import type { Insight } from '$lib/db/types';
     const resp = await mutateDomain({
       url: `/api/v1/insights/generate?date=${date}`,
       method: 'POST',
-      responseTable: 'insight',
+      responseTable: 'insight'
     });
     generating = false;
   }
 
   function renderMarkdown(md: string): string {
-    const esc = md
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    const esc = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return esc
       .replace(
         /^### (.+)$/gm,
-        '<h3 class="mt-5 mb-2 text-sm font-semibold text-surface-900">$1</h3>',
+        '<h3 class="mt-5 mb-2 text-sm font-semibold text-surface-900">$1</h3>'
       )
       .replace(
         /^## (.+)$/gm,
-        '<h2 class="mt-5 mb-2 text-base font-semibold text-surface-900">$1</h2>',
+        '<h2 class="mt-5 mb-2 text-base font-semibold text-surface-900">$1</h2>'
       )
       .replace(
         /^# (.+)$/gm,
-        '<h2 class="mt-5 mb-2 text-base font-semibold text-surface-900">$1</h2>',
+        '<h2 class="mt-5 mb-2 text-base font-semibold text-surface-900">$1</h2>'
       )
-      .replace(
-        /\*\*(.+?)\*\*/g,
-        '<strong class="font-semibold text-surface-900">$1</strong>',
-      )
-      .replace(
-        /^- (.+)$/gm,
-        '<li class="ml-4 list-disc text-sm text-surface-600">$1</li>',
-      )
-      .replace(
-        /^\d+\. (.+)$/gm,
-        '<li class="ml-4 list-decimal text-sm text-surface-600">$1</li>',
-      )
-      .replace(
-        /(<li[^>]*>.*?<\/li>\n?)+/g,
-        (m) => `<ul class="my-2 space-y-1">${m}</ul>`,
-      )
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-surface-900">$1</strong>')
+      .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-sm text-surface-600">$1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal text-sm text-surface-600">$1</li>')
+      .replace(/(<li[^>]*>.*?<\/li>\n?)+/g, (m) => `<ul class="my-2 space-y-1">${m}</ul>`)
       .replace(
         /^(?!<[hul])(.+)$/gm,
-        '<p class="mb-2 text-sm leading-relaxed text-surface-600">$1</p>',
+        '<p class="mb-2 text-sm leading-relaxed text-surface-600">$1</p>'
       )
       .replace(/\n{2,}/g, '\n');
   }
@@ -99,14 +82,9 @@ import type { Insight } from '$lib/db/types';
       <input
         type="date"
         bind:value={date}
-        class="h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        class="h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
       />
-      <Btn
-        variant="primary"
-        size="sm"
-        loading={generating}
-        onclick={generate}
-      >
+      <Btn variant="primary" size="sm" loading={generating} onclick={generate}>
         <Icon name="auto-awesome" size="sm" />Generate
       </Btn>
     </div>
@@ -116,9 +94,7 @@ import type { Insight } from '$lib/db/types';
     <div class="lg:col-span-2">
       {#if generating}
         <Card padding={false}>
-          <div
-            class="h-1 bg-gradient-to-r from-primary-500 to-primary-600"
-          ></div>
+          <div class="h-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
           <div class="space-y-4 p-6">
             <div class="flex items-center gap-3">
               <div
@@ -127,12 +103,8 @@ import type { Insight } from '$lib/db/types';
                 <Icon name="psychology" size="sm" />
               </div>
               <div>
-                <p class="text-sm font-semibold text-surface-900">
-                  AI Coach Health Insight
-                </p>
-                <p class="text-xs text-surface-400">
-                  Analyzing health telemetry...
-                </p>
+                <p class="text-sm font-semibold text-surface-900">AI Coach Health Insight</p>
+                <p class="text-xs text-surface-400">Analyzing health telemetry...</p>
               </div>
             </div>
             <div class="animate-pulse space-y-3">
@@ -150,9 +122,7 @@ import type { Insight } from '$lib/db/types';
         </Card>
       {:else if $insight}
         <Card padding={false}>
-          <div
-            class="h-1 bg-gradient-to-r from-primary-500 to-primary-600"
-          ></div>
+          <div class="h-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
           <div class="px-6 pt-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -162,12 +132,8 @@ import type { Insight } from '$lib/db/types';
                   <Icon name="psychology" size="sm" />
                 </div>
                 <div>
-                  <p class="text-sm font-semibold text-surface-900">
-                    AI Coach Health Insight
-                  </p>
-                  <p class="text-xs text-surface-400">
-                    Daily telemetry evaluation
-                  </p>
+                  <p class="text-sm font-semibold text-surface-900">AI Coach Health Insight</p>
+                  <p class="text-xs text-surface-400">Daily telemetry evaluation</p>
                 </div>
               </div>
               <span
@@ -182,23 +148,14 @@ import type { Insight } from '$lib/db/types';
               {@html renderMarkdown($insight.content)}
             </div>
           </div>
-          <div
-            class="flex items-center justify-between border-t border-surface-100 px-6 py-3"
-          >
+          <div class="flex items-center justify-between border-t border-surface-100 px-6 py-3">
             <span class="text-xs text-surface-400">
               Model:
-              <code
-                class="rounded bg-surface-50 px-1 py-0.5 text-[11px] text-surface-500"
-              >
+              <code class="rounded bg-surface-50 px-1 py-0.5 text-[11px] text-surface-500">
                 {$insight.model_used}
               </code>
             </span>
-            <Btn
-              variant="ghost"
-              size="sm"
-              loading={generating}
-              onclick={generate}
-            >
+            <Btn variant="ghost" size="sm" loading={generating} onclick={generate}>
               <Icon name="refresh" size="sm" />Regenerate
             </Btn>
           </div>
@@ -211,19 +168,12 @@ import type { Insight } from '$lib/db/types';
             >
               <Icon name="psychology" size="xl" />
             </div>
-            <h3 class="mt-4 text-sm font-semibold text-surface-900">
-              No insight for this date
-            </h3>
+            <h3 class="mt-4 text-sm font-semibold text-surface-900">No insight for this date</h3>
             <p class="mt-1 text-xs text-surface-500">
               Click Generate to create an AI-powered health insight.
             </p>
             <div class="mt-6">
-              <Btn
-                variant="primary"
-                size="sm"
-                loading={generating}
-                onclick={generate}
-              >
+              <Btn variant="primary" size="sm" loading={generating} onclick={generate}>
                 <Icon name="auto-awesome" size="sm" />Generate Insight
               </Btn>
             </div>
@@ -261,12 +211,8 @@ import type { Insight } from '$lib/db/types';
                     class="flex w-full flex-col overflow-hidden text-left"
                     onclick={() => (date = item.query_date)}
                   >
-                    <div
-                      class="flex items-center justify-between gap-2"
-                    >
-                      <span
-                        class="text-xs font-semibold text-surface-700"
-                      >
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-xs font-semibold text-surface-700">
                         {item.query_date}
                       </span>
                       <span
@@ -275,9 +221,7 @@ import type { Insight } from '$lib/db/types';
                         {(item.model_used ?? '').split('/').pop()}
                       </span>
                     </div>
-                    <span
-                      class="mt-0.5 truncate text-xs text-surface-400"
-                    >
+                    <span class="mt-0.5 truncate text-xs text-surface-400">
                       {preview}
                     </span>
                   </button>

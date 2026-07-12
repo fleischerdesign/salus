@@ -3,14 +3,31 @@ import { getAuthHeaders } from '$lib/api/headers';
 let _entityNames: Set<string> | null = null;
 
 const HARDCODED_FALLBACK: Set<string> = new Set([
-  'metric_type', 'measurement', 'goal', 'circadian_profile',
-  'exercise', 'workout_plan', 'workout_plan_exercise',
-  'workout_session', 'workout_log_entry', 'insight',
-  'notification', 'dashboard_widget', 'sharing_relationship',
-  'leaderboard_group', 'leaderboard_member',
-  'share_recipient', 'asymmetric_share',
-  'user_profile', 'admin_user', 'admin_stats', 'system_config',
-  'api_token', 'user', 'community_activity', 'federated_access_log',
+  'metric_type',
+  'measurement',
+  'goal',
+  'circadian_profile',
+  'exercise',
+  'workout_plan',
+  'workout_plan_exercise',
+  'workout_session',
+  'workout_log_entry',
+  'insight',
+  'notification',
+  'dashboard_widget',
+  'sharing_relationship',
+  'leaderboard_group',
+  'leaderboard_member',
+  'share_recipient',
+  'asymmetric_share',
+  'user_profile',
+  'admin_user',
+  'admin_stats',
+  'system_config',
+  'api_token',
+  'user',
+  'community_activity',
+  'federated_access_log'
 ]);
 
 export async function fetchEntityNames(): Promise<Set<string>> {

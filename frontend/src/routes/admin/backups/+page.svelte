@@ -29,7 +29,7 @@
   $effect(() => {
     const config = $configQuery ?? [];
     const pwConfig = config.find((c) => c.key === 'SALUS_BACKUP_PASSWORD');
-    passwordConfigured = pwConfig ? (pwConfig.is_env_override || pwConfig.db_has_value) : false;
+    passwordConfigured = pwConfig ? pwConfig.is_env_override || pwConfig.db_has_value : false;
   });
 
   let restoreTarget = $state<string | null>(null);
@@ -55,10 +55,13 @@
     error = '';
     const resp = await mutateDomain({
       url: '/api/v1/admin/backups',
-      method: 'POST',
+      method: 'POST'
     });
     creating = false;
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     success = 'Backup created successfully.';
     await load();
   }
@@ -68,10 +71,13 @@
     error = '';
     const resp = await mutateDomain({
       url: `/api/v1/admin/backups/${restoreTarget}/restore`,
-      method: 'POST',
+      method: 'POST'
     });
     restoreTarget = null;
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     success = 'Database restored successfully. The server may restart.';
     await load();
   }
@@ -80,7 +86,7 @@
     if (!deleteTarget) return;
     await mutateDomain({
       url: `/api/v1/admin/backups/${deleteTarget}`,
-      method: 'DELETE',
+      method: 'DELETE'
     });
     deleteTarget = null;
     success = 'Backup deleted.';
@@ -91,12 +97,18 @@
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement;
-    if (!fileInput?.files?.[0]) { error = 'Select a file.'; return; }
+    if (!fileInput?.files?.[0]) {
+      error = 'Select a file.';
+      return;
+    }
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
     try {
       const res = await fetch('/api/v1/admin/backups/upload', { method: 'POST', body: fd });
-      if (!res.ok) { error = 'Upload failed.'; return; }
+      if (!res.ok) {
+        error = 'Upload failed.';
+        return;
+      }
       success = 'Backup uploaded.';
       fileInput.value = '';
       await load();
@@ -113,7 +125,7 @@
     { key: 'filename', label: 'File' },
     { key: 'created_at', label: 'Date' },
     { key: 'size', label: 'Size' },
-    { key: 'actions', label: '' },
+    { key: 'actions', label: '' }
   ];
 </script>
 
@@ -121,7 +133,8 @@
 {#if success}<AlertBanner variant="success" class="mb-4">{success}</AlertBanner>{/if}
 {#if !passwordConfigured}
   <AlertBanner variant="warning" class="mb-4">
-    Backup password not configured. Set <code>SALUS_BACKUP_PASSWORD</code> in your environment or database to enable encrypted backups.
+    Backup password not configured. Set <code>SALUS_BACKUP_PASSWORD</code> in your environment or database
+    to enable encrypted backups.
   </AlertBanner>
 {/if}
 
@@ -148,15 +161,19 @@
         <span class="text-sm font-semibold text-surface-900">Backups</span>
         <div class="flex items-center gap-2">
           {#if passwordConfigured}
-          <form onsubmit={uploadBackup} class="flex items-center gap-2">
-            <input type="file" accept=".enc" class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700" />
-            <Btn variant="secondary" size="sm" type="submit">
-              <Icon name="upload-file" size="sm" />Upload
+            <form onsubmit={uploadBackup} class="flex items-center gap-2">
+              <input
+                type="file"
+                accept=".enc"
+                class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700"
+              />
+              <Btn variant="secondary" size="sm" type="submit">
+                <Icon name="upload-file" size="sm" />Upload
+              </Btn>
+            </form>
+            <Btn variant="primary" size="sm" loading={creating} onclick={createBackup}>
+              <Icon name="add" size="sm" />Create Backup
             </Btn>
-          </form>
-          <Btn variant="primary" size="sm" loading={creating} onclick={createBackup}>
-            <Icon name="add" size="sm" />Create Backup
-          </Btn>
           {/if}
         </div>
       </div>
@@ -169,16 +186,18 @@
         Could not load backups. Check your connection and try again.
       </div>
     {:else if backups.length === 0}
-      <div class="px-5 py-10 text-center text-sm text-surface-400">No backups yet. Create one to get started.</div>
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
+        No backups yet. Create one to get started.
+      </div>
     {:else}
       <Table
-        columns={columns}
+        {columns}
         rows={backups.map((b) => ({
           filename: b.filename,
           created_at: b.created_at ? new Date(b.created_at).toLocaleString() : '—',
           size: b.size ?? '—',
           actions: '',
-          _raw: b,
+          _raw: b
         }))}
         {actions}
       />

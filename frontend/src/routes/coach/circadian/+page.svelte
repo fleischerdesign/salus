@@ -12,7 +12,7 @@
   import Icon from '$components/ui/Icon.svelte';
 
   let profile = liveQuery(() =>
-    db.circadian_profile.toArray().then((arr) => arr.find((p) => !p.deleted_at) ?? null),
+    db.circadian_profile.toArray().then((arr) => arr.find((p) => !p.deleted_at) ?? null)
   );
 
   let advice = $state<CircadianAdvice | null>(null);
@@ -27,7 +27,7 @@
   const chronoOpts = [
     { value: 'morning_lark', label: 'Morning Lark' },
     { value: 'intermediate', label: 'Intermediate' },
-    { value: 'night_owl', label: 'Night Owl' },
+    { value: 'night_owl', label: 'Night Owl' }
   ];
 
   $effect(() => {
@@ -76,7 +76,7 @@
       latitude,
       longitude,
       timezone_offset_hours: timezone,
-      configured_chronotype: chronotype,
+      configured_chronotype: chronotype
     };
 
     if ($profile) {
@@ -94,8 +94,8 @@
           configured_chronotype: chronotype,
           created_at: $profile.created_at ?? new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          deleted_at: null,
-        },
+          deleted_at: null
+        }
       });
     } else {
       await mutate({
@@ -111,8 +111,8 @@
           configured_chronotype: chronotype,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          deleted_at: null,
-        },
+          deleted_at: null
+        }
       });
     }
     saving = false;
@@ -123,12 +123,9 @@
 
 <div class="space-y-6">
   <div>
-    <h1 class="text-2xl font-semibold text-surface-900">
-      Circadian & Light Advisor
-    </h1>
+    <h1 class="text-2xl font-semibold text-surface-900">Circadian & Light Advisor</h1>
     <p class="mt-1 text-sm text-surface-500">
-      Sync your biometrics, sleep patterns, and daily habits with the natural
-      solar cycle.
+      Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle.
     </p>
   </div>
 
@@ -137,9 +134,7 @@
   {:else if advice}
     <Card>
       {#snippet header()}
-        <h2 class="text-lg font-semibold text-surface-900">
-          24-Hour Circadian Alignment Timeline
-        </h2>
+        <h2 class="text-lg font-semibold text-surface-900">24-Hour Circadian Alignment Timeline</h2>
         <p class="mt-1 text-xs text-surface-500">
           Visualizing solar phases alongside your actual habits.
         </p>
@@ -170,15 +165,10 @@
             class="absolute inset-y-0 bg-gradient-to-r from-amber-200 to-orange-300"
             style="left: {sunsetPct}%; right: {100 - duskPct}%"
           ></div>
-          <div
-            class="absolute inset-y-0 bg-indigo-900"
-            style="left: {duskPct}%; right: 0%"
-          ></div>
+          <div class="absolute inset-y-0 bg-indigo-900" style="left: {duskPct}%; right: 0%"></div>
         </div>
 
-        <div
-          class="flex justify-between px-2 text-xs font-semibold text-surface-500"
-        >
+        <div class="flex justify-between px-2 text-xs font-semibold text-surface-500">
           <span>00:00</span>
           <span>Dawn: {advice.solar_times.dawn}</span>
           <span>Sunrise: {advice.solar_times.sunrise}</span>
@@ -194,16 +184,9 @@
       <div class="space-y-6">
         <Card>
           <div class="flex flex-col items-center text-center">
-            <h3 class="text-lg font-semibold text-surface-900">
-              Circadian Alignment
-            </h3>
-            <div
-              class="relative my-4 flex h-[120px] w-[120px] items-center justify-center"
-            >
-              <svg
-                viewBox="0 0 120 120"
-                class="h-full w-full -rotate-90"
-              >
+            <h3 class="text-lg font-semibold text-surface-900">Circadian Alignment</h3>
+            <div class="relative my-4 flex h-[120px] w-[120px] items-center justify-center">
+              <svg viewBox="0 0 120 120" class="h-full w-full -rotate-90">
                 <circle
                   cx="60"
                   cy="60"
@@ -221,16 +204,10 @@
                   fill="transparent"
                   stroke-linecap="round"
                   stroke-dasharray={2 * Math.PI * 44}
-                  stroke-dashoffset={2 *
-                    Math.PI *
-                    44 *
-                    (100 - advice.alignment_score) /
-                    100}
+                  stroke-dashoffset={(2 * Math.PI * 44 * (100 - advice.alignment_score)) / 100}
                 />
               </svg>
-              <span
-                class="absolute text-2xl font-extrabold text-surface-900"
-              >
+              <span class="absolute text-2xl font-extrabold text-surface-900">
                 {advice.alignment_score}%
               </span>
             </div>
@@ -242,54 +219,26 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">
-              Location & Chronotype
-            </h2>
+            <h2 class="text-lg font-semibold text-surface-900">Location & Chronotype</h2>
           {/snippet}
           <form onsubmit={save} class="flex flex-col gap-4">
             <div class="grid grid-cols-2 gap-4">
               <FormField label="Latitude">
-                <Input
-                  name="lat"
-                  type="number"
-                  step="0.0001"
-                  bind:value={latitude}
-                />
+                <Input name="lat" type="number" step="0.0001" bind:value={latitude} />
               </FormField>
               <FormField label="Longitude">
-                <Input
-                  name="lon"
-                  type="number"
-                  step="0.0001"
-                  bind:value={longitude}
-                />
+                <Input name="lon" type="number" step="0.0001" bind:value={longitude} />
               </FormField>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <FormField label="Timezone UTC Offset">
-                <Input
-                  name="tz"
-                  type="number"
-                  step="0.5"
-                  bind:value={timezone}
-                />
+                <Input name="tz" type="number" step="0.5" bind:value={timezone} />
               </FormField>
               <FormField label="Chronotype">
-                <Select
-                  name="chronotype"
-                  options={chronoOpts}
-                  bind:value={chronotype}
-                />
+                <Select name="chronotype" options={chronoOpts} bind:value={chronotype} />
               </FormField>
             </div>
-            <Btn
-              variant="primary"
-              type="submit"
-              size="sm"
-              loading={saving}
-            >
-              Update Parameters
-            </Btn>
+            <Btn variant="primary" type="submit" size="sm" loading={saving}>Update Parameters</Btn>
           </form>
         </Card>
       </div>
@@ -297,34 +246,20 @@
       <div class="space-y-6">
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">
-              Optimal Sleep Window
-            </h2>
+            <h2 class="text-lg font-semibold text-surface-900">Optimal Sleep Window</h2>
           {/snippet}
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
-              <div
-                class="rounded-lg border border-primary-200 bg-primary-50 p-3 text-center"
-              >
-                <p class="text-xs font-medium text-primary-600">
-                  Target Window
-                </p>
-                <p
-                  class="mt-1 text-base font-semibold text-primary-700"
-                >
+              <div class="rounded-lg border border-primary-200 bg-primary-50 p-3 text-center">
+                <p class="text-xs font-medium text-primary-600">Target Window</p>
+                <p class="mt-1 text-base font-semibold text-primary-700">
                   {advice.sleep_window.target_onset} -
                   {advice.sleep_window.target_offset}
                 </p>
               </div>
-              <div
-                class="rounded-lg border border-surface-200 bg-surface-50 p-3 text-center"
-              >
-                <p class="text-xs font-medium text-surface-500">
-                  Actual Window (Recent)
-                </p>
-                <p
-                  class="mt-1 text-base font-semibold text-surface-700"
-                >
+              <div class="rounded-lg border border-surface-200 bg-surface-50 p-3 text-center">
+                <p class="text-xs font-medium text-surface-500">Actual Window (Recent)</p>
+                <p class="mt-1 text-base font-semibold text-surface-700">
                   {advice.sleep_window.actual_onset} -
                   {advice.sleep_window.actual_offset}
                 </p>
@@ -338,9 +273,7 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">
-              Light Exposure Scheduling
-            </h2>
+            <h2 class="text-lg font-semibold text-surface-900">Light Exposure Scheduling</h2>
           {/snippet}
           <div class="-mx-4 divide-y divide-surface-100">
             {#each advice.light_advice as la, i}
@@ -366,17 +299,11 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">
-              Metabolic Window (Eating)
-            </h2>
+            <h2 class="text-lg font-semibold text-surface-900">Metabolic Window (Eating)</h2>
           {/snippet}
           <div class="space-y-3">
-            <div
-              class="w-fit rounded-lg border border-teal-200 bg-teal-50 p-3"
-            >
-              <p class="text-xs font-medium text-teal-600">
-                Optimal Intake Period
-              </p>
+            <div class="w-fit rounded-lg border border-teal-200 bg-teal-50 p-3">
+              <p class="text-xs font-medium text-teal-600">Optimal Intake Period</p>
               <p class="mt-1 text-base font-semibold text-teal-700">
                 {advice.eating_window.start} -
                 {advice.eating_window.end}
@@ -390,6 +317,8 @@
       </div>
     </div>
   {:else}
-    <p class="text-surface-500">No circadian profile found. Please set up your location and chronotype.</p>
+    <p class="text-surface-500">
+      No circadian profile found. Please set up your location and chronotype.
+    </p>
   {/if}
 </div>

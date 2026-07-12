@@ -36,9 +36,13 @@
 
 {#snippet defaultBody()}
   {#if icon}
-    <Icon name={icon} class="text-surface-400" style={iconColor ? `color: ${iconColor}` : undefined} />
+    <Icon
+      name={icon}
+      class="text-surface-400"
+      style={iconColor ? `color: ${iconColor}` : undefined}
+    />
   {/if}
-  <div class="flex-1 min-w-0">
+  <div class="min-w-0 flex-1">
     {#if children}
       {@render children()}
     {:else}
@@ -52,8 +56,10 @@
 
 {#if tag === 'a'}
   <a
-    href={href}
-    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-50 {divider ? 'border-b border-surface-100 last:border-b-0' : ''} {extraClass}"
+    {href}
+    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-50 {divider
+      ? 'border-b border-surface-100 last:border-b-0'
+      : ''} {extraClass}"
   >
     {@render defaultBody()}
     {#if action}
@@ -65,10 +71,18 @@
 {:else}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
-    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 {interactive ? 'cursor-pointer hover:bg-surface-50' : ''} {divider ? 'border-b border-surface-100 last:border-b-0' : ''} {extraClass}"
+    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 {interactive
+      ? 'cursor-pointer hover:bg-surface-50'
+      : ''} {divider ? 'border-b border-surface-100 last:border-b-0' : ''} {extraClass}"
     role={interactive ? 'button' : undefined}
     tabindex={interactive ? 0 : undefined}
-    onkeydown={interactive ? (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); } } : undefined}
+    onkeydown={interactive
+      ? (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+          }
+        }
+      : undefined}
   >
     {@render defaultBody()}
     {#if action}

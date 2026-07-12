@@ -82,7 +82,9 @@
 {:else if auth.isAuthenticated}
   {#if sessionExpired}
     <!-- Session expired overlay -->
-    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm">
+    <div
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
+    >
       <div class="flex flex-col items-center gap-4 text-center">
         <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
           <span class="material-symbols-outlined text-3xl text-surface-400">vpn_key_off</span>
@@ -92,7 +94,7 @@
           <p class="mt-0.5 text-xs text-surface-500">Redirecting to login…</p>
         </div>
         <div class="h-1 w-32 overflow-hidden rounded-full bg-surface-100">
-          <div class="h-full animate-shrink origin-left rounded-full bg-surface-300"></div>
+          <div class="animate-shrink h-full origin-left rounded-full bg-surface-300"></div>
         </div>
       </div>
     </div>
@@ -108,14 +110,20 @@
   {/if}
 {:else if auth.loading}
   <div class="flex min-h-screen items-center justify-center">
-    <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
+    <div
+      class="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"
+    ></div>
   </div>
 {/if}
 
 <style>
   @keyframes shrink {
-    from { width: 100%; }
-    to   { width: 0%; }
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
   }
   .animate-shrink {
     animation: shrink 2s ease-in forwards;

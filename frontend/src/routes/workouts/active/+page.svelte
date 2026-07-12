@@ -19,18 +19,13 @@
   let session = liveQuery(() =>
     db.workout_session
       .toArray()
-      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null),
+      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null)
   );
 
   let planExercises = liveQuery(async () => {
     if (!$session?.plan_id) return [];
-    const pes = await db.workout_plan_exercise
-      .where('plan_id')
-      .equals($session.plan_id)
-      .toArray();
-    return pes
-      .filter((pe) => !pe.deleted_at)
-      .sort((a, b) => a.sequence - b.sequence);
+    const pes = await db.workout_plan_exercise.where('plan_id').equals($session.plan_id).toArray();
+    return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
   });
 
   let allLogs = liveQuery(async () => {
@@ -53,7 +48,7 @@
   let audioEnabled = $state(
     typeof localStorage !== 'undefined'
       ? localStorage.getItem('salus_audio_guide') === 'true'
-      : false,
+      : false
   );
 
   // Rest timer
@@ -68,23 +63,16 @@
   let targets = $derived(
     $planExercises.map((pe) => {
       const ex = $exercises?.get(pe.exercise_id);
-      const exerciseLogs = ($allLogs ?? []).filter(
-        (l) => l.exercise_id === pe.exercise_id,
-      );
+      const exerciseLogs = ($allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
       const lastWeight =
-        exerciseLogs.length > 0
-          ? exerciseLogs[exerciseLogs.length - 1].weight
-          : null;
-      const maxWeight = Math.max(
-        0,
-        ...exerciseLogs.map((l) => l.weight ?? 0),
-      );
+        exerciseLogs.length > 0 ? exerciseLogs[exerciseLogs.length - 1].weight : null;
+      const maxWeight = Math.max(0, ...exerciseLogs.map((l) => l.weight ?? 0));
       const maxEst1rm = Math.max(
         0,
         ...exerciseLogs.map((l) => {
           if (l.weight == null || l.reps == null) return 0;
           return l.weight / (1.0278 - 0.0278 * l.reps);
-        }),
+        })
       );
 
       return {
@@ -99,9 +87,9 @@
         last_weight: lastWeight,
         pr_weight: maxWeight,
         pr_est_1rm: maxEst1rm,
-        rest_seconds: pe.rest_seconds ?? 120,
+        rest_seconds: pe.rest_seconds ?? 120
       };
-    }),
+    })
   );
 
   let exercises = liveQuery(async () => {
@@ -137,7 +125,7 @@
     if (!dt) return '—';
     return new Date(dt).toLocaleTimeString(undefined, {
       hour: '2-digit',
-      minute: '2-digit',
+      minute: '2-digit'
     });
   }
 
@@ -146,9 +134,7 @@
   }
 
   function getInitialWeight(exId: number, setNum: number): number {
-    const log = ($allLogs ?? []).find(
-      (l) => l.exercise_id === exId && l.set_number === setNum,
-    );
+    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.weight) return log.weight;
     const key = `${exId}-${setNum}`;
     if (scaledWeights[key] !== undefined) return scaledWeights[key];
@@ -156,17 +142,13 @@
   }
 
   function getInitialReps(exId: number, setNum: number): number {
-    const log = ($allLogs ?? []).find(
-      (l) => l.exercise_id === exId && l.set_number === setNum,
-    );
+    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.reps) return log.reps;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_reps ?? 10;
   }
 
   function getInitialRpe(exId: number, setNum: number): number {
-    const log = ($allLogs ?? []).find(
-      (l) => l.exercise_id === exId && l.set_number === setNum,
-    );
+    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.rpe != null) return log.rpe;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_rpe ?? 7;
   }
@@ -174,7 +156,7 @@
   async function handleLogSet(
     exId: number,
     setNum: number,
-    data: { weight: number; reps: number; rpe: number },
+    data: { weight: number; reps: number; rpe: number }
   ) {
     const key = `${exId}-${setNum}`;
     logStates = { ...logStates, [key]: 'logging' };
@@ -185,7 +167,7 @@
       set_number: setNum,
       weight: data.weight,
       reps: data.reps,
-      rpe: data.rpe,
+      rpe: data.rpe
     };
 
     const { ok } = await mutateDomain({
@@ -203,10 +185,10 @@
         rpe: data.rpe,
         created_at: new Date().toISOString(),
         updated_at: null,
-        deleted_at: null,
+        deleted_at: null
       },
       optimisticId: tempId,
-      responseTable: 'workout_log_entry',
+      responseTable: 'workout_log_entry'
     });
 
     if (ok) {
@@ -225,14 +207,14 @@
     logStates = { ...logStates, [key]: 'logging' };
 
     const existingId = ($allLogs ?? []).find(
-      (l) => l.exercise_id === exId && l.set_number === setNum,
+      (l) => l.exercise_id === exId && l.set_number === setNum
     )?.id;
 
     const { ok } = await mutateDomain({
       url: `/api/v1/workouts/sessions/log?session_id=${$session?.id}&exercise_id=${exId}&set_number=${setNum}`,
       method: 'DELETE',
       optimisticTable: 'workout_log_entry',
-      optimisticId: existingId ?? nextTempId(),
+      optimisticId: existingId ?? nextTempId()
     });
 
     if (ok) {
@@ -247,17 +229,14 @@
     const triggerSet = rpePrompts.get(exId);
     if (triggerSet === undefined) return;
     const triggerLog = ($allLogs ?? []).find(
-      (l) => l.exercise_id === exId && l.set_number === triggerSet,
+      (l) => l.exercise_id === exId && l.set_number === triggerSet
     );
     if (!triggerLog?.weight) return;
     const baseWeight = triggerLog.weight;
     const next: Record<string, number> = { ...scaledWeights };
     for (let s = triggerSet + 1; s <= totalSets; s++) {
       const key = `${exId}-${s}`;
-      if (
-        logStates[key] === 'pending' ||
-        logStates[key] === undefined
-      ) {
+      if (logStates[key] === 'pending' || logStates[key] === undefined) {
         next[key] = Math.round(baseWeight * 0.95 * 2) / 2;
       }
     }
@@ -280,7 +259,7 @@
       realId: sessionId,
       data: {
         completed_at: now,
-        notes: notes || undefined,
+        notes: notes || undefined
       },
       optimistic: {
         id: sessionId,
@@ -293,8 +272,8 @@
         notes: notes || null,
         created_at: $session?.created_at ?? now,
         updated_at: now,
-        deleted_at: null,
-      },
+        deleted_at: null
+      }
     });
     if (ok) {
       await goto(`/workouts/sessions/${sessionId}`);
@@ -317,9 +296,7 @@
         >
           <Icon name="arrow-back" size="sm" />Workouts
         </a>
-        <h1 class="mt-1 text-2xl font-semibold text-surface-900">
-          Active Workout Session
-        </h1>
+        <h1 class="mt-1 text-2xl font-semibold text-surface-900">Active Workout Session</h1>
         <p class="mt-1 text-sm text-surface-500">
           Started {formatTime($session.started_at)}
         </p>
@@ -327,9 +304,7 @@
       <div class="flex items-center gap-3">
         {#if $session.recovery_score}
           <Badge variant="success">
-            <Icon name="bolt" size="sm" />Recovery {Math.round(
-              $session.recovery_score,
-            )}%
+            <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
           </Badge>
         {/if}
         <button
@@ -339,10 +314,7 @@
             : 'border-surface-200 bg-surface-50 text-surface-500 hover:border-surface-300'}"
           onclick={toggleAudio}
         >
-          <Icon
-            name={audioEnabled ? 'volume-up' : 'volume-off'}
-            size="sm"
-          />
+          <Icon name={audioEnabled ? 'volume-up' : 'volume-off'} size="sm" />
           {audioEnabled ? 'Audio On' : 'Audio Off'}
         </button>
       </div>
@@ -355,29 +327,20 @@
             {#snippet header()}
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-semibold text-surface-900"
-                    >{target.name}</span
-                  >
+                  <span class="text-sm font-semibold text-surface-900">{target.name}</span>
                   <Icon
                     name={target.is_autoreg_exempt ? 'lock' : 'auto-awesome'}
                     size="sm"
-                    class={target.is_autoreg_exempt
-                      ? 'text-surface-400'
-                      : 'text-primary-500'}
+                    class={target.is_autoreg_exempt ? 'text-surface-400' : 'text-primary-500'}
                   />
                 </div>
-                <div
-                  class="flex items-center gap-2 text-xs text-surface-500"
-                >
+                <div class="flex items-center gap-2 text-xs text-surface-500">
                   <span
-                    >{target.suggested_sets} sets × {target.suggested_reps} @
-                    RPE {target.suggested_rpe}</span
+                    >{target.suggested_sets} sets × {target.suggested_reps} @ RPE {target.suggested_rpe}</span
                   >
                   {#if target.weight_multiplier !== 1.0}
                     <span class="text-primary-500"
-                      >({Math.round(
-                        target.weight_multiplier * 100,
-                      )}%)</span
+                      >({Math.round(target.weight_multiplier * 100)}%)</span
                     >
                   {/if}
                   {#if target.pr_weight > 0}
@@ -398,39 +361,22 @@
               {#each Array.from({ length: target.suggested_sets }, (_, i) => i + 1) as setNum}
                 <SetLogger
                   setNumber={setNum}
-                  suggestedWeight={getInitialWeight(
-                    target.exercise_id,
-                    setNum,
-                  )}
-                  suggestedReps={getInitialReps(
-                    target.exercise_id,
-                    setNum,
-                  )}
-                  suggestedRpe={getInitialRpe(
-                    target.exercise_id,
-                    setNum,
-                  )}
+                  suggestedWeight={getInitialWeight(target.exercise_id, setNum)}
+                  suggestedReps={getInitialReps(target.exercise_id, setNum)}
+                  suggestedRpe={getInitialRpe(target.exercise_id, setNum)}
                   prWeight={target.pr_weight}
                   prEst1rm={target.pr_est_1rm}
                   logState={getLogState(target.exercise_id, setNum)}
-                  onlog={(data) =>
-                    handleLogSet(target.exercise_id, setNum, data)}
-                  onunlog={() =>
-                    handleUnlogSet(target.exercise_id, setNum)}
+                  onlog={(data) => handleLogSet(target.exercise_id, setNum, data)}
+                  onunlog={() => handleUnlogSet(target.exercise_id, setNum)}
                 />
               {/each}
             </div>
 
             {#if rpePrompts.has(target.exercise_id)}
-              <div
-                class="mx-3 mb-3 rounded-lg border border-error-200 bg-error-50 p-3"
-              >
+              <div class="mx-3 mb-3 rounded-lg border border-error-200 bg-error-50 p-3">
                 <div class="flex items-center gap-2">
-                  <Icon
-                    name="warning"
-                    size="sm"
-                    class="text-error-600"
-                  />
+                  <Icon name="warning" size="sm" class="text-error-600" />
                   <p class="text-xs font-semibold text-error-700">
                     Muscle Failure (RPE 10) Detected
                   </p>
@@ -442,19 +388,14 @@
                   <Btn
                     variant="primary"
                     size="sm"
-                    onclick={() =>
-                      applyWeightScaling(
-                        target.exercise_id,
-                        target.suggested_sets,
-                      )}
+                    onclick={() => applyWeightScaling(target.exercise_id, target.suggested_sets)}
                   >
                     Yes, scale down
                   </Btn>
                   <Btn
                     variant="ghost"
                     size="sm"
-                    onclick={() =>
-                      dismissRpePrompt(target.exercise_id)}
+                    onclick={() => dismissRpePrompt(target.exercise_id)}
                   >
                     No, keep weight
                   </Btn>
@@ -466,17 +407,13 @@
       {/each}
     {:else}
       <Card>
-        <p class="text-sm text-surface-500">
-          No workout plan associated with this session.
-        </p>
+        <p class="text-sm text-surface-500">No workout plan associated with this session.</p>
       </Card>
     {/if}
 
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">
-          Finish Workout Session
-        </span>
+        <span class="text-sm font-semibold text-surface-900"> Finish Workout Session </span>
       {/snippet}
       <div class="p-6">
         <FormField label="Session Notes">
@@ -488,30 +425,18 @@
           />
         </FormField>
         <div class="mt-4 flex justify-end">
-          <Btn
-            variant="primary"
-            loading={completing}
-            onclick={complete}
-          >
-            Complete Workout
-          </Btn>
+          <Btn variant="primary" loading={completing} onclick={complete}>Complete Workout</Btn>
         </div>
       </div>
     </Card>
   {:else}
     <div class="flex justify-center py-20">
       <Card>
-        <div class="text-center py-8">
-          <p class="text-lg font-semibold text-surface-900">
-            No Active Workout
-          </p>
-          <p class="mt-1 text-sm text-surface-500">
-            Start a workout from your training plan.
-          </p>
+        <div class="py-8 text-center">
+          <p class="text-lg font-semibold text-surface-900">No Active Workout</p>
+          <p class="mt-1 text-sm text-surface-500">Start a workout from your training plan.</p>
           <div class="mt-4">
-            <Btn variant="primary" href="/workouts/plans">
-              Go to Plans
-            </Btn>
+            <Btn variant="primary" href="/workouts/plans">Go to Plans</Btn>
           </div>
         </div>
       </Card>
@@ -522,7 +447,6 @@
     onstart={(fn) => {
       startTimer = fn;
     }}
-    oncomplete={() =>
-      speak('Rest finished. Time for your next set!')}
+    oncomplete={() => speak('Rest finished. Time for your next set!')}
   />
 </div>

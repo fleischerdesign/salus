@@ -9,18 +9,12 @@
     class?: string;
   }
 
-  let {
-    value,
-    unit,
-    label,
-    compact = false,
-    class: extraClass = ''
-  }: Props = $props();
+  let { value, unit, label, compact = false, class: extraClass = '' }: Props = $props();
 </script>
 
 <div class="flex flex-col {compact ? '' : 'items-start gap-0.5'} {extraClass}">
   <div class="flex items-baseline gap-1">
-    <span class="text-[28px] font-semibold leading-[36px] text-surface-900 tabular-nums">
+    <span class="text-[28px] leading-[36px] font-semibold text-surface-900 tabular-nums">
       {typeof value === 'number' ? value.toLocaleString() : value}
     </span>
     {#if unit}
@@ -28,6 +22,8 @@
     {/if}
   </div>
   {#if label}
-    <span class="text-[13px] font-semibold uppercase tracking-[0.05em] text-surface-500">{label}</span>
+    <span class="text-[13px] font-semibold tracking-[0.05em] text-surface-500 uppercase"
+      >{label}</span
+    >
   {/if}
 </div>

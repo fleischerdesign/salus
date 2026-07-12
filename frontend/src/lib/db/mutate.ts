@@ -21,17 +21,22 @@ interface MutateOpts {
   onSuccess?: () => Promise<void>;
 }
 
-export async function mutate(opts: MutateOpts): Promise<{ ok: boolean; error?: string; conflict?: boolean }> {
+export async function mutate(
+  opts: MutateOpts
+): Promise<{ ok: boolean; error?: string; conflict?: boolean }> {
   const clientId = crypto.randomUUID();
 
   if (isOnline()) {
     try {
-      const headers: Record<string, string> = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+      const headers: Record<string, string> = {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      };
 
       const operation: Record<string, unknown> = {
         type: opts.type,
         entity: opts.table,
-        client_id: clientId,
+        client_id: clientId
       };
       if (opts.data) operation['data'] = opts.data;
       if (opts.realId != null && opts.realId > 0) operation['id'] = opts.realId;
@@ -43,7 +48,7 @@ export async function mutate(opts: MutateOpts): Promise<{ ok: boolean; error?: s
       const res = await fetch('/api/v1/sync/push', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ operations: [operation] }),
+        body: JSON.stringify({ operations: [operation] })
       });
 
       if (!res.ok) {
@@ -76,7 +81,7 @@ export async function mutate(opts: MutateOpts): Promise<{ ok: boolean; error?: s
           realId: opts.realId,
           clientRecord: opts.optimistic,
           serverRecord: (result.conflict as Record<string, unknown>) ?? opts.optimistic,
-          retryData: opts.data,
+          retryData: opts.data
         });
         return { ok: false, conflict: true, error: 'Conflict detected — review required' };
       }
@@ -84,18 +89,34 @@ export async function mutate(opts: MutateOpts): Promise<{ ok: boolean; error?: s
       return { ok: false, error: result?.message || result?.status || 'Unknown error' };
     } catch (e) {
       await db.table(opts.table).put(opts.optimistic);
-      const expectedUpdatedAt = opts.type === 'update' && opts.optimistic.updated_at
-        ? (opts.optimistic.updated_at as string | undefined)
-        : undefined;
-      await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data, opts.realId, expectedUpdatedAt);
+      const expectedUpdatedAt =
+        opts.type === 'update' && opts.optimistic.updated_at
+          ? (opts.optimistic.updated_at as string | undefined)
+          : undefined;
+      await syncEngine.enqueue(
+        opts.type,
+        opts.table,
+        clientId,
+        opts.data,
+        opts.realId,
+        expectedUpdatedAt
+      );
       return { ok: true };
     }
   }
 
   await db.table(opts.table).put(opts.optimistic);
-  const expectedUpdatedAt = opts.type === 'update' && opts.optimistic.updated_at
-    ? (opts.optimistic.updated_at as string | undefined)
-    : undefined;
-  await syncEngine.enqueue(opts.type, opts.table, clientId, opts.data, opts.realId, expectedUpdatedAt);
+  const expectedUpdatedAt =
+    opts.type === 'update' && opts.optimistic.updated_at
+      ? (opts.optimistic.updated_at as string | undefined)
+      : undefined;
+  await syncEngine.enqueue(
+    opts.type,
+    opts.table,
+    clientId,
+    opts.data,
+    opts.realId,
+    expectedUpdatedAt
+  );
   return { ok: true };
 }

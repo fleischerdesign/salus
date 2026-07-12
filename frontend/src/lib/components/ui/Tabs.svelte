@@ -14,7 +14,13 @@
     class?: string;
   }
 
-  let { tabs, activeTab = $bindable(''), variant = 'bar', onchange, class: extraClass = '' }: Props = $props();
+  let {
+    tabs,
+    activeTab = $bindable(''),
+    variant = 'bar',
+    onchange,
+    class: extraClass = ''
+  }: Props = $props();
 
   function selectTab(key: string) {
     activeTab = key;
@@ -27,8 +33,11 @@
     {#each tabs as tab}
       {@const isActive = activeTab === tab.key}
       <button
-        role="tab" aria-selected={isActive}
-        class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] transition-colors duration-150 {isActive ? 'border-primary-500 bg-primary-50 text-primary-600 hover:bg-primary-100' : 'border-transparent text-surface-600 hover:bg-surface-100'}"
+        role="tab"
+        aria-selected={isActive}
+        class="flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] transition-colors duration-150 {isActive
+          ? 'border-primary-500 bg-primary-50 text-primary-600 hover:bg-primary-100'
+          : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         onclick={() => selectTab(tab.key)}
       >
         {#if tab.icon}
@@ -43,8 +52,11 @@
     {#each tabs as tab}
       {@const isActive = activeTab === tab.key}
       <button
-        role="tab" aria-selected={isActive}
-        class="flex cursor-pointer min-w-[90px] items-center justify-center gap-2 border-b-2 px-4 py-3 text-[13px] font-semibold tracking-[0.05em] transition-colors duration-150 {isActive ? 'border-primary-500 text-primary-600' : 'border-transparent text-surface-600 hover:bg-surface-100'}"
+        role="tab"
+        aria-selected={isActive}
+        class="flex min-w-[90px] cursor-pointer items-center justify-center gap-2 border-b-2 px-4 py-3 text-[13px] font-semibold tracking-[0.05em] transition-colors duration-150 {isActive
+          ? 'border-primary-500 text-primary-600'
+          : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         onclick={() => selectTab(tab.key)}
       >
         {#if tab.icon}

@@ -514,8 +514,10 @@ def test_delete_plan_via_api(authenticated_client):
     resp = authenticated_client.delete(f"/api/v1/workouts/plans/{plan_id}")
     assert resp.status_code == 204
 
-    check = authenticated_client.get(f"/api/v1/workouts/plans/{plan_id}")
-    assert check.status_code == 404
+    with Session(engine) as db:
+        deleted = db.get(WorkoutPlan, plan_id)
+        assert deleted is not None
+        assert deleted.deleted_at is not None
 
 
 def test_start_and_complete_session_via_api(authenticated_client):

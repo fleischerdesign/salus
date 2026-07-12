@@ -1,6 +1,12 @@
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
-import { calcBmrCunningham, calcTef, calcTdee, mapSleepStage, mapExerciseType } from '../calculations';
+import {
+  calcBmrCunningham,
+  calcTef,
+  calcTdee,
+  mapSleepStage,
+  mapExerciseType
+} from '../calculations';
 
 const RANGE_DAYS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
 
@@ -71,22 +77,31 @@ export async function fetchAnalytics(rangeKey: string = '30d'): Promise<Analytic
     sleep_list: sleepList,
     latest_sleep: sleepList.length > 0 ? sleepList[sleepList.length - 1] : null,
     weight_trend: {
-      points: weightTrend.map((w) => ({ date: w.date, weight_kg: Math.round(w.weight_kg * 10) / 10 })),
+      points: weightTrend.map((w) => ({
+        date: w.date,
+        weight_kg: Math.round(w.weight_kg * 10) / 10
+      })),
       current: weightTrend.length > 0 ? weightTrend[weightTrend.length - 1].weight_kg : null,
       start: weightTrend.length > 0 ? weightTrend[0].weight_kg : null,
-      delta: weightTrend.length >= 2 ? Math.round((weightTrend[weightTrend.length - 1].weight_kg - weightTrend[0].weight_kg) * 10) / 10 : null,
+      delta:
+        weightTrend.length >= 2
+          ? Math.round(
+              (weightTrend[weightTrend.length - 1].weight_kg - weightTrend[0].weight_kg) * 10
+            ) / 10
+          : null
     },
     tdee,
     exercise_sessions: exerciseSessions,
-    days,
+    days
   };
 }
 
-interface StepDay { date: string; count: number }
+interface StepDay {
+  date: string;
+  count: number;
+}
 function computeStepsTrend(measurements: Measurement[], days: number): StepDay[] {
-  const stepMeasurements = measurements.filter(
-    (m) => m.data_type === 'number',
-  );
+  const stepMeasurements = measurements.filter((m) => m.data_type === 'number');
   const byDate = new Map<string, number[]>();
   for (const m of stepMeasurements) {
     if (m.value_numeric == null) continue;
@@ -100,14 +115,17 @@ function computeStepsTrend(measurements: Measurement[], days: number): StepDay[]
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-interface WeightPoint { date: string; weight_kg: number }
+interface WeightPoint {
+  date: string;
+  weight_kg: number;
+}
 function computeWeightTrend(measurements: Measurement[], days: number): WeightPoint[] {
-  const weightM = measurements.filter(
-    (m) => m.data_type === 'number' && m.value_numeric != null,
-  );
+  const weightM = measurements.filter((m) => m.data_type === 'number' && m.value_numeric != null);
   const seen = new Set<string>();
   const points: WeightPoint[] = [];
-  for (const m of weightM.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())) {
+  for (const m of weightM.sort(
+    (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+  )) {
     const date = m.start_time.slice(0, 5);
     if (seen.has(date)) continue;
     seen.add(date);
@@ -142,30 +160,38 @@ function computeSleepList(measurements: Measurement[], _days: number) {
         awake_pct: Math.round((awake / total) * 1000) / 10,
         light_pct: Math.round((light / total) * 1000) / 10,
         deep_pct: Math.round((deep / total) * 1000) / 10,
-        rem_pct: Math.round((rem / total) * 1000) / 10,
+        rem_pct: Math.round((rem / total) * 1000) / 10
       });
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   return results.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function computeTdee(
   weightTrend: WeightPoint[],
-  measurements: Measurement[],
+  measurements: Measurement[]
 ): AnalyticsResult['tdee'] {
   if (weightTrend.length === 0) return null;
   const current = weightTrend[weightTrend.length - 1].weight_kg;
   const bmr = calcBmrCunningham(current);
   const hrMeasurements = measurements.filter((m) => m.value_numeric != null && m.value_numeric > 0);
-  const hrResting = Math.min(...(hrMeasurements.map((m) => m.value_numeric!).length > 0 ? hrMeasurements.map((m) => m.value_numeric!) : [60]));
-  const hrAvg = hrMeasurements.map((m) => m.value_numeric!).reduce((a, b) => a + b, 0) / (hrMeasurements.length || 1);
+  const hrResting = Math.min(
+    ...(hrMeasurements.map((m) => m.value_numeric!).length > 0
+      ? hrMeasurements.map((m) => m.value_numeric!)
+      : [60])
+  );
+  const hrAvg =
+    hrMeasurements.map((m) => m.value_numeric!).reduce((a, b) => a + b, 0) /
+    (hrMeasurements.length || 1);
   const tdeeResult = calcTdee(bmr, hrAvg || 75, hrResting || 60);
   if (!tdeeResult) return null;
   return {
     tdee_kcal: tdeeResult.tdeeKcal,
     bmr_kcal: Math.round(bmr * 10) / 10,
     pal_factor: tdeeResult.palFactor,
-    hrr_pct: tdeeResult.hrrPct,
+    hrr_pct: tdeeResult.hrrPct
   };
 }
 
@@ -182,9 +208,11 @@ function computeExerciseHistory(measurements: Measurement[], _days: number) {
         time: m.start_time.slice(11, 19),
         duration_seconds: (d.duration_seconds ?? d.duration ?? 0) as number,
         distance_meters: (d.distance_meters ?? d.distance ?? 0) as number,
-        calories: (d.calories ?? 0) as number,
+        calories: (d.calories ?? 0) as number
       });
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   return sessions.slice(0, 5);
 }

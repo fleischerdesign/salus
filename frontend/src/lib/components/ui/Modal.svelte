@@ -4,7 +4,7 @@
   const sizeVariants = {
     sm: 'max-w-sm',
     md: 'max-w-lg',
-    lg: 'max-w-2xl',
+    lg: 'max-w-2xl'
   };
 
   interface Props {
@@ -25,9 +25,16 @@
     class: extraClass = ''
   }: Props = $props();
 
-  function close() { open = false; onclose?.(); }
-  function onKeydown(e: KeyboardEvent) { if (e.key === 'Escape') close(); }
-  function onBackdropClick(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
+  function close() {
+    open = false;
+    onclose?.();
+  }
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') close();
+  }
+  function onBackdropClick(e: MouseEvent) {
+    if (e.target === e.currentTarget) close();
+  }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -40,14 +47,17 @@
     role="presentation"
   >
     <div
-      class="relative z-[51] w-full mx-4 bg-surface-0 rounded-lg shadow-lg {sizeVariants[size]}"
-      role="dialog" aria-modal="true" aria-label={title ?? 'Dialog'}
+      class="relative z-[51] mx-4 w-full rounded-lg bg-surface-0 shadow-lg {sizeVariants[size]}"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title ?? 'Dialog'}
     >
       <div class="flex items-center justify-between border-b border-surface-200 px-6 py-3">
         <h2 class="text-sm font-semibold text-surface-900">{title ?? ''}</h2>
         <button
-          class="flex h-7 w-7 items-center justify-center rounded-full text-surface-400 hover:bg-surface-100 hover:text-surface-600 transition-colors duration-150"
-          onclick={close} aria-label="Close"
+          class="flex h-7 w-7 items-center justify-center rounded-full text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600"
+          onclick={close}
+          aria-label="Close"
         >
           <Icon name="close" size="md" />
         </button>

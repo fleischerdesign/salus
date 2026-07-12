@@ -24,7 +24,7 @@
       type: 'update',
       data: fields,
       optimistic: merged,
-      realId: conflict.realId,
+      realId: conflict.realId
     });
 
     conflictStore.resolve(conflict.id);

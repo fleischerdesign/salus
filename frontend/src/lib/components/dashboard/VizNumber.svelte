@@ -14,26 +14,15 @@
     color?: string;
   }
 
-  let {
-    value,
-    unit,
-    delta,
-    subLabel,
-    color = 'var(--color-surface-900)'
-  }: Props = $props();
+  let { value, unit, delta, subLabel, color = 'var(--color-surface-900)' }: Props = $props();
 
   function deltaColor(d: Delta): string {
     if (d.direction === 'neutral') return 'var(--color-surface-400)';
-    if (d.isGood === undefined) return d.direction === 'up'
-      ? 'var(--color-success-500)'
-      : 'var(--color-error-500)';
+    if (d.isGood === undefined)
+      return d.direction === 'up' ? 'var(--color-success-500)' : 'var(--color-error-500)';
     const good = d.isGood;
-    if (d.direction === 'up') return good
-      ? 'var(--color-success-500)'
-      : 'var(--color-error-500)';
-    return good
-      ? 'var(--color-error-500)'
-      : 'var(--color-success-500)';
+    if (d.direction === 'up') return good ? 'var(--color-success-500)' : 'var(--color-error-500)';
+    return good ? 'var(--color-error-500)' : 'var(--color-success-500)';
   }
 
   function deltaIcon(d: Delta): string {

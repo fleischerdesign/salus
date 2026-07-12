@@ -28,7 +28,7 @@
 {#if visible}
   <button
     type="button"
-    class="fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all duration-150 hover:bg-primary-600 active:scale-95 {extraClass}"
+    class="fixed right-6 bottom-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all duration-150 hover:bg-primary-600 active:scale-95 {extraClass}"
     aria-label="Scroll to top"
     onclick={scrollToTop}
   >

@@ -13,8 +13,8 @@ const _api = createClient<paths>({
     },
     get 'Accept-Language'() {
       return getLocale();
-    },
-  },
+    }
+  }
 });
 
 export const api = _api;
@@ -24,7 +24,7 @@ export const api = _api;
 export async function rawGet(url: string): Promise<Response> {
   return fetch(BASE + url, {
     headers: getAuthHeaders(),
-    credentials: 'same-origin',
+    credentials: 'same-origin'
   });
 }
 
@@ -33,6 +33,6 @@ export async function rawPost(url: string, body?: unknown): Promise<Response> {
     method: 'POST',
     headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
-    credentials: 'same-origin',
+    credentials: 'same-origin'
   });
 }

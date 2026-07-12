@@ -34,20 +34,15 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
     .filter((g) => !g.deleted_at)
     .map((g) => {
       const metric = metricById.get(g.metric_type_id);
-      const currentValue = computeGoalCurrent(
-        measurements,
-        g.metric_type_id,
-        g.frequency,
-      );
+      const currentValue = computeGoalCurrent(measurements, g.metric_type_id, g.frequency);
 
-      const deadlinePassed =
-        g.deadline != null ? new Date(g.deadline) < new Date() : false;
+      const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
       const progress = computeGoalProgress(
         currentValue,
         g.target_value,
         g.direction as 'INCREASE' | 'DECREASE',
         g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
-        deadlinePassed,
+        deadlinePassed
       );
 
       return {
@@ -66,8 +61,8 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
           target_value: g.target_value,
           percent: progress.percent,
           status: progress.status,
-          is_fulfilled: progress.isFulfilled,
-        },
+          is_fulfilled: progress.isFulfilled
+        }
       };
     });
 }
@@ -75,11 +70,9 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
 function computeGoalCurrent(
   measurements: Measurement[],
   metricTypeId: number,
-  frequency: string,
+  frequency: string
 ): number | null {
-  const relevant = measurements.filter(
-    (m) => m.metric_type_id === metricTypeId && !m.deleted_at,
-  );
+  const relevant = measurements.filter((m) => m.metric_type_id === metricTypeId && !m.deleted_at);
 
   if (relevant.length === 0) return null;
 
@@ -100,9 +93,7 @@ function computeGoalCurrent(
     filtered = relevant;
   }
 
-  const values = filtered
-    .map((m) => m.value_numeric)
-    .filter((v): v is number => v != null);
+  const values = filtered.map((m) => m.value_numeric).filter((v): v is number => v != null);
 
   if (values.length === 0) return null;
 

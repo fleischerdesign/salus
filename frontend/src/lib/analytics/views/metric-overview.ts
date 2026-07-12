@@ -9,10 +9,7 @@ export interface MetricOverview {
 }
 
 export async function fetchMetricOverview(): Promise<MetricOverview[]> {
-  const measurements = await db.measurement
-    .orderBy('start_time')
-    .reverse()
-    .toArray();
+  const measurements = await db.measurement.orderBy('start_time').reverse().toArray();
 
   const byMetric = new Map<number, Measurement[]>();
   for (const m of measurements) {
@@ -28,14 +25,14 @@ export async function fetchMetricOverview(): Promise<MetricOverview[]> {
       metric_id,
       latest_value: latest.value_text ?? latest.value_numeric?.toString() ?? null,
       latest_date: latest.start_time.split('T')[0] ?? null,
-      entry_count: entries.length,
+      entry_count: entries.length
     };
   });
 }
 
 export function overviewForMetric(
   overviews: MetricOverview[],
-  metricId: number,
+  metricId: number
 ): MetricOverview | null {
   return overviews.find((o) => o.metric_id === metricId) ?? null;
 }

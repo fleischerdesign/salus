@@ -13,24 +13,20 @@
     db.community_activity
       .toArray()
       .then((arr) =>
-        arr.sort(
-          (a, b) =>
-            new Date(b.time ?? '').getTime() -
-            new Date(a.time ?? '').getTime(),
-        ),
-      ),
+        arr.sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
+      )
   );
 
   const activityIcon: Record<string, string> = {
     workout: 'fitness-center',
     steps: 'directions-walk',
-    weight: 'monitor-weight',
+    weight: 'monitor-weight'
   };
 
   const activityLabel: Record<string, string> = {
     workout: 'Completed a Workout',
     steps: 'Steps Activity',
-    weight: 'Logged Weight',
+    weight: 'Logged Weight'
   };
 </script>
 
@@ -39,7 +35,9 @@
 <div class="space-y-6">
   <div>
     <h1 class="text-2xl font-semibold text-surface-900">Activity Feed</h1>
-    <p class="mt-1 text-sm text-surface-500">Stay updated on your connections' health and fitness progress.</p>
+    <p class="mt-1 text-sm text-surface-500">
+      Stay updated on your connections' health and fitness progress.
+    </p>
   </div>
 
   {#if $activities === undefined}
@@ -47,15 +45,21 @@
       <Spinner size="lg" />
     </div>
   {:else if $activities.length === 0}
-    <EmptyState icon="rss-feed" title="Your Feed is Quiet" description="Connect with peers to see their activity updates here.">
+    <EmptyState
+      icon="rss-feed"
+      title="Your Feed is Quiet"
+      description="Connect with peers to see their activity updates here."
+    >
       <Btn variant="primary" href="/community/connections">Manage Connections</Btn>
     </EmptyState>
   {:else}
     <div class="space-y-4">
-      {#each ($activities ?? []) as act}
+      {#each $activities ?? [] as act}
         <Card padding={false}>
           <div class="flex items-center gap-3 px-5 pt-4">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+            >
               <Icon name={activityIcon[act.activity_type] ?? 'fitness-center'} size="sm" />
             </div>
             <div class="min-w-0 flex-1">
@@ -70,7 +74,9 @@
           <div class="px-5 pt-3">
             {#if act.activity_type === 'steps' && act.value}
               <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-semibold text-surface-900">{act.value.toLocaleString()}</span>
+                <span class="text-2xl font-semibold text-surface-900"
+                  >{act.value.toLocaleString()}</span
+                >
                 <span class="text-sm text-surface-500">steps</span>
               </div>
               <ProgressBar value={act.value} max={10000} height="sm" class="mt-2" />
@@ -78,15 +84,21 @@
               <span class="text-2xl font-semibold text-surface-900">{act.value}</span>
             {/if}
             {#if act.notes}
-              <p class="mt-2 text-sm italic text-surface-500">"{act.notes}"</p>
+              <p class="mt-2 text-sm text-surface-500 italic">"{act.notes}"</p>
             {/if}
           </div>
 
           <div class="mt-3 flex items-center gap-4 border-t border-surface-100 px-5 py-2.5">
-            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600">
+            <button
+              type="button"
+              class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600"
+            >
               <Icon name="favorite" size="sm" />Kudos
             </button>
-            <button type="button" class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600">
+            <button
+              type="button"
+              class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600"
+            >
               <Icon name="chat-bubble-outline" size="sm" />Comment
             </button>
           </div>

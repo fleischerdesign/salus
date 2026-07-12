@@ -30,7 +30,11 @@
     onclick={() => accordion.toggle(id)}
   >
     {title}
-    <Icon name="expand-more" size="sm" class="transition-transform duration-150 {isOpen ? 'rotate-180' : ''}" />
+    <Icon
+      name="expand-more"
+      size="sm"
+      class="transition-transform duration-150 {isOpen ? 'rotate-180' : ''}"
+    />
   </button>
   {#if isOpen}
     <div class="px-4 py-3 text-sm text-surface-600">

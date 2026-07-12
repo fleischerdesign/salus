@@ -9,7 +9,12 @@ interface SolarTimes {
   solar_noon_mins: number;
 }
 
-export function calculateSolarTimes(date: string, lat: number, lng: number, tzOffset: number): SolarTimes {
+export function calculateSolarTimes(
+  date: string,
+  lat: number,
+  lng: number,
+  tzOffset: number
+): SolarTimes {
   const d = new Date(date + 'T12:00:00');
   const jd = toJulian(d, tzOffset);
 
@@ -23,16 +28,16 @@ export function calculateSolarTimes(date: string, lat: number, lng: number, tzOf
 
   const ha = Math.acos(
     (Math.sin(deg2rad(-0.833)) - Math.sin(deg2rad(lat)) * Math.sin(dec)) /
-    (Math.cos(deg2rad(lat)) * Math.cos(dec))
+      (Math.cos(deg2rad(lat)) * Math.cos(dec))
   );
 
-  const jdTransit = 2451545.0 + n + ((rad2deg(ra) - rad2deg(ls)) / 360.0);
+  const jdTransit = 2451545.0 + n + (rad2deg(ra) - rad2deg(ls)) / 360.0;
   const jdSet = jdTransit + rad2deg(ha) / 360.0;
   const jdRise = jdTransit - rad2deg(ha) / 360.0;
 
   const haCivil = Math.acos(
     (Math.sin(deg2rad(-6)) - Math.sin(deg2rad(lat)) * Math.sin(dec)) /
-    (Math.cos(deg2rad(lat)) * Math.cos(dec))
+      (Math.cos(deg2rad(lat)) * Math.cos(dec))
   );
   const jdDawn = jdTransit - rad2deg(haCivil) / 360.0;
   const jdDusk = jdTransit + rad2deg(haCivil) / 360.0;
@@ -49,12 +54,16 @@ export function calculateSolarTimes(date: string, lat: number, lng: number, tzOf
     dusk: jdToTime(jdDusk, tzOffset),
     sunrise_mins,
     sunset_mins,
-    solar_noon_mins,
+    solar_noon_mins
   };
 }
 
-function deg2rad(d: number): number { return (d * Math.PI) / 180; }
-function rad2deg(r: number): number { return (r * 180) / Math.PI; }
+function deg2rad(d: number): number {
+  return (d * Math.PI) / 180;
+}
+function rad2deg(r: number): number {
+  return (r * 180) / Math.PI;
+}
 
 function toJulian(d: Date, tzOffset: number): number {
   return d.getTime() / 86400000 + 2440587.5 - tzOffset / 24;
@@ -90,7 +99,13 @@ export interface CircadianAdvice {
   solar_times: { sunrise: string; sunset: string; solar_noon: string; dawn: string; dusk: string };
   chronotype: string;
   alignment_score: number;
-  sleep_window: { target_onset: string; target_offset: string; actual_onset: string; actual_offset: string; advice: string };
+  sleep_window: {
+    target_onset: string;
+    target_offset: string;
+    actual_onset: string;
+    actual_offset: string;
+    advice: string;
+  };
   light_advice: { time_window: string; action: string; description: string }[];
   eating_window: { start: string; end: string; advice: string };
 }
@@ -128,7 +143,8 @@ export function calculateCircadianAdvice(params: {
 
   let sleepAdvice: string;
   if (alignmentScore >= 85) {
-    sleepAdvice = 'Excellent! Your sleep onset aligns perfectly with your local biological melatonin rise.';
+    sleepAdvice =
+      'Excellent! Your sleep onset aligns perfectly with your local biological melatonin rise.';
   } else {
     sleepAdvice = `Try moving your sleep window closer to ${targetOnset} to align sleep pressure with melatonin release.`;
   }
@@ -137,13 +153,15 @@ export function calculateCircadianAdvice(params: {
     {
       time_window: `${solar.sunrise} - ${minsToTime(solar.sunrise_mins + 120)}`,
       action: 'Morning Daylight Anchor',
-      description: 'Expose eyes to bright outdoor daylight (10,000+ Lux) for 15–30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.',
+      description:
+        'Expose eyes to bright outdoor daylight (10,000+ Lux) for 15–30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.'
     },
     {
       time_window: `After ${solar.sunset}`,
       action: 'Minimize Blue Light',
-      description: 'Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset.',
-    },
+      description:
+        'Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset.'
+    }
   ];
 
   const actualOffsetMins = timeToMins(actualOffset);
@@ -152,7 +170,8 @@ export function calculateCircadianAdvice(params: {
   const eatingWindow = {
     start: minsToTime(eatingStartMins),
     end: minsToTime(eatingEndMins),
-    advice: 'Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.',
+    advice:
+      'Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.'
   };
 
   return {
@@ -161,7 +180,7 @@ export function calculateCircadianAdvice(params: {
       sunset: solar.sunset,
       solar_noon: solar.solar_noon,
       dawn: solar.dawn,
-      dusk: solar.dusk,
+      dusk: solar.dusk
     },
     chronotype,
     alignment_score: alignmentScore,
@@ -170,14 +189,16 @@ export function calculateCircadianAdvice(params: {
       target_offset: targetOffset,
       actual_onset: actualOnset,
       actual_offset: actualOffset,
-      advice: sleepAdvice,
+      advice: sleepAdvice
     },
     light_advice: lightAdvice,
-    eating_window: eatingWindow,
+    eating_window: eatingWindow
   };
 }
 
-export async function fetchCircadianAdvice(db: import('$lib/db/database').SalusDB): Promise<CircadianAdvice> {
+export async function fetchCircadianAdvice(
+  db: import('$lib/db/database').SalusDB
+): Promise<CircadianAdvice> {
   const profiles = await db.circadian_profile.filter((p) => !p.deleted_at).toArray();
   const profile = profiles[0];
   const lat = profile?.latitude ?? 52.52;
@@ -188,7 +209,11 @@ export async function fetchCircadianAdvice(db: import('$lib/db/database').SalusD
   const metricTypes = await db.metric_type.filter((mt) => mt.name === 'Sleep').toArray();
   const sleepMT = metricTypes[0];
   const sleepMeasurements = sleepMT?.id
-    ? await db.measurement.where('metric_type_id').equals(sleepMT.id).filter((m) => !m.deleted_at && m.end_time != null).toArray()
+    ? await db.measurement
+        .where('metric_type_id')
+        .equals(sleepMT.id)
+        .filter((m) => !m.deleted_at && m.end_time != null)
+        .toArray()
     : [];
 
   return calculateCircadianAdvice({
@@ -196,6 +221,6 @@ export async function fetchCircadianAdvice(db: import('$lib/db/database').SalusD
     longitude: lng,
     tzOffset,
     chronotype,
-    sleepMeasurements,
+    sleepMeasurements
   });
 }

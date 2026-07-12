@@ -2,9 +2,7 @@ import { db } from './database';
 import { rawGet } from '$lib/api/client';
 import { fetchEntityNames } from './entity-info';
 
-const SYNC_META_KEYS = new Set([
-  'cursors', 'has_more', 'synced_at',
-]);
+const SYNC_META_KEYS = new Set(['cursors', 'has_more', 'synced_at']);
 
 function isRecordArray(value: unknown): value is Record<string, unknown>[] {
   return Array.isArray(value);
@@ -22,7 +20,7 @@ interface FullSyncResponse {
 }
 
 export async function pullFull(
-  onProgress?: (message: string, progress?: number) => void,
+  onProgress?: (message: string, progress?: number) => void
 ): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   let cursors: Record<string, number> = {};
@@ -35,9 +33,8 @@ export async function pullFull(
     batch++;
     onProgress?.(`Fetching data (batch ${batch})...`, saturatingProgress(batch));
 
-    const cursorParam = Object.keys(cursors).length > 0
-      ? `?cursor=${btoa(JSON.stringify(cursors))}`
-      : '';
+    const cursorParam =
+      Object.keys(cursors).length > 0 ? `?cursor=${btoa(JSON.stringify(cursors))}` : '';
 
     let res: Response;
     try {
@@ -105,7 +102,7 @@ interface DeltaResponse {
 }
 
 export async function pullDelta(
-  onProgress?: (message: string, progress?: number) => void,
+  onProgress?: (message: string, progress?: number) => void
 ): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   const last = await db.meta.get('lastSyncAt');
@@ -125,11 +122,9 @@ export async function pullDelta(
   const data = (await res.json()) as DeltaResponse;
 
   const changedEntities = Object.entries(data.changed).filter(
-    ([table, rows]) => tableNames.has(table) && isRecordArray(rows) && rows.length > 0,
+    ([table, rows]) => tableNames.has(table) && isRecordArray(rows) && rows.length > 0
   );
-  const deletedEntities = Object.entries(data.deleted).filter(
-    ([table]) => tableNames.has(table),
-  );
+  const deletedEntities = Object.entries(data.deleted).filter(([table]) => tableNames.has(table));
   const totalOps = changedEntities.length + deletedEntities.length;
   let opIdx = 0;
 

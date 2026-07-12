@@ -42,23 +42,19 @@
   <div class="flex items-center">
     <button
       type="button"
-      class="h-9 w-9 rounded-md border border-surface-300 bg-white text-surface-600 hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-surface-300 bg-white text-surface-600 hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={value <= min}
       onclick={decrement}
     >
       <Icon name="remove" size="sm" />
     </button>
-    <input
-      type="hidden"
-      {name}
-      {value}
-    />
-    <span class="px-3 text-center min-w-[3rem] text-sm font-medium text-surface-900 tabular-nums">
+    <input type="hidden" {name} {value} />
+    <span class="min-w-[3rem] px-3 text-center text-sm font-medium text-surface-900 tabular-nums">
       {value}
     </span>
     <button
       type="button"
-      class="h-9 w-9 rounded-md border border-surface-300 bg-white text-surface-600 hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-surface-300 bg-white text-surface-600 hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={value >= max}
       onclick={increment}
     >

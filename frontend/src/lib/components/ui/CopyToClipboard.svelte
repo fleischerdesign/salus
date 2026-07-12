@@ -29,7 +29,7 @@
   <button
     type="button"
     class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-200 hover:text-surface-600"
-    aria-label={copied ? 'Copied' : label ?? 'Copy'}
+    aria-label={copied ? 'Copied' : (label ?? 'Copy')}
     onclick={copy}
   >
     <Icon name={copied ? 'check' : 'content-copy'} size="sm" />

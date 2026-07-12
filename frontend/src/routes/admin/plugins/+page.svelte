@@ -42,9 +42,12 @@
     const resp = await mutateDomain({
       url: `/api/v1/admin/plugins/${plugin.plugin_id}/toggle`,
       method: 'POST',
-      body: { enable: !plugin.enabled },
+      body: { enable: !plugin.enabled }
     });
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     await load();
   }
 
@@ -52,7 +55,7 @@
     if (!confirm(`Uninstall ${plugin.name}?`)) return;
     await mutateDomain({
       url: `/api/v1/admin/plugins/${plugin.plugin_id}`,
-      method: 'DELETE',
+      method: 'DELETE'
     });
     await load();
   }
@@ -61,7 +64,10 @@
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement;
-    if (!fileInput?.files?.[0]) { error = 'Select a file.'; return; }
+    if (!fileInput?.files?.[0]) {
+      error = 'Select a file.';
+      return;
+    }
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
     try {
@@ -85,7 +91,7 @@
   const columns = [
     { key: 'name', label: 'Plugin' },
     { key: 'version', label: 'Version' },
-    { key: 'actions', label: '' },
+    { key: 'actions', label: '' }
   ];
 </script>
 
@@ -98,7 +104,11 @@
       <div class="flex items-center justify-between">
         <span class="text-sm font-semibold text-surface-900">Developer Plugins</span>
         <form onsubmit={uploadPlugin} class="flex items-center gap-2">
-          <input type="file" accept=".zip" class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700" />
+          <input
+            type="file"
+            accept=".zip"
+            class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700"
+          />
           <Btn variant="secondary" size="sm" type="submit">
             <Icon name="upload-file" size="sm" />Install
           </Btn>
@@ -113,15 +123,17 @@
         Could not load plugins. Check your connection and try again.
       </div>
     {:else if plugins.length === 0}
-      <div class="px-5 py-10 text-center text-sm text-surface-400">No plugins installed. Upload a .zip to get started.</div>
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
+        No plugins installed. Upload a .zip to get started.
+      </div>
     {:else}
       <Table
-        columns={columns}
+        {columns}
         rows={plugins.map((p) => ({
           name: `${p.name}\n${p.description ?? ''}`,
           version: p.version ?? '—',
           actions: '',
-          _raw: p,
+          _raw: p
         }))}
         {actions}
       />

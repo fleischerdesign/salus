@@ -20,7 +20,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
     db.dashboard_widget.toArray(),
     db.metric_type.toArray(),
     db.measurement.toArray(),
-    db.goal.toArray(),
+    db.goal.toArray()
   ]);
 
   const widgets = (allWidgets as DashboardWidget[])
@@ -52,8 +52,8 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
           title: 'Unknown',
           value: '—',
           empty: true,
-          empty_text: 'Metric not found',
-        },
+          empty_text: 'Metric not found'
+        }
       };
     }
 
@@ -63,7 +63,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
       date,
       dayMeasurements,
       allMeasurements: measurements,
-      goals,
+      goals
     });
 
     return {
@@ -71,7 +71,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
       metric_type_id: w.metric_type_id,
       size: w.size,
       position: w.position,
-      viz,
+      viz
     };
   });
 

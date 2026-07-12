@@ -8,14 +8,12 @@
   import Table from '$components/ui/Table.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
 
-  let users = liveQuery(() =>
-    db.admin_user.toArray(),
-  );
+  let users = liveQuery(() => db.admin_user.toArray());
 
   async function toggleAdmin(user: AdminUser) {
     await mutateDomain({
       url: `/api/v1/admin/users/${user.id}/toggle-admin`,
-      method: 'POST',
+      method: 'POST'
     });
     await pullFull();
   }
@@ -23,7 +21,7 @@
   async function toggleActive(user: AdminUser) {
     await mutateDomain({
       url: `/api/v1/admin/users/${user.id}/toggle-active`,
-      method: 'POST',
+      method: 'POST'
     });
     await pullFull();
   }
@@ -32,7 +30,7 @@
     if (!confirm('Delete this user? This cannot be undone.')) return;
     await mutateDomain({
       url: `/api/v1/admin/users/${id}`,
-      method: 'DELETE',
+      method: 'DELETE'
     });
     await pullFull();
   }
@@ -44,7 +42,7 @@
     { key: 'is_active', label: 'Active' },
     { key: 'measurement_count', label: 'Entries' },
     { key: 'goal_count', label: 'Goals' },
-    { key: 'actions', label: '' },
+    { key: 'actions', label: '' }
   ];
 
   const userRows = $derived(
@@ -56,7 +54,7 @@
       measurement_count: String(u.measurement_count ?? 0),
       goal_count: String(u.goal_count ?? 0),
       actions: '',
-      _row: u as AdminUser,
+      _row: u as AdminUser
     }))
   );
 </script>
@@ -70,11 +68,7 @@
         <span class="text-sm font-semibold text-surface-900">Users</span>
       {/snippet}
       {#if ($users ?? []).length > 0}
-        <Table
-          columns={userColumns}
-          rows={userRows}
-          {actions}
-        />
+        <Table columns={userColumns} rows={userRows} {actions} />
       {:else}
         <div class="px-5 py-8 text-center text-sm text-surface-400">No users found.</div>
       {/if}
@@ -88,19 +82,22 @@
     <button
       type="button"
       class="rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors duration-150 hover:bg-surface-100"
-      onclick={() => toggleAdmin(u)}>
+      onclick={() => toggleAdmin(u)}
+    >
       {u.is_admin ? 'Demote' : 'Promote'}
     </button>
     <button
       type="button"
       class="rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors duration-150 hover:bg-surface-100"
-      onclick={() => toggleActive(u)}>
+      onclick={() => toggleActive(u)}
+    >
       {u.is_active ? 'Deactivate' : 'Activate'}
     </button>
     <button
       type="button"
       class="rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors duration-150 hover:bg-error-50"
-      onclick={() => deleteUser(u.id)}>
+      onclick={() => deleteUser(u.id)}
+    >
       Delete
     </button>
   </div>

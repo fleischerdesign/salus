@@ -33,10 +33,10 @@
   }
 
   let recipientsRaw = liveQuery(() =>
-    db.share_recipient.toArray().then((arr) => arr.filter((r) => !r.deleted_at)),
+    db.share_recipient.toArray().then((arr) => arr.filter((r) => !r.deleted_at))
   );
   let shareRows = liveQuery(() =>
-    db.asymmetric_share.toArray().then((arr) => arr.filter((s) => !s.deleted_at)),
+    db.asymmetric_share.toArray().then((arr) => arr.filter((s) => !s.deleted_at))
   );
 
   let recipients = $derived($recipientsRaw ?? []);
@@ -47,9 +47,9 @@
         id: s.id,
         recipient: { name: rec?.name ?? 'Unknown' },
         created_at: s.created_at,
-        expires_at: s.expires_at,
+        expires_at: s.expires_at
       };
-    }),
+    })
   );
 
   let error = $state('');
@@ -64,7 +64,12 @@
   let shareCreating = $state(false);
 
   // Open Science
-  let scienceMetrics = $state<string[]>(['steps', 'sleep_duration', 'resting_heart_rate', 'active_calories']);
+  let scienceMetrics = $state<string[]>([
+    'steps',
+    'sleep_duration',
+    'resting_heart_rate',
+    'active_calories'
+  ]);
   let scienceWeeks = $state('12');
   let scienceEpsilon = $state('1.0');
   let scienceBirthYear = $state('');
@@ -76,9 +81,14 @@
   async function generateKeyPair() {
     try {
       const keyPair = await crypto.subtle.generateKey(
-        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        {
+          name: 'RSA-OAEP',
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: 'SHA-256'
+        },
         true,
-        ['encrypt', 'decrypt'],
+        ['encrypt', 'decrypt']
       );
       const exportedPub = await crypto.subtle.exportKey('spki', keyPair.publicKey);
       recipientPubkey = formatAsPem(exportedPub, 'PUBLIC KEY');
@@ -108,10 +118,13 @@
       optimistic: {
         id: tempId,
         name: recipientName,
-        public_key: recipientPubkey,
-      },
+        public_key: recipientPubkey
+      }
     });
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     recipientName = '';
     recipientPubkey = '';
   }
@@ -122,7 +135,7 @@
       table: 'share_recipient',
       type: 'delete',
       realId: id,
-      optimistic: { id },
+      optimistic: { id }
     });
   }
 
@@ -134,7 +147,8 @@
 
     const form = e.target as HTMLFormElement;
     const days = parseInt((form.querySelector('[name="share_days"]') as HTMLInputElement).value);
-    const expireHours = parseInt((form.querySelector('[name="expire_hours"]') as HTMLInputElement).value) || null;
+    const expireHours =
+      parseInt((form.querySelector('[name="expire_hours"]') as HTMLInputElement).value) || null;
 
     const recipient = recipients.find((r) => r.id === parseInt(shareRecipientId));
     if (!recipient) {
@@ -155,27 +169,41 @@
           .above(sinceIso)
           .toArray()
           .then((arr) => arr.filter((m) => !m.deleted_at)),
-        db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at)),
+        db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at))
       ]);
 
       const rawData = {
         measurements,
         metric_types: metricTypes,
         days,
-        generated_at: new Date().toISOString(),
+        generated_at: new Date().toISOString()
       };
 
       const spkiBinary = pemToBinary(recipient.public_key);
       const pubKey = await crypto.subtle.importKey(
-        'spki', spkiBinary, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt'],
+        'spki',
+        spkiBinary,
+        { name: 'RSA-OAEP', hash: 'SHA-256' },
+        false,
+        ['encrypt']
       );
 
-      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+        'encrypt'
+      ]);
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const encoded = new TextEncoder().encode(JSON.stringify(rawData));
-      const encryptedBuf: ArrayBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, encoded);
+      const encryptedBuf: ArrayBuffer = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        aesKey,
+        encoded
+      );
       const rawAesKey: ArrayBuffer = await crypto.subtle.exportKey('raw', aesKey);
-      const encryptedKeyBuf: ArrayBuffer = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, pubKey, rawAesKey);
+      const encryptedKeyBuf: ArrayBuffer = await crypto.subtle.encrypt(
+        { name: 'RSA-OAEP' },
+        pubKey,
+        rawAesKey
+      );
 
       const aesPayload = new Uint8Array(12 + encryptedBuf.byteLength);
       aesPayload.set(iv, 0);
@@ -188,16 +216,20 @@
           recipient_id: recipient.id,
           encrypted_data: arrayBufferToBase64(aesPayload),
           encrypted_key: arrayBufferToBase64(encryptedKeyBuf),
-          expires_in_hours: expireHours,
+          expires_in_hours: expireHours
         },
         optimistic: {
           id: -1,
           recipient_id: recipient.id,
           encrypted_data: arrayBufferToBase64(aesPayload),
-          encrypted_key: arrayBufferToBase64(encryptedKeyBuf),
-        },
+          encrypted_key: arrayBufferToBase64(encryptedKeyBuf)
+        }
       });
-      if (!resp.ok) { error = resp.error ?? 'Request failed'; shareCreating = false; return; }
+      if (!resp.ok) {
+        error = resp.error ?? 'Request failed';
+        shareCreating = false;
+        return;
+      }
 
       const after = await db.asymmetric_share.where({ recipient_id: recipient.id }).toArray();
       const share = after[after.length - 1];
@@ -215,7 +247,7 @@
       table: 'asymmetric_share',
       type: 'delete',
       realId: id,
-      optimistic: { id },
+      optimistic: { id }
     });
   }
 
@@ -249,11 +281,14 @@
         epsilon: parseFloat(scienceEpsilon),
         include_demographics: true,
         user_birth_year: scienceBirthYear ? parseInt(scienceBirthYear) : null,
-        user_weight_kg: scienceWeight ? parseFloat(scienceWeight) : null,
-      },
+        user_weight_kg: scienceWeight ? parseFloat(scienceWeight) : null
+      }
     });
     scienceLoading = false;
-    if (!resp.ok) { error = resp.error ?? 'Request failed'; return; }
+    if (!resp.ok) {
+      error = resp.error ?? 'Request failed';
+      return;
+    }
     sciencePreview = resp.data as Record<string, unknown>;
     scienceVisible = true;
   }
@@ -271,9 +306,15 @@
 
   function downloadCSV() {
     if (!sciencePreview || !(sciencePreview as { records?: unknown[] }).records) return;
-    const records = (sciencePreview as { records: { week_start: string; metric_type: string; value_numeric: number }[] }).records;
+    const records = (
+      sciencePreview as {
+        records: { week_start: string; metric_type: string; value_numeric: number }[];
+      }
+    ).records;
     let csv = 'WeekStart,MetricType,ValueSynthetic\n';
-    records.forEach((r) => { csv += `${r.week_start},${r.metric_type},${r.value_numeric}\n`; });
+    records.forEach((r) => {
+      csv += `${r.week_start},${r.metric_type},${r.value_numeric}\n`;
+    });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -299,7 +340,9 @@
     {#snippet header()}
       <span class="text-sm font-semibold text-surface-900">Data Export</span>
     {/snippet}
-    <p class="mb-4 text-sm text-surface-500">Download all your health records and custom metrics.</p>
+    <p class="mb-4 text-sm text-surface-500">
+      Download all your health records and custom metrics.
+    </p>
     <div class="flex gap-3">
       <Btn variant="secondary" size="sm" href="/api/v1/export/download?format=csv">CSV</Btn>
       <Btn variant="secondary" size="sm" href="/api/v1/export/download?format=json">JSON</Btn>
@@ -312,7 +355,8 @@
       <span class="text-sm font-semibold text-surface-900">Medical Share</span>
     {/snippet}
     <p class="mb-4 text-sm text-surface-500">
-      Share end-to-end encrypted health profiles with your GP or doctor using zero-knowledge asymmetric cryptography.
+      Share end-to-end encrypted health profiles with your GP or doctor using zero-knowledge
+      asymmetric cryptography.
     </p>
 
     <!-- 1. Register Recipient -->
@@ -325,10 +369,20 @@
       </div>
       <form onsubmit={saveRecipient} class="space-y-3">
         <FormField label="Recipient Name">
-          <Input name="rec_name" bind:value={recipientName} placeholder="e.g. Dr. Mueller" required />
+          <Input
+            name="rec_name"
+            bind:value={recipientName}
+            placeholder="e.g. Dr. Mueller"
+            required
+          />
         </FormField>
         <FormField label="Public Key">
-          <Textarea name="rec_pubkey" bind:value={recipientPubkey} rows={4} placeholder="Generate keys above to auto-fill" />
+          <Textarea
+            name="rec_pubkey"
+            bind:value={recipientPubkey}
+            rows={4}
+            placeholder="Generate keys above to auto-fill"
+          />
         </FormField>
         <Btn variant="primary" type="submit" size="sm">Save Recipient</Btn>
       </form>
@@ -340,10 +394,14 @@
       {#if recipients.length > 0}
         <div class="space-y-2">
           {#each recipients as r}
-            <div class="flex items-center justify-between rounded-lg border border-surface-200 px-4 py-3">
+            <div
+              class="flex items-center justify-between rounded-lg border border-surface-200 px-4 py-3"
+            >
               <div>
                 <p class="text-sm font-semibold text-surface-900">{r.name}</p>
-                <p class="text-xs text-surface-400">Added {new Date(r.created_at).toLocaleDateString()}</p>
+                <p class="text-xs text-surface-400">
+                  Added {new Date(r.created_at).toLocaleDateString()}
+                </p>
               </div>
               <Btn variant="ghost" size="sm" onclick={() => deleteRecipient(r.id)}>
                 <Icon name="delete" size="sm" />
@@ -376,17 +434,23 @@
             <Input name="expire_hours" type="number" value={24} min={1} />
           </FormField>
         </div>
-        <Btn variant="primary" type="submit" size="sm" loading={shareCreating}>Encrypt &amp; Generate Share Link</Btn>
+        <Btn variant="primary" type="submit" size="sm" loading={shareCreating}
+          >Encrypt &amp; Generate Share Link</Btn
+        >
       </form>
 
       {#if shareResultVisible}
         <div class="mt-4 rounded-lg border border-primary-200 bg-primary-50 p-4">
           <p class="mb-2 text-sm font-semibold text-primary-700">Share Link Generated:</p>
           <div class="flex items-center gap-2">
-            <code class="flex-1 break-all rounded bg-surface-0 px-3 py-2 text-xs text-surface-700">{shareResultUrl}</code>
+            <code class="flex-1 rounded bg-surface-0 px-3 py-2 text-xs break-all text-surface-700"
+              >{shareResultUrl}</code
+            >
             <Btn variant="primary" size="sm" onclick={copyShareUrl}>Copy</Btn>
           </div>
-          <p class="mt-2 text-xs text-surface-500">Give this link and the private key file to your doctor.</p>
+          <p class="mt-2 text-xs text-surface-500">
+            Give this link and the private key file to your doctor.
+          </p>
         </div>
       {/if}
     </div>
@@ -397,12 +461,15 @@
       {#if shares.length > 0}
         <div class="space-y-2">
           {#each shares as s}
-            <div class="flex items-center justify-between rounded-lg border border-surface-200 px-4 py-3">
+            <div
+              class="flex items-center justify-between rounded-lg border border-surface-200 px-4 py-3"
+            >
               <div>
                 <p class="text-sm font-semibold text-surface-900">Share for {s.recipient.name}</p>
                 <p class="text-xs text-surface-400">
                   Created {new Date(s.created_at).toLocaleDateString()}
-                  {#if s.expires_at} · Expires {new Date(s.expires_at).toLocaleDateString()}{/if}
+                  {#if s.expires_at}
+                    · Expires {new Date(s.expires_at).toLocaleDateString()}{/if}
                 </p>
               </div>
               <div class="flex gap-2">
@@ -426,11 +493,14 @@
       <span class="text-sm font-semibold text-surface-900">Open Science Data Synthesizer</span>
     {/snippet}
     <p class="mb-4 text-sm text-surface-500">
-      Contribute anonymized, differentially-private health data to open research. Privacy preserved through Local Differential Privacy (LDP).
+      Contribute anonymized, differentially-private health data to open research. Privacy preserved
+      through Local Differential Privacy (LDP).
     </p>
 
     <div class="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">1. Select Metrics &amp; Generalization</h4>
+      <h4 class="mb-3 text-sm font-bold text-surface-900">
+        1. Select Metrics &amp; Generalization
+      </h4>
       <div class="space-y-4">
         <div>
           <p class="mb-2 text-xs font-semibold text-surface-500">Health Vitals to Share</p>
@@ -450,30 +520,55 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
           <FormField label="Timeframe">
-            <Select name="science_weeks" bind:value={scienceWeeks} options={[
-              { value: '4', label: 'Last 4 Weeks' },
-              { value: '8', label: 'Last 8 Weeks' },
-              { value: '12', label: 'Last 12 Weeks' },
-              { value: '24', label: 'Last 24 Weeks' },
-            ]} />
+            <Select
+              name="science_weeks"
+              bind:value={scienceWeeks}
+              options={[
+                { value: '4', label: 'Last 4 Weeks' },
+                { value: '8', label: 'Last 8 Weeks' },
+                { value: '12', label: 'Last 12 Weeks' },
+                { value: '24', label: 'Last 24 Weeks' }
+              ]}
+            />
           </FormField>
           <FormField label="Privacy Budget (ε)">
-            <Select name="science_epsilon" bind:value={scienceEpsilon} options={[
-              { value: '0.5', label: 'High Privacy (ε = 0.5)' },
-              { value: '1.0', label: 'Balanced (ε = 1.0)' },
-              { value: '2.0', label: 'Low Privacy (ε = 2.0)' },
-            ]} />
+            <Select
+              name="science_epsilon"
+              bind:value={scienceEpsilon}
+              options={[
+                { value: '0.5', label: 'High Privacy (ε = 0.5)' },
+                { value: '1.0', label: 'Balanced (ε = 1.0)' },
+                { value: '2.0', label: 'Low Privacy (ε = 2.0)' }
+              ]}
+            />
           </FormField>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <FormField label="Birth Year (optional)">
-            <Input name="birth_year" bind:value={scienceBirthYear} type="number" placeholder="e.g. 1990" min={1900} max={2026} />
+            <Input
+              name="birth_year"
+              bind:value={scienceBirthYear}
+              type="number"
+              placeholder="e.g. 1990"
+              min={1900}
+              max={2026}
+            />
           </FormField>
           <FormField label="Body Weight kg (optional)">
-            <Input name="weight" bind:value={scienceWeight} type="number" step={0.1} placeholder="e.g. 74.5" min={30} max={300} />
+            <Input
+              name="weight"
+              bind:value={scienceWeight}
+              type="number"
+              step={0.1}
+              placeholder="e.g. 74.5"
+              min={30}
+              max={300}
+            />
           </FormField>
         </div>
-        <Btn variant="primary" size="sm" loading={scienceLoading} onclick={generatePreview}>Generate Dataset Preview</Btn>
+        <Btn variant="primary" size="sm" loading={scienceLoading} onclick={generatePreview}
+          >Generate Dataset Preview</Btn
+        >
       </div>
     </div>
 
@@ -491,7 +586,9 @@
       {:else}
         <div class="flex flex-col items-center py-8 text-center">
           <Icon name="insights" size="2xl" class="text-surface-300" />
-          <p class="mt-3 text-sm text-surface-400">Configure metrics and click generate to preview.</p>
+          <p class="mt-3 text-sm text-surface-400">
+            Configure metrics and click generate to preview.
+          </p>
         </div>
       {/if}
     </div>

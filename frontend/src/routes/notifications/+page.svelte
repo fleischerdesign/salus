@@ -7,23 +7,21 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
 
   let notifications = liveQuery(() =>
-    db.notification.toArray().then((arr) =>
-      arr.filter((n) => !n.deleted_at).sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime(),
-      ),
-    ),
+    db.notification
+      .toArray()
+      .then((arr) =>
+        arr
+          .filter((n) => !n.deleted_at)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      )
   );
 
-  let unreadCount = $derived(
-    $notifications?.filter((n) => !n.is_read).length ?? 0,
-  );
+  let unreadCount = $derived($notifications?.filter((n) => !n.is_read).length ?? 0);
 
   async function markAllRead() {
     await mutateDomain({
       url: '/api/v1/notifications/read-all',
-      method: 'POST',
+      method: 'POST'
     });
     // Optimistic: mark all Dexie notifications as read
     const unread = await db.notification.filter((n) => !n.is_read).toArray();
@@ -41,18 +39,14 @@
       Notifications ({unreadCount} unread)
     </h1>
     {#if unreadCount > 0}
-      <Btn variant="secondary" size="sm" onclick={markAllRead}>
-        Mark all read
-      </Btn>
+      <Btn variant="secondary" size="sm" onclick={markAllRead}>Mark all read</Btn>
     {/if}
   </div>
 
   {#if !$notifications}
     <div class="flex flex-col gap-3">
       {#each Array(5) as _}
-        <div
-          class="h-20 animate-pulse rounded-lg bg-surface-200"
-        ></div>
+        <div class="h-20 animate-pulse rounded-lg bg-surface-200"></div>
       {/each}
     </div>
   {:else if $notifications.length === 0}
@@ -68,9 +62,7 @@
                   {n.title ?? 'Notification'}
                 </p>
                 {#if !n.is_read}
-                  <span
-                    class="h-2 w-2 rounded-full bg-primary-500"
-                  ></span>
+                  <span class="h-2 w-2 rounded-full bg-primary-500"></span>
                 {/if}
               </div>
               <p class="mt-1 text-sm text-surface-600">

@@ -26,7 +26,7 @@ import type {
   ApiToken,
   CommunityActivity,
   FederatedAccessLog,
-  DomainQueueOp,
+  DomainQueueOp
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -80,7 +80,7 @@ export class SalusDB extends Dexie {
       share_recipient: 'id, user_id',
       asymmetric_share: 'id, user_id, recipient_id',
       queue: '++id, createdAt',
-      meta: '&key',
+      meta: '&key'
     });
     this.version(4).stores({
       goal: 'id, user_id, metric_type_id',
@@ -89,15 +89,15 @@ export class SalusDB extends Dexie {
       admin_user: 'id',
       admin_stats: '&key',
       system_config: '&key',
-      domainQueue: '++id, createdAt',
+      domainQueue: '++id, createdAt'
     });
     this.version(5).stores({
       api_token: 'id, user_id',
-      user: 'id',
+      user: 'id'
     });
     this.version(6).stores({
       community_activity: 'id',
-      federated_access_log: 'id, owner_id',
+      federated_access_log: 'id, owner_id'
     });
   }
 }

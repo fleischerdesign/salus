@@ -10,9 +10,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
 
-  let configItems = liveQuery(() =>
-    db.system_config.toArray(),
-  );
+  let configItems = liveQuery(() => db.system_config.toArray());
 
   let error = $state('');
   let success = $state('');
@@ -35,7 +33,7 @@
     const res = await fetch('/api/v1/admin/config/' + editingKey, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: editValue }),
+      body: JSON.stringify({ value: editValue })
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -86,7 +84,9 @@
                   <Btn variant="primary" size="sm" onclick={saveEdit}>Save</Btn>
                   <Btn variant="secondary" size="sm" onclick={cancelEdit}>Cancel</Btn>
                 {:else}
-                  <code class="max-w-xs truncate rounded bg-surface-100 px-2 py-1 text-xs text-surface-600">
+                  <code
+                    class="max-w-xs truncate rounded bg-surface-100 px-2 py-1 text-xs text-surface-600"
+                  >
                     {item.is_secret ? '••••••' : item.value}
                   </code>
                   <Btn variant="secondary" size="sm" onclick={() => startEdit(item)}>Edit</Btn>

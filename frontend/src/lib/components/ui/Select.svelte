@@ -28,7 +28,7 @@
     <label for={name} class="text-sm font-medium text-surface-700">
       {label}
       {#if required}
-        <span class="text-error-500 ml-0.5">*</span>
+        <span class="ml-0.5 text-error-500">*</span>
       {/if}
     </label>
   {/if}

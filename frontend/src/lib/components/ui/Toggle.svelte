@@ -8,16 +8,31 @@
     class?: string;
   }
 
-  let { checked = false, disabled = false, label, onchange, name, class: extraClass = '' }: Props = $props();
+  let {
+    checked = false,
+    disabled = false,
+    label,
+    onchange,
+    name,
+    class: extraClass = ''
+  }: Props = $props();
 
   function handleChange(e: Event) {
     const input = e.target as HTMLInputElement;
     onchange?.(input.checked);
   }
 
-  let labelClass = $derived('inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer'));
-  let trackClass = $derived('relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-150 ' + (checked ? 'bg-primary-500' : ''));
-  let thumbClass = $derived('absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 ' + (checked ? 'translate-x-5' : ''));
+  let labelClass = $derived(
+    'inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer')
+  );
+  let trackClass = $derived(
+    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-150 ' +
+      (checked ? 'bg-primary-500' : '')
+  );
+  let thumbClass = $derived(
+    'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 ' +
+      (checked ? 'translate-x-5' : '')
+  );
 </script>
 
 <label class="{labelClass} {extraClass}">
@@ -27,5 +42,14 @@
   <span class={trackClass}>
     <span class={thumbClass}></span>
   </span>
-  <input type="checkbox" {name} checked={checked} {disabled} onchange={handleChange} class="sr-only" role="switch" aria-checked={checked} />
+  <input
+    type="checkbox"
+    {name}
+    {checked}
+    {disabled}
+    onchange={handleChange}
+    class="sr-only"
+    role="switch"
+    aria-checked={checked}
+  />
 </label>

@@ -14,12 +14,7 @@
     height?: number;
   }
 
-  let {
-    data = [],
-    color = 'var(--color-primary-500)',
-    width = 260,
-    height = 80
-  }: Props = $props();
+  let { data = [], color = 'var(--color-primary-500)', width = 260, height = 80 }: Props = $props();
 
   const padLeft = 4;
   const padRight = 4;
@@ -46,7 +41,7 @@
 </script>
 
 <div class="flex flex-col gap-1">
-  <svg width={width} height={height} viewBox="0 0 {width} {height}">
+  <svg {width} {height} viewBox="0 0 {width} {height}">
     {#each data as candle, i}
       {@const cx = padLeft + i * (barW + gap) + barW / 2}
       {@const isBullish = candle.close >= candle.open}
@@ -73,12 +68,7 @@
         stroke-width="1"
       />
 
-      <text
-        x={cx}
-        y={height - 2}
-        text-anchor="middle"
-        class="fill-surface-400 text-[8px]"
-      >
+      <text x={cx} y={height - 2} text-anchor="middle" class="fill-surface-400 text-[8px]">
         {candle.label}
       </text>
     {/each}

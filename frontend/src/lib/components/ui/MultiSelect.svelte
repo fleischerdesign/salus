@@ -39,9 +39,7 @@
   let inputRef: HTMLInputElement | null = null;
 
   let filtered = $derived(
-    query
-      ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
-      : options
+    query ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())) : options
   );
 
   function toggle(value: string) {
@@ -76,18 +74,33 @@
 
   <div class="relative">
     <div
-      class="flex min-h-11 flex-wrap items-center gap-1 rounded-md border border-surface-300 bg-surface-50 px-3 py-2 text-sm transition-colors duration-150 hover:border-surface-400 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-200 {disabled ? 'cursor-not-allowed opacity-50' : 'cursor-text'}"
-      onclick={() => !disabled && (open = true, inputRef?.focus())}
-      onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') open = false; else if (e.key === 'Enter' || e.key === 'ArrowDown') { open = true; inputRef?.focus(); } }}
+      class="flex min-h-11 flex-wrap items-center gap-1 rounded-md border border-surface-300 bg-surface-50 px-3 py-2 text-sm transition-colors duration-150 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-200 hover:border-surface-400 {disabled
+        ? 'cursor-not-allowed opacity-50'
+        : 'cursor-text'}"
+      onclick={() => !disabled && ((open = true), inputRef?.focus())}
+      onkeydown={(e: KeyboardEvent) => {
+        if (e.key === 'Escape') open = false;
+        else if (e.key === 'Enter' || e.key === 'ArrowDown') {
+          open = true;
+          inputRef?.focus();
+        }
+      }}
       role="combobox"
       aria-expanded={open}
       aria-controls={listboxId}
       tabindex="0"
     >
       {#each selectedLabels as opt}
-        <span class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
+        <span
+          class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700"
+        >
           {opt.label}
-          <button type="button" class="text-primary-500 hover:text-primary-700" aria-label="Remove {opt.label}" onclick={(e) => removeTag(opt.value, e)}>
+          <button
+            type="button"
+            class="text-primary-500 hover:text-primary-700"
+            aria-label="Remove {opt.label}"
+            onclick={(e) => removeTag(opt.value, e)}
+          >
             <Icon name="close" size="sm" />
           </button>
         </span>
@@ -104,12 +117,18 @@
     </div>
 
     {#if open && filtered.length > 0}
-      <div id={listboxId} role="listbox" class="absolute top-full z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-surface-200 bg-surface-0 py-1 shadow-lg">
+      <div
+        id={listboxId}
+        role="listbox"
+        class="absolute top-full z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-surface-200 bg-surface-0 py-1 shadow-lg"
+      >
         {#each filtered as opt}
           {@const isSelected = selected.includes(opt.value)}
           <button
             type="button"
-            class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-50 {isSelected ? 'text-primary-600' : 'text-surface-700'}"
+            class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-50 {isSelected
+              ? 'text-primary-600'
+              : 'text-surface-700'}"
             onclick={() => toggle(opt.value)}
           >
             {opt.label}

@@ -6,20 +6,15 @@
     class?: string;
   }
 
-  let {
-    name,
-    label,
-    checked = $bindable(false),
-    class: extraClass = ''
-  }: Props = $props();
+  let { name, label, checked = $bindable(false), class: extraClass = '' }: Props = $props();
 </script>
 
-<label class="inline-flex items-center cursor-pointer {extraClass}">
+<label class="inline-flex cursor-pointer items-center {extraClass}">
   <input
     type="checkbox"
     {name}
     bind:checked
-    class="h-4 w-4 rounded accent-primary-600 border-surface-300"
+    class="h-4 w-4 rounded border-surface-300 accent-primary-600"
   />
   <span class="ml-2 text-sm text-surface-700">{label}</span>
 </label>

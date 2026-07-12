@@ -45,9 +45,16 @@
 <label
   for={name}
   class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-150
-    {isDragging ? 'border-primary-500 bg-primary-50' : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'} {extraClass}"
-  ondragover={(e) => { e.preventDefault(); isDragging = true; }}
-  ondragleave={() => { isDragging = false; }}
+    {isDragging
+    ? 'border-primary-500 bg-primary-50'
+    : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'} {extraClass}"
+  ondragover={(e) => {
+    e.preventDefault();
+    isDragging = true;
+  }}
+  ondragleave={() => {
+    isDragging = false;
+  }}
   ondrop={handleDrop}
 >
   <Icon name="upload-file" size="xl" class="text-surface-400" />

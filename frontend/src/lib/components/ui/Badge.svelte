@@ -7,11 +7,7 @@
     class?: string;
   }
 
-  let {
-    variant = 'default',
-    children,
-    class: extraClass = ''
-  }: Props = $props();
+  let { variant = 'default', children, class: extraClass = '' }: Props = $props();
 
   const variantClasses = {
     default: 'bg-surface-100 text-surface-700',
@@ -22,6 +18,10 @@
   };
 </script>
 
-<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {variantClasses[variant]} {extraClass}">
+<span
+  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {variantClasses[
+    variant
+  ]} {extraClass}"
+>
   {@render children?.()}
 </span>
