@@ -1,11 +1,8 @@
-from __future__ import annotations
-
 import json
 import logging
 from datetime import datetime, timedelta
 from typing import Protocol, runtime_checkable
 
-from salus.models.analytics import HROHLC, HRTimelinePoint
 from salus.models.dashboard import DashboardWidget, WidgetSize, WidgetViz
 from salus.models.goal import Goal
 from salus.models import MetricType
@@ -50,18 +47,6 @@ VIZ_TYPE_DEFAULTS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 #  Free functions (pure helpers, no state)
 # ---------------------------------------------------------------------------
-
-def _compute_sparkline(values: list[float]) -> str:
-    if not values or max(values) == 0:
-        return "0,30 100,30"
-    max_val = max(values)
-    h = 26
-    points = []
-    for i, v in enumerate(values):
-        x = (i / max(len(values) - 1, 1)) * 100
-        y = h - (v / max_val * h)
-        points.append(f"{x:.1f},{y:.1f}")
-    return " ".join(points)
 
 
 def _delta_str(
@@ -123,151 +108,13 @@ def _rounded_segments(stages: list[tuple[str, float, str]]) -> list[dict]:
     ]
 
 
-def _compute_candlestick_chart(ohlc_list: list[HROHLC], reference_bpm: float) -> dict:
-    valid = [c for c in ohlc_list if c.count > 0]
-    if not valid:
-        return {"empty": True}
-
-    global_min = min(c.low_bpm for c in valid)
-    global_max = max(c.high_bpm for c in valid)
-    value_range = global_max - global_min
-    if value_range < 1:
-        value_range = max(global_max * 0.2, 1)
-
-    pad_top = 8
-    pad_bottom = 18
-    pad_x = 6
-    chart_w = 200
-    chart_h = 100
-    plot_h = chart_h - pad_top - pad_bottom
-
-    n = len(ohlc_list)
-    slot_w = (chart_w - 2 * pad_x) / n
-    half_w = slot_w * 0.25
-
-    def _scale(val: float) -> float:
-        return pad_top + plot_h * (1 - (val - global_min) / value_range)
-
-    candles: list[dict] = []
-    for i, c in enumerate(ohlc_list):
-        cx = pad_x + slot_w * i + slot_w / 2
-        if c.count == 0:
-            candles.append({"cx": cx, "label": c.label, "empty": True})
-            continue
-
-        high_y = _scale(c.high_bpm)
-        low_y = _scale(c.low_bpm)
-        open_y = _scale(c.open_bpm)
-        close_y = _scale(c.close_bpm)
-
-        body_y = min(open_y, close_y)
-        body_h = max(abs(close_y - open_y), 1.5)
-        fill = "#22c55e" if c.close_bpm >= c.open_bpm else "#ef4444"
-
-        candles.append(
-            {
-                "cx": cx,
-                "high_y": high_y,
-                "low_y": low_y,
-                "body_y": body_y,
-                "body_h": body_h,
-                "half_w": half_w,
-                "fill": fill,
-                "label": c.label,
-                "empty": False,
-            }
-        )
-
-    return {
-        "candles": candles,
-        "chart_w": chart_w,
-        "chart_h": chart_h,
-        "reference_y": _scale(reference_bpm),
-        "empty": False,
-    }
-
-
-def _compute_pill_chart(
-    timeline: list[HRTimelinePoint],
-    resting_bpm: float,
-    color: str,
-    target_bpm: float | None = None,
-) -> dict:
-    if not timeline:
-        return {"empty": True}
-
-    bpms = [p.bpm for p in timeline]
-    y_min = max(0, min(min(bpms) - 10, resting_bpm - 10))
-    y_max = max(max(bpms) + 15, resting_bpm + 15)
-    if target_bpm is not None and target_bpm > y_max:
-        y_max = target_bpm + 5
-    if y_max <= y_min:
-        y_max = y_min + 20
-    y_range = y_max - y_min
-
-    # Group timeline points into 15-minute buckets (96 intervals)
-    buckets: dict[int, list[float]] = {i: [] for i in range(96)}
-    for p in timeline:
-        parts = p.time.split(":")
-        m = int(parts[0]) * 60 + int(parts[1])
-        bucket_idx = m // 15
-        if bucket_idx in buckets:
-            buckets[bucket_idx].append(p.bpm)
-
-    pills: list[dict] = []
-    for idx in sorted(buckets.keys()):
-        bpms_in_bucket = buckets[idx]
-        if not bpms_in_bucket:
-            continue
-        min_b = min(bpms_in_bucket)
-        max_b = max(bpms_in_bucket)
-
-        h1 = (idx * 15) // 60
-        m1 = (idx * 15) % 60
-        h2 = (idx * 15 + 15) // 60
-        m2 = (idx * 15 + 15) % 60
-        if h2 == 24:
-            h2 = 0
-        time_str = f"{h1:02d}:{m1:02d} - {h2:02d}:{m2:02d}"
-
-        pills.append(
-            {
-                "min_bpm": int(min_b),
-                "max_bpm": int(max_b),
-                "color": color,
-                "x_fraction": round((idx * 15) / 1440, 4),
-                "tooltip": f"{time_str} &middot; {int(min_b)} - {int(max_b)} bpm",
-            }
-        )
-
-    def _y_frac(bpm: float) -> float:
-        return 1 - (bpm - y_min) / y_range
-
-    return {
-        "pills": pills,
-        "resting_y_fraction": round(_y_frac(resting_bpm), 3),
-        "resting_bpm": round(resting_bpm),
-        "target_y_fraction": round(_y_frac(target_bpm), 3)
-        if target_bpm is not None
-        else None,
-        "target_bpm": round(target_bpm) if target_bpm is not None else None,
-        "y_min": y_min,
-        "y_max": y_max,
-        "empty": False,
-    }
-
-
-# ---------------------------------------------------------------------------
-#  Viz Builder Strategy (OCP — new metric types = new builder class, no edits)
-# ---------------------------------------------------------------------------
-
 @runtime_checkable
 class VizBuilder(Protocol):
     """Strategy: build a WidgetViz for a specific source_data_type."""
 
     def build(
         self,
-        ctx: DashboardWidgetService,
+        ctx: "DashboardWidgetService",
         user_id: int,
         target: str,
         color: str,
@@ -315,13 +162,8 @@ class HeartRateVizBuilder:
         yesterday_hr = ctx._activity.heart_rate_summary(
             user_id=user_id, date_str=_yesterday(target)
         )
-        timeline = ctx._activity.heart_rate_timeline(user_id=user_id, date_str=target)
 
         goal = ctx._resolve_goal(user_id, "heart_rate")
-        target_bpm = (
-            goal.target_value if goal and goal.direction.value == "decrease" else None
-        )
-        _chart = _compute_pill_chart(timeline, hr.resting_bpm, color, target_bpm)
 
         viz = WidgetViz(
             type="pills",

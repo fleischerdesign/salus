@@ -8,7 +8,6 @@ from sqlmodel import Session, SQLModel, create_engine
 from salus.models.measurement import Measurement
 from salus.repositories.measurement import MeasurementRepository
 from salus.services.analytics.activity import ActivityAnalysisService
-from salus.services.analytics.dashboard import DashboardService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
@@ -195,15 +194,3 @@ class TestActivityStepsTrend:
         today_point = [s for s in result if s.date == today]
         assert len(today_point) == 1
         assert today_point[0].count == 8500
-
-
-class TestDashboardService:
-    def test_summary_returns_dashboard(self, repo):
-        svc = DashboardService(
-            sleep_svc=SleepAnalysisService(repo),
-            activity_svc=ActivityAnalysisService(repo),
-            weight_svc=WeightAnalysisService(repo),
-            nutrition_svc=NutritionAnalysisService(repo),
-        )
-        summary = svc.summary()
-        assert summary.steps_goal == 10000

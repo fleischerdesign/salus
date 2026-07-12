@@ -15,15 +15,6 @@ class HookParser(Protocol):
 
 
 @runtime_checkable
-class HookWidget(Protocol):
-    def get_widget_id(self) -> str: ...
-
-    def get_title(self, locale: str) -> str: ...
-
-    def render_html(self, user_id: int, locale: str) -> str: ...
-
-
-@runtime_checkable
 class HookApiRouter(Protocol):
     def register_routes(self, router: APIRouter) -> None: ...
 
@@ -67,11 +58,6 @@ class HookIngestionInterceptor(Protocol):
 
 
 @runtime_checkable
-class HookNavigation(Protocol):
-    def get_navigation_items(self) -> list[dict[str, Any]]: ...
-
-
-@runtime_checkable
 class HookTranslation(Protocol):
     def get_translations(self) -> dict[str, dict[str, str]]: ...
 
@@ -104,17 +90,9 @@ class HookMetricSynthesizer(Protocol):
     ) -> list[Measurement]: ...
 
 
-@runtime_checkable
-class HookCustomStyle(Protocol):
-    def get_custom_css(self) -> str: ...
-
-    def get_custom_js(self) -> str: ...
-
-
 class HookRegistry:
     def __init__(self) -> None:
         self.parsers: list[HookParser] = []
-        self.widgets: list[HookWidget] = []
         self.api_routers: list[HookApiRouter] = []
         self.event_subscribers: list[HookEventSubscriber] = []
         self.ai_coach_contexts: list[HookAiCoachContext] = []
@@ -122,20 +100,16 @@ class HookRegistry:
         self.exporters: list[HookExporter] = []
         self.auth_providers: list[HookAuthProvider] = []
         self.ingestion_interceptors: list[HookIngestionInterceptor] = []
-        self.navigations: list[HookNavigation] = []
         self.translations: list[HookTranslation] = []
         self.schemas: list[HookSchemaExtension] = []
         self.lifecycles: list[HookApplicationLifecycle] = []
         self.goal_validators: list[HookGoalValidator] = []
         self.metric_synthesizers: list[HookMetricSynthesizer] = []
-        self.custom_styles: list[HookCustomStyle] = []
 
     def register(self, plugin: Any) -> None:
         """Inspects plugin for hook implementations and registers them."""
         if isinstance(plugin, HookParser):
             self.parsers.append(plugin)
-        if isinstance(plugin, HookWidget):
-            self.widgets.append(plugin)
         if isinstance(plugin, HookApiRouter):
             self.api_routers.append(plugin)
         if isinstance(plugin, HookEventSubscriber):
@@ -150,8 +124,6 @@ class HookRegistry:
             self.auth_providers.append(plugin)
         if isinstance(plugin, HookIngestionInterceptor):
             self.ingestion_interceptors.append(plugin)
-        if isinstance(plugin, HookNavigation):
-            self.navigations.append(plugin)
         if isinstance(plugin, HookTranslation):
             self.translations.append(plugin)
         if isinstance(plugin, HookSchemaExtension):
@@ -162,8 +134,6 @@ class HookRegistry:
             self.goal_validators.append(plugin)
         if isinstance(plugin, HookMetricSynthesizer):
             self.metric_synthesizers.append(plugin)
-        if isinstance(plugin, HookCustomStyle):
-            self.custom_styles.append(plugin)
 
     def unregister(self, plugin: Any) -> None:
         """Removes all hook registrations for this plugin instance."""

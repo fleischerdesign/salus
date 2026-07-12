@@ -2,7 +2,6 @@ import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
-from contextvars import ContextVar
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,28 +40,12 @@ from salus.routers import (
 from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
-from salus.services.i18n import translate
-
-locale_ctx: ContextVar[str] = ContextVar("salus_locale", default="en")
-
 
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, log_level),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-
-
-def _translate(text: str) -> str:
-    return translate(text, locale_ctx.get())
-
-
-async def i18n_middleware(request: Request, call_next):
-    accept_lang = request.headers.get("Accept-Language", "")
-    locale = "de" if "de" in accept_lang.lower() else "en"
-    locale_ctx.set(locale)
-    response = await call_next(request)
-    return response
 
 
 class SPAStaticFiles(StaticFiles):
@@ -161,7 +144,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.middleware("http")(i18n_middleware)
 
 secure_endpoints = {"/docs", "/openapi.json", "/redoc"}
 

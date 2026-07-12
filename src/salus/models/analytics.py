@@ -115,16 +115,6 @@ class TDEEResult:
 
 
 @dataclass
-class DashboardSummary:
-    steps: StepDay | None
-    steps_goal: int
-    heart_rate: HRSummary | None
-    sleep: SleepSummary | None
-    nutrition: NutritionDay | None
-    weight: WeightPoint | None
-
-
-@dataclass
 class GoalProgress:
     goal_id: int
     current_value: float | None

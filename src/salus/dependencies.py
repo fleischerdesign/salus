@@ -19,7 +19,6 @@ from salus.repositories.user_identity import UserIdentityRepository
 from salus.services.plugin.hooks import HookRegistry
 from salus.services.plugin.manager import PluginManager
 from salus.services.analytics.activity import ActivityAnalysisService
-from salus.services.analytics.dashboard import DashboardService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.orchestrator import AnalyticsService
 from salus.services.analytics.sleep import SleepAnalysisService
@@ -301,15 +300,6 @@ def get_nutrition_analysis_service(
     repo: MeasurementRepository = Depends(get_measurement_repo),
 ) -> NutritionAnalysisService:
     return NutritionAnalysisService(repo)
-
-
-def get_dashboard_service(
-    sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
-    activity_svc: ActivityAnalysisService = Depends(get_activity_analysis_service),
-    weight_svc: WeightAnalysisService = Depends(get_weight_analysis_service),
-    nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
-) -> DashboardService:
-    return DashboardService(sleep_svc, activity_svc, weight_svc, nutrition_svc)
 
 
 def get_analytics_service(

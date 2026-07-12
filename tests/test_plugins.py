@@ -71,11 +71,9 @@ def test_plugin_discovery_and_lifecycle(session: Session):
     # Verify hooks are registered
     registry = manager.registry
     assert len(registry.parsers) > 0
-    assert len(registry.widgets) > 0
     assert len(registry.api_routers) > 0
     assert len(registry.event_subscribers) > 0
     assert len(registry.ai_coach_contexts) > 0
-    assert len(registry.custom_styles) > 0
     assert len(registry.translations) > 0
 
     # Unload

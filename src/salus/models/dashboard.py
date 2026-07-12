@@ -18,11 +18,7 @@ class WidgetSize(str, Enum):
 
 @dataclass
 class WidgetViz:
-    """Structured viz payload returned by DashboardWidgetService.widget_data().
-
-    The API layer serializes this to match the ``_DashboardViz`` Pydantic model.
-    Field names are intentionally aligned so serialization is a 1:1 mapping.
-    """
+    """Visualisation payload returned by DashboardWidgetService.widget_data()."""
 
     type: str
     title: str
@@ -32,13 +28,10 @@ class WidgetViz:
     subtitle: str | None = None
     color: str | None = None
     delta: str | None = None
-    sparkline_points: list[float] | None = None
-    sparkline_path: str | None = None
     goal_label: str | None = None
     goal_percent: float | None = None
     goal_target: float | None = None
     segments: list[dict] | None = None
-    candlestick_data: list[dict] | None = None
     empty: bool = False
     empty_text: str | None = None
 
