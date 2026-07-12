@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, status
 
 from salus.dependencies import get_current_user, get_asymmetric_share_service
 from salus.models.user import User
@@ -13,43 +12,6 @@ from salus.services.asymmetric_share import AsymmetricShareService
 from salus.services._helpers import uid
 
 router = APIRouter(tags=["Asymmetric Sharing"])
-
-# --------------------------------------------------------------------------
-# HTML Page Routers
-# --------------------------------------------------------------------------
-
-
-@router.get("/share/doctor", response_class=HTMLResponse)
-async def doctor_sharing_page(request: Request):
-    return RedirectResponse(url="/settings/shares", status_code=307)
-
-
-@router.get("/share/doctor/{share_id}", response_class=HTMLResponse)
-async def doctor_view_share_page(
-    share_id: int,
-    request: Request,
-    service: AsymmetricShareService = Depends(get_asymmetric_share_service),
-):
-    # Fetch share data (public, since it is encrypted)
-    try:
-        share = service.get_share_secure(share_id)
-    except Exception:
-        return HTMLResponse(
-            content="<h3>Share expired or not found.</h3>", status_code=404
-        )
-
-    return request.app.state.templates.TemplateResponse(
-        request,
-        "pages/doctor_view.html",
-        {
-            "share": share,
-        },
-    )
-
-
-# --------------------------------------------------------------------------
-# API Endpoints
-# --------------------------------------------------------------------------
 
 
 @router.post(

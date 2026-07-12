@@ -35,12 +35,12 @@ def test_webhook_accepts_x_api_token_header(client):
     assert response.json()["status"] == "accepted"
 
     client.headers = {"Authorization": f"Bearer {settings.api_token}"}
-    
+
     entries_resp = client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
-    entries = entries_resp.json()
-    assert len(entries) == 1
-    assert float(entries[0]["value"]) == 5000.0
+    data = entries_resp.json()
+    assert data["total"] == 1
+    assert float(data["entries"][0]["value"]) == 5000.0
 
 
 def test_webhook_inserts_health_records(webhook_client):
@@ -55,9 +55,9 @@ def test_webhook_inserts_health_records(webhook_client):
 
     entries_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
-    entries = entries_resp.json()
-    assert len(entries) == 1
-    assert float(entries[0]["value"]) == 8500.0
+    data = entries_resp.json()
+    assert data["total"] == 1
+    assert float(data["entries"][0]["value"]) == 8500.0
 
 
 def test_webhook_deduplicates(webhook_client):
@@ -74,7 +74,7 @@ def test_webhook_deduplicates(webhook_client):
 
     entries_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
     assert entries_resp.status_code == 200
-    assert len(entries_resp.json()) == 1
+    assert entries_resp.json()["total"] == 1
 
 
 def test_webhook_rejects_invalid_json(webhook_client):
@@ -96,10 +96,10 @@ def test_webhook_handles_multiple_records(webhook_client):
     assert response.json()["status"] == "accepted"
 
     steps_resp = webhook_client.get("/api/v1/entries?metric_type_id=1")
-    assert len(steps_resp.json()) == 1
+    assert steps_resp.json()["total"] == 1
 
     hr_resp = webhook_client.get("/api/v1/entries?metric_type_id=2")
-    assert len(hr_resp.json()) == 2
+    assert hr_resp.json()["total"] == 2
 
     weight_resp = webhook_client.get("/api/v1/entries?metric_type_id=4")
-    assert len(weight_resp.json()) == 1
+    assert weight_resp.json()["total"] == 1

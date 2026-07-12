@@ -1,5 +1,5 @@
 {
-  description = "salus — a health data tracker built with FastAPI, Jinja2, and HTMX";
+  description = "salus — a health data tracker built with FastAPI and SvelteKit";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -21,7 +21,6 @@
           ps: with ps; [
             fastapi
             uvicorn
-            jinja2
             sqlmodel
             python-multipart
             pydantic-settings
@@ -37,12 +36,19 @@
           pname = "salus";
           version = "0.1.0";
           src = ./.;
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [ pkgs.makeWrapper pkgs.nodejs_22 ];
           buildInputs = [ pythonEnv ];
+          buildPhase = ''
+            pushd frontend >/dev/null
+            npm ci
+            npm run build
+            popd >/dev/null
+          '';
           installPhase = ''
             mkdir -p $out/lib/salus $out/bin
             cp -r src $out/lib/salus/
             cp pyproject.toml $out/lib/salus/
+            cp -r frontend/build $out/lib/salus/frontend_build
 
             makeWrapper ${pythonEnv}/bin/uvicorn $out/bin/salus \
               --set PYTHONPATH "$out/lib/salus/src" \
@@ -72,17 +78,34 @@
           };
         };
 
+        packages.frontend = pkgs.stdenv.mkDerivation {
+          pname = "salus-frontend";
+          version = "0.1.0";
+          src = ./frontend;
+          nativeBuildInputs = [ pkgs.nodejs_22 ];
+          buildPhase = ''
+            npm ci
+            npm run build
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp -r build/* $out/
+          '';
+        };
+
         devShells.default = pkgs.mkShell {
           packages = [
             pkgs.python313
             pkgs.uv
             pkgs.ruff
             pkgs.pyright
+            pkgs.nodejs_22
           ];
           shellHook = ''
             echo "salus — health tracking dev environment"
-            echo "python, uv, ruff, pyright available"
-            echo "Run: uv run uvicorn src.salus.main:app --reload"
+            echo "python, uv, ruff, pyright, node available"
+            echo "Backend:  uv run uvicorn src.salus.main:app --reload"
+            echo "Frontend: cd frontend && npm run dev"
           '';
         };
       }

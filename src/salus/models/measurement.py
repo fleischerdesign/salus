@@ -26,6 +26,11 @@ class Measurement(SQLModel, table=True):
     notes: str | None = Field(default=None)
     external_id: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="measurements")
     metric_type: "MetricType" = Relationship(back_populates="measurements")  # pyright: ignore[reportAssignmentType]

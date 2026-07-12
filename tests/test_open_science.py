@@ -22,10 +22,15 @@ def clean_db():
 def auth_client():
     from salus.main import app
     import uuid
+
     username = f"science_user_{uuid.uuid4().hex[:6]}"
     with TestClient(app) as client:
-        client.post("/auth/register", data={"username": username, "password": "password123"})
-        client.post("/auth/login", data={"username": username, "password": "password123"})
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={"username": username, "password": "password123"},
+        )
+        token = resp.json()["token"]
+        client.headers = {"Authorization": f"Bearer {token}"}
         yield client, username
 
 
@@ -132,8 +137,3 @@ def test_synthesis_and_api_route(clean_db, auth_client):
     assert "steps" in res["records"][0]
     # Steps should be near 11000 average (but with Laplace noise added)
     assert res["records"][0]["steps"] >= 0.0
-    
-    # 3. Request page view HTML
-    html_resp = client.get("/open-science")
-    assert html_resp.status_code == 200
-    assert "Open Science Data Synthesizer" in html_resp.text

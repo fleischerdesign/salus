@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -8,6 +9,42 @@ class WidgetSize(str, Enum):
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"
+
+
+@dataclass
+class WidgetViz:
+    """Structured viz payload returned by DashboardWidgetService.widget_data().
+
+    The API layer serializes this to match the ``_DashboardViz`` Pydantic model.
+    Field names are intentionally aligned so serialization is a 1:1 mapping.
+    """
+
+    type: str
+    title: str
+    icon: str | None = None
+    unit: str | None = None
+    value: str | float | None = None
+    subtitle: str | None = None
+    color: str | None = None
+    delta: str | None = None
+    sparkline_points: list[float] | None = None
+    sparkline_path: str | None = None
+    goal_label: str | None = None
+    goal_percent: float | None = None
+    goal_target: float | None = None
+    segments: list[dict] | None = None
+    candlestick_data: list[dict] | None = None
+    empty: bool = False
+    empty_text: str | None = None
+
+
+@dataclass
+class WidgetContext:
+    """Full context for a single dashboard widget, including viz and metadata."""
+
+    widget: "DashboardWidget"
+    metric: "MetricType | None"  # type: ignore[name-defined]  # noqa: F821
+    viz: WidgetViz
 
 
 class DashboardWidget(SQLModel, table=True):
@@ -21,3 +58,8 @@ class DashboardWidget(SQLModel, table=True):
     config_json: str = Field(default="{}")
     is_visible: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)

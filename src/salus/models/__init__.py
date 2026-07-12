@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -32,6 +33,12 @@ class MetricType(SQLModel, table=True):
     widget_size: str = Field(default="medium")
     widget_enabled: bool = Field(default=False)
     position: int = Field(default=0)
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="metric_types")
     measurements: list["Measurement"] = Relationship(back_populates="metric_type")

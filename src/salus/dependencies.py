@@ -1,3 +1,5 @@
+from collections.abc import Generator
+
 from fastapi import Depends, Header, HTTPException, Request
 from sqlmodel import Session
 
@@ -387,8 +389,15 @@ def get_system_config_repo(
     return SystemConfigRepository(session)
 
 
-def get_unit_of_work(session: Session = Depends(get_session)) -> IUnitOfWork:
-    return SqlUnitOfWork(session)
+def get_unit_of_work(session: Session = Depends(get_session)) -> Generator[IUnitOfWork, None, None]:
+    uow = SqlUnitOfWork(session)
+    try:
+        yield uow
+    except Exception:
+        uow.rollback()
+        raise
+    else:
+        uow.commit()
 
 
 def get_config_service(

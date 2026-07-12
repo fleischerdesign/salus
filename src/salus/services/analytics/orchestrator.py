@@ -1,5 +1,3 @@
-import json
-
 from salus.models.analytics import TDEEResult
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.calculations import (
@@ -12,13 +10,6 @@ from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
 
 _RANGE_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}
-
-_RANGE_BUTTONS = [
-    ("7d", "7 Days"),
-    ("30d", "30 Days"),
-    ("90d", "90 Days"),
-    ("1y", "1 Year"),
-]
 
 
 class AnalyticsService:
@@ -40,7 +31,6 @@ class AnalyticsService:
         steps = self._activity.steps_trend(days=days, user_id=user_id)
         sleep_list = self._sleep.trend(days=days, user_id=user_id)
         weight_trend = self._weight.trend(days=days, user_id=user_id)
-        nutrition_list = self._nutrition.daily_totals(days=days, user_id=user_id)
         exercise_sessions = self._activity.exercise_history(
             days=days, user_id=user_id, limit=5
         )
@@ -53,21 +43,64 @@ class AnalyticsService:
         weight_data = [round(w.weight_kg, 1) for w in weight_trend.points]
 
         return {
-            "steps_labels": json.dumps(steps_labels),
-            "steps_data": json.dumps(steps_data),
-            "weight_labels": json.dumps(weight_labels),
-            "weight_data": json.dumps(weight_data),
-            "sleep_list": sleep_list,
-            "latest_sleep": sleep_list[-1] if sleep_list else None,
-            "weight_trend": weight_trend,
-            "bmr": tdee.bmr_kcal if tdee else None,
-            "tdee_data": (tdee.tdee_kcal, tdee.pal_factor, tdee.hrr_pct)
-            if tdee
-            else None,
-            "exercise_sessions": exercise_sessions,
-            "nutrition_list": nutrition_list,
+            "steps_labels": steps_labels,
+            "steps_data": steps_data,
+            "weight_labels": weight_labels,
+            "weight_data": weight_data,
+            "sleep_list": [
+                {
+                    "date": s.date,
+                    "duration_hours": round(s.duration_hours, 2),
+                    "awake_pct": round(s.awake_pct, 1),
+                    "light_pct": round(s.light_pct, 1),
+                    "deep_pct": round(s.deep_pct, 1),
+                    "rem_pct": round(s.rem_pct, 1),
+                }
+                for s in sleep_list
+            ],
+            "latest_sleep": (
+                {
+                    "date": sleep_list[-1].date,
+                    "duration_hours": round(sleep_list[-1].duration_hours, 2),
+                    "awake_pct": round(sleep_list[-1].awake_pct, 1),
+                    "light_pct": round(sleep_list[-1].light_pct, 1),
+                    "deep_pct": round(sleep_list[-1].deep_pct, 1),
+                    "rem_pct": round(sleep_list[-1].rem_pct, 1),
+                }
+                if sleep_list
+                else None
+            ),
+            "weight_trend": {
+                "points": [
+                    {"date": p.date, "weight_kg": round(p.weight_kg, 1)}
+                    for p in weight_trend.points
+                ],
+                "current": weight_trend.current,
+                "start": weight_trend.start,
+                "delta": weight_trend.delta,
+            },
+            "tdee": (
+                {
+                    "tdee_kcal": tdee.tdee_kcal,
+                    "bmr_kcal": tdee.bmr_kcal,
+                    "pal_factor": tdee.pal_factor,
+                    "hrr_pct": tdee.hrr_pct,
+                }
+                if tdee
+                else None
+            ),
+            "exercise_sessions": [
+                {
+                    "type_name": s.type_name,
+                    "date": s.date,
+                    "time": s.time,
+                    "duration_seconds": s.duration_seconds,
+                    "distance_meters": s.distance_meters,
+                    "calories": s.calories,
+                }
+                for s in exercise_sessions
+            ],
             "days": days,
-            "range_buttons": _RANGE_BUTTONS,
         }
 
     def _compute_tdee(self, user_id: int, weight_trend) -> TDEEResult | None:

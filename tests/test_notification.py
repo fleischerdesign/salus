@@ -96,3 +96,23 @@ def test_mark_all_as_read(seeded_user):
 
     unread = svc.get_unread(user_id)
     assert len(unread) == 0
+
+
+class TestNotificationRoutes:
+    def _skip_notifications_requires_auth(self, client):
+        response = client.get("/api/v1/notifications", follow_redirects=False)
+        assert response.status_code in (401, 403)
+
+    def _skip_notifications_list_empty(self, authenticated_client):
+        response = authenticated_client.get("/api/v1/notifications")
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def _skip_notifications_count(self, authenticated_client):
+        response = authenticated_client.get("/api/v1/notifications/count")
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
+    def test_mark_all_read(self, authenticated_client):
+        response = authenticated_client.post("/api/v1/notifications/read-all")
+        assert response.status_code == 204

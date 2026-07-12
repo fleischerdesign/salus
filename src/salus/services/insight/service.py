@@ -26,6 +26,10 @@ class InsightService:
         """Retrieves a previously cached insight if it exists."""
         return self._uow.insights.find_by_user_and_date(user_id, date_str)
 
+    def list_history(self, user_id: int, limit: int = 30) -> list[Insight]:
+        """Returns recent insights for the user, newest first."""
+        return self._uow.insights.list_by_user(user_id, limit=limit)
+
     def generate_daily_insight(
         self, user_id: int, date_str: str, locale: str = "en"
     ) -> Insight:

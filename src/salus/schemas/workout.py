@@ -113,3 +113,21 @@ class WorkoutSessionResponse(BaseModel):
     logs: list[WorkoutLogEntryResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ExerciseHistoryEntry(BaseModel):
+    date: Optional[str] = None
+    set_number: int
+    weight: float
+    reps: int
+    rpe: Optional[float] = None
+    est_one_rm: float
+
+
+class ExerciseDetailResponse(BaseModel):
+    exercise: ExerciseResponse
+    history: list[ExerciseHistoryEntry]
+    pr_max_weight: float
+    pr_est_one_rm: float
+    total_sets: int
+    total_reps: int

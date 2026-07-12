@@ -1,4 +1,0 @@
-{# vim: set ft=htmldjango: Link — @component link #}
-{% macro link(text, href="#", variant="inline", external=false, class=none) %}
-    <a href="{{ href }}" class="link {{ class or '' }} {% if external %}link--external{% endif %}" data-variant="{{ variant }}" {% if external %}rel="noopener noreferrer" target="_blank"{% endif %}>{{ text }}</a>
-{% endmacro %}

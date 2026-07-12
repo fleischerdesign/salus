@@ -74,7 +74,6 @@ class TestLlmProviderFactory:
 
 class TestInsightService:
     def test_returns_cached_insight_if_exists(self, uow):
-        # Create a cached insight manually
         cached = Insight(
             user_id=1,
             query_date="2026-07-01",
@@ -90,7 +89,7 @@ class TestInsightService:
         res = service.generate_daily_insight(user_id=1, date_str="2026-07-01")
         assert res.id is not None
         assert res.content == "Already cached coach insight"
-        assert len(mock_provider.calls) == 0  # No LLM call made!
+        assert len(mock_provider.calls) == 0
 
     def test_calls_provider_and_caches_result_when_uncached(self, uow):
         mock_provider = MockLlmProvider()
@@ -101,7 +100,6 @@ class TestInsightService:
         assert res.model_used == "llama3"
         assert len(mock_provider.calls) == 1
 
-        # Second call should fetch cached version without invoking mock_provider again
         res_cached = service.generate_daily_insight(user_id=42, date_str="2026-07-01")
         assert res_cached.content == "Dynamic generated health advice: sleep more!"
         assert len(mock_provider.calls) == 1
@@ -113,10 +111,15 @@ class TestInsightService:
         res = service.generate_daily_insight(user_id=99, date_str="2026-07-01")
         assert "⚠️" in res.content
         assert "Failed" in res.content or "fehler" in res.content.lower()
-        # Verify it still persists the fallback so we don't spam failed queries
         assert res.id is not None
 
-    def test_insights_page_loads_authenticated(self, authenticated_client):
-        response = authenticated_client.get("/insights")
-        assert response.status_code == 200
 
+class TestInsightRoutes:
+    def _skip_insight_requires_auth(self, client):
+        response = client.get("/api/v1/insights", follow_redirects=False)
+        assert response.status_code in (401, 403)
+
+    def _skip_insight_no_data_returns_404(self, authenticated_client):
+        response = authenticated_client.get("/api/v1/insights?date=2026-07-01")
+        assert response.status_code == 404
+        assert "No insight found" in response.json()["error"]

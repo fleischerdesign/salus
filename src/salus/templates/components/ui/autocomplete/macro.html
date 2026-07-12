@@ -1,8 +1,0 @@
-{# vim: set ft=htmldjango: Autocomplete #}
-{% macro autocomplete(name, options=[], placeholder="Search...", id=none) %}
-    {% set field_id = id or name %}
-    <div class="autocomplete">
-        <input type="text" class="input__field" id="{{ field_id }}" name="{{ name }}" placeholder="{{ placeholder }}" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list">
-        <div class="autocomplete__dropdown" role="listbox">{% for opt in options %}<div class="autocomplete__option" role="option" data-value="{{ opt.value }}">{{ opt.label }}</div>{% endfor %}</div>
-    </div>
-{% endmacro %}
