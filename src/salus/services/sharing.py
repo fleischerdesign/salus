@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import httpx
-from sqlmodel import select
 
 from salus.exceptions import ForbiddenError, NotFoundError, ConflictError
 from salus.models.sharing import ConnectionStatus, SharingRelationship
@@ -88,13 +87,9 @@ class SharingService:
                     "Active sharing relationship already exists for this metric and user"
                 )
 
-            ctx_pending = select(SharingRelationship).where(
-                SharingRelationship.owner_id == owner_id,
-                SharingRelationship.grantee_handle == grantee_handle,
-                SharingRelationship.metric_type_id == metric_type_id,
-                SharingRelationship.status == ConnectionStatus.PENDING,
+            pending = self.uow.sharing_relationships.find_pending_relationship(
+                owner_id, grantee_handle, metric_type_id
             )
-            pending = self.uow.session.exec(ctx_pending).first()
             if pending:
                 raise ConflictError(
                     "A pending sharing invitation already exists for this metric and user"
@@ -315,18 +310,10 @@ class SharingService:
             )
         else:
             if not force_refresh:
-                from salus.models.sharing import FederatedMeasurementCache
-                from datetime import timedelta
-
-                cutoff = datetime.now(timezone.utc) - timedelta(minutes=15)
                 with self.uow:
-                    stmt = select(FederatedMeasurementCache).where(
-                        FederatedMeasurementCache.owner_handle == owner_handle,
-                        FederatedMeasurementCache.data_type == data_type,
-                        FederatedMeasurementCache.date_str == date_str,
-                        FederatedMeasurementCache.fetched_at >= cutoff,
+                    cached = self.uow.federated_measurement_cache.get_cache(
+                        owner_handle, data_type, date_str, max_age_seconds=900
                     )
-                    cached = self.uow.session.exec(stmt).first()
                     if cached:
                         import json
 
@@ -341,29 +328,16 @@ class SharingService:
 
             data = self._fetch_remote(owner_handle, data_type, date_str)
 
-            from salus.models.sharing import FederatedMeasurementCache
             import json
 
             with self.uow:
-                stmt_exist = select(FederatedMeasurementCache).where(
-                    FederatedMeasurementCache.owner_handle == owner_handle,
-                    FederatedMeasurementCache.data_type == data_type,
-                    FederatedMeasurementCache.date_str == date_str,
+                self.uow.federated_measurement_cache.upsert_cache(
+                    owner_handle=owner_handle,
+                    data_type=data_type,
+                    date_str=date_str,
+                    value_numeric=None,
+                    value_json=json.dumps(data),
                 )
-                existing = self.uow.session.exec(stmt_exist).first()
-                if existing:
-                    existing.value_json = json.dumps(data)
-                    existing.fetched_at = datetime.now(timezone.utc)
-                    self.uow.session.add(existing)
-                else:
-                    new_cache = FederatedMeasurementCache(
-                        owner_handle=owner_handle,
-                        data_type=data_type,
-                        date_str=date_str,
-                        value_json=json.dumps(data),
-                        fetched_at=datetime.now(timezone.utc),
-                    )
-                    self.uow.session.add(new_cache)
                 self.uow.commit()
 
             return data
@@ -773,18 +747,9 @@ class SharingService:
         remote_url = endpoints["sharing"]
 
         with self.uow:
-            from salus.models import MetricType
-
-            ctx = (
-                select(SharingRelationship)
-                .join(MetricType)
-                .where(
-                    SharingRelationship.grantee_handle == owner_handle,
-                    SharingRelationship.status == ConnectionStatus.ACTIVE,
-                    MetricType.source_data_type == data_type,
-                )
+            active_rel = self.uow.sharing_relationships.find_active_for_remote_owner(
+                owner_handle, data_type
             )
-            active_rel = self.uow.session.exec(ctx).first()
             local_user = active_rel.owner if active_rel else None
             local_username = local_user.username if local_user else None
 
@@ -912,11 +877,7 @@ class SharingService:
     def process_federation_accept(self, token: str, owner_handle: str) -> None:
         token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
         with self.uow:
-            ctx = select(SharingRelationship).where(
-                SharingRelationship.api_token_hash == token_hash,
-                SharingRelationship.status == ConnectionStatus.PENDING,
-            )
-            rel = self.uow.session.exec(ctx).first()
+            rel = self.uow.sharing_relationships.find_pending_by_token_hash(token_hash)
             if not rel:
                 raise NotFoundError(
                     "Pending sharing relationship not found for the provided token"
@@ -937,17 +898,13 @@ class SharingService:
                 raise NotFoundError("User not found")
             user_handle = f"@{user.username}"
 
-            stmt_local = select(SharingRelationship).where(
-                SharingRelationship.grantee_handle == user_handle,
-                SharingRelationship.status == ConnectionStatus.ACTIVE,
+            local_incoming = self.uow.sharing_relationships.find_active_by_grantee(
+                user_handle
             )
-            local_incoming = self.uow.session.exec(stmt_local).all()
 
-            stmt_remote = select(SharingRelationship).where(
-                SharingRelationship.owner_id == user_id,
-                SharingRelationship.status == ConnectionStatus.ACTIVE,
+            remote_connections = self.uow.sharing_relationships.find_active_by_owner_id(
+                user_id
             )
-            remote_connections = self.uow.session.exec(stmt_remote).all()
 
             friends_dict: dict[int, dict] = {}
             for rel in local_incoming:
@@ -964,18 +921,11 @@ class SharingService:
                 friend_user = friend_data["user"]
                 shared_types = friend_data["metrics"]
 
-                from salus.models.workout import WorkoutSession
-
-                stmt_sessions = (
-                    select(WorkoutSession)
-                    .where(
-                        WorkoutSession.user_id == friend_id,
-                        WorkoutSession.completed_at.is_not(None),  # type: ignore
-                        WorkoutSession.completed_at >= three_days_ago,  # type: ignore
-                    )
-                    .order_by(WorkoutSession.completed_at.desc())  # type: ignore
+                sessions = self.uow.workout_sessions.find_completed_in_range(
+                    friend_id,
+                    three_days_ago,
+                    datetime.max.replace(tzinfo=timezone.utc),
                 )
-                sessions = self.uow.session.exec(stmt_sessions).all()
 
                 for sess in sessions:
                     activities.append(
@@ -1107,18 +1057,9 @@ class SharingService:
                 return
             owner_handle = f"@{user.username}"
 
-            from salus.models import MetricType
-
-            stmt = (
-                select(SharingRelationship)
-                .join(MetricType)
-                .where(
-                    SharingRelationship.owner_id == user_id,
-                    SharingRelationship.status == ConnectionStatus.ACTIVE,
-                    MetricType.source_data_type == data_type,
-                )
+            relationships = self.uow.sharing_relationships.find_active_by_owner_and_data_type(
+                user_id, data_type
             )
-            relationships = self.uow.session.exec(stmt).all()
 
             now = datetime.now(timezone.utc)
             remote_grantees = []

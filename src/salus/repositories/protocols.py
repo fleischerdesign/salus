@@ -11,14 +11,17 @@ from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.models.sharing import (
-    SharingRelationship,
+    FederatedAccessLog,
+    FederatedMeasurementCache,
     LeaderboardGroup,
     LeaderboardMember,
+    SharingRelationship,
 )
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.notification import Notification
+from salus.models.sync_push_log import SyncPushLog
 
 T = TypeVar("T")
 
@@ -189,6 +192,34 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
         self, user_a_id: int, user_b_handle: str
     ) -> SharingRelationship | None: ...
 
+    def find_pending_relationship(
+        self, owner_id: int, grantee_handle: str, metric_type_id: int
+    ) -> SharingRelationship | None: ...
+
+    def find_active_for_remote_owner(
+        self, owner_handle: str, data_type: str
+    ) -> SharingRelationship | None: ...
+
+    def find_pending_by_token_hash(
+        self, token_hash: str
+    ) -> SharingRelationship | None: ...
+
+    def find_active_by_owner_id(
+        self, owner_id: int
+    ) -> list[SharingRelationship]: ...
+
+    def find_active_by_owner_and_data_type(
+        self, owner_id: int, data_type: str
+    ) -> list[SharingRelationship]: ...
+
+    def find_active_by_token_hash(
+        self, token_hash: str
+    ) -> SharingRelationship | None: ...
+
+    def find_active_with_owner_metric_and_grantee(
+        self, owner_id: int, grantee_handle: str, metric_type_id: int
+    ) -> SharingRelationship | None: ...
+
 
 @runtime_checkable
 class IExerciseRepository(IRepository[Exercise], Protocol):
@@ -223,6 +254,10 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
     def count_completed_in_range(
         self, user_id: int, since: "datetime", until: "datetime"
     ) -> int: ...
+
+    def find_completed_in_range(
+        self, user_id: int, since: "datetime", until: "datetime"
+    ) -> list[WorkoutSession]: ...
 
 
 @runtime_checkable
@@ -267,3 +302,27 @@ class INotificationRepository(IRepository[Notification], Protocol):
     def find_unread_by_user(self, user_id: int) -> list[Notification]: ...
 
     def mark_all_read(self, user_id: int) -> None: ...
+
+
+@runtime_checkable
+class ISyncPushLogRepository(IRepository[SyncPushLog], Protocol):
+    def cleanup_expired(self, ttl_hours: int = 24) -> int: ...
+
+    def find_by_client_ids(self, client_ids: list[str]) -> list[SyncPushLog]: ...
+
+
+@runtime_checkable
+class IFederatedMeasurementCacheRepository(IRepository[FederatedMeasurementCache], Protocol):
+    def get_cache(
+        self, owner_handle: str, data_type: str, date_str: str, max_age_seconds: int = 60
+    ) -> FederatedMeasurementCache | None: ...
+
+    def upsert_cache(
+        self, owner_handle: str, data_type: str, date_str: str,
+        value_numeric: float | None, value_json: str | None,
+    ) -> FederatedMeasurementCache: ...
+
+
+@runtime_checkable
+class IFederatedAccessLogRepository(IRepository[FederatedAccessLog], Protocol):
+    def find_by_owner(self, owner_id: int) -> list[FederatedAccessLog]: ...

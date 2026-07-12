@@ -1,7 +1,7 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Any
 
-from sqlmodel import Session, delete, select
+from sqlmodel import Session
 
 from salus.models.sync_push_log import SyncPushLog
 from salus.models.user import User
@@ -40,15 +40,9 @@ class WritePipeline:
         if not client_ids:
             return {}
 
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=_DEDUP_TTL_HOURS)
+        self.uow.sync_push_logs.cleanup_expired(_DEDUP_TTL_HOURS)
 
-        self.session.exec(
-            delete(SyncPushLog).where(SyncPushLog.created_at < cutoff)  # pyright: ignore[reportArgumentType]
-        )
-
-        rows = self.session.exec(
-            select(SyncPushLog).where(SyncPushLog.client_id.in_(client_ids))  # pyright: ignore[reportAttributeAccessIssue]
-        ).all()
+        rows = self.uow.sync_push_logs.find_by_client_ids(client_ids)
 
         cache: dict[str, SyncResult] = {}
         for row in rows:

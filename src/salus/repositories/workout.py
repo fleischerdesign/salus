@@ -79,6 +79,22 @@ class WorkoutSessionRepository(Repository[WorkoutSession]):
         result = self.session.exec(stmt).first()
         return int(result[0]) if result is not None and result[0] is not None else 0  # type: ignore[index]
 
+    def find_completed_in_range(
+        self, user_id: int, since: datetime, until: datetime
+    ) -> list[WorkoutSession]:
+        return list(
+            self.session.exec(
+                select(WorkoutSession)
+                .where(
+                    WorkoutSession.user_id == user_id,
+                    WorkoutSession.completed_at.is_not(None),  # type: ignore[union-attr]
+                    WorkoutSession.completed_at >= since,  # type: ignore[operator]
+                    WorkoutSession.completed_at <= until,  # type: ignore[operator]
+                )
+                .order_by(WorkoutSession.completed_at.desc())  # type: ignore[union-attr]
+            ).all()
+        )
+
     def get_last_session_for_plan(
         self, user_id: int, plan_id: int
     ) -> WorkoutSession | None:

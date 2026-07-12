@@ -7,16 +7,13 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlmodel import select
 
 from salus.dependencies import (
     get_current_user,
     get_sharing_service,
 )
 from salus.models.sharing import (
-    ConnectionStatus,
     FederatedAccessLog,
-    SharingRelationship,
 )
 from salus.models.user import User
 from salus.services.sharing import SharingService
@@ -83,13 +80,9 @@ async def federated_shared_data(
                     authority=request.url.netloc,
                     body=None,
                 )
-                stmt = select(SharingRelationship).where(
-                    SharingRelationship.owner_id == owner.id,
-                    SharingRelationship.grantee_handle == requester_handle,
-                    SharingRelationship.metric_type_id == metric.id,
-                    SharingRelationship.status == ConnectionStatus.ACTIVE,
+                rel = sharing_svc.uow.sharing_relationships.find_active_with_owner_metric_and_grantee(
+                    owner.id, requester_handle, metric.id
                 )
-                rel = sharing_svc.uow.session.exec(stmt).first()
                 if not rel:
                     raise HTTPException(
                         status_code=401, detail="Unauthorized remote grantee"
@@ -109,14 +102,10 @@ async def federated_shared_data(
 
             token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
 
-            ctx = select(SharingRelationship).where(
-                SharingRelationship.api_token_hash == token_hash,
-                SharingRelationship.owner_id == owner.id,
-                SharingRelationship.metric_type_id == metric.id,
-                SharingRelationship.status == ConnectionStatus.ACTIVE,
+            rel = sharing_svc.uow.sharing_relationships.find_active_by_token_hash(
+                token_hash
             )
-            rel = sharing_svc.uow.session.exec(ctx).first()
-            if not rel:
+            if not rel or rel.owner_id != owner.id or rel.metric_type_id != metric.id:
                 raise HTTPException(status_code=401, detail="Invalid or inactive token")
 
         from salus.services._helpers import uid
@@ -235,11 +224,9 @@ async def federated_notify_update(
         )
 
     with sharing_svc.uow:
-        stmt = select(SharingRelationship).where(
-            SharingRelationship.api_token_hash == token_hash,
-            SharingRelationship.status == ConnectionStatus.ACTIVE,
+        rel = sharing_svc.uow.sharing_relationships.find_active_by_token_hash(
+            token_hash
         )
-        rel = sharing_svc.uow.session.exec(stmt).first()
         if not rel:
             raise HTTPException(status_code=401, detail="Unauthorized token hash")
         local_user_id = rel.owner_id
@@ -328,12 +315,9 @@ async def federated_access_log(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     with sharing_svc.uow:
-        stmt = (
-            select(FederatedAccessLog)
-            .where(FederatedAccessLog.owner_id == current_user.id)
-            .order_by(FederatedAccessLog.accessed_at.desc())  # type: ignore
+        logs = sharing_svc.uow.federated_access_logs.find_by_owner(
+            current_user.id
         )
-        logs = sharing_svc.uow.session.exec(stmt).all()
 
     return JSONResponse(
         {

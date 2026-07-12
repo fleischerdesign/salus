@@ -28,6 +28,9 @@ from salus.repositories.protocols import (
     ILeaderboardGroupRepository,
     ILeaderboardMemberRepository,
     INotificationRepository,
+    ISyncPushLogRepository,
+    IFederatedMeasurementCacheRepository,
+    IFederatedAccessLogRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -48,6 +51,9 @@ from salus.repositories.leaderboard import (
     LeaderboardMemberRepository,
 )
 from salus.repositories.notification import NotificationRepository
+from salus.repositories.sync_push_log import SyncPushLogRepository
+from salus.repositories.federated_measurement_cache import FederatedMeasurementCacheRepository
+from salus.repositories.federated_access_log import FederatedAccessLogRepository
 
 
 class IUnitOfWork(Protocol):
@@ -71,6 +77,9 @@ class IUnitOfWork(Protocol):
     leaderboard_groups: ILeaderboardGroupRepository
     leaderboard_members: ILeaderboardMemberRepository
     notifications: INotificationRepository
+    sync_push_logs: ISyncPushLogRepository
+    federated_measurement_cache: IFederatedMeasurementCacheRepository
+    federated_access_logs: IFederatedAccessLogRepository
 
     def __enter__(self) -> "IUnitOfWork": ...
 
@@ -101,6 +110,9 @@ class SqlUnitOfWork:
     leaderboard_groups: ILeaderboardGroupRepository
     leaderboard_members: ILeaderboardMemberRepository
     notifications: INotificationRepository
+    sync_push_logs: ISyncPushLogRepository
+    federated_measurement_cache: IFederatedMeasurementCacheRepository
+    federated_access_logs: IFederatedAccessLogRepository
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -123,6 +135,9 @@ class SqlUnitOfWork:
         self.leaderboard_groups = LeaderboardGroupRepository(session)
         self.leaderboard_members = LeaderboardMemberRepository(session)
         self.notifications = NotificationRepository(session)
+        self.sync_push_logs = SyncPushLogRepository(session)
+        self.federated_measurement_cache = FederatedMeasurementCacheRepository(session)
+        self.federated_access_logs = FederatedAccessLogRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self
