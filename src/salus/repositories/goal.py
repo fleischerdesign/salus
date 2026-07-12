@@ -2,9 +2,10 @@ from sqlmodel import select
 
 from salus.models.goal import Goal
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IGoalRepository
 
 
-class GoalRepository(Repository[Goal]):
+class GoalRepository(Repository[Goal], IGoalRepository):
     model = Goal
 
     def find_by_user(self, user_id: int) -> list[Goal]:

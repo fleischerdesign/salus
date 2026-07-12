@@ -7,6 +7,7 @@ from sqlmodel import select
 
 from salus.models.measurement import Measurement
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IMeasurementRepository
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("salus.repositories.measurement")
 
 
-class MeasurementRepository(Repository[Measurement]):
+class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
     model = Measurement
 
     def __init__(self, session, registry: Optional["HookRegistry"] = None) -> None:

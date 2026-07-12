@@ -2,9 +2,10 @@ from sqlmodel import select, desc
 
 from salus.models.sharing import FederatedAccessLog
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IFederatedAccessLogRepository
 
 
-class FederatedAccessLogRepository(Repository[FederatedAccessLog]):
+class FederatedAccessLogRepository(Repository[FederatedAccessLog], IFederatedAccessLogRepository):
     model = FederatedAccessLog
 
     def find_by_owner(self, owner_id: int) -> list[FederatedAccessLog]:

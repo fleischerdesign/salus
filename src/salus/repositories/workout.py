@@ -3,9 +3,10 @@ from sqlmodel import select, or_, desc, col
 from sqlalchemy.orm import selectinload
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IExerciseRepository, IWorkoutPlanRepository, IWorkoutSessionRepository
 
 
-class ExerciseRepository(Repository[Exercise]):
+class ExerciseRepository(Repository[Exercise], IExerciseRepository):
     model = Exercise
 
     def find_all_catalog(self, user_id: int) -> list[Exercise]:
@@ -21,7 +22,7 @@ class ExerciseRepository(Repository[Exercise]):
         return self.session.exec(select(Exercise).where(Exercise.name == name)).first()
 
 
-class WorkoutPlanRepository(Repository[WorkoutPlan]):
+class WorkoutPlanRepository(Repository[WorkoutPlan], IWorkoutPlanRepository):
     model = WorkoutPlan
 
     def find_by_user(self, user_id: int) -> list[WorkoutPlan]:
@@ -42,7 +43,7 @@ class WorkoutPlanRepository(Repository[WorkoutPlan]):
         self.session.commit()
 
 
-class WorkoutSessionRepository(Repository[WorkoutSession]):
+class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionRepository):
     model = WorkoutSession
 
     def find_recent_by_user(

@@ -2,9 +2,10 @@ from sqlmodel import select
 
 from salus.models import MetricType
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IMetricTypeRepository
 
 
-class MetricTypeRepository(Repository[MetricType]):
+class MetricTypeRepository(Repository[MetricType], IMetricTypeRepository):
     model = MetricType
 
     def find_all(self, user_id: int | None = None) -> list[MetricType]:

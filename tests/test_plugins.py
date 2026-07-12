@@ -1,8 +1,7 @@
 import pytest
 import json
 from pathlib import Path
-from sqlmodel import Session, SQLModel, create_engine
-from sqlalchemy.pool import StaticPool
+from sqlmodel import Session
 
 from salus.exceptions import ForbiddenError
 from salus.models.measurement import Measurement
@@ -13,18 +12,6 @@ from salus.services.plugin.hooks import HookRegistry
 from salus.services.parser import FlexiblePayloadParser, register_parser
 from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.services.insight.service import InsightService
-
-
-@pytest.fixture
-def session():
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as s:
-        yield s
 
 
 # Helper plugin subclass to test permissions sandbox
@@ -104,7 +91,6 @@ def test_flexible_payload_parser_with_plugin_parser(session: Session):
 
 
 def test_event_subscriber_hook_firing(session: Session):
-    uow = SqlUnitOfWork(session)
     registry = HookRegistry()
 
     # Create a mock subscriber that logs calls

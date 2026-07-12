@@ -1,7 +1,7 @@
 import json as _json
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import httpx
@@ -232,7 +232,7 @@ class FederationDataResolver:
                 user_id
             )
 
-            friends_dict: dict[int, dict] = {}
+            friends_dict: dict[int, dict[str, Any]] = {}
             for rel in local_incoming:
                 if rel.owner_id not in friends_dict:
                     friends_dict[rel.owner_id] = {

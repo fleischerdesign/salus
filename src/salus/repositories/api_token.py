@@ -5,9 +5,10 @@ from sqlmodel import select
 
 from salus.models.api_token import ApiToken
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IApiTokenRepository
 
 
-class ApiTokenRepository(Repository[ApiToken]):
+class ApiTokenRepository(Repository[ApiToken], IApiTokenRepository):
     model = ApiToken
 
     def find_by_user(self, user_id: int) -> list[ApiToken]:

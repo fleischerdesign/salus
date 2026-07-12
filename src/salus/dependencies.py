@@ -387,8 +387,11 @@ def get_system_config_repo(
     return SystemConfigRepository(session)
 
 
-def get_unit_of_work(session: Session = Depends(get_session)) -> Generator[IUnitOfWork, None, None]:
-    uow = SqlUnitOfWork(session)
+def get_unit_of_work(
+    session: Session = Depends(get_session),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
+) -> Generator[IUnitOfWork, None, None]:
+    uow = SqlUnitOfWork(session, registry=registry)
     try:
         yield uow
     except Exception:

@@ -1,6 +1,7 @@
 import logging
 import math
 from datetime import datetime, timezone
+from typing import Any
 
 from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
@@ -47,8 +48,8 @@ class MeasurementService:
 
     def get_metric_overview(
         self, user_id: int, metric_ids: list[int]
-    ) -> dict[int, dict]:
-        result: dict[int, dict] = {}
+    ) -> dict[int, dict[str, Any]]:
+        result: dict[int, dict[str, Any]] = {}
         for mid in metric_ids:
             latest = self.repo.get_latest_by_metric_type(mid, user_id)
             count = self.repo.count_by_metric_type(mid, user_id)

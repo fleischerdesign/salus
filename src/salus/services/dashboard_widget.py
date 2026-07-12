@@ -49,13 +49,13 @@ VIZ_TYPE_DEFAULTS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 
-def _delta_str(
+def _delta(
     current: float | None,
     previous: float | None,
     unit: str = "",
     is_integer: bool = False,
     up_is_good: bool = True,
-) -> str | None:
+) -> dict[str, object] | None:
     if current is None or previous is None or previous == 0:
         return None
     diff = current - previous
@@ -64,22 +64,18 @@ def _delta_str(
     else:
         diff_str = f"{abs(diff):.1f}"
     pct = abs(diff) / abs(previous) * 100
-    direction = "&#8593;" if diff > 0 else "&#8595;" if diff < 0 else ""
-    if up_is_good:
-        css_class = "positive" if diff > 0 else "negative" if diff < 0 else ""
-    else:
-        css_class = "positive" if diff < 0 else "negative" if diff > 0 else ""
     if unit:
-        return (
-            f'<span class="widget-delta widget-delta--{css_class}">'
-            f"{direction} {diff_str}{unit}</span>"
-        )
-    if diff > 0 and pct >= 1:
-        return (
-            f'<span class="widget-delta widget-delta--{css_class}">'
-            f"{direction} {pct:.0f}%</span>"
-        )
-    return f'<span class="widget-delta widget-delta--{css_class}">{direction} {diff_str}</span>'
+        display = f"{diff_str}{unit}"
+    elif diff > 0 and pct >= 1:
+        display = f"{pct:.0f}%"
+    else:
+        display = diff_str
+    return {
+        "value": diff_str,
+        "display": display,
+        "direction": "up" if diff > 0 else "down" if diff < 0 else "",
+        "positive": (diff > 0 and up_is_good) or (diff < 0 and not up_is_good),
+    }
 
 
 def _yesterday(date_str: str) -> str:
@@ -141,7 +137,7 @@ class StepsVizBuilder:
             unit="steps",
             subtitle="today",
             color=color,
-            delta=_delta_str(
+            delta=_delta(
                 today.count, yesterday.count if yesterday else None, is_integer=True
             ),
         )
@@ -171,7 +167,7 @@ class HeartRateVizBuilder:
             value=f"{hr.resting_bpm:.0f}",
             unit="bpm",
             color=color,
-            delta=_delta_str(
+            delta=_delta(
                 hr.resting_bpm,
                 yesterday_hr.resting_bpm if yesterday_hr else None,
                 unit=" bpm",
@@ -215,7 +211,7 @@ class SleepVizBuilder:
             value=f"{sl.duration_hours:.1f}",
             unit="h",
             color=color,
-            delta=_delta_str(
+            delta=_delta(
                 sl.duration_hours,
                 yesterday_sleep.duration_hours if yesterday_sleep else None,
                 unit="h",
@@ -260,7 +256,7 @@ class NutritionVizBuilder:
             value=f"{n.total_kcal:.0f}",
             unit="kcal",
             color=color,
-            delta=_delta_str(
+            delta=_delta(
                 n.total_kcal,
                 yesterday_n.total_kcal if yesterday_n else None,
                 unit=" kcal",
@@ -283,7 +279,7 @@ class WeightVizBuilder:
             value=f"{w.weight_kg:.1f}",
             unit="kg",
             color=color,
-            delta=_delta_str(
+            delta=_delta(
                 w.weight_kg,
                 yesterday_w.weight_kg if yesterday_w else None,
                 unit=" kg",

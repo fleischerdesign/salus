@@ -41,11 +41,17 @@ from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
 
-log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, log_level),
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+
+def _warn_default_secrets() -> None:
+    warned = False
+    if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+        logging.warning("SALUS_JWT_SECRET_KEY is set to the default value — generate a strong random key for production.")
+        warned = True
+    if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+        logging.warning("SALUS_API_TOKEN is set to the default value — generate a unique token for production.")
+        warned = True
+    if warned:
+        logging.warning("Default secrets detected. Set SALUS_JWT_SECRET_KEY and SALUS_API_TOKEN env vars for production use.")
 
 
 class SPAStaticFiles(StaticFiles):
@@ -62,6 +68,14 @@ class SPAStaticFiles(StaticFiles):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+    _warn_default_secrets()
+
     from fastapi import APIRouter
 
     from salus.repositories.unit_of_work import SqlUnitOfWork

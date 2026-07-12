@@ -3,9 +3,10 @@ from typing import Optional
 
 from salus.models.circadian import CircadianProfile
 from salus.repositories.base import Repository
+from salus.repositories.protocols import ICircadianProfileRepository
 
 
-class CircadianProfileRepository(Repository[CircadianProfile]):
+class CircadianProfileRepository(Repository[CircadianProfile], ICircadianProfileRepository):
     model = CircadianProfile
 
     def find_by_user(self, user_id: int) -> Optional[CircadianProfile]:

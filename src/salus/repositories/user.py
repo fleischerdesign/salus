@@ -3,9 +3,10 @@ from sqlmodel import select
 from salus.exceptions import NotFoundError
 from salus.models.user import User
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IUserRepository
 
 
-class UserRepository(Repository[User]):
+class UserRepository(Repository[User], IUserRepository):
     model = User
 
     def get_by_username(self, username: str) -> User | None:

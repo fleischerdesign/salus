@@ -3,9 +3,10 @@ from typing import Optional
 
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IShareRecipientRepository, IAsymmetricShareRepository
 
 
-class ShareRecipientRepository(Repository[ShareRecipient]):
+class ShareRecipientRepository(Repository[ShareRecipient], IShareRecipientRepository):
     model = ShareRecipient
 
     def find_by_user(self, user_id: int) -> list[ShareRecipient]:
@@ -16,7 +17,7 @@ class ShareRecipientRepository(Repository[ShareRecipient]):
         )
 
 
-class AsymmetricShareRepository(Repository[AsymmetricShare]):
+class AsymmetricShareRepository(Repository[AsymmetricShare], IAsymmetricShareRepository):
     model = AsymmetricShare
 
     def find_by_user(self, user_id: int) -> list[AsymmetricShare]:

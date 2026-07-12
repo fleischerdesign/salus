@@ -27,7 +27,7 @@ class WidgetViz:
     value: str | float | None = None
     subtitle: str | None = None
     color: str | None = None
-    delta: str | None = None
+    delta: dict[str, object] | None = None
     goal_label: str | None = None
     goal_percent: float | None = None
     goal_target: float | None = None

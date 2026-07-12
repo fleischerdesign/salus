@@ -8,6 +8,7 @@ from salus.models.analytics import (
     HRTimelinePoint,
     StepDay,
 )
+from salus.models.measurement import Measurement
 from salus.repositories.protocols import IMeasurementRepository
 from salus.services.analytics.calculations import map_exercise_type
 
@@ -32,7 +33,7 @@ class ActivityAnalysisService:
         )
 
         # Group records by date in memory
-        by_date: dict[str, list] = {}
+        by_date: dict[str, list[Measurement]] = {}
         for rec in records:
             d_str = rec.start_time.strftime("%Y-%m-%d")
             by_date.setdefault(d_str, []).append(rec)
@@ -118,7 +119,7 @@ class ActivityAnalysisService:
         )
 
         # Group records by date in memory
-        by_date: dict[str, list] = {}
+        by_date: dict[str, list[Measurement]] = {}
         for rec in records:
             d_str = rec.start_time.strftime("%Y-%m-%d")
             by_date.setdefault(d_str, []).append(rec)

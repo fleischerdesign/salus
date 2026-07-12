@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, TYPE_CHECKING
 
 from sqlmodel import Session
 
@@ -58,6 +58,9 @@ from salus.repositories.federated_measurement_cache import FederatedMeasurementC
 from salus.repositories.federated_access_log import FederatedAccessLogRepository
 from salus.repositories.workout_plan_exercise import WorkoutPlanExerciseRepository
 from salus.repositories.workout_log_entry import WorkoutLogEntryRepository
+
+if TYPE_CHECKING:
+    from salus.services.plugin.hooks import HookRegistry
 
 
 class IUnitOfWork(Protocol):
@@ -122,12 +125,12 @@ class SqlUnitOfWork:
     workout_plan_exercises: IWorkoutPlanExerciseRepository
     workout_log_entries: IWorkoutLogEntryRepository
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
         self.users = UserRepository(session)
         self.identities = UserIdentityRepository(session)
         self.metric_types = MetricTypeRepository(session)
-        self.measurements = MeasurementRepository(session)
+        self.measurements = MeasurementRepository(session, registry=registry)
         self.goals = GoalRepository(session)
         self.api_tokens = ApiTokenRepository(session)
         self.system_configs = SystemConfigRepository(session)

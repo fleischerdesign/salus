@@ -3,9 +3,10 @@ from sqlmodel import select
 
 from salus.models.insight import Insight
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IInsightRepository
 
 
-class InsightRepository(Repository[Insight]):
+class InsightRepository(Repository[Insight], IInsightRepository):
     model = Insight
 
     def find_by_user_and_date(self, user_id: int, query_date: str) -> Insight | None:

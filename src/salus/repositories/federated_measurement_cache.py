@@ -4,9 +4,10 @@ from sqlmodel import select
 
 from salus.models.sharing import FederatedMeasurementCache
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IFederatedMeasurementCacheRepository
 
 
-class FederatedMeasurementCacheRepository(Repository[FederatedMeasurementCache]):
+class FederatedMeasurementCacheRepository(Repository[FederatedMeasurementCache], IFederatedMeasurementCacheRepository):
     model = FederatedMeasurementCache
 
     def get_cache(

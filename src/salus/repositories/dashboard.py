@@ -3,9 +3,10 @@ from sqlmodel import select
 
 from salus.models.dashboard import DashboardWidget
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IDashboardWidgetRepository
 
 
-class DashboardWidgetRepository(Repository[DashboardWidget]):
+class DashboardWidgetRepository(Repository[DashboardWidget], IDashboardWidgetRepository):
     model = DashboardWidget
 
     def find_by_user(self, user_id: int) -> list[DashboardWidget]:

@@ -2,9 +2,10 @@ from sqlmodel import select
 
 from salus.models.system_config import SystemConfig
 from salus.repositories.base import Repository
+from salus.repositories.protocols import ISystemConfigRepository
 
 
-class SystemConfigRepository(Repository[SystemConfig]):
+class SystemConfigRepository(Repository[SystemConfig], ISystemConfigRepository):
     model = SystemConfig
 
     def get_all(self) -> list[SystemConfig]:

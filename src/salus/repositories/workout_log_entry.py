@@ -3,9 +3,10 @@ from sqlalchemy.orm import selectinload
 
 from salus.models.workout import WorkoutLogEntry, WorkoutSession
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IWorkoutLogEntryRepository
 
 
-class WorkoutLogEntryRepository(Repository[WorkoutLogEntry]):
+class WorkoutLogEntryRepository(Repository[WorkoutLogEntry], IWorkoutLogEntryRepository):
     model = WorkoutLogEntry
 
     def find_by_session_exercise_set(

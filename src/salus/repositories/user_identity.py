@@ -2,9 +2,10 @@ from sqlmodel import select
 
 from salus.models.user_identity import UserIdentity
 from salus.repositories.base import Repository
+from salus.repositories.protocols import IUserIdentityRepository
 
 
-class UserIdentityRepository(Repository[UserIdentity]):
+class UserIdentityRepository(Repository[UserIdentity], IUserIdentityRepository):
     model = UserIdentity
 
     def get_by_provider_user_id(
