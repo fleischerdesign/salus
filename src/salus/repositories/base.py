@@ -14,7 +14,7 @@ class Repository(Generic[T]):
 
     def get_by_id(self, id: int) -> T | None:
         obj = self.session.get(self.model, id)
-        if obj and hasattr(obj, 'deleted_at') and obj.deleted_at is not None:
+        if obj and hasattr(obj, 'deleted_at') and obj.deleted_at is not None:  # pyright: ignore[reportAttributeAccessIssue]
             return None
         return obj
 
@@ -34,7 +34,7 @@ class Repository(Generic[T]):
 
     def delete(self, obj: T, auto_commit: bool = True) -> None:
         if hasattr(obj, 'deleted_at'):
-            obj.deleted_at = datetime.now(timezone.utc)
+            obj.deleted_at = datetime.now(timezone.utc)  # pyright: ignore[reportAttributeAccessIssue]
             self.session.add(obj)
         else:
             self.session.delete(obj)

@@ -49,7 +49,7 @@ class LdapAuthProvider:
 
         try:
             server = Server(server_uri)
-            conn = Connection(server, user_dn, password, auto_try_bind=True)
+            conn = Connection(server, user_dn, password, auto_bind=True)
             if self._use_tls:
                 conn.start_tls()
             conn.unbind()

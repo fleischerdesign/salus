@@ -133,7 +133,7 @@ def _register_one(app: FastAPI, entity_name: str) -> None:
             obj = uow.session.get(model, id)
             if obj is None:
                 raise HTTPException(status_code=404, detail=f"{entity_name} not found")
-            if hasattr(obj, "deleted_at") and obj.deleted_at is not None:
+            if hasattr(obj, "deleted_at") and obj.deleted_at is not None:  # pyright: ignore[reportAttributeAccessIssue]
                 raise HTTPException(status_code=404, detail=f"{entity_name} not found")
             _check_ownership(obj, user, meta)
             return obj.model_dump()  # type: ignore[union-attr]

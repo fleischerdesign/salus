@@ -81,7 +81,7 @@ async def federated_shared_data(
                     body=None,
                 )
                 rel = sharing_svc.uow.sharing_relationships.find_active_with_owner_metric_and_grantee(
-                    owner.id, requester_handle, metric.id
+                    owner.id, requester_handle, metric.id  # type: ignore[reportArgumentType]
                 )
                 if not rel:
                     raise HTTPException(
@@ -316,7 +316,7 @@ async def federated_access_log(
 ):
     with sharing_svc.uow:
         logs = sharing_svc.uow.federated_access_logs.find_by_owner(
-            current_user.id
+            current_user.id  # type: ignore[reportArgumentType]
         )
 
     return JSONResponse(

@@ -36,9 +36,9 @@ def _owner_attr(model: type, spec: EntityMeta):
 def _parent_ids(sess, spec: EntityMeta, user_id: int) -> list[int]:
     parent = spec.parent_model
     owner = spec.parent_owner_field or "user_id"
-    stmt = select(parent.id).where(getattr(parent, owner) == user_id)
+    stmt = select(parent.id).where(getattr(parent, owner) == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     if not spec.no_soft_delete and hasattr(parent, "deleted_at"):
-        stmt = stmt.where(getattr(parent, "deleted_at").is_(None))
+        stmt = stmt.where(getattr(parent, "deleted_at").is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     rows = sess.exec(stmt).all()
     return [r for r in rows if r is not None]
 
@@ -60,7 +60,7 @@ def _build_full_query(sess, spec: EntityMeta, user_id: int, cursor: int):
         ids = _parent_ids(sess, spec, user_id)
         if not ids:
             return None
-        stmt = select(model).where(getattr(model, spec.parent_field).in_(ids))
+        stmt = select(model).where(getattr(model, spec.parent_field).in_(ids))  # pyright: ignore[reportArgumentType]
     elif spec.strategy == "global":
         stmt = select(model)
     elif spec.strategy == "append_only":
@@ -69,7 +69,7 @@ def _build_full_query(sess, spec: EntityMeta, user_id: int, cursor: int):
         return None
 
     stmt = _soft_delete_filter(model, stmt, spec)
-    stmt = stmt.where(model.id > cursor).order_by(model.id).limit(spec.batch_size + 1)
+    stmt = stmt.where(model.id > cursor).order_by(model.id).limit(spec.batch_size + 1)  # pyright: ignore[reportAttributeAccessIssue]
     return stmt
 
 
@@ -85,14 +85,14 @@ def _admin_user_list(s, exclude_user_id: int) -> list[dict]:
     goal_subq = (
         select(func.count())
         .select_from(Goal)
-        .where(Goal.user_id == User.id, Goal.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue]
+        .where(Goal.user_id == User.id, Goal.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         .correlate(User)
         .scalar_subquery()
         .label("goal_count")
     )
 
     rows = s.exec(
-        select(
+        select(  # pyright: ignore[reportCallIssue]
             User.id,
             User.username,
             User.email,
@@ -189,8 +189,8 @@ def _community_activity_feed(s, user_id: int, username: str) -> list[dict]:
     sessions = s.exec(
         select(WorkoutSession).where(
             WorkoutSession.user_id == user_id,
-            WorkoutSession.completed_at.is_not(None),  # pyright: ignore[reportAttributeAccessIssue]
-        ).order_by(WorkoutSession.completed_at.desc()).limit(20)
+            WorkoutSession.completed_at.is_not(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        ).order_by(WorkoutSession.completed_at.desc()).limit(20)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     ).all()
 
     for se in sessions:
@@ -289,7 +289,7 @@ class SyncService:
                 rows = rows[:spec.batch_size]
 
             if rows:
-                last_id = rows[-1].id
+                last_id = rows[-1].id  # pyright: ignore[reportAttributeAccessIssue]
                 next_cursors[spec.name] = last_id if last_id is not None else cursor
                 if len(rows) == spec.batch_size:
                     pass
@@ -312,7 +312,7 @@ class SyncService:
         s = self.uow.session
         now = datetime.now(timezone.utc)
 
-        changed: dict[str, list] = {}
+        changed: dict[str, list[Any]] = {}
         deleted: dict[str, list[int]] = {}
 
         for spec in DELTA_ENTITY_SPECS:
@@ -330,17 +330,17 @@ class SyncService:
 
                 ts_filter = _delta_timestamp_filter(model, since)
                 if ts_filter is not None:
-                    changed[name] = s.exec(
+                    changed[name] = list(s.exec(
                         select(model).where(
                             base_filter,
                             ts_filter,
                             getattr(model, "deleted_at").is_(None),
                         )
-                    ).all()
+                    ).all())  # type: ignore[reportArgumentType]
                 if hasattr(model, "deleted_at"):
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(
+                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
                                 base_filter,
                                 getattr(model, "deleted_at") >= since,
                             )
@@ -353,21 +353,21 @@ class SyncService:
                 parent_ids = _parent_ids(s, spec, user_id)
                 if not parent_ids:
                     continue
-                parent_filter = getattr(model, spec.parent_field).in_(parent_ids)
+                parent_filter = getattr(model, spec.parent_field).in_(parent_ids)  # pyright: ignore[reportArgumentType]
 
                 ts_filter = _delta_timestamp_filter(model, since)
                 if ts_filter is not None:
-                    changed[name] = s.exec(
+                    changed[name] = list(s.exec(
                         select(model).where(
                             parent_filter,
                             ts_filter,
                             getattr(model, "deleted_at").is_(None),
                         )
-                    ).all()
+                    ).all())
                 if hasattr(model, "deleted_at"):
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(
+                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
                                 parent_filter,
                                 getattr(model, "deleted_at") >= since,
                             )
@@ -379,16 +379,16 @@ class SyncService:
             elif spec.strategy == "global":
                 ts_filter = _delta_timestamp_filter(model, since)
                 if ts_filter is not None:
-                    changed[name] = s.exec(
+                    changed[name] = list(s.exec(
                         select(model).where(
                             ts_filter,
                             getattr(model, "deleted_at").is_(None),
                         )
-                    ).all()
+                    ).all())
                 if hasattr(model, "deleted_at"):
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(
+                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
                                 getattr(model, "deleted_at") >= since,
                             )
                         ).all()
@@ -402,12 +402,12 @@ class SyncService:
             ts_field = spec.timestamp_field or "created_at"
             owner_attr = _owner_attr(model, spec)
 
-            changed[name] = s.exec(
+            changed[name] = list(s.exec(
                 select(model).where(
                     owner_attr == user_id,
                     getattr(model, ts_field) >= since,
                 )
-            ).all()
+            ).all())  # type: ignore[reportArgumentType]
 
         special = _special_entities(s, user)
         for key, value in special.items():

@@ -175,8 +175,8 @@ class WorkoutService:
             self.uow.workout_plans.update(plan)
 
             # Replace plan exercises
-            plan_id = plan.id
-            if plan_id is None:
+            plan_pk = plan.id
+            if plan_pk is None:
                 raise ValueError("Plan was not persisted correctly.")
 
             new_exercises = []
@@ -186,7 +186,7 @@ class WorkoutService:
                     raise NotFoundError(f"Exercise ID {item.exercise_id} not found.")
 
                 plan_ex = WorkoutPlanExercise(
-                    plan_id=plan_id,
+                    plan_id=plan_pk,
                     exercise_id=item.exercise_id,
                     sequence=item.sequence,
                     target_sets=item.target_sets,
@@ -198,7 +198,7 @@ class WorkoutService:
                 new_exercises.append(plan_ex)
 
             self.uow.workout_plan_exercises.replace_exercises_for_plan(
-                plan_id, new_exercises
+                plan_pk, new_exercises
             )
 
             self.uow.commit()
