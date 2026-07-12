@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from salus.models.measurement import Measurement  # noqa: F401
     from salus.models.user import User  # noqa: F401
 
+DEFAULT_METRIC_COLOR = "#4f46e5"
+
 
 class DataType(str, Enum):
     NUMBER = "number"
@@ -25,7 +27,7 @@ class MetricType(SQLModel, table=True):
     name: str
     unit: str = Field(default="")
     data_type: DataType = Field(default=DataType.NUMBER)
-    color: str = Field(default="#4f46e5")
+    color: str = Field(default=DEFAULT_METRIC_COLOR)
     user_id: int = Field(foreign_key="user.id")
     is_system: bool = Field(default=False)
     source_data_type: str | None = Field(default=None)

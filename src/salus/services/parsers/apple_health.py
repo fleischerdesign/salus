@@ -1,7 +1,7 @@
 import json
 
 from salus.models.measurement import Measurement
-from salus.services.parser import _to_dt, make_external_id
+from salus.services.parser import _parse_datetime, make_external_id
 
 
 class AppleHealthExportParser:
@@ -34,7 +34,7 @@ class AppleHealthExportParser:
                     data_type=data_type,
                     source="apple_health",
                     value_json=json.dumps({"value": item.get("value", "")}),
-                    start_time=_to_dt(start_time),
+                    start_time=_parse_datetime(start_time),
                     external_id=ext_id,
                 )
             )

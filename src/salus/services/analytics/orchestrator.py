@@ -9,7 +9,7 @@ from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
 
-_RANGE_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}
+RANGE_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "90d": 90, "1y": 365}
 
 
 class AnalyticsService:
@@ -26,7 +26,7 @@ class AnalyticsService:
         self._nutrition = nutrition_svc
 
     def build_context(self, user_id: int, range_key: str = "30d") -> dict:
-        days = _RANGE_DAYS.get(range_key, 30)
+        days = RANGE_DAYS.get(range_key, 30)
 
         steps = self._activity.steps_trend(days=days, user_id=user_id)
         sleep_list = self._sleep.trend(days=days, user_id=user_id)

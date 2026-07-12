@@ -2,11 +2,13 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
 
+from salus.services._helpers import DEFAULT_METRIC_COLOR
+
 
 class PeerMetricInfo(BaseModel):
     metric_name: str
     icon: str = "monitoring"
-    color: str = "#4f46e5"
+    color: str = DEFAULT_METRIC_COLOR
     aggregation: str = "daily_summary"
     direction: str  # "outgoing" or "incoming"
     relationship_id: int

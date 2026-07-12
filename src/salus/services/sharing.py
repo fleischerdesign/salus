@@ -10,7 +10,7 @@ from salus.exceptions import ForbiddenError, NotFoundError, ConflictError
 from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sharing import PeerConnection, PeerMetricInfo
-from salus.services._helpers import uid
+from salus.services._helpers import uid, DEFAULT_METRIC_COLOR, parse_date
 
 logger = logging.getLogger("salus.services.sharing")
 
@@ -26,7 +26,7 @@ class SharingService:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _normalise_handle(handle: str) -> str:
+    def _normalize_handle(handle: str) -> str:
         handle = handle.strip()
         if not handle.startswith("@"):
             handle = f"@{handle}"
@@ -64,7 +64,7 @@ class SharingService:
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
     ) -> SharingRelationship:
-        grantee_handle = self._normalise_handle(grantee_handle)
+        grantee_handle = self._normalize_handle(grantee_handle)
 
         with self.uow:
             metric = self.uow.metric_types.get_by_id(metric_type_id)
@@ -221,7 +221,7 @@ class SharingService:
                         PeerMetricInfo(
                             metric_name=rel.metric_type.name,
                             icon=getattr(rel.metric_type, "icon", "monitoring"),
-                            color=getattr(rel.metric_type, "color", "#4f46e5"),
+                            color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="outgoing",
                             relationship_id=rel.id or 0,
@@ -254,7 +254,7 @@ class SharingService:
                         PeerMetricInfo(
                             metric_name=rel.metric_type.name,
                             icon=getattr(rel.metric_type, "icon", "monitoring"),
-                            color=getattr(rel.metric_type, "color", "#4f46e5"),
+                            color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="incoming",
                             relationship_id=rel.id or 0,
@@ -296,7 +296,7 @@ class SharingService:
         date_str: str,
         force_refresh: bool = False,
     ) -> list[dict]:
-        owner_handle = self._normalise_handle(owner_handle)
+        owner_handle = self._normalize_handle(owner_handle)
 
         with self.uow:
             req_user = self.uow.users.get_by_id(requester_id)
@@ -376,10 +376,7 @@ class SharingService:
                 data_types=[data_type],
             )
 
-            try:
-                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            except ValueError:
-                target_date = datetime.now(timezone.utc).date()
+            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
 
             day_measurements = [
                 m for m in raw_measurements if m.start_time.date() == target_date

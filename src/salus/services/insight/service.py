@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from salus.models.insight import Insight
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services._helpers import parse_date
 from salus.services.insight.providers.base import ILlmProvider
 from salus.services.plugin.hooks import HookRegistry
 
@@ -45,9 +46,10 @@ class InsightService:
             return existing
 
         # 2. Parse query date
-        try:
-            query_date = datetime.strptime(date_str, "%Y-%m-%d")
-        except ValueError:
+        parsed = parse_date(date_str)
+        if parsed is not None:
+            query_date = datetime.combine(parsed, datetime.min.time())
+        else:
             query_date = datetime.today()
             date_str = query_date.strftime("%Y-%m-%d")
 

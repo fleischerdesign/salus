@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from salus.models import MetricType  # noqa: F401
     from salus.models.user import User  # noqa: F401
 
 
@@ -38,3 +39,4 @@ class Goal(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="goals")
+    metric_type: "MetricType" = Relationship()  # type: ignore[name-defined]  # noqa: F821

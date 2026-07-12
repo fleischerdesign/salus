@@ -161,6 +161,27 @@ app.add_middleware(
 )
 app.middleware("http")(i18n_middleware)
 
+secure_endpoints = {"/docs", "/openapi.json", "/redoc"}
+
+
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if request.url.path not in secure_endpoints and not request.url.path.startswith("/api/"):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self'"
+        )
+    return response
+
+app.middleware("http")(security_headers_middleware)
+
 app.include_router(api_auth.router)
 app.include_router(api_dashboard.router)
 app.include_router(api_misc.router)

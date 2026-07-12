@@ -1,7 +1,7 @@
 import json
 
 from salus.models.measurement import Measurement
-from salus.services.parser import _to_dt, make_external_id
+from salus.services.parser import _parse_datetime, make_external_id
 
 
 class FitbitParser:
@@ -32,7 +32,7 @@ class FitbitParser:
                             "resting": item.get("value", {}).get("restingHeartRate"),
                         }
                     ),
-                    start_time=_to_dt(date_time),
+                    start_time=_parse_datetime(date_time),
                     external_id=ext_id,
                 )
             )

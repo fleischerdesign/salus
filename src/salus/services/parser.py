@@ -9,7 +9,7 @@ from salus.models.measurement import Measurement
 logger = logging.getLogger("salus.parser")
 
 
-def _to_dt(time_str: str) -> datetime:
+def _parse_datetime(time_str: str) -> datetime:
     if not time_str:
         return datetime.now(timezone.utc)
     try:
@@ -154,8 +154,8 @@ class HealthConnectWebhookParser:
                         source="health_connect",
                         value_numeric=value_numeric,
                         value_json=value_json,
-                        start_time=_to_dt(start_time),
-                        end_time=_to_dt(end_time) if end_time else None,
+                        start_time=_parse_datetime(start_time),
+                        end_time=_parse_datetime(end_time) if end_time else None,
                         external_id=external_id,
                     )
                 )
@@ -224,8 +224,8 @@ class FlatArrayParser:
                     source="flat_array",
                     value_numeric=value_numeric,
                     value_json=value_json,
-                    start_time=_to_dt(start_time),
-                    end_time=_to_dt(end_time) if end_time else None,
+                    start_time=_parse_datetime(start_time),
+                    end_time=_parse_datetime(end_time) if end_time else None,
                     external_id=external_id,
                 )
             )

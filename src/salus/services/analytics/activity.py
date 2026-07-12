@@ -100,7 +100,7 @@ class ActivityAnalysisService:
                 )
         return points
 
-    _OHLC_DAY_LABELS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    OHLC_DAY_LABELS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
     def heart_rate_ohlc(
         self, days: int = 7, user_id: int | None = None, date: str | None = None
@@ -137,7 +137,7 @@ class ActivityAnalysisService:
                 result.append(
                     HROHLC(
                         date=d_str,
-                        label=self._OHLC_DAY_LABELS[d.weekday()],
+                        label=self.OHLC_DAY_LABELS[d.weekday()],
                         open_bpm=0,
                         high_bpm=0,
                         low_bpm=0,
@@ -149,7 +149,7 @@ class ActivityAnalysisService:
                 result.append(
                     HROHLC(
                         date=d_str,
-                        label=self._OHLC_DAY_LABELS[d.weekday()],
+                        label=self.OHLC_DAY_LABELS[d.weekday()],
                         open_bpm=bpms[-1],
                         high_bpm=max(bpms),
                         low_bpm=min(bpms),

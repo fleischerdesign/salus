@@ -22,7 +22,7 @@ from salus.services.goal import GoalService
 
 logger = logging.getLogger(__name__)
 
-_EMPTY_TEXTS: dict[str, str] = {
+EMPTY_TEXTS: dict[str, str] = {
     "steps": "No step data yet. Connect a health source to get started.",
     "heart_rate": "No heart rate data synced yet.",
     "sleep": "No sleep data recorded yet.",
@@ -37,7 +37,7 @@ _EMPTY_TEXTS: dict[str, str] = {
     "readiness": "No readiness data.",
 }
 
-_VIZ_TYPE_DEFAULTS: dict[str, str] = {
+VIZ_TYPE_DEFAULTS: dict[str, str] = {
     "steps": "progress",
     "heart_rate": "pills",
     "sleep": "bar",
@@ -561,7 +561,7 @@ class DashboardWidgetService:
         enabled_metrics = [m for m in enabled_metrics if m.widget_enabled]
         widgets: list[DashboardWidget] = []
         for pos, metric in enumerate(enabled_metrics):
-            viz_type = _VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
+            viz_type = VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
             config = json.dumps({"viz_type": viz_type})
             w = DashboardWidget(
                 user_id=user_id,
@@ -590,7 +590,7 @@ class DashboardWidgetService:
         position = len(existing)
         metric = self._metric_type_repo.get_by_id(metric_type_id)
         viz_type = (
-            _VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
+            VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
             if metric
             else "number"
         )
@@ -643,7 +643,7 @@ class DashboardWidgetService:
             config = json.loads(widget.config_json)
         except (json.JSONDecodeError, TypeError):
             config = {}
-        viz_type = config.get("viz_type") or _VIZ_TYPE_DEFAULTS.get(sd or "", "number")
+        viz_type = config.get("viz_type") or VIZ_TYPE_DEFAULTS.get(sd or "", "number")
 
         builder = _VIZ_BUILDERS.get(sd or "")
         if builder is None:
@@ -665,7 +665,7 @@ class DashboardWidgetService:
                 icon=metric.icon,
                 color=metric.color,
                 empty=True,
-                empty_text=_EMPTY_TEXTS.get(sd or "", "No data recorded yet."),
+                empty_text=EMPTY_TEXTS.get(sd or "", "No data recorded yet."),
             )
 
         # Override viz type with configured type (allows user to change display)

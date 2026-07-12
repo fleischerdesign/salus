@@ -109,3 +109,5 @@ class FederatedAccessLog(SQLModel, table=True):
     data_type: str
     target_date: str
     accessed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    owner: "User" = Relationship()  # type: ignore[name-defined]  # noqa: F821

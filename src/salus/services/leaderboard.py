@@ -12,7 +12,7 @@ from salus.models.sharing import (
     LeaderboardMember,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid
+from salus.services._helpers import uid, make_handle
 
 
 class LeaderboardService:
@@ -55,7 +55,7 @@ class LeaderboardService:
             # Creator joins automatically as active member
             member = LeaderboardMember(
                 group_id=group.id,
-                user_handle=f"@{creator.username}",
+                user_handle=make_handle(creator),
                 status="active",
             )
             self.uow.leaderboard_members.create(member)
@@ -90,7 +90,7 @@ class LeaderboardService:
             if not creator:
                 raise NotFoundError("Creator of the group no longer exists")
 
-            creator_handle = f"@{creator.username}"
+            creator_handle = make_handle(creator)
 
             rel1 = self.uow.sharing_relationships.find_active_between(
                 user_id, creator_handle
@@ -150,7 +150,7 @@ class LeaderboardService:
                 raise NotFoundError("User not found")
 
             # Verify current user is a member
-            current_handle = f"@{current_user.username}"
+            current_handle = make_handle(current_user)
             member_check = self.uow.leaderboard_members.get_member(
                 group.id, current_handle
             )

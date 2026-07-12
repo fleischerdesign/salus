@@ -36,7 +36,7 @@ class LdapAuthProvider:
             username=username, base_dn=self._base_dn
         )
 
-        if self._bind(self._server_uri, user_dn, password):
+        if self._try_bind(self._server_uri, user_dn, password):
             return self._user_svc.register_with_identity(
                 provider="ldap",
                 provider_user_id=user_dn,
@@ -44,12 +44,12 @@ class LdapAuthProvider:
             )
         return None
 
-    def _bind(self, server_uri: str, user_dn: str, password: str) -> bool:
+    def _try_bind(self, server_uri: str, user_dn: str, password: str) -> bool:
         from ldap3 import Connection, Server
 
         try:
             server = Server(server_uri)
-            conn = Connection(server, user_dn, password, auto_bind=True)
+            conn = Connection(server, user_dn, password, auto_try_bind=True)
             if self._use_tls:
                 conn.start_tls()
             conn.unbind()

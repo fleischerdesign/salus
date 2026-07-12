@@ -1,7 +1,7 @@
 import json
 
 from salus.models.measurement import Measurement
-from salus.services.parser import _to_dt
+from salus.services.parser import _parse_datetime
 
 
 class OuraParser:
@@ -34,8 +34,8 @@ class OuraParser:
                             "score": item.get("score", 0),
                         }
                     ),
-                    start_time=_to_dt(item.get("bedtime_start", "")),
-                    end_time=_to_dt(item.get("bedtime_end", "")),
+                    start_time=_parse_datetime(item.get("bedtime_start", "")),
+                    end_time=_parse_datetime(item.get("bedtime_end", "")),
                     external_id=str(item.get("id", "")),
                 )
             )
@@ -58,7 +58,7 @@ class OuraParser:
                             ),
                         }
                     ),
-                    start_time=_to_dt(item.get("day", "")),
+                    start_time=_parse_datetime(item.get("day", "")),
                     external_id=str(item.get("id", "")),
                 )
             )

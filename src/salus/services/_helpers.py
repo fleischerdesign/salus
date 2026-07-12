@@ -1,6 +1,20 @@
+from datetime import date, datetime
+
+from salus.models import DEFAULT_METRIC_COLOR
 from salus.models.user import User
 
-__all__ = ["uid"]
+__all__ = ["uid", "DEFAULT_METRIC_COLOR", "make_handle", "parse_date"]
+
+
+def parse_date(date_str: str) -> date | None:
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def make_handle(user: User) -> str:
+    return f"@{user.username}"
 
 
 def uid(user: User) -> int:

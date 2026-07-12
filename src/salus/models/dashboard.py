@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from salus.models.user import User  # noqa: F401
+    from salus.models import MetricType  # noqa: F401
 
 
 class WidgetSize(str, Enum):
@@ -63,3 +68,6 @@ class DashboardWidget(SQLModel, table=True):
         sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
     )
     deleted_at: datetime | None = Field(default=None)
+
+    user: "User" = Relationship()  # type: ignore[name-defined]  # noqa: F821
+    metric_type: "MetricType" = Relationship()  # type: ignore[name-defined]  # noqa: F821

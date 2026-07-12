@@ -1,6 +1,10 @@
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from salus.models.user import User  # noqa: F401
 
 AVAILABLE_SCOPES = [
     ("ingest:write", "Webhook data ingestion"),
@@ -27,6 +31,8 @@ class ApiToken(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_used_at: datetime | None = Field(default=None)
     is_active: bool = Field(default=True)
+
+    user: "User" = Relationship()  # type: ignore[name-defined]  # noqa: F821
 
     def has_scope(self, scope: str) -> bool:
         scope_set = set(self.scopes.split())
