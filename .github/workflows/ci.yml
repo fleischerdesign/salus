@@ -71,6 +71,10 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v14
       - name: Install dependencies
         run: nix develop --command bash -c "cd frontend && npm ci"
+      - name: Lint
+        run: nix develop --command bash -c "cd frontend && npm run lint"
+      - name: Test
+        run: nix develop --command bash -c "cd frontend && npm run test"
       - name: Build
         run: nix develop --command bash -c "cd frontend && npm run build"
       - name: Type check

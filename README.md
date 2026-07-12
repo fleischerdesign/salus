@@ -1,6 +1,6 @@
 # salus
 
-**Personal Health Data Tracker: self-hosted, privacy-first, Nix-native.**
+**Personal Health Data Tracker: self-hosted, privacy-first, offline-capable.**
 
 [![CI](https://github.com/fleischerdesign/salus/actions/workflows/ci.yml/badge.svg)](https://github.com/fleischerdesign/salus/actions/workflows/ci.yml)
 [![Docker](https://img.shields.io/badge/ghcr.io-fleischerdesign%2Fsalus-086dd7)](https://github.com/fleischerdesign/salus/pkgs/container/salus)
@@ -8,7 +8,7 @@
 
 ---
 
-salus gives you a private, self-hosted dashboard for your health data. It ingests metrics from wearables and health platforms via a simple webhook API, displays them on a clean HTMX-powered dashboard, and tracks your goals over time.
+salus gives you a private, self-hosted dashboard for your health data. It ingests metrics from wearables and health platforms via a simple webhook API, displays them on a clean SvelteKit SPA dashboard, and tracks your goals over time.
 
 It runs anywhere: a Docker container, or a native NixOS module. Your data stays on your machine.
 
@@ -19,9 +19,14 @@ It runs anywhere: a Docker container, or a native NixOS module. Your data stays 
 - **Manual Entry:** Log weight, blood pressure, or any custom metric manually through the UI.
 - **Goal Tracking:** Set daily, weekly, or one-time targets with directional goals (increase/decrease). Visual progress bars and streak indicators.
 - **Analytics:** Per-metric detail pages with trend charts and statistics.
-- **Authentication:** Local bcrypt accounts, OAuth2/OIDC (Google, GitHub, generic), and LDAP. JWT stored in HTTP-only cookies.
+- **Workouts:** Exercise catalog, training plans, session logging with RPE and 1RM estimation. Autoregulation based on recovery metrics.
+- **Coach:** Circadian rhythm advisor using NOAA solar calculations, AI-powered health chat with local LLM support.
+- **Community:** Leaderboards, activity feed, federated instance sharing.
+- **Authentication:** Local bcrypt accounts, OAuth2/OIDC (Google, GitHub, generic), and LDAP. JWT with Bearer tokens or HTTP-only cookies.
 - **Multi-Tenant:** Full user isolation. Every record, metric, widget, and goal is user-scoped.
-- **Dark Mode:** System, light, and dark themes via `data-theme` CSS variables. Persisted per user.
+- **Offline-First:** SvelteKit SPA with service worker precaching. IndexedDB (Dexie.js) for local-first data. Full offline dashboard, entry logging, and workout tracking.
+- **Live Sync:** SSE-based real-time cross-device sync. Delta-first pull with cursor-paginated full sync fallback. Conflict resolution with field-level merge.
+- **Dark Mode:** System, light, and dark themes via CSS custom properties. Persisted per user.
 - **Admin Panel:** User management, system configuration, API token administration, storage statistics.
 - **Onboarding Wizard:** Guided setup for new users: first metric, first entry, first goal, webhook token generation.
 
@@ -29,15 +34,22 @@ It runs anywhere: a Docker container, or a native NixOS module. Your data stays 
 
 | Concern | Choice |
 |---|---|
-| Web Framework | FastAPI |
-| Templates | Jinja2 (Starlette) |
-| Interactivity | HTMX 2.x |
+| Backend Framework | FastAPI |
+| Frontend Framework | SvelteKit (SPA mode, `adapter-static`) |
+| UI Styling | Tailwind CSS v4 |
+| Frontend Language | TypeScript |
+| PWA / Offline | Custom service worker, Dexie.js (IndexedDB) |
 | ORM | SQLModel |
 | Database | SQLite (default) or PostgreSQL |
-| Package Manager | uv |
-| Dev Environment | Nix flake |
-| Lint / Format | Ruff |
-| Type Checking | Pyright |
+| Package Manager (Python) | uv via `pyproject.toml` |
+| Package Manager (JS) | npm via `frontend/package.json` |
+| Dev Environment | Nix flake (`nix develop`) |
+| Lint / Format (Python) | ruff |
+| Type Check (Python) | pyright |
+| Lint / Format (Frontend) | prettier + eslint |
+| Type Check (Frontend) | svelte-check |
+| Test (Python) | pytest |
+| Test (Frontend) | vitest |
 | Auth | bcrypt + python-jose (JWT) + authlib (OIDC) + ldap3 |
 | CI/CD | GitHub Actions |
 | Container | Docker (Nix-built via `dockerTools`) |
@@ -50,12 +62,26 @@ It runs anywhere: a Docker container, or a native NixOS module. Your data stays 
 git clone https://github.com/fleischerdesign/salus.git
 cd salus
 
-nix develop          # enter dev shell (python, uv, ruff, pyright)
-uv sync              # install dependencies
+nix develop          # enter dev shell (python, uv, ruff, pyright, node)
+uv sync              # install Python dependencies
+cd frontend && npm install   # install JS dependencies
+```
+
+Start the backend (terminal 1):
+
+```bash
 uv run uvicorn src.salus.main:app --reload
 ```
 
-Open `http://localhost:8000`. Register an account and you'll be guided through onboarding.
+Start the frontend dev server (terminal 2):
+
+```bash
+cd frontend && npm run dev
+```
+
+Open `http://localhost:5173`. Register an account and you'll be guided through onboarding.
+
+The frontend dev server proxies `/api` requests to `localhost:8000`.
 
 ### Docker
 
@@ -93,33 +119,29 @@ See `src/salus/config.py` for the full list.
 ### Prerequisites
 
 - [Nix](https://nixos.org) with flakes enabled
-- Or: Python 3.13+ and [uv](https://docs.astral.sh/uv/)
-
-### Setup
-
-```bash
-git clone https://github.com/fleischerdesign/salus.git
-cd salus
-nix develop    # provides python313, uv, ruff, pyright
-uv sync        # installs project + dev dependencies
-```
+- Or: Python 3.13+, [uv](https://docs.astral.sh/uv/), and Node.js 22+
 
 ### Commands
 
 ```bash
+# Backend
 uv run uvicorn src.salus.main:app --reload   # dev server
-uv run pytest -v                              # 180 tests
+uv run pytest -v                              # 260 tests
 uv run ruff check src/                        # lint
 uv run pyright src/                           # type check
 
-nix flake check                               # verify flake outputs
-nix build .#dockerImage                       # build Docker image
-```
+# Frontend
+cd frontend
+npm run dev           # dev server with HMR + API proxy
+npm run build         # production build
+npm run check         # type-check Svelte components
+npm run lint          # lint + format check
+npm run format        # auto-format
+npm run test          # vitest (20 tests)
 
-Run all three checks before committing:
-
-```bash
+# Full pre-commit check
 uv run ruff check src/ && uv run pytest -v && uv run pyright src/
+cd frontend && npm run lint && npm run check
 ```
 
 ### Git Workflow
@@ -138,28 +160,48 @@ Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`) drive aut
 
 ```
 src/salus/
-├── models/          ← Dataclasses + SQLModel tables
+├── models/          ← SQLModel tables
 ├── schemas/         ← Pydantic request/response DTOs
-├── repositories/    ← Data access layer (Repository[T])
+├── repositories/    ← Data access layer (Repository[T] base)
+│   └── entity_meta.py   ← Entity registry (single source of truth)
 ├── services/        ← Business logic (constructor injection)
 │   ├── analytics/   ← Steps, HR, sleep, nutrition, weight analysis
 │   ├── auth/        ← Local, LDAP, OIDC providers
 │   └── parsers/     ← Apple Health, Google Fit, Fitbit, Oura
-├── routers/         ← FastAPI route handlers (thin layer)
-├── templates/       ← Jinja2 (base.html, pages/, components/)
-├── static/          ← CSS
+├── routers/         ← FastAPI route handlers (thin, JSON-only)
 ├── config.py        ← pydantic-settings singleton
 ├── database.py      ← Engine builder (SQLite/PostgreSQL)
 ├── dependencies.py  ← All Depends() factories
-└── main.py          ← App factory, lifespan, middleware
+└── main.py          ← App factory, lifespan, CORS, router mounting, SPA mount
+
+frontend/
+├── src/
+│   ├── app.html     ← HTML shell
+│   ├── app.css      ← Design tokens (colors, typography, shadows, animation) + Tailwind
+│   ├── lib/
+│   │   ├── api/     ← Typed openapi-fetch client
+│   │   ├── components/ ← Svelte components (ui/, dashboard/, forms/, layout/)
+│   │   ├── db/      ← Dexie database + sync engine + live events
+│   │   ├── stores/  ← Svelte 5 runes ($state stores)
+│   │   └── utils/   ← Utilities (diff, formatting)
+│   └── routes/      ← File-based routing
+├── static/          ← PWA icons, manifest, offline fallback
+├── svelte.config.js
+├── vite.config.ts
+└── package.json
+
+tests/               ← pytest (Backend)
+frontend/tests/      ← vitest (Frontend)
 ```
 
 ### Architecture Principles
 
 - **Dependency Inversion:** Services receive repositories via constructor injection. All wiring lives in `dependencies.py`.
-- **Thin Routers:** Route handlers parse input, call a service, return a template or redirect.
-- **Absolute Imports:** Always `from salus.models import ...`, never relative.
-- **Auth Flow:** `router → AuthService → Provider → UserService → JwtService → HttpOnly cookie`.
+- **Thin Routers:** Route handlers parse input, call a service, return JSON. No business logic in routers.
+- **Two Write Paths (Frontend):** `mutate()` for entity CRUD via sync push, `mutateDomain()` for domain commands via dedicated HTTP endpoints.
+- **Sync Architecture:** Delta-first pull (7-day window), cursor-paginated full sync fallback. SSE live sync with client-side debounce.
+- **Offline-First:** Dexie.js IndexedDB as primary data store. Service worker caches all assets including SPA shell for full offline operation.
+- **Auth Flow:** SPA → `POST /api/v1/auth/login` → `AuthService` → Provider → JWT token. Token stored in localStorage, sent as `Authorization: Bearer`.
 
 See `AGENTS.md` for the complete architecture reference.
 
@@ -283,4 +325,4 @@ MIT. See [LICENSE](LICENSE).
 
 ---
 
-Built with [Nix](https://nixos.org), [FastAPI](https://fastapi.tiangolo.com), [HTMX](https://htmx.org), and [SQLModel](https://sqlmodel.tiangolo.com). Health data belongs to you.
+Built with [Nix](https://nixos.org), [FastAPI](https://fastapi.tiangolo.com), [SvelteKit](https://svelte.dev/docs/kit), [SQLModel](https://sqlmodel.tiangolo.com), and [Dexie.js](https://dexie.org). Health data belongs to you.

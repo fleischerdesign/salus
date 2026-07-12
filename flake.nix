@@ -48,7 +48,8 @@
             mkdir -p $out/lib/salus $out/bin
             cp -r src $out/lib/salus/
             cp pyproject.toml $out/lib/salus/
-            cp -r frontend/build $out/lib/salus/frontend_build
+            mkdir -p $out/lib/salus/frontend
+            cp -r frontend/build $out/lib/salus/frontend/build
 
             makeWrapper ${pythonEnv}/bin/uvicorn $out/bin/salus \
               --set PYTHONPATH "$out/lib/salus/src" \
