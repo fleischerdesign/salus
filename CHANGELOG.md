@@ -1,12 +1,11 @@
 # Changelog
 
-## 0.1.0 (2026-07-13)
+## [0.2.0](https://github.com/fleischerdesign/salus/compare/v0.1.0...v0.2.0) (2026-07-13)
 
 
 ### Features
 
 * add explicit parseInt parsing and RPE guardrail logging to logSet ([fcd4c64](https://github.com/fleischerdesign/salus/commit/fcd4c6440135bb31f5d667f7143102e80763551a))
-* admin panel with user management, config, drill-down, storage stats ([f61b962](https://github.com/fleischerdesign/salus/commit/f61b962dd1ab8a9013ce07b89a89a28505cdc7d7))
 * animate popups, dropdowns, cards — display:none → opacity+transform ([9dcc7c8](https://github.com/fleischerdesign/salus/commit/9dcc7c89787eb3cc4d240ff466a5b3dd46592a3f))
 * animate widget chrome edit-mode transitions ([bc09368](https://github.com/fleischerdesign/salus/commit/bc09368e2ede5aefbaa46b131db64fcc8fc498a7))
 * **base:** add base.css — body background, text color, font, reset ([8bb59df](https://github.com/fleischerdesign/salus/commit/8bb59df3fd4d66029f11e793c5827c694c6684db))
@@ -26,7 +25,6 @@
 * configure CI and test fixtures for parallel SQLite and PostgreSQL testing ([4785069](https://github.com/fleischerdesign/salus/commit/478506984523abc808f47b1cac23bc47cc0b0c2c))
 * ContextVar-based i18n — _() available everywhere (templates + macros) ([2651338](https://github.com/fleischerdesign/salus/commit/265133805a38a75810df805681d8c012e77140c8))
 * custom tooltip following cursor, dark mode fixes for resting line ([dd049da](https://github.com/fleischerdesign/salus/commit/dd049dae50ba1d55f7ff17d142e9873f4f85d7b0))
-* dashboard day navigator, dark mode, delta indicators, passlib removed ([5445f1c](https://github.com/fleischerdesign/salus/commit/5445f1c11f0433b79ab444419406ae64fc4f957c))
 * dashboard widget/viz components — proper colocated macros + CSS ([4d52282](https://github.com/fleischerdesign/salus/commit/4d52282630131c5db0f36279fcfae829d75fda4e))
 * day navigator date click opens native date picker ([26c2d05](https://github.com/fleischerdesign/salus/commit/26c2d058160471dd93d42b67e54f0ba73a4eba7a))
 * declarative viz system with candlestick chart for HR widget ([e097472](https://github.com/fleischerdesign/salus/commit/e097472e634c98a8f8e86b86d97709a14391ccd0))
@@ -39,8 +37,6 @@
 * **design:** Phase 1 — Token Generator + tokens.css from DESIGN.md ([fb6f065](https://github.com/fleischerdesign/salus/commit/fb6f065c01473592fac95fe619fb1f86e891b582))
 * **design:** system-level tokens + 17 Core UI visual design specs ([c7b2475](https://github.com/fleischerdesign/salus/commit/c7b24759ffe93a293f6e631c964691b1c81638b8))
 * **design:** UX flow documentation — 8 user journeys with state maps ([f0e9715](https://github.com/fleischerdesign/salus/commit/f0e9715121e290491664a6b8fbbadfa85098a50d))
-* devops, git flow, ci/cd, nix packaging ([7a38697](https://github.com/fleischerdesign/salus/commit/7a386979c93a02aa175c23418a4f94640a0c8fe3))
-* devops, git flow, ci/cd, nix packaging, PostgreSQL support ([4fa4a29](https://github.com/fleischerdesign/salus/commit/4fa4a29fd71d10096f39cc4409397a1d93258483))
 * edit-chrome component — shared drag+actions for card+widget edit mode ([2dc6420](https://github.com/fleischerdesign/salus/commit/2dc6420805f2fa099388f05731a80fcb5dab75a1))
 * entries overview cards — colored left border accent per metric ([6c286e7](https://github.com/fleischerdesign/salus/commit/6c286e7890dadb4ccff6dff3049ce330ffa09f37))
 * entries page redesign — card overview + detail with pagination ([0645625](https://github.com/fleischerdesign/salus/commit/0645625b0e59ff835b38eb2a7f4bfa4c7a9d4e89))
@@ -91,14 +87,12 @@
 * **sharing:** expand leaderboard with dynamic challenges and dark mode fixes ([a84238d](https://github.com/fleischerdesign/salus/commit/a84238d40cf2fbe98c4b42c3eb54117acf7c21dd))
 * **tools:** add validate_specs.py — 5 checks for component spec consistency ([9f209d7](https://github.com/fleischerdesign/salus/commit/9f209d7312d4d0b586c57f636dbe9d15a65834e6))
 * tune service worker cache-first assets list and add custom offline fallback HTML page ([cb06ff8](https://github.com/fleischerdesign/salus/commit/cb06ff819feac6db973804e7c0373fc83bea9338))
-* webhook user-scoping, dynamic dashboard, onboarding wizard, design audit ([1dbff2b](https://github.com/fleischerdesign/salus/commit/1dbff2b0c75c7b61b7fc993cbedef897a71f63a5))
 
 
 ### Bug Fixes
 
 * 4 categories — widget chrome visibility, admin config, goal collision, onboarding test ([a9d1fe9](https://github.com/fleischerdesign/salus/commit/a9d1fe943eab80d8628fb5ab263c03f7a0e6e399))
 * accordion + multiselect toggle [@aria-expanded](https://github.com/aria-expanded) → toggle [@aria-expanded](https://github.com/aria-expanded)='true' ([ef55407](https://github.com/fleischerdesign/salus/commit/ef5540763a45082a81a6d5071251cf415e0fca77))
-* add bcrypt dependency and fix CI tool invocation ([569bc4d](https://github.com/fleischerdesign/salus/commit/569bc4d2d32dbc8528656f5add5d52bcb5220710))
 * add details and analytics links to exercise library template ([44262bf](https://github.com/fleischerdesign/salus/commit/44262bf0d0abded1fc1400b4b9bf9965ae5a8e23))
 * add vertical padding to page content — top/bottom spacing ([e31eb2d](https://github.com/fleischerdesign/salus/commit/e31eb2d7adef78b0a478792fdbf79a18c7e0ee62))
 * adjust main navigation burger breakpoint to 1024px to prevent horizontal menu overflow and align with subnav overrides ([230787b](https://github.com/fleischerdesign/salus/commit/230787bd85bd731dc011c9e2d7aa04103d83be76))
@@ -151,6 +145,7 @@
 * PG-compatible tests, reproducible Nix frontend build, clean stale caches ([92d7288](https://github.com/fleischerdesign/salus/commit/92d7288ffe1431bfc443fc68e812aa5de2dc1f41))
 * primary_label layout — header above icon row in all widgets ([b9ede1e](https://github.com/fleischerdesign/salus/commit/b9ede1ee937f8e767aea4e635e857bc7dd87e741))
 * pyright — use filtered metric id list for overview ([5aeb5ac](https://github.com/fleischerdesign/salus/commit/5aeb5acac5cefd405f35ad93343db68a7ebf323f))
+* **release:** sync versions across pyproject.toml, package.json, and flake.nix ([67365e6](https://github.com/fleischerdesign/salus/commit/67365e65e3a5fa80f0696f56b2ba347136df67dc))
 * remove invalid 'on click from elsewhere' — not supported in hyperscript 0.9 ([88b658c](https://github.com/fleischerdesign/salus/commit/88b658ce01bbd38a7722a7e0925d7c7e1f79a6f9))
 * remove redundant monitoring buttons from exercise and workouts templates ([738562d](https://github.com/fleischerdesign/salus/commit/738562d5c2f403fa96dcf12832c0a25090c68876))
 * resolve _wasOffline state_referenced_locally warning ([324c9a4](https://github.com/fleischerdesign/salus/commit/324c9a401c40b53e987b2839288957f532952fae))
@@ -176,7 +171,6 @@
 * top-app-bar constrains content width to match page ([9d74d94](https://github.com/fleischerdesign/salus/commit/9d74d9461ab6598e06de8c8ac655acbb416c6f9a))
 * **ui:** Fixed caller propagation in modal component ([6bab0af](https://github.com/fleischerdesign/salus/commit/6bab0afc02de24872a9efe73d2d568cf6c40231e))
 * use documented hyperscript toggle syntax — toggle [@data-open](https://github.com/data-open)='true' ([6ac6ca6](https://github.com/fleischerdesign/salus/commit/6ac6ca6718a6dbd38b37a49138f608e66b0c720d))
-* use PAT for release-please, inline merge-back, fix docker var ([b5ba997](https://github.com/fleischerdesign/salus/commit/b5ba997f91cd7ab8e257f99707ea1d79a6257cc2))
 * use widget-icon-wrap class for correct icon sizing in viz partials ([6a4ffc8](https://github.com/fleischerdesign/salus/commit/6a4ffc8167bde42d7bae401043f80e825c405e69))
 * use widget.id as DOM anchor instead of document.currentScript for HTMX compat ([c8e6b3c](https://github.com/fleischerdesign/salus/commit/c8e6b3c770676211cdb9baf4bf01f82cb36b9cf8))
 * user-menu — pass none for avatar_url (field doesn't exist yet) ([015aca0](https://github.com/fleischerdesign/salus/commit/015aca0151e6594bf3cc9b689c55446f5cae5b1e))
