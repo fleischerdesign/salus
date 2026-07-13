@@ -108,3 +108,33 @@ def test_circadian_advisor_engine(clean_db, auth_client):
     assert len(advice.light_advice) == 2
     assert advice.eating_window["start"] != ""
 
+
+def test_circadian_profile_route(clean_db, auth_client):
+    client, _ = auth_client
+    resp = client.post(
+        "/api/v1/circadian/profile",
+        json={
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "timezone_offset_hours": -8.0,
+            "configured_chronotype": "night_owl",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["latitude"] == 37.7749
+    assert data["longitude"] == -122.4194
+    assert data["timezone_offset_hours"] == -8.0
+    assert data["configured_chronotype"] == "night_owl"
+    assert "id" in data
+    assert "user_id" in data
+
+
+def test_circadian_profile_route_invalid_data(clean_db, auth_client):
+    client, _ = auth_client
+    resp = client.post(
+        "/api/v1/circadian/profile",
+        json={"latitude": "not-a-number", "timezone_offset_hours": 1.0},
+    )
+    assert resp.status_code == 422
+
