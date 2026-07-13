@@ -1,5 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
   import { mutateDomain } from '$lib/db/mutate-domain';
   import { db } from '$lib/db/database';
   import { auth } from '$lib/stores/auth.svelte';
@@ -181,8 +183,12 @@
         />
       {:else}
         <div class="space-y-4">
-          {#each $challenges as c}
-            <a href="/community/leaderboard/{c.id}" class="no-underline">
+          {#each $challenges as c, i (c.id)}
+            <a
+              href="/community/leaderboard/{c.id}"
+              class="no-underline"
+              in:fade={{ ...staggerFade(i) }}
+            >
               <Card hoverable padding={false}>
                 <div class="flex items-start gap-3 p-4">
                   <div

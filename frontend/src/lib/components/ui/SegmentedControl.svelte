@@ -21,7 +21,7 @@
   {#each options as opt}
     <button
       type="button"
-      class="flex items-center gap-1.5 rounded-md font-medium transition-colors duration-150 {sizeClasses} {value ===
+      class="duration-micro flex items-center gap-1.5 rounded-md font-medium transition-colors {sizeClasses} {value ===
       opt.value
         ? 'bg-surface-0 text-surface-900 shadow-sm'
         : 'text-surface-500 hover:text-surface-700'}"

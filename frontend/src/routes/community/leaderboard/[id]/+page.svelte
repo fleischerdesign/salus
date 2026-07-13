@@ -11,6 +11,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   interface Ranking {
     rank: number;
@@ -130,7 +132,7 @@
   <div class="max-w-4xl space-y-6">
     <a
       href="/community/leaderboard"
-      class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+      class="duration-micro inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 no-underline transition-colors hover:text-surface-700"
     >
       <Icon name="arrow-back" size="sm" />Back to Challenges
     </a>
@@ -194,8 +196,9 @@
         </div>
       {:else}
         <div class="divide-y divide-surface-100">
-          {#each $detail.rankings as r}
+          {#each $detail.rankings as r, i (r.rank)}
             <div
+              in:fade={{ ...staggerFade(i) }}
               class="flex items-center justify-between px-5 py-3.5 {r.is_me ? 'bg-primary-50' : ''}"
             >
               <div class="flex items-center gap-4">

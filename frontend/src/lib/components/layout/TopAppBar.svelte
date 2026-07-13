@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { auth } from '$stores/auth.svelte';
   import { db } from '$lib/db/database';
   import { liveQuery } from 'dexie';
   import { slide, fly, fade } from 'svelte/transition';
+  import { DURATIONS, motionParams } from '$lib/utils/motion';
   import NavDropdown from '$components/ui/NavDropdown.svelte';
   import UserMenu from '$components/ui/UserMenu.svelte';
   import NotificationBell from '$components/feedback/NotificationBell.svelte';
@@ -56,9 +57,9 @@
   let mobileOpen = $state(false);
 
   function navLinkClass(link: { href: string }) {
-    const active = $page.url.pathname === link.href;
+    const active = page.url.pathname === link.href;
     return (
-      'flex h-full items-center border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 ' +
+      'flex h-full items-center border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-micro ' +
       (active
         ? 'border-primary-500 text-primary-600'
         : 'border-transparent text-surface-600 hover:text-primary-600')
@@ -151,7 +152,7 @@
 
   function isGroupActive(group: NavGroup): boolean {
     return group.items.some((item) => {
-      const p = $page.url.pathname;
+      const p = page.url.pathname;
       return p === item.href || p.startsWith(item.href + '/');
     });
   }
@@ -164,7 +165,6 @@
   }
 
   $effect(() => {
-    void $page.url.pathname;
     for (const entry of mobileNav) {
       if (entry.type === 'group' && isGroupActive(entry) && !expandedGroups.has(entry.label)) {
         const next = new Set(expandedGroups);
@@ -175,7 +175,7 @@
   });
 
   function isLinkActive(href: string): boolean {
-    const p = $page.url.pathname;
+    const p = page.url.pathname;
     return p === href || (p.startsWith(href + '/') && href !== '/');
   }
 </script>
@@ -205,7 +205,7 @@
         <a
           href={link.href}
           class={navLinkClass(link)}
-          aria-current={$page.url.pathname === link.href ? 'page' : undefined}
+          aria-current={page.url.pathname === link.href ? 'page' : undefined}
         >
           {link.label}
         </a>
@@ -214,14 +214,14 @@
       <a
         href="/analytics"
         class={navLinkClass({ href: '/analytics' })}
-        aria-current={$page.url.pathname === '/analytics' ? 'page' : undefined}
+        aria-current={page.url.pathname === '/analytics' ? 'page' : undefined}
       >
         Analytics
       </a>
       <a
         href="/goals"
         class={navLinkClass({ href: '/goals' })}
-        aria-current={$page.url.pathname === '/goals' ? 'page' : undefined}
+        aria-current={page.url.pathname === '/goals' ? 'page' : undefined}
       >
         Goals
       </a>
@@ -254,11 +254,11 @@
     role="dialog"
     aria-modal="true"
     tabindex="-1"
-    transition:fade={{ duration: 150 }}
+    transition:fade={motionParams(DURATIONS.micro)}
   ></div>
   <div
     class="fixed top-0 bottom-0 left-0 z-400 w-[280px] bg-surface-0 shadow-xl lg:hidden"
-    transition:fly={{ x: -280, duration: 250 }}
+    transition:fly={{ x: -280, ...motionParams(DURATIONS.normal) }}
   >
     <div class="flex h-16 items-center justify-between border-b border-surface-200 px-4">
       <h2 class="text-xl font-semibold text-surface-900">Navigation</h2>
@@ -276,7 +276,7 @@
           {@const active = isLinkActive(entry.href)}
           <a
             href={entry.href}
-            class="flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {entry.highlight
+            class="duration-micro flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {entry.highlight
               ? 'text-success-600'
               : active
                 ? 'bg-primary-50 text-primary-600'
@@ -296,7 +296,7 @@
           {@const groupHasActive = isGroupActive(entry)}
           <button
             type="button"
-            class="flex w-full items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] text-surface-600 transition-colors duration-150 hover:bg-surface-50"
+            class="duration-micro flex w-full items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] text-surface-600 transition-colors hover:bg-surface-50"
             onclick={() => toggleGroup(entry.label)}
             aria-expanded={expanded}
           >
@@ -308,16 +308,16 @@
             <Icon
               name="expand-more"
               size="sm"
-              class="ml-auto transition-transform duration-150 {expanded ? 'rotate-180' : ''}"
+              class="duration-micro ml-auto transition-transform {expanded ? 'rotate-180' : ''}"
             />
           </button>
           {#if expanded}
-            <div class="overflow-hidden" transition:slide={{ duration: 200 }}>
+            <div class="overflow-hidden" transition:slide={motionParams(DURATIONS.fast)}>
               {#each entry.items as subItem}
                 {@const active = isLinkActive(subItem.href)}
                 <a
                   href={subItem.href}
-                  class="flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-[13px] font-medium tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {subItem.highlight
+                  class="duration-micro flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-[13px] font-medium tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {subItem.highlight
                     ? 'text-success-600'
                     : active
                       ? 'bg-primary-50 text-primary-600'

@@ -248,7 +248,7 @@
                   </div>
                   <button
                     type="button"
-                    class="rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors duration-150 hover:bg-error-50"
+                    class="duration-micro rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
                     onclick={() => revokeToken(t.id)}>Revoke</button
                   >
                 </div>

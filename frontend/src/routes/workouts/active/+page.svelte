@@ -292,7 +292,7 @@
       <div>
         <a
           href="/workouts"
-          class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+          class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
         >
           <Icon name="arrow-back" size="sm" />Workouts
         </a>
@@ -309,7 +309,7 @@
         {/if}
         <button
           type="button"
-          class="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors duration-150 {audioEnabled
+          class="duration-micro flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors {audioEnabled
             ? 'border-primary-300 bg-primary-50 text-primary-700'
             : 'border-surface-200 bg-surface-50 text-surface-500 hover:border-surface-300'}"
           onclick={toggleAudio}

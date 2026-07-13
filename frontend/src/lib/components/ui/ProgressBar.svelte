@@ -42,7 +42,7 @@
   <div
     class="{heightClasses[
       height
-    ]} rounded-full transition-[width] duration-500 ease-out {variantClasses[variant]}"
+    ]} duration-slow rounded-full transition-[width] ease-out {variantClasses[variant]}"
     style="width: {pct}%"
     role="progressbar"
     aria-valuenow={value}

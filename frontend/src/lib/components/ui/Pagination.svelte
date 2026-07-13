@@ -48,7 +48,7 @@
     aria-label="Pagination"
   >
     <button
-      class="flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors duration-150 hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={page <= 1}
       onclick={() => go(page - 1)}
       aria-label="Previous page"
@@ -61,7 +61,7 @@
         <span class="flex h-10 w-10 items-center justify-center text-sm text-surface-400">…</span>
       {:else}
         <button
-          class="flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors duration-150 {page ===
+          class="duration-micro flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors {page ===
           p
             ? 'bg-primary-50 text-primary-600'
             : 'text-surface-600 hover:bg-surface-100'}"
@@ -74,7 +74,7 @@
     {/each}
 
     <button
-      class="flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors duration-150 hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={page >= totalPages}
       onclick={() => go(page + 1)}
       aria-label="Next page"

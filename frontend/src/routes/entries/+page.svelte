@@ -5,6 +5,8 @@
   import type { MetricType } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import { mutate, nextTempId } from '$lib/db/mutate';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
   import Card from '$components/ui/Card.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -161,9 +163,9 @@
     </EmptyState>
   {:else}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {#each $metrics as m (m.id)}
+      {#each $metrics as m, i (m.id)}
         {@const ov = overviewForMetric($overviews, m.id)}
-        <a href="/entries/{m.id}" class="no-underline">
+        <a href="/entries/{m.id}" class="no-underline" in:fade={{ ...staggerFade(i) }}>
           <Card padding={false} hoverable>
             {#snippet header()}
               <div class="flex items-center gap-3">
@@ -185,7 +187,7 @@
                 <div class="flex items-center gap-0.5">
                   <button
                     type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
+                    class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
                     aria-label="Edit metric"
                     onclick={(e) => {
                       e.preventDefault();
@@ -198,7 +200,7 @@
                   {#if !m.is_system}
                     <button
                       type="button"
-                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
+                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
                       aria-label="Delete metric"
                       onclick={(e) => {
                         e.preventDefault();

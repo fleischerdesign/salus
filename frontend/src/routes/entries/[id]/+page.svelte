@@ -20,6 +20,8 @@
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import Pagination from '$components/ui/Pagination.svelte';
   import { page } from '$app/state';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let metric = liveQuery(() => db.metric_type.get(metricId));
   let overviews = liveQuery(() => fetchMetricOverview());
@@ -223,7 +225,7 @@
       <div class="flex items-center gap-3">
         <a
           href="/entries"
-          class="flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
+          class="duration-micro flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
           aria-label="Back to Logbook"
         >
           <Icon name="arrow-back" size="sm" />
@@ -281,59 +283,61 @@
   {:else}
     <Card padding={false}>
       <div class="divide-y divide-surface-100">
-        {#each entries as e (e.id)}
-          <ListItem hoverable primary={displayValue(e)} secondary="">
-            {#snippet children()}
-              <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
-                <div class="min-w-0">
-                  <div class="flex items-baseline gap-1">
-                    <span class="truncate text-sm font-bold text-surface-900">
-                      {displayValue(e)}
-                    </span>
-                    {#if $metric?.unit}
-                      <span class="text-xs text-surface-400">{$metric.unit}</span>
-                    {/if}
+        {#each entries as e, i (e.id)}
+          <div in:fade={{ ...staggerFade(i) }}>
+            <ListItem hoverable primary={displayValue(e)} secondary="">
+              {#snippet children()}
+                <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-baseline gap-1">
+                      <span class="truncate text-sm font-bold text-surface-900">
+                        {displayValue(e)}
+                      </span>
+                      {#if $metric?.unit}
+                        <span class="text-xs text-surface-400">{$metric.unit}</span>
+                      {/if}
+                    </div>
+                    <p class="mt-0.5 truncate text-xs text-surface-500">
+                      {formatDate(e.start_time)}
+                      {#if e.notes}
+                        <span class="italic"> · "{e.notes}"</span>
+                      {/if}
+                    </p>
                   </div>
-                  <p class="mt-0.5 truncate text-xs text-surface-500">
-                    {formatDate(e.start_time)}
-                    {#if e.notes}
-                      <span class="italic"> · "{e.notes}"</span>
-                    {/if}
-                  </p>
-                </div>
 
-                <!-- Desktop: hover-to-reveal inline buttons -->
-                <div
-                  class="hidden items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 md:flex [@media(hover:none)]:opacity-60"
-                >
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700"
-                    aria-label="Edit entry"
-                    onclick={() => openEditModal(e)}
+                  <!-- Desktop: hover-to-reveal inline buttons -->
+                  <div
+                    class="duration-micro hidden items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 md:flex [@media(hover:none)]:opacity-60"
                   >
-                    <Icon name="edit" size="sm" />
-                  </button>
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
-                    aria-label="Delete entry"
-                    onclick={() => {
-                      entryToDelete = e;
-                      deleteDialogOpen = true;
-                    }}
-                  >
-                    <Icon name="delete" size="sm" />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+                      aria-label="Edit entry"
+                      onclick={() => openEditModal(e)}
+                    >
+                      <Icon name="edit" size="sm" />
+                    </button>
+                    <button
+                      type="button"
+                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                      aria-label="Delete entry"
+                      onclick={() => {
+                        entryToDelete = e;
+                        deleteDialogOpen = true;
+                      }}
+                    >
+                      <Icon name="delete" size="sm" />
+                    </button>
+                  </div>
 
-                <!-- Mobile: dot menu -->
-                <div class="md:hidden">
-                  <Menu items={buildMenuItems(e)} />
+                  <!-- Mobile: dot menu -->
+                  <div class="md:hidden">
+                    <Menu items={buildMenuItems(e)} />
+                  </div>
                 </div>
-              </div>
-            {/snippet}
-          </ListItem>
+              {/snippet}
+            </ListItem>
+          </div>
         {/each}
       </div>
     </Card>

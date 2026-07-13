@@ -210,14 +210,14 @@
   <div class="flex items-center gap-1.5">
     <button
       type="button"
-      class="rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors duration-150 hover:bg-surface-100 hover:text-primary-600"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100 hover:text-primary-600"
       onclick={() => (restoreTarget = b.filename)}
     >
       Restore
     </button>
     <button
       type="button"
-      class="rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors duration-150 hover:bg-error-50"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
       onclick={() => (deleteTarget = b.filename)}
     >
       Delete

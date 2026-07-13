@@ -67,7 +67,7 @@
         </tr>
       {:else}
         {#each rows as row}
-          <tr class="transition-colors duration-150 hover:bg-surface-50">
+          <tr class="duration-micro transition-colors hover:bg-surface-50">
             {#each columns as col}
               <td class="border-b border-surface-100 px-4 py-3 text-sm text-surface-700">
                 {row[col.key]}

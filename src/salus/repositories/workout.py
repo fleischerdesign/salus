@@ -13,7 +13,8 @@ class ExerciseRepository(Repository[Exercise], IExerciseRepository):
         return list(
             self.session.exec(
                 select(Exercise).where(
-                    or_(Exercise.user_id == None, Exercise.user_id == user_id)  # type: ignore # noqa: E711
+                    or_(Exercise.user_id == None, Exercise.user_id == user_id),  # type: ignore # noqa: E711
+                    Exercise.deleted_at == None,  # noqa: E711
                 )
             ).all()
         )

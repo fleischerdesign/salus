@@ -12,7 +12,7 @@ describe('conflictStore', () => {
       id: crypto.randomUUID(),
       table: 'goal',
       clientRecord: { name: 'X', target_value: 100 },
-      serverRecord: { name: 'X', target_value: 50 },
+      serverRecord: { name: 'X', target_value: 50 }
     };
     conflictStore.enqueue(c);
     expect(conflictStore.hasPending).toBe(true);
@@ -31,7 +31,12 @@ describe('conflictStore', () => {
 
   it('respects FIFO order', () => {
     const c1 = { id: crypto.randomUUID(), table: 'goal', clientRecord: {}, serverRecord: {} };
-    const c2 = { id: crypto.randomUUID(), table: 'measurement', clientRecord: {}, serverRecord: {} };
+    const c2 = {
+      id: crypto.randomUUID(),
+      table: 'measurement',
+      clientRecord: {},
+      serverRecord: {}
+    };
     conflictStore.enqueue(c1);
     conflictStore.enqueue(c2);
     expect(conflictStore.current?.id).toBe(c1.id);

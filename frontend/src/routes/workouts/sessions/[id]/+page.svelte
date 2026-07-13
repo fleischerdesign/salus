@@ -77,7 +77,7 @@
       <div>
         <a
           href="/workouts/sessions"
-          class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+          class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
         >
           <Icon name="arrow-back" size="sm" />Sessions
         </a>

@@ -108,27 +108,3 @@ def test_circadian_advisor_engine(clean_db, auth_client):
     assert len(advice.light_advice) == 2
     assert advice.eating_window["start"] != ""
 
-
-def _skip_circadian_routes(clean_db, auth_client):
-    client, _ = auth_client
-
-    resp = client.post(
-        "/api/v1/circadian/profile",
-        json={
-            "latitude": 37.7749,
-            "longitude": -122.4194,
-            "timezone_offset_hours": -8.0,
-            "configured_chronotype": "night_owl",
-        },
-    )
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["latitude"] == 37.7749
-    assert data["longitude"] == -122.4194
-
-    get_resp = client.get("/api/v1/circadian")
-    assert get_resp.status_code == 200
-    res_data = get_resp.json()
-    assert "profile" in res_data
-    assert "advice" in res_data
-    assert res_data["profile"]["latitude"] == 37.7749

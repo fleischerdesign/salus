@@ -7,10 +7,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from salus.config import settings
 from salus.database import Session, engine
+from salus.dependencies import limiter
 from salus.exceptions import (
     AuthenticationError,
     ConflictError,
@@ -42,7 +46,14 @@ from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
 
 
-def _warn_default_secrets() -> None:
+def _check_secrets() -> None:
+    if settings.is_production:
+        if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+            raise RuntimeError("SALUS_JWT_SECRET_KEY is set to the default value — set a strong random key for production.")
+        if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+            raise RuntimeError("SALUS_API_TOKEN is set to the default value — set a unique token for production.")
+        return
+
     warned = False
     if settings.jwt_secret_key == "change-me-in-production-salus-2026":
         logging.warning("SALUS_JWT_SECRET_KEY is set to the default value — generate a strong random key for production.")
@@ -74,7 +85,7 @@ async def lifespan(app: FastAPI):
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-    _warn_default_secrets()
+    _check_secrets()
 
     from fastapi import APIRouter
 
@@ -148,61 +159,69 @@ async def lifespan(app: FastAPI):
     plugin_manager.unload_all()
 
 
-app = FastAPI(title="salus", lifespan=lifespan)
-app.state.engine = engine
-app.state.event_bus = InMemoryEventBus()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def create_app() -> FastAPI:
+    app = FastAPI(title="salus", lifespan=lifespan)
+    app.state.engine = engine
+    app.state.event_bus = InMemoryEventBus()
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # pyright: ignore[reportArgumentType]
+    app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-secure_endpoints = {"/docs", "/openapi.json", "/redoc"}
+    secure_endpoints = {"/docs", "/openapi.json", "/redoc"}
+
+    async def security_headers_middleware(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if request.url.path not in secure_endpoints and not request.url.path.startswith("/api/"):
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline'; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; "
+                "img-src 'self' data: blob:; "
+                "connect-src 'self'"
+            )
+        return response
+
+    app.middleware("http")(security_headers_middleware)
+
+    app.include_router(api_auth.router)
+    app.include_router(api_dashboard.router)
+    app.include_router(api_misc.router)
+    app.include_router(api_settings.router)
+    app.include_router(api_admin.router)
+    app.include_router(api_sharing.router)
+    app.include_router(api.router)
+    app.include_router(webhook.router)
+    app.include_router(export.router)
+    app.include_router(sharing.router)
+    app.include_router(workout.router)
+    app.include_router(asymmetric_share.router)
+    app.include_router(open_science.router)
+    app.include_router(api_sync.router)
+    api_dynamic.register_crud_routes(app)
+
+    frontend_build = os.path.join(
+        os.path.dirname(__file__), "..", "..", "frontend", "build"
+    )
+    if os.path.isdir(frontend_build) and os.path.isfile(
+        os.path.join(frontend_build, "index.html")
+    ):
+        app.mount("/", SPAStaticFiles(directory=frontend_build), name="frontend")
+
+    return app
 
 
-async def security_headers_middleware(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    if request.url.path not in secure_endpoints and not request.url.path.startswith("/api/"):
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; "
-            "img-src 'self' data: blob:; "
-            "connect-src 'self'"
-        )
-    return response
-
-app.middleware("http")(security_headers_middleware)
-
-app.include_router(api_auth.router)
-app.include_router(api_dashboard.router)
-app.include_router(api_misc.router)
-app.include_router(api_settings.router)
-app.include_router(api_admin.router)
-app.include_router(api_sharing.router)
-app.include_router(api.router)
-app.include_router(webhook.router)
-app.include_router(export.router)
-app.include_router(sharing.router)
-app.include_router(workout.router)
-app.include_router(asymmetric_share.router)
-app.include_router(open_science.router)
-app.include_router(api_sync.router)
-api_dynamic.register_crud_routes(app)
-
-frontend_build = os.path.join(
-    os.path.dirname(__file__), "..", "..", "frontend", "build"
-)
-if os.path.isdir(frontend_build) and os.path.isfile(
-    os.path.join(frontend_build, "index.html")
-):
-    app.mount("/", SPAStaticFiles(directory=frontend_build), name="frontend")
+app = create_app()
 
 
 @app.exception_handler(NotFoundError)

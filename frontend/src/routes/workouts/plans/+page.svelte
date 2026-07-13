@@ -17,6 +17,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let plans = liveQuery(() =>
     db.workout_plan
@@ -157,7 +159,7 @@
     <div>
       <a
         href="/workouts"
-        class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+        class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
       >
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
@@ -180,62 +182,64 @@
     </EmptyState>
   {:else}
     <div class="grid [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))] gap-4">
-      {#each $plans as plan (plan.id)}
-        <Card padding={false} hoverable>
-          {#snippet header()}
-            <div class="flex items-center gap-3">
-              <div class="min-w-0 flex-1">
-                <a href="/workouts/plans/{plan.id}" class="block">
-                  <p class="truncate text-sm font-semibold text-surface-900">{plan.name}</p>
-                </a>
-                <div class="mt-1 flex items-center gap-1.5">
-                  <Badge variant={plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}>
-                    {plan.autoreg_mode}
-                  </Badge>
-                  <span class="text-xs text-surface-400">{exerciseCount(plan.id)} exercises</span>
+      {#each $plans as plan, i (plan.id)}
+        <div in:fade={{ ...staggerFade(i) }}>
+          <Card padding={false} hoverable>
+            {#snippet header()}
+              <div class="flex items-center gap-3">
+                <div class="min-w-0 flex-1">
+                  <a href="/workouts/plans/{plan.id}" class="block">
+                    <p class="truncate text-sm font-semibold text-surface-900">{plan.name}</p>
+                  </a>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <Badge variant={plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}>
+                      {plan.autoreg_mode}
+                    </Badge>
+                    <span class="text-xs text-surface-400">{exerciseCount(plan.id)} exercises</span>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                  aria-label="Delete plan"
+                  onclick={() => {
+                    planToDelete = plan;
+                    deleteDialogOpen = true;
+                  }}
+                >
+                  <Icon name="delete" size="sm" />
+                </button>
               </div>
-              <button
-                type="button"
-                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
-                aria-label="Delete plan"
-                onclick={() => {
-                  planToDelete = plan;
-                  deleteDialogOpen = true;
-                }}
-              >
-                <Icon name="delete" size="sm" />
-              </button>
+            {/snippet}
+
+            <div class="p-6">
+              {#if plan.description}
+                <p class="mb-3 text-sm text-surface-500">{plan.description}</p>
+              {/if}
+
+              {#if exerciseNames(plan.id).length > 0}
+                <ul class="space-y-1 text-xs text-surface-500">
+                  {#each exerciseNames(plan.id) as pe (pe.name)}
+                    <li class="flex items-center justify-between gap-2">
+                      <span class="truncate">{pe.name}</span>
+                      <span class="shrink-0 font-medium text-surface-400"
+                        >{pe.target_sets}×{pe.target_reps} @ RPE {pe.target_rpe ?? '—'}</span
+                      >
+                    </li>
+                  {/each}
+                </ul>
+              {:else}
+                <p class="text-xs text-surface-400">No exercises added yet.</p>
+              {/if}
+
+              <div class="mt-4">
+                <Btn variant="primary" size="sm" onclick={() => startSession(plan.id)}>
+                  <Icon name="play-arrow" size="sm" />Start Workout
+                </Btn>
+              </div>
             </div>
-          {/snippet}
-
-          <div class="p-6">
-            {#if plan.description}
-              <p class="mb-3 text-sm text-surface-500">{plan.description}</p>
-            {/if}
-
-            {#if exerciseNames(plan.id).length > 0}
-              <ul class="space-y-1 text-xs text-surface-500">
-                {#each exerciseNames(plan.id) as pe (pe.name)}
-                  <li class="flex items-center justify-between gap-2">
-                    <span class="truncate">{pe.name}</span>
-                    <span class="shrink-0 font-medium text-surface-400"
-                      >{pe.target_sets}×{pe.target_reps} @ RPE {pe.target_rpe ?? '—'}</span
-                    >
-                  </li>
-                {/each}
-              </ul>
-            {:else}
-              <p class="text-xs text-surface-400">No exercises added yet.</p>
-            {/if}
-
-            <div class="mt-4">
-              <Btn variant="primary" size="sm" onclick={() => startSession(plan.id)}>
-                <Icon name="play-arrow" size="sm" />Start Workout
-              </Btn>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       {/each}
     </div>
   {/if}

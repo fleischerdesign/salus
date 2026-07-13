@@ -40,10 +40,14 @@ function setup() {
       let store: Record<string, string> = {};
       return {
         getItem: (key: string) => store[key] ?? null,
-        setItem: (key: string, value: string) => { store[key] = value; },
-        removeItem: (key: string) => { delete store[key]; },
+        setItem: (key: string, value: string) => {
+          store[key] = value;
+        },
+        removeItem: (key: string) => {
+          delete store[key];
+        }
       };
-    })(),
+    })()
   );
   onSyncCalls = 0;
   mockEventSource = null;
@@ -64,7 +68,9 @@ describe('connectLiveSync', () => {
   it('creates EventSource with sync events URL', async () => {
     localStorage.setItem('salus_token', 'test-token');
     const mod = await import('$lib/db/live-events');
-    mod.connectLiveSync(() => { onSyncCalls++; });
+    mod.connectLiveSync(() => {
+      onSyncCalls++;
+    });
     expect(mockEventSource).not.toBeNull();
     expect(mockEventSource!.url).toBe('/api/v1/sync/events');
   });
@@ -72,7 +78,9 @@ describe('connectLiveSync', () => {
   it('does not connect without token', async () => {
     localStorage.removeItem('salus_token');
     const mod = await import('$lib/db/live-events');
-    mod.connectLiveSync(() => { onSyncCalls++; });
+    mod.connectLiveSync(() => {
+      onSyncCalls++;
+    });
     expect(mockEventSource).toBeNull();
   });
 
@@ -80,7 +88,9 @@ describe('connectLiveSync', () => {
     vi.useFakeTimers();
     localStorage.setItem('salus_token', 'test-token');
     const mod = await import('$lib/db/live-events');
-    mod.connectLiveSync(() => { onSyncCalls++; });
+    mod.connectLiveSync(() => {
+      onSyncCalls++;
+    });
 
     mockEventSource!.dispatchEvent('sync');
     mockEventSource!.dispatchEvent('sync');
@@ -99,7 +109,9 @@ describe('connectLiveSync', () => {
     vi.useFakeTimers();
     localStorage.setItem('salus_token', 'test-token');
     const mod = await import('$lib/db/live-events');
-    mod.connectLiveSync(() => { onSyncCalls++; });
+    mod.connectLiveSync(() => {
+      onSyncCalls++;
+    });
 
     const es = mockEventSource!;
     expect(es.readyState).toBe(0);

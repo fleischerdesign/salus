@@ -42,7 +42,7 @@
       <div class="flex items-center gap-1">
         {#if onEdit}
           <button
-            class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600"
+            class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600"
             onclick={onEdit}
           >
             <Icon name="edit" size="sm" />
@@ -50,7 +50,7 @@
         {/if}
         {#if onDelete}
           <button
-            class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
+            class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
             onclick={onDelete}
           >
             <Icon name="delete" size="sm" />

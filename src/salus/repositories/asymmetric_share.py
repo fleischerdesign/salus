@@ -27,7 +27,7 @@ class AsymmetricShareRepository(Repository[AsymmetricShare], IAsymmetricShareRep
             ).all()
         )
 
-    def get_by_id_secure(self, share_id: int) -> Optional[AsymmetricShare]:
+    def get_by_id_secure(self, share_id: str) -> Optional[AsymmetricShare]:
         share = self.session.get(AsymmetricShare, share_id)
         if share and share.deleted_at is not None:
             return None

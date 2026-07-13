@@ -7,6 +7,7 @@ from salus.dependencies import (
     get_auth_service,
     get_current_user,
     get_user_service,
+    limiter,
 )
 from salus.exceptions import ConflictError, InvalidCredentialsError
 from salus.schemas.user import (
@@ -21,6 +22,17 @@ from salus.services.user import UserService
 router = APIRouter(prefix="/api/v1")
 
 
+def _set_session_cookie(response, token: str) -> None:
+    response.set_cookie(
+        key=TOKEN_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=settings.is_production,
+        max_age=settings.jwt_expire_minutes * 60,
+        samesite="lax",
+    )
+
+
 def _json_auth_response(token: str, user) -> JSONResponse:
     return JSONResponse(
         status_code=200,
@@ -32,7 +44,9 @@ def _json_auth_response(token: str, user) -> JSONResponse:
 
 
 @router.post("/auth/login")
+@limiter.limit("5/minute")
 async def api_login(
+    request: Request,
     body: LoginRequest,
     auth_svc: AuthService = Depends(get_auth_service),
 ):
@@ -42,18 +56,14 @@ async def api_login(
         return JSONResponse(status_code=401, content={"error": "Invalid username or password"})
 
     response = _json_auth_response(token, user)
-    response.set_cookie(
-        key=TOKEN_COOKIE_NAME,
-        value=token,
-        httponly=True,
-        max_age=settings.jwt_expire_minutes * 60,
-        samesite="lax",
-    )
+    _set_session_cookie(response, token)
     return response
 
 
 @router.post("/auth/register")
+@limiter.limit("3/minute")
 async def api_register(
+    request: Request,
     body: RegisterRequest,
     user_svc: UserService = Depends(get_user_service),
     auth_svc: AuthService = Depends(get_auth_service),
@@ -70,13 +80,7 @@ async def api_register(
 
     token = auth_svc.create_token_for_user(user)
     response = _json_auth_response(token, user)
-    response.set_cookie(
-        key=TOKEN_COOKIE_NAME,
-        value=token,
-        httponly=True,
-        max_age=settings.jwt_expire_minutes * 60,
-        samesite="lax",
-    )
+    _set_session_cookie(response, token)
     return response
 
 
@@ -93,7 +97,9 @@ async def api_me(current_user=Depends(get_current_user)):
 
 
 @router.post("/auth/ldap")
+@limiter.limit("5/minute")
 async def api_ldap(
+    request: Request,
     body: LoginRequest,
     auth_svc: AuthService = Depends(get_auth_service),
 ):
@@ -103,13 +109,7 @@ async def api_ldap(
         return JSONResponse(status_code=401, content={"error": "LDAP authentication failed"})
 
     response = _json_auth_response(token, user)
-    response.set_cookie(
-        key=TOKEN_COOKIE_NAME,
-        value=token,
-        httponly=True,
-        max_age=settings.jwt_expire_minutes * 60,
-        samesite="lax",
-    )
+    _set_session_cookie(response, token)
     return response
 
 
@@ -157,11 +157,5 @@ async def api_oidc_callback(
 
     token = auth_svc.create_token_for_user(user)
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(
-        key=TOKEN_COOKIE_NAME,
-        value=token,
-        httponly=True,
-        max_age=settings.jwt_expire_minutes * 60,
-        samesite="lax",
-    )
+    _set_session_cookie(response, token)
     return response

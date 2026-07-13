@@ -13,7 +13,7 @@
     {@const state = i < current ? 'completed' : i === current ? 'active' : 'pending'}
     <li>
       <span
-        class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-150
+        class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors
           {state === 'completed'
           ? 'bg-primary-500 text-white'
           : state === 'active'

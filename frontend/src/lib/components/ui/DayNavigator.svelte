@@ -35,7 +35,7 @@
   aria-label="Date navigation"
 >
   <button
-    class="flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors duration-150 hover:bg-primary-50 hover:text-primary-600"
+    class="duration-micro flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors hover:bg-primary-50 hover:text-primary-600"
     onclick={onPrev}
     aria-label="Previous day"
     type="button"
@@ -44,7 +44,7 @@
   </button>
 
   <span
-    class="cursor-pointer text-[13px] font-semibold tracking-[0.05em] text-surface-900 transition-colors duration-150 hover:text-primary-600"
+    class="duration-micro cursor-pointer text-[13px] font-semibold tracking-[0.05em] text-surface-900 transition-colors hover:text-primary-600"
     role="button"
     tabindex="0"
     onclick={() => {
@@ -64,7 +64,7 @@
   <input id="daynav-hidden-date" type="date" class="sr-only" onchange={handleDateInput} />
 
   <button
-    class="flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors duration-150 hover:bg-primary-50 hover:text-primary-600"
+    class="duration-micro flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors hover:bg-primary-50 hover:text-primary-600"
     onclick={onNext}
     aria-label="Next day"
     type="button"

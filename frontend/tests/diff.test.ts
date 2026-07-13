@@ -26,8 +26,22 @@ describe('computeDiff', () => {
   });
 
   it('skips timestamp and id fields', () => {
-    const client = { name: 'X', updated_at: '2025-01-01', created_at: '2025-01-01', deleted_at: '2025-01-01', id: 1, last_used_at: '2025-01-01' };
-    const server = { name: 'X', updated_at: '2026-01-01', created_at: '2026-01-01', deleted_at: '2026-01-01', id: 2, last_used_at: '2026-01-01' };
+    const client = {
+      name: 'X',
+      updated_at: '2025-01-01',
+      created_at: '2025-01-01',
+      deleted_at: '2025-01-01',
+      id: 1,
+      last_used_at: '2025-01-01'
+    };
+    const server = {
+      name: 'X',
+      updated_at: '2026-01-01',
+      created_at: '2026-01-01',
+      deleted_at: '2026-01-01',
+      id: 2,
+      last_used_at: '2026-01-01'
+    };
     const diff = computeDiff(client, server);
     expect(diff).toHaveLength(0);
   });

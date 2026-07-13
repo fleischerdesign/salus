@@ -1,6 +1,8 @@
 <script lang="ts">
   import { type Snippet, untrack } from 'svelte';
   import { getContext } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import { DURATIONS, motionParams } from '$lib/utils/motion';
   import Icon from './Icon.svelte';
 
   interface Props {
@@ -25,7 +27,7 @@
 <div>
   <button
     type="button"
-    class="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-surface-900 transition-colors duration-150 hover:bg-surface-50"
+    class="duration-micro flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-surface-900 transition-colors hover:bg-surface-50"
     aria-expanded={isOpen}
     onclick={() => accordion.toggle(id)}
   >
@@ -33,12 +35,14 @@
     <Icon
       name="expand-more"
       size="sm"
-      class="transition-transform duration-150 {isOpen ? 'rotate-180' : ''}"
+      class="duration-micro transition-transform {isOpen ? 'rotate-180' : ''}"
     />
   </button>
   {#if isOpen}
-    <div class="px-4 py-3 text-sm text-surface-600">
-      {@render children()}
+    <div class="overflow-hidden" transition:slide={motionParams(DURATIONS.fast)}>
+      <div class="px-4 py-3 text-sm text-surface-600">
+        {@render children()}
+      </div>
     </div>
   {/if}
 </div>

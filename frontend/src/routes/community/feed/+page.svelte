@@ -8,6 +8,8 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ProgressBar from '$components/ui/ProgressBar.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let activities = liveQuery(() =>
     db.community_activity
@@ -54,55 +56,57 @@
     </EmptyState>
   {:else}
     <div class="space-y-4">
-      {#each $activities ?? [] as act}
-        <Card padding={false}>
-          <div class="flex items-center gap-3 px-5 pt-4">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600"
-            >
-              <Icon name={activityIcon[act.activity_type] ?? 'fitness-center'} size="sm" />
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold text-surface-900">{act.friend_name}</p>
-              <p class="text-xs text-surface-500">
-                {activityLabel[act.activity_type] ?? act.activity_description}
-                {#if act.time}· {act.time}{/if}
-              </p>
-            </div>
-          </div>
-
-          <div class="px-5 pt-3">
-            {#if act.activity_type === 'steps' && act.value}
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-semibold text-surface-900"
-                  >{act.value.toLocaleString()}</span
-                >
-                <span class="text-sm text-surface-500">steps</span>
+      {#each $activities ?? [] as act, i (act.id)}
+        <div in:fade={{ ...staggerFade(i) }}>
+          <Card padding={false}>
+            <div class="flex items-center gap-3 px-5 pt-4">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+              >
+                <Icon name={activityIcon[act.activity_type] ?? 'fitness-center'} size="sm" />
               </div>
-              <ProgressBar value={act.value} max={10000} height="sm" class="mt-2" />
-            {:else if act.value}
-              <span class="text-2xl font-semibold text-surface-900">{act.value}</span>
-            {/if}
-            {#if act.notes}
-              <p class="mt-2 text-sm text-surface-500 italic">"{act.notes}"</p>
-            {/if}
-          </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-surface-900">{act.friend_name}</p>
+                <p class="text-xs text-surface-500">
+                  {activityLabel[act.activity_type] ?? act.activity_description}
+                  {#if act.time}· {act.time}{/if}
+                </p>
+              </div>
+            </div>
 
-          <div class="mt-3 flex items-center gap-4 border-t border-surface-100 px-5 py-2.5">
-            <button
-              type="button"
-              class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600"
-            >
-              <Icon name="favorite" size="sm" />Kudos
-            </button>
-            <button
-              type="button"
-              class="flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors duration-150 hover:text-primary-600"
-            >
-              <Icon name="chat-bubble-outline" size="sm" />Comment
-            </button>
-          </div>
-        </Card>
+            <div class="px-5 pt-3">
+              {#if act.activity_type === 'steps' && act.value}
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-semibold text-surface-900"
+                    >{act.value.toLocaleString()}</span
+                  >
+                  <span class="text-sm text-surface-500">steps</span>
+                </div>
+                <ProgressBar value={act.value} max={10000} height="sm" class="mt-2" />
+              {:else if act.value}
+                <span class="text-2xl font-semibold text-surface-900">{act.value}</span>
+              {/if}
+              {#if act.notes}
+                <p class="mt-2 text-sm text-surface-500 italic">"{act.notes}"</p>
+              {/if}
+            </div>
+
+            <div class="mt-3 flex items-center gap-4 border-t border-surface-100 px-5 py-2.5">
+              <button
+                type="button"
+                class="duration-micro flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors hover:text-primary-600"
+              >
+                <Icon name="favorite" size="sm" />Kudos
+              </button>
+              <button
+                type="button"
+                class="duration-micro flex items-center gap-1 text-xs font-medium text-surface-400 transition-colors hover:text-primary-600"
+              >
+                <Icon name="chat-bubble-outline" size="sm" />Comment
+              </button>
+            </div>
+          </Card>
+        </div>
       {/each}
     </div>
   {/if}

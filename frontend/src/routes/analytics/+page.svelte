@@ -10,6 +10,8 @@
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import VizBar from '$components/dashboard/VizBar.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let range = $state('30d');
 
@@ -191,29 +193,34 @@
         <div class="p-2">
           {#if $data.exercise_sessions.length > 0}
             <div class="divide-y divide-surface-100">
-              {#each $data.exercise_sessions as session}
-                <ListItem primary={session.type_name} secondary={`${session.date} ${session.time}`}>
-                  {#snippet children()}
-                    <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
-                      <div class="min-w-0">
-                        <p class="truncate text-sm font-medium text-surface-900">
-                          {session.type_name}
-                        </p>
-                        <p class="mt-0.5 truncate text-xs text-surface-500">
-                          {session.date}
-                          {session.time}
-                          {#if session.distance_meters > 0}
-                            · {(session.distance_meters / 1000).toFixed(1)}km{/if}
-                          {#if session.calories > 0}
-                            · {session.calories.toFixed(0)} kcal{/if}
-                        </p>
+              {#each $data.exercise_sessions as session, i}
+                <div in:fade={{ ...staggerFade(i) }}>
+                  <ListItem
+                    primary={session.type_name}
+                    secondary={`${session.date} ${session.time}`}
+                  >
+                    {#snippet children()}
+                      <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-medium text-surface-900">
+                            {session.type_name}
+                          </p>
+                          <p class="mt-0.5 truncate text-xs text-surface-500">
+                            {session.date}
+                            {session.time}
+                            {#if session.distance_meters > 0}
+                              · {(session.distance_meters / 1000).toFixed(1)}km{/if}
+                            {#if session.calories > 0}
+                              · {session.calories.toFixed(0)} kcal{/if}
+                          </p>
+                        </div>
+                        <span class="flex-shrink-0 text-sm text-surface-500"
+                          >{formatDuration(session.duration_seconds)}</span
+                        >
                       </div>
-                      <span class="flex-shrink-0 text-sm text-surface-500"
-                        >{formatDuration(session.duration_seconds)}</span
-                      >
-                    </div>
-                  {/snippet}
-                </ListItem>
+                    {/snippet}
+                  </ListItem>
+                </div>
               {/each}
             </div>
           {:else}

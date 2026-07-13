@@ -46,7 +46,7 @@
   let hasHighlight = $derived(items.some((item) => item.highlight));
 
   let triggerClass = $derived(
-    'flex h-16 items-center gap-1 border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] transition-colors duration-150 ' +
+    'flex h-16 items-center gap-1 border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] transition-colors duration-micro ' +
       (isActive
         ? 'border-primary-500 text-primary-600'
         : open
@@ -54,10 +54,10 @@
           : 'border-transparent text-surface-600 hover:text-primary-600')
   );
 
-  let chevronClass = $derived('transition-transform duration-150 ' + (open ? 'rotate-180' : ''));
+  let chevronClass = $derived('transition-transform duration-micro ' + (open ? 'rotate-180' : ''));
 
   let menuClass = $derived(
-    'absolute left-0 top-full mt-1 min-w-[180px] rounded-lg border border-surface-200 bg-surface-0 shadow-lg z-50 transition-all duration-150 ' +
+    'absolute left-0 top-full mt-1 min-w-[180px] rounded-lg border border-surface-200 bg-surface-0 shadow-lg z-50 transition-all duration-micro ' +
       (open
         ? 'opacity-100 pointer-events-auto translate-y-0'
         : 'opacity-0 pointer-events-none -translate-y-1')
@@ -88,7 +88,7 @@
           $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + '/')}
         <a
           href={item.href}
-          class="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-150 hover:bg-surface-50 {item.highlight
+          class="duration-micro flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {item.highlight
             ? 'text-success-600'
             : active
               ? 'text-primary-600'

@@ -60,7 +60,7 @@ class AsymmetricShareService:
             self.uow.commit()
             return share
 
-    def get_share_secure(self, share_id: int) -> AsymmetricShare:
+    def get_share_secure(self, share_id: str) -> AsymmetricShare:
         """
         Public endpoint to fetch a share. Since it is fully client-side encrypted,
         we do not authenticate the request, but we enforce expiration dates.
@@ -86,7 +86,7 @@ class AsymmetricShareService:
         with self.uow:
             return self.uow.asymmetric_shares.find_by_user(user_id)
 
-    def delete_share(self, user_id: int, share_id: int) -> None:
+    def delete_share(self, user_id: int, share_id: str) -> None:
         with self.uow:
             share = self.uow.asymmetric_shares.get_by_id_secure(share_id)
             if not share or share.user_id != user_id:

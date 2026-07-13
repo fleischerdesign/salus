@@ -30,7 +30,7 @@
 
 <div
   class="rounded-md border border-surface-200 bg-surface-0 {variantStyles[variant]} {hoverable
-    ? 'transition-all duration-150 hover:border-surface-300 hover:shadow-md'
+    ? 'duration-micro transition-all hover:border-surface-300 hover:shadow-md'
     : ''} {extraClass}"
 >
   {#if header}

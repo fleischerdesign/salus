@@ -18,6 +18,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let goals = liveQuery(() => fetchGoalViews());
   let metrics = liveQuery(() =>
@@ -169,68 +171,70 @@
     </EmptyState>
   {:else}
     <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
-      {#each $goals as g (g.id)}
-        <Card padding={false}>
-          {#snippet header()}
-            <div class="flex items-center gap-3">
-              <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                style="background-color: {g.metric_color}20; color: {g.metric_color}"
-              >
-                <Icon name={g.metric_icon || 'track-changes'} size="sm" />
+      {#each $goals as g, i (g.id)}
+        <div in:fade={{ ...staggerFade(i) }}>
+          <Card padding={false}>
+            {#snippet header()}
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                  style="background-color: {g.metric_color}20; color: {g.metric_color}"
+                >
+                  <Icon name={g.metric_icon || 'track-changes'} size="sm" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-surface-900">
+                    {g.metric_name}
+                  </p>
+                  <p class="text-xs text-surface-400 capitalize">{g.frequency}</p>
+                </div>
+                <button
+                  type="button"
+                  class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                  aria-label="Delete goal"
+                  onclick={() => {
+                    goalToDelete = g;
+                    deleteDialogOpen = true;
+                  }}
+                >
+                  <Icon name="close" size="sm" />
+                </button>
               </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-semibold text-surface-900">
-                  {g.metric_name}
-                </p>
-                <p class="text-xs text-surface-400 capitalize">{g.frequency}</p>
+            {/snippet}
+
+            <div class="p-6">
+              <div class="flex items-baseline gap-2">
+                <Icon
+                  name={g.direction === 'increase' ? 'trending-up' : 'trending-down'}
+                  size="sm"
+                  class={g.direction === 'increase' ? 'text-success-600' : 'text-primary-500'}
+                />
+                <span class="text-2xl font-bold text-surface-900 tabular-nums">
+                  {formatValue(g.progress.current_value)}
+                </span>
+                <span class="text-sm text-surface-400">
+                  / {formatValue(g.target_value)}{g.metric_unit ? ` ${g.metric_unit}` : ''}
+                </span>
               </div>
-              <button
-                type="button"
-                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
-                aria-label="Delete goal"
-                onclick={() => {
-                  goalToDelete = g;
-                  deleteDialogOpen = true;
-                }}
-              >
-                <Icon name="close" size="sm" />
-              </button>
-            </div>
-          {/snippet}
 
-          <div class="p-6">
-            <div class="flex items-baseline gap-2">
-              <Icon
-                name={g.direction === 'increase' ? 'trending-up' : 'trending-down'}
-                size="sm"
-                class={g.direction === 'increase' ? 'text-success-600' : 'text-primary-500'}
-              />
-              <span class="text-2xl font-bold text-surface-900 tabular-nums">
-                {formatValue(g.progress.current_value)}
-              </span>
-              <span class="text-sm text-surface-400">
-                / {formatValue(g.target_value)}{g.metric_unit ? ` ${g.metric_unit}` : ''}
-              </span>
-            </div>
+              <div class="mt-3">
+                <ProgressBar
+                  value={g.progress.percent}
+                  max={100}
+                  variant={progressVariant(g.progress.status)}
+                  height="md"
+                />
+              </div>
 
-            <div class="mt-3">
-              <ProgressBar
-                value={g.progress.percent}
-                max={100}
-                variant={progressVariant(g.progress.status)}
-                height="md"
-              />
+              <div class="mt-3 flex items-center justify-between">
+                <span class="text-xs font-semibold capitalize {statusColor(g.progress.status)}">
+                  {g.progress.status}
+                </span>
+                <span class="text-xs text-surface-400">{resetLabel(g)}</span>
+              </div>
             </div>
-
-            <div class="mt-3 flex items-center justify-between">
-              <span class="text-xs font-semibold capitalize {statusColor(g.progress.status)}">
-                {g.progress.status}
-              </span>
-              <span class="text-xs text-surface-400">{resetLabel(g)}</span>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       {/each}
     </div>
   {/if}

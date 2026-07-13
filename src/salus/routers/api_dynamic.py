@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import Response
-from sqlmodel import select
+from sqlmodel import Session, select
 
 from salus.dependencies import get_current_user, get_unit_of_work
 from salus.models.user import User
@@ -21,7 +21,7 @@ def _get_meta(entity_name: str) -> EntityMeta:
     raise HTTPException(status_code=500, detail=f"No entity meta for {entity_name}")
 
 
-def _check_ownership(obj: object, user: User, meta: EntityMeta) -> None:
+def _check_ownership(obj: object, user: User, meta: EntityMeta, session: Session) -> None:
     strategy = meta.strategy
     if strategy in ("user_scoped", "append_only"):
         owner_field = meta.owner_field or "user_id"
@@ -32,6 +32,13 @@ def _check_ownership(obj: object, user: User, meta: EntityMeta) -> None:
         obj_user = getattr(obj, owner_field, None)
         if obj_user is not None and obj_user != user.id:
             raise HTTPException(status_code=403, detail="Not authorized")
+    elif strategy == "relational" and meta.parent_model and meta.parent_field and meta.parent_owner_field:
+        fk = getattr(obj, meta.parent_field, None)
+        if fk is not None:
+            parent = session.get(meta.parent_model, fk)
+            if parent and getattr(parent, meta.parent_owner_field) != user.id:
+                raise HTTPException(status_code=403, detail="Not authorized")
+    # global: intentionally public-read (leaderboard groups/members)
 
 
 def _build_list_query(model: type, meta: EntityMeta, user: User, page: int, limit: int):
@@ -135,7 +142,7 @@ def _register_one(app: FastAPI, entity_name: str) -> None:
                 raise HTTPException(status_code=404, detail=f"{entity_name} not found")
             if hasattr(obj, "deleted_at") and obj.deleted_at is not None:  # pyright: ignore[reportAttributeAccessIssue]
                 raise HTTPException(status_code=404, detail=f"{entity_name} not found")
-            _check_ownership(obj, user, meta)
+            _check_ownership(obj, user, meta, uow.session)
             return obj.model_dump()  # type: ignore[union-attr]
 
     async def get_list(

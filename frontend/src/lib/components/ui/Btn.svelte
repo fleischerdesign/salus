@@ -40,7 +40,7 @@
   }: Props = $props();
 
   let classes = $derived(
-    'relative inline-flex items-center justify-center rounded-md font-semibold leading-none no-underline transition-all duration-150 select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] ' +
+    'relative inline-flex items-center justify-center rounded-md font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] ' +
       (fullWidth ? 'w-full ' : '') +
       variantClasses[variant] +
       ' ' +

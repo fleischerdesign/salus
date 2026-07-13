@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    environment: str = "dev"
     app_name: str = "salus"
     database_url: str = "sqlite:///salus.db"
 
@@ -41,6 +42,10 @@ class Settings(BaseSettings):
     backup_retention_days: int = 14
 
     model_config = {"env_prefix": "SALUS_"}
+
+    @property
+    def is_production(self) -> bool:
+        return self.environment == "production"
 
 
 settings = Settings()

@@ -35,7 +35,7 @@
 </script>
 
 <div
-  class="chrome-card overflow-hidden rounded-lg border border-surface-200 bg-surface-0 transition-all duration-150 {editMode
+  class="chrome-card duration-micro overflow-hidden rounded-lg border border-surface-200 bg-surface-0 transition-all {editMode
     ? 'cursor-grab bg-surface-50 active:cursor-grabbing'
     : 'hover:border-surface-300 hover:shadow-md'} {extraClass}"
   class:widget-chrome-handle={editMode && dragHandle}
@@ -44,7 +44,7 @@
     <!-- Drag handle -->
     {#if dragHandle}
       <span
-        class="flex items-center overflow-hidden transition-all duration-150 ease-out {dragVisible
+        class="duration-micro flex items-center overflow-hidden transition-all ease-out {dragVisible
           ? 'max-w-[24px] opacity-100'
           : 'max-w-0 opacity-0'}"
       >
@@ -78,7 +78,7 @@
     <!-- Edit-only actions (revealed via transition when editMode is active) -->
     {#if editActions}
       <div
-        class="edit-chrome-actions flex items-center gap-0.5 overflow-hidden transition-all duration-150 ease-out {editActionsVisible
+        class="edit-chrome-actions duration-micro flex items-center gap-0.5 overflow-hidden transition-all ease-out {editActionsVisible
           ? 'max-w-[120px] opacity-100'
           : 'max-w-0 opacity-0'}"
       >

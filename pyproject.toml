@@ -20,6 +20,7 @@ dependencies = [
     "bcrypt>=4.0",
     "alembic>=1.18.5",
     "qrcode[pil]>=7.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.scripts]
@@ -30,6 +31,7 @@ dev = [
     "pytest",
     "httpx",
     "pytest-cov>=7.1.0",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [tool.pytest.ini_options]

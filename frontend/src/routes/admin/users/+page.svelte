@@ -81,21 +81,21 @@
   <div class="flex gap-1.5">
     <button
       type="button"
-      class="rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors duration-150 hover:bg-surface-100"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => toggleAdmin(u)}
     >
       {u.is_admin ? 'Demote' : 'Promote'}
     </button>
     <button
       type="button"
-      class="rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors duration-150 hover:bg-surface-100"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => toggleActive(u)}
     >
       {u.is_active ? 'Deactivate' : 'Activate'}
     </button>
     <button
       type="button"
-      class="rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors duration-150 hover:bg-error-50"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
       onclick={() => deleteUser(u.id)}
     >
       Delete

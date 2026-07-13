@@ -1,6 +1,8 @@
 from collections.abc import Generator
 
 from fastapi import Depends, Header, HTTPException, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlmodel import Session
 
 from salus.config import settings
@@ -65,6 +67,9 @@ from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
 from salus.services.event_bus import EventBus
+
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:

@@ -17,6 +17,7 @@
   import { goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
   import TopAppBar from '$components/layout/TopAppBar.svelte';
+  import PageTransition from '$components/ui/PageTransition.svelte';
   import Toast from '$components/ui/Toast.svelte';
   import ConflictResolver from '$components/feedback/ConflictResolver.svelte';
 
@@ -77,7 +78,7 @@
 
 {#if isPublic}
   <div class="flex min-h-screen items-center justify-center bg-surface-50 p-4">
-    {@render children()}
+    <PageTransition>{@render children()}</PageTransition>
   </div>
 {:else if auth.isAuthenticated}
   {#if sessionExpired}
@@ -102,7 +103,7 @@
     <div class="flex min-h-screen flex-col bg-surface-50">
       <TopAppBar />
       <main class="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 md:px-10">
-        {@render children()}
+        <PageTransition>{@render children()}</PageTransition>
       </main>
       <Toast />
       <ConflictResolver />
@@ -115,17 +116,3 @@
     ></div>
   </div>
 {/if}
-
-<style>
-  @keyframes shrink {
-    from {
-      width: 100%;
-    }
-    to {
-      width: 0%;
-    }
-  }
-  .animate-shrink {
-    animation: shrink 2s ease-in forwards;
-  }
-</style>

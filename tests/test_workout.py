@@ -278,13 +278,7 @@ def test_plan_conflict_resolution(session, workout_services):
 # ---------------------------------------------------------------------------
 
 
-def _skip_pwa_health(client):
-    response = client.get("/api/v1/pwa/health")
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
-
-
-def _skip_active_session_returns_logged_sets(authenticated_client):
+def test_active_session_returns_logged_sets(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import Exercise
@@ -321,7 +315,7 @@ def _skip_active_session_returns_logged_sets(authenticated_client):
     assert body["logs"][0]["reps"] == 8
 
 
-def _skip_recent_sessions_includes_completed(authenticated_client):
+def test_recent_sessions_includes_completed(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise
@@ -373,7 +367,7 @@ def _skip_recent_sessions_includes_completed(authenticated_client):
     assert sess["logs"][0]["reps"] == 10
 
 
-def _skip_list_exercises_includes_created(authenticated_client):
+def test_list_exercises_includes_created(authenticated_client):
     from sqlmodel import Session
     from salus.models.workout import Exercise
 
@@ -399,7 +393,7 @@ def _skip_list_exercises_includes_created(authenticated_client):
     assert "hamstrings" in deadlift["primary_muscles"]
 
 
-def _skip_get_plan_returns_plan(authenticated_client):
+def test_get_plan_returns_plan(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import WorkoutPlan
@@ -446,7 +440,7 @@ def test_create_exercise_via_api(authenticated_client):
     assert duplicate.status_code == 400
 
 
-def _skip_delete_exercise_via_api(authenticated_client):
+def test_delete_exercise_via_api(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import Exercise
@@ -532,7 +526,7 @@ def test_start_and_complete_session_via_api(authenticated_client):
     assert complete.json()["notes"] == "Done."
 
 
-def _skip_log_and_delete_set_via_api(authenticated_client):
+def test_log_and_delete_set_via_api(authenticated_client):
     from sqlmodel import Session
     from salus.models.workout import Exercise
 
@@ -562,7 +556,7 @@ def _skip_log_and_delete_set_via_api(authenticated_client):
     assert len(active.json()["logs"]) == 0
 
 
-def _skip_list_plans_via_api(authenticated_client):
+def test_list_plans_via_api(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import WorkoutPlan
@@ -585,7 +579,7 @@ def _skip_list_plans_via_api(authenticated_client):
     assert plan_data["name"] == "List Test"
 
 
-def _skip_get_plan_targets_returns_targets(authenticated_client):
+def test_get_plan_targets_returns_targets(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
     from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise

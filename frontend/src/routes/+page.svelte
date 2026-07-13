@@ -249,7 +249,7 @@
   {:else}
     <div
       bind:this={gridEl}
-      class="grid grid-cols-1 gap-4 transition-opacity duration-150 sm:grid-cols-3 lg:grid-cols-6 {editing
+      class="duration-micro grid grid-cols-1 gap-4 transition-opacity sm:grid-cols-3 lg:grid-cols-6 {editing
         ? 'rounded-lg bg-surface-100 p-2 ring-1 ring-primary-200'
         : ''}"
     >
@@ -271,14 +271,14 @@
         >
           {#snippet editActions()}
             <button
-              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600"
+              class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600"
               onclick={() => openEditModal(widget)}
               aria-label="Edit widget size"
             >
               <Icon name="tune" size="sm" />
             </button>
             <button
-              class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-error-50 hover:text-error-500"
+              class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
               onclick={() => {
                 deleteWidgetId = widget.id;
                 deleteConfirmOpen = true;
@@ -301,6 +301,7 @@
               unit={viz.unit ?? undefined}
               subLabel={viz.subtitle ?? undefined}
               color={viz.color ?? undefined}
+              animate={true}
             />
           {:else if viz.type === 'progress'}
             <VizProgress
@@ -334,6 +335,7 @@
               value={viz.value ?? '—'}
               unit={viz.unit ?? undefined}
               color={viz.color ?? undefined}
+              animate={true}
             />
           {/if}
         </ChromeCard>
@@ -342,61 +344,57 @@
   {/if}
 </div>
 
-{#if addModalOpen}
-  <Modal title="Add Widget" bind:open={addModalOpen}>
-    <div class="space-y-4">
-      {#if metricOptions.length > 0}
-        <Select
-          name="metric"
-          label="Metric"
-          options={metricOptions}
-          bind:value={selectedMetricId}
-        />
-        <Select
-          name="size"
-          label="Size"
-          options={[
-            { value: 'small', label: 'Small (1 column)' },
-            { value: 'medium', label: 'Medium (2 columns)' },
-            { value: 'large', label: 'Large (4 columns)' }
-          ]}
-          bind:value={selectedSize}
-        />
-        <div class="flex justify-end gap-2">
-          <Btn variant="ghost" onclick={() => (addModalOpen = false)}>Cancel</Btn>
-          <Btn variant="primary" loading={adding} onclick={addWidget}>Add</Btn>
-        </div>
-      {:else}
-        <EmptyState
-          icon="dashboard"
-          title="All metrics added"
-          description="Every metric already has a widget on your dashboard."
-        />
-      {/if}
-    </div>
-  </Modal>
-{/if}
-
-{#if editModalOpen && editWidget}
-  <Modal title="Edit Widget Size" bind:open={editModalOpen}>
-    <div class="space-y-4">
+<Modal title="Add Widget" bind:open={addModalOpen}>
+  <div class="space-y-4">
+    {#if metricOptions.length > 0}
       <Select
-        name="edit-size"
+        name="metric"
+        label="Metric"
+        options={metricOptions}
+        bind:value={selectedMetricId}
+      />
+      <Select
+        name="size"
         label="Size"
         options={[
           { value: 'small', label: 'Small (1 column)' },
           { value: 'medium', label: 'Medium (2 columns)' },
           { value: 'large', label: 'Large (4 columns)' }
         ]}
-        bind:value={editSize}
+        bind:value={selectedSize}
       />
       <div class="flex justify-end gap-2">
-        <Btn variant="ghost" onclick={() => (editModalOpen = false)}>Cancel</Btn>
-        <Btn variant="primary" loading={editSaving} onclick={updateWidgetSize}>Save</Btn>
+        <Btn variant="ghost" onclick={() => (addModalOpen = false)}>Cancel</Btn>
+        <Btn variant="primary" loading={adding} onclick={addWidget}>Add</Btn>
       </div>
+    {:else}
+      <EmptyState
+        icon="dashboard"
+        title="All metrics added"
+        description="Every metric already has a widget on your dashboard."
+      />
+    {/if}
+  </div>
+</Modal>
+
+<Modal title="Edit Widget Size" bind:open={editModalOpen}>
+  <div class="space-y-4">
+    <Select
+      name="edit-size"
+      label="Size"
+      options={[
+        { value: 'small', label: 'Small (1 column)' },
+        { value: 'medium', label: 'Medium (2 columns)' },
+        { value: 'large', label: 'Large (4 columns)' }
+      ]}
+      bind:value={editSize}
+    />
+    <div class="flex justify-end gap-2">
+      <Btn variant="ghost" onclick={() => (editModalOpen = false)}>Cancel</Btn>
+      <Btn variant="primary" loading={editSaving} onclick={updateWidgetSize}>Save</Btn>
     </div>
-  </Modal>
-{/if}
+  </div>
+</Modal>
 
 <ConfirmDialog
   bind:open={deleteConfirmOpen}

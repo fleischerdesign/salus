@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 
-from salus.dependencies import get_current_user, get_asymmetric_share_service
+from salus.dependencies import (
+    get_asymmetric_share_service,
+    get_current_user,
+    limiter,
+)
 from salus.models.user import User
 from salus.schemas.asymmetric_share import (
     ShareRecipientCreate,
@@ -73,8 +77,10 @@ async def list_shares(
 @router.get(
     "/api/v1/shares/asymmetric/{share_id}", response_model=AsymmetricShareResponse
 )
+@limiter.limit("10/minute")
 async def get_share(
-    share_id: int,
+    request: Request,
+    share_id: str,
     service: AsymmetricShareService = Depends(get_asymmetric_share_service),
 ):
     return service.get_share_secure(share_id)
@@ -84,7 +90,7 @@ async def get_share(
     "/api/v1/shares/asymmetric/{share_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_share(
-    share_id: int,
+    share_id: str,
     current_user: User = Depends(get_current_user),
     service: AsymmetricShareService = Depends(get_asymmetric_share_service),
 ):

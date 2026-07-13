@@ -37,7 +37,7 @@
     id={name}
     bind:value
     {required}
-    class="h-9 rounded-md border border-surface-300 bg-surface-50 px-3 text-sm text-surface-900 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
+    class="duration-micro h-9 rounded-md border border-surface-300 bg-surface-50 px-3 text-sm text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
   >
     {#each options as opt}
       <option value={opt.value}>{opt.label}</option>

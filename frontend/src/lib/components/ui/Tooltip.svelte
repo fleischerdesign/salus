@@ -10,7 +10,7 @@
   let { text, position = 'top', children }: Props = $props();
 
   let bubbleClass = $derived(
-    'absolute left-1/2 z-tooltip -translate-x-1/2 rounded px-2 py-1 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 bg-surface-900 whitespace-nowrap ' +
+    'absolute left-1/2 z-tooltip -translate-x-1/2 rounded px-2 py-1 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-micro group-hover:opacity-100 bg-surface-900 whitespace-nowrap ' +
       (position === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5')
   );
 

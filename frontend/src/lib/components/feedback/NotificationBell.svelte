@@ -44,7 +44,7 @@
   }
 
   let menuClass = $derived(
-    'absolute right-0 top-full mt-2 w-80 rounded-lg border border-surface-200 bg-surface-0 py-1 shadow-lg z-dropdown transition-all duration-150 ' +
+    'absolute right-0 top-full mt-2 w-80 rounded-lg border border-surface-200 bg-surface-0 py-1 shadow-lg z-dropdown transition-all duration-micro ' +
       (open
         ? 'opacity-100 pointer-events-auto translate-y-0'
         : 'opacity-0 pointer-events-none -translate-y-1')
@@ -53,7 +53,7 @@
 
 <div class="relative" onmouseenter={show} onmouseleave={hide} role="presentation">
   <button
-    class="relative flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors duration-150 hover:bg-surface-200 hover:text-surface-900"
+    class="duration-micro relative flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors hover:bg-surface-200 hover:text-surface-900"
     aria-label="Notifications"
     aria-expanded={open}
     aria-haspopup="true"
@@ -87,7 +87,7 @@
       {:else}
         {#each notifications as n}
           <div
-            class="border-b border-surface-100 px-4 py-3 transition-colors duration-150 hover:bg-surface-50 {n.is_read
+            class="duration-micro border-b border-surface-100 px-4 py-3 transition-colors hover:bg-surface-50 {n.is_read
               ? 'opacity-60'
               : ''}"
           >

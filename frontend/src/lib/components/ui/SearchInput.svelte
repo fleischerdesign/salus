@@ -49,12 +49,12 @@
     {placeholder}
     value
     oninput={handleInput}
-    class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm text-surface-900 transition-colors duration-150 placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+    class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
   />
   {#if value}
     <button
       type="button"
-      class="absolute top-1/2 right-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-surface-400 transition-colors duration-150 hover:bg-surface-200 hover:text-surface-600"
+      class="duration-micro absolute top-1/2 right-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-600"
       aria-label="Clear search"
       onclick={clear}
     >

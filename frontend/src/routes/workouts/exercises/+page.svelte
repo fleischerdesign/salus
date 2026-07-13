@@ -15,6 +15,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let allExercises = liveQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
@@ -148,7 +150,7 @@
     <div>
       <a
         href="/workouts"
-        class="flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-surface-700"
+        class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
       >
         <Icon name="arrow-back" size="sm" />Workouts
       </a>
@@ -171,7 +173,7 @@
           type="text"
           placeholder="Search exercises…"
           bind:value={searchQuery}
-          class="h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-3 pl-9 text-sm text-surface-900 transition-colors duration-150 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
+          class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-3 pl-9 text-sm text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
         />
       </div>
       <div class="w-40">
@@ -196,8 +198,12 @@
       </EmptyState>
     {:else}
       <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
-        {#each filteredExercises as ex (ex.id)}
-          <a href="/workouts/exercises/{ex.id}" class="no-underline">
+        {#each filteredExercises as ex, i (ex.id)}
+          <a
+            in:fade={{ ...staggerFade(i) }}
+            href="/workouts/exercises/{ex.id}"
+            class="no-underline"
+          >
             <Card padding={false} hoverable>
               {#snippet header()}
                 <div class="flex items-center gap-3">

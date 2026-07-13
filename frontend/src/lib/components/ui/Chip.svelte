@@ -18,7 +18,7 @@
   }: Props = $props();
 
   const base =
-    'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150';
+    'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-micro';
 
   const variantClasses: Record<string, string> = {
     neutral: 'bg-surface-100 text-surface-600',

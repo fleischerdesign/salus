@@ -13,6 +13,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   interface PeerMetric {
     metric_name: string;
@@ -222,8 +224,11 @@
       </div>
     {:else}
       <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#each $peers as peer}
-          <div class="flex flex-col rounded-lg border border-surface-200 p-4">
+        {#each $peers as peer, i (peer.handle)}
+          <div
+            in:fade={{ ...staggerFade(i) }}
+            class="flex flex-col rounded-lg border border-surface-200 p-4"
+          >
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-semibold text-surface-900">

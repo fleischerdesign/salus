@@ -72,12 +72,12 @@
   const stepperClass =
     'flex items-center rounded-md border border-surface-200 bg-surface-0 overflow-hidden';
   const btnClass =
-    'flex h-7 w-7 items-center justify-center text-xs font-semibold text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-600';
+    'flex h-7 w-7 items-center justify-center text-xs font-semibold text-surface-400 transition-colors duration-micro hover:bg-surface-100 hover:text-surface-600';
   const inputClass =
     'h-7 w-14 border-none bg-transparent text-center text-xs tabular-nums text-surface-900 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 
   const checkBtn = $derived(
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-150 ' +
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-micro ' +
       (isOn
         ? 'border-success-500 bg-success-500 text-white hover:border-error-500 hover:bg-error-500'
         : isBusy
@@ -89,7 +89,7 @@
 </script>
 
 <div
-  class="flex items-center gap-3 rounded-lg px-3 py-2 transition-opacity duration-200 {isOn
+  class="duration-fast flex items-center gap-3 rounded-lg px-3 py-2 transition-opacity {isOn
     ? 'bg-surface-50/50 opacity-70'
     : 'bg-surface-50/50'} {extraClass}"
 >

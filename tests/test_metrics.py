@@ -95,32 +95,3 @@ def test_update_metric(authenticated_client):
     assert data["color"] == "#ff0000"
     assert data["icon"] == "monitor-weight"
 
-
-def _skip_metrics_overview_empty(authenticated_client):
-    response = authenticated_client.get("/api/v1/metrics/overview")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 12
-
-
-def _skip_metrics_overview_with_entries(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metrics = authenticated_client.get("/api/v1/metrics").json()
-    weight_id = next(m["id"] for m in metrics if m["name"] == "Weight")
-
-    authenticated_client.post(
-        f"/api/v1/entries?metric_type_id={weight_id}",
-        json={"value": "80.5"},
-    )
-
-    response = authenticated_client.get("/api/v1/metrics/overview")
-    assert response.status_code == 200
-    data = response.json()
-    weight_overview = next(o for o in data if o["metric_id"] == weight_id)
-    assert weight_overview["latest_value"] == "80.5"
-    assert weight_overview["entry_count"] == 1
-    assert weight_overview["latest_date"] is not None

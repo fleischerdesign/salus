@@ -26,11 +26,11 @@
     'inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer')
   );
   let trackClass = $derived(
-    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-150 ' +
+    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro ' +
       (checked ? 'bg-primary-500' : '')
   );
   let thumbClass = $derived(
-    'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 ' +
+    'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-micro ' +
       (checked ? 'translate-x-5' : '')
   );
 </script>

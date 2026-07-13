@@ -96,15 +96,26 @@
   --z-modal-backdrop: 300;
   --z-modal: 400;
   --z-tooltip: 500;
+
+  /* Animation */
+  --duration-micro: 150ms;
+  --duration-fast: 200ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer base {
-  :root {
-    --duration-micro: 150ms;
-    --duration-fast: 200ms;
-    --duration-normal: 250ms;
-    --duration-slow: 350ms;
-    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  @keyframes shrink {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
   }
 
   html {
@@ -182,5 +193,16 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

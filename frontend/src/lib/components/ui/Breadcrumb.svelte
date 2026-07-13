@@ -14,7 +14,7 @@
         {#if index < items.length - 1}
           <a
             href={item.href}
-            class="text-sm text-surface-500 no-underline transition-colors duration-150 hover:text-primary-600"
+            class="duration-micro text-sm text-surface-500 no-underline transition-colors hover:text-primary-600"
           >
             {item.label}
           </a>

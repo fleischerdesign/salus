@@ -57,7 +57,7 @@
 {#if tag === 'a'}
   <a
     {href}
-    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-50 {divider
+    class="group duration-micro flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-50 {divider
       ? 'border-b border-surface-100 last:border-b-0'
       : ''} {extraClass}"
   >
@@ -71,7 +71,7 @@
 {:else}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
-    class="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 {interactive
+    class="group duration-micro flex items-center gap-3 px-4 py-3 transition-colors {interactive
       ? 'cursor-pointer hover:bg-surface-50'
       : ''} {divider ? 'border-b border-surface-100 last:border-b-0' : ''} {extraClass}"
     role={interactive ? 'button' : undefined}

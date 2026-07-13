@@ -5,7 +5,12 @@ from sqlmodel import Session
 
 from salus.models.sync_push_log import SyncPushLog
 from salus.models.user import User
-from salus.repositories.entity_meta import ENTITY_REGISTRY, ENTITY_VALIDATORS
+from salus.repositories.entity_meta import (
+    ENTITY_META_BY_NAME,
+    ENTITY_REGISTRY,
+    ENTITY_VALIDATORS,
+    EntityMeta,
+)
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation, SyncResult
 
@@ -92,11 +97,16 @@ class WritePipeline:
                 message=f"Unknown operation type: {op.type}",
             )
 
-    def _inject_user_id(self, entity_class: type, data: dict[str, Any]) -> dict[str, Any]:
-        if hasattr(entity_class, "user_id") and "user_id" not in data:
-            from salus.services._helpers import uid
+    def _inject_user_id(self, meta: EntityMeta, data: dict[str, Any]) -> dict[str, Any]:
+        from salus.services._helpers import uid
 
-            data["user_id"] = uid(self.user)
+        strategy = meta.strategy
+        owner_field = meta.owner_field or "user_id"
+
+        if strategy in ("user_scoped", "append_only"):
+            data[owner_field] = uid(self.user)
+        elif strategy == "shared_nullable" and owner_field not in data:
+            data[owner_field] = uid(self.user)
         return data
 
     def _resolve_client_ids(self, data: dict[str, Any], client_id_map: dict[str, int]) -> dict[str, Any]:
@@ -155,7 +165,8 @@ class WritePipeline:
         self, op: SyncOperation, data: dict[str, Any], client_id_map: dict[str, int],
     ) -> SyncResult:
         entity_class = ENTITY_REGISTRY[op.entity]
-        data = self._inject_user_id(entity_class, data)
+        meta = ENTITY_META_BY_NAME[op.entity]
+        data = self._inject_user_id(meta, data)
 
         now = datetime.now(timezone.utc)
         if hasattr(entity_class, "created_at") and "created_at" not in data:

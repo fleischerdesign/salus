@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { tweened } from 'svelte/motion';
+  import { DURATIONS, EASINGS } from '$lib/utils/motion';
   import Icon from '$components/ui/Icon.svelte';
+
   interface Delta {
     value: string;
     direction: 'up' | 'down' | 'neutral';
@@ -12,9 +15,31 @@
     delta?: Delta;
     subLabel?: string;
     color?: string;
+    animate?: boolean;
   }
 
-  let { value, unit, delta, subLabel, color = 'var(--color-surface-900)' }: Props = $props();
+  let {
+    value,
+    unit,
+    delta,
+    subLabel,
+    color = 'var(--color-surface-900)',
+    animate = false
+  }: Props = $props();
+
+  let numValue = $derived(typeof value === 'number' ? value : parseFloat(String(value)));
+  let isNumeric = $derived(!isNaN(numValue));
+
+  const animVal = tweened(0, { duration: DURATIONS.slow, easing: EASINGS.out });
+  let displayValue = $derived(
+    animate && isNumeric ? String(Math.round($animVal * 10) / 10) : String(value)
+  );
+
+  $effect(() => {
+    if (animate && isNumeric) {
+      animVal.set(numValue, { duration: DURATIONS.slow, easing: EASINGS.out });
+    }
+  });
 
   function deltaColor(d: Delta): string {
     if (d.direction === 'neutral') return 'var(--color-surface-400)';
@@ -34,7 +59,7 @@
 
 <div class="flex flex-col gap-1">
   <div class="flex items-baseline gap-1.5">
-    <span class="text-3xl font-bold" style="color: {color}">{value}</span>
+    <span class="text-3xl font-bold" style="color: {color}">{displayValue}</span>
     {#if unit}
       <span class="text-sm text-surface-400">{unit}</span>
     {/if}

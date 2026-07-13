@@ -1,3 +1,4 @@
+import hashlib
 import io
 import logging
 import threading
@@ -11,6 +12,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from salus.dependencies import (
     get_current_user,
     get_sharing_service,
+    limiter,
 )
 from salus.models.sharing import (
     FederatedAccessLog,
@@ -25,7 +27,9 @@ security = HTTPBearer(auto_error=False)
 
 
 @router.get("/sharing/connections/invite-qr")
+@limiter.limit("10/minute")
 async def invite_qr(
+    request: Request,
     url: str = Query(...),
 ):
     import qrcode
@@ -98,8 +102,6 @@ async def federated_shared_data(
                     status_code=401, detail="Missing authorization credentials"
                 )
             token = credentials.credentials
-            import hashlib
-
             token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
 
             rel = sharing_svc.uow.sharing_relationships.find_active_by_token_hash(
@@ -170,6 +172,7 @@ async def federated_shared_data(
 
 
 @router.post("/api/v1/federation/accept")
+@limiter.limit("10/minute")
 async def federated_accept(
     request: Request,
     sharing_svc: SharingService = Depends(get_sharing_service),
@@ -197,6 +200,7 @@ async def federated_accept(
 
 
 @router.post("/api/v1/federation/notify-update")
+@limiter.limit("10/minute")
 async def federated_notify_update(
     request: Request,
     sharing_svc: SharingService = Depends(get_sharing_service),
@@ -241,7 +245,9 @@ async def federated_notify_update(
 
 
 @router.get("/.well-known/webfinger")
+@limiter.limit("10/minute")
 async def webfinger_discover(
+    request: Request,
     resource: str,
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
@@ -280,6 +286,7 @@ async def webfinger_discover(
 
 
 @router.get("/api/v1/federation/actors/{username}")
+@limiter.limit("10/minute")
 async def federated_actor_profile(
     username: str,
     request: Request,

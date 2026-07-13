@@ -227,7 +227,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('asymmetric_share',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('recipient_id', sa.Integer(), nullable=False),
     sa.Column('encrypted_data', sqlmodel.sql.sqltypes.AutoString(), nullable=False),

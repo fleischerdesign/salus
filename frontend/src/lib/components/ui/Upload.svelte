@@ -44,7 +44,7 @@
 
 <label
   for={name}
-  class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-150
+  class="duration-micro flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors
     {isDragging
     ? 'border-primary-500 bg-primary-50'
     : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'} {extraClass}"

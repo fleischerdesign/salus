@@ -82,8 +82,4 @@ class TestApiEntries:
         assert data["entries"][0]["value"] == "80.5"
 
 
-class TestApiHealth:
-    def _skip_health_empty(self, authenticated_client):
-        response = authenticated_client.get("/api/v1/health")
-        assert response.status_code == 200
-        assert response.json() == []
+

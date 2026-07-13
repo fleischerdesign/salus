@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from '$components/ui/Icon.svelte';
+  import { fly } from 'svelte/transition';
+  import { DURATIONS, motionParams } from '$lib/utils/motion';
   import { onMount } from 'svelte';
 
   interface Props {
@@ -28,7 +30,9 @@
 {#if visible}
   <button
     type="button"
-    class="fixed right-6 bottom-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all duration-150 hover:bg-primary-600 active:scale-95 {extraClass}"
+    class="duration-micro fixed right-6 bottom-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all hover:bg-primary-600 active:scale-95 {extraClass}"
+    in:fly={{ y: 16, ...motionParams(DURATIONS.normal) }}
+    out:fly={{ y: 16, ...motionParams(DURATIONS.normal) }}
     aria-label="Scroll to top"
     onclick={scrollToTop}
   >

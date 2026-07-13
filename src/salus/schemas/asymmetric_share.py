@@ -26,7 +26,7 @@ class AsymmetricShareCreate(BaseModel):
 
 
 class AsymmetricShareResponse(BaseModel):
-    id: int
+    id: str
     user_id: int
     recipient_id: int
     encrypted_data: str

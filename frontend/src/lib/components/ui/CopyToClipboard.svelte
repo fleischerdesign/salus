@@ -28,7 +28,7 @@
   <code class="flex-1 truncate text-sm text-surface-700">{value}</code>
   <button
     type="button"
-    class="flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-200 hover:text-surface-600"
+    class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-600"
     aria-label={copied ? 'Copied' : (label ?? 'Copy')}
     onclick={copy}
   >

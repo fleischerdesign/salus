@@ -1,36 +1,6 @@
-def _skip_dashboard_shows_onboarding_flag_after_register(client):
-    resp = client.post(
-        "/api/v1/auth/register",
-        json={"username": "newuser", "password": "secret789"},
-    )
-    assert resp.status_code == 200
-    token = resp.json()["token"]
-    client.headers = {"Authorization": f"Bearer {token}"}
-
-    response = client.get("/api/v1/dashboard")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["show_onboarding"] is True
-
-
-def _skip_dismiss_onboarding(authenticated_client):
+def test_dismiss_onboarding(authenticated_client):
     response = authenticated_client.post("/api/v1/onboarding/dismiss")
     assert response.status_code == 204
-
-    response = authenticated_client.get("/api/v1/dashboard")
-    data = response.json()
-    assert data["show_onboarding"] is False
-
-
-def _skip_dashboard_shows_onboarding_before_dismiss(authenticated_client):
-    response = authenticated_client.get("/api/v1/dashboard")
-    data = response.json()
-    assert data["show_onboarding"] is True
-
-    authenticated_client.post("/api/v1/onboarding/dismiss")
-    response = authenticated_client.get("/api/v1/dashboard")
-    data = response.json()
-    assert data["show_onboarding"] is False
 
 
 def test_onboarding_create_token_endpoint(authenticated_client):

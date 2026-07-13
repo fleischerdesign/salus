@@ -6,6 +6,8 @@
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
+  import { fade } from 'svelte/transition';
+  import { staggerFade } from '$lib/utils/motion';
 
   let plans = liveQuery(() =>
     db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at))
@@ -62,7 +64,7 @@
     {#if activeSession}
       <a href="/workouts/active" class="block no-underline">
         <div
-          class="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3 transition-colors duration-150 hover:bg-primary-100"
+          class="duration-micro flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3 transition-colors hover:bg-primary-100"
         >
           <div class="flex items-center gap-3">
             <Icon name="play-circle" class="text-primary-600" />
@@ -102,8 +104,11 @@
           <div class="p-6">
             {#if $plans.length > 0}
               <div class="space-y-1.5">
-                {#each $plans.slice(0, 3) as plan (plan.id)}
-                  <div class="flex items-center justify-between text-sm">
+                {#each $plans.slice(0, 3) as plan, i (plan.id)}
+                  <div
+                    in:fade={{ ...staggerFade(i) }}
+                    class="flex items-center justify-between text-sm"
+                  >
                     <span class="truncate text-surface-700">{plan.name}</span>
                   </div>
                 {/each}
@@ -136,8 +141,10 @@
           <div class="p-6">
             {#if $exercises.length > 0}
               <div class="flex flex-wrap gap-1.5">
-                {#each $exercises.slice(0, 6) as ex (ex.id)}
-                  <Badge variant="default">{ex.name}</Badge>
+                {#each $exercises.slice(0, 6) as ex, i (ex.id)}
+                  <span in:fade={{ ...staggerFade(i) }}
+                    ><Badge variant="default">{ex.name}</Badge></span
+                  >
                 {/each}
                 {#if $exercises.length > 6}
                   <span class="text-xs text-surface-400">+{$exercises.length - 6} more</span>
@@ -171,8 +178,11 @@
           <div class="p-6">
             {#if recentSessions.length > 0}
               <div class="space-y-1.5">
-                {#each recentSessions.slice(0, 3) as sess (sess.id)}
-                  <div class="flex items-center justify-between text-sm">
+                {#each recentSessions.slice(0, 3) as sess, i (sess.id)}
+                  <div
+                    in:fade={{ ...staggerFade(i) }}
+                    class="flex items-center justify-between text-sm"
+                  >
                     <span class="truncate text-surface-700">
                       {formatDate(sess.completed_at ?? sess.started_at)}
                     </span>

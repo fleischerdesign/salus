@@ -24,6 +24,8 @@ from salus.services.plugin.manager import PluginManager
 
 router = APIRouter(prefix="/api/v1/admin")
 
+MAX_BACKUP_SIZE = 100 * 1024 * 1024  # 100 MB
+MAX_PLUGIN_SIZE = 50 * 1024 * 1024  # 50 MB
 
 class _ConfigValueBody(BaseModel):
     value: str
@@ -294,6 +296,11 @@ async def api_admin_upload_plugin(
         return JSONResponse(status_code=404, content={"error": "Plugin manager not available"})
     try:
         content = await file.read()
+    except Exception as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+    if len(content) > MAX_PLUGIN_SIZE:
+        return JSONResponse(status_code=413, content={"error": f"Plugin file too large. Maximum size is {MAX_PLUGIN_SIZE // (1024 * 1024)} MB."})
+    try:
         plugin_id = plugin_mgr.install_plugin(content)
     except Exception as exc:
         return JSONResponse(status_code=400, content={"error": str(exc)})
@@ -401,6 +408,11 @@ async def api_admin_upload_backup(
         )
     try:
         content = await backup_file.read()
+    except Exception as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+    if len(content) > MAX_BACKUP_SIZE:
+        return JSONResponse(status_code=413, content={"error": f"Backup file too large. Maximum size is {MAX_BACKUP_SIZE // (1024 * 1024)} MB."})
+    try:
         backup_svc.provider.upload_backup(backup_file.filename, content)
     except Exception as exc:
         return JSONResponse(status_code=500, content={"error": str(exc)})

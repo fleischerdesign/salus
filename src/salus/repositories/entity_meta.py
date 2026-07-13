@@ -72,6 +72,10 @@ ENTITY_REGISTRY: dict[str, type[SQLModel]] = {
     e.name: e.model for e in ENTITY_META
 }
 
+ENTITY_META_BY_NAME: dict[str, EntityMeta] = {
+    e.name: e for e in ENTITY_META
+}
+
 SYNC_ENTITY_SPECS: list[EntityMeta] = [
     e for e in ENTITY_META if e.name != "user"
 ]

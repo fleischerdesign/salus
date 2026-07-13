@@ -1,6 +1,7 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
-  import { fade, fly } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
+  import { DURATIONS, motionParams } from '$lib/utils/motion';
   import Icon from './Icon.svelte';
 
   export interface MenuItem {
@@ -69,7 +70,7 @@
 <div class="relative {extraClass}" bind:this={containerEl}>
   <button
     type="button"
-    class="flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors duration-150 hover:bg-surface-100 hover:text-surface-700 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+    class="duration-micro flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700 focus:ring-2 focus:ring-primary-200 focus:outline-none"
     aria-label={triggerLabel}
     aria-haspopup="menu"
     aria-expanded={open}
@@ -84,7 +85,7 @@
       'right'
         ? 'right-0'
         : 'left-0'}"
-      transition:fly={{ y: -4, duration: 150 }}
+      transition:fly={{ y: -4, ...motionParams(DURATIONS.micro) }}
       role="menu"
     >
       {#if children}
@@ -93,7 +94,7 @@
         {#each items as item, i}
           <button
             type="button"
-            class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-surface-50 {item.variant ===
+            class="duration-micro flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-50 {item.variant ===
             'danger'
               ? 'text-error-600 hover:bg-error-50'
               : 'text-surface-700'}"

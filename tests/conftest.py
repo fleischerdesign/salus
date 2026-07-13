@@ -1,11 +1,16 @@
 import os
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import SQLModel, Session, create_engine
+from slowapi import Limiter
 from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel, Session, create_engine
 
 from salus.database import get_session
+from salus.dependencies import limiter
 from salus.main import app
+
+limiter.enabled = False
 from salus.models.user import User
 from salus.repositories.system_config import SystemConfigRepository
 from salus.services.config import ConfigService

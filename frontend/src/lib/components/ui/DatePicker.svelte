@@ -30,7 +30,7 @@
   }
 
   let inputClass = $derived(
-    'h-11 w-full rounded-lg border bg-surface-50 px-3 py-2.5 text-sm text-surface-900 transition-colors duration-150 placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:outline-none focus:ring-2 focus:ring-primary-200 ' +
+    'h-11 w-full rounded-lg border bg-surface-50 px-3 py-2.5 text-sm text-surface-900 transition-colors duration-micro placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:outline-none focus:ring-2 focus:ring-primary-200 ' +
       (error ? 'border-error-400 bg-error-50' : 'border-surface-300') +
       (disabled ? ' opacity-50 cursor-not-allowed' : '')
   );

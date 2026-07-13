@@ -21,7 +21,7 @@ class TestSyncPush:
         assert result["id"] is not None
         assert result["record"]["name"] == "Push Created"
 
-    def _skip_update_metric_type(self, authenticated_client: TestClient):
+    def test_update_metric_type(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
             "entity": "metric_type",
@@ -605,3 +605,131 @@ class TestSyncPushPublishesEvent:
             assert published_user_ids[0] > 0
         finally:
             fastapi_app.dependency_overrides.pop(get_event_bus, None)
+
+
+class TestSyncPushLogTTL:
+    """Test that sync_push_log entries older than 24h are cleaned up and dedup bypassed."""
+
+    def test_ttl_expired_allows_duplicate_client_id(self, authenticated_client: TestClient):
+        from datetime import datetime, timezone, timedelta
+
+        from sqlmodel import Session, select
+
+        from salus.main import app as fastapi_app
+        from salus.models.sync_push_log import SyncPushLog
+
+        client_id = f"ttl-test-{uuid.uuid4()}"
+
+        op1 = {
+            "type": "create",
+            "entity": "metric_type",
+            "client_id": client_id,
+            "data": {"name": "TTL Original", "unit": "kg", "data_type": "number"},
+        }
+        resp1 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op1]})
+        result1 = resp1.json()["results"][0]
+        assert result1["status"] == "created"
+        original_id = result1["id"]
+
+        with Session(fastapi_app.state.engine) as session:
+            log = session.exec(
+                select(SyncPushLog).where(SyncPushLog.client_id == client_id)
+            ).first()
+            assert log is not None
+            log.created_at = datetime.now(timezone.utc) - timedelta(hours=25)
+            session.add(log)
+            session.commit()
+
+        op2 = {
+            "type": "create",
+            "entity": "metric_type",
+            "client_id": client_id,
+            "data": {"name": "TTL After Expiry", "unit": "kg", "data_type": "number"},
+        }
+        resp2 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op2]})
+        result2 = resp2.json()["results"][0]
+        assert result2["status"] == "created"
+        assert result2["id"] != original_id
+
+
+class TestSyncProtocolVersion:
+    """Test X-Salus-Sync-Version header validation."""
+
+    def test_unsupported_version_rejected(self, authenticated_client: TestClient):
+        resp = authenticated_client.post(
+            "/api/v1/sync/push",
+            json={"operations": []},
+            headers={"X-Salus-Sync-Version": "999"},
+        )
+        assert resp.status_code == 400
+        assert "Unsupported" in resp.json()["detail"]
+
+    def test_correct_version_accepted(self, authenticated_client: TestClient):
+        resp = authenticated_client.post(
+            "/api/v1/sync/push",
+            json={"operations": []},
+            headers={"X-Salus-Sync-Version": "1"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["sync_version"] == 1
+
+    def test_missing_version_defaults_to_ok(self, authenticated_client: TestClient):
+        resp = authenticated_client.post(
+            "/api/v1/sync/push",
+            json={"operations": []},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["sync_version"] == 1
+
+
+class TestOptimisticLocking:
+    """Test expected_updated_at conflict detection on updates."""
+
+    def test_update_with_correct_timestamp_succeeds(self, authenticated_client: TestClient):
+        create_op = {
+            "type": "create",
+            "entity": "metric_type",
+            "data": {"name": "Lock Test", "unit": "kg", "data_type": "number"},
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
+        metric_id = resp.json()["results"][0]["id"]
+
+        get_resp = authenticated_client.get("/api/v1/sync")
+        metric = next(
+            m for m in get_resp.json()["metric_type"]
+            if m["id"] == metric_id
+        )
+        current_updated_at = metric["updated_at"]
+
+        update_op = {
+            "type": "update",
+            "entity": "metric_type",
+            "id": metric_id,
+            "data": {"name": "Lock Updated"},
+            "expected_updated_at": current_updated_at,
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
+        assert resp.status_code == 200
+        assert resp.json()["results"][0]["status"] == "updated"
+
+    def test_update_with_stale_timestamp_returns_conflict(self, authenticated_client: TestClient):
+        create_op = {
+            "type": "create",
+            "entity": "metric_type",
+            "data": {"name": "Conflict Test", "unit": "kg", "data_type": "number"},
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
+        metric_id = resp.json()["results"][0]["id"]
+
+        update_op = {
+            "type": "update",
+            "entity": "metric_type",
+            "id": metric_id,
+            "data": {"name": "Conflict Updated"},
+            "expected_updated_at": "1970-01-01T00:00:00+00:00",
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
+        assert resp.status_code == 200
+        result = resp.json()["results"][0]
+        assert result["status"] == "conflict"
+        assert "conflict" in result

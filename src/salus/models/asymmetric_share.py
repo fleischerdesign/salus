@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
+from uuid import uuid4
+
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -31,7 +33,7 @@ class ShareRecipient(SQLModel, table=True):
 class AsymmetricShare(SQLModel, table=True):
     __tablename__ = "asymmetric_share"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: str | None = Field(default_factory=lambda: uuid4().hex, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     recipient_id: int = Field(foreign_key="share_recipient.id")
     encrypted_data: str  # Base64 encoded payload
