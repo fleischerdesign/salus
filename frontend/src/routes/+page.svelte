@@ -347,12 +347,7 @@
 <Modal title="Add Widget" bind:open={addModalOpen}>
   <div class="space-y-4">
     {#if metricOptions.length > 0}
-      <Select
-        name="metric"
-        label="Metric"
-        options={metricOptions}
-        bind:value={selectedMetricId}
-      />
+      <Select name="metric" label="Metric" options={metricOptions} bind:value={selectedMetricId} />
       <Select
         name="size"
         label="Size"
