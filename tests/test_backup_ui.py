@@ -1,4 +1,5 @@
 import os
+import pytest
 import shutil
 from sqlmodel import Session, select
 from salus.models.user import User as UserModel
@@ -6,6 +7,8 @@ from salus.config import settings
 
 
 def test_backup_ui_endpoints(authenticated_client):
+    if os.environ.get("SALUS_TEST_DATABASE_URL", "").startswith("postgres"):
+        pytest.skip("Backup service requires pg_dump on PostgreSQL — not available in CI")
     old_backup_dir = settings.backup_local_dir
     settings.backup_local_dir = "data/test_backups"
     if os.path.exists("data/test_backups"):

@@ -96,7 +96,7 @@ class TestWeightAnalysisService:
 class TestActivityAnalysisService:
     def test_heart_rate_summary_empty(self, repo):
         svc = ActivityAnalysisService(repo)
-        assert svc.heart_rate_summary("2026-06-24") is None
+        assert svc.heart_rate_summary(date_str="2026-06-24") is None
 
     def test_heart_rate_summary_computes_stats(self, repo):
         svc = ActivityAnalysisService(repo)

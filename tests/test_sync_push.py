@@ -91,6 +91,14 @@ class TestSyncPush:
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_plan]})
         plan_id = resp.json()["results"][0]["id"]
 
+        create_exercise = {
+            "type": "create",
+            "entity": "exercise",
+            "data": {"name": "Squat", "primary_muscles": "quadriceps,glutes"},
+        }
+        ex_resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_exercise]})
+        exercise_id = ex_resp.json()["results"][0]["id"]
+
         operations = [
             {
                 "type": "create",
@@ -104,7 +112,7 @@ class TestSyncPush:
                 "client_id": log_client_id,
                 "data": {
                     "session_client_id": session_client_id,
-                    "exercise_id": 999,
+                    "exercise_id": exercise_id,
                     "set_number": 1,
                     "weight": 80,
                     "reps": 5,

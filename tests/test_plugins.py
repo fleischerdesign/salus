@@ -6,6 +6,7 @@ from sqlmodel import Session
 from salus.exceptions import ForbiddenError
 from salus.models.measurement import Measurement
 from salus.models.goal import Goal
+from salus.models.user import User as UserModel
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.plugin import BasePlugin, PluginContext, PluginManager
 from salus.services.plugin.hooks import HookRegistry
@@ -120,9 +121,13 @@ def test_event_subscriber_hook_firing(session: Session):
     mapping_svc = MetricTypeMappingService(mt_repo)
     
     ingest_svc = WebhookIngestionService(parser, m_repo, mapping_svc, registry=registry)
-    
+
+    user = UserModel(username="testhook", password_hash="hash")
+    session.add(user)
+    session.commit()
+
     payload = [{"type": "steps", "value": 8500.0, "source": "flat_array", "startTime": "2026-07-02T10:00:00Z"}]
-    ingest_svc.ingest(payload, user_id=1)
+    ingest_svc.ingest(payload, user_id=user.id)
     
     assert len(mock_sub.created_measurements) == 1
     assert mock_sub.created_measurements[0].value_numeric == 8500.0
@@ -151,11 +156,15 @@ def test_ingestion_interceptor_hook(session: Session):
     
     ingest_svc = WebhookIngestionService(parser, m_repo, mapping_svc, registry=registry)
     
+    user = UserModel(username="testintc", password_hash="hash")
+    session.add(user)
+    session.commit()
+
     payload = [{"type": "steps", "value": 5000.0, "source": "flat_array", "startTime": "2026-07-02T10:00:00Z"}]
-    ingest_svc.ingest(payload, user_id=1)
+    ingest_svc.ingest(payload, user_id=user.id)
     
     # Check database records
-    db_records = m_repo.find_all(user_id=1, data_types=["steps"])
+    db_records = m_repo.find_all(user_id=user.id, data_types=["steps"])
     assert len(db_records) == 1
     assert db_records[0].value_numeric == 10000.0  # Doubled from 5000.0
 

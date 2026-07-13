@@ -16,6 +16,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        lib = nixpkgs.lib;
         python = pkgs.python313;
         pythonEnv = python.withPackages (
           ps: with ps; [
@@ -36,20 +37,14 @@
           pname = "salus";
           version = "0.1.0";
           src = ./.;
-          nativeBuildInputs = [ pkgs.makeWrapper pkgs.nodejs_22 ];
+          nativeBuildInputs = [ pkgs.makeWrapper ];
           buildInputs = [ pythonEnv ];
-          buildPhase = ''
-            pushd frontend >/dev/null
-            npm ci
-            npm run build
-            popd >/dev/null
-          '';
           installPhase = ''
             mkdir -p $out/lib/salus $out/bin
             cp -r src $out/lib/salus/
             cp pyproject.toml $out/lib/salus/
             mkdir -p $out/lib/salus/frontend
-            cp -r frontend/build $out/lib/salus/frontend/build
+            cp -r ${self.packages.${system}.frontend} $out/lib/salus/frontend/build
 
             makeWrapper ${pythonEnv}/bin/uvicorn $out/bin/salus \
               --set PYTHONPATH "$out/lib/salus/src" \
@@ -79,18 +74,16 @@
           };
         };
 
-        packages.frontend = pkgs.stdenv.mkDerivation {
+        packages.frontend = pkgs.buildNpmPackage {
           pname = "salus-frontend";
           version = "0.1.0";
           src = ./frontend;
-          nativeBuildInputs = [ pkgs.nodejs_22 ];
-          buildPhase = ''
-            npm ci
-            npm run build
-          '';
+          npmDepsHash = "sha256-6eOjzzALkIUzujIP4bv13v4FS0KS7fvgLiojUTKhpTw=";
           installPhase = ''
+            runHook preInstall
             mkdir -p $out
             cp -r build/* $out/
+            runHook postInstall
           '';
         };
 
