@@ -186,6 +186,7 @@ class TestFirstUserAdmin:
             return Session(engine)
 
         app.dependency_overrides[get_session] = override_get_session
+        app.state.engine = engine
 
         with TestClient(app) as c:
             resp = c.post(
@@ -202,6 +203,7 @@ class TestFirstUserAdmin:
             assert data["user"]["is_admin"] is True
 
         app.dependency_overrides.clear()
+        del app.state.engine
 
     def test_second_registration_is_not_admin(self):
         from fastapi.testclient import TestClient
@@ -223,6 +225,7 @@ class TestFirstUserAdmin:
             return Session(engine)
 
         app.dependency_overrides[get_session] = override_get_session
+        app.state.engine = engine
 
         with TestClient(app) as c:
             c.post(
@@ -248,3 +251,4 @@ class TestFirstUserAdmin:
             assert data["user"]["is_admin"] is False
 
         app.dependency_overrides.clear()
+        del app.state.engine
