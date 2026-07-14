@@ -1,29 +1,47 @@
-export interface QueueOp {
+export type OutboxKind = 'crud' | 'command';
+
+export interface OutboxCrudOp {
   id?: number;
-  type: 'create' | 'update' | 'delete';
+  kind: 'crud';
+  opType: 'create' | 'update' | 'delete';
   entity: string;
   client_id: string;
   data?: Record<string, unknown>;
-  realId?: number;
+  realId?: string;
   expected_updated_at?: string;
-  createdAt: number;
+  createdAt: string;
   retries: number;
 }
+
+export interface OutboxCommandOp {
+  id?: number;
+  kind: 'command';
+  command: string;
+  client_id: string;
+  payload?: Record<string, unknown>;
+  optimisticTable?: string;
+  optimisticData?: Record<string, unknown>;
+  responseTable?: string;
+  createdAt: string;
+  retries: number;
+}
+
+export type OutboxOp = OutboxCrudOp | OutboxCommandOp;
+
+export type SyncStatus = 'idle' | 'syncing' | 'error';
 
 export interface SyncMeta {
   key: string;
   value: unknown;
 }
 
-export type SyncStatus = 'idle' | 'syncing' | 'error';
-
 export interface MetricType {
-  id: number;
+  id: string;
   name: string;
   unit: string;
   data_type: string;
   color: string;
-  user_id: number;
+  user_id: string;
   is_system: boolean;
   source_data_type: string | null;
   icon: string;
@@ -36,9 +54,9 @@ export interface MetricType {
 }
 
 export interface Measurement {
-  id: number;
-  user_id: number;
-  metric_type_id: number;
+  id: string;
+  user_id: string;
+  metric_type_id: string;
   data_type: string;
   source: string;
   value_numeric: number | null;
@@ -54,9 +72,9 @@ export interface Measurement {
 }
 
 export interface Goal {
-  id: number;
-  user_id: number;
-  metric_type_id: number;
+  id: string;
+  user_id: string;
+  metric_type_id: string;
   target_value: number;
   direction: string;
   frequency: string;
@@ -68,8 +86,8 @@ export interface Goal {
 }
 
 export interface CircadianProfile {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   latitude: number;
   longitude: number;
   timezone_offset_hours: number;
@@ -80,7 +98,7 @@ export interface CircadianProfile {
 }
 
 export interface Exercise {
-  id: number;
+  id: string;
   name: string;
   equipment: string | null;
   primary_muscles: string | null;
@@ -90,17 +108,17 @@ export interface Exercise {
   video_url: string | null;
   image_url: string | null;
   suggested_rest_seconds: number | null;
-  user_id: number | null;
+  user_id: string | null;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;
 }
 
 export interface WorkoutPlan {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
-  user_id: number;
+  user_id: string;
   autoreg_mode: string | null;
   position: number;
   created_at: string;
@@ -109,9 +127,9 @@ export interface WorkoutPlan {
 }
 
 export interface WorkoutPlanExercise {
-  id: number;
-  plan_id: number;
-  exercise_id: number;
+  id: string;
+  plan_id: string;
+  exercise_id: string;
   sequence: number;
   target_sets: number | null;
   target_reps: number | null;
@@ -124,9 +142,9 @@ export interface WorkoutPlanExercise {
 }
 
 export interface WorkoutSession {
-  id: number;
-  user_id: number;
-  plan_id: number | null;
+  id: string;
+  user_id: string;
+  plan_id: string | null;
   started_at: string;
   completed_at: string | null;
   autoreg_mode: string | null;
@@ -138,9 +156,9 @@ export interface WorkoutSession {
 }
 
 export interface WorkoutLogEntry {
-  id: number;
-  session_id: number;
-  exercise_id: number;
+  id: string;
+  session_id: string;
+  exercise_id: string;
   set_number: number;
   weight: number;
   reps: number;
@@ -151,8 +169,8 @@ export interface WorkoutLogEntry {
 }
 
 export interface Insight {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   query_date: string;
   content: string;
   model_used: string | null;
@@ -162,8 +180,8 @@ export interface Insight {
 }
 
 export interface Notification {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   title: string;
   message: string;
   is_read: boolean;
@@ -174,9 +192,9 @@ export interface Notification {
 }
 
 export interface DashboardWidget {
-  id: number;
-  user_id: number;
-  metric_type_id: number;
+  id: string;
+  user_id: string;
+  metric_type_id: string;
   position: number;
   size: string;
   config_json: string;
@@ -187,10 +205,10 @@ export interface DashboardWidget {
 }
 
 export interface SharingRelationship {
-  id: number;
-  owner_id: number;
+  id: string;
+  owner_id: string;
   grantee_handle: string;
-  metric_type_id: number;
+  metric_type_id: string;
   aggregation_level: string;
   expiration_date: string | null;
   status: string;
@@ -202,9 +220,9 @@ export interface SharingRelationship {
 }
 
 export interface LeaderboardGroup {
-  id: number;
+  id: string;
   name: string;
-  creator_id: number;
+  creator_id: string;
   metric_type_code: string;
   time_frame: string;
   start_date: string | null;
@@ -216,8 +234,8 @@ export interface LeaderboardGroup {
 }
 
 export interface LeaderboardMember {
-  id: number;
-  group_id: number;
+  id: string;
+  group_id: string;
   user_handle: string;
   status: string;
   joined_at: string | null;
@@ -226,8 +244,8 @@ export interface LeaderboardMember {
 }
 
 export interface ShareRecipient {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   name: string;
   public_key: string;
   created_at: string;
@@ -236,9 +254,9 @@ export interface ShareRecipient {
 }
 
 export interface AsymmetricShare {
-  id: number;
-  user_id: number;
-  recipient_id: number;
+  id: string;
+  user_id: string;
+  recipient_id: string;
   encrypted_data: string;
   encrypted_key: string;
   created_at: string;
@@ -248,7 +266,7 @@ export interface AsymmetricShare {
 }
 
 export interface UserProfile {
-  id: number;
+  id: string;
   username: string;
   email: string | null;
   display_name: string | null;
@@ -261,7 +279,7 @@ export interface UserProfile {
 }
 
 export interface AdminUser {
-  id: number;
+  id: string;
   username: string;
   email: string | null;
   display_name: string | null;
@@ -292,7 +310,7 @@ export interface SystemConfigItem {
 }
 
 export interface CommunityActivity {
-  id: number;
+  id: string;
   friend_name: string;
   activity_type: string;
   activity_description: string;
@@ -302,8 +320,8 @@ export interface CommunityActivity {
 }
 
 export interface FederatedAccessLog {
-  id: number;
-  owner_id: number;
+  id: string;
+  owner_id: string;
   requester_handle: string;
   data_type: string;
   target_date: string;
@@ -311,23 +329,15 @@ export interface FederatedAccessLog {
 }
 
 export interface ApiToken {
-  id: number;
+  id: string;
   token_hash: string;
   token_prefix: string;
   label: string;
   scopes: string;
-  user_id: number;
+  user_id: string;
   created_at: string;
   last_used_at: string | null;
   is_active: boolean;
 }
 
-export interface DomainQueueOp {
-  id?: number;
-  url: string;
-  method: string;
-  body?: Record<string, unknown>;
-  responseTable?: string;
-  retries?: number;
-  createdAt: string;
-}
+export type QueueOp = OutboxCrudOp;

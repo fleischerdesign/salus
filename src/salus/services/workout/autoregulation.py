@@ -15,7 +15,7 @@ class AutoregulationService:
         self.activity_svc = activity_svc
 
     def calculate_recovery_score(
-        self, user_id: int, date_str: Optional[str] = None
+        self, user_id: str, date_str: Optional[str] = None
     ) -> tuple[float, float, float, float]:
         """
         Calculates user's recovery score out of 100.
@@ -104,7 +104,7 @@ class AutoregulationService:
 
     def get_autoregulated_targets(
         self,
-        user_id: int,
+        user_id: str,
         exercises_with_targets: list[tuple[WorkoutPlanExercise, Exercise]],
         date_str: Optional[str] = None,
     ) -> list[dict]:

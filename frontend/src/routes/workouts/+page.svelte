@@ -33,7 +33,7 @@
 
   let loaded = $derived($plans != null && $exercises != null && $sessions != null && $logs != null);
 
-  function sessionVolume(sessId: number): number {
+  function sessionVolume(sessId: string): number {
     return ($logs ?? [])
       .filter((l) => l.session_id === sessId)
       .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);

@@ -11,7 +11,7 @@ class AsymmetricShareService:
         self.uow = uow
 
     def create_recipient(
-        self, user_id: int, data: ShareRecipientCreate
+        self, user_id: str, data: ShareRecipientCreate
     ) -> ShareRecipient:
         with self.uow:
             recipient = ShareRecipient(
@@ -23,11 +23,11 @@ class AsymmetricShareService:
             self.uow.commit()
             return recipient
 
-    def list_recipients(self, user_id: int) -> list[ShareRecipient]:
+    def list_recipients(self, user_id: str) -> list[ShareRecipient]:
         with self.uow:
             return self.uow.share_recipients.find_by_user(user_id)
 
-    def delete_recipient(self, user_id: int, recipient_id: int) -> None:
+    def delete_recipient(self, user_id: str, recipient_id: str) -> None:
         with self.uow:
             recipient = self.uow.share_recipients.get_by_id(recipient_id)
             if not recipient or recipient.user_id != user_id:
@@ -36,7 +36,7 @@ class AsymmetricShareService:
             self.uow.commit()
 
     def create_share(
-        self, user_id: int, data: AsymmetricShareCreate
+        self, user_id: str, data: AsymmetricShareCreate
     ) -> AsymmetricShare:
         with self.uow:
             recipient = self.uow.share_recipients.get_by_id(data.recipient_id)
@@ -82,11 +82,11 @@ class AsymmetricShareService:
 
             return share
 
-    def list_shares(self, user_id: int) -> list[AsymmetricShare]:
+    def list_shares(self, user_id: str) -> list[AsymmetricShare]:
         with self.uow:
             return self.uow.asymmetric_shares.find_by_user(user_id)
 
-    def delete_share(self, user_id: int, share_id: str) -> None:
+    def delete_share(self, user_id: str, share_id: str) -> None:
         with self.uow:
             share = self.uow.asymmetric_shares.get_by_id_secure(share_id)
             if not share or share.user_id != user_id:

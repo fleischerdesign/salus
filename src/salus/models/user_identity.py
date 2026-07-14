@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
 
@@ -10,8 +12,8 @@ if TYPE_CHECKING:
 class UserIdentity(SQLModel, table=True):
     __tablename__ = "user_identity"  # pyright: ignore[reportAssignmentType]
 
-    id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", index=True)
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
     provider: str
     provider_user_id: str
     provider_data: str | None = Field(default=None)

@@ -15,6 +15,7 @@ from salus.services._helpers import uid
 from salus.services.event_bus import EventBus
 from salus.services.sync import SyncService
 from salus.services.write_pipeline import WritePipeline
+from salus.services.command_registry import list_commands
 
 SYNC_PROTOCOL_VERSION = 1
 
@@ -49,11 +50,11 @@ async def api_sync(
         result["sync_version"] = SYNC_PROTOCOL_VERSION
         return result
 
-    cursors: dict[str, int] | None = None
+    cursors: dict[str, str] | None = None
     if cursor:
         try:
             raw = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
-            cursors = {k: int(v) for k, v in raw.items()}
+            cursors = {k: str(v) for k, v in raw.items()}
         except (ValueError, json.JSONDecodeError):
             pass
     result = service.full_sync(current_user, cursors)
@@ -84,15 +85,21 @@ class SyncEntityInfo(BaseModel):
     strategy: str
 
 
-@router.get("/api/v1/sync/entities", response_model=list[SyncEntityInfo])
+class SyncManifest(BaseModel):
+    entities: list[SyncEntityInfo]
+    commands: list[str]
+
+
+@router.get("/api/v1/sync/entities", response_model=SyncManifest)
 async def api_sync_entities(
     current_user: User = Depends(get_current_user),
     _version: int = Depends(_check_sync_version),
-) -> list[SyncEntityInfo]:
-    return [
+) -> SyncManifest:
+    entities = [
         SyncEntityInfo(name=e.name, strategy=e.strategy)
         for e in ENTITY_META
     ]
+    return SyncManifest(entities=entities, commands=list_commands())
 
 
 @router.get("/api/v1/sync/events")

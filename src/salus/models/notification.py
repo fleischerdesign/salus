@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
 
@@ -9,8 +11,8 @@ if TYPE_CHECKING:
 class Notification(SQLModel, table=True):
     __tablename__ = "notification"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
     title: str
     message: str
     is_read: bool = Field(default=False)

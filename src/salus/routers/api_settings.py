@@ -128,7 +128,7 @@ async def api_create_token(
 
 @router.delete("/settings/tokens/{token_id}", status_code=204)
 async def api_revoke_token(
-    token_id: int,
+    token_id: str,
     current_user: User = Depends(get_current_user),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
 ):

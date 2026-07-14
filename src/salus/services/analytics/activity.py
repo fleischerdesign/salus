@@ -18,7 +18,7 @@ class ActivityAnalysisService:
         self._repo = repo
 
     def steps_trend(
-        self, days: int = 7, user_id: int | None = None, date: str | None = None
+        self, days: int = 7, user_id: str | None = None, date: str | None = None
     ) -> list[StepDay]:
         anchor = (
             datetime.today() if date is None else datetime.strptime(date, "%Y-%m-%d")
@@ -53,7 +53,7 @@ class ActivityAnalysisService:
         return result
 
     def heart_rate_summary(
-        self, user_id: int | None = None, date_str: str | None = None
+        self, user_id: str | None = None, date_str: str | None = None
     ) -> HRSummary | None:
         if date_str is None:
             date_str = datetime.today().strftime("%Y-%m-%d")
@@ -81,7 +81,7 @@ class ActivityAnalysisService:
         )
 
     def heart_rate_timeline(
-        self, user_id: int | None = None, date_str: str | None = None
+        self, user_id: str | None = None, date_str: str | None = None
     ) -> list[HRTimelinePoint]:
         if date_str is None:
             date_str = datetime.today().strftime("%Y-%m-%d")
@@ -104,7 +104,7 @@ class ActivityAnalysisService:
     OHLC_DAY_LABELS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
     def heart_rate_ohlc(
-        self, days: int = 7, user_id: int | None = None, date: str | None = None
+        self, days: int = 7, user_id: str | None = None, date: str | None = None
     ) -> list[HROHLC]:
         if date is None:
             date = datetime.today().strftime("%Y-%m-%d")
@@ -161,7 +161,7 @@ class ActivityAnalysisService:
         return result
 
     def exercise_history(
-        self, days: int = 30, user_id: int | None = None, limit: int = 10
+        self, days: int = 30, user_id: str | None = None, limit: int = 10
     ) -> list[ExerciseSession]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(

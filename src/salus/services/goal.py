@@ -24,7 +24,7 @@ class GoalService:
         self._measurement_repo = measurement_repo
         self._registry = registry
 
-    def get(self, goal_id: int, user_id: int) -> Goal:
+    def get(self, goal_id: str, user_id: str) -> Goal:
         goal = self._repo.get_by_id(goal_id)
         if goal is None:
             raise NotFoundError(f"Goal {goal_id} not found")
@@ -32,10 +32,10 @@ class GoalService:
             raise NotFoundError(f"Goal {goal_id} not found")
         return goal
 
-    def find_all(self, user_id: int) -> list[Goal]:
+    def find_all(self, user_id: str) -> list[Goal]:
         return self._repo.find_by_user(user_id)
 
-    def create(self, data: GoalCreate, user_id: int) -> Goal:
+    def create(self, data: GoalCreate, user_id: str) -> Goal:
         goal = Goal(
             user_id=user_id,
             metric_type_id=data.metric_type_id,
@@ -46,7 +46,7 @@ class GoalService:
         )
         return self._repo.create(goal)
 
-    def delete(self, goal_id: int, user_id: int) -> None:
+    def delete(self, goal_id: str, user_id: str) -> None:
         goal = self.get(goal_id, user_id)
         self._repo.delete(goal)
 
@@ -97,7 +97,7 @@ class GoalService:
                     )
 
         return GoalProgress(
-            goal_id=goal.id or 0,
+            goal_id=goal.id or "",
             current_value=current,
             target_value=goal.target_value,
             percent=int(percent),

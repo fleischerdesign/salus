@@ -72,7 +72,7 @@ class AdminService:
         users = self._user_repo.list_all()
         result: list[dict] = []
         for user in users:
-            user_id = uid(user) if user.id is not None else 0
+            user_id = uid(user) if user.id is not None else ""
             measurements = self._measurement_repo.find_all(user_id=user_id)
             goals = self._goal_repo.find_by_user(user_id)
             result.append(
@@ -90,22 +90,22 @@ class AdminService:
             )
         return result
 
-    def toggle_admin(self, user_id: int) -> User:
+    def toggle_admin(self, user_id: str) -> User:
         return self._user_repo.toggle_admin(user_id)
 
-    def toggle_active(self, user_id: int) -> User:
+    def toggle_active(self, user_id: str) -> User:
         return self._user_repo.toggle_active(user_id)
 
     def list_all_tokens(self) -> list[ApiToken]:
         return self._api_token_repo.list_all_active()
 
-    def revoke_token(self, token_id: int) -> None:
+    def revoke_token(self, token_id: str) -> None:
         token = self._api_token_repo.get_by_id(token_id)
         if token is not None:
             token.is_active = False
             self._api_token_repo.update(token)
 
-    def delete_user(self, user_id: int, deleted_by: int) -> None:
+    def delete_user(self, user_id: str, deleted_by: str) -> None:
         if user_id == deleted_by:
             raise ConflictError("Cannot delete your own account")
 
@@ -121,7 +121,7 @@ class AdminService:
 
         self._user_repo.delete(user)
 
-    def get_user_detail(self, user_id: int) -> dict:
+    def get_user_detail(self, user_id: str) -> dict:
         user = self._user_repo.get_by_id(user_id)
         if user is None:
             raise NotFoundError(f"User {user_id} not found")

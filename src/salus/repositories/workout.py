@@ -9,7 +9,7 @@ from salus.repositories.protocols import IExerciseRepository, IWorkoutPlanReposi
 class ExerciseRepository(Repository[Exercise], IExerciseRepository):
     model = Exercise
 
-    def find_all_catalog(self, user_id: int) -> list[Exercise]:
+    def find_all_catalog(self, user_id: str) -> list[Exercise]:
         return list(
             self.session.exec(
                 select(Exercise).where(
@@ -26,7 +26,7 @@ class ExerciseRepository(Repository[Exercise], IExerciseRepository):
 class WorkoutPlanRepository(Repository[WorkoutPlan], IWorkoutPlanRepository):
     model = WorkoutPlan
 
-    def find_by_user(self, user_id: int) -> list[WorkoutPlan]:
+    def find_by_user(self, user_id: str) -> list[WorkoutPlan]:
         return list(
             self.session.exec(
                 select(WorkoutPlan)
@@ -35,7 +35,7 @@ class WorkoutPlanRepository(Repository[WorkoutPlan], IWorkoutPlanRepository):
             ).all()
         )
 
-    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+    def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
         for pos, plan_id in enumerate(ordered_ids):
             plan = self.get_by_id(plan_id)
             if plan is not None and plan.user_id == user_id:
@@ -48,7 +48,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
     model = WorkoutSession
 
     def find_recent_by_user(
-        self, user_id: int, limit: int = 10
+        self, user_id: str, limit: int = 10
     ) -> list[WorkoutSession]:
         return list(
             self.session.exec(
@@ -59,7 +59,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
             ).all()
         )
 
-    def find_all_by_user(self, user_id: int) -> list[WorkoutSession]:
+    def find_all_by_user(self, user_id: str) -> list[WorkoutSession]:
         return list(
             self.session.exec(
                 select(WorkoutSession).where(WorkoutSession.user_id == user_id)
@@ -67,7 +67,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         )
 
     def count_completed_in_range(
-        self, user_id: int, since: datetime, until: datetime
+        self, user_id: str, since: datetime, until: datetime
     ) -> int:
         from sqlalchemy import func
 
@@ -83,7 +83,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         return int(result[0]) if result is not None and result[0] is not None else 0  # type: ignore[index]
 
     def find_completed_in_range(
-        self, user_id: int, since: datetime, until: datetime
+        self, user_id: str, since: datetime, until: datetime
     ) -> list[WorkoutSession]:
         return list(
             self.session.exec(
@@ -99,7 +99,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         )
 
     def get_last_session_for_plan(
-        self, user_id: int, plan_id: int
+        self, user_id: str, plan_id: str
     ) -> WorkoutSession | None:
         return self.session.exec(
             select(WorkoutSession)
@@ -113,7 +113,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         ).first()
 
     def find_active_by_user(
-        self, user_id: int
+        self, user_id: str
     ) -> WorkoutSession | None:
         return self.session.exec(
             select(WorkoutSession)
@@ -125,7 +125,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         ).first()
 
     def get_by_id_with_relations(
-        self, session_id: int, user_id: int
+        self, session_id: str, user_id: str
     ) -> WorkoutSession | None:
         return self.session.exec(
             select(WorkoutSession)
@@ -140,7 +140,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         ).first()
 
     def find_completed_by_plan(
-        self, user_id: int, plan_id: int
+        self, user_id: str, plan_id: str
     ) -> list[WorkoutSession]:
         return list(
             self.session.exec(
@@ -156,8 +156,8 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
         )
 
     def get_personal_records(
-        self, user_id: int, exercise_ids: list[int]
-    ) -> dict[int, dict]:
+        self, user_id: str, exercise_ids: list[str]
+    ) -> dict[str, dict]:
         if not exercise_ids:
             return {}
 

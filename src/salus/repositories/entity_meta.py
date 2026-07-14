@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 from salus.models import MetricType
 from salus.models.api_token import ApiToken
@@ -132,7 +132,26 @@ def _validate_api_token_update(
     return None
 
 
+def _validate_exercise_create(
+    session: Session, current_user: User, data: dict, op: "SyncOperation",
+) -> str | None:
+    if op.type != "create":
+        return None
+    name = (data.get("name") or "").strip()
+    if not name:
+        return None
+    stmt = select(Exercise).where(
+        Exercise.name == name,
+        Exercise.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+    )
+    existing = session.exec(stmt).first()
+    if existing:
+        return f"Exercise '{name}' already exists"
+    return None
+
+
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "user": _validate_user_update,
     "api_token": _validate_api_token_update,
+    "exercise": _validate_exercise_create,
 }

@@ -10,7 +10,7 @@ class WorkoutLogEntryRepository(Repository[WorkoutLogEntry], IWorkoutLogEntryRep
     model = WorkoutLogEntry
 
     def find_by_session_exercise_set(
-        self, session_id: int, exercise_id: int, set_number: int
+        self, session_id: str, exercise_id: str, set_number: int
     ) -> WorkoutLogEntry | None:
         stmt = select(WorkoutLogEntry).where(
             WorkoutLogEntry.session_id == session_id,
@@ -20,7 +20,7 @@ class WorkoutLogEntryRepository(Repository[WorkoutLogEntry], IWorkoutLogEntryRep
         return self.session.exec(stmt).first()
 
     def find_exercise_history(
-        self, user_id: int, exercise_id: int
+        self, user_id: str, exercise_id: str
     ) -> list[WorkoutLogEntry]:
         stmt = (
             select(WorkoutLogEntry)

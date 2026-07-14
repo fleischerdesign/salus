@@ -20,7 +20,7 @@ class ApiTokenService:
         self._user_repo = user_repo
 
     def create_token(
-        self, user_id: int, label: str, scopes: str = ""
+        self, user_id: str, label: str, scopes: str = ""
     ) -> tuple[str, ApiToken]:
         plaintext = _generate_token()
         token_hash = bcrypt.hashpw(plaintext.encode(), bcrypt.gensalt()).decode()
@@ -48,10 +48,10 @@ class ApiTokenService:
                     return user, t
         return None
 
-    def list_tokens(self, user_id: int) -> list[ApiToken]:
+    def list_tokens(self, user_id: str) -> list[ApiToken]:
         return self._repo.find_by_user(user_id)
 
-    def revoke(self, token_id: int, user_id: int) -> None:
+    def revoke(self, token_id: str, user_id: str) -> None:
         token = self._repo.get_by_id(token_id)
         if token is not None and token.user_id == user_id:
             token.is_active = False

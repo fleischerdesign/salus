@@ -24,7 +24,7 @@ class _CreateLeaderboardBody(BaseModel):
 
 class _CreateConnectionBody(BaseModel):
     grantee_handle: str
-    metric_type_id: int
+    metric_type_id: str
     aggregation_level: str = "daily_summary"
 
 
@@ -99,7 +99,7 @@ async def api_leaderboard_create(
 
 @router.get("/sharing/leaderboard/{group_id}")
 async def api_leaderboard_get(
-    group_id: int,
+    group_id: str,
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
@@ -127,7 +127,7 @@ async def api_leaderboard_get(
 
 @router.post("/sharing/leaderboard/{group_id}/join")
 async def api_leaderboard_join(
-    group_id: int,
+    group_id: str,
     body: _JoinLeaderboardBody,
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
@@ -148,7 +148,7 @@ async def api_leaderboard_join(
 
 @router.post("/sharing/leaderboard/{group_id}/leave", status_code=204)
 async def api_leaderboard_leave(
-    group_id: int,
+    group_id: str,
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
@@ -158,7 +158,7 @@ async def api_leaderboard_leave(
 
 @router.delete("/sharing/leaderboard/{group_id}", status_code=204)
 async def api_leaderboard_delete(
-    group_id: int,
+    group_id: str,
     current_user: User = Depends(get_current_user),
     leaderboard_svc: LeaderboardService = Depends(get_leaderboard_service),
 ):
@@ -231,7 +231,7 @@ async def api_connections_create(
 
 @router.post("/sharing/connections/{connection_id}/accept", status_code=204)
 async def api_connections_accept(
-    connection_id: int,
+    connection_id: str,
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
@@ -241,7 +241,7 @@ async def api_connections_accept(
 
 @router.post("/sharing/connections/{connection_id}/decline", status_code=204)
 async def api_connections_decline(
-    connection_id: int,
+    connection_id: str,
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
@@ -251,7 +251,7 @@ async def api_connections_decline(
 
 @router.delete("/sharing/connections/{connection_id}", status_code=204)
 async def api_connections_delete(
-    connection_id: int,
+    connection_id: str,
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):

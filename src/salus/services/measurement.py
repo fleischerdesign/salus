@@ -19,7 +19,7 @@ class MeasurementService:
         self.repo = repo
         self._registry = registry
 
-    def get(self, measurement_id: int, user_id: int) -> Measurement:
+    def get(self, measurement_id: str, user_id: str) -> Measurement:
         obj = self.repo.get_by_id(measurement_id)
         if obj is None:
             raise NotFoundError(f"Measurement {measurement_id} not found")
@@ -28,14 +28,14 @@ class MeasurementService:
         return obj
 
     def find_by_metric_type(
-        self, metric_type_id: int, user_id: int
+        self, metric_type_id: str, user_id: str
     ) -> list[Measurement]:
         return self.repo.find_by_metric_type(metric_type_id, user_id)
 
     def find_by_metric_type_paginated(
         self,
-        metric_type_id: int,
-        user_id: int,
+        metric_type_id: str,
+        user_id: str,
         page: int = 1,
         per_page: int = 25,
     ) -> tuple[list[Measurement], int, int]:
@@ -47,9 +47,9 @@ class MeasurementService:
         return entries, total, total_pages
 
     def get_metric_overview(
-        self, user_id: int, metric_ids: list[int]
-    ) -> dict[int, dict[str, Any]]:
-        result: dict[int, dict[str, Any]] = {}
+        self, user_id: str, metric_ids: list[str]
+    ) -> dict[str, dict[str, Any]]:
+        result: dict[str, dict[str, Any]] = {}
         for mid in metric_ids:
             latest = self.repo.get_latest_by_metric_type(mid, user_id)
             count = self.repo.count_by_metric_type(mid, user_id)
@@ -62,11 +62,11 @@ class MeasurementService:
             }
         return result
 
-    def find_recent(self, user_id: int, limit: int = 20) -> list[Measurement]:
+    def find_recent(self, user_id: str, limit: int = 20) -> list[Measurement]:
         return self.repo.find_recent_entries(user_id, limit)
 
     def create(
-        self, data: MeasurementCreate, metric_type_id: int, user_id: int
+        self, data: MeasurementCreate, metric_type_id: str, user_id: str
     ) -> Measurement:
         obj = Measurement(
             user_id=user_id,
@@ -89,7 +89,7 @@ class MeasurementService:
         return res
 
     def update(
-        self, measurement_id: int, user_id: int, data: MeasurementCreate
+        self, measurement_id: str, user_id: str, data: MeasurementCreate
     ) -> Measurement:
         obj = self.get(measurement_id, user_id)
         obj.value_text = data.value
@@ -98,6 +98,6 @@ class MeasurementService:
         obj.notes = data.notes
         return self.repo.update(obj)
 
-    def delete(self, measurement_id: int, user_id: int) -> None:
+    def delete(self, measurement_id: str, user_id: str) -> None:
         obj = self.get(measurement_id, user_id)
         self.repo.delete(obj)

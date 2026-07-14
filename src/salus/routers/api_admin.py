@@ -135,7 +135,7 @@ async def api_admin_stats(
 
 
 class _AdminUserItem(BaseModel):
-    id: int
+    id: str
     username: str
     email: str | None = None
     display_name: str | None = None
@@ -170,7 +170,7 @@ async def api_admin_users(
 
 @router.get("/users/{user_id}")
 async def api_admin_user_detail(
-    user_id: int,
+    user_id: str,
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):
@@ -179,7 +179,7 @@ async def api_admin_user_detail(
 
 @router.post("/users/{user_id}/toggle-admin", status_code=204)
 async def api_admin_toggle_admin(
-    user_id: int,
+    user_id: str,
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):
@@ -189,7 +189,7 @@ async def api_admin_toggle_admin(
 
 @router.post("/users/{user_id}/toggle-active", status_code=204)
 async def api_admin_toggle_active(
-    user_id: int,
+    user_id: str,
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):
@@ -199,7 +199,7 @@ async def api_admin_toggle_active(
 
 @router.delete("/users/{user_id}", status_code=204)
 async def api_admin_delete_user(
-    user_id: int,
+    user_id: str,
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):
@@ -217,7 +217,7 @@ async def api_admin_delete_user(
 
 @router.delete("/tokens/{token_id}", status_code=204)
 async def api_admin_revoke_token(
-    token_id: int,
+    token_id: str,
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):

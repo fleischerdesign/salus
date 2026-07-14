@@ -3,7 +3,7 @@
   import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
   import type { MetricType } from '$lib/db/types';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import { createGoal, deleteGoal } from '$lib/mutations/goal';
   import { fetchGoalViews } from '$lib/analytics/views/goal-views';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -37,7 +37,7 @@
   let saving = $state(false);
 
   // Delete state
-  let goalToDelete = $state<{ id: number } | null>(null);
+  let goalToDelete = $state<{ id: string } | null>(null);
   let deleteDialogOpen = $state(false);
 
   const directionOptions = [
@@ -69,27 +69,13 @@
     e.preventDefault();
     formError = '';
     saving = true;
-    const data = {
-      metric_type_id: Number(formMetricId),
-      target_value: parseFloat(formTarget),
-      direction: formDirection as 'increase' | 'decrease',
-      frequency: formFrequency as 'daily' | 'weekly' | 'once',
-      deadline: formFrequency === 'once' && formDeadline ? formDeadline : undefined
-    };
-    const { ok, error } = await mutate({
-      table: 'goal',
-      type: 'create',
-      data: data as Record<string, unknown>,
-      optimistic: {
-        id: nextTempId(),
-        user_id: 0,
-        ...data,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: null,
-        deleted_at: null
-      }
-    });
+    const { ok, error } = await createGoal(
+      formMetricId,
+      parseFloat(formTarget),
+      formDirection as 'increase' | 'decrease',
+      formFrequency as 'daily' | 'weekly' | 'once',
+      formFrequency === 'once' && formDeadline ? formDeadline : undefined
+    );
     saving = false;
     if (!ok) {
       formError = error || 'Failed to create goal';
@@ -102,12 +88,7 @@
     if (!goalToDelete) return;
     const target = goalToDelete;
     goalToDelete = null;
-    await mutate({
-      table: 'goal',
-      type: 'delete',
-      optimistic: { id: target.id },
-      realId: target.id
-    });
+    await deleteGoal(target.id);
   }
 
   function progressVariant(status: string): 'success' | 'error' | 'info' {

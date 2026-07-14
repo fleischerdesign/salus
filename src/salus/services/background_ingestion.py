@@ -15,7 +15,7 @@ class BackgroundIngestionService:
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
-    def ingest(self, payload: dict | list, user_id: int) -> None:
+    def ingest(self, payload: dict | list, user_id: str) -> None:
         from sqlmodel import Session
 
         try:
@@ -31,7 +31,7 @@ class BackgroundIngestionService:
                 records = parser.parse(payload)
                 inserted, duplicates = service.ingest(payload, user_id)
                 logger.info(
-                    "Background ingestion complete | user_id=%d | inserted=%d | duplicates=%d",
+                    "Background ingestion complete | user_id=%s | inserted=%d | duplicates=%d",
                     user_id,
                     inserted,
                     duplicates,
@@ -61,7 +61,7 @@ class BackgroundIngestionService:
                             )
         except Exception as e:
             logger.error(
-                "Background ingestion failed | user_id=%d | error=%s",
+                "Background ingestion failed | user_id=%s | error=%s",
                 user_id,
                 str(e),
                 exc_info=True,

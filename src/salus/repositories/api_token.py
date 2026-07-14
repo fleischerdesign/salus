@@ -11,7 +11,7 @@ from salus.repositories.protocols import IApiTokenRepository
 class ApiTokenRepository(Repository[ApiToken], IApiTokenRepository):
     model = ApiToken
 
-    def find_by_user(self, user_id: int) -> list[ApiToken]:
+    def find_by_user(self, user_id: str) -> list[ApiToken]:
         stmt = (
             select(ApiToken)
             .where(ApiToken.user_id == user_id, ApiToken.is_active)
@@ -19,7 +19,7 @@ class ApiTokenRepository(Repository[ApiToken], IApiTokenRepository):
         )
         return list(self.session.exec(stmt).all())
 
-    def find_all_by_user(self, user_id: int) -> list[ApiToken]:
+    def find_all_by_user(self, user_id: str) -> list[ApiToken]:
         stmt = select(ApiToken).where(ApiToken.user_id == user_id)
         return list(self.session.exec(stmt).all())
 

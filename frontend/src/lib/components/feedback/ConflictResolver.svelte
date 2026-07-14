@@ -1,6 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
-  import { mutate } from '$lib/db/mutate';
+  import { mutate } from '$lib/mutate';
   import ConflictDialog from '$components/ui/ConflictDialog.svelte';
   import { conflictStore } from '$stores/conflict.svelte';
 
@@ -20,11 +20,12 @@
 
     const merged = { ...conflict.serverRecord, ...fields };
     await mutate({
-      table: conflict.table,
-      type: 'update',
+      kind: 'crud',
+      op: 'update',
+      entity: conflict.table,
       data: fields,
       optimistic: merged,
-      realId: conflict.realId
+      id: conflict.realId
     });
 
     conflictStore.resolve(conflict.id);

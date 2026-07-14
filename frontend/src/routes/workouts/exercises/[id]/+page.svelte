@@ -12,16 +12,16 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Btn from '$components/ui/Btn.svelte';
 
-  const exerciseId = $derived(Number(page.params.id));
+  const exerciseId = $derived(page.params.id);
 
   let exercise = liveQuery(() =>
-    db.exercise.get(exerciseId).then((e) => (e && !e.deleted_at ? e : null))
+    db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null))
   );
 
   let logs = liveQuery(() =>
     db.workout_log_entry
       .toArray()
-      .then((arr) => arr.filter((l) => l.exercise_id === exerciseId && !l.deleted_at))
+      .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at))
   );
 
   let sessions = liveQuery(() =>

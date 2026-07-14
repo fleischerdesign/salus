@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from salus.models.measurement import Measurement  # noqa: F401
     from salus.models.user import User  # noqa: F401
 
-DEFAULT_METRIC_COLOR = "#4f46e5"
+from salus.services._helpers import DEFAULT_METRIC_COLOR, uuid7_str
 
 
 class DataType(str, Enum):
@@ -23,12 +23,12 @@ class MetricType(SQLModel, table=True):
     __tablename__ = "metric_type"  # pyright: ignore[reportAssignmentType]
     __table_args__ = (UniqueConstraint("name", "user_id"),)
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     name: str
     unit: str = Field(default="")
     data_type: DataType = Field(default=DataType.NUMBER)
     color: str = Field(default=DEFAULT_METRIC_COLOR)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: str = Field(foreign_key="user.id")
     is_system: bool = Field(default=False)
     source_data_type: str | None = Field(default=None)
     icon: str = Field(default="monitoring")

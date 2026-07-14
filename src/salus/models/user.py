@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models import MetricType  # noqa: F401
     from salus.models.goal import Goal  # noqa: F401
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 class User(SQLModel, table=True):
     __tablename__ = "user"  # pyright: ignore[reportAssignmentType]
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     username: str = Field(unique=True, index=True)
     password_hash: str | None = Field(default=None)
     email: str | None = Field(default=None, unique=True)

@@ -1,6 +1,11 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import {
+    createConnection,
+    acceptConnection,
+    declineConnection,
+    deleteConnection
+  } from '$lib/mutations/community';
   import { db } from '$lib/db/database';
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -22,7 +27,7 @@
     color: string;
     aggregation: string;
     direction: string;
-    relationship_id: number;
+    relationship_id: string;
   }
 
   interface PeerConnection {
@@ -115,24 +120,7 @@
     e.preventDefault();
     error = '';
     sharing = true;
-    const resp = await mutateDomain({
-      url: '/api/v1/sharing/connections',
-      method: 'POST',
-      body: {
-        grantee_handle: granteeHandle,
-        metric_type_ids: [],
-        expiration_days: 30
-      },
-      optimisticTable: 'sharing_relationship',
-      optimisticData: {
-        id: -1,
-        owner_id: auth.user?.id ?? 0,
-        grantee_handle: granteeHandle,
-        metric_type_id: 0,
-        aggregation_level: 'daily_summary',
-        status: 'pending'
-      }
-    });
+    const resp = await createConnection(granteeHandle);
     sharing = false;
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';
@@ -141,30 +129,21 @@
     granteeHandle = '';
   }
 
-  async function revoke(id: number) {
+  async function revoke(id: string) {
     if (!confirm('Revoke this connection?')) return;
-    await mutateDomain({
-      url: `/api/v1/sharing/connections/${id}`,
-      method: 'DELETE'
-    });
+    await deleteConnection(id);
   }
 
-  async function accept(id: number) {
-    const resp = await mutateDomain({
-      url: `/api/v1/sharing/connections/${id}/accept`,
-      method: 'POST'
-    });
+  async function accept(id: string) {
+    const resp = await acceptConnection(id);
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';
       return;
     }
   }
 
-  async function decline(id: number) {
-    const resp = await mutateDomain({
-      url: `/api/v1/sharing/connections/${id}/decline`,
-      method: 'POST'
-    });
+  async function decline(id: string) {
+    const resp = await declineConnection(id);
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';
       return;

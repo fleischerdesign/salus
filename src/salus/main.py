@@ -16,6 +16,7 @@ from salus.config import settings
 from salus.database import Session, engine
 from salus.dependencies import limiter
 from salus.exceptions import (
+    ApiError,
     AuthenticationError,
     ConflictError,
     ForbiddenError,
@@ -29,8 +30,8 @@ from salus.routers import (
     api_admin,
     api_auth,
     api_dashboard,
-    api_dynamic,
     api_misc,
+    api_rest,
     api_settings,
     api_sharing,
     api_sync,
@@ -135,7 +136,11 @@ async def lifespan(app: FastAPI):
 
     session = Session(lifespan_engine)
     try:
-        ConfigService(SystemConfigRepository(session)).seed_defaults()
+        try:
+            ConfigService(SystemConfigRepository(session)).seed_defaults()
+        except Exception:
+            logging.error("Failed to seed default config", exc_info=True)
+            raise
     finally:
         session.close()
         startup_session.close()
@@ -208,7 +213,7 @@ def create_app() -> FastAPI:
     app.include_router(asymmetric_share.router)
     app.include_router(open_science.router)
     app.include_router(api_sync.router)
-    api_dynamic.register_crud_routes(app)
+    api_rest.register_auto_crud(app)
 
     frontend_build = os.path.join(
         os.path.dirname(__file__), "..", "..", "frontend", "build"
@@ -222,6 +227,14 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.exception_handler(ApiError)
+async def api_error_handler(request: Request, exc: ApiError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": exc.code, "message": exc.message}},
+    )
 
 
 @app.exception_handler(NotFoundError)

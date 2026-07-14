@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
 
@@ -22,12 +24,12 @@ AVAILABLE_SCOPES = [
 class ApiToken(SQLModel, table=True):
     __tablename__ = "api_token"  # pyright: ignore[reportAssignmentType]
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     token_hash: str = Field(unique=True, index=True)
     token_prefix: str
     label: str
     scopes: str = Field(default="")
-    user_id: int = Field(foreign_key="user.id")
+    user_id: str = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_used_at: datetime | None = Field(default=None)
     is_active: bool = Field(default=True)

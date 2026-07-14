@@ -6,7 +6,10 @@ def _login_as_admin(client):
     token = resp.json()["token"]
     client.headers = {"Authorization": f"Bearer {token}"}
     return token
-
+def _get_admin_id(client):
+    users = client.get("/api/v1/admin/users").json()
+    admin = next(u for u in users if u["username"] == "admin")
+    return admin["id"]
 
 def _register(client, username, password="test1234", email=None, display_name=None):
     resp = client.post(
@@ -113,7 +116,8 @@ def test_admin_delete_user(client):
 
 def test_cannot_delete_self(client):
     _login_as_admin(client)
-    response = client.delete("/api/v1/admin/users/1")
+    admin_id = _get_admin_id(client)
+    response = client.delete(f"/api/v1/admin/users/{admin_id}")
     assert response.status_code == 409
     assert "Cannot delete your own account" in response.json()["error"]
 
@@ -121,13 +125,14 @@ def test_cannot_delete_self(client):
 def test_non_admin_cannot_delete(client):
     token = _register(client, "nonadmin")
     client.headers = {"Authorization": f"Bearer {token}"}
-    response = client.delete("/api/v1/admin/users/1")
+    response = client.delete("/api/v1/admin/users/1")  # Any invalid or arbitrary ID since non-admin gets rejected anyway
     assert response.status_code in (401, 403)
 
 
 def test_admin_user_detail(client):
     _login_as_admin(client)
-    response = client.get("/api/v1/admin/users/1")
+    admin_id = _get_admin_id(client)
+    response = client.get(f"/api/v1/admin/users/{admin_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == "admin"

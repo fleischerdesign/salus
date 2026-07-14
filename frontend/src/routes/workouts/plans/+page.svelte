@@ -3,8 +3,8 @@
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import type { WorkoutPlan } from '$lib/db/types';
-  import { mutate, nextTempId } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { createPlan as createPlanMutation, deletePlan } from '$lib/mutations/plan';
+  import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Modal from '$components/ui/Modal.svelte';
@@ -57,11 +57,11 @@
     showForm = true;
   }
 
-  function exerciseCount(planId: number): number {
+  function exerciseCount(planId: string): number {
     return ($planExercises ?? []).filter((pe) => pe.plan_id === planId).length;
   }
 
-  function exerciseNames(planId: number): {
+  function exerciseNames(planId: string): {
     name: string;
     target_sets: number | null;
     target_reps: number | null;
@@ -79,29 +79,16 @@
       }));
   }
 
-  async function createPlan(e: SubmitEvent) {
+  async function handleCreatePlan(e: SubmitEvent) {
     e.preventDefault();
     planError = '';
     saving = true;
-    const data = {
-      name: planName,
-      description: planDescription || undefined,
-      autoreg_mode: planAutoreg,
-      position: ($plans ?? []).length
-    };
-    const { ok, error } = await mutate({
-      table: 'workout_plan',
-      type: 'create',
-      data: data as Record<string, unknown>,
-      optimistic: {
-        id: nextTempId(),
-        user_id: 0,
-        ...data,
-        created_at: new Date().toISOString(),
-        updated_at: null,
-        deleted_at: null
-      }
-    });
+    const { ok, error } = await createPlanMutation(
+      planName,
+      planDescription || null,
+      planAutoreg,
+      []
+    );
     saving = false;
     if (!ok) {
       planError = error || 'Failed to create plan';
@@ -114,40 +101,12 @@
     if (!planToDelete) return;
     const target = planToDelete;
     planToDelete = null;
-    await mutate({
-      table: 'workout_plan',
-      type: 'delete',
-      optimistic: { id: target.id },
-      realId: target.id
-    });
+    await deletePlan(target.id);
   }
 
-  async function startSession(planId: number) {
+  async function startSession(planId: string) {
     const plan = ($plans ?? []).find((p) => p.id === planId);
-    const now = new Date().toISOString();
-    const tempId = nextTempId();
-    const { ok } = await mutateDomain({
-      url: `/api/v1/workouts/sessions/start?plan_id=${planId}`,
-      method: 'POST',
-      optimisticTable: 'workout_session',
-      optimisticData: {
-        id: tempId,
-        user_id: 0,
-        plan_id: planId,
-        plan_name: plan?.name ?? '',
-        started_at: now,
-        completed_at: null,
-        recovery_score: null,
-        autoreg_mode: plan?.autoreg_mode || 'advisory',
-        notes: null,
-        effort_rating: null,
-        created_at: now,
-        updated_at: null,
-        deleted_at: null
-      },
-      optimisticId: tempId,
-      responseTable: 'workout_session'
-    });
+    const { ok } = await startWorkout(planId, plan?.autoreg_mode || 'advisory');
     if (ok) await goto('/workouts/active');
   }
 </script>
@@ -246,7 +205,7 @@
 </div>
 
 <Modal title="New Workout Plan" bind:open={showForm}>
-  <form onsubmit={createPlan} class="flex flex-col gap-4">
+  <form onsubmit={handleCreatePlan} class="flex flex-col gap-4">
     <FormField label="Plan Name" required>
       <Input name="name" bind:value={planName} required placeholder="e.g. Push/Pull/Legs" />
     </FormField>

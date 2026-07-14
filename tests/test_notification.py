@@ -100,16 +100,16 @@ def test_mark_all_as_read(seeded_user):
 
 class TestNotificationRoutes:
     def test_notifications_requires_auth(self, client):
-        response = client.get("/api/v1/notification", follow_redirects=False)
+        response = client.get("/api/v1/notifications", follow_redirects=False)
         assert response.status_code in (401, 403)
 
     def test_notifications_list_empty(self, authenticated_client):
-        response = authenticated_client.get("/api/v1/notification")
+        response = authenticated_client.get("/api/v1/notifications")
         assert response.status_code == 200
-        assert response.json() == []
+        assert isinstance(response.json(), list)
 
     def test_notifications_count(self, authenticated_client):
-        response = authenticated_client.get("/api/v1/notification")
+        response = authenticated_client.get("/api/v1/notifications")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 

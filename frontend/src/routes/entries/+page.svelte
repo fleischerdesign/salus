@@ -4,7 +4,7 @@
   import { db } from '$lib/db/database';
   import type { MetricType } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import { createMetricType, updateMetricType, deleteMetricType } from '$lib/mutations/measurement';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import Card from '$components/ui/Card.svelte';
@@ -84,38 +84,17 @@
       icon: metricIcon
     };
     if (editingMetric) {
-      const { ok, error } = await mutate({
-        table: 'metric_type',
-        type: 'update',
-        data: body as Record<string, unknown>,
-        optimistic: { ...editingMetric, ...body },
-        realId: editingMetric.id
-      });
+      const { ok, error } = await updateMetricType(
+        editingMetric.id,
+        body as Record<string, unknown>
+      );
       saving = false;
       if (!ok) {
         metricError = error || 'Failed to update metric';
         return;
       }
     } else {
-      const tempId = nextTempId();
-      const { ok, error } = await mutate({
-        table: 'metric_type',
-        type: 'create',
-        data: body as Record<string, unknown>,
-        optimistic: {
-          id: tempId,
-          ...body,
-          user_id: 0,
-          is_system: false,
-          source_data_type: null,
-          widget_size: 'medium',
-          widget_enabled: false,
-          position: 0,
-          created_at: new Date().toISOString(),
-          updated_at: null,
-          deleted_at: null
-        }
-      });
+      const { ok, error } = await createMetricType(body as Record<string, unknown>);
       saving = false;
       if (!ok) {
         metricError = error || 'Failed to create metric';
@@ -129,12 +108,7 @@
     if (!metricToDelete) return;
     const target = metricToDelete;
     metricToDelete = null;
-    await mutate({
-      table: 'metric_type',
-      type: 'delete',
-      optimistic: { id: target.id },
-      realId: target.id
-    });
+    await deleteMetricType(target.id);
   }
 </script>
 

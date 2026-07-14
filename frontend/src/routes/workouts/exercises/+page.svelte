@@ -2,7 +2,10 @@
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Exercise } from '$lib/db/types';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import {
+    createExercise as createExerciseMutation,
+    deleteExercise as deleteExerciseMutation
+  } from '$lib/mutations/exercise';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Modal from '$components/ui/Modal.svelte';
@@ -91,7 +94,7 @@
     showForm = true;
   }
 
-  async function createExercise(e: SubmitEvent) {
+  async function handleCreateExercise(e: SubmitEvent) {
     e.preventDefault();
     formError = '';
     saving = true;
@@ -103,21 +106,7 @@
       instructions: exInstructions || undefined,
       video_url: exVideoUrl || undefined
     };
-    const { ok, error } = await mutate({
-      table: 'exercise',
-      type: 'create',
-      data: data as Record<string, unknown>,
-      optimistic: {
-        id: nextTempId(),
-        user_id: 0,
-        ...data,
-        secondary_muscles: null,
-        suggested_rest_seconds: null,
-        created_at: new Date().toISOString(),
-        updated_at: null,
-        deleted_at: null
-      }
-    });
+    const { ok, error } = await createExerciseMutation(data);
     saving = false;
     if (!ok) {
       formError = error || 'Failed to create exercise';
@@ -130,12 +119,7 @@
     if (!exToDelete) return;
     const target = exToDelete;
     exToDelete = null;
-    await mutate({
-      table: 'exercise',
-      type: 'delete',
-      optimistic: { id: target.id },
-      realId: target.id
-    });
+    await deleteExerciseMutation(target.id);
   }
 
   function formatMuscle(m: string): string {
@@ -239,7 +223,7 @@
 </div>
 
 <Modal title="New Exercise" bind:open={showForm}>
-  <form onsubmit={createExercise} class="flex flex-col gap-4">
+  <form onsubmit={handleCreateExercise} class="flex flex-col gap-4">
     <FormField label="Name" required>
       <Input name="name" bind:value={exName} required placeholder="e.g. Bench Press" />
     </FormField>

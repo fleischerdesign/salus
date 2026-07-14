@@ -9,7 +9,7 @@ from salus.repositories.protocols import ICircadianProfileRepository
 class CircadianProfileRepository(Repository[CircadianProfile], ICircadianProfileRepository):
     model = CircadianProfile
 
-    def find_by_user(self, user_id: int) -> Optional[CircadianProfile]:
+    def find_by_user(self, user_id: str) -> Optional[CircadianProfile]:
         stmt = (
             select(CircadianProfile).where(CircadianProfile.user_id == user_id).limit(1)
         )

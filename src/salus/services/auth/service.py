@@ -59,7 +59,7 @@ class AuthService:
         user_id = payload.get("sub")
         if user_id is None:
             return None
-        return self._user_svc.get_by_id(int(user_id))
+        return self._user_svc.get_by_id(str(user_id))
 
     def create_token_for_user(self, user: User) -> str:
         from salus.services._helpers import uid

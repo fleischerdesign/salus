@@ -98,7 +98,7 @@ def _register_one(app: FastAPI, entity_name: str) -> None:
         return result.record or {"id": result.id, "status": result.status}
 
     async def update(
-        id: int,
+        id: str,
         request: Request,
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
@@ -116,7 +116,7 @@ def _register_one(app: FastAPI, entity_name: str) -> None:
         return result.record or {"id": result.id, "status": result.status}
 
     async def delete(
-        id: int,
+        id: str,
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
     ):
@@ -132,7 +132,7 @@ def _register_one(app: FastAPI, entity_name: str) -> None:
         return Response(status_code=204)
 
     async def get_one(
-        id: int,
+        id: str,
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
     ):

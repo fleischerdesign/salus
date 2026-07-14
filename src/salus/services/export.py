@@ -12,7 +12,7 @@ class ExportService:
 
     def export_all(
         self,
-        user_id: int,
+        user_id: str,
         format: str = "csv",
         since: str | None = None,
         until: str | None = None,

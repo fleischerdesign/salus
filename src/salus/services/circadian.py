@@ -15,7 +15,7 @@ class CircadianService:
     def __init__(self, uow: IUnitOfWork) -> None:
         self.uow = uow
 
-    def get_or_create_profile(self, user_id: int) -> CircadianProfile:
+    def get_or_create_profile(self, user_id: str) -> CircadianProfile:
         with self.uow:
             profile = self.uow.circadian_profiles.find_by_user(user_id)
             if not profile:
@@ -31,7 +31,7 @@ class CircadianService:
             return profile
 
     def save_profile(
-        self, user_id: int, data: CircadianProfileCreate
+        self, user_id: str, data: CircadianProfileCreate
     ) -> CircadianProfile:
         with self.uow:
             profile = self.uow.circadian_profiles.find_by_user(user_id)
@@ -150,7 +150,7 @@ class CircadianService:
             "solar_noon_mins": solar_noon_mins,
         }
 
-    def calculate_advice(self, user_id: int) -> CircadianAdviceResponse:
+    def calculate_advice(self, user_id: str) -> CircadianAdviceResponse:
         profile = self.get_or_create_profile(user_id)
 
         # Calculate solar times for today

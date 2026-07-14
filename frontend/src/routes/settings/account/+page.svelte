@@ -3,8 +3,12 @@
   import { setLocaleState } from '$lib/api/headers';
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import { mutate } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { mutate } from '$lib/mutate';
+  import {
+    changePassword as doChangePassword,
+    createToken as doCreateToken,
+    revokeToken as doRevokeToken
+  } from '$lib/mutations/account';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
@@ -59,11 +63,7 @@
     pwError = '';
     pwSuccess = '';
     changing = true;
-    const resp = await mutateDomain({
-      url: '/api/v1/settings/password',
-      method: 'POST',
-      body: { current_password: currentPassword, new_password: newPassword }
-    });
+    const resp = await doChangePassword(currentPassword, newPassword);
     changing = false;
     if (!resp.ok) {
       pwError = resp.error ?? 'Request failed';
@@ -77,29 +77,19 @@
   async function createToken(e: SubmitEvent) {
     e.preventDefault();
     tokenCreating = true;
-    const resp = await mutateDomain({
-      url: '/api/v1/settings/tokens',
-      method: 'POST',
-      body: { label: tokenLabel },
-      responseTable: 'api_token'
-    });
+    const resp = await doCreateToken(tokenLabel);
     tokenCreating = false;
     if (!resp.ok) return;
-    newToken = (resp.data as { token: string }).token;
+    newToken = (resp.data as { plaintext?: string })?.plaintext ?? '';
     tokenLabel = '';
   }
 
-  async function revokeToken(id: number) {
+  async function revokeToken(id: string) {
     if (!confirm('Revoke this API token?')) return;
     const token = await db.api_token.get(id);
     if (!token) return;
-    await mutate({
-      table: 'api_token',
-      type: 'update',
-      realId: id,
-      data: { is_active: false },
-      optimistic: { ...token, is_active: false }
-    });
+    await doRevokeToken(id);
+    await db.api_token.put({ ...token, is_active: false });
   }
 
   async function setTheme(t: string) {
@@ -107,9 +97,10 @@
     document.documentElement.setAttribute('data-theme', t);
     if (userProfile) {
       await mutate({
-        table: 'user',
-        type: 'update',
-        realId: userProfile.id,
+        kind: 'crud',
+        op: 'update',
+        entity: 'user',
+        id: userProfile.id,
         data: { theme: t },
         optimistic: { ...userProfile, theme: t }
       });
@@ -121,9 +112,10 @@
     setLocaleState(loc);
     if (userProfile) {
       await mutate({
-        table: 'user',
-        type: 'update',
-        realId: userProfile.id,
+        kind: 'crud',
+        op: 'update',
+        entity: 'user',
+        id: userProfile.id,
         data: { locale: loc },
         optimistic: { ...userProfile, locale: loc }
       });

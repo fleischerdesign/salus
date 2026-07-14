@@ -11,7 +11,7 @@ class JwtService:
         self.algorithm = algorithm
         self.expire_minutes = expire_minutes
 
-    def create_token(self, user_id: int, username: str) -> str:
+    def create_token(self, user_id: str, username: str) -> str:
         expire = datetime.now(timezone.utc) + timedelta(minutes=self.expire_minutes)
         payload = {
             "sub": str(user_id),

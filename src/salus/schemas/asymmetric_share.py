@@ -9,8 +9,8 @@ class ShareRecipientCreate(BaseModel):
 
 
 class ShareRecipientResponse(BaseModel):
-    id: int
-    user_id: int
+    id: str
+    user_id: str
     name: str
     public_key: str
     created_at: datetime
@@ -19,7 +19,7 @@ class ShareRecipientResponse(BaseModel):
 
 
 class AsymmetricShareCreate(BaseModel):
-    recipient_id: int
+    recipient_id: str
     encrypted_data: str  # Base64 encoded payload
     encrypted_key: str  # Base64 encoded key
     expires_in_hours: Optional[int] = None
@@ -27,8 +27,8 @@ class AsymmetricShareCreate(BaseModel):
 
 class AsymmetricShareResponse(BaseModel):
     id: str
-    user_id: int
-    recipient_id: int
+    user_id: str
+    recipient_id: str
     encrypted_data: str
     encrypted_key: str
     created_at: datetime

@@ -13,24 +13,21 @@ from salus.schemas.circadian import CircadianProfileCreate
 
 @pytest.fixture
 def clean_db():
-    SQLModel.metadata.create_all(engine)
     yield
 
 
 @pytest.fixture
-def auth_client():
-    from salus.main import app
+def auth_client(client):
     import uuid
 
     username = f"circadian_user_{uuid.uuid4().hex[:6]}"
-    with TestClient(app) as client:
-        resp = client.post(
-            "/api/v1/auth/register",
-            json={"username": username, "password": "password123"},
-        )
-        token = resp.json()["token"]
-        client.headers = {"Authorization": f"Bearer {token}"}
-        yield client, username
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={"username": username, "password": "password123"},
+    )
+    token = resp.json()["token"]
+    client.headers = {"Authorization": f"Bearer {token}"}
+    yield client, username
 
 
 def test_noaa_solar_calculator_berlin():
@@ -46,7 +43,8 @@ def test_noaa_solar_calculator_berlin():
 
 def test_circadian_profile_crud(clean_db, auth_client):
     client, username = auth_client
-    session = Session(engine)
+    test_engine = client.app.state.engine
+    session = Session(test_engine)
     uow = SqlUnitOfWork(session)
     service = CircadianService(uow)
 
@@ -72,7 +70,8 @@ def test_circadian_profile_crud(clean_db, auth_client):
 
 def test_circadian_advisor_engine(clean_db, auth_client):
     client, username = auth_client
-    session = Session(engine)
+    test_engine = client.app.state.engine
+    session = Session(test_engine)
     uow = SqlUnitOfWork(session)
     service = CircadianService(uow)
 

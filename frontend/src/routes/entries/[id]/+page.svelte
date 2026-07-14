@@ -4,7 +4,11 @@
   import { db } from '$lib/db/database';
   import type { Measurement as Entry, MetricType as Metric } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import {
+    createMeasurement,
+    updateMeasurement,
+    deleteMeasurement
+  } from '$lib/mutations/measurement';
   import Card from '$components/ui/Card.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import Menu, { type MenuItem } from '$components/ui/Menu.svelte';
@@ -23,13 +27,13 @@
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
 
-  let metric = liveQuery(() => db.metric_type.get(metricId));
+  let metric = liveQuery(() => db.metric_type.get(metricId!));
   let overviews = liveQuery(() => fetchMetricOverview());
 
   let allEntries = liveQuery(() =>
     db.measurement
       .where('metric_type_id')
-      .equals(metricId)
+      .equals(metricId!)
       .toArray()
       .then((arr) =>
         arr
@@ -58,9 +62,9 @@
   let entryToDelete = $state<Entry | null>(null);
   let deleteDialogOpen = $state(false);
 
-  const metricId = $derived(Number(page.params.id));
+  const metricId = $derived(page.params.id);
 
-  let overview = $derived($overviews ? overviewForMetric($overviews, metricId) : null);
+  let overview = $derived($overviews ? overviewForMetric($overviews, metricId!) : null);
 
   function toDatetimeLocal(ts: string): string {
     const dt = new Date(ts);
@@ -137,50 +141,14 @@
       source: 'manual'
     };
     if (editingEntry) {
-      const { ok, error } = await mutate({
-        table: 'measurement',
-        type: 'update',
-        data: body,
-        optimistic: { ...editingEntry, ...body },
-        realId: editingEntry.id
-      });
+      const { ok, error } = await updateMeasurement(editingEntry.id, body);
       saving = false;
       if (!ok) {
         entryError = error || 'Failed to update entry';
         return;
       }
     } else {
-      const tempId = nextTempId();
-      const { ok, error } = await mutate({
-        table: 'measurement',
-        type: 'create',
-        data: {
-          metric_type_id: metricId,
-          value_numeric: isNaN(Number(value)) ? null : Number(value),
-          value_text: isNaN(Number(value)) ? value : null,
-          start_time: timestamp || new Date().toISOString(),
-          notes: notesVal,
-          data_type: 'number',
-          source: 'manual'
-        },
-        optimistic: {
-          id: tempId,
-          metric_type_id: metricId,
-          user_id: 0,
-          value_numeric: isNaN(Number(value)) ? null : Number(value),
-          value_text: isNaN(Number(value)) ? value : null,
-          value_json: null,
-          start_time: timestamp || new Date().toISOString(),
-          end_time: null,
-          notes: notesVal,
-          data_type: 'number',
-          source: 'manual',
-          external_id: null,
-          created_at: new Date().toISOString(),
-          updated_at: null,
-          deleted_at: null
-        }
-      });
+      const { ok, error } = await createMeasurement(metricId!, body);
       saving = false;
       if (!ok) {
         entryError = error || 'Failed to create entry';
@@ -194,12 +162,7 @@
     if (!entryToDelete) return;
     const target = entryToDelete;
     entryToDelete = null;
-    await mutate({
-      table: 'measurement',
-      type: 'delete',
-      optimistic: { id: target.id },
-      realId: target.id
-    });
+    await deleteMeasurement(target.id);
   }
 
   function onPageChange(p: number) {
@@ -207,7 +170,7 @@
   }
 
   // Reset page on metric change
-  let prevMetricId = $state(NaN);
+  let prevMetricId = $state<string | undefined>(undefined);
   $effect(() => {
     if (metricId !== prevMetricId) {
       prevMetricId = metricId;

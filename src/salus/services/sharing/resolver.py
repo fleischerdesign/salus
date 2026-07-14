@@ -35,7 +35,7 @@ class FederationDataResolver:
 
     def resolve_and_fetch(
         self,
-        requester_id: int,
+        requester_id: str,
         owner_handle: str,
         data_type: str,
         date_str: str,
@@ -213,7 +213,7 @@ class FederationDataResolver:
 
         return []
 
-    def get_feed_activities(self, user_id: int) -> list[dict]:
+    def get_feed_activities(self, user_id: str) -> list[dict]:
         today = datetime.now(timezone.utc).date()
         three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
         activities = []
@@ -232,7 +232,7 @@ class FederationDataResolver:
                 user_id
             )
 
-            friends_dict: dict[int, dict[str, Any]] = {}
+            friends_dict: dict[str, dict[str, Any]] = {}
             for rel in local_incoming:
                 if rel.owner_id not in friends_dict:
                     friends_dict[rel.owner_id] = {

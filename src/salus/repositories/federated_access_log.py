@@ -8,7 +8,7 @@ from salus.repositories.protocols import IFederatedAccessLogRepository
 class FederatedAccessLogRepository(Repository[FederatedAccessLog], IFederatedAccessLogRepository):
     model = FederatedAccessLog
 
-    def find_by_owner(self, owner_id: int) -> list[FederatedAccessLog]:
+    def find_by_owner(self, owner_id: str) -> list[FederatedAccessLog]:
         stmt = (
             select(FederatedAccessLog)
             .where(FederatedAccessLog.owner_id == owner_id)

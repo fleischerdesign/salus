@@ -22,7 +22,7 @@ class WebhookIngestionService:
         self._mapping = mapping_service
         self._registry = registry
 
-    def ingest(self, payload: dict | list, user_id: int) -> tuple[int, int]:
+    def ingest(self, payload: dict | list, user_id: str) -> tuple[int, int]:
         records = self._parser.parse(payload)
         logger.info("Parsed %d records from payload", len(records))
 

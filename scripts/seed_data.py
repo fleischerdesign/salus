@@ -329,6 +329,7 @@ def _seed_workout_plans_and_sessions(session: Session, user_id: int, dry_run: bo
     ]
 
     exercise_objs = {}
+    now = datetime.now(timezone.utc)
     for ex_data in default_exercises:
         ex = session.exec(select(Exercise).where(Exercise.name == ex_data["name"])).first()
         if not ex:
@@ -344,6 +345,8 @@ def _seed_workout_plans_and_sessions(session: Session, user_id: int, dry_run: bo
                     secondary_muscles=ex_data["secondary_muscles"],
                     description=f"Standard {ex_data['name']} exercise.",
                     user_id=None,
+                    created_at=now,
+                    updated_at=now,
                 )
                 session.add(ex)
                 session.flush()
@@ -380,8 +383,26 @@ def _seed_workout_plans_and_sessions(session: Session, user_id: int, dry_run: bo
                     target_sets=item["sets"],
                     target_reps=item["reps"],
                     target_rpe=item["rpe"],
+                    created_at=now,
+                    updated_at=now,
                 )
                 session.add(pe)
+            session.flush()
+
+    # Backfill missing timestamps on existing Exercise and WorkoutPlanExercise records
+    if not dry_run:
+        updated_any = False
+        for ex in session.exec(select(Exercise).where(Exercise.created_at == None)).all():
+            ex.created_at = now
+            ex.updated_at = now
+            session.add(ex)
+            updated_any = True
+        for pe in session.exec(select(WorkoutPlanExercise).where(WorkoutPlanExercise.created_at == None)).all():
+            pe.created_at = now
+            pe.updated_at = now
+            session.add(pe)
+            updated_any = True
+        if updated_any:
             session.flush()
 
     existing_sessions = session.exec(select(WorkoutSession).where(WorkoutSession.user_id == user_id)).first()

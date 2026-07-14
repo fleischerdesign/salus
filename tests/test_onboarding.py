@@ -1,3 +1,12 @@
+def _get_metric_id(client, name: str) -> str:
+    resp = client.get("/api/v1/metrics")
+    assert resp.status_code == 200
+    for mt in resp.json():
+        if mt["name"] == name:
+            return mt["id"]
+    raise ValueError(f"Metric type {name} not found")
+
+
 def test_dismiss_onboarding(authenticated_client):
     response = authenticated_client.post("/api/v1/onboarding/dismiss")
     assert response.status_code == 204
@@ -14,24 +23,26 @@ def test_onboarding_create_token_endpoint(authenticated_client):
 
 
 def test_onboarding_create_entry_endpoint(authenticated_client):
+    steps_id = _get_metric_id(authenticated_client, "Steps")
     response = authenticated_client.post(
         "/api/v1/onboarding/entry",
-        json={"metric_type_id": 1, "value": "42"},
+        json={"metric_type_id": steps_id, "value": "42"},
     )
     assert response.status_code == 201
     data = response.json()
     assert data["value"] == "42"
-    assert data["metric_type_id"] == 1
+    assert data["metric_type_id"] == steps_id
 
 
 def test_onboarding_create_goal_endpoint(authenticated_client):
+    steps_id = _get_metric_id(authenticated_client, "Steps")
     response = authenticated_client.post(
         "/api/v1/onboarding/goal",
-        json={"metric_type_id": 1, "target_value": 100, "direction": "increase"},
+        json={"metric_type_id": steps_id, "target_value": 100, "direction": "increase"},
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["metric_type_id"] == 1
+    assert data["metric_type_id"] == steps_id
     assert data["target_value"] == 100
 
 
@@ -48,7 +59,7 @@ def test_onboarding_token_requires_auth(client):
 def test_onboarding_entry_requires_auth(client):
     response = client.post(
         "/api/v1/onboarding/entry",
-        json={"metric_type_id": 1, "value": "1"},
+        json={"metric_type_id": "1", "value": "1"},
         follow_redirects=False,
     )
     assert response.status_code in (401, 403)
@@ -57,7 +68,7 @@ def test_onboarding_entry_requires_auth(client):
 def test_onboarding_goal_requires_auth(client):
     response = client.post(
         "/api/v1/onboarding/goal",
-        json={"metric_type_id": 1, "target_value": 1},
+        json={"metric_type_id": "1", "target_value": 1},
         follow_redirects=False,
     )
     assert response.status_code in (401, 403)

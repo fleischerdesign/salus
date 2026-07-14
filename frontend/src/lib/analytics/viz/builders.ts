@@ -71,7 +71,7 @@ function latestWeight(measurements: Measurement[], date: string): number | null 
   return dayM[0]?.value_numeric ?? null;
 }
 
-function findGoal(goals: Goal[], sourceDataType: string, metricTypeId: number): Goal | null {
+function findGoal(goals: Goal[], sourceDataType: string, metricTypeId: string): Goal | null {
   return (
     goals.find((g) => g.deleted_at == null && g.is_active && g.metric_type_id === metricTypeId) ??
     null

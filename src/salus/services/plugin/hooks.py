@@ -28,7 +28,7 @@ class HookEventSubscriber(Protocol):
 
 @runtime_checkable
 class HookAiCoachContext(Protocol):
-    def get_additional_prompt_context(self, user_id: int, date_str: str) -> str: ...
+    def get_additional_prompt_context(self, user_id: str, date_str: str) -> str: ...
 
 
 @runtime_checkable
@@ -86,7 +86,7 @@ class HookMetricSynthesizer(Protocol):
     def get_synthetic_metric_name(self) -> str: ...
 
     def synthesize(
-        self, user_id: int, measurements: list[Measurement]
+        self, user_id: str, measurements: list[Measurement]
     ) -> list[Measurement]: ...
 
 

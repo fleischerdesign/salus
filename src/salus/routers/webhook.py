@@ -12,7 +12,7 @@ logger = logging.getLogger("salus.webhook")
 router = APIRouter()
 
 
-def run_background_ingest(payload: dict | list, user_id: int, ingestion_svc):
+def run_background_ingest(payload: dict | list, user_id: str, ingestion_svc):
     ingestion_svc.ingest(payload, user_id)
 
 

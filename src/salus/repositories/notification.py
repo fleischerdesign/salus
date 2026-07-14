@@ -8,7 +8,7 @@ from salus.repositories.protocols import INotificationRepository
 class NotificationRepository(Repository[Notification], INotificationRepository):
     model = Notification
 
-    def find_by_user(self, user_id: int, limit: int = 20) -> list[Notification]:
+    def find_by_user(self, user_id: str, limit: int = 20) -> list[Notification]:
         return list(
             self.session.exec(
                 select(Notification)
@@ -18,7 +18,7 @@ class NotificationRepository(Repository[Notification], INotificationRepository):
             ).all()
         )
 
-    def find_unread_by_user(self, user_id: int) -> list[Notification]:
+    def find_unread_by_user(self, user_id: str) -> list[Notification]:
         return list(
             self.session.exec(
                 select(Notification)
@@ -27,7 +27,7 @@ class NotificationRepository(Repository[Notification], INotificationRepository):
             ).all()
         )
 
-    def mark_all_read(self, user_id: int) -> None:
+    def mark_all_read(self, user_id: str) -> None:
         unread = self.find_unread_by_user(user_id)
         for notif in unread:
             notif.is_read = True

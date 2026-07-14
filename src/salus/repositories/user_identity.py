@@ -18,7 +18,7 @@ class UserIdentityRepository(Repository[UserIdentity], IUserIdentityRepository):
             )
         ).first()
 
-    def list_by_user(self, user_id: int) -> list[UserIdentity]:
+    def list_by_user(self, user_id: str) -> list[UserIdentity]:
         return list(
             self.session.exec(
                 select(UserIdentity).where(UserIdentity.user_id == user_id)

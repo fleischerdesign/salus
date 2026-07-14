@@ -26,7 +26,7 @@ class WorkoutService:
     # Exercise CRUD
     # --------------------------------------------------------------------------
 
-    def create_exercise(self, user_id: int, data: ExerciseCreate) -> Exercise:
+    def create_exercise(self, user_id: str, data: ExerciseCreate) -> Exercise:
         with self.uow:
             # Check if name is taken
             existing = self.uow.exercises.find_by_name(data.name)
@@ -48,7 +48,7 @@ class WorkoutService:
             self.uow.commit()
             return ex
 
-    def update_exercise(self, user_id: int, exercise_id: int, data: ExerciseCreate) -> Exercise:
+    def update_exercise(self, user_id: str, exercise_id: str, data: ExerciseCreate) -> Exercise:
         with self.uow:
             ex = self.uow.exercises.get_by_id(exercise_id)
             if not ex:
@@ -71,18 +71,18 @@ class WorkoutService:
             self.uow.commit()
             return ex
 
-    def get_exercise_catalog(self, user_id: int) -> list[Exercise]:
+    def get_exercise_catalog(self, user_id: str) -> list[Exercise]:
         with self.uow:
             return self.uow.exercises.find_all_catalog(user_id)
 
-    def get_exercise(self, user_id: int, exercise_id: int) -> Optional[Exercise]:
+    def get_exercise(self, user_id: str, exercise_id: str) -> Optional[Exercise]:
         with self.uow:
             ex = self.uow.exercises.get_by_id(exercise_id)
             if ex and (ex.user_id is None or ex.user_id == user_id):
                 return ex
             return None
 
-    def delete_exercise(self, user_id: int, exercise_id: int) -> None:
+    def delete_exercise(self, user_id: str, exercise_id: str) -> None:
         with self.uow:
             ex = self.uow.exercises.get_by_id(exercise_id)
             if not ex:
@@ -96,7 +96,7 @@ class WorkoutService:
     # Plan CRUD
     # --------------------------------------------------------------------------
 
-    def create_plan(self, user_id: int, data: WorkoutPlanCreate) -> WorkoutPlan:
+    def create_plan(self, user_id: str, data: WorkoutPlanCreate) -> WorkoutPlan:
         with self.uow:
             plan = WorkoutPlan(
                 name=data.name,
@@ -132,26 +132,26 @@ class WorkoutService:
             self.uow.commit()
             return plan
 
-    def get_plan(self, user_id: int, plan_id: int) -> WorkoutPlan:
+    def get_plan(self, user_id: str, plan_id: str) -> WorkoutPlan:
         with self.uow:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:
                 raise NotFoundError("Workout plan not found.")
             return plan
 
-    def list_plans(self, user_id: int) -> list[WorkoutPlan]:
+    def list_plans(self, user_id: str) -> list[WorkoutPlan]:
         with self.uow:
             return self.uow.workout_plans.find_by_user(user_id)
 
-    def reorder_plans(self, user_id: int, ordered_ids: list[int]) -> None:
+    def reorder_plans(self, user_id: str, ordered_ids: list[str]) -> None:
         with self.uow:
             self.uow.workout_plans.reorder(user_id, ordered_ids)
             self.uow.commit()
 
     def update_plan(
         self,
-        user_id: int,
-        plan_id: int,
+        user_id: str,
+        plan_id: str,
         data: WorkoutPlanCreate,
         client_updated_at: Optional[datetime] = None,
     ) -> WorkoutPlan:
@@ -204,7 +204,7 @@ class WorkoutService:
             self.uow.commit()
             return plan
 
-    def delete_plan(self, user_id: int, plan_id: int) -> None:
+    def delete_plan(self, user_id: str, plan_id: str) -> None:
         with self.uow:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:
@@ -217,7 +217,7 @@ class WorkoutService:
     # --------------------------------------------------------------------------
 
     def start_session(
-        self, user_id: int, plan_id: Optional[int] = None
+        self, user_id: str, plan_id: Optional[str] = None
     ) -> WorkoutSession:
         with self.uow:
             # Check for active session
@@ -246,15 +246,15 @@ class WorkoutService:
             self.uow.commit()
             return session
 
-    def get_active_session(self, user_id: int) -> Optional[WorkoutSession]:
+    def get_active_session(self, user_id: str) -> Optional[WorkoutSession]:
         with self.uow:
             return self.uow.workout_sessions.find_active_by_user(user_id)
 
     def log_set(
-        self, user_id: int, session_id: int, entry: WorkoutLogEntryCreate
+        self, user_id: str, session_id: str, entry: WorkoutLogEntryCreate
     ) -> WorkoutLogEntry:
         with self.uow:
-            if session_id <= 0:
+            if not session_id or session_id in ("0", "active"):
                 session = self.get_active_session(user_id)
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
@@ -279,10 +279,10 @@ class WorkoutService:
             return log
 
     def delete_logged_set(
-        self, user_id: int, session_id: int, exercise_id: int, set_number: int
+        self, user_id: str, session_id: str, exercise_id: str, set_number: int
     ) -> None:
         with self.uow:
-            if session_id <= 0:
+            if not session_id or session_id in ("0", "active"):
                 session = self.get_active_session(user_id)
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
@@ -302,10 +302,10 @@ class WorkoutService:
                 self.uow.commit()
 
     def complete_session(
-        self, user_id: int, session_id: int, notes: Optional[str] = None
+        self, user_id: str, session_id: str, notes: Optional[str] = None
     ) -> WorkoutSession:
         with self.uow:
-            if session_id <= 0:
+            if not session_id or session_id in ("0", "active"):
                 session = self.get_active_session(user_id)
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
@@ -325,19 +325,19 @@ class WorkoutService:
             return session
 
     def get_recent_sessions(
-        self, user_id: int, limit: int = 10
+        self, user_id: str, limit: int = 10
     ) -> list[WorkoutSession]:
         with self.uow:
             return self.uow.workout_sessions.find_recent_by_user(user_id, limit)
 
-    def get_session(self, user_id: int, session_id: int) -> Optional[WorkoutSession]:
+    def get_session(self, user_id: str, session_id: str) -> Optional[WorkoutSession]:
         with self.uow:
             return self.uow.workout_sessions.get_by_id_with_relations(
                 session_id, user_id
             )
 
     def get_session_targets(
-        self, user_id: int, plan_id: int, date_str: Optional[str] = None
+        self, user_id: str, plan_id: str, date_str: Optional[str] = None
     ) -> list[dict]:
         with self.uow:
             plan = self.uow.workout_plans.get_by_id(plan_id)
@@ -402,13 +402,13 @@ class WorkoutService:
 
             return targets
 
-    def get_exercise_history(self, user_id: int, exercise_id: int) -> list[WorkoutLogEntry]:
+    def get_exercise_history(self, user_id: str, exercise_id: str) -> list[WorkoutLogEntry]:
         with self.uow:
             return self.uow.workout_log_entries.find_exercise_history(
                 user_id, exercise_id
             )
 
-    def get_exercise_details(self, user_id: int, exercise_id: int) -> dict:
+    def get_exercise_details(self, user_id: str, exercise_id: str) -> dict:
         with self.uow:
             exercise = self.get_exercise(user_id, exercise_id)
             if not exercise:
@@ -427,13 +427,13 @@ class WorkoutService:
                 "pr_est_1rm": pr_est_1rm
             }
 
-    def get_plan_history(self, user_id: int, plan_id: int) -> list[WorkoutSession]:
+    def get_plan_history(self, user_id: str, plan_id: str) -> list[WorkoutSession]:
         with self.uow:
             return self.uow.workout_sessions.find_completed_by_plan(
                 user_id, plan_id
             )
 
-    def get_plan_details(self, user_id: int, plan_id: int) -> dict:
+    def get_plan_details(self, user_id: str, plan_id: str) -> dict:
         with self.uow:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:

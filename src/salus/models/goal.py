@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models import MetricType  # noqa: F401
     from salus.models.user import User  # noqa: F401
@@ -23,9 +25,9 @@ class GoalFrequency(str, Enum):
 class Goal(SQLModel, table=True):
     __tablename__ = "goal"  # pyright: ignore[reportAssignmentType]
 
-    id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    metric_type_id: int = Field(foreign_key="metric_type.id")
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    metric_type_id: str = Field(foreign_key="metric_type.id")
     target_value: float
     direction: GoalDirection = Field(default=GoalDirection.INCREASE)
     frequency: GoalFrequency = Field(default=GoalFrequency.DAILY)

@@ -39,15 +39,15 @@
     return `${Math.round(diff / 60000)} min`;
   }
 
-  function sessionLogs(sessId: number) {
+  function sessionLogs(sessId: string) {
     return ($logs ?? []).filter((l) => l.session_id === sessId);
   }
 
-  function sessionVolume(sessId: number): number {
+  function sessionVolume(sessId: string): number {
     return sessionLogs(sessId).reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
 
-  function sessionSetCount(sessId: number): number {
+  function sessionSetCount(sessId: string): number {
     return sessionLogs(sessId).length;
   }
 </script>

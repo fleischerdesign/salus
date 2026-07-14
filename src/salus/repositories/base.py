@@ -12,7 +12,7 @@ class Repository(Generic[T]):
     def __init__(self, session: Session):
         self.session = session
 
-    def get_by_id(self, id: int) -> T | None:
+    def get_by_id(self, id: str) -> T | None:
         obj = self.session.get(self.model, id)
         if obj and hasattr(obj, 'deleted_at') and obj.deleted_at is not None:  # pyright: ignore[reportAttributeAccessIssue]
             return None
@@ -64,7 +64,7 @@ class Repository(Generic[T]):
         )
         return list(self.session.exec(stmt).all())
 
-    def find_deleted_since(self, since: datetime) -> list[int]:
+    def find_deleted_since(self, since: datetime) -> list[str]:
         """Return IDs of records soft-deleted since the given timestamp."""
         stmt = select(getattr(self.model, 'id')).where(
             getattr(self.model, 'deleted_at') >= since,

@@ -19,14 +19,14 @@ class ExerciseCreate(ExerciseBase):
 
 
 class ExerciseResponse(ExerciseBase):
-    id: int
-    user_id: Optional[int] = None
+    id: str
+    user_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class WorkoutPlanExerciseCreate(BaseModel):
-    exercise_id: int
+    exercise_id: str
     sequence: int = 0
     target_sets: int = 3
     target_reps: int = 8
@@ -36,9 +36,9 @@ class WorkoutPlanExerciseCreate(BaseModel):
 
 
 class WorkoutPlanExerciseResponse(BaseModel):
-    id: int
-    plan_id: int
-    exercise_id: int
+    id: str
+    plan_id: str
+    exercise_id: str
     sequence: int
     target_sets: int
     target_reps: int
@@ -59,7 +59,7 @@ class WorkoutPlanCreate(BaseModel):
 
 
 class WorkoutPlanResponse(BaseModel):
-    id: int
+    id: str
     name: str
     description: Optional[str] = None
     autoreg_mode: str
@@ -71,7 +71,7 @@ class WorkoutPlanResponse(BaseModel):
 
 
 class WorkoutLogEntryCreate(BaseModel):
-    exercise_id: int
+    exercise_id: str
     set_number: int
     weight: float
     reps: int
@@ -79,9 +79,9 @@ class WorkoutLogEntryCreate(BaseModel):
 
 
 class WorkoutLogEntryResponse(BaseModel):
-    id: int
-    session_id: int
-    exercise_id: int
+    id: str
+    session_id: str
+    exercise_id: str
     set_number: int
     weight: float
     reps: int
@@ -92,7 +92,7 @@ class WorkoutLogEntryResponse(BaseModel):
 
 
 class WorkoutSessionCreate(BaseModel):
-    plan_id: Optional[int] = None
+    plan_id: Optional[str] = None
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     autoreg_mode: str = "advisory"
@@ -102,9 +102,9 @@ class WorkoutSessionCreate(BaseModel):
 
 
 class WorkoutSessionResponse(BaseModel):
-    id: int
-    user_id: int
-    plan_id: Optional[int]
+    id: str
+    user_id: str
+    plan_id: Optional[str]
     started_at: datetime
     completed_at: Optional[datetime]
     autoreg_mode: str

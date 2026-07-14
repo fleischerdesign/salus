@@ -5,6 +5,8 @@ from sqlmodel import Field, Relationship, SQLModel
 
 import logging
 
+from salus.services._helpers import uuid7_str
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -15,9 +17,9 @@ if TYPE_CHECKING:
 class Measurement(SQLModel, table=True):
     __tablename__ = "measurement"  # pyright: ignore[reportAssignmentType]
 
-    id: int | None = Field(default=None, primary_key=True)
-    user_id: int | None = Field(default=None, foreign_key="user.id", index=True)
-    metric_type_id: int | None = Field(default=None, foreign_key="metric_type.id")
+    id: str | None = Field(default_factory=uuid7_str, primary_key=True)
+    user_id: str | None = Field(default=None, foreign_key="user.id", index=True)
+    metric_type_id: str | None = Field(default=None, foreign_key="metric_type.id")
     data_type: str = Field(default="", index=True)
     source: str = Field(default="manual")
     value_numeric: float | None = Field(default=None)

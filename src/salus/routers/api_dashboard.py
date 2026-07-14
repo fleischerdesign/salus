@@ -11,8 +11,8 @@ router = APIRouter(prefix="/api/v1")
 
 
 class WidgetResponse(BaseModel):
-    id: int
-    metric_type_id: int
+    id: str
+    metric_type_id: str
     size: str
     position: int
     config_json: str
@@ -21,8 +21,8 @@ class WidgetResponse(BaseModel):
 
 
 class WidgetCreateResponse(BaseModel):
-    id: int
-    metric_type_id: int
+    id: str
+    metric_type_id: str
     size: str
 
 
@@ -37,7 +37,7 @@ async def api_list_widgets(
 
 @router.get("/dashboard/widgets/{widget_id}/data", response_model=dict)
 async def api_widget_data(
-    widget_id: int,
+    widget_id: str,
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
 ):
@@ -48,7 +48,7 @@ async def api_widget_data(
 
 @router.post("/dashboard/widgets", response_model=WidgetCreateResponse, status_code=201)
 async def api_create_widget(
-    metric_type_id: int = Query(...),
+    metric_type_id: str = Query(...),
     size: str = Query(default="medium"),
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
@@ -59,7 +59,7 @@ async def api_create_widget(
 
 @router.delete("/dashboard/widgets/{widget_id}", status_code=204)
 async def api_delete_widget(
-    widget_id: int,
+    widget_id: str,
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
 ):
@@ -69,7 +69,7 @@ async def api_delete_widget(
 
 @router.put("/dashboard/widgets/{widget_id}", response_model=WidgetCreateResponse)
 async def api_update_widget(
-    widget_id: int,
+    widget_id: str,
     size: str = Query(...),
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),

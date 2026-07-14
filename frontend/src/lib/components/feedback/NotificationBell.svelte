@@ -1,7 +1,7 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { markAllNotificationsRead } from '$lib/mutations/notification';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
   import type { Notification } from '$lib/db/types';
@@ -36,10 +36,7 @@
   }
 
   async function markAllRead() {
-    await mutateDomain({
-      url: '/api/v1/notifications/read-all',
-      method: 'POST'
-    });
+    await markAllNotificationsRead();
     await db.notification.filter((n) => !n.is_read && !n.deleted_at).modify({ is_read: true });
   }
 

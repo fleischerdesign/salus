@@ -1,7 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import { saveCircadianProfile } from '$lib/mutations/misc';
   import { fetchCircadianAdvice, type CircadianAdvice } from '$lib/analytics/views/circadian';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -72,49 +72,7 @@
   async function save(e: SubmitEvent) {
     e.preventDefault();
     saving = true;
-    const data = {
-      latitude,
-      longitude,
-      timezone_offset_hours: timezone,
-      configured_chronotype: chronotype
-    };
-
-    if ($profile) {
-      await mutate({
-        table: 'circadian_profile',
-        type: 'update',
-        realId: $profile.id,
-        data,
-        optimistic: {
-          id: $profile.id,
-          user_id: $profile.user_id,
-          latitude,
-          longitude,
-          timezone_offset_hours: timezone,
-          configured_chronotype: chronotype,
-          created_at: $profile.created_at ?? new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          deleted_at: null
-        }
-      });
-    } else {
-      await mutate({
-        table: 'circadian_profile',
-        type: 'create',
-        data,
-        optimistic: {
-          id: nextTempId(),
-          user_id: 0,
-          latitude,
-          longitude,
-          timezone_offset_hours: timezone,
-          configured_chronotype: chronotype,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          deleted_at: null
-        }
-      });
-    }
+    await saveCircadianProfile(latitude, longitude, timezone, chronotype);
     saving = false;
   }
 </script>

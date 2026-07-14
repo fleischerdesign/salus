@@ -8,14 +8,14 @@ from salus.repositories.protocols import IWorkoutPlanExerciseRepository
 class WorkoutPlanExerciseRepository(Repository[WorkoutPlanExercise], IWorkoutPlanExerciseRepository):
     model = WorkoutPlanExercise
 
-    def find_by_plan(self, plan_id: int) -> list[WorkoutPlanExercise]:
+    def find_by_plan(self, plan_id: str) -> list[WorkoutPlanExercise]:
         stmt = select(WorkoutPlanExercise).where(
             WorkoutPlanExercise.plan_id == plan_id
         )
         return list(self.session.exec(stmt).all())
 
     def replace_exercises_for_plan(
-        self, plan_id: int, exercises: list[WorkoutPlanExercise]
+        self, plan_id: str, exercises: list[WorkoutPlanExercise]
     ) -> None:
         old = self.find_by_plan(plan_id)
         for ex in old:

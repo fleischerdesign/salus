@@ -2,6 +2,15 @@ from salus.models.goal import GoalDirection, GoalFrequency
 from salus.services.analytics.calculations import compute_goal_progress
 
 
+def _get_metric_id(client, name: str) -> str:
+    resp = client.get("/api/v1/metrics")
+    assert resp.status_code == 200
+    for mt in resp.json():
+        if mt["name"] == name:
+            return mt["id"]
+    raise ValueError(f"Metric type {name} not found")
+
+
 class TestComputeGoalProgress:
     def test_no_current_value_returns_pending(self):
         pct, status, fulfilled = compute_goal_progress(
@@ -96,14 +105,15 @@ class TestGoalRoutes:
         assert goals[0]["metric_type_id"] == metric_id
 
     def test_create_goal_with_entry_does_not_error(self, authenticated_client):
+        weight_id = _get_metric_id(authenticated_client, "Weight")
         authenticated_client.post(
-            "/api/v1/entries?metric_type_id=4",
+            f"/api/v1/entries?metric_type_id={weight_id}",
             json={"value": "80.5"},
         )
         response = authenticated_client.post(
             "/api/v1/goals",
             json={
-                "metric_type_id": 4,
+                "metric_type_id": weight_id,
                 "target_value": 75,
                 "direction": "decrease",
                 "frequency": "daily",
@@ -112,14 +122,15 @@ class TestGoalRoutes:
         assert response.status_code == 201
 
     def test_goal_user_scoped(self, authenticated_client, client):
+        weight_id = _get_metric_id(authenticated_client, "Weight")
         authenticated_client.post(
-            "/api/v1/entries?metric_type_id=4",
+            f"/api/v1/entries?metric_type_id={weight_id}",
             json={"value": "70"},
         )
         authenticated_client.post(
             "/api/v1/goals",
             json={
-                "metric_type_id": 4,
+                "metric_type_id": weight_id,
                 "target_value": 65,
                 "direction": "decrease",
                 "frequency": "daily",
@@ -134,8 +145,10 @@ class TestGoalRoutes:
         bob_token = resp.json()["token"]
         bob_headers = {"Authorization": f"Bearer {bob_token}"}
 
+        # Bob needs to resolve Weight ID too
+        bob_weight_id = _get_metric_id(client, "Weight")
         client.post(
-            "/api/v1/entries?metric_type_id=4",
+            f"/api/v1/entries?metric_type_id={bob_weight_id}",
             json={"value": "90"},
             headers=bob_headers,
         )
@@ -145,10 +158,11 @@ class TestGoalRoutes:
         assert len(response.json()) == 1
 
     def test_create_goal_no_data(self, authenticated_client):
+        weight_id = _get_metric_id(authenticated_client, "Weight")
         response = authenticated_client.post(
             "/api/v1/goals",
             json={
-                "metric_type_id": 4,
+                "metric_type_id": weight_id,
                 "target_value": 10000,
                 "direction": "increase",
                 "frequency": "daily",
@@ -157,16 +171,18 @@ class TestGoalRoutes:
         assert response.status_code == 201
 
     def test_delete_goal(self, authenticated_client):
-        authenticated_client.post(
+        weight_id = _get_metric_id(authenticated_client, "Weight")
+        resp = authenticated_client.post(
             "/api/v1/goals",
             json={
-                "metric_type_id": 4,
+                "metric_type_id": weight_id,
                 "target_value": 10000,
                 "direction": "increase",
                 "frequency": "daily",
             },
         )
-        response = authenticated_client.delete("/api/v1/goals/1")
+        goal_id = resp.json()["id"]
+        response = authenticated_client.delete(f"/api/v1/goals/{goal_id}")
         assert response.status_code == 204
 
         response = authenticated_client.get("/api/v1/goals")

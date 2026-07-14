@@ -1,8 +1,13 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import { mutate, nextTempId } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import {
+    createShareRecipient,
+    deleteShareRecipient,
+    createAsymmetricShare,
+    deleteAsymmetricShare,
+    synthesizeOpenScience
+  } from '$lib/mutations/misc';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
@@ -110,17 +115,7 @@
   async function saveRecipient(e: SubmitEvent) {
     e.preventDefault();
     error = '';
-    const tempId = nextTempId();
-    const resp = await mutate({
-      table: 'share_recipient',
-      type: 'create',
-      data: { name: recipientName, public_key: recipientPubkey },
-      optimistic: {
-        id: tempId,
-        name: recipientName,
-        public_key: recipientPubkey
-      }
-    });
+    const resp = await createShareRecipient(recipientName, recipientPubkey);
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';
       return;
@@ -129,14 +124,9 @@
     recipientPubkey = '';
   }
 
-  async function deleteRecipient(id: number) {
+  async function deleteRecipient(id: string) {
     if (!confirm('Delete this recipient? All associated shares will also be deleted.')) return;
-    await mutate({
-      table: 'share_recipient',
-      type: 'delete',
-      realId: id,
-      optimistic: { id }
-    });
+    await deleteShareRecipient(id);
   }
 
   async function createShare(e: SubmitEvent) {
@@ -150,7 +140,7 @@
     const expireHours =
       parseInt((form.querySelector('[name="expire_hours"]') as HTMLInputElement).value) || null;
 
-    const recipient = recipients.find((r) => r.id === parseInt(shareRecipientId));
+    const recipient = recipients.find((r) => r.id === shareRecipientId);
     if (!recipient) {
       error = 'Please select a recipient.';
       shareCreating = false;
@@ -209,22 +199,12 @@
       aesPayload.set(iv, 0);
       aesPayload.set(new Uint8Array(encryptedBuf), 12);
 
-      const resp = await mutate({
-        table: 'asymmetric_share',
-        type: 'create',
-        data: {
-          recipient_id: recipient.id,
-          encrypted_data: arrayBufferToBase64(aesPayload),
-          encrypted_key: arrayBufferToBase64(encryptedKeyBuf),
-          expires_in_hours: expireHours
-        },
-        optimistic: {
-          id: -1,
-          recipient_id: recipient.id,
-          encrypted_data: arrayBufferToBase64(aesPayload),
-          encrypted_key: arrayBufferToBase64(encryptedKeyBuf)
-        }
-      });
+      const resp = await createAsymmetricShare(
+        recipient.id,
+        arrayBufferToBase64(aesPayload),
+        arrayBufferToBase64(encryptedKeyBuf),
+        expireHours ?? undefined
+      );
       if (!resp.ok) {
         error = resp.error ?? 'Request failed';
         shareCreating = false;
@@ -241,21 +221,16 @@
     shareCreating = false;
   }
 
-  async function deleteShare(id: number) {
+  async function deleteShare(id: string) {
     if (!confirm('Revoke this share link?')) return;
-    await mutate({
-      table: 'asymmetric_share',
-      type: 'delete',
-      realId: id,
-      optimistic: { id }
-    });
+    await deleteAsymmetricShare(id);
   }
 
   async function copyShareUrl() {
     await navigator.clipboard.writeText(shareResultUrl);
   }
 
-  async function copyLinkForShare(id: number) {
+  async function copyLinkForShare(id: string) {
     await navigator.clipboard.writeText(`${window.location.origin}/share/doctor/${id}`);
   }
 
@@ -272,17 +247,13 @@
     }
     scienceLoading = true;
     error = '';
-    const resp = await mutateDomain({
-      url: '/api/v1/open-science/synthesize',
-      method: 'POST',
-      body: {
-        metrics: scienceMetrics,
-        weeks: parseInt(scienceWeeks),
-        epsilon: parseFloat(scienceEpsilon),
-        include_demographics: true,
-        user_birth_year: scienceBirthYear ? parseInt(scienceBirthYear) : null,
-        user_weight_kg: scienceWeight ? parseFloat(scienceWeight) : null
-      }
+    const resp = await synthesizeOpenScience({
+      metrics: scienceMetrics,
+      weeks: parseInt(scienceWeeks),
+      epsilon: parseFloat(scienceEpsilon),
+      include_demographics: true,
+      user_birth_year: scienceBirthYear ? parseInt(scienceBirthYear) : null,
+      user_weight_kg: scienceWeight ? parseFloat(scienceWeight) : null
     });
     scienceLoading = false;
     if (!resp.ok) {

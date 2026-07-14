@@ -71,7 +71,7 @@ async def api_create_metric(
 
 @router.get("/metrics/{metric_id}", response_model=MetricTypeResponse)
 async def api_get_metric(
-    metric_id: int,
+    metric_id: str,
     current_user: User = Depends(get_current_user_or_api),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
@@ -81,7 +81,7 @@ async def api_get_metric(
 
 @router.put("/metrics/{metric_id}", response_model=MetricTypeResponse)
 async def api_update_metric(
-    metric_id: int,
+    metric_id: str,
     data: MetricTypeCreate,
     current_user: User = Depends(get_current_user_or_api),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
@@ -92,7 +92,7 @@ async def api_update_metric(
 
 @router.delete("/metrics/{metric_id}", status_code=204)
 async def api_delete_metric(
-    metric_id: int,
+    metric_id: str,
     current_user: User = Depends(get_current_user_or_api),
     metric_svc: MetricTypeService = Depends(get_metric_type_service),
 ):
@@ -107,7 +107,7 @@ async def api_delete_metric(
 
 @router.get("/entries", response_model=EntryListResponse)
 async def api_list_entries(
-    metric_type_id: int | None = Query(None),
+    metric_type_id: str | None = Query(None),
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
     current_user: User = Depends(get_current_user_or_api),
@@ -133,7 +133,7 @@ async def api_list_entries(
 @router.post("/entries", response_model=EntryResponse, status_code=201)
 async def api_create_entry(
     data: MeasurementCreate,
-    metric_type_id: int = Query(...),
+    metric_type_id: str = Query(...),
     current_user: User = Depends(get_current_user_or_api),
     measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):
@@ -143,7 +143,7 @@ async def api_create_entry(
 
 @router.put("/entries/{entry_id}", response_model=EntryResponse)
 async def api_update_entry(
-    entry_id: int,
+    entry_id: str,
     data: EntryUpdate,
     current_user: User = Depends(get_current_user_or_api),
     measurement_svc: MeasurementService = Depends(get_measurement_service),
@@ -160,7 +160,7 @@ async def api_update_entry(
 
 @router.delete("/entries/{entry_id}", status_code=204)
 async def api_delete_entry(
-    entry_id: int,
+    entry_id: str,
     current_user: User = Depends(get_current_user_or_api),
     measurement_svc: MeasurementService = Depends(get_measurement_service),
 ):

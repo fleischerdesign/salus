@@ -9,7 +9,7 @@ from salus.repositories.protocols import IDashboardWidgetRepository
 class DashboardWidgetRepository(Repository[DashboardWidget], IDashboardWidgetRepository):
     model = DashboardWidget
 
-    def find_by_user(self, user_id: int) -> list[DashboardWidget]:
+    def find_by_user(self, user_id: str) -> list[DashboardWidget]:
         stmt = (
             select(DashboardWidget)
             .where(DashboardWidget.user_id == user_id)
@@ -17,7 +17,7 @@ class DashboardWidgetRepository(Repository[DashboardWidget], IDashboardWidgetRep
         )
         return list(self.session.exec(stmt).all())
 
-    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+    def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
         for pos, widget_id in enumerate(ordered_ids):
             widget = self.get_by_id(widget_id)
             if widget is not None and widget.user_id == user_id:
@@ -26,7 +26,7 @@ class DashboardWidgetRepository(Repository[DashboardWidget], IDashboardWidgetRep
         self.session.commit()
 
     def find_by_user_and_metric(
-        self, user_id: int, metric_type_id: int
+        self, user_id: str, metric_type_id: str
     ) -> DashboardWidget | None:
         stmt = select(DashboardWidget).where(
             DashboardWidget.user_id == user_id,

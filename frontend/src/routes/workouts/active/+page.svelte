@@ -2,8 +2,7 @@
   import { liveQuery } from 'dexie';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import { mutate, nextTempId } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { completeWorkout, logSet, deleteLogSet } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Badge from '$components/ui/Badge.svelte';
@@ -27,7 +26,10 @@
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
     if (!activeSession?.plan_id) return [];
-    const pes = await db.workout_plan_exercise.where('plan_id').equals(activeSession.plan_id).toArray();
+    const pes = await db.workout_plan_exercise
+      .where('plan_id')
+      .equals(activeSession.plan_id)
+      .toArray();
     return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
   });
 
@@ -43,21 +45,17 @@
       .then((arr) => arr.filter((l) => !l.deleted_at));
   });
 
-  // Log states — keyed by `${exerciseId}-${setNumber}`
   let logStates = $state<Record<string, LogState>>({});
-  // RPE-10 auto-scale
-  let rpePrompts = $state(new Map<number, number>());
+  let rpePrompts = $state(new Map<string, number>());
   let scaledWeights = $state<Record<string, number>>({});
   let scaleVersion = $state(0);
 
-  // Audio guide
   let audioEnabled = $state(
     typeof localStorage !== 'undefined'
       ? localStorage.getItem('salus_audio_guide') === 'true'
       : false
   );
 
-  // Rest timer
   let startTimer: ((seconds?: number) => void) | null = $state(null);
 
   let notes = $state('');
@@ -65,9 +63,13 @@
 
   let loading = $derived($session == null || $planExercises == null || $allLogs == null);
 
-  // Derive targets from plan exercises
+  let exercises = liveQuery(async () => {
+    const map = new Map((await db.exercise.toArray()).map((e) => [e.id, e]));
+    return map;
+  });
+
   let targets = $derived(
-    $planExercises.map((pe) => {
+    ($planExercises ?? []).map((pe) => {
       const ex = $exercises?.get(pe.exercise_id);
       const exerciseLogs = ($allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
       const lastWeight =
@@ -98,12 +100,6 @@
     })
   );
 
-  let exercises = liveQuery(async () => {
-    const map = new Map((await db.exercise.toArray()).map((e) => [e.id, e]));
-    return map;
-  });
-
-  // Init log states from existing logs
   $effect(() => {
     const init: Record<string, LogState> = {};
     for (const log of $allLogs ?? []) {
@@ -135,11 +131,11 @@
     });
   }
 
-  function getLogState(exId: number, setNum: number): LogState {
+  function getLogState(exId: string, setNum: number): LogState {
     return logStates[`${exId}-${setNum}`] ?? 'pending';
   }
 
-  function getInitialWeight(exId: number, setNum: number): number {
+  function getInitialWeight(exId: string, setNum: number): number {
     const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.weight) return log.weight;
     const key = `${exId}-${setNum}`;
@@ -147,55 +143,28 @@
     return targets?.find((t) => t.exercise_id === exId)?.last_weight ?? 40;
   }
 
-  function getInitialReps(exId: number, setNum: number): number {
+  function getInitialReps(exId: string, setNum: number): number {
     const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.reps) return log.reps;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_reps ?? 10;
   }
 
-  function getInitialRpe(exId: number, setNum: number): number {
+  function getInitialRpe(exId: string, setNum: number): number {
     const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.rpe != null) return log.rpe;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_rpe ?? 7;
   }
 
   async function handleLogSet(
-    exId: number,
+    exId: string,
     setNum: number,
     data: { weight: number; reps: number; rpe: number }
   ) {
     const key = `${exId}-${setNum}`;
     logStates = { ...logStates, [key]: 'logging' };
 
-    const tempId = nextTempId();
-    const body = {
-      exercise_id: exId,
-      set_number: setNum,
-      weight: data.weight,
-      reps: data.reps,
-      rpe: data.rpe
-    };
-
-    const { ok } = await mutateDomain({
-      url: `/api/v1/workouts/sessions/log?session_id=${$session?.id}`,
-      method: 'POST',
-      body,
-      optimisticTable: 'workout_log_entry',
-      optimisticData: {
-        id: tempId,
-        session_id: $session!.id,
-        exercise_id: exId,
-        set_number: setNum,
-        weight: data.weight,
-        reps: data.reps,
-        rpe: data.rpe,
-        created_at: new Date().toISOString(),
-        updated_at: null,
-        deleted_at: null
-      },
-      optimisticId: tempId,
-      responseTable: 'workout_log_entry'
-    });
+    const sessionId = $session?.id ?? '';
+    const { ok } = await logSet(sessionId, exId, setNum, data.weight, data.reps, data.rpe);
 
     if (ok) {
       logStates = { ...logStates, [key]: 'logged' };
@@ -208,7 +177,7 @@
     }
   }
 
-  async function handleUnlogSet(exId: number, setNum: number) {
+  async function handleUnlogSet(exId: string, setNum: number) {
     const key = `${exId}-${setNum}`;
     logStates = { ...logStates, [key]: 'logging' };
 
@@ -216,22 +185,18 @@
       (l) => l.exercise_id === exId && l.set_number === setNum
     )?.id;
 
-    const { ok } = await mutateDomain({
-      url: `/api/v1/workouts/sessions/log?session_id=${$session?.id}&exercise_id=${exId}&set_number=${setNum}`,
-      method: 'DELETE',
-      optimisticTable: 'workout_log_entry',
-      optimisticId: existingId ?? nextTempId()
-    });
-
-    if (ok) {
-      logStates = { ...logStates, [key]: 'pending' };
-      speak(`Set ${setNum} removed.`);
-    } else {
-      logStates = { ...logStates, [key]: 'logged' };
+    if (existingId) {
+      const { ok } = await deleteLogSet(existingId);
+      if (ok) {
+        logStates = { ...logStates, [key]: 'pending' };
+        speak(`Set ${setNum} removed.`);
+      } else {
+        logStates = { ...logStates, [key]: 'logged' };
+      }
     }
   }
 
-  function applyWeightScaling(exId: number, totalSets: number) {
+  function applyWeightScaling(exId: string, totalSets: number) {
     const triggerSet = rpePrompts.get(exId);
     if (triggerSet === undefined) return;
     const triggerLog = ($allLogs ?? []).find(
@@ -251,36 +216,14 @@
     scaleVersion++;
   }
 
-  function dismissRpePrompt(exId: number) {
+  function dismissRpePrompt(exId: string) {
     rpePrompts.delete(exId);
   }
 
   async function complete() {
     completing = true;
-    const now = new Date().toISOString();
-    const sessionId = $session?.id as number;
-    const { ok } = await mutate({
-      table: 'workout_session',
-      type: 'update',
-      realId: sessionId,
-      data: {
-        completed_at: now,
-        notes: notes || undefined
-      },
-      optimistic: {
-        id: sessionId,
-        user_id: $session?.user_id ?? 0,
-        plan_id: $session?.plan_id ?? null,
-        started_at: $session?.started_at ?? now,
-        completed_at: now,
-        recovery_score: $session?.recovery_score ?? null,
-        autoreg_mode: $session?.autoreg_mode ?? 'advisory',
-        notes: notes || null,
-        created_at: $session?.created_at ?? now,
-        updated_at: now,
-        deleted_at: null
-      }
-    });
+    const sessionId = $session?.id ?? '';
+    const { ok } = await completeWorkout(sessionId, notes || undefined);
     if (ok) {
       await goto(`/workouts/sessions/${sessionId}`);
     }

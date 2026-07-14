@@ -25,7 +25,7 @@ class RegisterRequest(BaseModel):
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: str
     username: str
     email: str | None
     display_name: str | None

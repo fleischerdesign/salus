@@ -23,7 +23,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         self.registry = registry
 
     def find_by_metric_type_paginated(
-        self, metric_type_id: int, user_id: int, offset: int = 0, limit: int = 25
+        self, metric_type_id: str, user_id: str, offset: int = 0, limit: int = 25
     ) -> tuple[list[Measurement], int]:
         stmt = select(Measurement).where(
             Measurement.metric_type_id == metric_type_id,
@@ -60,7 +60,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                     logger.error(f"Error in metric synthesizer: {e}")
         return results, total
 
-    def count_by_metric_type(self, metric_type_id: int, user_id: int) -> int:
+    def count_by_metric_type(self, metric_type_id: str, user_id: str) -> int:
         count_stmt = (
             select(func.count())
             .select_from(Measurement)
@@ -73,7 +73,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return self.session.exec(count_stmt).one()
 
     def get_latest_by_metric_type(
-        self, metric_type_id: int, user_id: int
+        self, metric_type_id: str, user_id: str
     ) -> Measurement | None:
         stmt = (
             select(Measurement)
@@ -88,7 +88,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return self.session.exec(stmt).first()
 
     def find_by_metric_type(
-        self, metric_type_id: int, user_id: int | None = None
+        self, metric_type_id: str, user_id: str | None = None
     ) -> list[Measurement]:
         stmt = select(Measurement).where(Measurement.metric_type_id == metric_type_id)
         if user_id is not None:
@@ -115,7 +115,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
 
     def find_all(
         self,
-        user_id: int | None = None,
+        user_id: str | None = None,
         data_types: list[str] | None = None,
         sources: list[str] | None = None,
         since: datetime | None = None,
@@ -154,7 +154,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return results
 
     def find_latest(
-        self, data_type: str, user_id: int | None = None
+        self, data_type: str, user_id: str | None = None
     ) -> Measurement | None:
         results = self.find_all(user_id=user_id, data_types=[data_type], limit=1)
         return results[0] if results else None
@@ -205,13 +205,13 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return inserted, duplicates
 
     def find_by_date_range(
-        self, user_id: int, data_types: list[str], since: datetime, until: datetime
+        self, user_id: str, data_types: list[str], since: datetime, until: datetime
     ) -> list[Measurement]:
         return self.find_all(
             user_id=user_id, data_types=data_types, since=since, until=until
         )
 
-    def find_recent_entries(self, user_id: int, limit: int = 20) -> list[Measurement]:
+    def find_recent_entries(self, user_id: str, limit: int = 20) -> list[Measurement]:
         stmt = (
             select(Measurement)
             .where(Measurement.user_id == user_id, Measurement.source == "manual")

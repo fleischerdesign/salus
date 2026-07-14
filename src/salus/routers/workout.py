@@ -22,7 +22,7 @@ router = APIRouter(tags=["Workouts"])
 
 
 class WorkoutTargetResponse(BaseModel):
-    exercise_id: int
+    exercise_id: str
     name: str
     suggested_sets: int
     suggested_reps: int
@@ -62,7 +62,7 @@ async def list_exercises(
     "/api/v1/workouts/exercises/{exercise_id}", response_model=ExerciseResponse
 )
 async def get_exercise(
-    exercise_id: int,
+    exercise_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
@@ -76,7 +76,7 @@ async def get_exercise(
     "/api/v1/workouts/exercises/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_exercise(
-    exercise_id: int,
+    exercise_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
@@ -95,7 +95,7 @@ async def list_plans(
     "/api/v1/workouts/plans/{plan_id}", response_model=WorkoutPlanResponse
 )
 async def get_plan(
-    plan_id: int,
+    plan_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
@@ -122,7 +122,7 @@ async def create_plan(
     "/api/v1/workouts/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_plan(
-    plan_id: int,
+    plan_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
@@ -134,7 +134,7 @@ async def delete_plan(
     response_model=list[WorkoutTargetResponse],
 )
 async def get_plan_targets(
-    plan_id: int,
+    plan_id: str,
     date_str: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
@@ -146,29 +146,29 @@ async def get_plan_targets(
 
 @router.post("/api/v1/workouts/sessions/start", response_model=WorkoutSessionResponse)
 async def start_session(
-    plan_id: Optional[int] = Query(None),
+    plan_id: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
     return service.start_session(user_id=uid(current_user), plan_id=plan_id)
 
 
-@router.post("/api/v1/workouts/sessions/log", response_model=WorkoutLogEntryResponse)
-async def log_set(
-    session_id: int,
-    entry: WorkoutLogEntryCreate,
+@router.post("/api/v1/workouts/sessions/complete", response_model=WorkoutSessionResponse)
+async def complete_session(
+    session_id: str,
+    notes: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
-    return service.log_set(
-        user_id=uid(current_user), session_id=session_id, entry=entry
+    return service.complete_session(
+        user_id=uid(current_user), session_id=session_id, notes=notes
     )
 
 
 @router.delete("/api/v1/workouts/sessions/log", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_logged_set(
-    session_id: int,
-    exercise_id: int,
+    session_id: str,
+    exercise_id: str,
     set_number: int,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
@@ -181,17 +181,15 @@ async def delete_logged_set(
     )
 
 
-@router.post(
-    "/api/v1/workouts/sessions/complete", response_model=WorkoutSessionResponse
-)
-async def complete_session(
-    session_id: int,
-    notes: Optional[str] = Query(None),
+@router.post("/api/v1/workouts/sessions/log", response_model=WorkoutLogEntryResponse)
+async def log_set(
+    session_id: str,
+    entry: WorkoutLogEntryCreate,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
-    return service.complete_session(
-        user_id=uid(current_user), session_id=session_id, notes=notes
+    return service.log_set(
+        user_id=uid(current_user), session_id=session_id, entry=entry
     )
 
 

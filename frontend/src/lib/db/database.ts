@@ -1,6 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type {
-  QueueOp,
+  OutboxOp,
   SyncMeta,
   MetricType,
   Measurement,
@@ -25,8 +25,7 @@ import type {
   SystemConfigItem,
   ApiToken,
   CommunityActivity,
-  FederatedAccessLog,
-  DomainQueueOp
+  FederatedAccessLog
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -55,8 +54,7 @@ export class SalusDB extends Dexie {
   user!: EntityTable<UserProfile, 'id'>;
   community_activity!: EntityTable<CommunityActivity, 'id'>;
   federated_access_log!: EntityTable<FederatedAccessLog, 'id'>;
-  queue!: EntityTable<QueueOp, 'id'>;
-  domainQueue!: EntityTable<DomainQueueOp, 'id'>;
+  outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
 
   constructor() {
@@ -99,6 +97,50 @@ export class SalusDB extends Dexie {
       community_activity: 'id',
       federated_access_log: 'id, owner_id'
     });
+    this.version(7)
+      .stores({
+        queue: null,
+        domainQueue: null,
+        outbox: '++id, createdAt, kind'
+      })
+      .upgrade(async (tx) => {
+        const oldQueue = await tx
+          .table('queue')
+          .toArray()
+          .catch(() => []);
+        const oldDomainQueue = await tx
+          .table('domainQueue')
+          .toArray()
+          .catch(() => []);
+        const now = new Date().toISOString();
+        const migrated = [
+          ...oldQueue.map((item: Record<string, unknown>) => ({
+            kind: 'crud' as const,
+            opType: item.type as string,
+            entity: item.entity as string,
+            client_id: item.client_id as string,
+            data: item.data as Record<string, unknown> | undefined,
+            realId: item.realId as string | undefined,
+            expected_updated_at: item.expected_updated_at as string | undefined,
+            createdAt: (item.createdAt as number)
+              ? new Date(item.createdAt as number).toISOString()
+              : now,
+            retries: (item.retries as number) ?? 0
+          })),
+          ...oldDomainQueue.map((item: Record<string, unknown>) => ({
+            kind: 'command' as const,
+            command: item.url as string,
+            client_id: crypto.randomUUID(),
+            payload: item.body as Record<string, unknown> | undefined,
+            responseTable: item.responseTable as string | undefined,
+            createdAt: (item.createdAt as string) ?? now,
+            retries: (item.retries as number) ?? 0
+          }))
+        ];
+        if (migrated.length > 0) {
+          await tx.table('outbox').bulkPut(migrated);
+        }
+      });
   }
 }
 

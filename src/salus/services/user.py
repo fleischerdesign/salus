@@ -27,7 +27,7 @@ class UserService:
         all_users = self.repo.list_all()
         return len(all_users) == 0
 
-    def _seed_default_metric_types(self, user_id: int) -> None:
+    def _seed_default_metric_types(self, user_id: str) -> None:
         for (
             name,
             unit,
@@ -54,7 +54,7 @@ class UserService:
                 )
                 self._metric_type_repo.create(mt)
 
-    def get_by_id(self, user_id: int) -> User:
+    def get_by_id(self, user_id: str) -> User:
         user = self.repo.get_by_id(user_id)
         if user is None:
             raise NotFoundError(f"User {user_id} not found")
@@ -151,7 +151,7 @@ class UserService:
         return user
 
     def change_password(
-        self, user_id: int, old_password: str, new_password: str
+        self, user_id: str, old_password: str, new_password: str
     ) -> User:
         user = self.get_by_id(user_id)
         if user.password_hash and not verify_password(old_password, user.password_hash):
@@ -160,10 +160,10 @@ class UserService:
         user.password_hash = hash_password(new_password)
         return self.repo.update(user)
 
-    def list_identities(self, user_id: int) -> list[UserIdentity]:
+    def list_identities(self, user_id: str) -> list[UserIdentity]:
         return self.identity_repo.list_by_user(user_id)
 
-    def set_theme(self, user_id: int, theme: str) -> User:
+    def set_theme(self, user_id: str, theme: str) -> User:
         user = self.get_by_id(user_id)
         user.theme = theme
         return self.repo.update(user)

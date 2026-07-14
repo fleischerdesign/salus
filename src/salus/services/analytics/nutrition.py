@@ -10,7 +10,7 @@ class NutritionAnalysisService:
         self._repo = repo
 
     def daily_totals(
-        self, days: int = 7, user_id: int | None = None
+        self, days: int = 7, user_id: str | None = None
     ) -> list[NutritionDay]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
@@ -41,7 +41,7 @@ class NutritionAnalysisService:
         )
 
     def today(
-        self, user_id: int | None = None, date_str: str | None = None
+        self, user_id: str | None = None, date_str: str | None = None
     ) -> NutritionDay | None:
         target = datetime.today().strftime("%Y-%m-%d") if date_str is None else date_str
         since = datetime.strptime(target, "%Y-%m-%d")

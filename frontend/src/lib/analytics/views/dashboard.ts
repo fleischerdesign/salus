@@ -3,8 +3,8 @@ import type { DashboardWidget, Measurement, MetricType, Goal } from '$lib/db/typ
 import { buildViz, type WidgetViz } from '../viz/builders';
 
 export interface DashboardWidgetView {
-  id: number;
-  metric_type_id: number;
+  id: string;
+  metric_type_id: string;
   size: string;
   position: number;
   viz: WidgetViz;

@@ -12,7 +12,7 @@ class LeaderboardGroupRepository(
 ):
     model = LeaderboardGroup
 
-    def find_by_creator(self, creator_id: int) -> list[LeaderboardGroup]:
+    def find_by_creator(self, creator_id: str) -> list[LeaderboardGroup]:
         stmt = select(LeaderboardGroup).where(LeaderboardGroup.creator_id == creator_id)
         return list(self.session.exec(stmt).all())
 
@@ -38,11 +38,11 @@ class LeaderboardMemberRepository(
 ):
     model = LeaderboardMember
 
-    def find_by_group_id(self, group_id: int) -> list[LeaderboardMember]:
+    def find_by_group_id(self, group_id: str) -> list[LeaderboardMember]:
         stmt = select(LeaderboardMember).where(LeaderboardMember.group_id == group_id)
         return list(self.session.exec(stmt).all())
 
-    def get_member(self, group_id: int, user_handle: str) -> LeaderboardMember | None:
+    def get_member(self, group_id: str, user_handle: str) -> LeaderboardMember | None:
         stmt = select(LeaderboardMember).where(
             LeaderboardMember.group_id == group_id,
             LeaderboardMember.user_handle == user_handle,

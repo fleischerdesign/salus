@@ -47,7 +47,7 @@ class PeerNotificationService:
         )
 
     def notify_peers_of_update(
-        self, user_id: int, data_type: str, date_str: str
+        self, user_id: str, data_type: str, date_str: str
     ) -> None:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)

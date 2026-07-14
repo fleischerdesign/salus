@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
     from salus.models import MetricType  # noqa: F401
@@ -18,10 +20,10 @@ class ConnectionStatus(str, Enum):
 class SharingRelationship(SQLModel, table=True):
     __tablename__ = "sharing_relationship"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    owner_id: int = Field(foreign_key="user.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    owner_id: str = Field(foreign_key="user.id")
     grantee_handle: str
-    metric_type_id: int = Field(foreign_key="metric_type.id")
+    metric_type_id: str = Field(foreign_key="metric_type.id")
     aggregation_level: str = Field(default="daily_summary")  # "raw" or "daily_summary"
     expiration_date: Optional[datetime] = Field(default=None)
     status: str = Field(default=ConnectionStatus.PENDING.value)
@@ -46,9 +48,9 @@ class SharingRelationship(SQLModel, table=True):
 class LeaderboardGroup(SQLModel, table=True):
     __tablename__ = "leaderboard_group"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str = Field(index=True)
-    creator_id: int = Field(foreign_key="user.id")
+    creator_id: str = Field(foreign_key="user.id")
     metric_type_code: str = Field(
         default="steps"
     )  # "steps", "workouts", "sleep", "water"
@@ -73,8 +75,8 @@ class LeaderboardGroup(SQLModel, table=True):
 class LeaderboardMember(SQLModel, table=True):
     __tablename__ = "leaderboard_member"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    group_id: int = Field(foreign_key="leaderboard_group.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    group_id: str = Field(foreign_key="leaderboard_group.id")
     user_handle: str = Field(index=True)  # @username or @username:domain
     status: str = Field(default="active")  # "pending", "active", "declined"
     joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -91,7 +93,7 @@ class LeaderboardMember(SQLModel, table=True):
 class FederatedMeasurementCache(SQLModel, table=True):
     __tablename__ = "federated_measurement_cache"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     owner_handle: str = Field(index=True)  # e.g. @alice:domain
     data_type: str = Field(index=True)  # e.g. steps, weight
     date_str: str = Field(index=True)  # e.g. 2026-07-03
@@ -103,8 +105,8 @@ class FederatedMeasurementCache(SQLModel, table=True):
 class FederatedAccessLog(SQLModel, table=True):
     __tablename__ = "federated_access_log"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    owner_id: int = Field(foreign_key="user.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    owner_id: str = Field(foreign_key="user.id")
     requester_handle: str
     data_type: str
     target_date: str

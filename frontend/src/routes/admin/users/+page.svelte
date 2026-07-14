@@ -1,6 +1,10 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import {
+    toggleAdmin as toggleAdminMutation,
+    toggleActive as toggleActiveMutation,
+    deleteUser as deleteUserMutation
+  } from '$lib/mutations/admin';
   import { db } from '$lib/db/database';
   import { pullFull } from '$lib/db/sync-pull';
   import type { AdminUser } from '$lib/db/types';
@@ -11,27 +15,18 @@
   let users = liveQuery(() => db.admin_user.toArray());
 
   async function toggleAdmin(user: AdminUser) {
-    await mutateDomain({
-      url: `/api/v1/admin/users/${user.id}/toggle-admin`,
-      method: 'POST'
-    });
+    await toggleAdminMutation(user.id);
     await pullFull();
   }
 
   async function toggleActive(user: AdminUser) {
-    await mutateDomain({
-      url: `/api/v1/admin/users/${user.id}/toggle-active`,
-      method: 'POST'
-    });
+    await toggleActiveMutation(user.id);
     await pullFull();
   }
 
-  async function deleteUser(id: number) {
+  async function deleteUser(id: string) {
     if (!confirm('Delete this user? This cannot be undone.')) return;
-    await mutateDomain({
-      url: `/api/v1/admin/users/${id}`,
-      method: 'DELETE'
-    });
+    await deleteUserMutation(id);
     await pullFull();
   }
 

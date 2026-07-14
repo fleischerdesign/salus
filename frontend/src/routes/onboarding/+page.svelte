@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { mutate } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
   import { db } from '$lib/db/database';
   import { auth } from '$stores/auth.svelte';
+  import { createToken as issueOnboardingToken } from '$lib/mutations/account';
+  import { dismissOnboarding } from '$lib/mutations/account';
+  import { createMeasurement } from '$lib/mutations/measurement';
+  import { createGoal as createGoalMutation } from '$lib/mutations/goal';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
@@ -22,10 +24,7 @@
   let error = $state('');
 
   async function createToken() {
-    const resp = await mutateDomain({
-      url: '/api/v1/onboarding/token',
-      method: 'POST'
-    });
+    const resp = await issueOnboardingToken('Webhook Token', 'ingest:write');
     if (resp.ok && resp.data) {
       const data = resp.data as { token: string; webhook_url: string };
       token = data.token;
@@ -35,19 +34,7 @@
 
   async function createEntry() {
     error = '';
-    const resp = await mutate({
-      table: 'measurement',
-      type: 'create',
-      data: {
-        metric_type_id: entryMetricId,
-        value: entryValue
-      },
-      optimistic: {
-        id: -1,
-        metric_type_id: entryMetricId,
-        value: entryValue
-      }
-    });
+    const resp = await createMeasurement(String(entryMetricId), { value: entryValue });
     if (!resp.ok) {
       error = resp.error ?? 'Failed';
       return;
@@ -57,22 +44,12 @@
 
   async function createGoal() {
     error = '';
-    const resp = await mutate({
-      table: 'goal',
-      type: 'create',
-      data: {
-        metric_type_id: goalMetricId,
-        target_value: parseFloat(goalTarget),
-        direction: 'increase'
-      },
-      optimistic: {
-        id: -1,
-        metric_type_id: goalMetricId,
-        target_value: parseFloat(goalTarget),
-        direction: 'increase',
-        frequency: 'daily'
-      }
-    });
+    const resp = await createGoalMutation(
+      String(goalMetricId),
+      parseFloat(goalTarget),
+      'increase',
+      'daily'
+    );
     if (!resp.ok) {
       error = resp.error ?? 'Failed';
       return;
@@ -81,16 +58,11 @@
   }
 
   async function dismiss() {
+    await dismissOnboarding();
     const profiles = await db.user_profile.toArray();
     const profile = profiles[0];
     if (profile) {
-      await mutate({
-        table: 'user',
-        type: 'update',
-        realId: profile.id,
-        data: { onboarding_dismissed: true },
-        optimistic: { ...profile, onboarding_dismissed: true }
-      });
+      await db.user_profile.put({ ...profile, onboarding_dismissed: true });
     }
     await goto('/');
   }

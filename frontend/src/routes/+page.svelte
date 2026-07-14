@@ -3,7 +3,11 @@
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
   import { db } from '$lib/db/database';
-  import { mutate, nextTempId } from '$lib/db/mutate';
+  import {
+    addWidget as addWidgetMut,
+    updateWidget as updateWidgetMut,
+    deleteWidget as deleteWidgetMut
+  } from '$lib/mutations/dashboard';
   import {
     fetchDashboard,
     type DashboardWidgetView,
@@ -48,7 +52,7 @@
   let editSaving = $state(false);
 
   let deleteConfirmOpen = $state(false);
-  let deleteWidgetId = $state<number | null>(null);
+  let deleteWidgetId = $state<string | null>(null);
 
   let gridEl: HTMLElement | null = $state(null);
   let sortableInstance: Sortable | null = null;
@@ -74,21 +78,7 @@
     if (!selectedMetricId) return;
     adding = true;
     try {
-      const tempId = nextTempId();
-      await mutate({
-        table: 'dashboard_widget',
-        type: 'create',
-        data: {
-          metric_type_id: Number(selectedMetricId),
-          size: selectedSize
-        },
-        optimistic: {
-          id: tempId,
-          metric_type_id: Number(selectedMetricId),
-          size: selectedSize,
-          position: widgets.length
-        }
-      });
+      await addWidgetMut(selectedMetricId, selectedSize, widgets.length);
       addModalOpen = false;
       selectedMetricId = '';
     } catch {
@@ -97,26 +87,15 @@
     adding = false;
   }
 
-  async function removeWidget(id: number) {
-    await mutate({
-      table: 'dashboard_widget',
-      type: 'delete',
-      realId: id,
-      optimistic: { id }
-    });
+  async function removeWidget(id: string) {
+    await deleteWidgetMut(id);
   }
 
   async function updateWidgetSize() {
     if (!editWidget) return;
     editSaving = true;
     try {
-      await mutate({
-        table: 'dashboard_widget',
-        type: 'update',
-        realId: editWidget.id,
-        data: { size: editSize },
-        optimistic: { ...editWidget, size: editSize }
-      });
+      await updateWidgetMut(editWidget.id, { size: editSize });
       editModalOpen = false;
       editWidget = null;
     } catch {
@@ -125,16 +104,8 @@
     editSaving = false;
   }
 
-  async function reorderWidgets(newOrder: number[]) {
-    const updates = newOrder.map((id, idx) =>
-      mutate({
-        table: 'dashboard_widget',
-        type: 'update',
-        data: { position: idx },
-        optimistic: { id, position: idx },
-        realId: id
-      })
-    );
+  async function reorderWidgets(newOrder: string[]) {
+    const updates = newOrder.map((id, idx) => updateWidgetMut(id, { position: idx }));
     await Promise.all(updates);
   }
 

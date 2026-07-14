@@ -11,16 +11,16 @@
   import Table from '$components/ui/Table.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
 
-  const sessionId = $derived(Number(page.params.id));
+  const sessionId = $derived(page.params.id);
 
   let session = liveQuery(() =>
-    db.workout_session.get(sessionId).then((s) => (s && !s.deleted_at ? s : null))
+    db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null))
   );
 
   let logs = liveQuery(() =>
     db.workout_log_entry
       .toArray()
-      .then((arr) => arr.filter((l) => l.session_id === sessionId && !l.deleted_at))
+      .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at))
   );
 
   let exercises = liveQuery(() =>

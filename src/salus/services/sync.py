@@ -33,7 +33,7 @@ def _owner_attr(model: type, spec: EntityMeta):
     return getattr(model, field)
 
 
-def _parent_ids(sess, spec: EntityMeta, user_id: int) -> list[int]:
+def _parent_ids(sess, spec: EntityMeta, user_id: str) -> list[str]:
     parent = spec.parent_model
     owner = spec.parent_owner_field or "user_id"
     stmt = select(parent.id).where(getattr(parent, owner) == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
@@ -49,7 +49,7 @@ def _soft_delete_filter(model: type, stmt, spec: EntityMeta):
     return stmt
 
 
-def _build_full_query(sess, spec: EntityMeta, user_id: int, cursor: int):
+def _build_full_query(sess, spec: EntityMeta, user_id: str, cursor: str):
     model = spec.model
     if spec.strategy == "user_scoped":
         stmt = select(model).where(_owner_attr(model, spec) == user_id)
@@ -73,7 +73,7 @@ def _build_full_query(sess, spec: EntityMeta, user_id: int, cursor: int):
     return stmt
 
 
-def _admin_user_list(s, exclude_user_id: int) -> list[dict]:
+def _admin_user_list(s, exclude_user_id: str) -> list[dict]:
     measurement_subq = (
         select(func.count())
         .select_from(Measurement)
@@ -149,7 +149,7 @@ def _admin_system_stats(s) -> dict:
     }
 
 
-def _community_activity_feed(s, user_id: int, username: str) -> list[dict]:
+def _community_activity_feed(s, user_id: str, username: str) -> list[dict]:
     user_handle = f"@{username}"
     activities: list[dict] = []
 
@@ -264,18 +264,18 @@ class SyncService:
     def __init__(self, uow: IUnitOfWork) -> None:
         self.uow = uow
 
-    def full_sync(self, user: User, cursors: dict[str, int] | None = None) -> dict[str, Any]:
+    def full_sync(self, user: User, cursors: dict[str, str] | None = None) -> dict[str, Any]:
         user_id = uid(user)
         s = self.uow.session
         now = datetime.now(timezone.utc)
         cursors = cursors or {}
 
         result: dict[str, Any] = {}
-        next_cursors: dict[str, int] = {}
+        next_cursors: dict[str, str] = {}
         has_more = False
 
         for spec in SYNC_ENTITY_SPECS:
-            cursor = cursors.get(spec.name, 0)
+            cursor = cursors.get(spec.name, "")
             query = _build_full_query(s, spec, user_id, cursor)
             if query is None:
                 result[spec.name] = []

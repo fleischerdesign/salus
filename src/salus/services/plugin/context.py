@@ -25,7 +25,7 @@ class PluginContext:
             )
 
     def get_measurements(
-        self, user_id: int, data_type: str | None = None, limit: int = 100
+        self, user_id: str, data_type: str | None = None, limit: int = 100
     ) -> list[Measurement]:
         self._check_permission("measurements:read")
         data_types = [data_type] if data_type else None
@@ -39,15 +39,15 @@ class PluginContext:
             res = self._uow.measurements.create(measurement)
         return res
 
-    def get_goals(self, user_id: int) -> list[Goal]:
+    def get_goals(self, user_id: str) -> list[Goal]:
         self._check_permission("goals:read")
         return self._uow.goals.find_by_user(user_id)
 
-    def get_metric_types(self, user_id: int | None = None) -> list[MetricType]:
+    def get_metric_types(self, user_id: str | None = None) -> list[MetricType]:
         self._check_permission("metric_types:read")
         return self._uow.metric_types.find_all(user_id=user_id)
 
-    def get_user(self, user_id: int) -> User | None:
+    def get_user(self, user_id: str) -> User | None:
         self._check_permission("users:read")
         return self._uow.users.get_by_id(user_id)
 

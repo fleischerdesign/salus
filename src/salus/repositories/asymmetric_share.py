@@ -9,7 +9,7 @@ from salus.repositories.protocols import IShareRecipientRepository, IAsymmetricS
 class ShareRecipientRepository(Repository[ShareRecipient], IShareRecipientRepository):
     model = ShareRecipient
 
-    def find_by_user(self, user_id: int) -> list[ShareRecipient]:
+    def find_by_user(self, user_id: str) -> list[ShareRecipient]:
         return list(
             self.session.exec(
                 select(ShareRecipient).where(ShareRecipient.user_id == user_id)
@@ -20,7 +20,7 @@ class ShareRecipientRepository(Repository[ShareRecipient], IShareRecipientReposi
 class AsymmetricShareRepository(Repository[AsymmetricShare], IAsymmetricShareRepository):
     model = AsymmetricShare
 
-    def find_by_user(self, user_id: int) -> list[AsymmetricShare]:
+    def find_by_user(self, user_id: str) -> list[AsymmetricShare]:
         return list(
             self.session.exec(
                 select(AsymmetricShare).where(AsymmetricShare.user_id == user_id)

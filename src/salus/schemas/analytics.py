@@ -52,14 +52,14 @@ class AnalyticsResponse(BaseModel):
 
 
 class InsightResponse(BaseModel):
-    id: int
+    id: str
     date: str
     content: str
     model_used: str
 
 
 class InsightHistoryItem(BaseModel):
-    id: int
+    id: str
     date: str
     model_used: str
     preview: str

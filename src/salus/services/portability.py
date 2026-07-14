@@ -14,7 +14,7 @@ class DataPortabilityService:
     def __init__(self, uow: IUnitOfWork) -> None:
         self.uow = uow
 
-    def export_user_data(self, user_id: int) -> io.BytesIO:
+    def export_user_data(self, user_id: str) -> io.BytesIO:
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             # 1. Profile Data
@@ -125,7 +125,7 @@ class DataPortabilityService:
         zip_buffer.seek(0)
         return zip_buffer
 
-    def import_user_data(self, user_id: int, zip_bytes: bytes) -> dict:
+    def import_user_data(self, user_id: str, zip_bytes: bytes) -> dict:
         results = {
             "measurements_imported": 0,
             "plans_imported": 0,
@@ -161,7 +161,7 @@ class DataPortabilityService:
                         
                         for row in csv_reader:
                             start_time = datetime.fromisoformat(row["start_time"])
-                            metric_type_id = int(row["metric_type_id"])
+                            metric_type_id = row["metric_type_id"]
                             value_numeric = float(row["value_numeric"])
                             
                             key = (start_time.isoformat(), metric_type_id, value_numeric)

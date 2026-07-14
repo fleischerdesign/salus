@@ -2,7 +2,7 @@
   import { liveQuery } from 'dexie';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { createLeaderboard, joinLeaderboard } from '$lib/mutations/community';
   import { db } from '$lib/db/database';
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -17,7 +17,7 @@
   import Badge from '$components/ui/Badge.svelte';
 
   interface Challenge {
-    id: number;
+    id: string;
     name: string;
     metric_type_code: string;
     time_frame: string;
@@ -89,11 +89,7 @@
     e.preventDefault();
     error = '';
     joining = true;
-    const resp = await mutateDomain({
-      url: '/api/v1/sharing/leaderboard/join',
-      method: 'POST',
-      body: { invite_code: inviteCode }
-    });
+    const resp = await joinLeaderboard('', inviteCode);
     joining = false;
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';
@@ -106,15 +102,7 @@
     e.preventDefault();
     error = '';
     creating = true;
-    const resp = await mutateDomain({
-      url: '/api/v1/sharing/leaderboard/create',
-      method: 'POST',
-      body: {
-        name: createName,
-        metric_type_code: createMetric,
-        time_frame: createTimeframe
-      }
-    });
+    const resp = await createLeaderboard(createName, createMetric, createTimeframe);
     creating = false;
     if (!resp.ok) {
       error = resp.error ?? 'Request failed';

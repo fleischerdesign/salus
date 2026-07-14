@@ -30,20 +30,20 @@ router = APIRouter(prefix="/api/v1")
 
 
 class _OnboardingEntryBody(BaseModel):
-    metric_type_id: int
+    metric_type_id: str
     value: str
     notes: str | None = None
 
 
 class _OnboardingGoalBody(BaseModel):
-    metric_type_id: int
+    metric_type_id: str
     target_value: float
     direction: str = "increase"
 
 
 class GoalCreateResponse(BaseModel):
-    id: int
-    metric_type_id: int
+    id: str
+    metric_type_id: str
     target_value: float
     direction: str
     frequency: str
@@ -51,8 +51,8 @@ class GoalCreateResponse(BaseModel):
 
 
 class _CircadianProfileResponse(BaseModel):
-    id: int
-    user_id: int
+    id: str
+    user_id: str
     latitude: float | None = None
     longitude: float | None = None
     timezone_offset_hours: int | None = None
@@ -65,8 +65,8 @@ class _OnboardingTokenResponse(BaseModel):
 
 
 class _OnboardingEntryResponse(BaseModel):
-    id: int
-    metric_type_id: int
+    id: str
+    metric_type_id: str
     value: str | float | None = None
     timestamp: str | None = None
 
@@ -111,7 +111,7 @@ async def api_create_goal(
 
 @router.delete("/goals/{goal_id}", status_code=204)
 async def api_delete_goal(
-    goal_id: int,
+    goal_id: str,
     current_user: User = Depends(get_current_user),
     goal_service: GoalService = Depends(get_goal_service),
 ):
@@ -159,7 +159,7 @@ async def api_circadian_profile(
 
 @router.post("/notifications/{notification_id}/read", status_code=204)
 async def api_mark_notification_read(
-    notification_id: int,
+    notification_id: str,
     current_user: User = Depends(get_current_user),
     service: NotificationService = Depends(get_notification_service),
 ):

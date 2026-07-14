@@ -2,7 +2,7 @@
   import { api } from '$lib/api/client';
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { getAuthHeaders } from '$lib/api/headers';
   import Card from '$components/ui/Card.svelte';
   import Table from '$components/ui/Table.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -53,44 +53,73 @@
   async function createBackup() {
     creating = true;
     error = '';
-    const resp = await mutateDomain({
-      url: '/api/v1/admin/backups',
-      method: 'POST'
-    });
-    creating = false;
-    if (!resp.ok) {
-      error = resp.error ?? 'Request failed';
-      return;
+    try {
+      const res = await fetch('/api/v1/admin/backups', {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
+      });
+      creating = false;
+      if (!res.ok) {
+        let msg = 'Request failed';
+        try {
+          const body = await res.json();
+          msg = body.detail ?? body.message ?? 'Request failed';
+        } catch {
+          /* use default */
+        }
+        error = msg;
+        return;
+      }
+      success = 'Backup created successfully.';
+      await load();
+    } catch {
+      creating = false;
+      error = 'Network error';
     }
-    success = 'Backup created successfully.';
-    await load();
   }
 
   async function doRestore() {
     if (!restoreTarget) return;
     error = '';
-    const resp = await mutateDomain({
-      url: `/api/v1/admin/backups/${restoreTarget}/restore`,
-      method: 'POST'
-    });
-    restoreTarget = null;
-    if (!resp.ok) {
-      error = resp.error ?? 'Request failed';
-      return;
+    try {
+      const res = await fetch(`/api/v1/admin/backups/${restoreTarget}/restore`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
+      });
+      restoreTarget = null;
+      if (!res.ok) {
+        let msg = 'Request failed';
+        try {
+          const body = await res.json();
+          msg = body.detail ?? body.message ?? 'Request failed';
+        } catch {
+          /* use default */
+        }
+        error = msg;
+        return;
+      }
+      success = 'Database restored successfully. The server may restart.';
+      await load();
+    } catch {
+      restoreTarget = null;
+      error = 'Network error';
     }
-    success = 'Database restored successfully. The server may restart.';
-    await load();
   }
 
   async function doDelete() {
     if (!deleteTarget) return;
-    await mutateDomain({
-      url: `/api/v1/admin/backups/${deleteTarget}`,
-      method: 'DELETE'
-    });
-    deleteTarget = null;
-    success = 'Backup deleted.';
-    await load();
+    try {
+      await fetch(`/api/v1/admin/backups/${deleteTarget}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      deleteTarget = null;
+      success = 'Backup deleted.';
+      await load();
+    } catch {
+      deleteTarget = null;
+      error = 'Network error';
+    }
   }
 
   async function uploadBackup(e: SubmitEvent) {

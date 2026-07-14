@@ -4,7 +4,7 @@ import { computeGoalProgress } from '$lib/analytics/calculations';
 import type { GoalStatus } from '$lib/analytics/calculations';
 
 export interface GoalView {
-  id: number;
+  id: string;
   metric_name: string;
   metric_color: string;
   metric_icon: string;
@@ -69,7 +69,7 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
 
 function computeGoalCurrent(
   measurements: Measurement[],
-  metricTypeId: number,
+  metricTypeId: string,
   frequency: string
 ): number | null {
   const relevant = measurements.filter((m) => m.metric_type_id === metricTypeId && !m.deleted_at);

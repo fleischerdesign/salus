@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
+from salus.services._helpers import uuid7_str
+
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
 
@@ -11,7 +13,7 @@ class Exercise(SQLModel, table=True):
 
     __tablename__ = "exercise"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str = Field(unique=True, index=True)
     equipment: str = Field(
         default="barbell"
@@ -29,7 +31,7 @@ class Exercise(SQLModel, table=True):
     suggested_rest_seconds: Optional[int] = Field(default=None)
 
     # Ownership (null if system-default)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    user_id: Optional[str] = Field(default=None, foreign_key="user.id")
     created_at: datetime | None = Field(default=None)
     updated_at: datetime | None = Field(
         default=None,
@@ -43,10 +45,10 @@ class WorkoutPlan(SQLModel, table=True):
 
     __tablename__ = "workout_plan"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str
     description: Optional[str] = Field(default=None)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: str = Field(foreign_key="user.id")
 
     # Granular Autoregulation Policies
     autoreg_mode: str = Field(default="advisory")  # "guided", "advisory", "disabled"
@@ -71,9 +73,9 @@ class WorkoutPlanExercise(SQLModel, table=True):
 
     __tablename__ = "workout_plan_exercise"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    plan_id: int = Field(foreign_key="workout_plan.id")
-    exercise_id: int = Field(foreign_key="exercise.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    plan_id: str = Field(foreign_key="workout_plan.id")
+    exercise_id: str = Field(foreign_key="exercise.id")
     sequence: int = Field(default=0)  # Execution order
     target_sets: int = Field(default=3)
     target_reps: int = Field(default=8)
@@ -101,9 +103,9 @@ class WorkoutSession(SQLModel, table=True):
 
     __tablename__ = "workout_session"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    plan_id: Optional[int] = Field(default=None, foreign_key="workout_plan.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    plan_id: Optional[str] = Field(default=None, foreign_key="workout_plan.id")
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = Field(default=None)
 
@@ -132,9 +134,9 @@ class WorkoutLogEntry(SQLModel, table=True):
 
     __tablename__ = "workout_log_entry"  # pyright: ignore[reportAssignmentType]
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    session_id: int = Field(foreign_key="workout_session.id")
-    exercise_id: int = Field(foreign_key="exercise.id")
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    session_id: str = Field(foreign_key="workout_session.id")
+    exercise_id: str = Field(foreign_key="exercise.id")
     set_number: int
     weight: float
     reps: int

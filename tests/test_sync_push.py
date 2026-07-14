@@ -128,7 +128,7 @@ class TestSyncPush:
         assert results[1]["record"]["session_id"] == session_id
 
     def test_not_found(self, authenticated_client: TestClient):
-        op = {"type": "update", "entity": "metric_type", "id": 99999, "data": {"name": "Nope"}}
+        op = {"type": "update", "entity": "metric_type", "id": "99999", "data": {"name": "Nope"}}
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
         assert resp.status_code == 200
         result = resp.json()["results"][0]
@@ -172,17 +172,21 @@ class TestUserEntityValidator:
         assert "not allowed" in result["message"].lower()
 
     def test_delete_blocked(self, authenticated_client: TestClient):
-        op = {"type": "delete", "entity": "user", "id": 1}
+        resp_acc = authenticated_client.get("/api/v1/settings/account")
+        alice_id = resp_acc.json()["user"]["id"]
+        op = {"type": "delete", "entity": "user", "id": alice_id}
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
         result = resp.json()["results"][0]
         assert result["status"] == "error"
         assert "not allowed" in result["message"].lower()
 
     def test_update_blocked_fields(self, authenticated_client: TestClient):
+        resp_acc = authenticated_client.get("/api/v1/settings/account")
+        alice_id = resp_acc.json()["user"]["id"]
         op = {
             "type": "update",
             "entity": "user",
-            "id": 2,  # alice's user_id = 2 (admin is 1)
+            "id": alice_id,
             "data": {"is_admin": True, "password_hash": "pwned"},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
@@ -191,10 +195,12 @@ class TestUserEntityValidator:
         assert "is_admin" in result["message"] or "password_hash" in result["message"]
 
     def test_update_allowed_fields(self, authenticated_client: TestClient):
+        resp_acc = authenticated_client.get("/api/v1/settings/account")
+        alice_id = resp_acc.json()["user"]["id"]
         op = {
             "type": "update",
             "entity": "user",
-            "id": 2,  # alice
+            "id": alice_id,
             "data": {"theme": "dark", "locale": "de", "display_name": "Alice Updated", "onboarding_dismissed": True},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
@@ -206,10 +212,11 @@ class TestUserEntityValidator:
         assert result["record"]["onboarding_dismissed"] is True
 
     def test_update_wrong_user(self, authenticated_client: TestClient):
+        import uuid
         op = {
             "type": "update",
             "entity": "user",
-            "id": 1,  # admin user, NOT alice
+            "id": str(uuid.uuid4()),  # Some other user ID, NOT alice
             "data": {"theme": "light"},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
@@ -377,6 +384,30 @@ class TestWritePipelineUpdateBehavior:
         result = resp.json()["results"][0]
         assert result["status"] == "updated"
         assert result["record"]["created_at"] == original_created_at
+
+    def test_update_datetime_coercion(self, authenticated_client: TestClient):
+        create_op = {
+            "type": "create",
+            "entity": "workout_session",
+            "data": {
+                "started_at": "2026-07-14T08:00:00Z",
+            },
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
+        session_id = resp.json()["results"][0]["id"]
+
+        update_op = {
+            "type": "update",
+            "entity": "workout_session",
+            "id": session_id,
+            "data": {
+                "completed_at": "2026-07-14T08:10:51.212Z",
+            },
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
+        result = resp.json()["results"][0]
+        assert result["status"] == "updated"
+        assert result["record"]["completed_at"] == "2026-07-14T08:10:51.212000"
 
 
 class TestWritePipelineDedup:
@@ -583,10 +614,10 @@ class TestSyncPushPublishesEvent:
         published_user_ids: list[int] = []
 
         class MockEventBus:
-            async def subscribe(self, user_id: int):
+            async def subscribe(self, user_id: str):
                 raise NotImplementedError
 
-            async def publish(self, user_id: int) -> None:
+            async def publish(self, user_id: str) -> None:
                 published_user_ids.append(user_id)
 
         mock = MockEventBus()
@@ -602,7 +633,49 @@ class TestSyncPushPublishesEvent:
             })
             assert resp.status_code == 200
             assert len(published_user_ids) == 1
-            assert published_user_ids[0] > 0
+            assert len(published_user_ids[0]) > 0
+        finally:
+            fastapi_app.dependency_overrides.pop(get_event_bus, None)
+
+
+    def test_command_publishes_to_event_bus(self, authenticated_client: TestClient):
+        from salus.dependencies import get_event_bus
+        from salus.main import app as fastapi_app
+
+        published_user_ids: list[str] = []
+
+        class MockEventBus:
+            async def subscribe(self, user_id: str):
+                raise NotImplementedError
+
+            async def publish(self, user_id: str) -> None:
+                published_user_ids.append(user_id)
+
+        mock = MockEventBus()
+        fastapi_app.dependency_overrides[get_event_bus] = lambda: mock
+
+        try:
+            # Create a plan first (needed for start_workout)
+            plan_resp = authenticated_client.post("/api/v1/sync/push", json={
+                "operations": [{
+                    "type": "create",
+                    "entity": "workout_plan",
+                    "data": {"name": "EventBus Plan", "position": 0},
+                }]
+            })
+            plan_id = plan_resp.json()["results"][0]["id"]
+            expected_min_publishes = len(published_user_ids) + 1
+
+            resp = authenticated_client.post("/api/v1/sync/push", json={
+                "operations": [{
+                    "type": "command",
+                    "command": "start_workout",
+                    "payload": {"plan_id": plan_id},
+                }]
+            })
+            assert resp.status_code == 200
+            assert len(published_user_ids) >= expected_min_publishes
+            assert len(published_user_ids[-1]) > 0
         finally:
             fastapi_app.dependency_overrides.pop(get_event_bus, None)
 

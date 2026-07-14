@@ -9,7 +9,7 @@ from salus.repositories.protocols import IInsightRepository
 class InsightRepository(Repository[Insight], IInsightRepository):
     model = Insight
 
-    def find_by_user_and_date(self, user_id: int, query_date: str) -> Insight | None:
+    def find_by_user_and_date(self, user_id: str, query_date: str) -> Insight | None:
         stmt = (
             select(Insight)
             .where(Insight.user_id == user_id, Insight.query_date == query_date)
@@ -17,7 +17,7 @@ class InsightRepository(Repository[Insight], IInsightRepository):
         )
         return self.session.exec(stmt).first()
 
-    def list_by_user(self, user_id: int, limit: int = 30) -> list[Insight]:
+    def list_by_user(self, user_id: str, limit: int = 30) -> list[Insight]:
         stmt = (
             select(Insight)
             .where(Insight.user_id == user_id)

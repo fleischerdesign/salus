@@ -11,26 +11,21 @@ from salus.schemas.asymmetric_share import AsymmetricShareCreate
 
 @pytest.fixture
 def clean_db():
-    from sqlmodel import SQLModel
-    SQLModel.metadata.create_all(engine)
     yield
-    # We do not drop to preserve test speed in sqlite memory, but since it's sqlite we can just yield
 
 
 @pytest.fixture
-def auth_client():
-    from salus.main import app
+def auth_client(client):
     import uuid
 
     username = f"alice_asym_{uuid.uuid4().hex[:6]}"
-    with TestClient(app) as client:
-        resp = client.post(
-            "/api/v1/auth/register",
-            json={"username": username, "password": "password123"},
-        )
-        token = resp.json()["token"]
-        client.headers = {"Authorization": f"Bearer {token}"}
-        yield client
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={"username": username, "password": "password123"},
+    )
+    token = resp.json()["token"]
+    client.headers = {"Authorization": f"Bearer {token}"}
+    yield client
 
 
 def test_recipient_crud_and_asymmetric_share_flow(clean_db, auth_client):
@@ -91,7 +86,8 @@ def test_asymmetric_share_expiration(clean_db, auth_client):
     recipient = r_resp.json()
 
     # Create share with expired time (or mock the DB entry)
-    session = Session(engine)
+    test_engine = auth_client.app.state.engine
+    session = Session(test_engine)
     uow = SqlUnitOfWork(session)
     service = AsymmetricShareService(uow)
 

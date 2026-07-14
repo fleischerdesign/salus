@@ -23,23 +23,23 @@ class InsightService:
         self._model = model
         self._registry = registry
 
-    def get_insight_for_date(self, user_id: int, date_str: str) -> Insight | None:
+    def get_insight_for_date(self, user_id: str, date_str: str) -> Insight | None:
         """Retrieves a previously cached insight if it exists."""
         return self._uow.insights.find_by_user_and_date(user_id, date_str)
 
-    def list_history(self, user_id: int, limit: int = 30) -> list[Insight]:
+    def list_history(self, user_id: str, limit: int = 30) -> list[Insight]:
         """Returns recent insights for the user, newest first."""
         return self._uow.insights.list_by_user(user_id, limit=limit)
 
     def generate_daily_insight(
-        self, user_id: int, date_str: str, locale: str = "en"
+        self, user_id: str, date_str: str, locale: str = "en"
     ) -> Insight:
         """Generates, saves, and returns a personalized health insight for the user on a specific day."""
         # 1. Return cached insight if already present
         existing = self.get_insight_for_date(user_id, date_str)
         if existing is not None:
             logger.info(
-                "Returning cached daily insight for user %d on date %s",
+                "Returning cached daily insight for user %s on date %s",
                 user_id,
                 date_str,
             )

@@ -111,7 +111,7 @@ class VizBuilder(Protocol):
     def build(
         self,
         ctx: "DashboardWidgetService",
-        user_id: int,
+        user_id: str,
         target: str,
         color: str,
     ) -> WidgetViz | None: ...
@@ -386,12 +386,12 @@ class DashboardWidgetService:
 
         # Request-level caches to optimize N+1 query patterns
         self._goals_cache: list[Goal] | None = None
-        self._metrics_cache: dict[int, MetricType] = {}
+        self._metrics_cache: dict[str, MetricType] = {}
 
         # Set per-widget during widget_data() for GenericVizBuilder access
-        self._current_metric_id: int | None = None
+        self._current_metric_id: str | None = None
 
-    def ensure_defaults(self, user_id: int) -> list[DashboardWidget]:
+    def ensure_defaults(self, user_id: str) -> list[DashboardWidget]:
         existing = self._widget_repo.find_by_user(user_id)
         if existing:
             return existing
@@ -412,17 +412,17 @@ class DashboardWidgetService:
             widgets.append(w)
         return widgets
 
-    def list_widgets(self, user_id: int) -> list[DashboardWidget]:
+    def list_widgets(self, user_id: str) -> list[DashboardWidget]:
         return self._widget_repo.find_by_user(user_id)
 
-    def get_widget(self, widget_id: int, user_id: int) -> DashboardWidget:
+    def get_widget(self, widget_id: str, user_id: str) -> DashboardWidget:
         w = self._widget_repo.get_by_id(widget_id)
         if w is None or w.user_id != user_id:
             raise ValueError("Widget not found")
         return w
 
     def add_widget(
-        self, user_id: int, metric_type_id: int, size: WidgetSize
+        self, user_id: str, metric_type_id: str, size: WidgetSize
     ) -> DashboardWidget:
         existing = self._widget_repo.find_by_user(user_id)
         position = len(existing)
@@ -443,21 +443,21 @@ class DashboardWidgetService:
         return self._widget_repo.create(w)
 
     def update_widget(
-        self, widget_id: int, user_id: int, size: WidgetSize
+        self, widget_id: str, user_id: str, size: WidgetSize
     ) -> DashboardWidget:
         w = self.get_widget(widget_id, user_id)
         w.size = size
         return self._widget_repo.update(w)
 
-    def delete_widget(self, widget_id: int, user_id: int) -> None:
+    def delete_widget(self, widget_id: str, user_id: str) -> None:
         w = self.get_widget(widget_id, user_id)
         self._widget_repo.delete(w)
 
-    def reorder(self, user_id: int, ordered_ids: list[int]) -> None:
+    def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
         self._widget_repo.reorder(user_id, ordered_ids)
 
     def widget_data(
-        self, widget: DashboardWidget, user_id: int, date: str | None = None
+        self, widget: DashboardWidget, user_id: str, date: str | None = None
     ) -> WidgetViz:
         """Build a WidgetViz for a single widget.
 
@@ -516,7 +516,7 @@ class DashboardWidgetService:
     #  Helpers used by VizBuilder strategies
     # ------------------------------------------------------------------
 
-    def _resolve_goal(self, user_id: int, source_data_type: str) -> Goal | None:
+    def _resolve_goal(self, user_id: str, source_data_type: str) -> Goal | None:
         if self._goals_cache is None:
             self._goals_cache = self._goal.find_all(user_id)
         if not self._metrics_cache:

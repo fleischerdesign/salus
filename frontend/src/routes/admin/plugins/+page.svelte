@@ -1,6 +1,6 @@
 <script lang="ts">
   import { api } from '$lib/api/client';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { getAuthHeaders } from '$lib/api/headers';
   import Card from '$components/ui/Card.svelte';
   import Table from '$components/ui/Table.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -39,13 +39,18 @@
   }
 
   async function togglePlugin(plugin: Plugin) {
-    const resp = await mutateDomain({
-      url: `/api/v1/admin/plugins/${plugin.plugin_id}/toggle`,
+    const res = await fetch(`/api/v1/admin/plugins/${plugin.plugin_id}/toggle`, {
       method: 'POST',
-      body: { enable: !plugin.enabled }
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enable: !plugin.enabled })
     });
-    if (!resp.ok) {
-      error = resp.error ?? 'Request failed';
+    if (!res.ok) {
+      try {
+        const body = await res.json();
+        error = body.detail ?? body.message ?? 'Request failed';
+      } catch {
+        error = 'Request failed';
+      }
       return;
     }
     await load();
@@ -53,9 +58,9 @@
 
   async function uninstallPlugin(plugin: Plugin) {
     if (!confirm(`Uninstall ${plugin.name}?`)) return;
-    await mutateDomain({
-      url: `/api/v1/admin/plugins/${plugin.plugin_id}`,
-      method: 'DELETE'
+    await fetch(`/api/v1/admin/plugins/${plugin.plugin_id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     await load();
   }

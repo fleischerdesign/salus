@@ -28,7 +28,7 @@ class OpenScienceService:
         return loc - scale * sgn * math.log(1.0 - 2.0 * abs(u))
 
     def synthesize(
-        self, user_id: int, req: OpenScienceSynthesizeRequest
+        self, user_id: str, req: OpenScienceSynthesizeRequest
     ) -> dict[str, Any]:
         """
         Aggregates metrics by week, applies demographic binning, and adds Laplace noise

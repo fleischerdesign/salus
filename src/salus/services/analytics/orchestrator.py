@@ -25,7 +25,7 @@ class AnalyticsService:
         self._weight = weight_svc
         self._nutrition = nutrition_svc
 
-    def build_context(self, user_id: int, range_key: str = "30d") -> dict:
+    def build_context(self, user_id: str, range_key: str = "30d") -> dict:
         days = RANGE_DAYS.get(range_key, 30)
 
         steps = self._activity.steps_trend(days=days, user_id=user_id)
@@ -98,12 +98,14 @@ class AnalyticsService:
                     "distance_meters": s.distance_meters,
                     "calories": s.calories,
                 }
+                if s
+                else None
                 for s in exercise_sessions
             ],
             "days": days,
         }
 
-    def _compute_tdee(self, user_id: int, weight_trend) -> TDEEResult | None:
+    def _compute_tdee(self, user_id: str, weight_trend) -> TDEEResult | None:
         weight_kg = weight_trend.current
         if not weight_kg:
             return None

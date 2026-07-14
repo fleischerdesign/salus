@@ -24,7 +24,7 @@ class LeaderboardService:
 
     def create_group(
         self,
-        creator_id: int,
+        creator_id: str,
         name: str,
         metric_type_code: str = "steps",
         time_frame: str = "weekly",
@@ -62,7 +62,7 @@ class LeaderboardService:
             self.uow.commit()
             return group
 
-    def join_by_code(self, user_id: int, invite_code: str) -> LeaderboardGroup:
+    def join_by_code(self, user_id: str, invite_code: str) -> LeaderboardGroup:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
@@ -117,7 +117,7 @@ class LeaderboardService:
             self.uow.commit()
             return group
 
-    def list_my_groups(self, user_id: int) -> list[LeaderboardGroup]:
+    def list_my_groups(self, user_id: str) -> list[LeaderboardGroup]:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
@@ -138,7 +138,7 @@ class LeaderboardService:
                     res.append(g)
             return res
 
-    def get_group_rankings(self, group_id: int, current_user_id: int) -> dict:
+    def get_group_rankings(self, group_id: str, current_user_id: str) -> dict:
         with self.uow:
             group = self.uow.leaderboard_groups.get_by_id(group_id)
             if not group:
@@ -267,7 +267,7 @@ class LeaderboardService:
                 "end_date": end_date,
             }
 
-    def leave_group(self, user_id: int, group_id: int) -> None:
+    def leave_group(self, user_id: str, group_id: str) -> None:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
@@ -279,7 +279,7 @@ class LeaderboardService:
             self.uow.leaderboard_members.delete(member)
             self.uow.commit()
 
-    def delete_group(self, creator_id: int, group_id: int) -> None:
+    def delete_group(self, creator_id: str, group_id: str) -> None:
         with self.uow:
             group = self.uow.leaderboard_groups.get_by_id(group_id)
             if not group:

@@ -47,9 +47,9 @@ class RelationshipService:
 
     def create_relationship(
         self,
-        owner_id: int,
+        owner_id: str,
         grantee_handle: str,
-        metric_type_id: int,
+        metric_type_id: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
     ) -> SharingRelationship:
@@ -109,8 +109,8 @@ class RelationshipService:
 
     def accept_relationship(
         self,
-        grantee_user_id: int,
-        relationship_id: int,
+        grantee_user_id: str,
+        relationship_id: str,
         notify_callback: Optional[callable] = None,  # type: ignore[type-arg]
     ) -> SharingRelationship:
         with self.uow:
@@ -138,7 +138,7 @@ class RelationshipService:
             return rel
 
     def decline_relationship(
-        self, grantee_user_id: int, relationship_id: int
+        self, grantee_user_id: str, relationship_id: str
     ) -> SharingRelationship:
         with self.uow:
             user = self.uow.users.get_by_id(grantee_user_id)
@@ -159,11 +159,11 @@ class RelationshipService:
             self.uow.commit()
             return rel
 
-    def list_relationships(self, owner_id: int) -> list[SharingRelationship]:
+    def list_relationships(self, owner_id: str) -> list[SharingRelationship]:
         with self.uow:
             return self.uow.sharing_relationships.find_by_owner(owner_id)
 
-    def deactivate_relationship(self, owner_id: int, relationship_id: int) -> None:
+    def deactivate_relationship(self, owner_id: str, relationship_id: str) -> None:
         with self.uow:
             rel = self.uow.sharing_relationships.get_by_id(relationship_id)
             if not rel or rel.owner_id != owner_id:
@@ -186,7 +186,7 @@ class RelationshipService:
             self.uow.sharing_relationships.update(rel)
             self.uow.commit()
 
-    def get_peer_connections(self, user_id: int) -> list[PeerConnection]:
+    def get_peer_connections(self, user_id: str) -> list[PeerConnection]:
         peers: dict[str, PeerConnection] = {}
 
         def _peer_key(handle: str) -> str:
@@ -224,7 +224,7 @@ class RelationshipService:
                             color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="outgoing",
-                            relationship_id=rel.id or 0,
+                            relationship_id=rel.id or "",
                         )
                     )
                 if rel.expiration_date and (
@@ -257,7 +257,7 @@ class RelationshipService:
                             color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="incoming",
-                            relationship_id=rel.id or 0,
+                            relationship_id=rel.id or "",
                         )
                     )
                 if rel.expiration_date and (
@@ -275,7 +275,7 @@ class RelationshipService:
 
         return list(peers.values())
 
-    def get_pending_invitations(self, user_id: int) -> list[SharingRelationship]:
+    def get_pending_invitations(self, user_id: str) -> list[SharingRelationship]:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:

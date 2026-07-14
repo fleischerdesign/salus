@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { generateInsight } from '$lib/mutations/misc';
   import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
   import type { Insight } from '$lib/db/types';
@@ -33,11 +33,7 @@
 
   async function generate() {
     generating = true;
-    const resp = await mutateDomain({
-      url: `/api/v1/insights/generate?date=${date}`,
-      method: 'POST',
-      responseTable: 'insight'
-    });
+    await generateInsight(date);
     generating = false;
   }
 

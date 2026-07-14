@@ -2,7 +2,7 @@ import { db } from '$lib/db/database';
 import type { Measurement, MetricType } from '$lib/db/types';
 
 export interface MetricOverview {
-  metric_id: number;
+  metric_id: string;
   latest_value: string | null;
   latest_date: string | null;
   entry_count: number;
@@ -11,7 +11,7 @@ export interface MetricOverview {
 export async function fetchMetricOverview(): Promise<MetricOverview[]> {
   const measurements = await db.measurement.orderBy('start_time').reverse().toArray();
 
-  const byMetric = new Map<number, Measurement[]>();
+  const byMetric = new Map<string, Measurement[]>();
   for (const m of measurements) {
     if (m.deleted_at) continue;
     const arr = byMetric.get(m.metric_type_id) ?? [];
@@ -32,7 +32,7 @@ export async function fetchMetricOverview(): Promise<MetricOverview[]> {
 
 export function overviewForMetric(
   overviews: MetricOverview[],
-  metricId: number
+  metricId: string
 ): MetricOverview | null {
   return overviews.find((o) => o.metric_id === metricId) ?? null;
 }

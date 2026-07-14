@@ -11,7 +11,7 @@ class PeerMetricInfo(BaseModel):
     color: str = DEFAULT_METRIC_COLOR
     aggregation: str = "daily_summary"
     direction: str  # "outgoing" or "incoming"
-    relationship_id: int
+    relationship_id: str
 
 
 class PeerConnection(BaseModel):

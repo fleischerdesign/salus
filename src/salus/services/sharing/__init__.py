@@ -58,9 +58,9 @@ class SharingService:
 
     def create_relationship(
         self,
-        owner_id: int,
+        owner_id: str,
         grantee_handle: str,
-        metric_type_id: int,
+        metric_type_id: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
     ) -> SharingRelationship:
@@ -70,7 +70,7 @@ class SharingService:
         )
 
     def accept_relationship(
-        self, grantee_user_id: int, relationship_id: int
+        self, grantee_user_id: str, relationship_id: str
     ) -> SharingRelationship:
         return self._relationship.accept_relationship(
             grantee_user_id, relationship_id,
@@ -78,30 +78,30 @@ class SharingService:
         )
 
     def decline_relationship(
-        self, grantee_user_id: int, relationship_id: int
+        self, grantee_user_id: str, relationship_id: str
     ) -> SharingRelationship:
         return self._relationship.decline_relationship(grantee_user_id, relationship_id)
 
-    def list_relationships(self, owner_id: int) -> list[SharingRelationship]:
+    def list_relationships(self, owner_id: str) -> list[SharingRelationship]:
         return self._relationship.list_relationships(owner_id)
 
-    def deactivate_relationship(self, owner_id: int, relationship_id: int) -> None:
+    def deactivate_relationship(self, owner_id: str, relationship_id: str) -> None:
         self._relationship.deactivate_relationship(owner_id, relationship_id)
 
     def process_federation_accept(self, token: str, owner_handle: str) -> None:
         self._relationship.process_federation_accept(token, owner_handle)
 
-    def get_peer_connections(self, user_id: int) -> list[PeerConnection]:
+    def get_peer_connections(self, user_id: str) -> list[PeerConnection]:
         return self._relationship.get_peer_connections(user_id)
 
-    def get_pending_invitations(self, user_id: int) -> list[SharingRelationship]:
+    def get_pending_invitations(self, user_id: str) -> list[SharingRelationship]:
         return self._relationship.get_pending_invitations(user_id)
 
     # ── Data resolution ──
 
     def resolve_and_fetch(
         self,
-        requester_id: int,
+        requester_id: str,
         owner_handle: str,
         data_type: str,
         date_str: str,
@@ -111,7 +111,7 @@ class SharingService:
             requester_id, owner_handle, data_type, date_str, force_refresh,
         )
 
-    def get_feed_activities(self, user_id: int) -> list[dict]:
+    def get_feed_activities(self, user_id: str) -> list[dict]:
         return self._resolver.get_feed_activities(user_id)
 
     # ── Federation keys ──
@@ -147,7 +147,7 @@ class SharingService:
     # ── Notifications ──
 
     def notify_peers_of_update(
-        self, user_id: int, data_type: str, date_str: str
+        self, user_id: str, data_type: str, date_str: str
     ) -> None:
         self._notify.notify_peers_of_update(user_id, data_type, date_str)
 

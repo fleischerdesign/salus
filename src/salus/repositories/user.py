@@ -21,14 +21,14 @@ class UserRepository(Repository[User], IUserRepository):
     def list_all(self) -> list[User]:
         return list(self.session.exec(select(User)).all())
 
-    def toggle_admin(self, user_id: int) -> User:
+    def toggle_admin(self, user_id: str) -> User:
         user = self.get_by_id(user_id)
         if user is None:
             raise NotFoundError(f"User {user_id} not found")
         user.is_admin = not user.is_admin
         return self.update(user)
 
-    def toggle_active(self, user_id: int) -> User:
+    def toggle_active(self, user_id: str) -> User:
         user = self.get_by_id(user_id)
         if user is None:
             raise NotFoundError(f"User {user_id} not found")

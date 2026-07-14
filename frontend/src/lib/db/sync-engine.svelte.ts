@@ -1,6 +1,7 @@
 import { db } from './database';
-import type { QueueOp, SyncStatus } from './types';
+import type { OutboxOp, SyncStatus } from './types';
 import { getAuthHeaders } from '$lib/api/headers';
+import type { Mutation } from '$lib/mutate';
 
 let _status = $state<SyncStatus>('idle');
 let _queueLength = $state(0);
@@ -21,57 +22,49 @@ export const syncEngine = {
     return _sessionExpired;
   },
 
-  async enqueue(
-    type: QueueOp['type'],
-    entity: string,
-    client_id: string,
-    data?: Record<string, unknown>,
-    realId?: number,
-    expectedUpdatedAt?: string
-  ): Promise<void> {
-    await db.queue.put({
-      type,
-      entity,
-      client_id,
-      data,
-      realId,
-      expected_updated_at: expectedUpdatedAt,
-      createdAt: Date.now(),
-      retries: 0
-    });
-    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
-  },
+  async enqueueOutbox(m: Mutation, clientId: string): Promise<void> {
+    const createdAt = new Date().toISOString();
+    let op: OutboxOp;
 
-  async enqueueDomain(
-    url: string,
-    method: string,
-    body?: Record<string, unknown>,
-    responseTable?: string
-  ): Promise<void> {
-    await db.domainQueue.put({
-      url,
-      method,
-      body,
-      responseTable,
-      createdAt: new Date().toISOString()
-    });
-    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
+    if (m.kind === 'crud') {
+      op = {
+        kind: 'crud',
+        opType: m.op,
+        entity: m.entity,
+        client_id: clientId,
+        data: m.data,
+        realId: m.id,
+        expected_updated_at: m.expected_updated_at,
+        createdAt,
+        retries: 0
+      };
+    } else {
+      op = {
+        kind: 'command',
+        command: m.command,
+        client_id: clientId,
+        payload: m.payload,
+        optimisticTable: m.optimisticTable,
+        optimisticData: m.optimisticData,
+        responseTable: m.responseTable,
+        createdAt,
+        retries: 0
+      };
+    }
+
+    await db.outbox.put(op);
+    _queueLength = await db.outbox.count();
   },
 
   async flush(): Promise<void> {
     _status = 'syncing';
     _error = null;
 
-    await this._flushEntityQueue();
-    await this._flushDomainQueue();
-
-    _queueLength = (await db.queue.count()) + (await db.domainQueue.count());
-    if (_status === 'syncing') _status = 'idle';
-  },
-
-  async _flushEntityQueue(): Promise<void> {
-    const items = await db.queue.orderBy('createdAt').toArray();
-    if (items.length === 0) return;
+    const items = await db.outbox.orderBy('createdAt').toArray();
+    if (items.length === 0) {
+      _status = 'idle';
+      return;
+    }
 
     const headers: Record<string, string> = {
       ...getAuthHeaders(),
@@ -79,14 +72,145 @@ export const syncEngine = {
     };
 
     try {
-      const operations = items.map((op) => ({
-        type: op.type,
-        entity: op.entity,
-        client_id: op.client_id,
-        ...(op.realId != null && op.realId > 0 ? { id: op.realId } : {}),
-        ...(op.data ? { data: op.data } : {}),
-        ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {})
-      }));
+      const batches = _partitionBatches(items);
+
+      for (const batch of batches) {
+        await this._sendBatch(batch, headers);
+      }
+    } catch (e) {
+      _status = 'error';
+      _error = `Sync push network error: ${String(e)}`;
+    }
+
+    _queueLength = await db.outbox.count();
+    if (_status === 'syncing') _status = 'idle';
+  },
+
+  async _sendBatch(
+    batch: OutboxOp[],
+    headers: Record<string, string>
+  ): Promise<void> {
+    const MAX_RETRIES = 5;
+
+    const operations = batch.map((op) => {
+      if (op.kind === 'crud') {
+        return {
+          type: op.opType,
+          entity: op.entity,
+          client_id: op.client_id,
+          ...(op.realId ? { id: op.realId } : {}),
+          ...(op.data ? { data: op.data } : {}),
+          ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {})
+        };
+      } else {
+        return {
+          type: 'command',
+          command: op.command,
+          client_id: op.client_id,
+          ...(op.payload ? { payload: op.payload } : {})
+        };
+      }
+    });
+
+    const res = await fetch('/api/v1/sync/push', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ operations })
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        _sessionExpired = true;
+        _status = 'idle';
+        return;
+      }
+      _status = 'error';
+      _error = `Sync push failed: ${res.status}`;
+      return;
+    }
+
+    const response = await res.json();
+    const results = response.results as Array<{
+      client_id?: string;
+      entity?: string;
+      id?: string;
+      status: string;
+      record?: Record<string, unknown>;
+      conflict?: Record<string, unknown>;
+      message?: string;
+    }>;
+
+    const succeeded = new Set<string>();
+    for (const r of results) {
+      if (r.status === 'created' || r.status === 'updated') {
+        if (r.record && r.entity) {
+          await db.table(r.entity).put(r.record);
+        }
+        if (r.client_id) succeeded.add(r.client_id);
+      }
+      if (r.status === 'deleted' && r.client_id) {
+        succeeded.add(r.client_id);
+      }
+      if (r.status === 'conflict') {
+        if (r.conflict && r.entity) {
+          await db.table(r.entity).put(r.conflict);
+        }
+        if (r.client_id) succeeded.add(r.client_id);
+      }
+    }
+
+    for (const item of batch) {
+      if (item.id != null && succeeded.has(item.client_id)) {
+        await db.outbox.delete(item.id);
+      } else if (item.id != null) {
+        item.retries = (item.retries ?? 0) + 1;
+        if (item.retries >= MAX_RETRIES) {
+          await db.outbox.delete(item.id);
+          _error = `Op ${item.client_id} exceeded max retries`;
+        } else {
+          await db.outbox.put(item);
+        }
+      }
+    }
+  },
+
+  async flushSingle(
+    clientId: string
+  ): Promise<{ ok: boolean; error?: string; conflict?: boolean; queued?: boolean }> {
+    _status = 'syncing';
+    _error = null;
+
+    const items = await db.outbox.orderBy('createdAt').toArray();
+    if (items.length === 0) {
+      _status = 'idle';
+      return { ok: true };
+    }
+
+    const headers: Record<string, string> = {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    };
+
+    try {
+      const operations = items.map((op) => {
+        if (op.kind === 'crud') {
+          return {
+            type: op.opType,
+            entity: op.entity,
+            client_id: op.client_id,
+            ...(op.realId ? { id: op.realId } : {}),
+            ...(op.data ? { data: op.data } : {}),
+            ...(op.expected_updated_at ? { expected_updated_at: op.expected_updated_at } : {})
+          };
+        } else {
+          return {
+            type: 'command',
+            command: op.command,
+            client_id: op.client_id,
+            ...(op.payload ? { payload: op.payload } : {})
+          };
+        }
+      });
 
       const res = await fetch('/api/v1/sync/push', {
         method: 'POST',
@@ -98,24 +222,28 @@ export const syncEngine = {
         if (res.status === 401) {
           _sessionExpired = true;
           _status = 'idle';
-          return;
+          return { ok: false, error: 'Unauthorized' };
         }
         _status = 'error';
         _error = `Sync push failed: ${res.status}`;
-        return;
+        return { ok: false, error: `Server returned ${res.status}` };
       }
 
       const response = await res.json();
       const results = response.results as Array<{
         client_id?: string;
-        entity: string;
-        id?: number;
+        entity?: string;
+        id?: string;
         status: string;
         record?: Record<string, unknown>;
         conflict?: Record<string, unknown>;
+        message?: string;
       }>;
 
       const succeeded = new Set<string>();
+      let hasConflict = false;
+      let errorMsg: string | undefined;
+
       for (const r of results) {
         if (r.status === 'created' || r.status === 'updated') {
           if (r.record && r.entity) {
@@ -124,72 +252,40 @@ export const syncEngine = {
           if (r.client_id) succeeded.add(r.client_id);
         }
         if (r.status === 'deleted' && r.client_id) {
-          succeeded.add(r.client_id);
+          if (r.client_id) succeeded.add(r.client_id);
         }
         if (r.status === 'conflict') {
+          hasConflict = true;
           if (r.conflict && r.entity) {
-            await db.table(r.entity).put(r.conflict as Record<string, unknown>);
+            await db.table(r.entity).put(r.conflict);
           }
           if (r.client_id) succeeded.add(r.client_id);
         }
+        if (r.status === 'error') {
+          errorMsg = r.message;
+        }
       }
 
-      const MAX_RETRIES = 5;
       for (const item of items) {
         if (item.id != null && succeeded.has(item.client_id)) {
-          await db.queue.delete(item.id);
-        } else if (item.id != null) {
-          item.retries = (item.retries ?? 0) + 1;
-          if (item.retries >= MAX_RETRIES) {
-            await db.queue.delete(item.id);
-            _error = `Op ${item.client_id} exceeded max retries`;
-          } else {
-            await db.queue.put(item);
-          }
+          await db.outbox.delete(item.id);
         }
       }
-    } catch (e) {
+
+      _queueLength = await db.outbox.count();
+      _status = 'idle';
+
+      if (hasConflict) {
+        return { ok: false, conflict: true, error: 'Conflict detected' };
+      }
+      if (errorMsg) {
+        return { ok: false, error: errorMsg };
+      }
+      return { ok: true };
+    } catch {
       _status = 'error';
-      _error = `Sync push network error: ${String(e)}`;
-    }
-  },
-
-  async _flushDomainQueue(): Promise<void> {
-    const items = await db.domainQueue.orderBy('createdAt').toArray();
-    if (items.length === 0) return;
-
-    const MAX_RETRIES = 5;
-
-    for (const item of items) {
-      try {
-        const headers: Record<string, string> = { ...getAuthHeaders() };
-        if (item.method !== 'DELETE') headers['Content-Type'] = 'application/json';
-
-        const res = await fetch(item.url, {
-          method: item.method,
-          headers,
-          body: item.body && item.method !== 'DELETE' ? JSON.stringify(item.body) : undefined
-        });
-
-        if (res.ok && item.responseTable && res.status !== 204) {
-          const data = await res.json();
-          await db.table(item.responseTable).put(data);
-        }
-
-        if (item.id != null) {
-          await db.domainQueue.delete(item.id);
-        }
-      } catch {
-        if (item.id != null) {
-          const retries = (item.retries ?? 0) + 1;
-          if (retries >= MAX_RETRIES) {
-            await db.domainQueue.delete(item.id);
-            _error = `Domain op exceeded max retries: ${item.url}`;
-          } else {
-            await db.domainQueue.update(item.id, { retries });
-          }
-        }
-      }
+      _error = 'Sync push network error';
+      return { ok: false, error: 'Network error' };
     }
   },
 
@@ -198,7 +294,31 @@ export const syncEngine = {
     _sessionExpired = false;
     await this.flush();
   },
+
   resetSessionExpired(): void {
     _sessionExpired = false;
   }
 };
+
+function _partitionBatches(items: OutboxOp[]): OutboxOp[][] {
+  const batches: OutboxOp[][] = [];
+  let crudBuffer: OutboxOp[] = [];
+
+  for (const item of items) {
+    if (item.kind === 'crud') {
+      crudBuffer.push(item);
+    } else {
+      if (crudBuffer.length > 0) {
+        batches.push(crudBuffer);
+        crudBuffer = [];
+      }
+      batches.push([item]);
+    }
+  }
+
+  if (crudBuffer.length > 0) {
+    batches.push(crudBuffer);
+  }
+
+  return batches;
+}

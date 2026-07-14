@@ -3,8 +3,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import { mutate, nextTempId } from '$lib/db/mutate';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Badge from '$components/ui/Badge.svelte';
@@ -13,10 +12,10 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
 
-  const planId = $derived(Number(page.params.id));
+  const planId = $derived(page.params.id);
 
   let plan = liveQuery(() =>
-    db.workout_plan.get(planId).then((p) => (p && !p.deleted_at ? p : null))
+    db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null))
   );
 
   let planExercises = liveQuery(() =>
@@ -54,30 +53,7 @@
 
   async function startSession() {
     starting = true;
-    const now = new Date().toISOString();
-    const tempId = nextTempId();
-    const { ok } = await mutateDomain({
-      url: `/api/v1/workouts/sessions/start?plan_id=${planId}`,
-      method: 'POST',
-      optimisticTable: 'workout_session',
-      optimisticData: {
-        id: tempId,
-        user_id: 0,
-        plan_id: planId,
-        plan_name: $plan?.name ?? '',
-        started_at: now,
-        completed_at: null,
-        recovery_score: null,
-        autoreg_mode: $plan?.autoreg_mode || 'advisory',
-        notes: null,
-        effort_rating: null,
-        created_at: now,
-        updated_at: null,
-        deleted_at: null
-      },
-      optimisticId: tempId,
-      responseTable: 'workout_session'
-    });
+    const { ok } = await startWorkout(planId!, $plan?.autoreg_mode || 'advisory');
     starting = false;
     if (ok) await goto('/workouts/active');
   }
@@ -87,7 +63,7 @@
     return `${Math.round((new Date(sessEnd).getTime() - new Date(sessStart).getTime()) / 60000)} min`;
   }
 
-  function sessionVolume(sessId: number): number {
+  function sessionVolume(sessId: string): number {
     return ($logs ?? [])
       .filter((l) => l.session_id === sessId)
       .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);

@@ -9,7 +9,7 @@ from salus.repositories.protocols import ISharingRepository
 class SharingRepository(Repository[SharingRelationship], ISharingRepository):
     model = SharingRelationship
 
-    def find_by_owner(self, owner_id: int) -> list[SharingRelationship]:
+    def find_by_owner(self, owner_id: str) -> list[SharingRelationship]:
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id
         )
@@ -22,7 +22,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return list(self.session.exec(stmt).all())
 
     def get_active_relationship(
-        self, owner_id: int, grantee_handle: str, metric_type_id: int
+        self, owner_id: str, grantee_handle: str, metric_type_id: str
     ) -> SharingRelationship | None:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
@@ -53,7 +53,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return list(self.session.exec(stmt).all())
 
     def find_active_between(
-        self, user_a_id: int, user_b_handle: str
+        self, user_a_id: str, user_b_handle: str
     ) -> SharingRelationship | None:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
@@ -66,7 +66,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_pending_relationship(
-        self, owner_id: int, grantee_handle: str, metric_type_id: int
+        self, owner_id: str, grantee_handle: str, metric_type_id: str
     ) -> SharingRelationship | None:
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id,
@@ -100,7 +100,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_active_by_owner_id(
-        self, owner_id: int
+        self, owner_id: str
     ) -> list[SharingRelationship]:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
@@ -112,7 +112,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return list(self.session.exec(stmt).all())
 
     def find_active_by_owner_and_data_type(
-        self, owner_id: int, data_type: str
+        self, owner_id: str, data_type: str
     ) -> list[SharingRelationship]:
         stmt = (
             select(SharingRelationship)
@@ -138,7 +138,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_active_with_owner_metric_and_grantee(
-        self, owner_id: int, grantee_handle: str, metric_type_id: int
+        self, owner_id: str, grantee_handle: str, metric_type_id: str
     ) -> SharingRelationship | None:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(

@@ -1,7 +1,7 @@
 export interface PendingConflict {
   id: string;
   table: string;
-  realId?: number;
+  realId?: string;
   clientRecord: Record<string, unknown>;
   serverRecord: Record<string, unknown>;
   retryData?: Record<string, unknown>;

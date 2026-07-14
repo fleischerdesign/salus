@@ -116,7 +116,7 @@ class TDEEResult:
 
 @dataclass
 class GoalProgress:
-    goal_id: int
+    goal_id: str
     current_value: float | None
     target_value: float
     percent: int

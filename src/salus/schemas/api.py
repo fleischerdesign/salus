@@ -6,7 +6,7 @@ from salus.models import DataType
 
 
 class MetricTypeResponse(BaseModel):
-    id: int
+    id: str
     name: str
     unit: str
     data_type: DataType
@@ -16,8 +16,8 @@ class MetricTypeResponse(BaseModel):
 
 
 class EntryResponse(BaseModel):
-    id: int
-    metric_type_id: int
+    id: str
+    metric_type_id: str
     value: str
     timestamp: datetime
     notes: str | None
@@ -30,7 +30,7 @@ class EntryUpdate(BaseModel):
 
 
 class MetricOverviewResponse(BaseModel):
-    metric_id: int
+    metric_id: str
     latest_value: str | None
     latest_date: str | None
     entry_count: int

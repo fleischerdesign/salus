@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { deleteLeaderboard, leaveLeaderboard } from '$lib/mutations/community';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
@@ -22,7 +22,7 @@
   }
 
   interface ChallengeDetail {
-    id: number;
+    id: string;
     name: string;
     metric_type_code: string;
     time_frame: string;
@@ -36,13 +36,13 @@
 
   let copied = $state(false);
 
-  const challengeId = $derived(Number(page.params.id));
+  const challengeId = $derived(page.params.id);
 
   let detail = liveQuery(async () => {
-    const group = await db.leaderboard_group.get(challengeId);
+    const group = await db.leaderboard_group.get(challengeId!);
     if (!group || group.deleted_at) return null;
 
-    const members = await db.leaderboard_member.where('group_id').equals(challengeId).toArray();
+    const members = await db.leaderboard_member.where('group_id').equals(challengeId!).toArray();
 
     const activeMembers = members.filter((m) => m.status === 'active' && !m.deleted_at);
 
@@ -86,19 +86,13 @@
 
   async function disband() {
     if (!confirm('Disband this challenge? This cannot be undone.')) return;
-    await mutateDomain({
-      url: `/api/v1/sharing/leaderboard/${challengeId}/delete`,
-      method: 'POST'
-    });
+    await deleteLeaderboard(challengeId!);
     await goto('/community/leaderboard');
   }
 
   async function leave() {
     if (!confirm('Leave this challenge?')) return;
-    await mutateDomain({
-      url: `/api/v1/sharing/leaderboard/${challengeId}/leave`,
-      method: 'POST'
-    });
+    await leaveLeaderboard(challengeId!);
     await goto('/community/leaderboard');
   }
 

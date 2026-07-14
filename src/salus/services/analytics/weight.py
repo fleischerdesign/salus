@@ -10,7 +10,7 @@ class WeightAnalysisService:
         self._repo = repo
 
     def current(
-        self, user_id: int | None = None, date_str: str | None = None
+        self, user_id: str | None = None, date_str: str | None = None
     ) -> WeightPoint | None:
         if date_str is not None:
             until = datetime.strptime(date_str + "T23:59:59", "%Y-%m-%dT%H:%M:%S")
@@ -28,7 +28,7 @@ class WeightAnalysisService:
             weight_kg=d.get("kilograms", rec.value_numeric or 0),
         )
 
-    def trend(self, days: int = 30, user_id: int | None = None) -> WeightTrend:
+    def trend(self, days: int = 30, user_id: str | None = None) -> WeightTrend:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
             data_types=["weight"], user_id=user_id, since=since

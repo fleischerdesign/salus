@@ -3,7 +3,7 @@
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import { db } from '$lib/db/database';
-  import { mutateDomain } from '$lib/db/mutate-domain';
+  import { markAllNotificationsRead } from '$lib/mutations/notification';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -21,10 +21,7 @@
   let unreadCount = $derived($notifications?.filter((n) => !n.is_read).length ?? 0);
 
   async function markAllRead() {
-    await mutateDomain({
-      url: '/api/v1/notifications/read-all',
-      method: 'POST'
-    });
+    await markAllNotificationsRead();
     // Optimistic: mark all Dexie notifications as read
     const unread = await db.notification.filter((n) => !n.is_read).toArray();
     for (const n of unread) {

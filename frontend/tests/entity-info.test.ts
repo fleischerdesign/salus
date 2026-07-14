@@ -9,7 +9,7 @@ describe('fetchEntityNames', () => {
   });
 
   it('returns names from the API and caches them', async () => {
-    const fetchMock = createFetchMock([{ body: [{ name: 'measurement' }, { name: 'goal' }] }]);
+    const fetchMock = createFetchMock([{ body: { entities: [{ name: 'measurement' }, { name: 'goal' }], commands: [] } }]);
     vi.stubGlobal('fetch', fetchMock);
 
     const names = await fetchEntityNames();
@@ -42,8 +42,8 @@ describe('fetchEntityNames', () => {
 
   it('refetches after resetEntityNames', async () => {
     const fetchMock = createFetchMock([
-      { body: [{ name: 'measurement' }] },
-      { body: [{ name: 'goal' }] }
+      { body: { entities: [{ name: 'measurement' }], commands: [] } },
+      { body: { entities: [{ name: 'goal' }], commands: [] } }
     ]);
     vi.stubGlobal('fetch', fetchMock);
 

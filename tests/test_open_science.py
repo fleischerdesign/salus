@@ -13,24 +13,21 @@ from salus.schemas.open_science import OpenScienceSynthesizeRequest
 
 @pytest.fixture
 def clean_db():
-    SQLModel.metadata.create_all(engine)
     yield
 
 
 @pytest.fixture
-def auth_client():
-    from salus.main import app
+def auth_client(client):
     import uuid
 
     username = f"science_user_{uuid.uuid4().hex[:6]}"
-    with TestClient(app) as client:
-        resp = client.post(
-            "/api/v1/auth/register",
-            json={"username": username, "password": "password123"},
-        )
-        token = resp.json()["token"]
-        client.headers = {"Authorization": f"Bearer {token}"}
-        yield client, username
+    resp = client.post(
+        "/api/v1/auth/register",
+        json={"username": username, "password": "password123"},
+    )
+    token = resp.json()["token"]
+    client.headers = {"Authorization": f"Bearer {token}"}
+    yield client, username
 
 
 def test_laplace_distribution_noise():
@@ -64,7 +61,7 @@ def test_demographic_binning():
         include_demographics=True,
         user_birth_year=1990
     )
-    res = service.synthesize(user_id=1, req=req_age)
+    res = service.synthesize(user_id="1", req=req_age)
     
     current_year = datetime.now().year
     expected_age = current_year - 1990
@@ -79,7 +76,7 @@ def test_demographic_binning():
         include_demographics=True,
         user_weight_kg=73.4
     )
-    res2 = service.synthesize(user_id=1, req=req_weight)
+    res2 = service.synthesize(user_id="1", req=req_weight)
     assert res2["demographics"]["weight_group"] == "70-74 kg"
 
 
@@ -87,7 +84,8 @@ def test_synthesis_and_api_route(clean_db, auth_client):
     client, username = auth_client
     # 1. Create a metric type and some measurements in DB
     from sqlmodel import Session
-    session = Session(engine)
+    test_engine = client.app.state.engine
+    session = Session(test_engine)
     uow = SqlUnitOfWork(session)
     
     with uow:

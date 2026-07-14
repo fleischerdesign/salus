@@ -9,8 +9,8 @@ class CircadianProfileCreate(BaseModel):
 
 
 class CircadianProfileResponse(BaseModel):
-    id: int
-    user_id: int
+    id: str
+    user_id: str
     latitude: float
     longitude: float
     timezone_offset_hours: float
