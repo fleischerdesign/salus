@@ -23,16 +23,22 @@
   );
 
   let planExercises = liveQuery(async () => {
-    if (!$session?.plan_id) return [];
-    const pes = await db.workout_plan_exercise.where('plan_id').equals($session.plan_id).toArray();
+    const activeSession = await db.workout_session
+      .toArray()
+      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
+    if (!activeSession?.plan_id) return [];
+    const pes = await db.workout_plan_exercise.where('plan_id').equals(activeSession.plan_id).toArray();
     return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
   });
 
   let allLogs = liveQuery(async () => {
-    if (!$session) return [];
+    const activeSession = await db.workout_session
+      .toArray()
+      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
+    if (!activeSession) return [];
     return db.workout_log_entry
       .where('session_id')
-      .equals($session.id)
+      .equals(activeSession.id)
       .toArray()
       .then((arr) => arr.filter((l) => !l.deleted_at));
   });
@@ -57,7 +63,7 @@
   let notes = $state('');
   let completing = $state(false);
 
-  let loading = $derived($session == null || $allLogs == null);
+  let loading = $derived($session == null || $planExercises == null || $allLogs == null);
 
   // Derive targets from plan exercises
   let targets = $derived(
