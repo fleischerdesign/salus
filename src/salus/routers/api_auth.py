@@ -9,7 +9,7 @@ from salus.dependencies import (
     get_user_service,
     limiter,
 )
-from salus.exceptions import ConflictError, InvalidCredentialsError
+from salus.exceptions import ApiError, ConflictError, InvalidCredentialsError
 from salus.schemas.user import (
     LoginRequest,
     RegisterRequest,
@@ -53,7 +53,7 @@ async def api_login(
     try:
         token, user = auth_svc.login_local(username=body.username, password=body.password)
     except InvalidCredentialsError:
-        return JSONResponse(status_code=401, content={"error": "Invalid username or password"})
+        raise ApiError(code="invalid_credentials", message="Invalid username or password", status_code=401)
 
     response = _json_auth_response(token, user)
     _set_session_cookie(response, token)
@@ -75,8 +75,8 @@ async def api_register(
             email=body.email,
             display_name=body.display_name,
         )
-    except ConflictError as exc:
-        return JSONResponse(status_code=409, content={"error": exc.message})
+    except ConflictError:
+        raise
 
     token = auth_svc.create_token_for_user(user)
     response = _json_auth_response(token, user)
@@ -106,7 +106,7 @@ async def api_ldap(
     try:
         token, user = auth_svc.login_ldap(username=body.username, password=body.password)
     except InvalidCredentialsError:
-        return JSONResponse(status_code=401, content={"error": "LDAP authentication failed"})
+        raise ApiError(code="ldap_failed", message="LDAP authentication failed", status_code=401)
 
     response = _json_auth_response(token, user)
     _set_session_cookie(response, token)
@@ -123,7 +123,7 @@ async def api_oidc_authorize(
     try:
         auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri)
     except ValueError:
-        return JSONResponse(status_code=404, content={"error": f"Unknown provider: {provider}"})
+        raise ApiError(code="unknown_provider", message=f"Unknown provider: {provider}", status_code=404)
     return JSONResponse(content={"authorization_url": auth_url})
 
 
@@ -137,7 +137,7 @@ async def api_oidc_login(
     try:
         auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri)
     except ValueError:
-        return JSONResponse(status_code=404, content={"error": f"Unknown provider: {provider}"})
+        raise ApiError(code="unknown_provider", message=f"Unknown provider: {provider}", status_code=404)
     return RedirectResponse(url=auth_url)
 
 
@@ -149,11 +149,11 @@ async def api_oidc_callback(
 ):
     oidc_provider = auth_svc.get_oidc_provider(provider)
     if oidc_provider is None:
-        return JSONResponse(status_code=404, content={"error": f"Unknown provider: {provider}"})
+        raise ApiError(code="unknown_provider", message=f"Unknown provider: {provider}", status_code=404)
 
     user = await oidc_provider.authenticate(request)
     if user is None:
-        return JSONResponse(status_code=401, content={"error": "OIDC authentication failed"})
+        raise ApiError(code="oidc_failed", message="OIDC authentication failed", status_code=401)
 
     token = auth_svc.create_token_for_user(user)
     response = RedirectResponse(url="/", status_code=303)

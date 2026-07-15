@@ -20,7 +20,6 @@ class AsymmetricShareService:
                 public_key=data.public_key,
             )
             self.uow.share_recipients.add(recipient)
-            self.uow.commit()
             return recipient
 
     def list_recipients(self, user_id: str) -> list[ShareRecipient]:
@@ -33,7 +32,6 @@ class AsymmetricShareService:
             if not recipient or recipient.user_id != user_id:
                 raise NotFoundError("Recipient not found.")
             self.uow.share_recipients.delete(recipient)
-            self.uow.commit()
 
     def create_share(
         self, user_id: str, data: AsymmetricShareCreate
@@ -57,7 +55,6 @@ class AsymmetricShareService:
                 expires_at=expires_at,
             )
             self.uow.asymmetric_shares.add(share)
-            self.uow.commit()
             return share
 
     def get_share_secure(self, share_id: str) -> AsymmetricShare:
@@ -77,7 +74,6 @@ class AsymmetricShareService:
                 ):
                     # Auto clean up expired share
                     self.uow.asymmetric_shares.delete(share)
-                    self.uow.commit()
                     raise NotFoundError("Share link not found or expired.")
 
             return share
@@ -92,4 +88,3 @@ class AsymmetricShareService:
             if not share or share.user_id != user_id:
                 raise NotFoundError("Share not found.")
             self.uow.asymmetric_shares.delete(share)
-            self.uow.commit()

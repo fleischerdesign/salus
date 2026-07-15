@@ -99,9 +99,7 @@ class SetConfigHandler:
         value = payload.get("value")
         if not key:
             return CommandResult(status="error", message="key is required")
-        from salus.repositories.system_config import SystemConfigRepository
-        config_repo = SystemConfigRepository(uow.session)
-        config_repo.upsert(key, value or "")
+        uow.system_configs.upsert(key, value or "")
         uow.commit()
         record: dict[str, Any] = {"key": key, "value": value}
         return CommandResult(status="updated", record=record)

@@ -2,29 +2,18 @@ from salus.exceptions import ConflictError, NotFoundError
 from salus.models import MetricType
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
-from salus.repositories.protocols import (
-    IUserRepository,
-    IUserIdentityRepository,
-    IMetricTypeRepository,
-)
+from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
 from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
 from salus.services.password import hash_password, verify_password
 
 
 class UserService:
-    def __init__(
-        self,
-        repo: IUserRepository,
-        identity_repo: IUserIdentityRepository,
-        metric_type_repo: IMetricTypeRepository,
-    ) -> None:
-        self.repo = repo
-        self.identity_repo = identity_repo
-        self._metric_type_repo = metric_type_repo
+    def __init__(self, uow: IUnitOfWork) -> None:
+        self.uow = uow
 
     def _is_first_user(self) -> bool:
-        all_users = self.repo.list_all()
+        all_users = self.uow.users.list_all()
         return len(all_users) == 0
 
     def _seed_default_metric_types(self, user_id: str) -> None:
@@ -38,7 +27,7 @@ class UserService:
             widget_size,
             widget_enabled,
         ) in DEFAULT_METRIC_TYPES:
-            existing = self._metric_type_repo.find_by_name_and_user(name, user_id)
+            existing = self.uow.metric_types.find_by_name_and_user(name, user_id)
             if existing is None:
                 mt = MetricType(
                     name=name,
@@ -52,19 +41,19 @@ class UserService:
                     widget_size=widget_size,
                     widget_enabled=widget_enabled,
                 )
-                self._metric_type_repo.create(mt)
+                self.uow.metric_types.create(mt)
 
     def get_by_id(self, user_id: str) -> User:
-        user = self.repo.get_by_id(user_id)
+        user = self.uow.users.get_by_id(user_id)
         if user is None:
             raise NotFoundError(f"User {user_id} not found")
         return user
 
     def get_by_username(self, username: str) -> User | None:
-        return self.repo.get_by_username(username)
+        return self.uow.users.get_by_username(username)
 
     def get_by_email(self, email: str) -> User | None:
-        return self.repo.get_by_email(email)
+        return self.uow.users.get_by_email(email)
 
     def register(
         self,
@@ -73,12 +62,12 @@ class UserService:
         email: str | None = None,
         display_name: str | None = None,
     ) -> User:
-        existing = self.repo.get_by_username(username)
+        existing = self.uow.users.get_by_username(username)
         if existing is not None:
             raise ConflictError(f"Username '{username}' already taken")
 
         if email:
-            existing_email = self.repo.get_by_email(email)
+            existing_email = self.uow.users.get_by_email(email)
             if existing_email is not None:
                 raise ConflictError(f"Email '{email}' already registered")
 
@@ -89,9 +78,9 @@ class UserService:
             display_name=display_name or username,
             is_admin=self._is_first_user(),
         )
-        user = self.repo.create(user)
+        user = self.uow.users.create(user)
 
-        self.identity_repo.create(
+        self.uow.identities.create(
             UserIdentity(
                 user_id=uid(user),
                 provider="local",
@@ -109,16 +98,16 @@ class UserService:
         email: str | None = None,
         display_name: str | None = None,
     ) -> User:
-        existing = self.identity_repo.get_by_provider_user_id(
+        existing = self.uow.identities.get_by_provider_user_id(
             provider, provider_user_id
         )
         if existing is not None:
             return self.get_by_id(existing.user_id)
 
         if email:
-            user_by_email = self.repo.get_by_email(email)
+            user_by_email = self.uow.users.get_by_email(email)
             if user_by_email is not None:
-                self.identity_repo.create(
+                self.uow.identities.create(
                     UserIdentity(
                         user_id=uid(user_by_email),
                         provider=provider,
@@ -138,9 +127,9 @@ class UserService:
             display_name=derived_display,
             is_admin=self._is_first_user(),
         )
-        user = self.repo.create(user)
+        user = self.uow.users.create(user)
 
-        self.identity_repo.create(
+        self.uow.identities.create(
             UserIdentity(
                 user_id=uid(user),
                 provider=provider,
@@ -158,12 +147,17 @@ class UserService:
             raise ConflictError("Current password is incorrect")
 
         user.password_hash = hash_password(new_password)
-        return self.repo.update(user)
+        return self.uow.users.update(user)
 
     def list_identities(self, user_id: str) -> list[UserIdentity]:
-        return self.identity_repo.list_by_user(user_id)
+        return self.uow.identities.list_by_user(user_id)
 
     def set_theme(self, user_id: str, theme: str) -> User:
         user = self.get_by_id(user_id)
         user.theme = theme
-        return self.repo.update(user)
+        return self.uow.users.update(user)
+
+    def dismiss_onboarding(self, user_id: str) -> None:
+        user = self.get_by_id(user_id)
+        user.onboarding_dismissed = True
+        self.uow.users.update(user)

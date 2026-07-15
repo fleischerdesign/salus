@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Response
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from salus.dependencies import (
@@ -7,7 +6,7 @@ from salus.dependencies import (
     get_current_user,
     get_user_service,
 )
-from salus.exceptions import ConflictError
+from salus.exceptions import ApiError, ConflictError
 from salus.models.user import User
 from salus.services._helpers import uid
 from salus.services.api_token import ApiTokenService
@@ -101,7 +100,7 @@ async def api_change_password(
             uid(current_user), body.current_password, body.new_password
         )
     except ConflictError as exc:
-        return JSONResponse(status_code=400, content={"error": exc.message})
+        raise ApiError(code="wrong_password", message=exc.message, status_code=400)
     return {"message": "Password changed successfully"}
 
 

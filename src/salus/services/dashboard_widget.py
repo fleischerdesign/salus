@@ -6,11 +6,7 @@ from typing import Protocol, runtime_checkable
 from salus.models.dashboard import DashboardWidget, WidgetSize, WidgetViz
 from salus.models.goal import Goal
 from salus.models import MetricType
-from salus.repositories.protocols import (
-    IDashboardWidgetRepository,
-    IMeasurementRepository,
-    IMetricTypeRepository,
-)
+from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
@@ -318,7 +314,7 @@ class GenericVizBuilder:
         self._unit = unit
 
     def build(self, ctx, user_id, target, color):
-        latest = ctx._measurement_repo.get_latest_by_metric_type(
+        latest = ctx.uow.measurements.get_latest_by_metric_type(
             metric_type_id=ctx._current_metric_id,
             user_id=user_id,
         )
@@ -366,18 +362,14 @@ _VIZ_BUILDERS: dict[str, VizBuilder] = {
 class DashboardWidgetService:
     def __init__(
         self,
-        widget_repo: IDashboardWidgetRepository,
-        metric_type_repo: IMetricTypeRepository,
-        measurement_repo: IMeasurementRepository,
+        uow: IUnitOfWork,
         activity_svc: ActivityAnalysisService,
         sleep_svc: SleepAnalysisService,
         nutrition_svc: NutritionAnalysisService,
         weight_svc: WeightAnalysisService,
         goal_svc: GoalService,
     ) -> None:
-        self._widget_repo = widget_repo
-        self._metric_type_repo = metric_type_repo
-        self._measurement_repo = measurement_repo
+        self.uow = uow
         self._activity = activity_svc
         self._sleep = sleep_svc
         self._nutrition = nutrition_svc
@@ -392,10 +384,10 @@ class DashboardWidgetService:
         self._current_metric_id: str | None = None
 
     def ensure_defaults(self, user_id: str) -> list[DashboardWidget]:
-        existing = self._widget_repo.find_by_user(user_id)
+        existing = self.uow.dashboard_widgets.find_by_user(user_id)
         if existing:
             return existing
-        enabled_metrics = self._metric_type_repo.find_all(user_id)
+        enabled_metrics = self.uow.metric_types.find_all(user_id)
         enabled_metrics = [m for m in enabled_metrics if m.widget_enabled]
         widgets: list[DashboardWidget] = []
         for pos, metric in enumerate(enabled_metrics):
@@ -408,15 +400,15 @@ class DashboardWidgetService:
                 size=WidgetSize(metric.widget_size),
                 config_json=config,
             )
-            self._widget_repo.create(w)
+            self.uow.dashboard_widgets.create(w)
             widgets.append(w)
         return widgets
 
     def list_widgets(self, user_id: str) -> list[DashboardWidget]:
-        return self._widget_repo.find_by_user(user_id)
+        return self.uow.dashboard_widgets.find_by_user(user_id)
 
     def get_widget(self, widget_id: str, user_id: str) -> DashboardWidget:
-        w = self._widget_repo.get_by_id(widget_id)
+        w = self.uow.dashboard_widgets.get_by_id(widget_id)
         if w is None or w.user_id != user_id:
             raise ValueError("Widget not found")
         return w
@@ -424,9 +416,9 @@ class DashboardWidgetService:
     def add_widget(
         self, user_id: str, metric_type_id: str, size: WidgetSize
     ) -> DashboardWidget:
-        existing = self._widget_repo.find_by_user(user_id)
+        existing = self.uow.dashboard_widgets.find_by_user(user_id)
         position = len(existing)
-        metric = self._metric_type_repo.get_by_id(metric_type_id)
+        metric = self.uow.metric_types.get_by_id(metric_type_id)
         viz_type = (
             VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
             if metric
@@ -440,21 +432,21 @@ class DashboardWidgetService:
             size=size,
             config_json=config,
         )
-        return self._widget_repo.create(w)
+        return self.uow.dashboard_widgets.create(w)
 
     def update_widget(
         self, widget_id: str, user_id: str, size: WidgetSize
     ) -> DashboardWidget:
         w = self.get_widget(widget_id, user_id)
         w.size = size
-        return self._widget_repo.update(w)
+        return self.uow.dashboard_widgets.update(w)
 
     def delete_widget(self, widget_id: str, user_id: str) -> None:
         w = self.get_widget(widget_id, user_id)
-        self._widget_repo.delete(w)
+        self.uow.dashboard_widgets.delete(w)
 
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
-        self._widget_repo.reorder(user_id, ordered_ids)
+        self.uow.dashboard_widgets.reorder(user_id, ordered_ids)
 
     def widget_data(
         self, widget: DashboardWidget, user_id: str, date: str | None = None
@@ -464,7 +456,7 @@ class DashboardWidgetService:
         Always returns a WidgetViz with at least ``title`` and ``type``
         set — even when no data exists (``empty=True``).
         """
-        metric = self._metric_type_repo.get_by_id(widget.metric_type_id)
+        metric = self.uow.metric_types.get_by_id(widget.metric_type_id)
         if metric is None:
             return WidgetViz(
                 type="number",
@@ -520,7 +512,7 @@ class DashboardWidgetService:
         if self._goals_cache is None:
             self._goals_cache = self._goal.find_all(user_id)
         if not self._metrics_cache:
-            for mt in self._metric_type_repo.find_all(user_id):
+            for mt in self.uow.metric_types.find_all(user_id):
                 if mt.id is not None:
                     self._metrics_cache[mt.id] = mt
 

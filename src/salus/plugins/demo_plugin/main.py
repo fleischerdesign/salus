@@ -46,7 +46,7 @@ class DemoPlugin(BasePlugin):
         )
 
     # HookAiCoachContext
-    def get_additional_prompt_context(self, user_id: int, date_str: str) -> str:
+    def get_additional_prompt_context(self, user_id: str, date_str: str) -> str:
         return "Note: The user is currently participating in the 'Demo Challenge' and aims to walk extra steps."
 
     # HookTranslation

@@ -1,10 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from salus.services.command_registry import CommandResult
-
 
 class NotFoundError(Exception):
     def __init__(self, message: str = "Resource not found") -> None:
@@ -44,22 +39,23 @@ class ApiError(Exception):
         super().__init__(message)
 
 
-_CMD_STATUS_MAP: dict[str, int] = {
-    "created": 201,
-    "updated": 200,
-    "deleted": 204,
-    "not_found": 404,
-    "forbidden": 403,
-    "error": 400,
+_STATUS_MAP: dict[str, tuple[int, str | None]] = {
+    "created": (201, None),
+    "updated": (200, None),
+    "deleted": (204, None),
+    "ok": (200, None),
+    "not_found": (404, None),
+    "forbidden": (403, None),
+    "conflict": (409, None),
+    "error": (400, None),
 }
 
 
-def raise_from_command_result(result: CommandResult) -> None:
-    if result.status in ("created", "updated", "ok"):
+def raise_from_command_result(status: str, message: str | None = None) -> None:
+    entry = _STATUS_MAP.get(status)
+    if entry is None:
+        raise ApiError(code=status, message=message or status, status_code=500)
+    http_status, override_message = entry
+    if http_status in (200, 201, 204):
         return
-    if result.status == "deleted":
-        return
-    status_code = _CMD_STATUS_MAP.get(result.status, 500)
-    code = result.status
-    message = result.message or result.status
-    raise ApiError(code=code, message=message, status_code=status_code)
+    raise ApiError(code=status, message=override_message or message or status, status_code=http_status)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from sqlmodel import select
 
 from salus.dependencies import get_current_user, get_unit_of_work
-from salus.exceptions import ApiError
+from salus.exceptions import ApiError, raise_from_command_result
 from salus.models.user import User
 from salus.repositories.entity_meta import ENTITY_META, EntityMeta, ENTITY_REGISTRY
 from salus.repositories.unit_of_work import IUnitOfWork
@@ -102,10 +102,7 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         op = SyncOperation(type="create", entity=meta.name, data=body)
         results = pipeline.process([op])
         result = results[0]
-        if result.status == "error":
-            raise ApiError(code="error", message=result.message or "Create failed", status_code=400)
-        if result.status in ("forbidden", "not_found", "conflict"):
-            raise ApiError(code=result.status, message=result.message or result.status, status_code=400)
+        raise_from_command_result(result.status, result.message)
         return result.record or {}
 
     @router.patch("/{item_id}")
@@ -120,10 +117,7 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         op = SyncOperation(type="update", entity=meta.name, id=item_id, data=body)
         results = pipeline.process([op])
         result = results[0]
-        if result.status == "error":
-            raise ApiError(code="error", message=result.message or "Update failed", status_code=400)
-        if result.status in ("forbidden", "not_found", "conflict"):
-            raise ApiError(code=result.status, message=result.message or result.status, status_code=400)
+        raise_from_command_result(result.status, result.message)
         return result.record or {}
 
     @router.delete("/{item_id}", status_code=204)
@@ -142,10 +136,7 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         op = SyncOperation(type="delete", entity=meta.name, id=item_id)
         results = pipeline.process([op])
         result = results[0]
-        if result.status == "error":
-            raise ApiError(code="error", message=result.message or "Delete failed", status_code=400)
-        if result.status == "forbidden":
-            raise ApiError(code="forbidden", message="Forbidden", status_code=403)
+        raise_from_command_result(result.status, result.message)
         return Response(status_code=204)
 
     app.include_router(router)

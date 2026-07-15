@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Response
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from salus.dependencies import (
@@ -7,7 +6,6 @@ from salus.dependencies import (
     get_leaderboard_service,
     get_sharing_service,
 )
-from salus.exceptions import NotFoundError, ConflictError
 from salus.models.user import User
 from salus.services._helpers import uid
 from salus.services.leaderboard import LeaderboardService
@@ -207,16 +205,12 @@ async def api_connections_create(
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
-    try:
-        rel = sharing_svc.create_relationship(
-            owner_id=uid(current_user),
+    rel = sharing_svc.create_relationship(
+        owner_id=uid(current_user),
             grantee_handle=body.grantee_handle,
             metric_type_id=body.metric_type_id,
             aggregation_level=body.aggregation_level,
         )
-    except (NotFoundError, ConflictError) as exc:
-        status = 404 if isinstance(exc, NotFoundError) else 409
-        return JSONResponse(status_code=status, content={"error": exc.message})
 
     return {
         "id": rel.id,

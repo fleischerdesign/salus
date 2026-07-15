@@ -106,7 +106,7 @@ async def lifespan(app: FastAPI):
 
     app.state.plugin_manager = plugin_manager
     app.state.event_bus = InMemoryEventBus()
-    app.state.background_ingestion = BackgroundIngestionService(lifespan_engine)
+    app.state.background_ingestion = BackgroundIngestionService(lambda: Session(lifespan_engine))
 
     for trans_hook in plugin_manager.registry.translations:
         try:

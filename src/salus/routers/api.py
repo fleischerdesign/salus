@@ -37,8 +37,8 @@ def _metric_response(m) -> MetricTypeResponse:
 
 def _entry_response(e) -> EntryResponse:
     return EntryResponse(
-        id=e.id or 0,
-        metric_type_id=e.metric_type_id or 0,
+        id=e.id or "",
+        metric_type_id=e.metric_type_id or "",
         value=e.display_value,
         timestamp=e.start_time,
         notes=e.notes,

@@ -72,7 +72,7 @@ def test_login_invalid_credentials(client):
         json={"username": "nobody", "password": "wrong"},
     )
     assert response.status_code == 401
-    assert "Invalid" in response.json()["error"]
+    assert "Invalid" in response.json()["error"]["message"]
 
 
 def test_logout_clears_cookie(client):

@@ -11,7 +11,6 @@ from salus.exceptions import AuthenticationError, ForbiddenError
 from salus.models.user import User
 from salus.repositories.api_token import ApiTokenRepository
 from salus.repositories.dashboard import DashboardWidgetRepository
-from salus.repositories.goal import GoalRepository
 from salus.repositories.measurement import MeasurementRepository
 from salus.repositories.metric_type import MetricTypeRepository
 from salus.repositories.system_config import SystemConfigRepository
@@ -72,6 +71,29 @@ from salus.services.event_bus import EventBus
 limiter = Limiter(key_func=get_remote_address)
 
 
+def get_plugin_manager(request: Request) -> PluginManager | None:
+    return getattr(request.app.state, "plugin_manager", None)
+
+
+def get_plugin_registry(request: Request) -> HookRegistry | None:
+    manager = get_plugin_manager(request)
+    return manager.registry if manager else None
+
+
+def get_unit_of_work(
+    session: Session = Depends(get_session),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
+) -> Generator[IUnitOfWork, None, None]:
+    uow = SqlUnitOfWork(session, registry=registry)
+    try:
+        yield uow
+    except Exception:
+        uow.rollback()
+        raise
+    else:
+        uow.commit()
+
+
 def get_user_repo(session: Session = Depends(get_session)) -> UserRepository:
     return UserRepository(session)
 
@@ -81,10 +103,9 @@ def get_api_token_repo(session: Session = Depends(get_session)) -> ApiTokenRepos
 
 
 def get_api_token_service(
-    api_token_repo: ApiTokenRepository = Depends(get_api_token_repo),
-    user_repo: UserRepository = Depends(get_user_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> ApiTokenService:
-    return ApiTokenService(api_token_repo, user_repo)
+    return ApiTokenService(uow)
 
 
 async def verify_webhook_token(
@@ -151,15 +172,6 @@ def get_metric_type_repo(
     return MetricTypeRepository(session)
 
 
-def get_plugin_manager(request: Request) -> PluginManager | None:
-    return getattr(request.app.state, "plugin_manager", None)
-
-
-def get_plugin_registry(request: Request) -> HookRegistry | None:
-    manager = get_plugin_manager(request)
-    return manager.registry if manager else None
-
-
 def get_measurement_repo(
     session: Session = Depends(get_session),
     registry: HookRegistry | None = Depends(get_plugin_registry),
@@ -168,11 +180,9 @@ def get_measurement_repo(
 
 
 def get_user_service(
-    repo: UserRepository = Depends(get_user_repo),
-    identity_repo: UserIdentityRepository = Depends(get_user_identity_repo),
-    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> UserService:
-    return UserService(repo, identity_repo, metric_type_repo)
+    return UserService(uow)
 
 
 def _build_oidc_providers(user_svc: UserService) -> dict[str, OidcAuthProvider]:
@@ -235,15 +245,16 @@ def get_auth_service(
 
 
 def get_metric_type_service(
-    repo: MetricTypeRepository = Depends(get_metric_type_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> MetricTypeService:
-    return MetricTypeService(repo)
+    return MetricTypeService(uow)
 
 
 def get_measurement_service(
-    repo: MeasurementRepository = Depends(get_measurement_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+    registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> MeasurementService:
-    return MeasurementService(repo)
+    return MeasurementService(uow, registry=registry)
 
 
 def get_metric_type_mapping_service(
@@ -265,16 +276,11 @@ def get_webhook_ingestion_service(
     )
 
 
-def get_goal_repo(session: Session = Depends(get_session)) -> GoalRepository:
-    return GoalRepository(session)
-
-
 def get_goal_service(
-    repo: GoalRepository = Depends(get_goal_repo),
-    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
     registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> GoalService:
-    return GoalService(repo, measurement_repo, registry=registry)
+    return GoalService(uow, registry=registry)
 
 
 def get_export_service(
@@ -323,9 +329,7 @@ def get_dashboard_widget_repo(
 
 
 def get_dashboard_widget_service(
-    widget_repo: DashboardWidgetRepository = Depends(get_dashboard_widget_repo),
-    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
-    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
     activity_svc: ActivityAnalysisService = Depends(get_activity_analysis_service),
     sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
     nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
@@ -333,9 +337,7 @@ def get_dashboard_widget_service(
     goal_svc: GoalService = Depends(get_goal_service),
 ) -> DashboardWidgetService:
     return DashboardWidgetService(
-        widget_repo,
-        metric_type_repo,
-        measurement_repo,
+        uow,
         activity_svc,
         sleep_svc,
         nutrition_svc,
@@ -367,43 +369,15 @@ def require_admin(
 
 
 def get_admin_service(
-    user_repo: UserRepository = Depends(get_user_repo),
-    metric_type_repo: MetricTypeRepository = Depends(get_metric_type_repo),
-    measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
-    api_token_repo: ApiTokenRepository = Depends(get_api_token_repo),
-    goal_repo: GoalRepository = Depends(get_goal_repo),
-    dashboard_widget_repo: DashboardWidgetRepository = Depends(
-        get_dashboard_widget_repo
-    ),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> AdminService:
-    return AdminService(
-        user_repo,
-        metric_type_repo,
-        measurement_repo,
-        api_token_repo,
-        goal_repo,
-        dashboard_widget_repo,
-    )
+    return AdminService(uow)
 
 
 def get_system_config_repo(
     session: Session = Depends(get_session),
 ) -> SystemConfigRepository:
     return SystemConfigRepository(session)
-
-
-def get_unit_of_work(
-    session: Session = Depends(get_session),
-    registry: HookRegistry | None = Depends(get_plugin_registry),
-) -> Generator[IUnitOfWork, None, None]:
-    uow = SqlUnitOfWork(session, registry=registry)
-    try:
-        yield uow
-    except Exception:
-        uow.rollback()
-        raise
-    else:
-        uow.commit()
 
 
 def get_config_service(

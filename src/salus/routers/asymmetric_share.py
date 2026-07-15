@@ -46,7 +46,7 @@ async def list_recipients(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_recipient(
-    recipient_id: int,
+    recipient_id: str,
     current_user: User = Depends(get_current_user),
     service: AsymmetricShareService = Depends(get_asymmetric_share_service),
 ):

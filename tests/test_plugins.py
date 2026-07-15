@@ -204,7 +204,7 @@ def test_ai_coach_context_hook_injection(session: Session):
     registry = HookRegistry()
 
     class ExtraInsightContext:
-        def get_additional_prompt_context(self, user_id: int, date_str: str) -> str:
+        def get_additional_prompt_context(self, user_id: str, date_str: str) -> str:
             return "PLUGINS_ROCK"
 
     registry.register(ExtraInsightContext())

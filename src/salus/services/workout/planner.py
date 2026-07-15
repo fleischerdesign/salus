@@ -45,7 +45,6 @@ class WorkoutService:
                 user_id=user_id,
             )
             self.uow.exercises.add(ex)
-            self.uow.commit()
             return ex
 
     def update_exercise(self, user_id: str, exercise_id: str, data: ExerciseCreate) -> Exercise:
@@ -68,7 +67,6 @@ class WorkoutService:
             ex.description = data.description
             ex.instructions = data.instructions
             ex.video_url = data.video_url
-            self.uow.commit()
             return ex
 
     def get_exercise_catalog(self, user_id: str) -> list[Exercise]:
@@ -90,7 +88,6 @@ class WorkoutService:
             if ex.user_id != user_id:
                 raise ForbiddenError("Cannot delete system default exercise.")
             self.uow.exercises.delete(ex)
-            self.uow.commit()
 
     # --------------------------------------------------------------------------
     # Plan CRUD
@@ -105,7 +102,6 @@ class WorkoutService:
                 autoreg_mode=data.autoreg_mode,
             )
             self.uow.workout_plans.add(plan)
-            self.uow.commit()
 
             # Add plan exercises
             plan_id = plan.id
@@ -129,7 +125,6 @@ class WorkoutService:
                 )
                 self.uow.workout_plan_exercises.add(plan_ex)
 
-            self.uow.commit()
             return plan
 
     def get_plan(self, user_id: str, plan_id: str) -> WorkoutPlan:
@@ -146,7 +141,6 @@ class WorkoutService:
     def reorder_plans(self, user_id: str, ordered_ids: list[str]) -> None:
         with self.uow:
             self.uow.workout_plans.reorder(user_id, ordered_ids)
-            self.uow.commit()
 
     def update_plan(
         self,
@@ -201,7 +195,6 @@ class WorkoutService:
                 plan_pk, new_exercises
             )
 
-            self.uow.commit()
             return plan
 
     def delete_plan(self, user_id: str, plan_id: str) -> None:
@@ -209,8 +202,7 @@ class WorkoutService:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:
                 raise NotFoundError("Workout plan not found.")
-            self.uow.workout_plans.delete(plan)
-            self.uow.commit()
+        self.uow.workout_plans.delete(plan)
 
     # --------------------------------------------------------------------------
     # Workout Sessions Logging
@@ -243,7 +235,6 @@ class WorkoutService:
                 recovery_score=recovery_score,
             )
             self.uow.workout_sessions.add(session)
-            self.uow.commit()
             return session
 
     def get_active_session(self, user_id: str) -> Optional[WorkoutSession]:
@@ -275,7 +266,6 @@ class WorkoutService:
                 rpe=entry.rpe,
             )
             self.uow.workout_log_entries.add(log)
-            self.uow.commit()
             return log
 
     def delete_logged_set(
@@ -299,7 +289,6 @@ class WorkoutService:
             )
             if entry:
                 self.uow.session.delete(entry)
-                self.uow.commit()
 
     def complete_session(
         self, user_id: str, session_id: str, notes: Optional[str] = None
@@ -321,7 +310,6 @@ class WorkoutService:
             if notes is not None:
                 session.notes = notes
             self.uow.workout_sessions.update(session)
-            self.uow.commit()
             return session
 
     def get_recent_sessions(

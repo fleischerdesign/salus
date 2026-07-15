@@ -10,10 +10,10 @@ from salus.dependencies import (
     get_insight_service,
     get_measurement_service,
     get_notification_service,
-    get_user_repo,
+    get_user_service,
 )
+from salus.models.goal import GoalDirection, GoalFrequency
 from salus.models.user import User
-from salus.repositories.user import UserRepository
 from salus.schemas.analytics import InsightResponse
 from salus.schemas.circadian import CircadianProfileCreate
 from salus.schemas.goal import GoalCreate
@@ -25,6 +25,7 @@ from salus.services.goal import GoalService
 from salus.services.insight.service import InsightService
 from salus.services.measurement import MeasurementService
 from salus.services.notification import NotificationService
+from salus.services.user import UserService
 
 router = APIRouter(prefix="/api/v1")
 
@@ -181,10 +182,9 @@ async def api_mark_all_notifications_read(
 @router.post("/onboarding/dismiss", status_code=204)
 async def api_dismiss_onboarding(
     current_user: User = Depends(get_current_user),
-    user_repo: UserRepository = Depends(get_user_repo),
+    user_service: UserService = Depends(get_user_service),
 ):
-    current_user.onboarding_dismissed = True
-    user_repo.update(current_user)
+    user_service.dismiss_onboarding(uid(current_user))
     return Response(status_code=204)
 
 
@@ -226,8 +226,6 @@ async def api_onboarding_goal(
     current_user: User = Depends(get_current_user),
     goal_service: GoalService = Depends(get_goal_service),
 ):
-    from salus.models.goal import GoalDirection, GoalFrequency
-
     data = GoalCreate(
         metric_type_id=body.metric_type_id,
         target_value=body.target_value,

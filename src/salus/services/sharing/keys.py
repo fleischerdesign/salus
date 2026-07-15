@@ -61,7 +61,6 @@ class FederationKeyService:
                 is_secret=False,
             )
 
-            self.uow.commit()
             return priv_pem, pub_pem
 
     def resolve_actor_public_key(self, sender_handle: str) -> str:

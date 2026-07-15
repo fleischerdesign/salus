@@ -14,7 +14,7 @@ from salus.dependencies import (
     get_plugin_manager,
     require_admin,
 )
-from salus.exceptions import ConflictError
+from salus.exceptions import ApiError
 from salus.models.user import User
 from salus.services._helpers import uid
 from salus.services.admin import AdminService
@@ -203,10 +203,7 @@ async def api_admin_delete_user(
     current_user: User = Depends(require_admin),
     admin_svc: AdminService = Depends(get_admin_service),
 ):
-    try:
-        admin_svc.delete_user(user_id, uid(current_user))
-    except ConflictError as exc:
-        return JSONResponse(status_code=409, content={"error": exc.message})
+    admin_svc.delete_user(user_id, uid(current_user))
     return Response(status_code=204)
 
 
@@ -245,10 +242,7 @@ async def api_admin_config_update(
     current_user: User = Depends(require_admin),
     config_svc: ConfigService = Depends(get_config_service),
 ):
-    try:
-        updated = config_svc.set(key, body.value)
-    except ConflictError as exc:
-        return JSONResponse(status_code=409, content={"error": exc.message})
+    updated = config_svc.set(key, body.value)
     return {
         "key": updated.key,
         "value": updated.value,
@@ -280,7 +274,7 @@ async def api_admin_toggle_plugin(
     plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
 ):
     if plugin_mgr is None:
-        return JSONResponse(status_code=404, content={"error": "Plugin manager not available"})
+        raise ApiError(code="unavailable", message="Plugin manager not available", status_code=500)
     plugin_mgr.toggle_plugin(plugin_id, body.enable)
     plugins = plugin_mgr.get_discovered_plugins()
     return plugins
@@ -293,7 +287,7 @@ async def api_admin_upload_plugin(
     plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
 ):
     if plugin_mgr is None:
-        return JSONResponse(status_code=404, content={"error": "Plugin manager not available"})
+        raise ApiError(code="unavailable", message="Plugin manager not available", status_code=500)
     try:
         content = await file.read()
     except Exception as exc:
@@ -315,7 +309,7 @@ async def api_admin_uninstall_plugin(
     plugin_mgr: PluginManager | None = Depends(get_plugin_manager),
 ):
     if plugin_mgr is None:
-        return JSONResponse(status_code=404, content={"error": "Plugin manager not available"})
+        raise ApiError(code="unavailable", message="Plugin manager not available", status_code=500)
     plugin_mgr.uninstall_plugin(plugin_id)
     return Response(status_code=204)
 

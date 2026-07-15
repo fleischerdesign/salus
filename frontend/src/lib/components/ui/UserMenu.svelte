@@ -2,7 +2,14 @@
   import { auth } from '$stores/auth.svelte';
   import { rawPost } from '$lib/api/client';
   import Icon from '$components/ui/Icon.svelte';
+  import StatusDot from '$components/ui/StatusDot.svelte';
   import { goto } from '$app/navigation';
+
+  interface Props {
+    dotStatus?: 'active' | 'pending' | 'error' | 'unknown' | 'syncing';
+  }
+
+  let { dotStatus = undefined }: Props = $props();
 
   let open = $state(false);
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -43,9 +50,12 @@
     type="button"
   >
     <span
-      class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-[13px] font-semibold text-white uppercase"
+      class="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-[13px] font-semibold text-white uppercase"
     >
       {(auth.user?.display_name || auth.user?.username || 'U')[0]}
+      {#if dotStatus}
+        <StatusDot status={dotStatus} size="sm" class="absolute top-[1px] right-[1px] ring-2 ring-surface-0" />
+      {/if}
     </span>
   </button>
   <div class={menuClass}>

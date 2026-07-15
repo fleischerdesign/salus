@@ -5,7 +5,7 @@ from typing import Any
 
 from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
-from salus.repositories.protocols import IMeasurementRepository
+from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.measurement import MeasurementCreate
 from salus.services.plugin.hooks import HookRegistry
 
@@ -14,13 +14,13 @@ logger = logging.getLogger("salus.services.measurement")
 
 class MeasurementService:
     def __init__(
-        self, repo: IMeasurementRepository, registry: HookRegistry | None = None
+        self, uow: IUnitOfWork, registry: HookRegistry | None = None
     ) -> None:
-        self.repo = repo
+        self.uow = uow
         self._registry = registry
 
     def get(self, measurement_id: str, user_id: str) -> Measurement:
-        obj = self.repo.get_by_id(measurement_id)
+        obj = self.uow.measurements.get_by_id(measurement_id)
         if obj is None:
             raise NotFoundError(f"Measurement {measurement_id} not found")
         if obj.user_id != user_id:
@@ -30,7 +30,7 @@ class MeasurementService:
     def find_by_metric_type(
         self, metric_type_id: str, user_id: str
     ) -> list[Measurement]:
-        return self.repo.find_by_metric_type(metric_type_id, user_id)
+        return self.uow.measurements.find_by_metric_type(metric_type_id, user_id)
 
     def find_by_metric_type_paginated(
         self,
@@ -40,7 +40,7 @@ class MeasurementService:
         per_page: int = 25,
     ) -> tuple[list[Measurement], int, int]:
         offset = (page - 1) * per_page
-        entries, total = self.repo.find_by_metric_type_paginated(
+        entries, total = self.uow.measurements.find_by_metric_type_paginated(
             metric_type_id, user_id, offset, per_page
         )
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
@@ -51,8 +51,8 @@ class MeasurementService:
     ) -> dict[str, dict[str, Any]]:
         result: dict[str, dict[str, Any]] = {}
         for mid in metric_ids:
-            latest = self.repo.get_latest_by_metric_type(mid, user_id)
-            count = self.repo.count_by_metric_type(mid, user_id)
+            latest = self.uow.measurements.get_latest_by_metric_type(mid, user_id)
+            count = self.uow.measurements.count_by_metric_type(mid, user_id)
             result[mid] = {
                 "latest_value": latest.display_value if latest else None,
                 "latest_date": latest.start_time.strftime("%Y-%m-%d %H:%M")
@@ -63,7 +63,7 @@ class MeasurementService:
         return result
 
     def find_recent(self, user_id: str, limit: int = 20) -> list[Measurement]:
-        return self.repo.find_recent_entries(user_id, limit)
+        return self.uow.measurements.find_recent_entries(user_id, limit)
 
     def create(
         self, data: MeasurementCreate, metric_type_id: str, user_id: str
@@ -77,7 +77,7 @@ class MeasurementService:
             start_time=data.timestamp or datetime.now(timezone.utc),
             notes=data.notes,
         )
-        res = self.repo.create(obj)
+        res = self.uow.measurements.create(obj)
         if self._registry:
             for sub in self._registry.event_subscribers:
                 try:
@@ -96,8 +96,8 @@ class MeasurementService:
         if data.timestamp is not None:
             obj.start_time = data.timestamp
         obj.notes = data.notes
-        return self.repo.update(obj)
+        return self.uow.measurements.update(obj)
 
     def delete(self, measurement_id: str, user_id: str) -> None:
         obj = self.get(measurement_id, user_id)
-        self.repo.delete(obj)
+        self.uow.measurements.delete(obj)

@@ -5,7 +5,7 @@ from salus.exceptions import NotFoundError
 from salus.models.analytics import GoalProgress
 from salus.models.goal import Goal, GoalDirection, GoalFrequency
 from salus.models.measurement import Measurement
-from salus.repositories.protocols import IGoalRepository, IMeasurementRepository
+from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.goal import GoalCreate
 from salus.services.analytics.calculations import compute_goal_progress
 from salus.services.plugin.hooks import HookRegistry
@@ -16,16 +16,14 @@ logger = logging.getLogger("salus.services.goal")
 class GoalService:
     def __init__(
         self,
-        repo: IGoalRepository,
-        measurement_repo: IMeasurementRepository,
+        uow: IUnitOfWork,
         registry: HookRegistry | None = None,
     ) -> None:
-        self._repo = repo
-        self._measurement_repo = measurement_repo
+        self.uow = uow
         self._registry = registry
 
     def get(self, goal_id: str, user_id: str) -> Goal:
-        goal = self._repo.get_by_id(goal_id)
+        goal = self.uow.goals.get_by_id(goal_id)
         if goal is None:
             raise NotFoundError(f"Goal {goal_id} not found")
         if goal.user_id != user_id:
@@ -33,7 +31,7 @@ class GoalService:
         return goal
 
     def find_all(self, user_id: str) -> list[Goal]:
-        return self._repo.find_by_user(user_id)
+        return self.uow.goals.find_by_user(user_id)
 
     def create(self, data: GoalCreate, user_id: str) -> Goal:
         goal = Goal(
@@ -44,14 +42,14 @@ class GoalService:
             frequency=data.frequency,
             deadline=data.deadline,
         )
-        return self._repo.create(goal)
+        return self.uow.goals.create(goal)
 
     def delete(self, goal_id: str, user_id: str) -> None:
         goal = self.get(goal_id, user_id)
-        self._repo.delete(goal)
+        self.uow.goals.delete(goal)
 
     def compute_progress(self, goal: Goal) -> GoalProgress:
-        entries = self._measurement_repo.find_by_metric_type(
+        entries = self.uow.measurements.find_by_metric_type(
             goal.metric_type_id, goal.user_id
         )
 

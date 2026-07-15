@@ -27,7 +27,6 @@ class CircadianService:
                     configured_chronotype="intermediate",
                 )
                 self.uow.circadian_profiles.add(profile)
-                self.uow.commit()
             return profile
 
     def save_profile(
@@ -44,7 +43,6 @@ class CircadianService:
             profile.timezone_offset_hours = data.timezone_offset_hours
             profile.configured_chronotype = data.configured_chronotype
 
-            self.uow.commit()
             return profile
 
     def calculate_solar_times(

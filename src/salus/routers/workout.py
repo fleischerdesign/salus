@@ -1,10 +1,10 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, status
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from salus.dependencies import get_current_user, get_workout_service
+from salus.exceptions import ApiError
 from salus.models.user import User
 from salus.schemas.workout import (
     ExerciseCreate,
@@ -45,7 +45,7 @@ async def create_exercise(
     try:
         return service.create_exercise(user_id=uid(current_user), data=data)
     except ValueError as e:
-        return JSONResponse(status_code=400, content={"detail": str(e)})
+        raise ApiError(code="validation_error", message=str(e), status_code=400)
 
 
 @router.get(
@@ -68,7 +68,7 @@ async def get_exercise(
 ):
     ex = service.get_exercise(user_id=uid(current_user), exercise_id=exercise_id)
     if not ex:
-        return JSONResponse(status_code=404, content={"detail": "Exercise not found"})
+        raise ApiError(code="not_found", message="Exercise not found", status_code=404)
     return ex
 
 
@@ -101,7 +101,7 @@ async def get_plan(
 ):
     plan = service.get_plan(user_id=uid(current_user), plan_id=plan_id)
     if not plan:
-        return JSONResponse(status_code=404, content={"detail": "Plan not found"})
+        raise ApiError(code="not_found", message="Plan not found", status_code=404)
     return plan
 
 

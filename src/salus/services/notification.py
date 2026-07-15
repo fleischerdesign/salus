@@ -26,7 +26,6 @@ class NotificationService:
                 category=category,
             )
             self.uow.notifications.create(notif)
-            self.uow.commit()
             logger.info(f"Created notification '{title}' for user {user_id}")
             return notif
 
@@ -46,10 +45,8 @@ class NotificationService:
 
             notif.is_read = True
             self.uow.notifications.update(notif)
-            self.uow.commit()
             return notif
 
     def mark_all_as_read(self, user_id: str) -> None:
         with self.uow:
             self.uow.notifications.mark_all_read(user_id)
-            self.uow.commit()

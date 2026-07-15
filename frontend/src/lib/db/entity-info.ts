@@ -1,35 +1,11 @@
 import { getAuthHeaders } from '$lib/api/headers';
+import { db } from './database';
 
 let _entityNames: Set<string> | null = null;
 let _commandNames: Set<string> | null = null;
 
-const HARDCODED_FALLBACK: Set<string> = new Set([
-    'metric_type',
-    'measurement',
-    'goal',
-    'circadian_profile',
-    'exercise',
-    'workout_plan',
-    'workout_plan_exercise',
-    'workout_session',
-    'workout_log_entry',
-    'insight',
-    'notification',
-    'dashboard_widget',
-    'sharing_relationship',
-    'leaderboard_group',
-    'leaderboard_member',
-    'share_recipient',
-    'asymmetric_share',
-    'user_profile',
-    'admin_user',
-    'admin_stats',
-    'system_config',
-    'api_token',
-    'user',
-    'community_activity',
-    'federated_access_log'
-]);
+const META_KEY_ENTITIES = 'sync:entity_names';
+const META_KEY_COMMANDS = 'sync:command_names';
 
 interface SyncManifest {
     entities: Array<{ name: string; strategy: string }>;
@@ -46,24 +22,30 @@ export async function fetchEntityNames(): Promise<Set<string>> {
             const data = (await res.json()) as SyncManifest;
             _entityNames = new Set(data.entities.map((e) => e.name));
             _commandNames = new Set(data.commands);
+            db.meta.put({ key: META_KEY_ENTITIES, value: [..._entityNames] });
+            db.meta.put({ key: META_KEY_COMMANDS, value: [..._commandNames] });
             return _entityNames;
         }
     } catch {
-        /* fall back to hardcoded list */
+        /* network unavailable — fall back to Dexie cache */
     }
 
-    _entityNames = HARDCODED_FALLBACK;
+    const cached = await db.meta.get(META_KEY_ENTITIES);
+    _entityNames = cached?.value ? new Set(cached.value as string[]) : new Set();
     return _entityNames;
 }
 
 export async function fetchCommands(): Promise<Set<string>> {
     if (_commandNames) return _commandNames;
     await fetchEntityNames();
-    return _commandNames ?? new Set();
+    if (_commandNames) return _commandNames;
+    const cached = await db.meta.get(META_KEY_COMMANDS);
+    _commandNames = cached?.value ? new Set(cached.value as string[]) : new Set();
+    return _commandNames;
 }
 
 export function getEntityNames(): Set<string> {
-    return _entityNames ?? HARDCODED_FALLBACK;
+    return _entityNames ?? new Set();
 }
 
 export function resetEntityNames(): void {

@@ -102,10 +102,9 @@ class RelationshipService:
                 status=ConnectionStatus.PENDING,
                 api_token_hash=token_hash,
             )
-            self.uow.sharing_relationships.create(rel)
-            self.uow.commit()
-            object.__setattr__(rel, "raw_token", raw_token)
-            return rel
+        self.uow.sharing_relationships.create(rel)
+        object.__setattr__(rel, "raw_token", raw_token)
+        return rel
 
     def accept_relationship(
         self,
@@ -129,7 +128,6 @@ class RelationshipService:
             rel.status = ConnectionStatus.ACTIVE
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
-            self.uow.commit()
 
             if notify_callback:
                 threading.Thread(
@@ -156,7 +154,6 @@ class RelationshipService:
             rel.status = ConnectionStatus.DECLINED
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
-            self.uow.commit()
             return rel
 
     def list_relationships(self, owner_id: str) -> list[SharingRelationship]:
@@ -171,7 +168,6 @@ class RelationshipService:
             rel.status = ConnectionStatus.REVOKED
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
-            self.uow.commit()
 
     def process_federation_accept(self, token: str, owner_handle: str) -> None:
         token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -184,7 +180,6 @@ class RelationshipService:
             rel.status = ConnectionStatus.ACTIVE
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
-            self.uow.commit()
 
     def get_peer_connections(self, user_id: str) -> list[PeerConnection]:
         peers: dict[str, PeerConnection] = {}

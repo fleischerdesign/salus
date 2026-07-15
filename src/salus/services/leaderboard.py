@@ -59,7 +59,6 @@ class LeaderboardService:
                 status="active",
             )
             self.uow.leaderboard_members.create(member)
-            self.uow.commit()
             return group
 
     def join_by_code(self, user_id: str, invite_code: str) -> LeaderboardGroup:
@@ -81,9 +80,8 @@ class LeaderboardService:
                     raise ConflictError("You are already a member of this challenge")
                 else:
                     existing.status = "active"
-                    self.uow.leaderboard_members.update(existing)
-                    self.uow.commit()
-                    return group
+                self.uow.leaderboard_members.update(existing)
+                return group
 
             # Connection prerequisite check: user must have a connection with group creator
             creator = self.uow.users.get_by_id(group.creator_id)
@@ -114,7 +112,6 @@ class LeaderboardService:
                 status="active",
             )
             self.uow.leaderboard_members.create(member)
-            self.uow.commit()
             return group
 
     def list_my_groups(self, user_id: str) -> list[LeaderboardGroup]:
@@ -277,7 +274,6 @@ class LeaderboardService:
             if not member:
                 raise NotFoundError("You are not a member of this challenge")
             self.uow.leaderboard_members.delete(member)
-            self.uow.commit()
 
     def delete_group(self, creator_id: str, group_id: str) -> None:
         with self.uow:
@@ -286,5 +282,4 @@ class LeaderboardService:
                 raise NotFoundError("Challenge group not found")
             if group.creator_id != creator_id:
                 raise ForbiddenError("Only the creator can disband this challenge")
-            self.uow.leaderboard_groups.delete(group)
-            self.uow.commit()
+        self.uow.leaderboard_groups.delete(group)

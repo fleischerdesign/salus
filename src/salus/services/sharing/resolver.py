@@ -78,7 +78,6 @@ class FederationDataResolver:
                     value_numeric=None,
                     value_json=_json.dumps(data),
                 )
-                self.uow.commit()
 
             return data
 

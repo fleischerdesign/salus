@@ -6552,7 +6552,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                recipient_id: number;
+                recipient_id: string;
             };
             cookie?: never;
         };

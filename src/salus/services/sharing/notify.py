@@ -67,7 +67,6 @@ class PeerNotificationService:
                     rel.last_sync_at = now
                     self.uow.sharing_relationships.update(rel)
                     remote_grantees.append((rel.grantee_handle, rel.api_token_hash))
-            self.uow.commit()
 
         for handle, token_hash in remote_grantees:
             if token_hash:

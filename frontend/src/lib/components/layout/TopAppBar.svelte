@@ -10,6 +10,15 @@
   import NotificationBell from '$components/feedback/NotificationBell.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { useOnline } from '$stores/online.svelte';
+  import { syncEngine } from '$lib/db/sync-engine.svelte';
+
+  const online = useOnline();
+  const dotStatus = $derived.by(() => {
+    if (!online.isOnline) return 'error';
+    if (syncEngine.status === 'syncing') return 'syncing';
+    return 'active';
+  });
 
   const navLinks = [
     { href: '/', icon: 'dashboard', label: 'Dashboard' },
@@ -236,7 +245,7 @@
     <div class="flex items-center gap-2">
       {#if auth.isAuthenticated}
         <NotificationBell />
-        <UserMenu />
+        <UserMenu dotStatus={dotStatus} />
       {:else}
         <Btn href="/auth/login" variant="secondary">Sign In</Btn>
       {/if}

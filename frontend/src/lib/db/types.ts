@@ -340,4 +340,3 @@ export interface ApiToken {
   is_active: boolean;
 }
 
-export type QueueOp = OutboxCrudOp;
