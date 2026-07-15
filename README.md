@@ -126,7 +126,7 @@ See `src/salus/config.py` for the full list.
 ```bash
 # Backend
 uv run uvicorn src.salus.main:app --reload   # dev server
-uv run pytest -v                              # 260 tests
+uv run pytest -v                              # 350+ tests
 uv run ruff check src/                        # lint
 uv run pyright src/                           # type check
 
@@ -137,7 +137,7 @@ npm run build         # production build
 npm run check         # type-check Svelte components
 npm run lint          # lint + format check
 npm run format        # auto-format
-npm run test          # vitest (20 tests)
+npm run test          # vitest (80+ tests)
 
 # Full pre-commit check
 uv run ruff check src/ && uv run pytest -v && uv run pyright src/
@@ -198,7 +198,7 @@ frontend/tests/      ← vitest (Frontend)
 
 - **Dependency Inversion:** Services receive repositories via constructor injection. All wiring lives in `dependencies.py`.
 - **Thin Routers:** Route handlers parse input, call a service, return JSON. No business logic in routers.
-- **Two Write Paths (Frontend):** `mutate()` for entity CRUD via sync push, `mutateDomain()` for domain commands via dedicated HTTP endpoints.
+- **Unified Write Gateway:** `mutate()` with `kind: 'crud'`/`kind: 'command'` — single FIFO outbox, strict temporal ordering via sync push.
 - **Sync Architecture:** Delta-first pull (7-day window), cursor-paginated full sync fallback. SSE live sync with client-side debounce.
 - **Offline-First:** Dexie.js IndexedDB as primary data store. Service worker caches all assets including SPA shell for full offline operation.
 - **Auth Flow:** SPA → `POST /api/v1/auth/login` → `AuthService` → Provider → JWT token. Token stored in localStorage, sent as `Authorization: Bearer`.

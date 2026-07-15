@@ -53,13 +53,14 @@ src/salus/
 │   ├── workout.py       ← Workout JSON API (/api/v1/workouts/*)
 │   ├── asymmetric_share.py ← E2EE share API (/api/v1/shares/*)
 │   ├── open_science.py  ← Open science synthesis API
-│   ├── api.py           ← Legacy API endpoints (metrics, entries, health)
+│   ├── api.py           ← Metrics + Entries REST API (thin routes, UoW-backed)
 │   ├── webhook.py       ← Webhook ingestion
 │   └── export.py        ← CSV/JSON export download
 ├── config.py        ← pydantic-settings singleton
 ├── database.py      ← SQLModel engine + get_session generator
 ├── dependencies.py  ← ALL FastAPI Depends factory functions live here
-├── exceptions.py    ← NotFoundError(message), ConflictError(message)
+├── exceptions.py    ← ApiError + NotFoundError, ConflictError, AuthenticationError,
+│                       ForbiddenError, InvalidCredentialsError, raise_from_command_result
 └── main.py          ← App factory, lifespan, CORS, router mounting, SPA mount
 
 frontend/
@@ -74,10 +75,10 @@ frontend/
 │   │   │   ├── sync-engine.svelte.ts  ← Reactive sync engine ($state)
 │   │   │   ├── sync-pull.ts           ← Paginated pullFull + pullDelta
 │   │   │   ├── offline-service.ts     ← Delta-first syncAll
-│   │   │   ├── mutate.ts / mutate-domain.ts ← Two write paths
+│   │   │   ├── mutate.ts            ← Unified write gateway (crud + command)
 │   │   │   ├── entity-info.ts         ← Dynamic entity discovery from /sync/entities
 │   │   │   ├── live-events.ts         ← EventSource SSE manager (debounced)
-│   │   │   └── types.ts               ← QueueOp, DomainQueueOp
+│   │   │   └── types.ts               ← OutboxOp, OutboxCrudOp, OutboxCommandOp, entity types
 │   │   ├── stores/     ← Svelte 5 runes ($state stores)
 │   │   └── utils/      ← Utilities (diff, formatting)
 │   └── routes/         ← File-based routing (31 pages)
@@ -108,8 +109,8 @@ Services MUST receive their dependencies via constructor. NEVER instantiate a re
 ```python
 # ✅ CORRECT
 class MetricTypeService:
-    def __init__(self, repo: MetricTypeRepository) -> None:
-        self.repo = repo
+    def __init__(self, uow: IUnitOfWork) -> None:
+        self.uow = uow
 
 # ❌ WRONG — violates DIP, untestable
 class MetricTypeService:
@@ -180,9 +181,12 @@ Auth token is automatically added via interceptor.
 
 ### 14. Sync architecture (Local-First)
 
-**Two write paths:**
-- `mutate()` — Entity CRUD via sync push (`POST /api/v1/sync/push`), generic, batchable
-- `mutateDomain()` — Domain Commands (dedicated HTTP, `domainQueue`)
+**Single write path (Unified Outbox):**
+- `mutate()` — Unified write gateway via sync push (`POST /api/v1/sync/push`)
+  - `kind: 'crud'` — Entity CRUD (create/update/delete), batchable
+  - `kind: 'command'` — Domain Commands (start workout, log set, etc.)
+  - All operations enqueued to a single FIFO `outbox` table in Dexie
+  - Flushed in FIFO order preserving temporal dependencies
 
 **Sync pull:**
 - Full sync: `GET /api/v1/sync` → paginated via `?cursor=<base64(json)>`, `WHERE id > cursor ORDER BY id LIMIT batch_size`
@@ -197,7 +201,7 @@ Auth token is automatically added via interceptor.
 **Entity registry:**
 - `entity_meta.py` — single source of truth: `ENTITY_META` list derives `ENTITY_REGISTRY`, `SYNC_ENTITY_SPECS`, `DELTA_ENTITY_SPECS`, `APPEND_ONLY_DELTA_SPECS` + validators
 - `GET /api/v1/sync/entities` — dynamic entity discovery for frontend
-- `entity-info.ts` — fetches from endpoint, caches result, falls back to hardcoded list
+- `entity-info.ts` — fetches from endpoint, caches result in memory + Dexie (no hardcoded fallback)
 
 **Conflict resolution:**
 - Background sync: auto-resolve with server version (last-write-wins)
