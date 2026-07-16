@@ -22,7 +22,7 @@ class _CreateLeaderboardBody(BaseModel):
 
 class _CreateConnectionBody(BaseModel):
     grantee_handle: str
-    metric_type_id: str
+    metric_code: str
     aggregation_level: str = "daily_summary"
 
 
@@ -208,7 +208,7 @@ async def api_connections_create(
     rel = sharing_svc.create_relationship(
         owner_id=uid(current_user),
             grantee_handle=body.grantee_handle,
-            metric_type_id=body.metric_type_id,
+            metric_code=body.metric_code,
             aggregation_level=body.aggregation_level,
         )
 
@@ -216,7 +216,7 @@ async def api_connections_create(
         "id": rel.id,
         "owner_id": rel.owner_id,
         "grantee_handle": rel.grantee_handle,
-        "metric_type_id": rel.metric_type_id,
+        "metric_code": rel.metric_code,
         "aggregation_level": rel.aggregation_level,
         "status": rel.status,
         "created_at": rel.created_at.isoformat() if rel.created_at else None,

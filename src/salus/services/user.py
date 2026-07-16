@@ -1,10 +1,11 @@
 from salus.exceptions import ConflictError, NotFoundError
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition, MetricGroup
+from salus.models.metric_preference import UserMetricPreference
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
-from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
+from salus.services.metric_type_mapping import METRIC_DEFINITIONS, METRIC_GROUPS, DEFAULT_METRIC_PREFERENCES
 from salus.services.password import hash_password, verify_password
 
 
@@ -17,31 +18,39 @@ class UserService:
         return len(all_users) == 0
 
     def _seed_default_metric_types(self, user_id: str) -> None:
-        for (
-            name,
-            unit,
-            data_type,
-            color,
-            source_data_type,
-            icon,
-            widget_size,
-            widget_enabled,
-        ) in DEFAULT_METRIC_TYPES:
-            existing = self.uow.metric_types.find_by_name_and_user(name, user_id)
+        session = self.uow.session
+
+        # Seed global metric groups (idempotent)
+        for group_data in METRIC_GROUPS:
+            if session.get(MetricGroup, group_data["key"]) is None:
+                session.add(MetricGroup(
+                    key=group_data["key"], name=group_data["name"],
+                    icon=group_data["icon"], input_mode=group_data.get("input_mode", "individual")
+                ))
+
+        # Seed global metric definitions (idempotent)
+        for md_data in METRIC_DEFINITIONS:
+            if session.get(MetricDefinition, md_data["code"]) is None:
+                session.add(MetricDefinition(**md_data))
+
+        # Seed user preferences
+        for p in DEFAULT_METRIC_PREFERENCES:
+            existing = self.uow.metric_preferences.find_by_user_and_code(
+                user_id, p["code"]
+            )
             if existing is None:
-                mt = MetricType(
-                    name=name,
-                    unit=unit,
-                    data_type=data_type,
-                    color=color,
-                    user_id=user_id,
-                    is_system=True,
-                    source_data_type=source_data_type,
-                    icon=icon,
-                    widget_size=widget_size,
-                    widget_enabled=widget_enabled,
+                self.uow.metric_preferences.create(
+                    UserMetricPreference(
+                        user_id=user_id,
+                        metric_code=p["code"],
+                        enabled=p.get("enabled", True),
+                        color=p.get("color", "#4f46e5"),
+                        icon=p.get("icon", "monitoring"),
+                        widget_size=p.get("widget_size", "medium"),
+                        widget_enabled=p.get("widget_enabled", False),
+                        position=p.get("position", 0),
+                    )
                 )
-                self.uow.metric_types.create(mt)
 
     def get_by_id(self, user_id: str) -> User:
         user = self.uow.users.get_by_id(user_id)

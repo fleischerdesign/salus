@@ -206,12 +206,12 @@ export async function fetchCircadianAdvice(
   const tzOffset = profile?.timezone_offset_hours ?? 1;
   const chronotype = profile?.configured_chronotype ?? 'intermediate';
 
-  const metricTypes = await db.metric_type.filter((mt) => mt.name === 'Sleep').toArray();
+  const metricTypes = await db.metric_definition.where('source_data_type').equals('sleep').toArray();
   const sleepMT = metricTypes[0];
-  const sleepMeasurements = sleepMT?.id
+  const sleepMeasurements = sleepMT?.code
     ? await db.measurement
-        .where('metric_type_id')
-        .equals(sleepMT.id)
+        .where('metric_code')
+        .equals(sleepMT.code)
         .filter((m) => !m.deleted_at && m.end_time != null)
         .toArray()
     : [];

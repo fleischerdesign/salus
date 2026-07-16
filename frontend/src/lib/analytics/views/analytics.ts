@@ -514,9 +514,7 @@ export function useGoalForecast(goalId: string) {
     const goal = await db.goal.get(goalId);
     if (!goal) return null;
     const measurements = await db.measurement
-      .filter(
-        (m) => !m.deleted_at && m.value_numeric != null && m.metric_type_id === goal.metric_type_id
-      )
+      .filter((m) => !m.deleted_at && m.value_numeric != null && m.metric_code === goal.metric_code)
       .toArray();
 
     measurements.sort(

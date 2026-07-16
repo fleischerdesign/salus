@@ -113,12 +113,12 @@ def test_event_subscriber_hook_firing(session: Session):
     parser = FlexiblePayloadParser()
     # Resolve repositories
     from salus.repositories.measurement import MeasurementRepository
-    from salus.repositories.metric_type import MetricTypeRepository
-    from salus.services.metric_type_mapping import MetricTypeMappingService
+    from salus.repositories.metric_definition import MetricDefinitionRepository
+    from salus.services.metric_type_mapping import MetricDefinitionMappingService
     
     m_repo = MeasurementRepository(session, registry=registry)
-    mt_repo = MetricTypeRepository(session)
-    mapping_svc = MetricTypeMappingService(mt_repo)
+    mt_repo = MetricDefinitionRepository(session)
+    mapping_svc = MetricDefinitionMappingService(mt_repo)
     
     ingest_svc = WebhookIngestionService(parser, m_repo, mapping_svc, registry=registry)
 
@@ -147,12 +147,12 @@ def test_ingestion_interceptor_hook(session: Session):
 
     parser = FlexiblePayloadParser()
     from salus.repositories.measurement import MeasurementRepository
-    from salus.repositories.metric_type import MetricTypeRepository
-    from salus.services.metric_type_mapping import MetricTypeMappingService
+    from salus.repositories.metric_definition import MetricDefinitionRepository
+    from salus.services.metric_type_mapping import MetricDefinitionMappingService
     
     m_repo = MeasurementRepository(session, registry=registry)
-    mt_repo = MetricTypeRepository(session)
-    mapping_svc = MetricTypeMappingService(mt_repo)
+    mt_repo = MetricDefinitionRepository(session)
+    mapping_svc = MetricDefinitionMappingService(mt_repo)
     
     ingest_svc = WebhookIngestionService(parser, m_repo, mapping_svc, registry=registry)
     

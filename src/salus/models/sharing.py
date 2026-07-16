@@ -7,7 +7,7 @@ from salus.services._helpers import uuid7_str
 
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
-    from salus.models import MetricType  # noqa: F401
+    from salus.models.metric_definition import MetricDefinition  # noqa: F401
 
 
 class ConnectionStatus(str, Enum):
@@ -23,7 +23,7 @@ class SharingRelationship(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     owner_id: str = Field(foreign_key="user.id")
     grantee_handle: str
-    metric_type_id: str = Field(foreign_key="metric_type.id")
+    metric_code: str = Field(foreign_key="metric_definition.code")
     aggregation_level: str = Field(default="daily_summary")  # "raw" or "daily_summary"
     expiration_date: Optional[datetime] = Field(default=None)
     status: str = Field(default=ConnectionStatus.PENDING.value)
@@ -42,7 +42,7 @@ class SharingRelationship(SQLModel, table=True):
 
     # Relationships
     owner: "User" = Relationship(back_populates="sharing_relationships")
-    metric_type: "MetricType" = Relationship()
+    metric_definition: "MetricDefinition" = Relationship()
 
 
 class LeaderboardGroup(SQLModel, table=True):

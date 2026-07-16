@@ -4,12 +4,7 @@ def test_list_entries_requires_auth(client):
 
 
 def test_list_entries_empty(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metric_id = authenticated_client.get("/api/v1/metrics").json()[0]["id"]
-    response = authenticated_client.get(f"/api/v1/entries?metric_type_id={metric_id}")
+    response = authenticated_client.get("/api/v1/entries?metric_code=weight")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 0
@@ -17,21 +12,16 @@ def test_list_entries_empty(authenticated_client):
 
 
 def test_create_and_list_entry(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metric_id = authenticated_client.get("/api/v1/metrics").json()[0]["id"]
     response = authenticated_client.post(
-        f"/api/v1/entries?metric_type_id={metric_id}",
+        "/api/v1/entries?metric_code=weight",
         json={"value": "80.5"},
     )
     assert response.status_code == 201
     data = response.json()
     assert data["value"] == "80.5"
-    assert data["metric_type_id"] == metric_id
+    assert data["metric_code"] == "weight"
 
-    response = authenticated_client.get(f"/api/v1/entries?metric_type_id={metric_id}")
+    response = authenticated_client.get("/api/v1/entries?metric_code=weight")
     assert response.status_code == 200
     body = response.json()
     assert body["total"] == 1
@@ -39,13 +29,8 @@ def test_create_and_list_entry(authenticated_client):
 
 
 def test_update_entry(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metric_id = authenticated_client.get("/api/v1/metrics").json()[0]["id"]
     create_resp = authenticated_client.post(
-        f"/api/v1/entries?metric_type_id={metric_id}",
+        "/api/v1/entries?metric_code=weight",
         json={"value": "80.5"},
     )
     entry_id = create_resp.json()["id"]
@@ -61,13 +46,8 @@ def test_update_entry(authenticated_client):
 
 
 def test_delete_entry(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metric_id = authenticated_client.get("/api/v1/metrics").json()[0]["id"]
     create_resp = authenticated_client.post(
-        f"/api/v1/entries?metric_type_id={metric_id}",
+        "/api/v1/entries?metric_code=weight",
         json={"value": "80.5"},
     )
     entry_id = create_resp.json()["id"]
@@ -75,7 +55,7 @@ def test_delete_entry(authenticated_client):
     response = authenticated_client.delete(f"/api/v1/entries/{entry_id}")
     assert response.status_code == 204
 
-    list_resp = authenticated_client.get(f"/api/v1/entries?metric_type_id={metric_id}")
+    list_resp = authenticated_client.get("/api/v1/entries?metric_code=weight")
     assert list_resp.json()["total"] == 0
 
 
@@ -93,20 +73,14 @@ def test_delete_entry_not_found(authenticated_client):
 
 
 def test_pagination(authenticated_client):
-    authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "Weight", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    metric_id = authenticated_client.get("/api/v1/metrics").json()[0]["id"]
-
     for i in range(30):
         authenticated_client.post(
-            f"/api/v1/entries?metric_type_id={metric_id}",
+            "/api/v1/entries?metric_code=weight",
             json={"value": str(i)},
         )
 
     response = authenticated_client.get(
-        f"/api/v1/entries?metric_type_id={metric_id}&page=1&per_page=10"
+        "/api/v1/entries?metric_code=weight&page=1&per_page=10"
     )
     assert response.status_code == 200
     data = response.json()
@@ -117,7 +91,7 @@ def test_pagination(authenticated_client):
     assert len(data["entries"]) == 10
 
     response = authenticated_client.get(
-        f"/api/v1/entries?metric_type_id={metric_id}&page=3&per_page=10"
+        "/api/v1/entries?metric_code=weight&page=3&per_page=10"
     )
     data = response.json()
     assert len(data["entries"]) == 10

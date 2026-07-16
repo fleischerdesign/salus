@@ -7,14 +7,18 @@ from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.goal import GoalRepository
 from salus.repositories.insight import InsightRepository
 from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.metric_definition import MetricDefinitionRepository
+from salus.repositories.metric_group import MetricGroupRepository
+from salus.repositories.metric_preference import MetricPreferenceRepository
 from salus.repositories.protocols import (
     IApiTokenRepository,
     IDashboardWidgetRepository,
     IGoalRepository,
     IInsightRepository,
     IMeasurementRepository,
-    IMetricTypeRepository,
+    IMetricDefinitionRepository,
+    IMetricGroupRepository,
+    IMetricPreferenceRepository,
     ISystemConfigRepository,
     IUserIdentityRepository,
     IUserRepository,
@@ -67,7 +71,9 @@ class IUnitOfWork(Protocol):
     session: Session
     users: IUserRepository
     identities: IUserIdentityRepository
-    metric_types: IMetricTypeRepository
+    metric_definitions: IMetricDefinitionRepository
+    metric_groups: IMetricGroupRepository
+    metric_preferences: IMetricPreferenceRepository
     measurements: IMeasurementRepository
     goals: IGoalRepository
     api_tokens: IApiTokenRepository
@@ -102,7 +108,9 @@ class IUnitOfWork(Protocol):
 class SqlUnitOfWork:
     users: IUserRepository
     identities: IUserIdentityRepository
-    metric_types: IMetricTypeRepository
+    metric_definitions: IMetricDefinitionRepository
+    metric_groups: IMetricGroupRepository
+    metric_preferences: IMetricPreferenceRepository
     measurements: IMeasurementRepository
     goals: IGoalRepository
     api_tokens: IApiTokenRepository
@@ -129,7 +137,9 @@ class SqlUnitOfWork:
         self.session = session
         self.users = UserRepository(session)
         self.identities = UserIdentityRepository(session)
-        self.metric_types = MetricTypeRepository(session)
+        self.metric_definitions = MetricDefinitionRepository(session)
+        self.metric_groups = MetricGroupRepository(session)
+        self.metric_preferences = MetricPreferenceRepository(session)
         self.measurements = MeasurementRepository(session, registry=registry)
         self.goals = GoalRepository(session)
         self.api_tokens = ApiTokenRepository(session)

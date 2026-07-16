@@ -191,13 +191,13 @@ class AnalyticsService:
                 pairs=[], n_comparisons=0, correction="Benjamini-Hochberg FDR",
                 min_n=min_n, range_key=range_key,
             )
-        metric_types = self._uow.metric_types.find_all(user_id=None)
-        type_map = {mt.id: mt.name for mt in metric_types}
+        metric_defs = self._uow.metric_definitions.find_all()
+        type_map = {md.code: md.name for md in metric_defs}
         pivot: dict[str, list[float]] = {}
         for m in records:
             if m.value_numeric is None:
                 continue
-            name = type_map.get(m.metric_type_id, m.data_type)
+            name = type_map.get(m.metric_code or "", m.data_type)
             if name not in pivot:
                 pivot[name] = []
             pivot[name].append(m.value_numeric)

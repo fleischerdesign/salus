@@ -3,7 +3,7 @@ import { uuid7 } from '$lib/db/uuid';
 
 export const addWidget = (
   widgetType: string,
-  metricTypeId: string | null,
+  metricCode: string | null,
   size = 'medium',
   position = 0
 ) => {
@@ -16,7 +16,7 @@ export const addWidget = (
     data: {
       id,
       widget_type: widgetType,
-      metric_type_id: metricTypeId,
+      metric_code: metricCode,
       size,
       position,
       config_json: '',
@@ -26,7 +26,7 @@ export const addWidget = (
       id,
       user_id: 'self',
       widget_type: widgetType,
-      metric_type_id: metricTypeId,
+      metric_code: metricCode,
       size,
       position,
       config_json: '',

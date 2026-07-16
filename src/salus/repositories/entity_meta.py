@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Session, SQLModel, select
 
-from salus.models import MetricType
 from salus.models.api_token import ApiToken
 from salus.models.asymmetric_share import AsymmetricShare, ShareRecipient
 from salus.models.circadian import CircadianProfile
@@ -12,6 +11,8 @@ from salus.models.dashboard import DashboardWidget
 from salus.models.goal import Goal
 from salus.models.insight import Insight
 from salus.models.measurement import Measurement
+from salus.models.metric_definition import MetricDefinition, MetricGroup
+from salus.models.metric_preference import UserMetricPreference
 from salus.models.notification import Notification
 from salus.models.sharing import FederatedAccessLog, LeaderboardGroup, LeaderboardMember, SharingRelationship
 from salus.models.user import User
@@ -38,7 +39,9 @@ class EntityMeta:
 
 
 ENTITY_META: list[EntityMeta] = [
-    EntityMeta(name="metric_type", model=MetricType, batch_size=500),
+    EntityMeta(name="metric_group", model=MetricGroup, strategy="global", batch_size=500),
+    EntityMeta(name="metric_definition", model=MetricDefinition, strategy="global", batch_size=500),
+    EntityMeta(name="user_metric_preference", model=UserMetricPreference, batch_size=500),
     EntityMeta(name="measurement", model=Measurement, batch_size=2000),
     EntityMeta(name="goal", model=Goal, batch_size=500),
     EntityMeta(name="circadian_profile", model=CircadianProfile, batch_size=500),

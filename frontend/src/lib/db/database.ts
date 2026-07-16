@@ -2,7 +2,9 @@ import Dexie, { type EntityTable } from 'dexie';
 import type {
   OutboxOp,
   SyncMeta,
-  MetricType,
+  MetricDefinition,
+  MetricGroup,
+  UserMetricPreference,
   Measurement,
   Goal,
   CircadianProfile,
@@ -29,7 +31,9 @@ import type {
 } from './types';
 
 export class SalusDB extends Dexie {
-  metric_type!: EntityTable<MetricType, 'id'>;
+  metric_group!: EntityTable<MetricGroup, 'key'>;
+  metric_definition!: EntityTable<MetricDefinition, 'code'>;
+  user_metric_preference!: EntityTable<UserMetricPreference, 'id'>;
   measurement!: EntityTable<Measurement, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
   circadian_profile!: EntityTable<CircadianProfile, 'id'>;
@@ -64,7 +68,7 @@ export class SalusDB extends Dexie {
   constructor() {
     super('salus');
     this.version(3).stores({
-      metric_type: 'id, user_id, name, is_system',
+      metric_definition: 'id, user_id, name, is_system',
       measurement: 'id, user_id, metric_type_id, start_time',
       goal: 'id, user_id, metric_type_id',
       circadian_profile: 'id, user_id',
@@ -162,6 +166,18 @@ export class SalusDB extends Dexie {
             }
           });
       });
+    this.version(10).stores({
+      metric_definition: 'code, name',
+      measurement: 'id, user_id, metric_code, start_time',
+      goal: 'id, user_id, metric_code',
+      dashboard_widget: 'id, user_id, metric_code, widget_type'
+    });
+    this.version(11).stores({
+      user_metric_preference: 'id, user_id, metric_code'
+    });
+    this.version(12).stores({
+      metric_group: '&key'
+    });
   }
 }
 

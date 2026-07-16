@@ -46,7 +46,8 @@ def test_webhook_accepts_x_api_token_header(client):
     client.headers = {"Authorization": f"Bearer {settings.api_token}"}
     steps_id = _get_metric_id(client, "Steps")
 
-    entries_resp = client.get(f"/api/v1/entries?metric_type_id={steps_id}")
+    steps_code = _get_metric_id(client, "Steps")
+    entries_resp = client.get(f"/api/v1/entries?metric_code={steps_code}")
     assert entries_resp.status_code == 200
     data = entries_resp.json()
     assert data["total"] == 1
@@ -63,8 +64,8 @@ def test_webhook_inserts_health_records(webhook_client):
     assert response.status_code == 202
     assert response.json()["status"] == "accepted"
 
-    steps_id = _get_metric_id(webhook_client, "Steps")
-    entries_resp = webhook_client.get(f"/api/v1/entries?metric_type_id={steps_id}")
+    steps_code = _get_metric_id(webhook_client, "Steps")
+    entries_resp = webhook_client.get(f"/api/v1/entries?metric_code={steps_code}")
     assert entries_resp.status_code == 200
     data = entries_resp.json()
     assert data["total"] == 1
@@ -83,8 +84,8 @@ def test_webhook_deduplicates(webhook_client):
     response = webhook_client.post("/webhook", json=payload)
     assert response.status_code == 202
 
-    steps_id = _get_metric_id(webhook_client, "Steps")
-    entries_resp = webhook_client.get(f"/api/v1/entries?metric_type_id={steps_id}")
+    steps_code = _get_metric_id(webhook_client, "Steps")
+    entries_resp = webhook_client.get(f"/api/v1/entries?metric_code={steps_code}")
     assert entries_resp.status_code == 200
     assert entries_resp.json()["total"] == 1
 
@@ -107,14 +108,14 @@ def test_webhook_handles_multiple_records(webhook_client):
     assert response.status_code == 202
     assert response.json()["status"] == "accepted"
 
-    steps_id = _get_metric_id(webhook_client, "Steps")
-    steps_resp = webhook_client.get(f"/api/v1/entries?metric_type_id={steps_id}")
+    steps_code = _get_metric_id(webhook_client, "Steps")
+    steps_resp = webhook_client.get(f"/api/v1/entries?metric_code={steps_code}")
     assert steps_resp.json()["total"] == 1
 
-    hr_id = _get_metric_id(webhook_client, "Heart Rate")
-    hr_resp = webhook_client.get(f"/api/v1/entries?metric_type_id={hr_id}")
+    hr_code = _get_metric_id(webhook_client, "Heart Rate")
+    hr_resp = webhook_client.get(f"/api/v1/entries?metric_code={hr_code}")
     assert hr_resp.json()["total"] == 2
 
-    weight_id = _get_metric_id(webhook_client, "Weight")
-    weight_resp = webhook_client.get(f"/api/v1/entries?metric_type_id={weight_id}")
+    weight_code = _get_metric_id(webhook_client, "Weight")
+    weight_resp = webhook_client.get(f"/api/v1/entries?metric_code={weight_code}")
     assert weight_resp.json()["total"] == 1

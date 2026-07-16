@@ -2,7 +2,7 @@
   import { liveQuery } from 'dexie';
   import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-  import type { MetricType } from '$lib/db/types';
+
   import { createGoal, deleteGoal } from '$lib/mutations/goal';
   import { fetchGoalViews } from '$lib/analytics/views/goal-views';
   import Card from '$components/ui/Card.svelte';
@@ -23,9 +23,7 @@
   import { staggerFade } from '$lib/utils/motion';
 
   let goals = liveQuery(() => fetchGoalViews());
-  let metrics = liveQuery(() =>
-    db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at))
-  );
+  let metrics = liveQuery(() => db.metric_definition.toArray());
 
   // Form state
   let showForm = $state(false);
@@ -122,7 +120,7 @@
 
   const metricOptions = $derived(
     ($metrics ?? []).map((m) => ({
-      value: String(m.id),
+      value: String(m.code),
       label: `${m.name}${m.unit ? ` (${m.unit})` : ''}`
     }))
   );

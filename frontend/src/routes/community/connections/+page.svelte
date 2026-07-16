@@ -7,6 +7,7 @@
     deleteConnection
   } from '$lib/mutations/community';
   import { db } from '$lib/db/database';
+  import { mergeMetricPrefs } from '$lib/db/types';
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -48,14 +49,16 @@
     const username = auth.user?.username;
     if (!uid || !username) return [];
 
-    const [rels, metricTypes, profiles] = await Promise.all([
+    const [rels, metricTypes, prefs, profiles] = await Promise.all([
       db.sharing_relationship.toArray(),
-      db.metric_type.toArray(),
+      db.metric_definition.toArray(),
+      db.user_metric_preference.toArray(),
       db.user_profile.toArray()
     ]);
 
     const active = rels.filter((r) => !r.deleted_at);
-    const metricMap = new Map(metricTypes.filter((m) => !m.deleted_at).map((m) => [m.id, m]));
+    const merged = mergeMetricPrefs(metricTypes, prefs);
+    const metricMap = new Map(merged.map((m) => [m.code, m]));
     const profileById = new Map(profiles.map((p) => [p.id, p]));
 
     const peerMap = new Map<string, PeerConnection>();
@@ -69,10 +72,10 @@
         ? rel.grantee_handle
         : (profileById.get(rel.owner_id)?.username ?? `user_${rel.owner_id}`);
 
-      const metric = metricMap.get(rel.metric_type_id);
+      const metric = metricMap.get(rel.metric_code);
 
       const pm: PeerMetric = {
-        metric_name: metric?.name ?? `Metric #${rel.metric_type_id}`,
+        metric_name: metric?.name ?? `Metric #${rel.metric_code}`,
         icon: metric?.icon ?? 'monitoring',
         color: metric?.color ?? '#6b7280',
         aggregation: rel.aggregation_level,

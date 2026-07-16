@@ -28,7 +28,7 @@ class AdminService:
             "row_counts": {
                 "Users": len(self.uow.users.list_all()),
                 "Measurements": len(self.uow.measurements.find_all()),
-                "Metric Types": len(self.uow.metric_types.find_all()),
+                "Metric Types": len(self.uow.metric_definitions.find_all()),
                 "Goals": len(self.uow.goals.find_all_goals()),
                 "API Tokens": len(self.uow.api_tokens.list_all_active()),
             },
@@ -38,7 +38,7 @@ class AdminService:
         users = self.uow.users.list_all()
         total_users = len(users)
         total_measurements = len(self.uow.measurements.find_all())
-        total_metric_types = len(self.uow.metric_types.find_all())
+        total_metric_types = len(self.uow.metric_definitions.find_all())
         goals = self.uow.goals.find_all_goals()
         total_goals = len(goals)
         return {
@@ -115,7 +115,7 @@ class AdminService:
             "is_active": user.is_active,
             "created_at": user.created_at,
             "identities": user.identities,
-            "metrics": user.metric_types,
+            "metrics": user.metric_preferences,
             "recent_entries": self.uow.measurements.find_all(
                 user_id=user_id, limit=10
             ),

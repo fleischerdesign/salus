@@ -74,6 +74,20 @@ class AutoregulationService:
             sig_log = 1.0
             yesterday_steps = 5000
 
+        has_data = (
+            bool(sleep_trend)
+            or bool(hr_values)
+            or any(s.count > 0 for s in steps_trend)
+        )
+        if not has_data:
+            return 100.0, 0.0, 0.0, 0.0
+
+        has_steps = any(s.count > 0 for s in steps_trend)
+        if not has_steps:
+            mu_log = 8.0
+            sig_log = 1.0
+            yesterday_steps = 5000
+
         score = recovery_composite(
             sleep_score=last_sleep,
             hrv_rmssd=50.0,
@@ -85,6 +99,7 @@ class AutoregulationService:
                 "resting_hr": (mu_hr, max(sig_hr, 0.01)),
                 "log_steps": (mu_log, max(sig_log, 0.01)),
             },
+            skip_steps=not has_steps,
         )
         return score.score, score.sleep_z, score.hr_z, score.steps_z
 

@@ -133,8 +133,8 @@ class InsightService:
             date_str = query_date.strftime("%Y-%m-%d")
 
         # 3. Retrieve metric types, goals, and measurements
-        metric_types = self._uow.metric_types.find_all(user_id=user_id)
-        metric_map = {mt.id: mt for mt in metric_types if mt.id is not None}
+        metric_definitions = self._uow.metric_definitions.find_all(user_id=user_id)
+        metric_map = {mt.code: mt for mt in metric_definitions if mt.code is not None}
 
         # Fetch last 7 days of history for context
         since = query_date - timedelta(days=7)
@@ -153,8 +153,8 @@ class InsightService:
                 continue
             day_key = m.start_time.strftime("%Y-%m-%d")
             metric_type = (
-                metric_map.get(m.metric_type_id)
-                if m.metric_type_id is not None
+                metric_map.get(m.metric_code)
+                if m.metric_code is not None
                 else None
             )
             metric_name = metric_type.name if metric_type else m.data_type
@@ -197,8 +197,8 @@ class InsightService:
         goals_lines = []
         for g in goals:
             mt = (
-                metric_map.get(g.metric_type_id)
-                if g.metric_type_id is not None
+                metric_map.get(g.metric_code)
+                if g.metric_code is not None
                 else None
             )
             mt_name = mt.name if mt else "Unknown"

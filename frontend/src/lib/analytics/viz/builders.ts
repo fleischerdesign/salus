@@ -1,4 +1,4 @@
-import type { Measurement, Goal, MetricType, DashboardWidget } from '../../db/types';
+import type { Measurement, Goal, MetricDefinition, DashboardWidget } from '../../db/types';
 import { computeSparkline, deltaStr, yesterday, roundedSegments } from './helpers';
 
 export interface WidgetViz {
@@ -30,18 +30,15 @@ export interface WidgetViz {
 
 export interface VizContext {
   widget: DashboardWidget;
-  metric: MetricType;
+  metric: MetricDefinition;
   date: string;
   dayMeasurements: Measurement[];
   allMeasurements: Measurement[];
   goals: Goal[];
+  color?: string;
 }
 
 export type BuilderFn = (ctx: VizContext) => WidgetViz;
-
-function numericValue(m: Measurement): number | null {
-  return m.value_numeric ?? null;
-}
 
 function parseSleepJson(
   json: string | null
@@ -81,10 +78,9 @@ function latestWeight(measurements: Measurement[], date: string): number | null 
   return dayM[0]?.value_numeric ?? null;
 }
 
-function findGoal(goals: Goal[], sourceDataType: string, metricTypeId: string): Goal | null {
+function findGoal(goals: Goal[], sourceDataType: string, metricCode: string): Goal | null {
   return (
-    goals.find((g) => g.deleted_at == null && g.is_active && g.metric_type_id === metricTypeId) ??
-    null
+    goals.find((g) => g.deleted_at == null && g.is_active && g.metric_code === metricCode) ?? null
   );
 }
 
@@ -103,14 +99,14 @@ export function buildStepsViz(ctx: VizContext): WidgetViz {
     };
   }
   const yesterdaySteps = stepsTrend(ctx.allMeasurements, yesterday(ctx.date));
-  const goal = findGoal(ctx.goals, 'steps', ctx.metric.id);
+  const goal = findGoal(ctx.goals, 'steps', ctx.metric.code);
   const viz: WidgetViz = {
     type: 'progress',
     title: 'Steps',
     value: todaySteps.toLocaleString(),
     unit: 'steps',
     subtitle: 'today',
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     delta: deltaStr(todaySteps, yesterdaySteps, { isInteger: true }),
     goal_target: goal ? goal.target_value : undefined,
     goal_percent: goal
@@ -158,7 +154,7 @@ export function buildHeartRateViz(ctx: VizContext): WidgetViz {
     title: 'Heart Rate',
     value: `${restingBpm}`,
     unit: 'bpm',
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     subtitle: `Min ${restingBpm} · Max ${maxBpm} · Ø ${avgBpm}`,
     delta: deltaStr(restingBpm, yestResting, { unit: ' bpm', isInteger: true, upIsGood: false })
   };
@@ -195,7 +191,7 @@ export function buildSleepViz(ctx: VizContext): WidgetViz {
     title: 'Sleep',
     value: durationHours.toFixed(1),
     unit: 'h',
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     segments
   };
 }
@@ -223,7 +219,7 @@ export function buildWeightViz(ctx: VizContext): WidgetViz {
     title: 'Weight',
     value: w.toFixed(1),
     unit: 'kg',
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     delta: deltaStr(w, yestW, { unit: ' kg', upIsGood: false }),
     sparkline_path: computeSparkline(recentWeights)
   };
@@ -276,7 +272,7 @@ export function buildNutritionViz(ctx: VizContext): WidgetViz {
     title: 'Nutrition',
     value: totalKcal.toFixed(0),
     unit: 'kcal',
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     segments
   };
 }
@@ -307,15 +303,14 @@ export function buildExerciseViz(ctx: VizContext): WidgetViz {
     title: 'Exercise',
     value: totalMin.toFixed(0),
     unit: 'min',
-    color: ctx.metric.color
+    color: ctx.color ?? '#4f46e5'
   };
 }
 
 export function buildGenericViz(ctx: VizContext): WidgetViz {
   const latestM = ctx.allMeasurements
     .filter(
-      (m) =>
-        m.metric_type_id === ctx.metric.id && !m.deleted_at && m.start_time.startsWith(ctx.date)
+      (m) => m.metric_code === ctx.metric.code && !m.deleted_at && m.start_time.startsWith(ctx.date)
     )
     .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())[0];
 
@@ -324,7 +319,7 @@ export function buildGenericViz(ctx: VizContext): WidgetViz {
       type: 'number',
       title: ctx.metric.name || 'Metric',
       value: '—',
-      color: ctx.metric.color,
+      color: ctx.color ?? '#4f46e5',
       empty: true,
       empty_text: 'No data recorded yet.'
     };
@@ -343,7 +338,7 @@ export function buildGenericViz(ctx: VizContext): WidgetViz {
   }
 
   const historyValues = ctx.allMeasurements
-    .filter((m) => m.metric_type_id === ctx.metric.id && !m.deleted_at && m.value_numeric != null)
+    .filter((m) => m.metric_code === ctx.metric.code && !m.deleted_at && m.value_numeric != null)
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
     .slice(-7)
     .map((m) => m.value_numeric!);
@@ -353,7 +348,7 @@ export function buildGenericViz(ctx: VizContext): WidgetViz {
     title: ctx.metric.name || 'Metric',
     value,
     unit: ctx.metric.unit || undefined,
-    color: ctx.metric.color,
+    color: ctx.color ?? '#4f46e5',
     sparkline_path: historyValues.length >= 2 ? computeSparkline(historyValues) : undefined,
     subtitle: latestM.start_time.split('T')[0]
   };

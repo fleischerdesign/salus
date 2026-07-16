@@ -1,10 +1,6 @@
 def test_user_data_scoped(authenticated_client, client):
     authenticated_client.post(
-        "/api/v1/metrics",
-        json={"name": "AliceCustom", "unit": "kg", "data_type": "number", "color": "#ef4444"},
-    )
-    authenticated_client.post(
-        "/api/v1/entries?metric_type_id=1",
+        "/api/v1/entries?metric_code=weight",
         json={"value": "80.5"},
     )
 
@@ -22,7 +18,7 @@ def test_user_data_scoped(authenticated_client, client):
     names = [m["name"] for m in metrics]
     assert "AliceCustom" not in names
 
-    response = client.get("/api/v1/entries?metric_type_id=1", headers=bob_headers)
+    response = client.get("/api/v1/entries?metric_code=weight", headers=bob_headers)
     assert response.status_code == 200
     assert response.json()["total"] == 0
 
@@ -62,4 +58,3 @@ def test_change_password(authenticated_client):
     )
     assert response.status_code == 200
     assert "Password changed" in response.json()["message"]
-

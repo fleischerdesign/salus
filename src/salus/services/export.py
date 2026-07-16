@@ -26,7 +26,7 @@ class ExportService:
                 {
                     "data_type": r.data_type,
                     "source": r.source,
-                    "metric_type_id": r.metric_type_id,
+                    "metric_code": r.metric_code,
                     "value_numeric": r.value_numeric,
                     "value_text": r.value_text,
                     "value_json": r.value_json,
@@ -49,7 +49,7 @@ class ExportService:
             [
                 "source",
                 "data_type",
-                "metric_type_id",
+                "metric_code",
                 "value_numeric",
                 "value_text",
                 "value_json",
@@ -63,7 +63,7 @@ class ExportService:
                 [
                     r.source,
                     r.data_type,
-                    r.metric_type_id,
+                    r.metric_code,
                     r.value_numeric,
                     r.value_text or "",
                     (r.value_json or "")[:200],

@@ -159,7 +159,7 @@
           .above(sinceIso)
           .toArray()
           .then((arr) => arr.filter((m) => !m.deleted_at)),
-        db.metric_type.toArray().then((arr) => arr.filter((m) => !m.deleted_at))
+        db.metric_definition.toArray(),
       ]);
 
       const rawData = {

@@ -5,7 +5,7 @@ from salus.exceptions import ForbiddenError
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.models.measurement import Measurement
 from salus.models.goal import Goal
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition
 from salus.models.user import User
 
 logger = logging.getLogger("salus.plugin.context")
@@ -43,9 +43,9 @@ class PluginContext:
         self._check_permission("goals:read")
         return self._uow.goals.find_by_user(user_id)
 
-    def get_metric_types(self, user_id: str | None = None) -> list[MetricType]:
+    def get_metric_definitions(self, user_id: str | None = None) -> list[MetricDefinition]:
         self._check_permission("metric_types:read")
-        return self._uow.metric_types.find_all(user_id=user_id)
+        return self._uow.metric_definitions.find_all(user_id=user_id)
 
     def get_user(self, user_id: str) -> User | None:
         self._check_permission("users:read")

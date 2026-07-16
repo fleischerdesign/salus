@@ -18,7 +18,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 from sqlmodel import SQLModel
 from salus.config import settings
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition, MetricGroup
+from salus.models.metric_preference import UserMetricPreference
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.models.measurement import Measurement

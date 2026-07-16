@@ -6,7 +6,8 @@ from salus.models.dashboard import DashboardWidget
 from salus.models.goal import Goal
 from salus.models.insight import Insight
 from salus.models.measurement import Measurement
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition, MetricGroup
+from salus.models.metric_preference import UserMetricPreference
 from salus.models.system_config import SystemConfig
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
@@ -70,7 +71,7 @@ class IUserIdentityRepository(IRepository[UserIdentity], Protocol):
 @runtime_checkable
 class IMeasurementRepository(IRepository[Measurement], Protocol):
     def find_by_metric_type(
-        self, metric_type_id: str, user_id: str | None = None
+        self, metric_code: str, user_id: str | None = None
     ) -> list[Measurement]: ...
 
     def find_all(
@@ -98,25 +99,41 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
     ) -> list[Measurement]: ...
 
     def find_by_metric_type_paginated(
-        self, metric_type_id: str, user_id: str, offset: int = 0, limit: int = 25
+        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
     ) -> tuple[list[Measurement], int]: ...
 
-    def count_by_metric_type(self, metric_type_id: str, user_id: str) -> int: ...
+    def count_by_metric_type(self, metric_code: str, user_id: str) -> int: ...
 
     def get_latest_by_metric_type(
-        self, metric_type_id: str, user_id: str
+        self, metric_code: str, user_id: str
     ) -> Measurement | None: ...
 
 
 @runtime_checkable
-class IMetricTypeRepository(IRepository[MetricType], Protocol):
-    def find_all(self, user_id: str | None = None) -> list[MetricType]: ...
+class IMetricDefinitionRepository(IRepository[MetricDefinition], Protocol):
+    def find_all(self, user_id: str | None = None) -> list[MetricDefinition]: ...
 
-    def find_by_name(self, name: str) -> MetricType | None: ...
+    def find_by_code(self, code: str) -> MetricDefinition | None: ...
 
-    def find_by_name_and_user(self, name: str, user_id: str) -> MetricType | None: ...
+    def find_by_source_data_type(self, source_data_type: str) -> MetricDefinition | None: ...
 
-    def reorder(self, user_id: str, ordered_ids: list[str]) -> None: ...
+    def find_by_group(self, group_key: str) -> list[MetricDefinition]: ...
+
+
+@runtime_checkable
+class IMetricGroupRepository(IRepository[MetricGroup], Protocol):
+    def find_all(self, user_id: str | None = None) -> list[MetricGroup]: ...
+
+    def find_by_key(self, key: str) -> MetricGroup | None: ...
+
+
+@runtime_checkable
+class IMetricPreferenceRepository(IRepository[UserMetricPreference], Protocol):
+    def find_all(self, user_id: str) -> list[UserMetricPreference]: ...
+
+    def find_by_user_and_code(self, user_id: str, metric_code: str) -> UserMetricPreference | None: ...
+
+    def reorder(self, user_id: str, ordered_codes: list[str]) -> None: ...
 
 
 @runtime_checkable
@@ -157,7 +174,7 @@ class IDashboardWidgetRepository(IRepository[DashboardWidget], Protocol):
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None: ...
 
     def find_by_user_and_metric(
-        self, user_id: str, metric_type_id: str
+        self, user_id: str, metric_code: str
     ) -> DashboardWidget | None: ...
 
 
@@ -177,7 +194,7 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     def find_by_grantee(self, grantee_handle: str) -> list[SharingRelationship]: ...
 
     def get_active_relationship(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None: ...
 
     def find_pending_by_grantee(
@@ -193,7 +210,7 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     ) -> SharingRelationship | None: ...
 
     def find_pending_relationship(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None: ...
 
     def find_active_for_remote_owner(
@@ -217,7 +234,7 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     ) -> SharingRelationship | None: ...
 
     def find_active_with_owner_metric_and_grantee(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None: ...
 
 

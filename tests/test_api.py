@@ -25,57 +25,41 @@ class TestApiMetrics:
         assert "Heart Rate" in names
         assert "Weight" in names
 
-    def test_create_and_list(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/metrics",
-            json={"name": "CustomMetric", "unit": "kg", "data_type": "number", "color": "#ff0000"},
-        )
-        assert response.status_code == 201
-        data = response.json()
-        assert data["name"] == "CustomMetric"
-
+    def test_list_returns_definitions(self, authenticated_client):
         response = authenticated_client.get("/api/v1/metrics")
         assert response.status_code == 200
-        metrics = response.json()
-        names = [m["name"] for m in metrics]
-        assert "CustomMetric" in names
+        data = response.json()
+        assert len(data) >= 18
+        codes = {m["id"] for m in data}
+        assert "steps" in codes
+        assert "weight" in codes
+        assert "water" in codes
 
     def test_get_metric(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/metrics",
-            json={"name": "HR", "unit": "bpm", "data_type": "number", "color": "#ff0000"},
-        )
-        metric_id = response.json()["id"]
-        response = authenticated_client.get(f"/api/v1/metrics/{metric_id}")
+        response = authenticated_client.get("/api/v1/metrics/steps")
         assert response.status_code == 200
-        assert response.json()["name"] == "HR"
+        assert response.json()["name"] == "Steps"
 
     def test_get_not_found(self, authenticated_client):
-        response = authenticated_client.get("/api/v1/metrics/999")
+        response = authenticated_client.get("/api/v1/metrics/nonexistent")
         assert response.status_code == 404
 
-    def test_delete_metric(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/metrics",
-            json={"name": "ToDelete", "unit": "steps", "data_type": "number"},
+    def test_update_preference(self, authenticated_client):
+        response = authenticated_client.put(
+            "/api/v1/metrics/water",
+            json={"name": "water", "color": "#ff0000", "icon": "water_drop"},
         )
-        metric_id = response.json()["id"]
-        response = authenticated_client.delete(f"/api/v1/metrics/{metric_id}")
-        assert response.status_code == 204
+        assert response.status_code == 200
+        assert response.json()["color"] == "#ff0000"
 
 
 class TestApiEntries:
     def test_list_entries_by_metric(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/metrics",
-            json={"name": "CustomWeight", "unit": "kg", "data_type": "number"},
-        )
-        metric_id = response.json()["id"]
         authenticated_client.post(
-            f"/api/v1/entries?metric_type_id={metric_id}",
+            "/api/v1/entries?metric_code=weight",
             json={"value": "80.5"},
         )
-        response = authenticated_client.get(f"/api/v1/entries?metric_type_id={metric_id}")
+        response = authenticated_client.get("/api/v1/entries?metric_code=weight")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 1

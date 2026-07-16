@@ -15,9 +15,34 @@ class MetricTypeResponse(BaseModel):
     is_system: bool
 
 
+class GroupMetricResponse(BaseModel):
+    code: str
+    name: str
+    unit: str
+    data_type: str
+    source_data_type: str | None = None
+    description: str | None = None
+    sort_order: int = 0
+    color: str
+    icon: str
+    widget_size: str
+    widget_enabled: bool
+    enabled: bool
+    position: int
+
+
+class MetricGroupResponse(BaseModel):
+    key: str
+    name: str
+    icon: str
+    description: str | None = None
+    input_mode: str
+    metrics: list[GroupMetricResponse]
+
+
 class EntryResponse(BaseModel):
     id: str
-    metric_type_id: str
+    metric_code: str
     value: str
     timestamp: datetime
     notes: str | None

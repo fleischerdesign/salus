@@ -20,8 +20,8 @@
     const g = await db.goal.get(goalId);
     if (!g) return [];
     return db.measurement
-      .where('metric_type_id')
-      .equals(g.metric_type_id)
+      .where('metric_code')
+      .equals(g.metric_code)
       .toArray()
       .then((arr) =>
         arr

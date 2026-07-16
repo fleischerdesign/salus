@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 from sqlmodel import SQLModel
 
 from salus.database import Session, engine
-from salus.models import MetricType
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.circadian import CircadianService
@@ -80,19 +79,13 @@ def test_circadian_advisor_engine(clean_db, auth_client):
         assert user is not None
         user_id = user.id
 
-        mt = uow.metric_types.find_by_name_and_user("Sleep", user_id)
-        if not mt:
-            mt = MetricType(name="Sleep", type="text", user_id=user_id)
-            uow.metric_types.add(mt)
-            uow.commit()
-
         ts_start = datetime.now() - timedelta(days=1)
         sleep_start = datetime(ts_start.year, ts_start.month, ts_start.day, 23, 30)
         sleep_end = sleep_start + timedelta(hours=8)
 
         m = Measurement(
             user_id=user_id,
-            metric_type_id=mt.id,  # type: ignore
+            metric_code="sleep",
             value_text="Sleep entry",
             start_time=sleep_start,
             end_time=sleep_end,

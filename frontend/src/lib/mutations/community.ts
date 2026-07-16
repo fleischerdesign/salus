@@ -1,13 +1,13 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
 
-export const createConnection = (granteeHandle: string, metricTypeId?: string) => {
+export const createConnection = (granteeHandle: string, metricCode?: string) => {
   const id = uuid7();
   return mutate({
     kind: 'command',
     command: 'create_connection',
     queueable: false,
-    payload: { id, grantee_handle: granteeHandle, metric_type_id: metricTypeId },
+    payload: { id, grantee_handle: granteeHandle, metric_code: metricCode },
     responseTable: 'sharing_relationship'
   });
 };

@@ -77,7 +77,9 @@ export function formatValue(v: unknown): string {
 }
 
 const ENTITY_LABELS: Record<string, string> = {
-  metric_type: 'Metric Type',
+  metric_group: 'Metric Group',
+  metric_definition: 'Metric Definition',
+  user_metric_preference: 'Metric Preference',
   measurement: 'Measurement',
   goal: 'Goal',
   circadian_profile: 'Circadian Profile',

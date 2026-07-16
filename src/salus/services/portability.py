@@ -37,12 +37,12 @@ class DataPortabilityService:
             csv_buffer = io.StringIO()
             csv_writer = csv.writer(csv_buffer)
             csv_writer.writerow([
-                "source", "data_type", "metric_type_id", "value_numeric",
+                "source", "data_type", "metric_code", "value_numeric",
                 "value_text", "value_json", "start_time", "end_time", "notes", "external_id"
             ])
             for m in measurements:
                 csv_writer.writerow([
-                    m.source, m.data_type, m.metric_type_id, m.value_numeric,
+                    m.source, m.data_type, m.metric_code, m.value_numeric,
                     m.value_text or "", m.value_json or "",
                     m.start_time.isoformat(),
                     m.end_time.isoformat() if m.end_time else "",
@@ -106,8 +106,8 @@ class DataPortabilityService:
             goals = self.uow.goals.find_by_user(user_id)
             goals_data = []
             for g in goals:
-                metric_type = self.uow.metric_types.get_by_id(g.metric_type_id) if g.metric_type_id else None
-                metric_name = metric_type.name if metric_type else ""
+                metric_def = self.uow.metric_definitions.find_by_code(g.metric_code) if g.metric_code else None
+                metric_name = metric_def.name if metric_def else ""
                 goals_data.append({
                     "metric_type_name": metric_name,
                     "target_value": g.target_value,
@@ -155,16 +155,16 @@ class DataPortabilityService:
                         
                         existing_records = self.uow.measurements.find_all(user_id=user_id)
                         existing_keys = {
-                            (r.start_time.isoformat(), r.metric_type_id, float(r.value_numeric) if r.value_numeric is not None else 0.0)
+                            (r.start_time.isoformat(), r.metric_code, float(r.value_numeric) if r.value_numeric is not None else 0.0)
                             for r in existing_records
                         }
                         
                         for row in csv_reader:
                             start_time = datetime.fromisoformat(row["start_time"])
-                            metric_type_id = row["metric_type_id"]
+                            metric_code = row["metric_code"]
                             value_numeric = float(row["value_numeric"])
                             
-                            key = (start_time.isoformat(), metric_type_id, value_numeric)
+                            key = (start_time.isoformat(), metric_code, value_numeric)
                             if key in existing_keys:
                                 continue
                                 
@@ -173,7 +173,7 @@ class DataPortabilityService:
                                 user_id=user_id,
                                 source=row["source"],
                                 data_type=row["data_type"],
-                                metric_type_id=metric_type_id,
+                                metric_code=metric_code,
                                 value_numeric=value_numeric,
                                 value_text=row.get("value_text") or None,
                                 value_json=row.get("value_json") or None,
@@ -233,18 +233,18 @@ class DataPortabilityService:
                         goals_data = json.loads(zip_file.read("goals.json").decode("utf-8"))
                         existing_goals = self.uow.goals.find_by_user(user_id)
 
-                        metric_types = self.uow.metric_types.find_all(user_id=None)
-                        metric_type_map = {mt.name: mt.id for mt in metric_types}
+                        metric_defs = self.uow.metric_definitions.find_all()
+                        metric_type_map = {md.name: md.code for md in metric_defs}
                         
                         for g_data in goals_data:
-                            metric_type_id = metric_type_map.get(g_data["metric_type_name"])
-                            if not metric_type_id:
+                            metric_code = metric_type_map.get(g_data["metric_type_name"])
+                            if not metric_code:
                                 continue
                                 
                             created_at = datetime.fromisoformat(g_data["created_at"])
                             
                             is_duplicate = any(
-                                eg.metric_type_id == metric_type_id and 
+                                eg.metric_code == metric_code and 
                                 eg.created_at.date() == created_at.date() and 
                                 float(eg.target_value) == float(g_data["target_value"])
                                 for eg in existing_goals
@@ -259,7 +259,7 @@ class DataPortabilityService:
                                 
                             goal = Goal(
                                 user_id=user_id,
-                                metric_type_id=metric_type_id,
+                                metric_code=metric_code,
                                 target_value=float(g_data["target_value"]),
                                 direction=g_data.get("direction", "increase"),
                                 frequency=g_data.get("frequency", "daily"),

@@ -40,7 +40,7 @@ class GoalService:
     def create(self, data: GoalCreate, user_id: str) -> Goal:
         goal = Goal(
             user_id=user_id,
-            metric_type_id=data.metric_type_id,
+            metric_code=data.metric_code,
             target_value=data.target_value,
             direction=data.direction,
             frequency=data.frequency,
@@ -54,7 +54,7 @@ class GoalService:
 
     def compute_progress(self, goal: Goal) -> GoalProgress:
         entries = self.uow.measurements.find_by_metric_type(
-            goal.metric_type_id, goal.user_id
+            goal.metric_code, goal.user_id
         )
 
         plugin_fulfilled = None

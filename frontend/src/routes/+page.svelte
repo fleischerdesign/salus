@@ -168,9 +168,9 @@
 
   const availableMetrics = $derived(
     (metrics ?? [])
-      .filter((m) => !widgets.some((w) => w.metric_type_id === m.id))
+      .filter((m) => !widgets.some((w) => w.metric_code === m.code))
       .map((m) => ({
-        id: String(m.id),
+        id: String(m.code),
         name: m.name,
         description:
           m.source_data_type === 'steps'

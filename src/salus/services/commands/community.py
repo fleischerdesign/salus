@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 def _serialize_relationship(rel: SharingRelationship) -> dict[str, Any]:
     return {
         "id": rel.id, "owner_id": rel.owner_id, "grantee_handle": rel.grantee_handle,
-        "metric_type_id": rel.metric_type_id, "aggregation_level": rel.aggregation_level,
+        "metric_code": rel.metric_code, "aggregation_level": rel.aggregation_level,
         "expiration_date": rel.expiration_date, "status": rel.status,
         "created_at": rel.created_at, "updated_at": rel.updated_at,
         "last_sync_at": rel.last_sync_at, "deleted_at": rel.deleted_at,
@@ -35,7 +35,7 @@ class CreateConnectionHandler:
         if not grantee_handle.startswith("@"):
             grantee_handle = f"@{grantee_handle}"
 
-        metric_type_id = payload.get("metric_type_id") or ""
+        metric_code = payload.get("metric_type_id") or ""
         aggregation_level = payload.get("aggregation_level", "summary")
 
         now = datetime.now(timezone.utc)
@@ -43,7 +43,7 @@ class CreateConnectionHandler:
             id=payload.get("id"),
             owner_id=user.id,  # pyright: ignore[reportArgumentType]
             grantee_handle=grantee_handle,
-            metric_type_id=metric_type_id,
+            metric_code=metric_code,
             aggregation_level=aggregation_level,
             status=ConnectionStatus.PENDING,
             created_at=now,

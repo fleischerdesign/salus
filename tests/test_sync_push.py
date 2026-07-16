@@ -5,54 +5,54 @@ from starlette.testclient import TestClient
 class TestSyncPush:
     """Test the POST /api/v1/sync/push endpoint and WritePipeline."""
 
-    def test_create_metric_type(self, authenticated_client: TestClient):
+    def test_create_goal_via_sync_push(self, authenticated_client: TestClient):
         op = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": "client-uuid-1",
-            "data": {"name": "Push Created", "unit": "kg", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
         assert resp.status_code == 200
         result = resp.json()["results"][0]
         assert result["status"] == "created"
-        assert result["entity"] == "metric_type"
+        assert result["entity"] == "goal"
         assert result["client_id"] == "client-uuid-1"
         assert result["id"] is not None
-        assert result["record"]["name"] == "Push Created"
+        assert result["record"]["metric_code"] == "steps"
 
-    def test_update_metric_type(self, authenticated_client: TestClient):
+    def test_update_goal(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": "client-uuid-2",
-            "data": {"name": "To Update", "unit": "bpm", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
-            "id": metric_id,
-            "data": {"name": "Updated Name"},
+            "entity": "goal",
+            "id": goal_id,
+            "data": {"target_value": 200.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
         assert resp.status_code == 200
         result = resp.json()["results"][0]
         assert result["status"] == "updated"
-        assert result["record"]["name"] == "Updated Name"
+        assert result["record"]["target_value"] == 200.0
 
-    def test_delete_metric_type(self, authenticated_client: TestClient):
+    def test_delete_goal(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "To Delete", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
 
-        delete_op = {"type": "delete", "entity": "metric_type", "id": metric_id}
+        delete_op = {"type": "delete", "entity": "goal", "id": goal_id}
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [delete_op]})
         assert resp.status_code == 200
         result = resp.json()["results"][0]
@@ -62,15 +62,15 @@ class TestSyncPush:
         operations = [
             {
                 "type": "create",
-                "entity": "metric_type",
+                "entity": "goal",
                 "client_id": "batch-1",
-                "data": {"name": "Batch A", "unit": "kg", "data_type": "number"},
+                "data": {"metric_code": "steps", "target_value": 100.0},
             },
             {
                 "type": "create",
-                "entity": "metric_type",
+                "entity": "goal",
                 "client_id": "batch-2",
-                "data": {"name": "Batch B", "unit": "cm", "data_type": "number"},
+                "data": {"metric_code": "water", "target_value": 2000.0},
             },
         ]
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": operations})
@@ -128,7 +128,7 @@ class TestSyncPush:
         assert results[1]["record"]["session_id"] == session_id
 
     def test_not_found(self, authenticated_client: TestClient):
-        op = {"type": "update", "entity": "metric_type", "id": "99999", "data": {"name": "Nope"}}
+        op = {"type": "update", "entity": "goal", "id": "99999", "data": {"target_value": 999.0}}
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
         assert resp.status_code == 200
         result = resp.json()["results"][0]
@@ -144,16 +144,16 @@ class TestSyncPush:
     def test_sync_after_push(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "SyncTest", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
 
         resp = authenticated_client.get("/api/v1/sync")
         assert resp.status_code == 200
         data = resp.json()
-        assert "metric_type" in data
         assert "measurement" in data
+        assert "goal" in data
         assert "synced_at" in data
 
 
@@ -301,8 +301,8 @@ class TestWritePipelineCommit:
     def test_data_persists_across_requests(self, authenticated_client: TestClient):
         op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "Persist Check", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
         assert resp.status_code == 200
@@ -313,10 +313,10 @@ class TestWritePipelineCommit:
         get_resp = authenticated_client.get("/api/v1/sync")
         assert get_resp.status_code == 200
         data = get_resp.json()
-        metric_types = data.get("metric_type", [])
-        names = [m["name"] for m in metric_types if m.get("id") == created_id]
-        assert len(names) == 1
-        assert names[0] == "Persist Check"
+        goals = data.get("goal", [])
+        matching = [g for g in goals if g.get("id") == created_id]
+        assert len(matching) == 1
+        assert matching[0]["metric_code"] == "steps"
 
 
 class TestWritePipelineUpdateBehavior:
@@ -325,60 +325,60 @@ class TestWritePipelineUpdateBehavior:
     def test_update_sets_updated_at(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "Before Update", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
-            "id": metric_id,
-            "data": {"name": "After Update"},
+            "entity": "goal",
+            "id": goal_id,
+            "data": {"target_value": 200.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
         result = resp.json()["results"][0]
         assert result["status"] == "updated"
         assert result["record"].get("updated_at") is not None
-        assert result["record"]["name"] == "After Update"
+        assert result["record"]["target_value"] == 200.0
 
     def test_update_cannot_overwrite_id(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "PK Test", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
         original_id = resp.json()["results"][0]["id"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
+            "entity": "goal",
             "id": original_id,
-            "data": {"id": 99999, "name": "PK Hijack"},
+            "data": {"id": 99999, "target_value": 300.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
         result = resp.json()["results"][0]
         assert result["status"] == "updated"
         assert result["record"]["id"] == original_id
-        assert result["record"]["name"] == "PK Hijack"
+        assert result["record"]["target_value"] == 300.0
 
     def test_update_cannot_overwrite_created_at(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "CreatedAt Test", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
         original_created_at = resp.json()["results"][0]["record"]["created_at"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
-            "id": metric_id,
-            "data": {"created_at": "2000-01-01T00:00:00", "name": "CreatedAt Hijack"},
+            "entity": "goal",
+            "id": goal_id,
+            "data": {"created_at": "2000-01-01T00:00:00", "target_value": 400.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
         result = resp.json()["results"][0]
@@ -418,9 +418,9 @@ class TestWritePipelineDedup:
 
         op1 = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": client_id,
-            "data": {"name": "Dedup Test", "unit": "kg", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp1 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op1]})
         result1 = resp1.json()["results"][0]
@@ -430,9 +430,9 @@ class TestWritePipelineDedup:
 
         op2 = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": client_id,
-            "data": {"name": "Dedup Duplicate", "unit": "kg", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 200.0},
         }
         resp2 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op2]})
         result2 = resp2.json()["results"][0]
@@ -499,8 +499,8 @@ class TestDeltaSyncSecurity:
     def test_delta_sync_returns_only_own_data(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "Mine", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 500.0},
         }
         authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
 
@@ -513,16 +513,13 @@ class TestDeltaSyncSecurity:
         data = resp.json()
         changed = data.get("changed", {})
 
-        metric_types = changed.get("metric_type", [])
-        my_names = [m["name"] for m in metric_types]
-        assert "Mine" in my_names
+        goals = changed.get("goal", [])
+        my_targets = [g["target_value"] for g in goals]
+        assert 500.0 in my_targets
 
-        for name in my_names:
-            if name != "Mine":
-                continue
-            for m in metric_types:
-                if m["name"] == name:
-                    assert m.get("user_id") is not None
+        for g in goals:
+            if g["target_value"] == 500.0:
+                assert g.get("user_id") is not None
 
 
 class TestDeltaSyncCompleteness:
@@ -627,8 +624,8 @@ class TestSyncPushPublishesEvent:
             resp = authenticated_client.post("/api/v1/sync/push", json={
                 "operations": [{
                     "type": "create",
-                    "entity": "metric_type",
-                    "data": {"name": "EventBus Test", "unit": "kg", "data_type": "number"},
+                    "entity": "goal",
+                    "data": {"metric_code": "steps", "target_value": 100.0},
                 }]
             })
             assert resp.status_code == 200
@@ -695,9 +692,9 @@ class TestSyncPushLogTTL:
 
         op1 = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": client_id,
-            "data": {"name": "TTL Original", "unit": "kg", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp1 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op1]})
         result1 = resp1.json()["results"][0]
@@ -715,9 +712,9 @@ class TestSyncPushLogTTL:
 
         op2 = {
             "type": "create",
-            "entity": "metric_type",
+            "entity": "goal",
             "client_id": client_id,
-            "data": {"name": "TTL After Expiry", "unit": "kg", "data_type": "number"},
+            "data": {"metric_code": "steps", "target_value": 200.0},
         }
         resp2 = authenticated_client.post("/api/v1/sync/push", json={"operations": [op2]})
         result2 = resp2.json()["results"][0]
@@ -761,24 +758,24 @@ class TestOptimisticLocking:
     def test_update_with_correct_timestamp_succeeds(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "Lock Test", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
 
         get_resp = authenticated_client.get("/api/v1/sync")
-        metric = next(
-            m for m in get_resp.json()["metric_type"]
-            if m["id"] == metric_id
+        goal = next(
+            g for g in get_resp.json()["goal"]
+            if g["id"] == goal_id
         )
-        current_updated_at = metric["updated_at"]
+        current_updated_at = goal["updated_at"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
-            "id": metric_id,
-            "data": {"name": "Lock Updated"},
+            "entity": "goal",
+            "id": goal_id,
+            "data": {"target_value": 200.0},
             "expected_updated_at": current_updated_at,
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})
@@ -788,17 +785,17 @@ class TestOptimisticLocking:
     def test_update_with_stale_timestamp_returns_conflict(self, authenticated_client: TestClient):
         create_op = {
             "type": "create",
-            "entity": "metric_type",
-            "data": {"name": "Conflict Test", "unit": "kg", "data_type": "number"},
+            "entity": "goal",
+            "data": {"metric_code": "steps", "target_value": 100.0},
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_op]})
-        metric_id = resp.json()["results"][0]["id"]
+        goal_id = resp.json()["results"][0]["id"]
 
         update_op = {
             "type": "update",
-            "entity": "metric_type",
-            "id": metric_id,
-            "data": {"name": "Conflict Updated"},
+            "entity": "goal",
+            "id": goal_id,
+            "data": {"target_value": 300.0},
             "expected_updated_at": "1970-01-01T00:00:00+00:00",
         }
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [update_op]})

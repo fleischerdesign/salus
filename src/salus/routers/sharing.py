@@ -65,11 +65,11 @@ async def federated_shared_data(
         if not owner:
             raise HTTPException(status_code=404, detail="Owner not found")
 
-        metric_types = sharing_svc.uow.metric_types.find_all(owner.id)
+        metric_defs = sharing_svc.uow.metric_definitions.find_all()
         metric = next(
-            (m for m in metric_types if m.source_data_type == data_type), None
+            (m for m in metric_defs if m.source_data_type == data_type), None
         )
-        if not metric or metric.id is None:
+        if not metric:
             return JSONResponse({"status": "ok", "data": []})
 
         if sig_header and sig_input_header:
@@ -85,7 +85,7 @@ async def federated_shared_data(
                     body=None,
                 )
                 rel = sharing_svc.uow.sharing_relationships.find_active_with_owner_metric_and_grantee(
-                    owner.id, requester_handle, metric.id  # type: ignore[reportArgumentType]
+                    owner.id, requester_handle, metric.code  # type: ignore[reportArgumentType]
                 )
                 if not rel:
                     raise HTTPException(
@@ -107,7 +107,7 @@ async def federated_shared_data(
             rel = sharing_svc.uow.sharing_relationships.find_active_by_token_hash(
                 token_hash
             )
-            if not rel or rel.owner_id != owner.id or rel.metric_type_id != metric.id:
+            if not rel or rel.owner_id != owner.id or rel.metric_code != metric.code:
                 raise HTTPException(status_code=401, detail="Invalid or inactive token")
 
         from salus.services._helpers import uid

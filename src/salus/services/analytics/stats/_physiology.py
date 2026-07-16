@@ -80,6 +80,7 @@ def recovery_composite(
     resting_hr: float,
     steps: int,
     baselines: dict[str, tuple[float, float]],
+    skip_steps: bool = False,
 ) -> RecoveryScore:
     mu_sleep, sig_sleep = baselines.get("sleep", (7.0, 1.0))
     mu_hrv, sig_hrv = baselines.get("hrv", (50.0, 10.0))
@@ -88,7 +89,7 @@ def recovery_composite(
     z_sleep = (sleep_score - mu_sleep) / max(sig_sleep, 1e-9)
     z_hrv = (hrv_rmssd - mu_hrv) / max(sig_hrv, 1e-9)
     z_hr = -(resting_hr - mu_hr) / max(sig_hr, 1e-9)
-    z_steps = (math.log(max(steps, 1)) - mu_steps) / max(sig_steps, 1e-9)
+    z_steps = 0.0 if skip_steps else (math.log(max(steps, 1)) - mu_steps) / max(sig_steps, 1e-9)
     score = 50.0 + 10.0 * (0.35 * z_sleep + 0.30 * z_hrv + 0.20 * z_hr + 0.15 * z_steps)
     score = max(0.0, min(100.0, score))
     if score >= 75:

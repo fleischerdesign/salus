@@ -6,7 +6,6 @@ from sqlmodel import Field, Relationship, SQLModel
 from salus.services._helpers import uuid7_str
 
 if TYPE_CHECKING:
-    from salus.models import MetricType  # noqa: F401
     from salus.models.goal import Goal  # noqa: F401
     from salus.models.insight import Insight  # noqa: F401
     from salus.models.measurement import Measurement  # noqa: F401
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
     from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare  # noqa: F401
     from salus.models.circadian import CircadianProfile  # noqa: F401
     from salus.models.notification import Notification  # noqa: F401
+    from salus.models.metric_preference import UserMetricPreference  # noqa: F401
 
 
 class User(SQLModel, table=True):
@@ -35,7 +35,7 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    metric_types: list["MetricType"] = Relationship(
+    metric_preferences: list["UserMetricPreference"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
     measurements: list["Measurement"] = Relationship(

@@ -4,7 +4,7 @@ from salus.models import DataType
 from salus.services._helpers import DEFAULT_METRIC_COLOR
 
 
-class MetricTypeCreate(BaseModel):
+class MetricPreferenceCreate(BaseModel):
     name: str
     unit: str = ""
     data_type: DataType = DataType.NUMBER

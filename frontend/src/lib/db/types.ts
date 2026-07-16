@@ -35,28 +35,69 @@ export interface SyncMeta {
   value: unknown;
 }
 
-export interface MetricType {
-  id: string;
+export interface MetricDefinition {
+  code: string;
   name: string;
   unit: string;
   data_type: string;
-  color: string;
-  user_id: string;
-  is_system: boolean;
   source_data_type: string | null;
+  group_key: string | null;
+  description: string | null;
+  sort_order: number;
+}
+
+export interface MetricGroup {
+  key: string;
+  name: string;
+  icon: string;
+  description: string | null;
+  input_mode: string;
+}
+
+export interface UserMetricPreference {
+  id: string;
+  user_id: string;
+  metric_code: string;
+  enabled: boolean;
+  color: string;
   icon: string;
   widget_size: string;
   widget_enabled: boolean;
   position: number;
-  created_at: string;
-  updated_at: string | null;
-  deleted_at: string | null;
+}
+
+export interface MetricWithPreference extends MetricDefinition {
+  color: string;
+  icon: string;
+  widget_size: string;
+  widget_enabled: boolean;
+  enabled: boolean;
+  position: number;
+}
+
+export function mergeMetricPrefs(
+  definitions: MetricDefinition[],
+  preferences: UserMetricPreference[]
+): MetricWithPreference[] {
+  const prefMap = new Map(preferences.map((p) => [p.metric_code, p]));
+  return definitions.map((def) => {
+    const pref = prefMap.get(def.code);
+    return {
+      ...def,
+      color: pref?.color ?? '#4f46e5',
+      icon: pref?.icon ?? 'monitoring',
+      widget_size: pref?.widget_size ?? 'medium',
+      widget_enabled: pref?.widget_enabled ?? false,
+      enabled: pref?.enabled ?? true,
+      position: pref?.position ?? 0
+    };
+  });
 }
 
 export interface Measurement {
   id: string;
   user_id: string;
-  metric_type_id: string;
+  metric_code: string | null;
   data_type: string;
   source: string;
   value_numeric: number | null;
@@ -74,7 +115,7 @@ export interface Measurement {
 export interface Goal {
   id: string;
   user_id: string;
-  metric_type_id: string;
+  metric_code: string;
   target_value: number;
   direction: string;
   frequency: string;
@@ -195,7 +236,7 @@ export interface DashboardWidget {
   id: string;
   user_id: string;
   widget_type: string;
-  metric_type_id?: string | null;
+  metric_code?: string | null;
   position: number;
   size: string;
   config_json: string;
@@ -209,7 +250,7 @@ export interface SharingRelationship {
   id: string;
   owner_id: string;
   grantee_handle: string;
-  metric_type_id: string;
+  metric_code: string;
   aggregation_level: string;
   expiration_date: string | null;
   status: string;

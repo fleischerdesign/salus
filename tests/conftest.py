@@ -33,23 +33,29 @@ def _seed_admin(session: Session) -> None:
     session.add(admin)
     session.commit()
 
-    # Seed default metric types for the admin user to enable correct webhook mapping
-    from salus.services.metric_type_mapping import DEFAULT_METRIC_TYPES
-    from salus.models import MetricType
-    for name, unit, data_type, color, source_data_type, icon, widget_size, widget_enabled in DEFAULT_METRIC_TYPES:
-        mt = MetricType(
-            name=name,
-            unit=unit,
-            data_type=data_type,
-            color=color,
+    # Seed global metric definitions + groups + user preferences
+    from salus.models.metric_definition import MetricDefinition, MetricGroup
+    from salus.models.metric_preference import UserMetricPreference
+    from salus.services.metric_type_mapping import METRIC_DEFINITIONS, METRIC_GROUPS, DEFAULT_METRIC_PREFERENCES
+
+    for group_data in METRIC_GROUPS:
+        session.add(MetricGroup(key=group_data["key"], name=group_data["name"], icon=group_data["icon"]))
+
+    for md_data in METRIC_DEFINITIONS:
+        session.add(MetricDefinition(**md_data))
+
+    for p in DEFAULT_METRIC_PREFERENCES:
+        session.add(UserMetricPreference(
             user_id=admin.id,
-            is_system=True,
-            source_data_type=source_data_type,
-            icon=icon,
-            widget_size=widget_size,
-            widget_enabled=widget_enabled,
-        )
-        session.add(mt)
+            metric_code=p["code"],
+            enabled=p.get("enabled", True),
+            color=p.get("color", "#4f46e5"),
+            icon=p.get("icon", "monitoring"),
+            widget_size=p.get("widget_size", "medium"),
+            widget_enabled=p.get("widget_enabled", False),
+            position=p.get("position", 0),
+        ))
+
     session.commit()
 
 

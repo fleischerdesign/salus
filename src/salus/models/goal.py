@@ -7,7 +7,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from salus.services._helpers import uuid7_str
 
 if TYPE_CHECKING:
-    from salus.models import MetricType  # noqa: F401
+    from salus.models.metric_definition import MetricDefinition  # noqa: F401
     from salus.models.user import User  # noqa: F401
 
 
@@ -27,7 +27,7 @@ class Goal(SQLModel, table=True):
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
-    metric_type_id: str = Field(foreign_key="metric_type.id")
+    metric_code: str = Field(foreign_key="metric_definition.code")
     target_value: float
     direction: GoalDirection = Field(default=GoalDirection.INCREASE)
     frequency: GoalFrequency = Field(default=GoalFrequency.DAILY)
@@ -41,4 +41,4 @@ class Goal(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="goals")
-    metric_type: "MetricType" = Relationship()  # type: ignore[name-defined]  # noqa: F821
+    metric_definition: "MetricDefinition" = Relationship()  # type: ignore[name-defined]  # noqa: F821

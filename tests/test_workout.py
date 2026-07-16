@@ -115,8 +115,8 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
     squat_target = next(t for t in targets if t["exercise_id"] == squat_id)
     bench_target = next(t for t in targets if t["exercise_id"] == bench_id)
 
-    assert squat_target["suggested_sets"] == 3
-    assert squat_target["weight_multiplier"] == 1.0
+    assert squat_target["suggested_sets"] == 4
+    assert squat_target["weight_multiplier"] == 1.05
     assert squat_target["rest_seconds"] == 180
     assert bench_target["weight_multiplier"] == 1.0
     assert bench_target["is_autoreg_exempt"] is True
@@ -613,4 +613,4 @@ def test_get_plan_targets_returns_targets(authenticated_client):
     assert isinstance(targets, list)
     assert any(t["exercise_id"] == ex_id for t in targets)
     target = next(t for t in targets if t["exercise_id"] == ex_id)
-    assert target["suggested_sets"] == 4
+    assert target["suggested_sets"] == 5

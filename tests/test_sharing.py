@@ -5,7 +5,7 @@ from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from salus.models.user import User as UserModel
-from salus.models import MetricType, DataType
+from salus.models.metric_definition import MetricDefinition
 from salus.models.measurement import Measurement
 from salus.models.sharing import ConnectionStatus
 from salus.repositories.unit_of_work import SqlUnitOfWork
@@ -39,25 +39,16 @@ def seeded_users(session: Session):
         owner_id = uid(owner)
         grantee_id = uid(grantee)
 
-        metric = MetricType(
-            name="Steps",
-            unit="steps",
-            data_type=DataType.NUMBER,
-            user_id=owner_id,
-            is_system=True,
-            widget_enabled=True,
-            source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="sharing_test_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
     return {
         "uow": uow,
         "owner_id": owner_id,
         "grantee_id": grantee_id,
-        "metric_id": metric_id,
+        "metric_code": metric_code,
     }
 
 
@@ -77,17 +68,13 @@ def test_create_relationship_creates_pending(session: Session):
         uow.commit()
         owner_id = uid(owner)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="sharing_test_steps_1", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
     rel = service.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.id is not None
     assert rel.status == ConnectionStatus.PENDING
@@ -106,21 +93,17 @@ def test_create_relationship_rejects_duplicate_pending(session: Session):
         uow.commit()
         owner_id = uid(owner)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="sharing_test_steps_2", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
     service.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     with pytest.raises(ConflictError):
         service.create_relationship(
-            owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+            owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
         )
 
 
@@ -134,18 +117,14 @@ def test_create_relationship_remote_no_local_check(session: Session):
         uow.commit()
         owner_id = uid(owner)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="sharing_test_steps_3", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
     rel = service.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:remote-server.com",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
     assert rel.id is not None
     assert rel.grantee_handle == "@alice:remote-server.com"
@@ -161,10 +140,10 @@ def test_accept_relationship(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
 
@@ -177,10 +156,10 @@ def test_decline_relationship(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
 
@@ -192,7 +171,7 @@ def test_accept_wrong_grantee_raises(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     with uow:
         third_user = UserModel(username="third", password_hash="hash")
@@ -201,7 +180,7 @@ def test_accept_wrong_grantee_raises(seeded_users):
 
     rel = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
 
     with pytest.raises(NotFoundError):
@@ -212,10 +191,10 @@ def test_accept_twice_raises(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -231,10 +210,10 @@ def test_deactivate_relationship(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -254,19 +233,19 @@ def test_resolution_requires_acceptance(seeded_users):
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, data_type="steps",
             value_numeric=5000.0, start_time=t_utc, source="manual", external_id="m1",
         )
         uow.measurements.add(m)
         uow.commit()
 
     svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
         aggregation_level="daily_summary",
     )
 
@@ -294,19 +273,19 @@ def test_resolution_after_revoke_denies(seeded_users):
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, data_type="steps",
             value_numeric=8000.0, start_time=t_utc, source="manual", external_id="m1",
         )
         uow.measurements.add(m)
         uow.commit()
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
     svc.deactivate_relationship(owner_id, rel.id)
@@ -326,10 +305,10 @@ def test_get_peer_connections_outgoing(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -345,26 +324,22 @@ def test_get_peer_connections_mutual(seeded_users):
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     with uow:
-        grantee_metric = MetricType(
-            name="Heart Rate", unit="bpm", data_type=DataType.NUMBER,
-            user_id=grantee_id, is_system=True, source_data_type="heart_rate",
-        )
-        uow.metric_types.add(grantee_metric)
+        grantee_metric = MetricDefinition(code="sharing_test_hr", name="Heart Rate", unit="bpm", source_data_type="heart_rate")
+        uow.metric_definitions.add(grantee_metric)
         uow.commit()
-        assert grantee_metric.id is not None
-        grantee_metric_id = grantee_metric.id
+        grantee_metric_code = grantee_metric.code
 
     rel1 = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel1.id)
 
     rel2 = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
-        metric_type_id=grantee_metric_id,
+        metric_code=grantee_metric_code,
     )
     with uow:
         owner_user = uow.users.get_by_id(owner_id)
@@ -382,10 +357,10 @@ def test_get_peer_connections_incoming(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -400,10 +375,10 @@ def test_get_pending_invitations(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
 
     pending = svc.get_pending_invitations(grantee_id)
@@ -415,10 +390,10 @@ def test_get_pending_invitations_empty_after_accept(seeded_users):
     svc = SharingService.create(seeded_users["uow"])
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -447,17 +422,13 @@ def test_federated_api_endpoint(session: Session):
         uow.commit()
         owner_id = uid(owner)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="fed_api_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
         m = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, data_type="steps",
             value_numeric=9500.0,
             start_time=datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc),
             source="manual", external_id="m-api",
@@ -468,7 +439,7 @@ def test_federated_api_endpoint(session: Session):
     svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
-        metric_type_id=metric_id, aggregation_level="raw",
+        metric_code=metric_code, aggregation_level="raw",
     )
     token = rel.raw_token
 
@@ -525,19 +496,15 @@ def test_federation_accept_endpoint(session: Session):
         uow.commit()
         owner_id = uid(owner)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric_def = MetricDefinition(code="fed_accept_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
         uow.commit()
-        assert metric.id is not None
-        metric_id = metric.id
+        metric_code = metric_def.code
 
     svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
     token = rel.raw_token
@@ -581,14 +548,10 @@ def test_sharing_connections_api():
         uow.commit()
         owner_id = uid(owner)
 
-        m1 = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=owner_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(m1)
+        m1 = MetricDefinition(code="sharing_api_test_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(m1)
         uow.commit()
-        assert m1.id is not None
-        m1_id = m1.id
+        m1_code = m1.code
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
     app.dependency_overrides[get_current_user] = lambda: owner
@@ -598,7 +561,7 @@ def test_sharing_connections_api():
             "/api/v1/sharing/connections",
             json={
                 "grantee_handle": "@grantee:external.com",
-                "metric_type_id": m1_id,
+                "metric_code": m1_code,
                 "aggregation_level": "raw",
             },
         )
@@ -649,19 +612,19 @@ def test_sharing_expiration_after_acceptance(seeded_users):
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     t_utc = datetime.now(timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, data_type="steps",
             value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-exp",
         )
         uow.measurements.add(m)
         uow.commit()
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
         expiration_days=-1,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -694,19 +657,19 @@ def test_resolution_invalid_date_fallback(seeded_users):
     uow = seeded_users["uow"]
     owner_id = seeded_users["owner_id"]
     grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
+    metric_code = seeded_users["metric_code"]
 
     t_utc = datetime.now(timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, data_type="steps",
             value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-fallback",
         )
         uow.measurements.add(m)
         uow.commit()
 
     rel = svc.create_relationship(
-        owner_id=owner_id, grantee_handle="@grantee", metric_type_id=metric_id,
+        owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
 
@@ -730,14 +693,10 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     grantee_id = seeded_users["grantee_id"]
 
     with uow:
-        grantee_metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=grantee_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(grantee_metric)
+        grantee_metric = MetricDefinition(code="lb_steps_grantee", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(grantee_metric)
         uow.commit()
-        assert grantee_metric.id is not None
-        grantee_metric_id = grantee_metric.id
+        grantee_metric_code = grantee_metric.code
 
     group = leaderboard_svc.create_group(
         creator_id=owner_id, name="Step Challenge",
@@ -751,7 +710,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
 
     rel = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
-        metric_type_id=grantee_metric_id,
+        metric_code=grantee_metric_code,
     )
     svc.accept_relationship(owner_id, rel.id)
 
@@ -759,58 +718,54 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     assert joined.id == group.id
 
 
-def test_leaderboard_rankings(seeded_users):
-    uow = seeded_users["uow"]
-    svc = SharingService.create(uow)
-    leaderboard_svc = LeaderboardService(uow)
-    owner_id = seeded_users["owner_id"]
-    grantee_id = seeded_users["grantee_id"]
-    metric_id = seeded_users["metric_id"]
-
-    with uow:
-        grantee_metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=grantee_id, is_system=True, source_data_type="steps",
+    def test_leaderboard_rankings(seeded_users):
+        uow = seeded_users["uow"]
+        svc = SharingService.create(uow)
+        leaderboard_svc = LeaderboardService(uow)
+        owner_id = seeded_users["owner_id"]
+        grantee_id = seeded_users["grantee_id"]
+        metric_code = seeded_users["metric_code"]
+    
+        with uow:
+            grantee_metric = MetricDefinition(code="lb_steps_grantee_2", name="Steps", unit="steps", source_data_type="steps")
+            uow.metric_definitions.add(grantee_metric)
+            uow.commit()
+            grantee_metric_code = grantee_metric.code
+    
+        group = leaderboard_svc.create_group(
+            creator_id=owner_id, name="Step Challenge",
+            metric_type_code="steps", time_frame="weekly",
         )
-        uow.metric_types.add(grantee_metric)
-        uow.commit()
-        assert grantee_metric.id is not None
-        grantee_metric_id = grantee_metric.id
-
-    group = leaderboard_svc.create_group(
-        creator_id=owner_id, name="Step Challenge",
-        metric_type_code="steps", time_frame="weekly",
-    )
-    assert group.id is not None
-
-    rel = svc.create_relationship(
-        owner_id=grantee_id, grantee_handle="@owner",
-        metric_type_id=grantee_metric_id,
-    )
-    svc.accept_relationship(owner_id, rel.id)
-    leaderboard_svc.join_by_code(grantee_id, group.invite_code)
-
-    t_utc = datetime.now(timezone.utc)
-    with uow:
-        m_creator = Measurement(
-            user_id=owner_id, metric_type_id=metric_id, data_type="steps",
-            value_numeric=10000.0, start_time=t_utc, source="manual", external_id="m_c",
+        assert group.id is not None
+    
+        rel = svc.create_relationship(
+            owner_id=grantee_id, grantee_handle="@owner",
+            metric_code=grantee_metric_code,
         )
-        m_invitee = Measurement(
-            user_id=grantee_id, metric_type_id=grantee_metric_id, data_type="steps",
-            value_numeric=15000.0, start_time=t_utc, source="manual", external_id="m_i",
-        )
-        uow.measurements.add(m_creator)
-        uow.measurements.add(m_invitee)
-        uow.commit()
-
-    assert group.id is not None
-    rankings_data = leaderboard_svc.get_group_rankings(group.id, owner_id)
-    rankings = rankings_data["rankings"]
-    assert rankings[0]["username"] == "grantee"
-    assert rankings[0]["score"] == 15000.0
-    assert rankings[1]["username"] == "owner"
-    assert rankings[1]["score"] == 10000.0
+        svc.accept_relationship(owner_id, rel.id)
+        leaderboard_svc.join_by_code(grantee_id, group.invite_code)
+    
+        t_utc = datetime.now(timezone.utc)
+        with uow:
+            m_creator = Measurement(
+                user_id=owner_id, metric_code=metric_code, data_type="steps",
+                value_numeric=10000.0, start_time=t_utc, source="manual", external_id="m_c",
+            )
+            m_invitee = Measurement(
+                user_id=grantee_id, metric_code=grantee_metric_code, data_type="steps",
+                value_numeric=15000.0, start_time=t_utc, source="manual", external_id="m_i",
+            )
+            uow.measurements.add(m_creator)
+            uow.measurements.add(m_invitee)
+            uow.commit()
+    
+        assert group.id is not None
+        rankings_data = leaderboard_svc.get_group_rankings(group.id, owner_id)
+        rankings = rankings_data["rankings"]
+        assert rankings[0]["username"] == "grantee"
+        assert rankings[0]["score"] == 15000.0
+        assert rankings[1]["username"] == "owner"
+        assert rankings[1]["score"] == 10000.0
 
 
 # ---------------------------------------------------------------------------
@@ -836,14 +791,10 @@ def test_leaderboard_api_routes():
         creator_id = uid(creator)
         invitee_id = uid(invitee)
 
-        metric_i = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=invitee_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric_i)
+        metric_i = MetricDefinition(code="lb_api_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_i)
         uow.commit()
-        assert metric_i.id is not None
-        metric_i_id = metric_i.id
+        metric_i_code = metric_i.code
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
 
@@ -871,7 +822,7 @@ def test_leaderboard_api_routes():
         svc = SharingService.create(uow)
         rel = svc.create_relationship(
             owner_id=invitee_id, grantee_handle="@creator",
-            metric_type_id=metric_i_id,
+            metric_code=metric_i_code,
         )
         svc.accept_relationship(creator_id, rel.id)
 
@@ -922,6 +873,11 @@ def test_federated_measurement_cache_and_ttl():
         uow.users.add(user)
         uow.commit()
         bob_id = uid(user)
+
+        metric_def = MetricDefinition(code="cache_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric_def)
+        uow.commit()
+        metric_code = metric_def.code
 
     svc = SharingService.create(uow)
 
@@ -980,18 +936,15 @@ def test_federated_notify_update_route():
         uow.commit()
         bob_id = uid(user)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=bob_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric = MetricDefinition(code="notify_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric)
         uow.commit()
-        metric_id = metric.id
+        metric_code = metric.code
 
     svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
 
     with uow:
@@ -1153,18 +1106,15 @@ def test_federated_access_log():
         uow.commit()
         bob_id = uid(bob)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=bob_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric = MetricDefinition(code="access_log_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric)
         uow.commit()
-        metric_id = metric.id
+        metric_code = metric.code
 
     svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
 
     with uow:
@@ -1223,18 +1173,15 @@ def test_federated_http_message_signatures():
         uow.commit()
         bob_id = uid(bob)
 
-        metric = MetricType(
-            name="Steps", unit="steps", data_type=DataType.NUMBER,
-            user_id=bob_id, is_system=True, source_data_type="steps",
-        )
-        uow.metric_types.add(metric)
+        metric = MetricDefinition(code="sig_steps", name="Steps", unit="steps", source_data_type="steps")
+        uow.metric_definitions.add(metric)
         uow.commit()
-        metric_id = metric.id
+        metric_code = metric.code
 
     svc = SharingService.create(uow)
     rel = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
-        metric_type_id=metric_id,
+        metric_code=metric_code,
     )
 
     with uow:

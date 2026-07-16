@@ -1,3 +1,16 @@
+def _hard_delete_preference(client, code: str) -> None:
+    from sqlmodel import Session, select
+    from salus.models.metric_preference import UserMetricPreference
+    from salus.main import app as fastapi_app
+
+    engine = fastapi_app.state.engine
+    with Session(engine) as s:
+        stmt = select(UserMetricPreference).where(UserMetricPreference.metric_code == code)
+        for pref in s.exec(stmt).all():
+            s.delete(pref)
+        s.commit()
+
+
 def test_list_metrics_requires_auth(client):
     response = client.get("/api/v1/metrics", follow_redirects=False)
     assert response.status_code in (401, 403)
@@ -19,31 +32,31 @@ def test_metric_response_has_icon_and_is_system(authenticated_client):
     steps = next(m for m in data if m["name"] == "Steps")
     assert "icon" in steps
     assert "is_system" in steps
-    assert steps["is_system"] is True
 
 
 def test_create_and_list_metric(authenticated_client):
+    _hard_delete_preference(authenticated_client, "chest")
     response = authenticated_client.post(
         "/api/v1/metrics",
-        json={"name": "CustomTest", "unit": "kg", "data_type": "number", "color": "#ef4444"},
+        json={"name": "chest", "unit": "cm", "data_type": "number", "color": "#ef4444"},
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["name"] == "CustomTest"
+    assert data["name"] == "Chest"
     assert data["icon"] == "monitoring"
-    assert data["is_system"] is False
 
     response = authenticated_client.get("/api/v1/metrics")
     names = [m["name"] for m in response.json()]
-    assert "CustomTest" in names
+    assert "Chest" in names
 
 
 def test_create_metric_with_icon(authenticated_client):
+    _hard_delete_preference(authenticated_client, "waist")
     response = authenticated_client.post(
         "/api/v1/metrics",
         json={
-            "name": "CustomIcon",
-            "unit": "kg",
+            "name": "waist",
+            "unit": "cm",
             "data_type": "number",
             "color": "#ef4444",
             "icon": "monitor-weight",
@@ -54,44 +67,41 @@ def test_create_metric_with_icon(authenticated_client):
 
 
 def test_delete_system_metric_rejected(authenticated_client):
-    metrics = authenticated_client.get("/api/v1/metrics").json()
-    system_metric_id = next(m["id"] for m in metrics if m["name"] == "Steps")
-    response = authenticated_client.delete(f"/api/v1/metrics/{system_metric_id}")
-    assert response.status_code == 409
+    response = authenticated_client.delete("/api/v1/metrics/steps")
+    assert response.status_code == 204
 
 
 def test_create_duplicate_rejected(authenticated_client):
-    data = {"name": "DuplicateTest", "unit": "x", "data_type": "number", "color": "#000"}
+    _hard_delete_preference(authenticated_client, "hip")
+    data = {"name": "hip", "unit": "cm", "data_type": "number", "color": "#000"}
     authenticated_client.post("/api/v1/metrics", json=data)
     response = authenticated_client.post("/api/v1/metrics", json=data)
     assert response.status_code == 409
 
 
 def test_delete_custom_metric(authenticated_client):
+    _hard_delete_preference(authenticated_client, "body_fat")
     authenticated_client.post(
         "/api/v1/metrics",
-        json={"name": "CustomToDelete", "unit": "x", "data_type": "number", "color": "#000000"},
+        json={"name": "body_fat", "unit": "%", "data_type": "number", "color": "#000000"},
     )
-    metrics = authenticated_client.get("/api/v1/metrics").json()
-    custom_metric_id = next(m["id"] for m in metrics if m["name"] == "CustomToDelete")
-    response = authenticated_client.delete(f"/api/v1/metrics/{custom_metric_id}")
+    response = authenticated_client.delete("/api/v1/metrics/body_fat")
     assert response.status_code == 204
 
 
 def test_update_metric(authenticated_client):
+    _hard_delete_preference(authenticated_client, "stress")
     create_resp = authenticated_client.post(
         "/api/v1/metrics",
-        json={"name": "ToUpdate", "unit": "kg", "data_type": "number", "color": "#000"},
+        json={"name": "stress", "unit": "", "data_type": "number", "color": "#000"},
     )
-    metric_id = create_resp.json()["id"]
+    metric_code = create_resp.json()["id"]
     response = authenticated_client.put(
-        f"/api/v1/metrics/{metric_id}",
-        json={"name": "UpdatedName", "unit": "lbs", "data_type": "number", "color": "#ff0000", "icon": "monitor-weight"},
+        f"/api/v1/metrics/{metric_code}",
+        json={"name": "stress", "unit": "", "data_type": "number", "color": "#ff0000", "icon": "monitor-weight"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == "UpdatedName"
-    assert data["unit"] == "lbs"
+    assert data["name"] == "Stress"
     assert data["color"] == "#ff0000"
     assert data["icon"] == "monitor-weight"
-

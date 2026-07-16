@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlmodel import select
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition
 from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.base import Repository
 from salus.repositories.protocols import ISharingRepository
@@ -22,13 +22,13 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return list(self.session.exec(stmt).all())
 
     def get_active_relationship(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id,
             SharingRelationship.grantee_handle == grantee_handle,
-            SharingRelationship.metric_type_id == metric_type_id,
+            SharingRelationship.metric_code == metric_code,
             SharingRelationship.status == ConnectionStatus.ACTIVE,
             (SharingRelationship.expiration_date == None)  # type: ignore # noqa: E711
             | (SharingRelationship.expiration_date > now),  # type: ignore
@@ -66,12 +66,12 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_pending_relationship(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None:
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id,
             SharingRelationship.grantee_handle == grantee_handle,
-            SharingRelationship.metric_type_id == metric_type_id,
+            SharingRelationship.metric_code == metric_code,
             SharingRelationship.status == ConnectionStatus.PENDING,
         )
         return self.session.exec(stmt).first()
@@ -81,11 +81,11 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
     ) -> SharingRelationship | None:
         stmt = (
             select(SharingRelationship)
-            .join(MetricType, SharingRelationship.metric_type_id == MetricType.id)  # type: ignore[arg-type]
+            .join(MetricDefinition, SharingRelationship.metric_code == MetricDefinition.code)  # type: ignore[arg-type]
             .where(
                 SharingRelationship.grantee_handle == owner_handle,
                 SharingRelationship.status == ConnectionStatus.ACTIVE,
-                MetricType.source_data_type == data_type,
+                MetricDefinition.source_data_type == data_type,
             )
         )
         return self.session.exec(stmt).first()
@@ -116,11 +116,11 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
     ) -> list[SharingRelationship]:
         stmt = (
             select(SharingRelationship)
-            .join(MetricType, SharingRelationship.metric_type_id == MetricType.id)  # type: ignore[arg-type]
+            .join(MetricDefinition, SharingRelationship.metric_code == MetricDefinition.code)  # type: ignore[arg-type]
             .where(
                 SharingRelationship.owner_id == owner_id,
                 SharingRelationship.status == ConnectionStatus.ACTIVE,
-                MetricType.source_data_type == data_type,
+                MetricDefinition.source_data_type == data_type,
             )
         )
         return list(self.session.exec(stmt).all())
@@ -138,13 +138,13 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_active_with_owner_metric_and_grantee(
-        self, owner_id: str, grantee_handle: str, metric_type_id: str
+        self, owner_id: str, grantee_handle: str, metric_code: str
     ) -> SharingRelationship | None:
         now = datetime.now(timezone.utc)
         stmt = select(SharingRelationship).where(
             SharingRelationship.owner_id == owner_id,
             SharingRelationship.grantee_handle == grantee_handle,
-            SharingRelationship.metric_type_id == metric_type_id,
+            SharingRelationship.metric_code == metric_code,
             SharingRelationship.status == ConnectionStatus.ACTIVE,
             (SharingRelationship.expiration_date == None)  # type: ignore # noqa: E711
             | (SharingRelationship.expiration_date > now),  # type: ignore

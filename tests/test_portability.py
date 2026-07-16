@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine, select
 from sqlalchemy.pool import StaticPool
 from salus.models.user import User
 from salus.models.measurement import Measurement
-from salus.models import MetricType, DataType
+from salus.models.metric_definition import MetricDefinition
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services._helpers import uid
 from salus.services.portability import DataPortabilityService
@@ -29,20 +29,15 @@ def test_data_portability_export_import():
             uow.commit()
             user_id = uid(user)
 
-            mt = MetricType(
-                name="Weight", unit="kg", data_type=DataType.NUMBER,
-                user_id=user_id, source_data_type="weight",
-            )
-            uow.metric_types.add(mt)
+            mt = MetricDefinition(code="portability_weight", name="Weight", unit="kg", source_data_type="weight")
+            uow.metric_definitions.add(mt)
             uow.commit()
-            assert mt.id is not None
-            metric_id = mt.id
+            metric_code = mt.code
 
             m = Measurement(
                 user_id=user_id,
                 source="test_source",
-                data_type="weight",
-                metric_type_id=metric_id,
+                metric_code=metric_code,
                 value_numeric=75.5,
                 start_time=datetime.now(),
             )
@@ -82,11 +77,11 @@ def test_data_portability_export_import():
         csv_buffer = io.StringIO()
         csv_writer = csv.writer(csv_buffer)
         csv_writer.writerow([
-            "source", "data_type", "metric_type_id", "value_numeric",
+            "source", "data_type", "metric_code", "value_numeric",
             "value_text", "value_json", "start_time", "end_time", "notes", "external_id",
         ])
         csv_writer.writerow([
-            "imported_source", "weight", str(metric_id), "80.0",
+            "imported_source", "weight", metric_code, "80.0",
             "", "", datetime.now().isoformat(), "", "Imported note", "",
         ])
         new_zip.writestr("measurements.csv", csv_buffer.getvalue())

@@ -5,7 +5,7 @@ from typing import Protocol, runtime_checkable
 
 from salus.models.dashboard import DashboardWidget, WidgetSize, WidgetViz
 from salus.models.goal import Goal
-from salus.models import MetricType
+from salus.models.metric_definition import MetricDefinition
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
@@ -355,7 +355,7 @@ class GenericVizBuilder:
 
     def build(self, ctx, user_id, target, color):
         latest = ctx.uow.measurements.get_latest_by_metric_type(
-            metric_type_id=ctx._current_metric_id,
+            metric_code=ctx._current_metric_id,
             user_id=user_id,
         )
         if latest is None:
@@ -418,7 +418,7 @@ class DashboardWidgetService:
 
         # Request-level caches to optimize N+1 query patterns
         self._goals_cache: list[Goal] | None = None
-        self._metrics_cache: dict[str, MetricType] = {}
+        self._metrics_cache: dict[str, MetricDefinition] = {}
 
         # Set per-widget during widget_data() for GenericVizBuilder access
         self._current_metric_id: str | None = None
@@ -427,17 +427,20 @@ class DashboardWidgetService:
         existing = self.uow.dashboard_widgets.find_by_user(user_id)
         if existing:
             return existing
-        enabled_metrics = self.uow.metric_types.find_all(user_id)
-        enabled_metrics = [m for m in enabled_metrics if m.widget_enabled]
+        prefs = self.uow.metric_preferences.find_all(user_id)
+        enabled_prefs = [p for p in prefs if p.widget_enabled]
         widgets: list[DashboardWidget] = []
-        for pos, metric in enumerate(enabled_metrics):
-            viz_type = VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
+        for pos, pref in enumerate(enabled_prefs):
+            md = self.uow.metric_definitions.find_by_code(pref.metric_code)
+            if md is None:
+                continue
+            viz_type = VIZ_TYPE_DEFAULTS.get(md.source_data_type or "", "number")
             config = json.dumps({"viz_type": viz_type})
             w = DashboardWidget(
                 user_id=user_id,
-                metric_type_id=metric.id,  # type: ignore[arg-type]
+                metric_code=pref.metric_code,
                 position=pos,
-                size=WidgetSize(metric.widget_size),
+                size=WidgetSize(pref.widget_size),
                 config_json=config,
             )
             self.uow.dashboard_widgets.create(w)
@@ -454,13 +457,13 @@ class DashboardWidgetService:
         return w
 
     def add_widget(
-        self, user_id: str, widget_type: str, metric_type_id: str | None, size: WidgetSize
+        self, user_id: str, widget_type: str, metric_code: str | None, size: WidgetSize
     ) -> DashboardWidget:
         existing = self.uow.dashboard_widgets.find_by_user(user_id)
         position = len(existing)
         
-        if widget_type == "metric" and metric_type_id:
-            metric = self.uow.metric_types.get_by_id(metric_type_id)
+        if widget_type == "metric" and metric_code:
+            metric = self.uow.metric_definitions.find_by_code(metric_code)
             viz_type = (
                 VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
                 if metric
@@ -473,7 +476,7 @@ class DashboardWidgetService:
         w = DashboardWidget(
             user_id=user_id,
             widget_type=widget_type,
-            metric_type_id=metric_type_id if widget_type == "metric" else None,
+            metric_code=metric_code if widget_type == "metric" else None,
             position=position,
             size=size,
             config_json=config,
@@ -502,7 +505,7 @@ class DashboardWidgetService:
         Always returns a WidgetViz with at least ``title`` and ``type``
         set — even when no data exists (``empty=True``).
         """
-        if widget.widget_type != "metric" or not widget.metric_type_id:
+        if widget.widget_type != "metric" or not widget.metric_code:
             if widget.widget_type == "workout_launcher":
                 return WidgetViz(
                     type="workout_launcher",
@@ -524,14 +527,18 @@ class DashboardWidgetService:
                 empty_text="Custom widget layout",
             )
 
-        metric = self.uow.metric_types.get_by_id(widget.metric_type_id)
+        metric = self.uow.metric_definitions.find_by_code(widget.metric_code)
         if metric is None:
             return WidgetViz(
                 type="number",
-                title=f"Metric #{widget.metric_type_id}",
+                title=f"Metric #{widget.metric_code}",
                 empty=True,
                 empty_text="Unknown metric",
             )
+
+        pref = self.uow.metric_preferences.find_by_user_and_code(user_id, widget.metric_code) if widget.metric_code else None
+        metric_color = pref.color if pref else "#64748b"
+        metric_icon = pref.icon if pref else "monitoring"
 
         sd = metric.source_data_type
         today_str = datetime.today().strftime("%Y-%m-%d")
@@ -546,10 +553,10 @@ class DashboardWidgetService:
         builder = _VIZ_BUILDERS.get(sd or "")
         if builder is None:
             builder = GenericVizBuilder(title=metric.name, unit=metric.unit)
-            self._current_metric_id = widget.metric_type_id
+            self._current_metric_id = widget.metric_code
 
         try:
-            viz = builder.build(self, user_id=user_id, target=target, color=metric.color or "#64748b")
+            viz = builder.build(self, user_id=user_id, target=target, color=metric_color)
         except Exception:
             logger.exception("Error building viz for widget %s (sd=%s)", widget.id, sd)
             viz = None
@@ -560,16 +567,16 @@ class DashboardWidgetService:
             return WidgetViz(
                 type=viz_type,
                 title=metric.name,
-                icon=metric.icon,
-                color=metric.color,
+                icon=metric_icon,
+                color=metric_color,
                 empty=True,
                 empty_text=EMPTY_TEXTS.get(sd or "", "No data recorded yet."),
             )
 
         # Override viz type with configured type (allows user to change display)
         viz.type = viz_type
-        viz.icon = metric.icon
-        viz.color = metric.color or viz.color
+        viz.icon = metric_icon
+        viz.color = metric_color or viz.color
         return viz
 
     # ------------------------------------------------------------------
@@ -580,15 +587,14 @@ class DashboardWidgetService:
         if self._goals_cache is None:
             self._goals_cache = self._goal.find_all(user_id)
         if not self._metrics_cache:
-            for mt in self.uow.metric_types.find_all(user_id):
-                if mt.id is not None:
-                    self._metrics_cache[mt.id] = mt
+            for md in self.uow.metric_definitions.find_all():
+                self._metrics_cache[md.code] = md
 
         daily_goals: list[Goal] = []
         for g in self._goals_cache:
             if g.frequency.value != "daily":
                 continue
-            mt = self._metrics_cache.get(g.metric_type_id)
+            mt = self._metrics_cache.get(g.metric_code)
             if mt and mt.source_data_type == source_data_type:
                 daily_goals.append(g)
         daily_goals.sort(key=lambda g: g.created_at, reverse=True)

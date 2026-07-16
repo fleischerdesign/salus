@@ -26,10 +26,10 @@ class DashboardWidgetRepository(Repository[DashboardWidget], IDashboardWidgetRep
         self.session.commit()
 
     def find_by_user_and_metric(
-        self, user_id: str, metric_type_id: str
+        self, user_id: str, metric_code: str
     ) -> DashboardWidget | None:
         stmt = select(DashboardWidget).where(
             DashboardWidget.user_id == user_id,
-            DashboardWidget.metric_type_id == metric_type_id,
+            DashboardWidget.metric_code == metric_code,
         )
         return self.session.exec(stmt).first()

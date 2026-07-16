@@ -227,7 +227,7 @@ class TestDeletePlanHandler:
 class TestGoalCommands:
     def test_create_goal(self, authenticated_client: TestClient):
         result = _push_cmd(authenticated_client, "create_goal", {
-            "metric_type_id": str(uuid.uuid4()),
+            "metric_code": "steps",
             "target_value": 100.0,
             "direction": "increase",
             "frequency": "daily",
@@ -236,7 +236,7 @@ class TestGoalCommands:
 
     def test_delete_goal(self, authenticated_client: TestClient):
         created = _push_cmd(authenticated_client, "create_goal", {
-            "metric_type_id": str(uuid.uuid4()),
+            "metric_code": "steps",
             "target_value": 200.0,
             "direction": "decrease",
             "frequency": "weekly",

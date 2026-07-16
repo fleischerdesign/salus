@@ -2,7 +2,7 @@ import json
 import logging
 
 from salus.repositories.protocols import IMeasurementRepository
-from salus.services.metric_type_mapping import MetricTypeMappingService
+from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.plugin.hooks import HookRegistry
 
@@ -14,7 +14,7 @@ class WebhookIngestionService:
         self,
         parser: FlexiblePayloadParser,
         measurement_repo: IMeasurementRepository,
-        mapping_service: MetricTypeMappingService,
+        mapping_service: MetricDefinitionMappingService,
         registry: HookRegistry | None = None,
     ) -> None:
         self._parser = parser
@@ -28,15 +28,15 @@ class WebhookIngestionService:
 
         for rec in records:
             rec.user_id = user_id
-            rec.metric_type_id = self._mapping.resolve(rec.data_type, user_id)
+            rec.metric_code = self._mapping.resolve(rec.data_type, user_id)
             parsed_val = json.loads(rec.value_json) if rec.value_json else None
             vj_keys = list(parsed_val.keys()) if isinstance(parsed_val, dict) else []
             logger.debug(
-                "Record | data_type=%s | source=%s | metric_type_id=%s | "
+                "Record | data_type=%s | source=%s | metric_code=%s | "
                 "value_numeric=%s | value_json_keys=%s | start_time=%s | external_id=%s",
                 rec.data_type,
                 rec.source,
-                rec.metric_type_id,
+                rec.metric_code,
                 rec.value_numeric,
                 vj_keys,
                 rec.start_time.isoformat() if rec.start_time else None,

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/v1")
 class WidgetResponse(BaseModel):
     id: str
     widget_type: str = "metric"
-    metric_type_id: str | None = None
+    metric_code: str | None = None
     size: str
     position: int
     config_json: str
@@ -24,7 +24,7 @@ class WidgetResponse(BaseModel):
 class WidgetCreateResponse(BaseModel):
     id: str
     widget_type: str = "metric"
-    metric_type_id: str | None = None
+    metric_code: str | None = None
     size: str
 
 
@@ -51,13 +51,13 @@ async def api_widget_data(
 @router.post("/dashboard/widgets", response_model=WidgetCreateResponse, status_code=201)
 async def api_create_widget(
     widget_type: str = Query(default="metric"),
-    metric_type_id: str | None = Query(default=None),
+    metric_code: str | None = Query(default=None),
     size: str = Query(default="medium"),
     current_user: User = Depends(get_current_user),
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
 ):
-    widget = widget_svc.add_widget(uid(current_user), widget_type, metric_type_id, WidgetSize(size))
-    return {"id": widget.id, "widget_type": widget.widget_type, "metric_type_id": widget.metric_type_id, "size": size}
+    widget = widget_svc.add_widget(uid(current_user), widget_type, metric_code, WidgetSize(size))
+    return {"id": widget.id, "widget_type": widget.widget_type, "metric_code": widget.metric_code, "size": size}
 
 
 @router.delete("/dashboard/widgets/{widget_id}", status_code=204)
@@ -78,4 +78,5 @@ async def api_update_widget(
     widget_svc: DashboardWidgetService = Depends(get_dashboard_widget_service),
 ):
     widget = widget_svc.update_widget(widget_id, uid(current_user), WidgetSize(size))
-    return {"id": widget.id, "widget_type": widget.widget_type, "metric_type_id": widget.metric_type_id, "size": size}
+    return {"id": widget.id, "widget_type": widget.widget_type, "metric_code": widget.metric_code, "size": size}
+

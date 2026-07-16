@@ -5,12 +5,12 @@ function now(): string {
   return new Date().toISOString();
 }
 
-export const createMeasurement = (metricTypeId: string, data: Record<string, unknown>) => {
+export const createMeasurement = (metricCode: string, data: Record<string, unknown>) => {
   const id = uuid7();
   const record = {
     id,
     user_id: 'self',
-    metric_type_id: metricTypeId,
+    metric_code: metricCode,
     ...data,
     created_at: now(),
     updated_at: null,
@@ -50,7 +50,6 @@ export const createMetricType = (data: Record<string, unknown>) => {
   const record = {
     id,
     user_id: 'self',
-    is_system: false,
     ...data,
     created_at: now(),
     updated_at: null,
@@ -59,7 +58,7 @@ export const createMetricType = (data: Record<string, unknown>) => {
   return mutate({
     kind: 'crud',
     op: 'create',
-    entity: 'metric_type',
+    entity: 'user_metric_preference',
     id,
     data: record,
     optimistic: record
@@ -70,7 +69,7 @@ export const updateMetricType = (metricTypeId: string, data: Record<string, unkn
   mutate({
     kind: 'crud',
     op: 'update',
-    entity: 'metric_type',
+    entity: 'user_metric_preference',
     id: metricTypeId,
     data,
     optimistic: { id: metricTypeId, ...data }
@@ -80,7 +79,7 @@ export const deleteMetricType = (metricTypeId: string) =>
   mutate({
     kind: 'crud',
     op: 'delete',
-    entity: 'metric_type',
+    entity: 'user_metric_preference',
     id: metricTypeId,
     optimistic: { id: metricTypeId }
   });

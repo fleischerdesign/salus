@@ -90,20 +90,18 @@ class FederationDataResolver:
             if not owner_user:
                 raise NotFoundError(f"User {owner_username} not found")
 
-            metric_types = self.uow.metric_types.find_all(owner_user.id)
+            metric_defs = self.uow.metric_definitions.find_all()
             metric = next(
-                (m for m in metric_types if m.source_data_type == data_type), None
+                (m for m in metric_defs if m.source_data_type == data_type), None
             )
             if not metric:
                 return []
-            if metric.id is None:
-                raise ValueError("Metric has no persisted id")
-            metric_id = metric.id
+            metric_code = metric.code
 
             rel = self.uow.sharing_relationships.get_active_relationship(
                 owner_id=uid(owner_user),
                 grantee_handle=requester_handle,
-                metric_type_id=metric_id,
+                metric_code=metric_code,
             )
             if not rel:
                 raise ForbiddenError(
@@ -239,7 +237,7 @@ class FederationDataResolver:
                         "metrics": [],
                     }
                 friends_dict[rel.owner_id]["metrics"].append(
-                    rel.metric_type.source_data_type
+                    rel.metric_definition.source_data_type
                 )
 
             for friend_id, friend_data in friends_dict.items():
@@ -323,7 +321,7 @@ class FederationDataResolver:
                     if rel.grantee_handle not in remote_peers:
                         remote_peers[rel.grantee_handle] = []
                     remote_peers[rel.grantee_handle].append(
-                        rel.metric_type.source_data_type
+                        rel.metric_definition.source_data_type
                     )
 
         for remote_handle, shared_types in remote_peers.items():

@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import inspect as sa_inspect
 from sqlmodel import func, or_, select
 
 from salus.models.goal import Goal
@@ -35,8 +36,11 @@ def _owner_attr(model: type, spec: EntityMeta):
 
 def _parent_ids(sess, spec: EntityMeta, user_id: str) -> list[str]:
     parent = spec.parent_model
+    if parent is None:
+        return []
     owner = spec.parent_owner_field or "user_id"
-    stmt = select(parent.id).where(getattr(parent, owner) == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+    pk = _pk_column(parent)
+    stmt = select(pk).where(getattr(parent, owner) == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     if not spec.no_soft_delete and hasattr(parent, "deleted_at"):
         stmt = stmt.where(getattr(parent, "deleted_at").is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     rows = sess.exec(stmt).all()
@@ -47,6 +51,23 @@ def _soft_delete_filter(model: type, stmt, spec: EntityMeta):
     if not spec.no_soft_delete and hasattr(model, "deleted_at"):
         return stmt.where(getattr(model, "deleted_at").is_(None))  # pyright: ignore[reportAttributeAccessIssue]
     return stmt
+
+
+def _pk_column(model: type | None):
+    if model is None:
+        raise ValueError("Cannot get primary key of None")
+    pk_cols = sa_inspect(model).primary_key
+    return next(iter(pk_cols)) if pk_cols else None
+
+
+def _pk_attr(model: type) -> str:
+    pk = _pk_column(model)
+    return pk.key if pk is not None else "id"
+
+
+def _pk_value(instance) -> Any:
+    model = type(instance)
+    return getattr(instance, _pk_attr(model))
 
 
 def _build_full_query(sess, spec: EntityMeta, user_id: str, cursor: str):
@@ -69,7 +90,11 @@ def _build_full_query(sess, spec: EntityMeta, user_id: str, cursor: str):
         return None
 
     stmt = _soft_delete_filter(model, stmt, spec)
-    stmt = stmt.where(model.id > cursor).order_by(model.id).limit(spec.batch_size + 1)  # pyright: ignore[reportAttributeAccessIssue]
+    pk = _pk_column(model)
+    if pk is not None and cursor:
+        stmt = stmt.where(pk > cursor).order_by(pk).limit(spec.batch_size + 1)
+    elif pk is not None:
+        stmt = stmt.order_by(pk).limit(spec.batch_size + 1)
     return stmt
 
 
@@ -126,11 +151,11 @@ def _admin_system_stats(s) -> dict:
     import os
 
     from salus.config import settings as app_settings
-    from salus.models import MetricType
+    from salus.models.metric_definition import MetricDefinition
 
     total_users = s.scalar(select(func.count()).select_from(User)) or 0
     total_measurements = s.scalar(select(func.count()).select_from(Measurement)) or 0
-    total_metric_types = s.scalar(select(func.count()).select_from(MetricType)) or 0
+    total_metric_types = s.scalar(select(func.count()).select_from(MetricDefinition)) or 0
     total_goals = s.scalar(select(func.count()).select_from(Goal)) or 0
     db_path = app_settings.database_url.replace("sqlite:///", "")
     db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
@@ -289,8 +314,8 @@ class SyncService:
                 rows = rows[:spec.batch_size]
 
             if rows:
-                last_id = rows[-1].id  # pyright: ignore[reportAttributeAccessIssue]
-                next_cursors[spec.name] = last_id if last_id is not None else cursor
+                last_id = _pk_value(rows[-1])
+                next_cursors[spec.name] = str(last_id) if last_id is not None else cursor
                 if len(rows) == spec.batch_size:
                     pass
             else:
@@ -318,6 +343,7 @@ class SyncService:
         for spec in DELTA_ENTITY_SPECS:
             model = spec.model
             name = spec.name
+            pk_col = _pk_column(model)
 
             if spec.strategy in ("user_scoped", "shared_nullable"):
                 owner_attr = _owner_attr(model, spec)
@@ -337,10 +363,10 @@ class SyncService:
                             getattr(model, "deleted_at").is_(None),
                         )
                     ).all())  # type: ignore[reportArgumentType]
-                if hasattr(model, "deleted_at"):
+                if hasattr(model, "deleted_at") and pk_col is not None:
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
+                            select(pk_col).where(  # pyright: ignore[reportArgumentType]
                                 base_filter,
                                 getattr(model, "deleted_at") >= since,
                             )
@@ -364,10 +390,10 @@ class SyncService:
                             getattr(model, "deleted_at").is_(None),
                         )
                     ).all())
-                if hasattr(model, "deleted_at"):
+                if hasattr(model, "deleted_at") and pk_col is not None:
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
+                            select(pk_col).where(  # pyright: ignore[reportArgumentType]
                                 parent_filter,
                                 getattr(model, "deleted_at") >= since,
                             )
@@ -385,10 +411,10 @@ class SyncService:
                             getattr(model, "deleted_at").is_(None),
                         )
                     ).all())
-                if hasattr(model, "deleted_at"):
+                if hasattr(model, "deleted_at") and pk_col is not None:
                     delete_ids = [
                         row[0] for row in s.exec(
-                            select(model.id).where(  # pyright: ignore[reportAttributeAccessIssue]
+                            select(pk_col).where(  # pyright: ignore[reportArgumentType]
                                 getattr(model, "deleted_at") >= since,
                             )
                         ).all()

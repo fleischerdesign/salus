@@ -16,7 +16,7 @@ class CreateGoalHandler:
         goal = Goal(
             id=payload.get("id"),
             user_id=user.id,  # pyright: ignore[reportArgumentType]
-            metric_type_id=payload["metric_type_id"],
+            metric_code=payload["metric_code"],
             target_value=payload["target_value"],
             direction=payload.get("direction", "increase"),
             frequency=payload.get("frequency", "daily"),
@@ -26,7 +26,7 @@ class CreateGoalHandler:
         uow.commit()
         uow.session.refresh(goal)
         record: dict[str, Any] = {k: getattr(goal, k, None) for k in
-            ("id", "user_id", "metric_type_id", "target_value", "direction",
+            ("id", "user_id", "metric_code", "target_value", "direction",
              "frequency", "deadline", "is_active", "created_at", "updated_at", "deleted_at")}
         return CommandResult(status="created", record=record, id=goal.id)
 

@@ -46,12 +46,12 @@ class OpenScienceService:
         start_date = datetime.now(timezone.utc) - timedelta(weeks=req.weeks)
 
         with self.uow:
-            # Query all metric types owned by the user
-            metric_types = self.uow.metric_types.find_all(user_id)
+            # Query all metric definitions (global)
+            metric_defs = self.uow.metric_definitions.find_all()
 
-            # Build case-insensitive mapping: e.g., "steps" -> MetricType
+            # Build case-insensitive mapping: e.g., "steps" -> MetricDefinition
             metric_map = {
-                mt.name.lower(): mt for mt in metric_types if mt.id is not None
+                md.name.lower(): md for md in metric_defs
             }
 
             # Map common variants to pre-seeded metric types
@@ -69,15 +69,15 @@ class OpenScienceService:
                 if not mt:
                     continue
 
-                logger.debug("found mt = %s id = %s", mt.name, mt.id)
+                logger.debug("found mt = %s code = %s", mt.name, mt.code)
                 # Fetch raw measurements
                 measurements = self.uow.measurements.find_by_metric_type(
-                    metric_type_id=mt.id,  # type: ignore
+                    metric_code=mt.code,  # type: ignore
                     user_id=user_id,
                 )
                 logger.debug("measurements count = %d", len(measurements))
                 for m in measurements:
-                    logger.debug("m id=%s start_time=%s value_numeric=%s user_id=%s metric_type_id=%s", m.id, m.start_time, m.value_numeric, m.user_id, m.metric_type_id)
+                    logger.debug("m id=%s start_time=%s value_numeric=%s user_id=%s metric_code=%s", m.id, m.start_time, m.value_numeric, m.user_id, m.metric_code)
 
                 for m in measurements:
                     if m.start_time.replace(tzinfo=timezone.utc) < start_date:

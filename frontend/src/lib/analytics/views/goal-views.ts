@@ -1,5 +1,6 @@
 import { db } from '$lib/db/database';
 import type { Goal, Measurement } from '$lib/db/types';
+import { mergeMetricPrefs } from '$lib/db/types';
 import { computeGoalProgress } from '$lib/analytics/calculations';
 import type { GoalStatus } from '$lib/analytics/calculations';
 import { linearRegression, predictionInterval } from '$lib/analytics/stats';
@@ -45,7 +46,7 @@ function computeDeadlineForecast(
   createdAtStr: string
 ): ForecastResult | null {
   const relevant = measurements
-    .filter((m) => m.metric_type_id === goal.metric_type_id && !m.deleted_at)
+    .filter((m) => m.metric_code === goal.metric_code && !m.deleted_at)
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   if (relevant.length < 3) return null;
@@ -90,16 +91,18 @@ function computeDeadlineForecast(
 
 export async function fetchGoalViews(): Promise<GoalView[]> {
   const goals = await db.goal.toArray();
-  const metrics = await db.metric_type.toArray();
+  const metricDefs = await db.metric_definition.toArray();
+  const prefs = await db.user_metric_preference.toArray();
   const measurements = await db.measurement.toArray();
 
-  const metricById = new Map(metrics.map((m) => [m.id, m]));
+  const metrics = mergeMetricPrefs(metricDefs, prefs);
+  const metricById = new Map(metrics.map((m) => [m.code, m]));
 
   return goals
     .filter((g) => !g.deleted_at)
     .map((g) => {
-      const metric = metricById.get(g.metric_type_id);
-      const currentValue = computeGoalCurrent(measurements, g.metric_type_id, g.frequency);
+      const metric = metricById.get(g.metric_code);
+      const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
 
       const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
       const progress = computeGoalProgress(
@@ -141,12 +144,21 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
 export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
   const g = await db.goal.get(goalId);
   if (!g || g.deleted_at) return null;
-  const metric = await db.metric_type.get(g.metric_type_id);
-  const measurements = await db.measurement
-    .where('metric_type_id')
-    .equals(g.metric_type_id)
-    .toArray();
-  const currentValue = computeGoalCurrent(measurements, g.metric_type_id, g.frequency);
+  const metricDef = await db.metric_definition.get(g.metric_code);
+  const pref = await db.user_metric_preference.where('metric_code').equals(g.metric_code).first();
+  const metric = metricDef
+    ? {
+        ...metricDef,
+        color: pref?.color ?? '#4f46e5',
+        icon: pref?.icon ?? 'track-changes',
+        widget_size: pref?.widget_size ?? 'medium',
+        widget_enabled: pref?.widget_enabled ?? false,
+        enabled: pref?.enabled ?? true,
+        position: pref?.position ?? 0
+      }
+    : undefined;
+  const measurements = await db.measurement.where('metric_code').equals(g.metric_code).toArray();
+  const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
 
   const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
   const progress = computeGoalProgress(
@@ -186,10 +198,10 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
 
 function computeGoalCurrent(
   measurements: Measurement[],
-  metricTypeId: string,
+  metricCode: string,
   frequency: string
 ): number | null {
-  const relevant = measurements.filter((m) => m.metric_type_id === metricTypeId && !m.deleted_at);
+  const relevant = measurements.filter((m) => m.metric_code === metricCode && !m.deleted_at);
 
   if (relevant.length === 0) return null;
 

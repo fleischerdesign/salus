@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 from sqlmodel import SQLModel
 
 from salus.database import engine
-from salus.models import MetricType
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import SqlUnitOfWork
 from salus.services.open_science import OpenScienceService
@@ -47,9 +46,14 @@ def test_demographic_binning():
         def __enter__(self): return self
         def __exit__(self, exc_type, exc_val, exc_tb): pass
         @property
-        def metric_types(self):
+        def metric_definitions(self):
             class R:
-                def find_all(self, uid): return []
+                def find_all(self): return []
+            return R()
+        @property
+        def measurements(self):
+            class R:
+                def find_by_metric_type(self, metric_code, user_id): return []
             return R()
 
     service = OpenScienceService(MockUOW())  # type: ignore
@@ -82,7 +86,7 @@ def test_demographic_binning():
 
 def test_synthesis_and_api_route(clean_db, auth_client):
     client, username = auth_client
-    # 1. Create a metric type and some measurements in DB
+    # 1. Create measurements in DB
     from sqlmodel import Session
     test_engine = client.app.state.engine
     session = Session(test_engine)
@@ -94,20 +98,13 @@ def test_synthesis_and_api_route(clean_db, auth_client):
         assert user is not None
         user_id = user.id
         
-        # Create metric type "steps" or use existing
-        mt = uow.metric_types.find_by_name_and_user("steps", user_id)
-        if not mt:
-            mt = MetricType(name="steps", type="number", user_id=user_id)
-            uow.metric_types.add(mt)
-            uow.commit()
-        
-        # Add 3 days of measurements
+        # Add 3 days of measurements with metric_code="steps"
         for i in range(3):
             # Timestamp goes back day-by-day
             ts = datetime.now(timezone.utc) - timedelta(days=i)
             m = Measurement(
                 user_id=user_id,
-                metric_type_id=mt.id,  # type: ignore
+                metric_code="steps",
                 value_numeric=10000.0 + (i * 1000),
                 start_time=ts
             )

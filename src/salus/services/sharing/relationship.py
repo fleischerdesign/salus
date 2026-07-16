@@ -49,15 +49,15 @@ class RelationshipService:
         self,
         owner_id: str,
         grantee_handle: str,
-        metric_type_id: str,
+        metric_code: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
     ) -> SharingRelationship:
         grantee_handle = self.normalize_handle(grantee_handle)
 
         with self.uow:
-            metric = self.uow.metric_types.get_by_id(metric_type_id)
-            if not metric or metric.user_id != owner_id:
+            metric = self.uow.metric_definitions.find_by_code(metric_code)
+            if not metric:
                 raise NotFoundError("Metric type not found or access denied")
 
             if not self.is_remote(grantee_handle):
@@ -69,7 +69,7 @@ class RelationshipService:
             existing = self.uow.sharing_relationships.get_active_relationship(
                 owner_id=owner_id,
                 grantee_handle=grantee_handle,
-                metric_type_id=metric_type_id,
+                metric_code=metric_code,
             )
             if existing:
                 raise ConflictError(
@@ -77,7 +77,7 @@ class RelationshipService:
                 )
 
             pending = self.uow.sharing_relationships.find_pending_relationship(
-                owner_id, grantee_handle, metric_type_id
+                owner_id, grantee_handle, metric_code
             )
             if pending:
                 raise ConflictError(
@@ -96,7 +96,7 @@ class RelationshipService:
             rel = SharingRelationship(
                 owner_id=owner_id,
                 grantee_handle=grantee_handle,
-                metric_type_id=metric_type_id,
+                metric_code=metric_code,
                 aggregation_level=aggregation_level,
                 expiration_date=expiration_date,
                 status=ConnectionStatus.PENDING,
@@ -214,9 +214,9 @@ class RelationshipService:
                 if rel_is_active or rel_is_pending:
                     peer.metrics.append(
                         PeerMetricInfo(
-                            metric_name=rel.metric_type.name,
-                            icon=getattr(rel.metric_type, "icon", "monitoring"),
-                            color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
+                            metric_name=rel.metric_definition.name,
+                            icon=getattr(rel.metric_definition, "icon", "monitoring"),
+                            color=getattr(rel.metric_definition, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="outgoing",
                             relationship_id=rel.id or "",
@@ -247,9 +247,9 @@ class RelationshipService:
                 if rel_is_active:
                     peer.metrics.append(
                         PeerMetricInfo(
-                            metric_name=rel.metric_type.name,
-                            icon=getattr(rel.metric_type, "icon", "monitoring"),
-                            color=getattr(rel.metric_type, "color", DEFAULT_METRIC_COLOR),
+                            metric_name=rel.metric_definition.name,
+                            icon=getattr(rel.metric_definition, "icon", "monitoring"),
+                            color=getattr(rel.metric_definition, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
                             direction="incoming",
                             relationship_id=rel.id or "",

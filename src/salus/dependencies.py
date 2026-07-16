@@ -12,7 +12,7 @@ from salus.models.user import User
 from salus.repositories.api_token import ApiTokenRepository
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.metric_definition import MetricDefinitionRepository
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.unit_of_work import IUnitOfWork, SqlUnitOfWork
 from salus.repositories.user import UserRepository
@@ -38,8 +38,9 @@ from salus.services.export import ExportService
 from salus.services.goal import GoalService
 from salus.services.jwt import JwtService
 from salus.services.measurement import MeasurementService
-from salus.services.metric_type import MetricTypeService
-from salus.services.metric_type_mapping import MetricTypeMappingService
+from salus.services.metric_definition import MetricDefinitionService
+from salus.services.metric_group import MetricGroupService
+from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
@@ -166,10 +167,10 @@ def get_user_identity_repo(
     return UserIdentityRepository(session)
 
 
-def get_metric_type_repo(
+def get_metric_definition_repo(
     session: Session = Depends(get_session),
-) -> MetricTypeRepository:
-    return MetricTypeRepository(session)
+) -> MetricDefinitionRepository:
+    return MetricDefinitionRepository(session)
 
 
 def get_measurement_repo(
@@ -244,10 +245,16 @@ def get_auth_service(
     )
 
 
-def get_metric_type_service(
+def get_metric_definition_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
-) -> MetricTypeService:
-    return MetricTypeService(uow)
+) -> MetricDefinitionService:
+    return MetricDefinitionService(uow)
+
+
+def get_metric_group_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> MetricGroupService:
+    return MetricGroupService(uow)
 
 
 def get_measurement_service(
@@ -257,16 +264,16 @@ def get_measurement_service(
     return MeasurementService(uow, registry=registry)
 
 
-def get_metric_type_mapping_service(
-    repo: MetricTypeRepository = Depends(get_metric_type_repo),
-) -> MetricTypeMappingService:
-    return MetricTypeMappingService(repo)
+def get_metric_definition_mapping_service(
+    repo: MetricDefinitionRepository = Depends(get_metric_definition_repo),
+) -> MetricDefinitionMappingService:
+    return MetricDefinitionMappingService(repo)
 
 
 def get_webhook_ingestion_service(
     measurement_repo: MeasurementRepository = Depends(get_measurement_repo),
-    mapping_service: MetricTypeMappingService = Depends(
-        get_metric_type_mapping_service
+    mapping_service: MetricDefinitionMappingService = Depends(
+        get_metric_definition_mapping_service
     ),
     registry: HookRegistry | None = Depends(get_plugin_registry),
 ) -> WebhookIngestionService:

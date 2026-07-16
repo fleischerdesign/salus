@@ -2,7 +2,7 @@ import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
 
 export const createGoal = (
-  metricTypeId: string,
+  metricCode: string,
   targetValue: number,
   direction = 'increase',
   frequency = 'daily',
@@ -16,7 +16,7 @@ export const createGoal = (
     id,
     data: {
       id,
-      metric_type_id: metricTypeId,
+      metric_code: metricCode,
       target_value: targetValue,
       direction,
       frequency,
@@ -25,7 +25,7 @@ export const createGoal = (
     optimistic: {
       id,
       user_id: 'self',
-      metric_type_id: metricTypeId,
+      metric_code: metricCode,
       target_value: targetValue,
       direction,
       frequency,

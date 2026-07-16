@@ -163,10 +163,10 @@ class CircadianService:
         actual_offset = "07:00"
 
         with self.uow:
-            sleep_mt = self.uow.metric_types.find_by_name_and_user("Sleep", user_id)
-            if sleep_mt and sleep_mt.id is not None:
+            sleep_md = self.uow.metric_definitions.find_by_code("sleep")
+            if sleep_md is not None:
                 sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_type_id=sleep_mt.id, user_id=user_id
+                    metric_code="sleep", user_id=user_id
                 )
                 # Take the most recent sleep log to get actual onset/offset times
                 valid_sleeps = [s for s in sleeps if s.end_time is not None]
@@ -270,13 +270,11 @@ class CircadianService:
     def _detect_chronotype(self, user_id: str) -> str | None:
         try:
             with self.uow:
-                sleep_mt = self.uow.metric_types.find_by_name_and_user(
-                    "Sleep", user_id
-                )
-                if sleep_mt is None or sleep_mt.id is None:
+                sleep_md = self.uow.metric_definitions.find_by_code("sleep")
+                if sleep_md is None:
                     return None
                 sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_type_id=sleep_mt.id, user_id=user_id
+                    metric_code="sleep", user_id=user_id
                 )
                 onset_times: list[float] = []
                 daylight_hours: list[float] = []

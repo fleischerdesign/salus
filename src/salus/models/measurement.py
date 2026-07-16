@@ -10,7 +10,7 @@ from salus.services._helpers import uuid7_str
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from salus.models import MetricType  # noqa: F401
+    from salus.models.metric_definition import MetricDefinition  # noqa: F401
     from salus.models.user import User  # noqa: F401
 
 
@@ -19,7 +19,7 @@ class Measurement(SQLModel, table=True):
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str | None = Field(default=None, foreign_key="user.id", index=True)
-    metric_type_id: str | None = Field(default=None, foreign_key="metric_type.id")
+    metric_code: str | None = Field(default=None, foreign_key="metric_definition.code")
     data_type: str = Field(default="", index=True)
     source: str = Field(default="manual")
     value_numeric: float | None = Field(default=None)
@@ -39,7 +39,7 @@ class Measurement(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship(back_populates="measurements")
-    metric_type: "MetricType" = Relationship(back_populates="measurements")  # pyright: ignore[reportAssignmentType]
+    metric_definition: "MetricDefinition" = Relationship(back_populates="measurements")  # pyright: ignore[reportAssignmentType]
 
     @property
     def display_value(self) -> str:

@@ -1,115 +1,60 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-  import type { MetricType } from '$lib/db/types';
+  import type { MetricWithPreference } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { createMetricType, updateMetricType, deleteMetricType } from '$lib/mutations/measurement';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import Card from '$components/ui/Card.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
-  import Modal from '$components/ui/Modal.svelte';
-  import Input from '$components/ui/Input.svelte';
-  import Select from '$components/ui/Select.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Badge from '$components/ui/Badge.svelte';
-  import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
 
-  type Metric = MetricType;
+  type Metric = MetricWithPreference;
 
-  let metrics = liveQuery(() => db.metric_type.toArray());
+  let allDefs = liveQuery(() => db.metric_definition.toArray());
+  let allPrefs = liveQuery(() => db.user_metric_preference.toArray());
+  let groups = liveQuery(() => db.metric_group.toArray());
+
+  let metrics = $derived(
+    $allDefs && $allPrefs ? mergeMetricPrefs($allDefs, $allPrefs) : null
+  );
   let overviews = liveQuery(() => fetchMetricOverview());
 
-  // Metric form state
-  let showMetricModal = $state(false);
-  let editingMetric = $state<Metric | null>(null);
-  let metricName = $state('');
-  let metricUnit = $state('');
-  let metricColor = $state('#4f46e5');
-  let metricIcon = $state('monitoring');
-  let metricDataType = $state('number');
-  let metricError = $state('');
-  let saving = $state(false);
+  let groupedMetrics = $derived(
+    metrics && $groups
+      ? metrics.filter((m) => m.group_key != null)
+      : []
+  );
+  let standaloneMetrics = $derived(
+    metrics ? metrics.filter((m) => m.group_key == null && m.enabled) : []
+  );
 
-  // Delete confirmation state
-  let metricToDelete = $state<Metric | null>(null);
-  let deleteDialogOpen = $state(false);
-
-  const dataTypeOptions = [
-    { value: 'number', label: 'Number' },
-    { value: 'text', label: 'Text' },
-    { value: 'boolean', label: 'Boolean' }
-  ];
-
-  function openCreateModal() {
-    editingMetric = null;
-    metricName = '';
-    metricUnit = '';
-    metricColor = '#4f46e5';
-    metricIcon = 'monitoring';
-    metricDataType = 'number';
-    metricError = '';
-    showMetricModal = true;
+  function metricsInGroup(groupKey: string): Metric[] {
+    return metrics ? metrics.filter((m) => m.group_key === groupKey) : [];
   }
 
-  function openEditModal(m: Metric) {
-    editingMetric = m;
-    metricName = m.name;
-    metricUnit = m.unit;
-    metricColor = m.color;
-    metricIcon = m.icon;
-    metricDataType = m.data_type;
-    metricError = '';
-    showMetricModal = true;
-  }
-
-  function closeModal() {
-    showMetricModal = false;
-    editingMetric = null;
-  }
-
-  async function saveMetric(e: SubmitEvent) {
-    e.preventDefault();
-    metricError = '';
-    saving = true;
-    const body = {
-      name: metricName,
-      unit: metricUnit,
-      data_type: metricDataType as 'number' | 'text' | 'boolean',
-      color: metricColor,
-      icon: metricIcon
-    };
-    if (editingMetric) {
-      const { ok, error } = await updateMetricType(
-        editingMetric.id,
-        body as Record<string, unknown>
-      );
-      saving = false;
-      if (!ok) {
-        metricError = error || 'Failed to update metric';
-        return;
-      }
-    } else {
-      const { ok, error } = await createMetricType(body as Record<string, unknown>);
-      saving = false;
-      if (!ok) {
-        metricError = error || 'Failed to create metric';
-        return;
+  function groupLatestDate(groupKey: string): string | null {
+    const groupMetrics = metricsInGroup(groupKey);
+    let latest: string | null = null;
+    for (const m of groupMetrics) {
+      const ov = overviewForMetric($overviews ?? [], m.code);
+      if (ov?.latest_date && (!latest || ov.latest_date > latest)) {
+        latest = ov.latest_date;
       }
     }
-    closeModal();
+    return latest;
   }
 
-  async function confirmDeleteMetric() {
-    if (!metricToDelete) return;
-    const target = metricToDelete;
-    metricToDelete = null;
-    await deleteMetricType(target.id);
+  function groupTotalEntries(groupKey: string): number {
+    let total = 0;
+    for (const m of metricsInGroup(groupKey)) {
+      const ov = overviewForMetric($overviews ?? [], m.code);
+      if (ov) total += ov.entry_count;
+    }
+    return total;
   }
 </script>
 
@@ -121,34 +66,70 @@
     subtitle="Select a metric to view and manage its entries."
     icon="library-books"
     iconColor="#4f46e5"
-  >
-    {#snippet actions()}
-      <button
-        type="button"
-        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
-        onclick={openCreateModal}
-      >
-        <Icon name="add" size="sm" />
-        <span>New Metric</span>
-      </button>
-    {/snippet}
-  </PageHeader>
+  />
 
-  {#if !$metrics || !$overviews}
+  {#if metrics === undefined || $overviews === undefined || $groups === undefined}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-  {:else if $metrics.length === 0}
+  {:else if (metrics?.length ?? 0) === 0}
     <EmptyState
       title="No metrics yet"
-      description="Create your first metric to start logging data."
+      description="Metric definitions will appear after syncing with the server."
       icon="receipt-long"
-    >
-      <Btn variant="primary" onclick={openCreateModal}>+ New Metric</Btn>
-    </EmptyState>
+    />
   {:else}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {#each $metrics as m, i (m.id)}
-        {@const ov = overviewForMetric($overviews, m.id)}
-        <a href="/entries/{m.id}" class="no-underline" in:fade={{ ...staggerFade(i) }}>
+      <!-- Group cards -->
+      {#each $groups as group, i (group.key)}
+        {@const gMetrics = metricsInGroup(group.key)}
+        {#if gMetrics.length > 0}
+          <a
+            href="/entries/{group.key}"
+            class="no-underline"
+            in:fade={{ ...staggerFade(i) }}
+          >
+            <Card padding={false} hoverable>
+              {#snippet header()}
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                    style="background-color: {gMetrics[0].color}20; color: {gMetrics[0].color}"
+                  >
+                    <Icon name={group.icon || 'monitoring'} />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium text-surface-900">{group.name}</p>
+                    <p class="text-xs text-surface-500">
+                      {gMetrics.map((m) => m.name).join(', ')}
+                    </p>
+                  </div>
+                  <div class="flex h-6 items-center rounded-full bg-surface-100 px-2 text-xs text-surface-500">
+                    {gMetrics.length}
+                  </div>
+                </div>
+              {/snippet}
+              <div class="p-6">
+                {#if groupLatestDate(group.key)}
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-lg font-bold text-surface-900">
+                      {gMetrics.length} metrics
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-surface-400">
+                    Latest: {groupLatestDate(group.key)} · {groupTotalEntries(group.key)} entries
+                  </p>
+                {:else}
+                  <p class="text-xs text-surface-400">No entries yet</p>
+                {/if}
+              </div>
+            </Card>
+          </a>
+        {/if}
+      {/each}
+
+      <!-- Standalone metric cards -->
+      {#each standaloneMetrics as m, i (m.code)}
+        {@const ov = overviewForMetric($overviews, m.code)}
+        <a href="/entries/{m.code}" class="no-underline" in:fade={{ ...staggerFade(groupedMetrics.length + i) }}>
           <Card padding={false} hoverable>
             {#snippet header()}
               <div class="flex items-center gap-3">
@@ -159,42 +140,8 @@
                   <Icon name={m.icon || 'monitoring'} />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1.5">
-                    <p class="truncate text-sm font-medium text-surface-900">{m.name}</p>
-                    {#if m.is_system}
-                      <Badge variant="default">system</Badge>
-                    {/if}
-                  </div>
+                  <p class="truncate text-sm font-medium text-surface-900">{m.name}</p>
                   <p class="text-xs text-surface-500">{m.unit || '—'}</p>
-                </div>
-                <div class="flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
-                    aria-label="Edit metric"
-                    onclick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openEditModal(m);
-                    }}
-                  >
-                    <Icon name="edit" size="sm" />
-                  </button>
-                  {#if !m.is_system}
-                    <button
-                      type="button"
-                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
-                      aria-label="Delete metric"
-                      onclick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        metricToDelete = m;
-                        deleteDialogOpen = true;
-                      }}
-                    >
-                      <Icon name="delete" size="sm" />
-                    </button>
-                  {/if}
                 </div>
               </div>
             {/snippet}
@@ -222,48 +169,3 @@
     </div>
   {/if}
 </div>
-
-<Modal title={editingMetric ? 'Edit Metric' : 'New Metric'} bind:open={showMetricModal}>
-  <form onsubmit={saveMetric} class="flex flex-col gap-4">
-    <FormField label="Name" required>
-      <Input name="name" bind:value={metricName} required placeholder="e.g. Weight" />
-    </FormField>
-    <FormField label="Unit">
-      <Input name="unit" bind:value={metricUnit} placeholder="e.g. kg" />
-    </FormField>
-    <div class="flex gap-4">
-      <FormField label="Color" class="flex-1">
-        <input
-          type="color"
-          bind:value={metricColor}
-          class="h-11 w-full cursor-pointer rounded-md border border-surface-300"
-        />
-      </FormField>
-      <FormField label="Icon" class="flex-1">
-        <Input name="icon" bind:value={metricIcon} placeholder="monitoring" />
-      </FormField>
-    </div>
-    <FormField label="Data Type">
-      <Select name="data_type" options={dataTypeOptions} bind:value={metricDataType} />
-    </FormField>
-    {#if metricError}<p class="text-sm text-error-500">{metricError}</p>{/if}
-    <div class="flex justify-end gap-2">
-      <Btn variant="ghost" onclick={closeModal}>Cancel</Btn>
-      <Btn variant="primary" type="submit" loading={saving}>
-        {editingMetric ? 'Save' : 'Create'}
-      </Btn>
-    </div>
-  </form>
-</Modal>
-
-<ConfirmDialog
-  bind:open={deleteDialogOpen}
-  title="Delete Metric"
-  variant="danger"
-  message="Delete &quot;{metricToDelete?.name}&quot; and all its entries? This cannot be undone."
-  confirmLabel="Delete"
-  onconfirm={confirmDeleteMetric}
-  oncancel={() => {
-    metricToDelete = null;
-  }}
-/>

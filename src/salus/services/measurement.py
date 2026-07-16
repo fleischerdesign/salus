@@ -28,20 +28,20 @@ class MeasurementService:
         return obj
 
     def find_by_metric_type(
-        self, metric_type_id: str, user_id: str
+        self, metric_code: str, user_id: str
     ) -> list[Measurement]:
-        return self.uow.measurements.find_by_metric_type(metric_type_id, user_id)
+        return self.uow.measurements.find_by_metric_type(metric_code, user_id)
 
     def find_by_metric_type_paginated(
         self,
-        metric_type_id: str,
+        metric_code: str,
         user_id: str,
         page: int = 1,
         per_page: int = 25,
     ) -> tuple[list[Measurement], int, int]:
         offset = (page - 1) * per_page
         entries, total = self.uow.measurements.find_by_metric_type_paginated(
-            metric_type_id, user_id, offset, per_page
+            metric_code, user_id, offset, per_page
         )
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
         return entries, total, total_pages
@@ -66,11 +66,11 @@ class MeasurementService:
         return self.uow.measurements.find_recent_entries(user_id, limit)
 
     def create(
-        self, data: MeasurementCreate, metric_type_id: str, user_id: str
+        self, data: MeasurementCreate, metric_code: str, user_id: str
     ) -> Measurement:
         obj = Measurement(
             user_id=user_id,
-            metric_type_id=metric_type_id,
+            metric_code=metric_code,
             data_type="",
             source="manual",
             value_text=data.value,

@@ -31,20 +31,20 @@ router = APIRouter(prefix="/api/v1")
 
 
 class _OnboardingEntryBody(BaseModel):
-    metric_type_id: str
+    metric_code: str
     value: str
     notes: str | None = None
 
 
 class _OnboardingGoalBody(BaseModel):
-    metric_type_id: str
+    metric_code: str
     target_value: float
     direction: str = "increase"
 
 
 class GoalCreateResponse(BaseModel):
     id: str
-    metric_type_id: str
+    metric_code: str
     target_value: float
     direction: str
     frequency: str
@@ -67,7 +67,7 @@ class _OnboardingTokenResponse(BaseModel):
 
 class _OnboardingEntryResponse(BaseModel):
     id: str
-    metric_type_id: str
+    metric_code: str
     value: str | float | None = None
     timestamp: str | None = None
 
@@ -83,7 +83,7 @@ async def api_list_goals(
     return [
         {
             "id": g.id,
-            "metric_type_id": g.metric_type_id,
+            "metric_code": g.metric_code,
             "target_value": g.target_value,
             "direction": g.direction.value,
             "frequency": g.frequency.value,
@@ -102,7 +102,7 @@ async def api_create_goal(
     goal = goal_service.create(data, uid(current_user))
     return {
         "id": goal.id,
-        "metric_type_id": goal.metric_type_id,
+        "metric_code": goal.metric_code,
         "target_value": goal.target_value,
         "direction": goal.direction.value,
         "frequency": goal.frequency.value,
@@ -209,12 +209,12 @@ async def api_onboarding_entry(
 ):
     entry = measurement_service.create(
         MeasurementCreate(value=body.value, notes=body.notes),
-        body.metric_type_id,
+        body.metric_code,
         uid(current_user),
     )
     return {
         "id": entry.id,
-        "metric_type_id": entry.metric_type_id,
+        "metric_code": entry.metric_code,
         "value": entry.display_value,
         "timestamp": entry.start_time.isoformat() if entry.start_time else None,
     }
@@ -227,7 +227,7 @@ async def api_onboarding_goal(
     goal_service: GoalService = Depends(get_goal_service),
 ):
     data = GoalCreate(
-        metric_type_id=body.metric_type_id,
+        metric_code=body.metric_code,
         target_value=body.target_value,
         direction=GoalDirection(body.direction),
         frequency=GoalFrequency.DAILY,
@@ -235,7 +235,7 @@ async def api_onboarding_goal(
     goal = goal_service.create(data, uid(current_user))
     return {
         "id": goal.id,
-        "metric_type_id": goal.metric_type_id,
+        "metric_code": goal.metric_code,
         "target_value": goal.target_value,
         "direction": goal.direction.value,
         "frequency": goal.frequency.value,

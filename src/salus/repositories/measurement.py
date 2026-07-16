@@ -23,10 +23,10 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         self.registry = registry
 
     def find_by_metric_type_paginated(
-        self, metric_type_id: str, user_id: str, offset: int = 0, limit: int = 25
+        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
     ) -> tuple[list[Measurement], int]:
         stmt = select(Measurement).where(
-            Measurement.metric_type_id == metric_type_id,
+            Measurement.metric_code == metric_code,
             Measurement.user_id == user_id,
             Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
@@ -34,7 +34,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
             select(func.count())
             .select_from(Measurement)
             .where(
-                Measurement.metric_type_id == metric_type_id,
+                Measurement.metric_code == metric_code,
                 Measurement.user_id == user_id,
                 Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
             )
@@ -53,19 +53,19 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                             [
                                 r
                                 for r in synth_records
-                                if r.metric_type_id == metric_type_id
+                                if r.metric_code == metric_code
                             ]
                         )
                 except Exception as e:
                     logger.error(f"Error in metric synthesizer: {e}")
         return results, total
 
-    def count_by_metric_type(self, metric_type_id: str, user_id: str) -> int:
+    def count_by_metric_type(self, metric_code: str, user_id: str) -> int:
         count_stmt = (
             select(func.count())
             .select_from(Measurement)
             .where(
-                Measurement.metric_type_id == metric_type_id,
+                Measurement.metric_code == metric_code,
                 Measurement.user_id == user_id,
                 Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
             )
@@ -73,12 +73,12 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return self.session.exec(count_stmt).one()
 
     def get_latest_by_metric_type(
-        self, metric_type_id: str, user_id: str
+        self, metric_code: str, user_id: str
     ) -> Measurement | None:
         stmt = (
             select(Measurement)
             .where(
-                Measurement.metric_type_id == metric_type_id,
+                Measurement.metric_code == metric_code,
                 Measurement.user_id == user_id,
                 Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
             )
@@ -88,9 +88,9 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return self.session.exec(stmt).first()
 
     def find_by_metric_type(
-        self, metric_type_id: str, user_id: str | None = None
+        self, metric_code: str, user_id: str | None = None
     ) -> list[Measurement]:
-        stmt = select(Measurement).where(Measurement.metric_type_id == metric_type_id)
+        stmt = select(Measurement).where(Measurement.metric_code == metric_code)
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
         stmt = stmt.order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
@@ -106,7 +106,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                             [
                                 r
                                 for r in synth_records
-                                if r.metric_type_id == metric_type_id
+                                if r.metric_code == metric_code
                             ]
                         )
                 except Exception as e:

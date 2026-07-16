@@ -9,7 +9,7 @@ from salus.services._helpers import uuid7_str
 
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
-    from salus.models import MetricType  # noqa: F401
+    from salus.models.metric_definition import MetricDefinition  # noqa: F401
 
 
 class WidgetSize(str, Enum):
@@ -52,7 +52,7 @@ class WidgetContext:
     """Full context for a single dashboard widget, including viz and metadata."""
 
     widget: "DashboardWidget"
-    metric: "MetricType | None"  # type: ignore[name-defined]  # noqa: F821
+    metric: "MetricDefinition | None"  # type: ignore[name-defined]  # noqa: F821
     viz: WidgetViz
 
 
@@ -62,7 +62,7 @@ class DashboardWidget(SQLModel, table=True):
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
     widget_type: str = Field(default="metric")
-    metric_type_id: str | None = Field(default=None, foreign_key="metric_type.id", nullable=True)
+    metric_code: str | None = Field(default=None, foreign_key="metric_definition.code", nullable=True)
     position: int = Field(default=0)
     size: WidgetSize = Field(default=WidgetSize.MEDIUM)
     config_json: str = Field(default="{}")
@@ -75,4 +75,4 @@ class DashboardWidget(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     user: "User" = Relationship()  # type: ignore[name-defined]  # noqa: F821
-    metric_type: "MetricType" = Relationship()  # type: ignore[name-defined]  # noqa: F821
+    metric_definition: "MetricDefinition" = Relationship()  # type: ignore[name-defined]  # noqa: F821

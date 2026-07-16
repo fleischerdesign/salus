@@ -42,7 +42,7 @@ class DemoPlugin(BasePlugin):
 
     def on_goal_achieved(self, goal: Goal) -> None:
         self.context.log_info(
-            f"DEMO PLUGIN | Goal achieved! User ID: {goal.user_id}, Metric ID: {goal.metric_type_id}"
+            f"DEMO PLUGIN | Goal achieved! User ID: {goal.user_id}, Metric ID: {goal.metric_code}"
         )
 
     # HookAiCoachContext

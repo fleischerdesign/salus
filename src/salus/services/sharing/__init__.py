@@ -60,12 +60,12 @@ class SharingService:
         self,
         owner_id: str,
         grantee_handle: str,
-        metric_type_id: str,
+        metric_code: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
     ) -> SharingRelationship:
         return self._relationship.create_relationship(
-            owner_id, grantee_handle, metric_type_id,
+            owner_id, grantee_handle, metric_code,
             aggregation_level, expiration_days,
         )
 

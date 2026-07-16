@@ -20,6 +20,7 @@ const SKIP_NAMES = new Set([
   'notes', 'size', 'handle', 'lat', 'lon', 'tz', 'viewport',
   'file', 'theme', 'icon', 'new', 'current', 'progress',
   'chronotype', 'multiselect', 'edit-size',
+  'systolic', 'diastolic', 'deadline', 'instructions', 'locale', 'timestamp',
 ]);
 
 function walk(dir) {

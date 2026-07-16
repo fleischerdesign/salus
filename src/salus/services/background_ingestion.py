@@ -4,8 +4,8 @@ from typing import Callable
 from sqlmodel import Session
 
 from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
-from salus.services.metric_type_mapping import MetricTypeMappingService
+from salus.repositories.metric_definition import MetricDefinitionRepository
+from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.webhook_ingestion import WebhookIngestionService
 
@@ -20,8 +20,8 @@ class BackgroundIngestionService:
         with self._session_factory() as session:
             parser = FlexiblePayloadParser()
             measurement_repo = MeasurementRepository(session)
-            metric_type_repo = MetricTypeRepository(session)
-            mapping_service = MetricTypeMappingService(metric_type_repo)
+            metric_type_repo = MetricDefinitionRepository(session)
+            mapping_service = MetricDefinitionMappingService(metric_type_repo)
 
             service = WebhookIngestionService(
                 parser, measurement_repo, mapping_service

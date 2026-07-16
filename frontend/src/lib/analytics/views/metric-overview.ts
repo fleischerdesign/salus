@@ -1,5 +1,5 @@
 import { db } from '$lib/db/database';
-import type { Measurement, MetricType } from '$lib/db/types';
+import type { Measurement } from '$lib/db/types';
 
 export interface MetricOverview {
   metric_id: string;
@@ -13,16 +13,16 @@ export async function fetchMetricOverview(): Promise<MetricOverview[]> {
 
   const byMetric = new Map<string, Measurement[]>();
   for (const m of measurements) {
-    if (m.deleted_at) continue;
-    const arr = byMetric.get(m.metric_type_id) ?? [];
+    if (m.deleted_at || !m.metric_code) continue;
+    const arr = byMetric.get(m.metric_code) ?? [];
     arr.push(m);
-    byMetric.set(m.metric_type_id, arr);
+    byMetric.set(m.metric_code, arr);
   }
 
-  return [...byMetric.entries()].map(([metric_id, entries]) => {
+  return [...byMetric.entries()].map(([metric_code, entries]) => {
     const latest = entries[0];
     return {
-      metric_id,
+      metric_id: metric_code,
       latest_value: latest.value_text ?? latest.value_numeric?.toString() ?? null,
       latest_date: latest.start_time.split('T')[0] ?? null,
       entry_count: entries.length
