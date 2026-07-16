@@ -1,9 +1,10 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-  import type { Measurement as Entry, MetricType as Metric } from '$lib/db/types';
+  import type { Measurement as Entry } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
+  import { useTrend } from '$lib/analytics/views/analytics';
+  import LineChart from '$components/dashboard/LineChart.svelte';
   import {
     createMeasurement,
     updateMeasurement,
@@ -29,6 +30,8 @@
 
   let metric = liveQuery(() => db.metric_type.get(metricId!));
   let overviews = liveQuery(() => fetchMetricOverview());
+  let range = $state('90d');
+  let trend = $derived(useTrend($metric?.data_type ?? '', range));
 
   let allEntries = liveQuery(() =>
     db.measurement
@@ -47,7 +50,6 @@
 
   let entries = $derived(($allEntries ?? []).slice((pageNum - 1) * perPage, pageNum * perPage));
   let total = $derived($allEntries?.length ?? 0);
-  let totalPages = $derived(Math.max(1, Math.ceil(total / perPage)));
 
   // Entry form state
   let showEntryModal = $state(false);
@@ -231,6 +233,56 @@
       </div>
     {/if}
   </Card>
+
+  {#if $trend && $trend.values.length >= 2}
+    <Card padding={false}>
+      {#snippet header()}
+        <div class="flex w-full items-center justify-between pr-2">
+          <div class="flex items-center gap-2">
+            <Icon name="monitoring" size="sm" class="text-surface-400" />
+            <span class="text-sm font-semibold text-surface-900">Trend & History</span>
+          </div>
+          <div class="flex gap-1">
+            {#each ['7d', '30d', '90d', '1y'] as r}
+              <Btn
+                variant={range === r ? 'primary' : 'secondary'}
+                size="sm"
+                onclick={() => (range = r)}
+              >
+                {r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}
+              </Btn>
+            {/each}
+          </div>
+        </div>
+      {/snippet}
+      <div class="p-6">
+        <LineChart
+          labels={$trend.labels}
+          series={[
+            {
+              label: $metric?.name ?? 'Value',
+              data: $trend.values,
+              color: $metric?.color ?? 'var(--color-primary-500)',
+              yAxis: 'left'
+            }
+          ]}
+          leftUnit={$metric?.unit}
+          regressionLine={$trend.regression?.points}
+          regressionCI={$trend.regression?.ci}
+        />
+        {#if $trend.regression}
+          <div class="mt-2 text-center text-xs text-surface-400">
+            OLS Trend: {$trend.regression.slope > 0
+              ? 'Increasing'
+              : $trend.regression.slope < 0
+                ? 'Decreasing'
+                : 'Flat'}
+            (r² = {$trend.regression.r_squared.toFixed(3)} · n = {$trend.regression.n})
+          </div>
+        {/if}
+      </div>
+    </Card>
+  {/if}
 
   <!-- Entries -->
   {#if !$allEntries}

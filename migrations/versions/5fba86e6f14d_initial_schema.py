@@ -59,6 +59,7 @@ def upgrade() -> None:
     sa.Column('password_hash', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('display_name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('height_cm', sa.Float(), nullable=True),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('theme', sqlmodel.sql.sqltypes.AutoString(), nullable=False),

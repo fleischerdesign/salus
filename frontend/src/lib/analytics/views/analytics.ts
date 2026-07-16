@@ -10,6 +10,7 @@ import {
   linearRegression,
   palFromHrr,
   pearson,
+  spearman,
   predictionInterval,
   recoveryComposite,
   sleepDebtCumulative,
@@ -311,7 +312,10 @@ function interpretCohens(d: number): string {
   return 'negligible';
 }
 
-export function useCorrelations(rangeKey: string = '90d') {
+export function useCorrelations(
+  rangeKey: string = '90d',
+  method: 'pearson' | 'spearman' = 'pearson'
+) {
   const data = liveQuery(async () => {
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
@@ -330,12 +334,14 @@ export function useCorrelations(rangeKey: string = '90d') {
     const metrics = [...pivot.keys()].filter((k) => pivot.get(k)!.length >= 14);
     const pairs: Correlation[] = [];
     const pValues: number[] = [];
+    const corrFunc = method === 'pearson' ? pearson : spearman;
+
     for (let i = 0; i < metrics.length; i++) {
       for (let j = i + 1; j < metrics.length; j++) {
         const xs = pivot.get(metrics[i])!;
         const ys = pivot.get(metrics[j])!;
         const n = Math.min(xs.length, ys.length);
-        const pr = pearson(xs.slice(0, n), ys.slice(0, n));
+        const pr = corrFunc(xs.slice(0, n), ys.slice(0, n));
         if (!pr || pr.n < 3) continue;
         pairs.push({
           metric_a: metrics[i],

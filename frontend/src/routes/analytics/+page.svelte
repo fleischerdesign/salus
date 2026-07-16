@@ -12,6 +12,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
+  import Btn from '$components/ui/Btn.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import VizBar from '$components/dashboard/VizBar.svelte';
   import CalendarHeatmap from '$components/dashboard/CalendarHeatmap.svelte';
@@ -22,6 +23,14 @@
 
   let tab = $state('trends');
   let range = $state('30d');
+  let heatmapMetric = $state('steps');
+  const heatmapMetrics = [
+    { value: 'steps', label: 'Steps' },
+    { value: 'sleep', label: 'Sleep' },
+    { value: 'heart_rate', label: 'Heart Rate' },
+    { value: 'weight', label: 'Weight' },
+    { value: 'hrv', label: 'HRV' }
+  ];
 
   const tabs = [
     { value: 'trends', label: 'Trends' },
@@ -36,7 +45,31 @@
   ];
 
   let data = $derived(useAnalytics(range));
-  let correlations = $derived(useCorrelations('90d'));
+  let correlationMethod = $state<'pearson' | 'spearman'>('pearson');
+  let correlations = $derived(useCorrelations('90d', correlationMethod));
+  let dailyDeficit = $state(0);
+  let projectedWeightSeries = $derived.by(() => {
+    if (!weightTrend || !$weightTrend || $weightTrend.values.length === 0) return [];
+    const startWeight = $weightTrend.values[0];
+    const changePerDay = -dailyDeficit / 7700;
+    const projected = $weightTrend.values.map((_, i) => {
+      return startWeight + i * changePerDay;
+    });
+    return [
+      {
+        label: 'Weight (kg)',
+        data: $weightTrend.values,
+        color: 'var(--color-primary-500)',
+        yAxis: 'left' as const
+      },
+      {
+        label: `Projected Weight (${dailyDeficit >= 0 ? 'Deficit' : 'Surplus'}: ${Math.abs(dailyDeficit)} kcal)`,
+        data: projected,
+        color: dailyDeficit >= 0 ? 'var(--color-success-500)' : 'var(--color-warning-500)',
+        yAxis: 'left' as const
+      }
+    ];
+  });
   let weightTrend = $derived(useTrend('weight', range));
   let hrTrend = $derived(useTrend('heart_rate', range));
   let sleepDebt = $derived(useSleepDebt(30));
@@ -320,20 +353,40 @@
             </div>
             <LineChart
               labels={$weightTrend.labels}
-              series={[
-                {
-                  label: 'Weight (kg)',
-                  data: $weightTrend.values,
-                  color: 'var(--color-primary-500)',
-                  yAxis: 'left'
-                }
-              ]}
+              series={projectedWeightSeries}
               leftUnit="kg"
               regressionLine={$weightTrend.regression.points}
               regressionCI={$weightTrend.regression.ci}
             />
             <div class="mt-2 text-center text-xs text-surface-400">
               r² = {$weightTrend.regression.r_squared.toFixed(3)} · n = {$weightTrend.regression.n}
+            </div>
+
+            <div class="mt-6 border-t border-surface-100 pt-4">
+              <div class="mb-3 flex items-center justify-between">
+                <span class="text-sm font-semibold text-surface-900">What-If Calorie Scenario</span>
+                <span
+                  class="font-mono text-sm font-bold"
+                  class:text-success-600={dailyDeficit > 0}
+                  class:text-warning-600={dailyDeficit < 0}
+                >
+                  {dailyDeficit > 0 ? 'Deficit:' : dailyDeficit < 0 ? 'Surplus:' : 'Maintenance:'}
+                  {Math.abs(dailyDeficit)} kcal/day
+                </span>
+              </div>
+              <input
+                type="range"
+                min="-1000"
+                max="1000"
+                step="50"
+                bind:value={dailyDeficit}
+                class="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-surface-100 accent-primary-600"
+              />
+              <p class="mt-2 text-xs leading-relaxed text-surface-400">
+                Adjust the slider to simulate the effect of a daily calorie deficit (green) or
+                surplus (orange) on your projected weight trajectory over this period. (Assumes
+                7,700 kcal ≈ 1 kg weight change).
+              </p>
             </div>
           {:else}
             <div class="flex h-[280px] items-center justify-center">
@@ -523,20 +576,49 @@
     <div class="grid gap-4 lg:grid-cols-12">
       <Card padding={false} class="lg:col-span-full">
         {#snippet header()}
-          <div class="flex items-center gap-2">
-            <Icon name="calendar_month" size="sm" class="text-surface-400" />
-            <span class="text-sm font-semibold text-surface-900">Activity Calendar</span>
+          <div class="flex w-full items-center justify-between pr-2">
+            <div class="flex items-center gap-2">
+              <Icon name="calendar_month" size="sm" class="text-surface-400" />
+              <span class="text-sm font-semibold text-surface-900">Activity Calendar</span>
+            </div>
+            <select
+              bind:value={heatmapMetric}
+              class="rounded border border-surface-200 bg-surface-50 px-2 py-1 text-xs text-surface-700 focus:ring-1 focus:ring-primary-500 focus:outline-none"
+            >
+              {#each heatmapMetrics as option}
+                <option value={option.value}>{option.label}</option>
+              {/each}
+            </select>
           </div>
         {/snippet}
-        <div class="p-4"><CalendarHeatmap metric="steps" /></div>
+        <div class="p-4"><CalendarHeatmap metric={heatmapMetric} /></div>
       </Card>
 
       {#if $correlations && $correlations.pairs.length > 0}
         <Card padding={false} class="lg:col-span-full">
           {#snippet header()}
-            <div class="flex items-center gap-2">
-              <Icon name="hub" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900">Cross-Metric Correlations</span>
+            <div class="flex w-full items-center justify-between pr-2">
+              <div class="flex items-center gap-2">
+                <Icon name="hub" size="sm" class="text-surface-400" />
+                <span class="text-sm font-semibold text-surface-900">Cross-Metric Correlations</span
+                >
+              </div>
+              <div class="flex gap-1">
+                <Btn
+                  variant={correlationMethod === 'pearson' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onclick={() => (correlationMethod = 'pearson')}
+                >
+                  Linear (Pearson)
+                </Btn>
+                <Btn
+                  variant={correlationMethod === 'spearman' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onclick={() => (correlationMethod = 'spearman')}
+                >
+                  Ranked (Spearman)
+                </Btn>
+              </div>
             </div>
           {/snippet}
           <div class="p-4">
@@ -544,6 +626,7 @@
               pairs={$correlations.pairs}
               nComparisons={$correlations.n_comparisons}
               correction={$correlations.correction}
+              method={correlationMethod}
             />
           </div>
         </Card>

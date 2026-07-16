@@ -154,67 +154,104 @@
     <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
       {#each $goals as g, i (g.id)}
         <div in:fade={{ ...staggerFade(i) }}>
-          <Card padding={false}>
-            {#snippet header()}
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                  style="background-color: {g.metric_color}20; color: {g.metric_color}"
-                >
-                  <Icon name={g.metric_icon || 'track-changes'} size="sm" />
+          <a href="/goals/{g.id}" class="group/card block">
+            <Card padding={false} class="cursor-pointer transition-shadow hover:shadow-md">
+              {#snippet header()}
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                    style="background-color: {g.metric_color}20; color: {g.metric_color}"
+                  >
+                    <Icon name={g.metric_icon || 'track-changes'} size="sm" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p
+                      class="truncate text-sm font-semibold text-surface-900 transition-colors group-hover/card:text-primary-600"
+                    >
+                      {g.metric_name}
+                    </p>
+                    <p class="text-xs text-surface-400 capitalize">{g.frequency}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                    aria-label="Delete goal"
+                    onclick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      goalToDelete = g;
+                      deleteDialogOpen = true;
+                    }}
+                  >
+                    <Icon name="close" size="sm" />
+                  </button>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-semibold text-surface-900">
-                    {g.metric_name}
-                  </p>
-                  <p class="text-xs text-surface-400 capitalize">{g.frequency}</p>
+              {/snippet}
+
+              <div class="p-6">
+                <div class="flex items-baseline gap-2">
+                  <Icon
+                    name={g.direction === 'increase' ? 'trending-up' : 'trending-down'}
+                    size="sm"
+                    class={g.direction === 'increase' ? 'text-success-600' : 'text-primary-500'}
+                  />
+                  <span class="text-2xl font-bold text-surface-900 tabular-nums">
+                    {formatValue(g.progress.current_value)}
+                  </span>
+                  <span class="text-sm text-surface-400">
+                    / {formatValue(g.target_value)}{g.metric_unit ? ` ${g.metric_unit}` : ''}
+                  </span>
                 </div>
-                <button
-                  type="button"
-                  class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
-                  aria-label="Delete goal"
-                  onclick={() => {
-                    goalToDelete = g;
-                    deleteDialogOpen = true;
-                  }}
-                >
-                  <Icon name="close" size="sm" />
-                </button>
-              </div>
-            {/snippet}
 
-            <div class="p-6">
-              <div class="flex items-baseline gap-2">
-                <Icon
-                  name={g.direction === 'increase' ? 'trending-up' : 'trending-down'}
-                  size="sm"
-                  class={g.direction === 'increase' ? 'text-success-600' : 'text-primary-500'}
-                />
-                <span class="text-2xl font-bold text-surface-900 tabular-nums">
-                  {formatValue(g.progress.current_value)}
-                </span>
-                <span class="text-sm text-surface-400">
-                  / {formatValue(g.target_value)}{g.metric_unit ? ` ${g.metric_unit}` : ''}
-                </span>
-              </div>
+                <div class="mt-3">
+                  <ProgressBar
+                    value={g.progress.percent}
+                    max={100}
+                    variant={progressVariant(g.progress.status)}
+                    height="md"
+                  />
+                </div>
 
-              <div class="mt-3">
-                <ProgressBar
-                  value={g.progress.percent}
-                  max={100}
-                  variant={progressVariant(g.progress.status)}
-                  height="md"
-                />
-              </div>
+                <div class="mt-3 flex items-center justify-between">
+                  <span class="text-xs font-semibold capitalize {statusColor(g.progress.status)}">
+                    {g.progress.status}
+                  </span>
+                  <span class="text-xs text-surface-400">{resetLabel(g)}</span>
+                </div>
 
-              <div class="mt-3 flex items-center justify-between">
-                <span class="text-xs font-semibold capitalize {statusColor(g.progress.status)}">
-                  {g.progress.status}
-                </span>
-                <span class="text-xs text-surface-400">{resetLabel(g)}</span>
+                {#if g.forecast}
+                  <div class="mt-4 border-t border-surface-100 pt-3 text-xs">
+                    <div class="mb-1.5 flex items-center justify-between">
+                      <span class="text-surface-400">Projection to Deadline</span>
+                      <span
+                        class="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                        class:bg-success-50={g.forecast.on_track}
+                        class:text-success-600={g.forecast.on_track}
+                        class:bg-error-50={!g.forecast.on_track}
+                        class:text-error-600={!g.forecast.on_track}
+                      >
+                        {g.forecast.on_track ? 'ON TRACK' : 'OFF TRACK'}
+                      </span>
+                    </div>
+                    <div class="flex justify-between text-surface-500">
+                      <span>Est. Target Value</span>
+                      <span class="font-medium text-surface-700">
+                        {formatValue(g.forecast.predicted)}{g.metric_unit
+                          ? ` ${g.metric_unit}`
+                          : ''}
+                      </span>
+                    </div>
+                    <div class="mt-0.5 flex justify-between text-surface-400">
+                      <span>80% Conf. Range</span>
+                      <span>
+                        [{formatValue(g.forecast.ci_lower)} – {formatValue(g.forecast.ci_upper)}]
+                      </span>
+                    </div>
+                  </div>
+                {/if}
               </div>
-            </div>
-          </Card>
+            </Card>
+          </a>
         </div>
       {/each}
     </div>

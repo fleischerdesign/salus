@@ -19,9 +19,10 @@
     pairs: CorrPair[];
     nComparisons: number;
     correction: string;
+    method?: 'pearson' | 'spearman';
   }
 
-  let { pairs, nComparisons, correction }: Props = $props();
+  let { pairs, nComparisons, correction, method = 'pearson' }: Props = $props();
 
   let selected: CorrPair | null = $state(null);
 
@@ -49,8 +50,12 @@
   <div class="flex items-center gap-3">
     <MethodologyBadge
       n={metrics.length}
-      method="Pearson r + Benjamini-Hochberg"
-      citation={{ text: 'Fisher 1915; Benjamini & Hochberg 1995' }}
+      method={method === 'pearson'
+        ? 'Pearson r + Benjamini-Hochberg'
+        : 'Spearman ρ + Benjamini-Hochberg'}
+      citation={method === 'pearson'
+        ? { text: 'Fisher 1915; Benjamini & Hochberg 1995' }
+        : { text: 'Spearman 1904; Benjamini & Hochberg 1995' }}
     />
     <span class="text-[11px] text-surface-400">{nComparisons} comparisons · {correction}</span>
   </div>

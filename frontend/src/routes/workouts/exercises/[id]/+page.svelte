@@ -89,6 +89,58 @@
   let instructions = $derived(
     $exercise?.instructions ? $exercise.instructions.split('\n').filter((l) => l.trim()) : []
   );
+
+  import LineChart from '$components/dashboard/LineChart.svelte';
+  let chartTab = $state<'1rm' | 'tonnage'>('1rm');
+
+  let sessionAggregates = $derived.by(() => {
+    if (!$logs || !$sessions) return [];
+    const grouped = new Map<string, Array<{ weight: number; reps: number }>>();
+    for (const log of $logs) {
+      if (log.weight != null && log.reps != null && !log.deleted_at) {
+        if (!grouped.has(log.session_id)) {
+          grouped.set(log.session_id, []);
+        }
+        grouped.get(log.session_id)!.push({ weight: log.weight, reps: log.reps });
+      }
+    }
+
+    const result = [];
+    for (const [sessId, sets] of grouped) {
+      const sess = $sessions.get(sessId);
+      if (!sess) continue;
+      const dateStr = sess.completed_at ?? sess.started_at;
+      if (!dateStr) continue;
+      const date = new Date(dateStr);
+      const tonnage = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      const max1rm = Math.max(...sets.map((s) => epley1Rm(s.weight, s.reps)));
+      result.push({
+        date,
+        dateLabel: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        tonnage,
+        max1rm
+      });
+    }
+    return result.sort((a, b) => a.date.getTime() - b.date.getTime());
+  });
+
+  let chartLabels = $derived(sessionAggregates.map((a) => a.dateLabel));
+  let oneRmSeries = $derived([
+    {
+      label: 'Estimated 1RM (kg)',
+      data: sessionAggregates.map((a) => a.max1rm),
+      color: 'var(--color-primary-500)',
+      yAxis: 'left' as const
+    }
+  ]);
+  let tonnageSeries = $derived([
+    {
+      label: 'Tonnage (kg)',
+      data: sessionAggregates.map((a) => a.tonnage),
+      color: 'var(--color-success-500)',
+      yAxis: 'left' as const
+    }
+  ]);
 </script>
 
 <svelte:head><title>Salus — {$exercise?.name ?? 'Exercise'}</title></svelte:head>
@@ -148,6 +200,48 @@
                 <Btn variant="secondary" size="sm" href={$exercise.video_url}>
                   <Icon name="smart-display" size="sm" />Watch Video
                 </Btn>
+              </div>
+            {/if}
+          </div>
+        </Card>
+
+        <Card padding={false}>
+          {#snippet header()}
+            <div class="flex w-full items-center justify-between pr-2">
+              <div class="flex items-center gap-2">
+                <Icon name="monitoring" size="sm" class="text-surface-400" />
+                <span class="text-sm font-semibold text-surface-900">Progress History</span>
+              </div>
+              <div class="flex gap-1">
+                <Btn
+                  variant={chartTab === '1rm' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onclick={() => (chartTab = '1rm')}
+                >
+                  1RM
+                </Btn>
+                <Btn
+                  variant={chartTab === 'tonnage' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onclick={() => (chartTab = 'tonnage')}
+                >
+                  Tonnage
+                </Btn>
+              </div>
+            </div>
+          {/snippet}
+          <div class="p-6">
+            {#if sessionAggregates.length >= 2}
+              {#if chartTab === '1rm'}
+                <LineChart labels={chartLabels} series={oneRmSeries} leftUnit="kg" />
+              {:else}
+                <LineChart labels={chartLabels} series={tonnageSeries} leftUnit="kg" />
+              {/if}
+            {:else}
+              <div class="flex h-[200px] items-center justify-center text-center">
+                <p class="text-sm text-surface-400">
+                  Perform this exercise in at least 2 sessions to see progress charts.
+                </p>
               </div>
             {/if}
           </div>

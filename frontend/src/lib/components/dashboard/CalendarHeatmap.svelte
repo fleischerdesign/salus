@@ -20,21 +20,25 @@
     y: number;
   } | null = $state(null);
 
-  let data = liveQuery(async () => {
-    const start = new Date(+year, 0, 1).toISOString();
-    const end = new Date(+year + 1, 0, 1).toISOString();
-    const measurements = await db.measurement
-      .where('start_time')
-      .between(start, end, true, true)
-      .filter((m) => m.data_type === metric && m.value_numeric != null)
-      .toArray();
-    const daily = new Map<string, number>();
-    for (const m of measurements) {
-      const d = m.start_time.slice(0, 10);
-      const cur = daily.get(d) ?? -Infinity;
-      daily.set(d, Math.max(cur, m.value_numeric!));
-    }
-    return daily;
+  let data = $derived.by(() => {
+    const m = metric;
+    const y = year;
+    return liveQuery(async () => {
+      const start = new Date(+y, 0, 1).toISOString();
+      const end = new Date(+y + 1, 0, 1).toISOString();
+      const measurements = await db.measurement
+        .where('start_time')
+        .between(start, end, true, true)
+        .filter((item) => item.data_type === m && item.value_numeric != null)
+        .toArray();
+      const daily = new Map<string, number>();
+      for (const item of measurements) {
+        const d = item.start_time.slice(0, 10);
+        const cur = daily.get(d) ?? -Infinity;
+        daily.set(d, Math.max(cur, item.value_numeric!));
+      }
+      return daily;
+    });
   });
 
   let values = $derived([...($data?.values() ?? [])]);
