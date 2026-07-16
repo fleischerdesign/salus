@@ -107,3 +107,12 @@ def test_auth_me_rejects_invalid_token(client):
         headers={"Authorization": "Bearer invalid-token"},
     )
     assert response.status_code == 401
+
+
+def test_auth_config_returns_providers(client):
+    response = client.get("/api/v1/auth/config")
+    assert response.status_code == 200
+    data = response.json()
+    assert "oidc_providers" in data
+    assert isinstance(data["oidc_providers"], list)
+

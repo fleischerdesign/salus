@@ -1,6 +1,36 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { auth } from '$stores/auth.svelte';
+  import { authConfig } from '$stores/authConfig.svelte';
   import { setLocaleState } from '$lib/api/headers';
+
+  const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
+    google: {
+      displayName: 'Google',
+      path: '/api/v1/auth/oidc/google/login'
+    },
+    github: {
+      displayName: 'GitHub',
+      path: '/api/v1/auth/oidc/github/login'
+    },
+    oidc: {
+      displayName: 'OIDC',
+      path: '/api/v1/auth/oidc/oidc/login'
+    }
+  };
+
+  function getProviderMetadata(name: string) {
+    return (
+      PROVIDER_METADATA[name] || {
+        displayName: name.toUpperCase(),
+        path: `/api/v1/auth/oidc/${name}/login`
+      }
+    );
+  }
+
+  onMount(() => {
+    authConfig.load();
+  });
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { mutate } from '$lib/mutate';
@@ -160,10 +190,26 @@
           {:else}
             <p class="text-sm text-surface-400">No email set</p>
           {/if}
-          <form onsubmit={(e) => { e.preventDefault(); updateProfile(); }} class="mt-2 flex items-end gap-2">
+          <form
+            onsubmit={(e) => {
+              e.preventDefault();
+              updateProfile();
+            }}
+            class="mt-2 flex items-end gap-2"
+          >
             <div>
-              <label for="height_cm" class="text-[11px] font-medium text-surface-500">Height (cm)</label>
-              <input id="height_cm" type="number" bind:value={heightCm} min="50" max="250" step="0.1" class="h-8 w-20 rounded border border-surface-300 px-2 text-sm" />
+              <label for="height_cm" class="text-[11px] font-medium text-surface-500"
+                >Height (cm)</label
+              >
+              <input
+                id="height_cm"
+                type="number"
+                bind:value={heightCm}
+                min="50"
+                max="250"
+                step="0.1"
+                class="h-8 w-20 rounded border border-surface-300 px-2 text-sm"
+              />
             </div>
             <Btn variant="secondary" size="sm" type="submit">Save</Btn>
           </form>
@@ -191,25 +237,22 @@
     </Card>
 
     <!-- Connected Accounts -->
-    <Card padding={false}>
-      {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Connected Accounts</span>
-      {/snippet}
-      <div class="divide-y divide-surface-100">
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-500">Google</span>
-          <Btn variant="secondary" size="sm" href="/api/v1/auth/oidc/google/login">Connect</Btn>
+    {#if authConfig.oidcProviders.length > 0}
+      <Card padding={false}>
+        {#snippet header()}
+          <span class="text-sm font-semibold text-surface-900">Connected Accounts</span>
+        {/snippet}
+        <div class="divide-y divide-surface-100">
+          {#each authConfig.oidcProviders as provider}
+            {@const meta = getProviderMetadata(provider)}
+            <div class="flex items-center justify-between px-5 py-3">
+              <span class="text-sm text-surface-500">{meta.displayName}</span>
+              <Btn variant="secondary" size="sm" href={meta.path}>Connect</Btn>
+            </div>
+          {/each}
         </div>
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-500">GitHub</span>
-          <Btn variant="secondary" size="sm" href="/api/v1/auth/oidc/github/login">Connect</Btn>
-        </div>
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-500">OIDC</span>
-          <Btn variant="secondary" size="sm" href="/api/v1/auth/oidc/oidc/login">Connect</Btn>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    {/if}
 
     <!-- API Tokens -->
     <Card padding={false}>

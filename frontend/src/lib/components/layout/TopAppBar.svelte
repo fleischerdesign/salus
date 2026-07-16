@@ -245,7 +245,7 @@
     <div class="flex items-center gap-2">
       {#if auth.isAuthenticated}
         <NotificationBell />
-        <UserMenu dotStatus={dotStatus} />
+        <UserMenu {dotStatus} />
       {:else}
         <Btn href="/auth/login" variant="secondary">Sign In</Btn>
       {/if}

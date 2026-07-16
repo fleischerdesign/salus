@@ -27,6 +27,9 @@ class AuthService:
         self._ldap = ldap_provider
         self._oidc_providers: Mapping[str, "OidcAuthProvider"] = oidc_providers or {}
 
+    def get_configured_oidc_providers(self) -> list[str]:
+        return list(self._oidc_providers.keys())
+
     def login_local(self, username: str, password: str) -> tuple[str, User]:
         user = self._local.authenticate(username=username, password=password)
         if user is None:

@@ -434,27 +434,53 @@
               <MethodologyBadge
                 n={28}
                 method="z-Score Composite"
-                citation={{ text: 'Plews et al. 2013 (heuristic weights)', doi: '10.1152/japplphysiol.00770.2013' }}
+                citation={{
+                  text: 'Plews et al. 2013 (heuristic weights)',
+                  doi: '10.1152/japplphysiol.00770.2013'
+                }}
               />
             </div>
             <div class="flex items-center gap-6">
               <div class="text-center">
-                <div class="flex h-24 w-24 items-center justify-center rounded-full border-4"
-                  style="border-color:{$wellness.score >= 75 ? 'var(--color-success-400)' : $wellness.score >= 50 ? 'var(--color-warning-400)' : 'var(--color-error-400)'}"
+                <div
+                  class="flex h-24 w-24 items-center justify-center rounded-full border-4"
+                  style="border-color:{$wellness.score >= 75
+                    ? 'var(--color-success-400)'
+                    : $wellness.score >= 50
+                      ? 'var(--color-warning-400)'
+                      : 'var(--color-error-400)'}"
                 >
-                  <span class="text-2xl font-bold text-surface-900">{$wellness.score.toFixed(0)}</span>
+                  <span class="text-2xl font-bold text-surface-900"
+                    >{$wellness.score.toFixed(0)}</span
+                  >
                 </div>
-                <p class="mt-1 text-xs font-medium text-surface-600 capitalize">{$wellness.interpretation}</p>
+                <p class="mt-1 text-xs font-medium text-surface-600 capitalize">
+                  {$wellness.interpretation}
+                </p>
               </div>
               <div class="grid flex-1 grid-cols-4 gap-3 text-center text-xs">
-                <div><div class="font-mono text-surface-800">{$wellness.sleep_z.toFixed(1)}</div><div class="text-surface-400">Sleep z</div></div>
-                <div><div class="font-mono text-surface-800">{$wellness.hrv_z.toFixed(1)}</div><div class="text-surface-400">HRV z</div></div>
-                <div><div class="font-mono text-surface-800">{$wellness.hr_z.toFixed(1)}</div><div class="text-surface-400">HR z</div></div>
-                <div><div class="font-mono text-surface-800">{$wellness.steps_z.toFixed(1)}</div><div class="text-surface-400">Steps z</div></div>
+                <div>
+                  <div class="font-mono text-surface-800">{$wellness.sleep_z.toFixed(1)}</div>
+                  <div class="text-surface-400">Sleep z</div>
+                </div>
+                <div>
+                  <div class="font-mono text-surface-800">{$wellness.hrv_z.toFixed(1)}</div>
+                  <div class="text-surface-400">HRV z</div>
+                </div>
+                <div>
+                  <div class="font-mono text-surface-800">{$wellness.hr_z.toFixed(1)}</div>
+                  <div class="text-surface-400">HR z</div>
+                </div>
+                <div>
+                  <div class="font-mono text-surface-800">{$wellness.steps_z.toFixed(1)}</div>
+                  <div class="text-surface-400">Steps z</div>
+                </div>
               </div>
             </div>
           {:else}
-            <p class="text-sm text-surface-400">Insufficient data for recovery scoring (need 28 days).</p>
+            <p class="text-sm text-surface-400">
+              Insufficient data for recovery scoring (need 28 days).
+            </p>
           {/if}
         </div>
       </Card>

@@ -23,7 +23,7 @@
     leftUnit,
     rightUnit,
     regressionLine,
-    regressionCI,
+    regressionCI
   }: Props = $props();
 
   const padLeft = 44;

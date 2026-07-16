@@ -86,10 +86,7 @@ export const syncEngine = {
     if (_status === 'syncing') _status = 'idle';
   },
 
-  async _sendBatch(
-    batch: OutboxOp[],
-    headers: Record<string, string>
-  ): Promise<void> {
+  async _sendBatch(batch: OutboxOp[], headers: Record<string, string>): Promise<void> {
     const MAX_RETRIES = 5;
 
     const operations = batch.map((op) => {

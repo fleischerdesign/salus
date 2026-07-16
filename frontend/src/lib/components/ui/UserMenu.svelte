@@ -54,7 +54,11 @@
     >
       {(auth.user?.display_name || auth.user?.username || 'U')[0]}
       {#if dotStatus}
-        <StatusDot status={dotStatus} size="sm" class="absolute top-[1px] right-[1px] ring-2 ring-surface-0" />
+        <StatusDot
+          status={dotStatus}
+          size="sm"
+          class="absolute top-[1px] right-[1px] ring-2 ring-surface-0"
+        />
       {/if}
     </span>
   </button>

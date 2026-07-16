@@ -42,3 +42,8 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     token: str
     user: UserResponse
+
+
+class AuthConfigResponse(BaseModel):
+    oidc_providers: list[str]
+

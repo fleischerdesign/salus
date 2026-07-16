@@ -1,5 +1,6 @@
 <script lang="ts">
   import { auth, type User } from '$stores/auth.svelte';
+  import { authConfig } from '$stores/authConfig.svelte';
   import { rawPost } from '$lib/api/client';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -15,8 +16,40 @@
   let error = $state('');
   let loading = $state(false);
 
+  const PROVIDER_METADATA: Record<string, { label: string; icon: string; path: string }> = {
+    google: {
+      label: 'Sign in with Google',
+      icon: 'login',
+      path: '/api/v1/auth/oidc/google/login'
+    },
+    github: {
+      label: 'Sign in with GitHub',
+      icon: 'login',
+      path: '/api/v1/auth/oidc/github/login'
+    },
+    oidc: {
+      label: 'Sign in with OIDC',
+      icon: 'login',
+      path: '/api/v1/auth/oidc/oidc/login'
+    }
+  };
+
+  function getProviderMetadata(name: string) {
+    return (
+      PROVIDER_METADATA[name] || {
+        label: `Sign in with ${name.toUpperCase()}`,
+        icon: 'login',
+        path: `/api/v1/auth/oidc/${name}/login`
+      }
+    );
+  }
+
   onMount(() => {
-    if (auth.isAuthenticated) goto('/');
+    if (auth.isAuthenticated) {
+      goto('/');
+    } else {
+      authConfig.load();
+    }
   });
 
   async function login(e: SubmitEvent) {
@@ -78,36 +111,21 @@
         <Btn variant="primary" type="submit" fullWidth {loading}>Sign In</Btn>
       </form>
 
-      <div class="my-6">
-        <Divider label="or" />
-      </div>
+      {#if authConfig.oidcProviders.length > 0}
+        <div class="my-6">
+          <Divider label="or" />
+        </div>
 
-      <div class="flex flex-col gap-2">
-        <Btn
-          variant="secondary"
-          fullWidth
-          onclick={() => (window.location.href = '/api/v1/auth/oidc/google/login')}
-        >
-          <Icon name="login" />
-          Sign in with Google
-        </Btn>
-        <Btn
-          variant="secondary"
-          fullWidth
-          onclick={() => (window.location.href = '/api/v1/auth/oidc/github/login')}
-        >
-          <Icon name="login" />
-          Sign in with GitHub
-        </Btn>
-        <Btn
-          variant="secondary"
-          fullWidth
-          onclick={() => (window.location.href = '/api/v1/auth/oidc/oidc/login')}
-        >
-          <Icon name="login" />
-          Sign in with OIDC
-        </Btn>
-      </div>
+        <div class="flex flex-col gap-2">
+          {#each authConfig.oidcProviders as provider}
+            {@const meta = getProviderMetadata(provider)}
+            <Btn variant="secondary" fullWidth onclick={() => (window.location.href = meta.path)}>
+              <Icon name={meta.icon} />
+              {meta.label}
+            </Btn>
+          {/each}
+        </div>
+      {/if}
 
       <p class="mt-6 text-center text-sm text-surface-500">
         Don't have an account?

@@ -15,6 +15,7 @@ from salus.schemas.user import (
     RegisterRequest,
     TokenResponse,
     UserResponse,
+    AuthConfigResponse,
 )
 from salus.services.auth.service import AuthService
 from salus.services.user import UserService
@@ -159,3 +160,12 @@ async def api_oidc_callback(
     response = RedirectResponse(url="/", status_code=303)
     _set_session_cookie(response, token)
     return response
+
+
+@router.get("/auth/config", response_model=AuthConfigResponse)
+async def api_auth_config(
+    auth_svc: AuthService = Depends(get_auth_service),
+):
+    providers = auth_svc.get_configured_oidc_providers()
+    return AuthConfigResponse(oidc_providers=providers)
+
