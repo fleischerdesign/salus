@@ -7,6 +7,7 @@
   import { fetchGoalViews } from '$lib/analytics/views/goal-views';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Select from '$components/ui/Select.svelte';
@@ -130,15 +131,18 @@
 <svelte:head><title>Salus — Goals</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-semibold text-surface-900">Goals</h1>
-      <p class="text-sm text-surface-500">Set and track your health targets.</p>
-    </div>
-    <Btn variant="primary" onclick={openForm}>
-      <Icon name="add" size="sm" />New Goal
-    </Btn>
-  </div>
+  <PageHeader
+    title="Goals"
+    subtitle="Set and track your health targets."
+    icon="track-changes"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      <Btn variant="primary" onclick={openForm}>
+        <Icon name="add" size="sm" />New Goal
+      </Btn>
+    {/snippet}
+  </PageHeader>
 
   {#if !$goals || !$metrics}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

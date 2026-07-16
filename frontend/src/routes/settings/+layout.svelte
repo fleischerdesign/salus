@@ -1,6 +1,7 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
   import { page } from '$app/state';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import PageTransition from '$components/ui/PageTransition.svelte';
   import Icon from '$components/ui/Icon.svelte';
 
@@ -24,7 +25,12 @@
 <svelte:head><title>Salus — Settings</title></svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-semibold text-surface-900">Settings</h1>
+  <PageHeader
+    title="Settings"
+    subtitle="Configure account options, privacy limits, and active sharing keys."
+    icon="settings"
+    iconColor="#4f46e5"
+  />
 
   <div class="flex gap-6">
     <nav class="flex w-60 shrink-0 flex-col border-r border-surface-200 py-2">

@@ -9,6 +9,7 @@
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
@@ -110,19 +111,20 @@
 <svelte:head><title>Salus — Analytics</title></svelte:head>
 
 <div class="space-y-4">
-  <div class="flex items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-surface-900">Analytics</h1>
-      <p class="text-sm text-surface-500">
-        {tab === 'trends'
-          ? 'Statistical time series with regression analysis'
-          : tab === 'forecast'
-            ? 'Predictions, projections & sleep debt'
-            : 'Cross-metric correlations & historical calendar'}
-      </p>
-    </div>
-    <SegmentedControl options={ranges} bind:value={range} />
-  </div>
+  <PageHeader
+    title="Analytics"
+    subtitle={tab === 'trends'
+      ? 'Statistical time series with regression analysis'
+      : tab === 'forecast'
+        ? 'Predictions, projections & sleep debt'
+        : 'Cross-metric correlations & historical calendar'}
+    icon="analytics"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      <SegmentedControl options={ranges} bind:value={range} />
+    {/snippet}
+  </PageHeader>
 
   <div class="flex items-center gap-2">
     <SegmentedControl options={tabs} bind:value={tab} />

@@ -14,6 +14,7 @@
     type DashboardData
   } from '$lib/analytics/views/dashboard';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Select from '$components/ui/Select.svelte';
@@ -172,28 +173,35 @@
 <svelte:head><title>Salus — Dashboard</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-4">
-    <h1 class="text-[28px] font-semibold text-surface-900">Dashboard</h1>
+  <PageHeader
+    title="Dashboard"
+    subtitle="Personal health overview and activity tracker"
+    icon="dashboard"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      <div class="flex flex-wrap items-center gap-4">
+        <DayNavigator
+          dateDisplay={displayDateFormatted}
+          onPrev={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
+          onNext={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
+          onDateChange={handleDateChange}
+          {isToday}
+        />
 
-    <DayNavigator
-      dateDisplay={displayDateFormatted}
-      onPrev={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
-      onNext={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
-      onDateChange={handleDateChange}
-      {isToday}
-    />
-
-    <div class="flex items-center gap-2">
-      <Btn variant={editing ? 'primary' : 'secondary'} size="sm" onclick={toggleEdit}>
-        {editing ? 'Done' : 'Edit Layout'}
-      </Btn>
-      {#if editing}
-        <Btn variant="secondary" size="sm" onclick={() => (addModalOpen = true)}>
-          <Icon name="add" size="sm" />Add Widget
-        </Btn>
-      {/if}
-    </div>
-  </div>
+        <div class="flex items-center gap-2">
+          <Btn variant={editing ? 'primary' : 'secondary'} size="sm" onclick={toggleEdit}>
+            {editing ? 'Done' : 'Edit Layout'}
+          </Btn>
+          {#if editing}
+            <Btn variant="secondary" size="sm" onclick={() => (addModalOpen = true)}>
+              <Icon name="add" size="sm" />Add Widget
+            </Btn>
+          {/if}
+        </div>
+      </div>
+    {/snippet}
+  </PageHeader>
 
   {#if loading}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">

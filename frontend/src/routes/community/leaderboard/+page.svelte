@@ -7,6 +7,7 @@
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Input from '$components/ui/Input.svelte';
   import Select from '$components/ui/Select.svelte';
   import FormField from '$components/forms/FormField.svelte';
@@ -147,12 +148,13 @@
 <svelte:head><title>Salus — Leaderboard</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Leaderboard</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Compete with connections and track your health rankings.
-    </p>
-  </div>
+  <PageHeader
+    title="Leaderboard"
+    subtitle="Compete with connections and track your health rankings."
+    icon="emoji-events"
+    iconColor="#4f46e5"
+    backUrl="/community"
+  />
 
   {#if error}
     <AlertBanner variant="error">{error}</AlertBanner>

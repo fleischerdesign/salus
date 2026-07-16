@@ -11,6 +11,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Select from '$components/ui/Select.svelte';
@@ -115,15 +116,18 @@
 <svelte:head><title>Salus — Logbook</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-semibold text-surface-900">Logbook</h1>
-      <p class="text-sm text-surface-500">Select a metric to view and manage its entries.</p>
-    </div>
-    <Btn variant="primary" onclick={openCreateModal}>
-      <Icon name="add" size="sm" />New Metric
-    </Btn>
-  </div>
+  <PageHeader
+    title="Logbook"
+    subtitle="Select a metric to view and manage its entries."
+    icon="library-books"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      <Btn variant="primary" onclick={openCreateModal}>
+        <Icon name="add" size="sm" />New Metric
+      </Btn>
+    {/snippet}
+  </PageHeader>
 
   {#if !$metrics || !$overviews}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

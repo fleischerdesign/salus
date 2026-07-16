@@ -7,6 +7,7 @@
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -124,49 +125,31 @@
   </div>
 {:else if $detail}
   <div class="max-w-4xl space-y-6">
-    <a
-      href="/community/leaderboard"
-      class="duration-micro inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 no-underline transition-colors hover:text-surface-700"
+    <PageHeader
+      title={$detail.name}
+      subtitle={`${$detail.time_frame} • ${$detail.metric_type_code} • ${new Date($detail.start_date).toLocaleDateString()} — ${new Date($detail.end_date).toLocaleDateString()}`}
+      icon={metricIcon[$detail.metric_type_code] ?? 'emoji-events'}
+      iconColor="#4f46e5"
+      backUrl="/community/leaderboard"
     >
-      <Icon name="arrow-back" size="sm" />Back to Challenges
-    </a>
-
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="flex items-center gap-3">
+      {#snippet actions()}
         <div
-          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600"
+          class="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-2"
         >
-          <Icon name={metricIcon[$detail.metric_type_code] ?? 'emoji-events'} size="lg" />
-        </div>
-        <div>
-          <h1 class="text-2xl font-semibold text-surface-900">{$detail.name}</h1>
-          <p class="mt-1 flex items-center gap-1.5 text-sm text-surface-500">
-            <span class="capitalize">{$detail.time_frame}</span>·<span
-              >{$detail.metric_type_code}</span
-            >·<span
-              >{new Date($detail.start_date).toLocaleDateString()} — {new Date(
-                $detail.end_date
-              ).toLocaleDateString()}</span
+          <div>
+            <p class="text-[10px] font-semibold tracking-wider text-surface-400 uppercase">
+              Invite Code
+            </p>
+            <code class="text-sm font-bold tracking-wide text-surface-700"
+              >{$detail.invite_code}</code
             >
-          </p>
+          </div>
+          <Btn variant="secondary" size="sm" onclick={copyInviteCode}>
+            <Icon name={copied ? 'check' : 'content-copy'} size="sm" />{copied ? 'Copied' : 'Copy'}
+          </Btn>
         </div>
-      </div>
-
-      <div
-        class="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3"
-      >
-        <div>
-          <p class="text-[10px] font-semibold tracking-wider text-surface-400 uppercase">
-            Invite Code
-          </p>
-          <code class="text-sm font-bold tracking-wide text-surface-700">{$detail.invite_code}</code
-          >
-        </div>
-        <Btn variant="secondary" size="sm" onclick={copyInviteCode}>
-          <Icon name={copied ? 'check' : 'content-copy'} size="sm" />{copied ? 'Copied' : 'Copy'}
-        </Btn>
-      </div>
-    </div>
+      {/snippet}
+    </PageHeader>
 
     <Card padding={false}>
       {#snippet header()}

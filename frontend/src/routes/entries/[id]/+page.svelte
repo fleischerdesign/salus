@@ -5,6 +5,7 @@
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import { useTrend } from '$lib/analytics/views/analytics';
   import LineChart from '$components/dashboard/LineChart.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import {
     createMeasurement,
     updateMeasurement,
@@ -185,54 +186,35 @@
 
 <div class="space-y-6">
   <!-- Header -->
-  <Card padding={false}>
-    {#snippet header()}
-      <div class="flex items-center gap-3">
-        <a
-          href="/entries"
-          class="duration-micro flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
-          aria-label="Back to Logbook"
-        >
-          <Icon name="arrow-back" size="sm" />
-        </a>
-        {#if $metric}
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-            style="background-color: {$metric.color}20; color: {$metric.color}"
-          >
-            <Icon name={$metric.icon || 'monitoring'} />
-          </div>
-        {:else}
-          <div class="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-surface-200"></div>
-        {/if}
-        <div class="min-w-0 flex-1">
-          <h1 class="truncate text-lg font-semibold text-surface-900">
-            {$metric?.name ?? 'Loading…'}
-          </h1>
-          {#if $metric}
-            <p class="text-xs text-surface-500">{$metric.unit || '—'}</p>
-          {/if}
-        </div>
-        <Btn variant="primary" onclick={openCreateModal}>
-          <Icon name="add" size="sm" />New Entry
-        </Btn>
-      </div>
+  <PageHeader
+    title={$metric?.name ?? 'Loading…'}
+    subtitle={$metric?.unit || '—'}
+    backUrl="/entries"
+    icon={$metric?.icon || 'monitoring'}
+    iconColor={$metric?.color}
+  >
+    {#snippet actions()}
+      <Btn variant="primary" onclick={openCreateModal}>
+        <Icon name="add" size="sm" />New Entry
+      </Btn>
     {/snippet}
 
-    {#if overview}
-      <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
-        <Stat value={overview.latest_value ?? '—'} unit={$metric?.unit} label="Latest" />
-        <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
-        <Stat value={overview.entry_count} label="Total Entries" />
-      </div>
-    {:else if !$overviews}
-      <div class="flex items-center gap-x-8 px-6 py-4">
-        <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
-        <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
-        <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
-      </div>
-    {/if}
-  </Card>
+    {#snippet stats()}
+      {#if overview}
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
+          <Stat value={overview.latest_value ?? '—'} unit={$metric?.unit} label="Latest" />
+          <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
+          <Stat value={overview.entry_count} label="Total Entries" />
+        </div>
+      {:else}
+        <div class="flex items-center gap-x-8 px-6 py-4">
+          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+        </div>
+      {/if}
+    {/snippet}
+  </PageHeader>
 
   {#if $trend && $trend.values.length >= 2}
     <Card padding={false}>

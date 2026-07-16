@@ -4,6 +4,7 @@
   import type { CommunityActivity } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -35,12 +36,13 @@
 <svelte:head><title>Salus — Community Feed</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Activity Feed</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Stay updated on your connections' health and fitness progress.
-    </p>
-  </div>
+  <PageHeader
+    title="Activity Feed"
+    subtitle="Stay updated on your connections' health and fitness progress."
+    icon="rss-feed"
+    iconColor="#4f46e5"
+    backUrl="/community"
+  />
 
   {#if $activities === undefined}
     <div class="flex justify-center py-20">

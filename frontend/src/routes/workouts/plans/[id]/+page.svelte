@@ -6,13 +6,14 @@
   import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
 
-  const planId = $derived(page.params.id);
+  const planId = $derived(page.params.id as string);
 
   let plan = liveQuery(() =>
     db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null))
@@ -76,19 +77,15 @@
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
 {:else if $plan}
   <div class="space-y-6">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <a
-          href="/workouts/plans"
-          class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-        >
-          <Icon name="arrow-back" size="sm" />Plans
-        </a>
-        <h1 class="mt-1 text-2xl font-semibold text-surface-900">{$plan.name}</h1>
-        {#if $plan.description}
-          <p class="mt-1 text-sm text-surface-500">{$plan.description}</p>
-        {/if}
-        <div class="mt-2 flex items-center gap-1.5">
+    <PageHeader
+      title={$plan.name}
+      subtitle={$plan.description || 'Training routine details and completed history.'}
+      icon="event_note"
+      iconColor="#4f46e5"
+      backUrl="/workouts/plans"
+    >
+      {#snippet actions()}
+        <div class="mr-2 flex items-center gap-1.5">
           <Badge
             variant={$plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
             class="capitalize"
@@ -97,11 +94,11 @@
           </Badge>
           <Badge variant="default">{$planExercises.length} exercises</Badge>
         </div>
-      </div>
-      <Btn variant="primary" loading={starting} onclick={startSession}>
-        <Icon name="play-arrow" size="sm" />Start Workout
-      </Btn>
-    </div>
+        <Btn variant="primary" loading={starting} onclick={startSession}>
+          <Icon name="play-arrow" size="sm" />Start Workout
+        </Btn>
+      {/snippet}
+    </PageHeader>
 
     <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div class="space-y-3">

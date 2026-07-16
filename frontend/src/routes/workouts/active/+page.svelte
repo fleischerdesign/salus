@@ -5,6 +5,7 @@
   import { completeWorkout, logSet, deleteLogSet } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -237,20 +238,14 @@
   {#if loading}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if $session}
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <a
-          href="/workouts"
-          class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-        >
-          <Icon name="arrow-back" size="sm" />Workouts
-        </a>
-        <h1 class="mt-1 text-2xl font-semibold text-surface-900">Active Workout Session</h1>
-        <p class="mt-1 text-sm text-surface-500">
-          Started {formatTime($session.started_at)}
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
+    <PageHeader
+      title="Active Workout Session"
+      subtitle={`Started ${formatTime($session.started_at)}`}
+      icon="fitness-center"
+      iconColor="#4f46e5"
+      backUrl="/workouts"
+    >
+      {#snippet actions()}
         {#if $session.recovery_score}
           <Badge variant="success">
             <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
@@ -266,8 +261,8 @@
           <Icon name={audioEnabled ? 'volume-up' : 'volume-off'} size="sm" />
           {audioEnabled ? 'Audio On' : 'Audio Off'}
         </button>
-      </div>
-    </div>
+      {/snippet}
+    </PageHeader>
 
     {#if targets && targets.length > 0}
       {#each targets as target (target.exercise_id)}

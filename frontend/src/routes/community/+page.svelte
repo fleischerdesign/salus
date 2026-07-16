@@ -2,6 +2,7 @@
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import Card from '$components/ui/Card.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
 
@@ -42,12 +43,12 @@
 <svelte:head><title>Salus — Community</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Community</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Connect, compete, and share your health journey with peers.
-    </p>
-  </div>
+  <PageHeader
+    title="Community"
+    subtitle="Connect, compete, and share your health journey with peers."
+    icon="groups"
+    iconColor="#4f46e5"
+  />
 
   {#if !$counts}
     <div class="flex justify-center py-16">

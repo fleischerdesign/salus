@@ -10,6 +10,7 @@
   import { auth } from '$lib/stores/auth.svelte';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -154,12 +155,13 @@
 <svelte:head><title>Salus — Connections</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Connections</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Manage your peer-to-peer health data sharing relationships.
-    </p>
-  </div>
+  <PageHeader
+    title="Connections"
+    subtitle="Manage your peer-to-peer health data sharing relationships."
+    icon="groups"
+    iconColor="#4f46e5"
+    backUrl="/community"
+  />
 
   {#if error}
     <AlertBanner variant="error">{error}</AlertBanner>

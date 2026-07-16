@@ -6,13 +6,14 @@
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Table from '$components/ui/Table.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Btn from '$components/ui/Btn.svelte';
 
-  const exerciseId = $derived(page.params.id);
+  const exerciseId = $derived(page.params.id as string);
 
   let exercise = liveQuery(() =>
     db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null))
@@ -149,27 +150,27 @@
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
 {:else if $exercise}
   <div class="space-y-6">
-    <div>
-      <a
-        href="/workouts/exercises"
-        class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-      >
-        <Icon name="arrow-back" size="sm" />Exercise Library
-      </a>
-      <h1 class="mt-1 text-2xl font-semibold text-surface-900">
-        {$exercise.name}
-      </h1>
-      <div class="mt-2 flex flex-wrap gap-1.5">
-        <Badge variant="default" class="capitalize">
-          {$exercise.equipment}
-        </Badge>
-        {#each ($exercise.primary_muscles ?? '').split(',') as muscle (muscle.trim())}
-          {#if muscle.trim()}
-            <Badge variant="primary" class="capitalize">{muscle.trim()}</Badge>
-          {/if}
-        {/each}
-      </div>
-    </div>
+    <PageHeader
+      title={$exercise.name}
+      subtitle={$exercise.description ||
+        'View execution instructions and historical training volume.'}
+      icon="fitness-center"
+      iconColor="#4f46e5"
+      backUrl="/workouts/exercises"
+    >
+      {#snippet actions()}
+        <div class="flex flex-wrap gap-1.5">
+          <Badge variant="default" class="capitalize">
+            {$exercise.equipment}
+          </Badge>
+          {#each ($exercise.primary_muscles ?? '').split(',') as muscle (muscle.trim())}
+            {#if muscle.trim()}
+              <Badge variant="primary" class="capitalize">{muscle.trim()}</Badge>
+            {/if}
+          {/each}
+        </div>
+      {/snippet}
+    </PageHeader>
 
     <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div class="space-y-4">

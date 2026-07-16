@@ -6,12 +6,13 @@
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Table from '$components/ui/Table.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
 
-  const sessionId = $derived(page.params.id);
+  const sessionId = $derived(page.params.id as string);
 
   let session = liveQuery(() =>
     db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null))
@@ -73,27 +74,30 @@
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
 {:else if $session}
   <div class="space-y-6">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <a
-          href="/workouts/sessions"
-          class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-        >
-          <Icon name="arrow-back" size="sm" />Sessions
-        </a>
-        <h1 class="mt-1 text-2xl font-semibold text-surface-900">Workout Session</h1>
-        <div class="mt-1 flex items-center gap-2 text-sm text-surface-500">
-          <span>{new Date($session.completed_at ?? $session.started_at).toLocaleDateString()}</span>
-          <span>·</span>
-          <span>{durationMin} min</span>
+    <PageHeader
+      title="Workout Session"
+      subtitle={`${new Date($session.completed_at ?? $session.started_at).toLocaleDateString()} • ${durationMin} min`}
+      icon="fitness-center"
+      iconColor="#4f46e5"
+      backUrl="/workouts/sessions"
+    >
+      {#snippet actions()}
+        {#if $session.recovery_score}
+          <Badge variant="success">
+            <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
+          </Badge>
+        {/if}
+      {/snippet}
+
+      {#snippet stats()}
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
+          <Stat value={totalVolume.toFixed(0)} unit="kg" label="Total Volume" />
+          <Stat value={durationMin} unit="min" label="Duration" />
+          <Stat value={totalSets} label="Sets Logged" />
+          <Stat value={avgRpe > 0 ? avgRpe.toFixed(1) : '—'} label="Avg. RPE" />
         </div>
-      </div>
-      {#if $session.recovery_score}
-        <Badge variant="success">
-          <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
-        </Badge>
-      {/if}
-    </div>
+      {/snippet}
+    </PageHeader>
 
     {#if $session.notes}
       <Card>
@@ -101,55 +105,41 @@
       </Card>
     {/if}
 
-    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-surface-900">Exercise Log</h2>
-        {#if !$logs || groupedLogs.size === 0}
-          <EmptyState
-            title="No exercises logged"
-            description="No sets were logged in this session."
-            icon="exercise"
-          />
-        {:else}
-          {#each groupedLogs as [name, entryLogs] (name)}
-            <Card padding={false}>
-              {#snippet header()}
-                <span class="text-sm font-semibold text-surface-900">{name}</span>
-              {/snippet}
-              <div class="p-2">
-                <Table
-                  columns={[
-                    { key: 'set', label: 'Set' },
-                    { key: 'weight', label: 'Weight (kg)' },
-                    { key: 'reps', label: 'Reps' },
-                    { key: 'rpe', label: 'RPE' },
-                    { key: 'one_rm', label: 'Est. 1RM' }
-                  ]}
-                  rows={entryLogs.map((l) => ({
-                    set: `#${l.set_number}`,
-                    weight: l.weight,
-                    reps: l.reps,
-                    rpe: l.rpe ?? '—',
-                    one_rm: est1rm(l.weight, l.reps).toFixed(1)
-                  }))}
-                />
-              </div>
-            </Card>
-          {/each}
-        {/if}
-      </div>
-
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-surface-900">Session Stats</h2>
-        <Card padding={false}>
-          <div class="flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
-            <Stat value={totalVolume.toFixed(0)} unit="kg" label="Total Volume" />
-            <Stat value={durationMin} unit="min" label="Duration" />
-            <Stat value={totalSets} label="Sets Logged" />
-            <Stat value={avgRpe > 0 ? avgRpe.toFixed(1) : '—'} label="Avg. RPE" />
-          </div>
-        </Card>
-      </div>
+    <div class="space-y-4">
+      <h2 class="text-lg font-semibold text-surface-900">Exercise Log</h2>
+      {#if !$logs || groupedLogs.size === 0}
+        <EmptyState
+          title="No exercises logged"
+          description="No sets were logged in this session."
+          icon="exercise"
+        />
+      {:else}
+        {#each groupedLogs as [name, entryLogs] (name)}
+          <Card padding={false}>
+            {#snippet header()}
+              <span class="text-sm font-semibold text-surface-900">{name}</span>
+            {/snippet}
+            <div class="p-2">
+              <Table
+                columns={[
+                  { key: 'set', label: 'Set' },
+                  { key: 'weight', label: 'Weight (kg)' },
+                  { key: 'reps', label: 'Reps' },
+                  { key: 'rpe', label: 'RPE' },
+                  { key: 'one_rm', label: 'Est. 1RM' }
+                ]}
+                rows={entryLogs.map((l) => ({
+                  set: `#${l.set_number}`,
+                  weight: l.weight,
+                  reps: l.reps,
+                  rpe: l.rpe ?? '—',
+                  one_rm: est1rm(l.weight, l.reps).toFixed(1)
+                }))}
+              />
+            </div>
+          </Card>
+        {/each}
+      {/if}
     </div>
   </div>
 {:else}

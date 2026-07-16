@@ -7,6 +7,7 @@
   import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Textarea from '$components/ui/Textarea.svelte';
@@ -114,20 +115,19 @@
 <svelte:head><title>Salus — Workout Plans</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div>
-      <a
-        href="/workouts"
-        class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-      >
-        <Icon name="arrow-back" size="sm" />Workouts
-      </a>
-      <h1 class="mt-1 text-2xl font-semibold text-surface-900">Training Plans</h1>
-    </div>
-    <Btn variant="primary" onclick={openForm}>
-      <Icon name="add" size="sm" />New Plan
-    </Btn>
-  </div>
+  <PageHeader
+    title="Training Plans"
+    subtitle="Design structured routine templates, arrange exercise orders, and log progression."
+    icon="event_note"
+    iconColor="#4f46e5"
+    backUrl="/workouts"
+  >
+    {#snippet actions()}
+      <Btn variant="primary" onclick={openForm}>
+        <Icon name="add" size="sm" />New Plan
+      </Btn>
+    {/snippet}
+  </PageHeader>
 
   {#if !$plans}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

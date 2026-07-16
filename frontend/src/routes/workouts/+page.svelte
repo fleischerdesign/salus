@@ -4,6 +4,7 @@
   import type { WorkoutPlan, Exercise, WorkoutSession } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import { fade } from 'svelte/transition';
@@ -51,12 +52,12 @@
 <svelte:head><title>Salus — Workouts</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Workout Planner</h1>
-    <p class="text-sm text-surface-500">
-      Create plans, track sets, and get dynamic intensity suggestions.
-    </p>
-  </div>
+  <PageHeader
+    title="Workout Planner"
+    subtitle="Create plans, track sets, and get dynamic intensity suggestions."
+    icon="fitness-center"
+    iconColor="#4f46e5"
+  />
 
   {#if !loaded}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

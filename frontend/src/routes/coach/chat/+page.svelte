@@ -6,6 +6,7 @@
   import type { Insight } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
@@ -67,24 +68,25 @@
 <svelte:head><title>Salus — AI Coach</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-surface-900">AI Coach</h1>
-      <p class="mt-1 text-sm text-surface-500">
-        Physician-grade daily health recommendations powered by LLMs
-      </p>
-    </div>
-    <div class="flex items-center gap-2">
-      <input
-        type="date"
-        bind:value={date}
-        class="duration-micro h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors hover:border-surface-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
-      />
-      <Btn variant="primary" size="sm" loading={generating} onclick={generate}>
-        <Icon name="auto-awesome" size="sm" />Generate
-      </Btn>
-    </div>
-  </div>
+  <PageHeader
+    title="AI Coach"
+    subtitle="Physician-grade daily health recommendations powered by LLMs"
+    icon="psychology"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      <div class="flex items-center gap-2">
+        <input
+          type="date"
+          bind:value={date}
+          class="duration-micro h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors hover:border-surface-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
+        />
+        <Btn variant="primary" size="sm" loading={generating} onclick={generate}>
+          <Icon name="auto-awesome" size="sm" />Generate
+        </Btn>
+      </div>
+    {/snippet}
+  </PageHeader>
 
   <div class="grid gap-6 lg:grid-cols-3">
     <div class="lg:col-span-2">

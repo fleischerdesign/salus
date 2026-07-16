@@ -8,6 +8,7 @@
   } from '$lib/mutations/exercise';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Textarea from '$components/ui/Textarea.svelte';
@@ -130,20 +131,19 @@
 <svelte:head><title>Salus — Exercise Library</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div>
-      <a
-        href="/workouts"
-        class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-      >
-        <Icon name="arrow-back" size="sm" />Workouts
-      </a>
-      <h1 class="mt-1 text-2xl font-semibold text-surface-900">Exercise Library</h1>
-    </div>
-    <Btn variant="primary" onclick={openForm}>
-      <Icon name="add" size="sm" />New Exercise
-    </Btn>
-  </div>
+  <PageHeader
+    title="Exercise Library"
+    subtitle="Explore default templates, search movements, and configure target muscles."
+    icon="fitness-center"
+    iconColor="#4f46e5"
+    backUrl="/workouts"
+  >
+    {#snippet actions()}
+      <Btn variant="primary" onclick={openForm}>
+        <Icon name="add" size="sm" />New Exercise
+      </Btn>
+    {/snippet}
+  </PageHeader>
 
   {#if !$allExercises}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

@@ -3,6 +3,7 @@
   import { db } from '$lib/db/database';
   import type { WorkoutSession } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -55,15 +56,13 @@
 <svelte:head><title>Salus — Session History</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <a
-      href="/workouts"
-      class="duration-micro flex items-center gap-1 text-sm text-surface-500 no-underline transition-colors hover:text-surface-700"
-    >
-      <Icon name="arrow-back" size="sm" />Workouts
-    </a>
-    <h1 class="mt-1 text-2xl font-semibold text-surface-900">Session History</h1>
-  </div>
+  <PageHeader
+    title="Session History"
+    subtitle="View your past workout sessions and performance logs."
+    icon="history"
+    iconColor="#4f46e5"
+    backUrl="/workouts"
+  />
 
   {#if !$sessions || !$logs}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

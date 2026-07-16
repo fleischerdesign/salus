@@ -6,6 +6,7 @@
   import { markAllNotificationsRead } from '$lib/mutations/notification';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
 
   let notifications = liveQuery(() =>
@@ -33,14 +34,18 @@
 <svelte:head><title>Salus — Notifications</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-semibold text-surface-900">
-      Notifications ({unreadCount} unread)
-    </h1>
-    {#if unreadCount > 0}
-      <Btn variant="secondary" size="sm" onclick={markAllRead}>Mark all read</Btn>
-    {/if}
-  </div>
+  <PageHeader
+    title={`Notifications (${unreadCount} unread)`}
+    subtitle="Stay updated on updates, sync alerts, and sharing triggers."
+    icon="notifications"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      {#if unreadCount > 0}
+        <Btn variant="secondary" size="sm" onclick={markAllRead}>Mark all read</Btn>
+      {/if}
+    {/snippet}
+  </PageHeader>
 
   {#if !$notifications}
     <div class="flex flex-col gap-3">

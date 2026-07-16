@@ -5,6 +5,7 @@
   import { fetchCircadianAdvice, type CircadianAdvice } from '$lib/analytics/views/circadian';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Input from '$components/ui/Input.svelte';
   import Select from '$components/ui/Select.svelte';
   import FormField from '$components/forms/FormField.svelte';
@@ -80,12 +81,12 @@
 <svelte:head><title>Salus — Circadian Advisor</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Circadian & Light Advisor</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle.
-    </p>
-  </div>
+  <PageHeader
+    title="Circadian & Light Advisor"
+    subtitle="Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle."
+    icon="light_mode"
+    iconColor="#4f46e5"
+  />
 
   {#if adviceLoading && !advice}
     <Spinner size="lg" />

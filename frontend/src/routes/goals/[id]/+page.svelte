@@ -5,6 +5,7 @@
   import { page } from '$app/state';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -127,93 +128,72 @@
 
 <div class="space-y-6">
   <!-- Header -->
-  <Card padding={false}>
-    {#snippet header()}
-      <div class="flex items-center gap-3">
-        <a
-          href="/goals"
-          class="duration-micro flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
-          aria-label="Back to Goals"
-        >
-          <Icon name="arrow-back" size="sm" />
-        </a>
-        {#if $goalView}
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-            style="background-color: {$goalView.metric_color}20; color: {$goalView.metric_color}"
-          >
-            <Icon name={$goalView.metric_icon || 'track-changes'} />
-          </div>
-        {:else}
-          <div class="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-surface-200"></div>
-        {/if}
-        <div class="min-w-0 flex-1">
-          <h1 class="truncate text-lg font-semibold text-surface-900">
-            {$goalView ? `${$goalView.metric_name} Goal` : 'Loading Goal…'}
-          </h1>
-          {#if $goalView}
-            <p class="text-xs text-surface-500 capitalize">{$goalView.frequency} Goal</p>
-          {/if}
-        </div>
-      </div>
-    {/snippet}
-
-    {#if $goalView}
-      <div class="grid gap-6 px-6 py-6 md:grid-cols-3">
-        <div class="space-y-1">
-          <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
-            >Current / Target</span
-          >
-          <div class="flex items-baseline gap-1.5">
-            <span class="text-2xl font-bold text-surface-900">
-              {formatValue($goalView.progress.current_value)}
-            </span>
-            <span class="text-sm text-surface-400">
-              / {formatValue($goalView.target_value)}
-              {$goalView.metric_unit}
-            </span>
-          </div>
-        </div>
-
-        <div class="space-y-1">
-          <span class="text-xs font-medium tracking-wider text-surface-400 uppercase">Status</span>
-          <div>
-            <span class="text-sm font-bold uppercase {statusColor($goalView.progress.status)}">
-              {$goalView.progress.status}
-            </span>
-          </div>
-        </div>
-
-        {#if $goalView.deadline}
+  <PageHeader
+    title={$goalView ? `${$goalView.metric_name} Goal` : 'Loading Goal…'}
+    subtitle={$goalView ? `${$goalView.frequency} Goal` : ''}
+    backUrl="/goals"
+    icon={$goalView?.metric_icon || 'track-changes'}
+    iconColor={$goalView?.metric_color}
+  >
+    {#snippet stats()}
+      {#if $goalView}
+        <div class="grid gap-6 px-6 py-6 md:grid-cols-3">
           <div class="space-y-1">
             <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
-              >Deadline</span
+              >Current / Target</span
             >
-            <div class="text-sm font-semibold text-surface-700">
-              {new Date($goalView.deadline).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-2xl font-bold text-surface-900">
+                {formatValue($goalView.progress.current_value)}
+              </span>
+              <span class="text-sm text-surface-400">
+                / {formatValue($goalView.target_value)}
+                {$goalView.metric_unit}
+              </span>
             </div>
           </div>
-        {/if}
-      </div>
 
-      <div class="border-t border-surface-100 px-6 py-4">
-        <div class="mb-2 flex items-center justify-between">
-          <span class="text-xs font-semibold text-surface-500">Goal Completion Progress</span>
-          <span class="text-xs font-bold text-surface-700">{$goalView.progress.percent}%</span>
+          <div class="space-y-1">
+            <span class="text-xs font-medium tracking-wider text-surface-400 uppercase">Status</span
+            >
+            <div>
+              <span class="text-sm font-bold uppercase {statusColor($goalView.progress.status)}">
+                {$goalView.progress.status}
+              </span>
+            </div>
+          </div>
+
+          {#if $goalView.deadline}
+            <div class="space-y-1">
+              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
+                >Deadline</span
+              >
+              <div class="text-sm font-semibold text-surface-700">
+                {new Date($goalView.deadline).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+            </div>
+          {/if}
         </div>
-        <ProgressBar
-          value={$goalView.progress.percent}
-          max={100}
-          variant={progressVariant($goalView.progress.status)}
-          height="md"
-        />
-      </div>
-    {/if}
-  </Card>
+
+        <div class="border-t border-surface-100 px-6 py-4">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="text-xs font-semibold text-surface-500">Goal Completion Progress</span>
+            <span class="text-xs font-bold text-surface-700">{$goalView.progress.percent}%</span>
+          </div>
+          <ProgressBar
+            value={$goalView.progress.percent}
+            max={100}
+            variant={progressVariant($goalView.progress.status)}
+            height="md"
+          />
+        </div>
+      {/if}
+    {/snippet}
+  </PageHeader>
 
   {#if !$goalView || !$measurements}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

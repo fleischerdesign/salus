@@ -3,6 +3,7 @@
   import { db } from '$lib/db/database';
   import type { FederatedAccessLog } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Table from '$components/ui/Table.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -26,12 +27,13 @@
 <svelte:head><title>Salus — Access Log</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-surface-900">Access Log</h1>
-    <p class="mt-1 text-sm text-surface-500">
-      Track who accessed your shared health data and when.
-    </p>
-  </div>
+  <PageHeader
+    title="Access Log"
+    subtitle="Track who accessed your shared health data and when."
+    icon="security"
+    iconColor="#4f46e5"
+    backUrl="/community/connections"
+  />
 
   <Card padding={false}>
     {#if $logs === undefined}

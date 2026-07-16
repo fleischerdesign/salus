@@ -6,6 +6,7 @@
   import { page } from '$app/state';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -156,80 +157,68 @@
 
 <div class="space-y-6">
   <!-- Header -->
-  <Card padding={false}>
-    {#snippet header()}
-      <div class="flex items-center gap-3">
-        <a
-          href="/community/connections"
-          class="duration-micro flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
-          aria-label="Back to Connections"
-        >
-          <Icon name="arrow-back" size="sm" />
-        </a>
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 font-bold text-primary-600"
-        >
-          {handle.substring(0, 2).toUpperCase().replace('@', '')}
+  <PageHeader
+    title={$peer?.display_name || handle}
+    subtitle={handle}
+    backUrl="/community/connections"
+    icon="person"
+    iconColor="#4f46e5"
+  >
+    {#snippet actions()}
+      {#if $peer}
+        <div class="flex gap-1.5 font-sans">
+          {#if $peer.is_remote}
+            <Badge variant="primary">Remote</Badge>
+          {/if}
+          {#if $peer.is_pending}
+            <Badge variant="warning">Pending</Badge>
+          {:else if !$peer.is_mutual}
+            <Badge variant="default">Outgoing</Badge>
+          {:else}
+            <Badge variant="success">Mutual</Badge>
+          {/if}
         </div>
-        <div class="min-w-0 flex-1">
-          <h1 class="truncate text-lg font-semibold text-surface-900">
-            {$peer?.display_name || handle}
-          </h1>
-          <p class="text-xs text-surface-500">{handle}</p>
-        </div>
-        {#if $peer}
-          <div class="flex gap-1.5">
-            {#if $peer.is_remote}
-              <Badge variant="primary">Remote</Badge>
-            {/if}
-            {#if $peer.is_pending}
-              <Badge variant="warning">Pending</Badge>
-            {:else if !$peer.is_mutual}
-              <Badge variant="default">Outgoing</Badge>
-            {:else}
-              <Badge variant="success">Mutual</Badge>
-            {/if}
-          </div>
-        {/if}
-      </div>
+      {/if}
     {/snippet}
 
-    {#if $peer}
-      <div class="grid gap-6 px-6 py-6 md:grid-cols-2">
-        {#if $peer.last_sync}
-          <div class="space-y-1">
-            <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
-              >Last Synced</span
-            >
-            <div class="text-sm font-semibold text-surface-700">
-              {new Date($peer.last_sync).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+    {#snippet stats()}
+      {#if $peer}
+        <div class="grid gap-6 px-6 py-6 md:grid-cols-2">
+          {#if $peer.last_sync}
+            <div class="space-y-1">
+              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
+                >Last Synced</span
+              >
+              <div class="text-sm font-semibold text-surface-700">
+                {new Date($peer.last_sync).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
             </div>
-          </div>
-        {/if}
+          {/if}
 
-        {#if $peer.expiration}
-          <div class="space-y-1">
-            <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
-              >Expires On</span
-            >
-            <div class="text-sm font-semibold text-surface-700">
-              {new Date($peer.expiration).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-              })}
+          {#if $peer.expiration}
+            <div class="space-y-1">
+              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
+                >Expires On</span
+              >
+              <div class="text-sm font-semibold text-surface-700">
+                {new Date($peer.expiration).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </div>
             </div>
-          </div>
-        {/if}
-      </div>
-    {/if}
-  </Card>
+          {/if}
+        </div>
+      {/if}
+    {/snippet}
+  </PageHeader>
 
   {#if !$peer || !$activities}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
