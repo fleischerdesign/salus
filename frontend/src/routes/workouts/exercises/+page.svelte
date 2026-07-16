@@ -143,82 +143,120 @@
         <Icon name="add" size="sm" />New Exercise
       </Btn>
     {/snippet}
+
+    {#snippet stats()}
+      <div
+        class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+      >
+        <!-- Search Input Segment -->
+        <div
+          class="relative flex h-12 w-full items-center px-4 transition-colors focus-within:bg-white"
+        >
+          <span class="pointer-events-none absolute left-4 text-surface-400">
+            <Icon name="search" size="sm" />
+          </span>
+          <input
+            type="text"
+            placeholder="Search exercises…"
+            bind:value={searchQuery}
+            class="h-full w-full border-0 bg-transparent pr-2 pl-7 text-sm text-surface-900 placeholder:text-surface-400 focus:ring-0 focus:outline-none"
+            style="border: none; outline: none; box-shadow: none;"
+          />
+        </div>
+
+        <!-- Muscle Filter Segment -->
+        <div
+          class="relative flex h-12 w-full items-center px-4 transition-colors focus-within:bg-white"
+        >
+          <span class="pointer-events-none absolute left-4 text-surface-400">
+            <Icon name="fitness-center" size="sm" class="text-surface-400" />
+          </span>
+          <select
+            bind:value={muscleFilter}
+            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-0 focus:outline-none"
+            style="border: none; outline: none; box-shadow: none;"
+          >
+            {#each muscleOptions as opt}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+          <span class="pointer-events-none absolute right-4 text-surface-400">
+            <Icon name="keyboard_arrow_down" size="sm" />
+          </span>
+        </div>
+
+        <!-- Equipment Filter Segment -->
+        <div
+          class="relative flex h-12 w-full items-center px-4 transition-colors focus-within:bg-white"
+        >
+          <span class="pointer-events-none absolute left-4 text-surface-400">
+            <Icon name="build" size="sm" class="text-surface-400" />
+          </span>
+          <select
+            bind:value={equipFilter}
+            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-0 focus:outline-none"
+            style="border: none; outline: none; box-shadow: none;"
+          >
+            {#each equipmentOptions as opt}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+          <span class="pointer-events-none absolute right-4 text-surface-400">
+            <Icon name="keyboard_arrow_down" size="sm" />
+          </span>
+        </div>
+      </div>
+    {/snippet}
   </PageHeader>
 
   {#if !$allExercises}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
+  {:else if filteredExercises.length === 0}
+    <EmptyState
+      title="No exercises found"
+      description={$allExercises.length === 0
+        ? 'Add exercises to your catalog.'
+        : 'No exercises match your filters.'}
+      icon="exercise"
+    >
+      {#if $allExercises.length === 0}
+        <Btn variant="primary" onclick={openForm}>+ New Exercise</Btn>
+      {/if}
+    </EmptyState>
   {:else}
-    <div class="flex flex-wrap gap-3">
-      <div class="relative min-w-[200px] flex-1">
-        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-surface-400">
-          <Icon name="search" size="sm" />
-        </span>
-        <input
-          type="text"
-          placeholder="Search exercises…"
-          bind:value={searchQuery}
-          class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-3 pl-9 text-sm text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-1 focus:ring-primary-500 focus:outline-none"
-        />
-      </div>
-      <div class="w-40">
-        <Select name="muscle" options={muscleOptions} bind:value={muscleFilter} />
-      </div>
-      <div class="w-40">
-        <Select name="equipment" options={equipmentOptions} bind:value={equipFilter} />
-      </div>
-    </div>
-
-    {#if filteredExercises.length === 0}
-      <EmptyState
-        title="No exercises found"
-        description={$allExercises.length === 0
-          ? 'Add exercises to your catalog.'
-          : 'No exercises match your filters.'}
-        icon="exercise"
-      >
-        {#if $allExercises.length === 0}
-          <Btn variant="primary" onclick={openForm}>+ New Exercise</Btn>
-        {/if}
-      </EmptyState>
-    {:else}
-      <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
-        {#each filteredExercises as ex, i (ex.id)}
-          <a
-            in:fade={{ ...staggerFade(i) }}
-            href="/workouts/exercises/{ex.id}"
-            class="no-underline"
-          >
-            <Card padding={false} hoverable>
-              {#snippet header()}
-                <div class="flex items-center gap-3">
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-semibold text-surface-900">
-                      {ex.name}
-                    </p>
-                    <div class="mt-1 flex items-center gap-1.5">
-                      <Badge variant="default" class="capitalize">{ex.equipment}</Badge>
-                      <Badge variant="primary" class="capitalize"
-                        >{formatMuscle(ex.primary_muscles ?? '')}</Badge
-                      >
-                    </div>
-                  </div>
-                  {#if ex.video_url}
-                    <Icon name="smart-display" size="sm" class="text-surface-400" />
-                  {/if}
-                </div>
-              {/snippet}
-              {#if ex.description}
-                <div class="p-4">
-                  <p class="truncate text-xs text-surface-400">
-                    {ex.description}
+    <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
+      {#each filteredExercises as ex, i (ex.id)}
+        <a in:fade={{ ...staggerFade(i) }} href="/workouts/exercises/{ex.id}" class="no-underline">
+          <Card padding={false} hoverable>
+            {#snippet header()}
+              <div class="flex items-center gap-3">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-surface-900">
+                    {ex.name}
                   </p>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <Badge variant="default" class="capitalize">{ex.equipment}</Badge>
+                    <Badge variant="primary" class="capitalize"
+                      >{formatMuscle(ex.primary_muscles ?? '')}</Badge
+                    >
+                  </div>
                 </div>
-              {/if}
-            </Card>
-          </a>
-        {/each}
-      </div>
-    {/if}
+                {#if ex.video_url}
+                  <Icon name="smart-display" size="sm" class="text-surface-400" />
+                {/if}
+              </div>
+            {/snippet}
+            {#if ex.description}
+              <div class="p-4">
+                <p class="truncate text-xs text-surface-400">
+                  {ex.description}
+                </p>
+              </div>
+            {/if}
+          </Card>
+        </a>
+      {/each}
+    </div>
   {/if}
 </div>
 

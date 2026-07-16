@@ -17,7 +17,7 @@
   let { title, subtitle, backUrl, icon, iconColor, iconBgColor, actions, stats }: Props = $props();
 </script>
 
-<Card padding={false}>
+<Card padding={false} border={!!stats}>
   {#snippet header()}
     <div class="flex items-center gap-3">
       {#if backUrl}
@@ -60,7 +60,7 @@
   {/snippet}
 
   {#if stats}
-    <div class="border-t border-surface-100">
+    <div>
       {@render stats()}
     </div>
   {/if}

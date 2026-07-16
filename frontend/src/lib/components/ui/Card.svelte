@@ -9,6 +9,7 @@
     hoverable?: boolean;
     children?: Snippet;
     class?: string;
+    border?: boolean;
   }
 
   let {
@@ -18,7 +19,8 @@
     variant = 'outlined',
     hoverable = false,
     children,
-    class: extraClass = ''
+    class: extraClass = '',
+    border = true
   }: Props = $props();
 
   const variantStyles: Record<string, string> = {
@@ -34,7 +36,7 @@
     : ''} {extraClass}"
 >
   {#if header}
-    <div class="border-b border-surface-100 px-6 py-4">
+    <div class="{border ? 'border-b border-surface-100' : ''} px-6 py-4">
       {@render header()}
     </div>
   {:else if title}
