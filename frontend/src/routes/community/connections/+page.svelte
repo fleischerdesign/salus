@@ -204,67 +204,108 @@
     {:else}
       <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
         {#each $peers as peer, i (peer.handle)}
-          <div
-            in:fade={{ ...staggerFade(i) }}
-            class="flex flex-col rounded-lg border border-surface-200 p-4"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-semibold text-surface-900">
-                  {peer.display_name || peer.handle}
-                </p>
-                <p class="text-xs text-surface-500">{peer.handle}</p>
-              </div>
-              <div class="flex gap-1.5">
-                {#if peer.is_remote}
-                  <Badge variant="primary">Remote</Badge>
-                {/if}
-                {#if peer.is_pending}
-                  <Badge variant="warning">Pending</Badge>
-                {:else if !peer.is_mutual}
-                  <Badge variant="default">Outgoing</Badge>
-                {:else}
-                  <Badge variant="success">Mutual</Badge>
-                {/if}
-              </div>
-            </div>
-
-            {#if peer.metrics.length > 0}
-              <div class="mt-3 space-y-1.5">
-                {#each peer.metrics as m}
-                  <div class="flex items-center gap-2 text-xs text-surface-500">
-                    <Icon name={m.icon} size="sm" style="color: {m.color}" />
-                    <span>{m.metric_name}</span>
-                    <span
-                      class="rounded bg-surface-100 px-1.5 py-0.5 text-[10px] font-medium text-surface-400"
+          <div in:fade={{ ...staggerFade(i) }}>
+            <a href="/community/connections/{peer.handle}" class="group/card block h-full">
+              <div
+                class="flex h-full cursor-pointer flex-col rounded-lg border border-surface-200 p-4 transition-shadow hover:shadow-md"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p
+                      class="text-sm font-semibold text-surface-900 transition-colors group-hover/card:text-primary-600"
                     >
-                      {m.aggregation} · {m.direction}
-                    </span>
+                      {peer.display_name || peer.handle}
+                    </p>
+                    <p class="text-xs text-surface-500">{peer.handle}</p>
                   </div>
-                {/each}
-              </div>
-            {/if}
+                  <div class="flex gap-1.5 font-sans">
+                    {#if peer.is_remote}
+                      <Badge variant="primary">Remote</Badge>
+                    {/if}
+                    {#if peer.is_pending}
+                      <Badge variant="warning">Pending</Badge>
+                    {:else if !peer.is_mutual}
+                      <Badge variant="default">Outgoing</Badge>
+                    {:else}
+                      <Badge variant="success">Mutual</Badge>
+                    {/if}
+                  </div>
+                </div>
 
-            <div class="mt-auto flex items-center justify-end gap-2 pt-3">
-              {#if peer.is_pending}
-                <Btn
-                  variant="primary"
-                  size="sm"
-                  onclick={() => accept(peer.metrics[0]?.relationship_id)}>Accept</Btn
-                >
-                <Btn
-                  variant="ghost"
-                  size="sm"
-                  onclick={() => decline(peer.metrics[0]?.relationship_id)}>Decline</Btn
-                >
-              {:else}
-                <Btn
-                  variant="ghost"
-                  size="sm"
-                  onclick={() => revoke(peer.metrics[0]?.relationship_id)}>Revoke</Btn
-                >
-              {/if}
-            </div>
+                {#if peer.metrics.length > 0}
+                  <div class="mt-3 space-y-1.5">
+                    {#each peer.metrics as m}
+                      <div class="flex items-center gap-2 text-xs text-surface-500">
+                        <Icon name={m.icon} size="sm" style="color: {m.color}" />
+                        <span>{m.metric_name}</span>
+                        <span
+                          class="rounded bg-surface-100 px-1.5 py-0.5 text-[10px] font-medium text-surface-400"
+                        >
+                          {m.aggregation} · {m.direction}
+                        </span>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+
+                <div class="mt-auto flex items-center justify-end gap-2 pt-3">
+                  {#if peer.is_pending}
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <span
+                      role="button"
+                      tabindex="-1"
+                      onclick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Btn
+                        variant="primary"
+                        size="sm"
+                        onclick={() => accept(peer.metrics[0]?.relationship_id)}
+                      >
+                        Accept
+                      </Btn>
+                    </span>
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <span
+                      role="button"
+                      tabindex="-1"
+                      onclick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Btn
+                        variant="ghost"
+                        size="sm"
+                        onclick={() => decline(peer.metrics[0]?.relationship_id)}
+                      >
+                        Decline
+                      </Btn>
+                    </span>
+                  {:else}
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <span
+                      role="button"
+                      tabindex="-1"
+                      onclick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Btn
+                        variant="ghost"
+                        size="sm"
+                        onclick={() => revoke(peer.metrics[0]?.relationship_id)}
+                      >
+                        Revoke
+                      </Btn>
+                    </span>
+                  {/if}
+                </div>
+              </div>
+            </a>
           </div>
         {/each}
       </div>
