@@ -75,15 +75,33 @@
     iconColor="#4f46e5"
   >
     {#snippet actions()}
-      <div class="flex items-center gap-2">
-        <input
-          type="date"
-          bind:value={date}
-          class="duration-micro h-9 rounded-lg border border-surface-300 bg-surface-50 px-3 text-sm text-surface-700 transition-colors hover:border-surface-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
-        />
-        <Btn variant="primary" size="sm" loading={generating} onclick={generate}>
-          <Icon name="auto-awesome" size="sm" />Generate
-        </Btn>
+      <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+        <!-- Date Selector Segment -->
+        <div class="relative flex h-full items-center bg-surface-50/20 px-4">
+          <input
+            type="date"
+            bind:value={date}
+            class="h-full w-full border-0 bg-transparent text-sm text-surface-900 focus:ring-2 focus:ring-primary-500 focus:outline-none focus:ring-inset"
+          />
+        </div>
+
+        <!-- Generate Segment -->
+        <button
+          type="button"
+          disabled={generating}
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
+          onclick={generate}
+        >
+          {#if generating}
+            <div
+              class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+            ></div>
+            <span>Generating…</span>
+          {:else}
+            <Icon name="auto-awesome" size="sm" />
+            <span>Generate</span>
+          {/if}
+        </button>
       </div>
     {/snippet}
   </PageHeader>

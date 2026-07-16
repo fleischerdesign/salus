@@ -2,6 +2,7 @@
   import { liveQuery } from 'dexie';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
+  import { slide } from 'svelte/transition';
   import { db } from '$lib/db/database';
   import {
     addWidget as addWidgetMut,
@@ -21,7 +22,6 @@
   import Icon from '$components/ui/Icon.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import ChromeCard from '$components/ui/ChromeCard.svelte';
-  import DayNavigator from '$components/ui/DayNavigator.svelte';
   import VizBar from '$components/dashboard/VizBar.svelte';
   import VizCandlestick from '$components/dashboard/VizCandlestick.svelte';
   import VizNumber from '$components/dashboard/VizNumber.svelte';
@@ -180,25 +180,83 @@
     iconColor="#4f46e5"
   >
     {#snippet actions()}
-      <div class="flex flex-wrap items-center gap-4">
-        <DayNavigator
-          dateDisplay={displayDateFormatted}
-          onPrev={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
-          onNext={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
-          onDateChange={handleDateChange}
-          {isToday}
-        />
+      <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+        <!-- Date Navigator Segment -->
+        <div class="flex h-full items-center gap-2 px-6">
+          <button
+            class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
+            onclick={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
+            aria-label="Previous day"
+            type="button"
+          >
+            <Icon name="chevron-left" />
+          </button>
 
-        <div class="flex items-center gap-2">
-          <Btn variant={editing ? 'primary' : 'secondary'} size="sm" onclick={toggleEdit}>
-            {editing ? 'Done' : 'Edit Layout'}
-          </Btn>
-          {#if editing}
-            <Btn variant="secondary" size="sm" onclick={() => (addModalOpen = true)}>
-              <Icon name="add" size="sm" />Add Widget
-            </Btn>
+          <button
+            class="duration-micro cursor-pointer px-2 text-sm font-semibold tracking-[0.05em] text-surface-700 transition-colors hover:text-primary-600"
+            type="button"
+            onclick={() => {
+              const input = document.getElementById('dash-hidden-date') as HTMLInputElement;
+              input?.showPicker();
+            }}
+          >
+            {displayDateFormatted}
+          </button>
+          <input
+            id="dash-hidden-date"
+            type="date"
+            class="sr-only"
+            onchange={(e) => handleDateChange((e.target as HTMLInputElement).value)}
+          />
+
+          <button
+            class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
+            onclick={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
+            aria-label="Next day"
+            type="button"
+          >
+            <Icon name="chevron-right" />
+          </button>
+
+          {#if !isToday}
+            <button
+              type="button"
+              class="ml-1 rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600 transition-colors hover:text-primary-700"
+              onclick={() => handleDateChange(new Date().toISOString().split('T')[0])}
+            >
+              Today
+            </button>
           {/if}
         </div>
+
+        <!-- Edit Layout Segment -->
+        <button
+          type="button"
+          class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold text-surface-700 transition-colors hover:bg-surface-100"
+          class:bg-primary-50={editing}
+          class:text-primary-600={editing}
+          onclick={toggleEdit}
+        >
+          <Icon
+            name={editing ? 'check' : 'edit'}
+            size="sm"
+            class={editing ? 'text-primary-600' : ''}
+          />
+          <span>{editing ? 'Done' : 'Edit Layout'}</span>
+        </button>
+
+        <!-- Add Widget Segment -->
+        {#if editing}
+          <button
+            type="button"
+            transition:slide={{ axis: 'x', duration: 150 }}
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+            onclick={() => (addModalOpen = true)}
+          >
+            <Icon name="add" size="sm" />
+            <span>Add Widget</span>
+          </button>
+        {/if}
       </div>
     {/snippet}
   </PageHeader>

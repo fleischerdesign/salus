@@ -12,7 +12,6 @@
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
-  import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import VizBar from '$components/dashboard/VizBar.svelte';
@@ -122,13 +121,41 @@
     iconColor="#4f46e5"
   >
     {#snippet actions()}
-      <SegmentedControl options={ranges} bind:value={range} />
+      <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+        <!-- Tab Selector Segment -->
+        <div class="flex h-full items-stretch divide-x divide-surface-200">
+          {#each tabs as t}
+            <button
+              type="button"
+              class="duration-micro flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors hover:bg-surface-100"
+              class:bg-primary-50={tab === t.value}
+              class:text-primary-600={tab === t.value}
+              class:text-surface-600={tab !== t.value}
+              onclick={() => (tab = t.value)}
+            >
+              {t.label}
+            </button>
+          {/each}
+        </div>
+
+        <!-- Range Selector Segment -->
+        <div class="flex h-full items-stretch divide-x divide-surface-200">
+          {#each ranges as r}
+            <button
+              type="button"
+              class="duration-micro flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors hover:bg-surface-100"
+              class:bg-primary-50={range === r.value}
+              class:text-primary-600={range === r.value}
+              class:text-surface-600={range !== r.value}
+              onclick={() => (range = r.value)}
+            >
+              {r.label}
+            </button>
+          {/each}
+        </div>
+      </div>
     {/snippet}
   </PageHeader>
-
-  <div class="flex items-center gap-2">
-    <SegmentedControl options={tabs} bind:value={tab} />
-  </div>
 
   {#if !$data}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>

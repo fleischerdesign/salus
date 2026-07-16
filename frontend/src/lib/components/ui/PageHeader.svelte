@@ -17,9 +17,12 @@
   let { title, subtitle, backUrl, icon, iconColor, iconBgColor, actions, stats }: Props = $props();
 </script>
 
-<Card padding={false} border={!!stats}>
-  {#snippet header()}
-    <div class="flex items-center gap-3">
+<Card padding={false} class="overflow-hidden">
+  <div
+    class="flex min-h-[4rem] flex-col divide-y divide-surface-200 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0"
+  >
+    <!-- Left Segment: Icon & Title -->
+    <div class="flex flex-1 items-center gap-3 px-6 py-4">
       {#if backUrl}
         <a
           href={backUrl}
@@ -50,17 +53,18 @@
           <p class="text-xs text-surface-500">{subtitle}</p>
         {/if}
       </div>
-
-      {#if actions}
-        <div class="flex items-center gap-2">
-          {@render actions()}
-        </div>
-      {/if}
     </div>
-  {/snippet}
+
+    <!-- Right Segment: Actions -->
+    {#if actions}
+      <div class="flex items-stretch">
+        {@render actions()}
+      </div>
+    {/if}
+  </div>
 
   {#if stats}
-    <div>
+    <div class="border-t border-surface-100">
       {@render stats()}
     </div>
   {/if}

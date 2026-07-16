@@ -139,9 +139,14 @@
     backUrl="/workouts"
   >
     {#snippet actions()}
-      <Btn variant="primary" onclick={openForm}>
-        <Icon name="add" size="sm" />New Exercise
-      </Btn>
+      <button
+        type="button"
+        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+        onclick={openForm}
+      >
+        <Icon name="add" size="sm" />
+        <span>New Exercise</span>
+      </button>
     {/snippet}
 
     {#snippet stats()}
@@ -159,8 +164,7 @@
             type="text"
             placeholder="Search exercises…"
             bind:value={searchQuery}
-            class="h-full w-full border-0 bg-transparent pr-2 pl-7 text-sm text-surface-900 placeholder:text-surface-400 focus:ring-0 focus:outline-none"
-            style="border: none; outline: none; box-shadow: none;"
+            class="h-full w-full border-0 bg-transparent pr-2 pl-7 text-sm text-surface-900 placeholder:text-surface-400 focus:ring-2 focus:ring-primary-500 focus:outline-none focus:ring-inset"
           />
         </div>
 
@@ -173,8 +177,7 @@
           </span>
           <select
             bind:value={muscleFilter}
-            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-0 focus:outline-none"
-            style="border: none; outline: none; box-shadow: none;"
+            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-2 focus:ring-primary-500 focus:outline-none focus:ring-inset"
           >
             {#each muscleOptions as opt}
               <option value={opt.value}>{opt.label}</option>
@@ -194,8 +197,7 @@
           </span>
           <select
             bind:value={equipFilter}
-            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-0 focus:outline-none"
-            style="border: none; outline: none; box-shadow: none;"
+            class="h-full w-full cursor-pointer appearance-none border-0 bg-transparent pr-8 pl-7 text-sm text-surface-900 focus:ring-2 focus:ring-primary-500 focus:outline-none focus:ring-inset"
           >
             {#each equipmentOptions as opt}
               <option value={opt.value}>{opt.label}</option>

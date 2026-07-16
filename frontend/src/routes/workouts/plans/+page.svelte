@@ -123,9 +123,14 @@
     backUrl="/workouts"
   >
     {#snippet actions()}
-      <Btn variant="primary" onclick={openForm}>
-        <Icon name="add" size="sm" />New Plan
-      </Btn>
+      <button
+        type="button"
+        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+        onclick={openForm}
+      >
+        <Icon name="add" size="sm" />
+        <span>New Plan</span>
+      </button>
     {/snippet}
   </PageHeader>
 
