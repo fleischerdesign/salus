@@ -1,9 +1,10 @@
 import { db } from '$lib/db/database';
-import type { DashboardWidget, Measurement, MetricType, Goal } from '$lib/db/types';
+import type { DashboardWidget, MetricType } from '$lib/db/types';
 import { buildViz, type WidgetViz } from '../viz/builders';
 
 export interface DashboardWidgetView {
   id: string;
+  widget_type: string;
   metric_type_id: string;
   size: string;
   position: number;
@@ -26,7 +27,6 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
   const widgets = (allWidgets as DashboardWidget[])
     .filter((w) => !w.deleted_at && w.is_visible)
     .sort((a, b) => a.position - b.position);
-
   const metrics = allMetrics.filter((m) => !m.deleted_at);
   const measurements = allMeasurements.filter((m) => !m.deleted_at);
   const goals = allGoals.filter((g) => !g.deleted_at);
@@ -40,10 +40,33 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
   });
 
   const widgetViews: DashboardWidgetView[] = widgets.map((w) => {
+    if (w.widget_type !== 'metric' || !w.metric_type_id) {
+      return {
+        id: w.id,
+        widget_type: w.widget_type,
+        metric_type_id: '',
+        size: w.size,
+        position: w.position,
+        viz: {
+          type: w.widget_type as WidgetViz['type'],
+          title:
+            w.widget_type === 'workout_launcher'
+              ? 'Workout Launcher'
+              : w.widget_type === 'sleep_coach'
+                ? 'Sleep Coach'
+                : w.widget_type === 'water_logger'
+                  ? 'Water Intake'
+                  : 'Circadian Timeline',
+          value: ''
+        }
+      };
+    }
+
     const metric = metricById.get(w.metric_type_id);
     if (!metric) {
       return {
         id: w.id,
+        widget_type: 'metric',
         metric_type_id: w.metric_type_id,
         size: w.size,
         position: w.position,
@@ -68,6 +91,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
 
     return {
       id: w.id,
+      widget_type: 'metric',
       metric_type_id: w.metric_type_id,
       size: w.size,
       position: w.position,

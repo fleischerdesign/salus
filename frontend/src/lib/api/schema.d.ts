@@ -3159,9 +3159,14 @@ export interface components {
       /** Id */
       id: string;
       /** Metric Type Id */
-      metric_type_id: string;
+      metric_type_id?: string | null;
       /** Size */
       size: string;
+      /**
+       * Widget Type
+       * @default metric
+       */
+      widget_type: string;
     };
     /** WidgetResponse */
     WidgetResponse: {
@@ -3170,11 +3175,16 @@ export interface components {
       /** Id */
       id: string;
       /** Metric Type Id */
-      metric_type_id: string;
+      metric_type_id?: string | null;
       /** Position */
       position: number;
       /** Size */
       size: string;
+      /**
+       * Widget Type
+       * @default metric
+       */
+      widget_type: string;
     };
     /** WorkoutLogEntryCreate */
     WorkoutLogEntryCreate: {
@@ -5032,9 +5042,10 @@ export interface operations {
   };
   api_create_widget_api_v1_dashboard_widgets_post: {
     parameters: {
-      query: {
-        metric_type_id: string;
+      query?: {
+        metric_type_id?: string | null;
         size?: string;
+        widget_type?: string;
       };
       header?: never;
       path?: never;

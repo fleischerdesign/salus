@@ -61,7 +61,8 @@ class DashboardWidget(SQLModel, table=True):
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
-    metric_type_id: str = Field(foreign_key="metric_type.id")
+    widget_type: str = Field(default="metric")
+    metric_type_id: str | None = Field(default=None, foreign_key="metric_type.id", nullable=True)
     position: int = Field(default=0)
     size: WidgetSize = Field(default=WidgetSize.MEDIUM)
     config_json: str = Field(default="{}")

@@ -2,7 +2,17 @@ import type { Measurement, Goal, MetricType, DashboardWidget } from '../../db/ty
 import { computeSparkline, deltaStr, yesterday, roundedSegments } from './helpers';
 
 export interface WidgetViz {
-  type: 'number' | 'progress' | 'pills' | 'bar' | 'sparkline';
+  type:
+    | 'number'
+    | 'progress'
+    | 'pills'
+    | 'bar'
+    | 'sparkline'
+    | 'candlestick'
+    | 'workout_launcher'
+    | 'sleep_coach'
+    | 'water_logger'
+    | 'circadian_timeline';
   title: string;
   value: string | number;
   unit?: string;

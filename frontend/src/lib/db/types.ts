@@ -194,7 +194,8 @@ export interface Notification {
 export interface DashboardWidget {
   id: string;
   user_id: string;
-  metric_type_id: string;
+  widget_type: string;
+  metric_type_id?: string | null;
   position: number;
   size: string;
   config_json: string;

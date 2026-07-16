@@ -1,17 +1,31 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
 
-export const addWidget = (metricTypeId: string, size = 'medium', position = 0) => {
+export const addWidget = (
+  widgetType: string,
+  metricTypeId: string | null,
+  size = 'medium',
+  position = 0
+) => {
   const id = uuid7();
   return mutate({
     kind: 'crud',
     op: 'create',
     entity: 'dashboard_widget',
     id,
-    data: { id, metric_type_id: metricTypeId, size, position, config_json: '', is_visible: true },
+    data: {
+      id,
+      widget_type: widgetType,
+      metric_type_id: metricTypeId,
+      size,
+      position,
+      config_json: '',
+      is_visible: true
+    },
     optimistic: {
       id,
       user_id: 'self',
+      widget_type: widgetType,
       metric_type_id: metricTypeId,
       size,
       position,

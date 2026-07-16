@@ -454,20 +454,26 @@ class DashboardWidgetService:
         return w
 
     def add_widget(
-        self, user_id: str, metric_type_id: str, size: WidgetSize
+        self, user_id: str, widget_type: str, metric_type_id: str | None, size: WidgetSize
     ) -> DashboardWidget:
         existing = self.uow.dashboard_widgets.find_by_user(user_id)
         position = len(existing)
-        metric = self.uow.metric_types.get_by_id(metric_type_id)
-        viz_type = (
-            VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
-            if metric
-            else "number"
-        )
-        config = json.dumps({"viz_type": viz_type})
+        
+        if widget_type == "metric" and metric_type_id:
+            metric = self.uow.metric_types.get_by_id(metric_type_id)
+            viz_type = (
+                VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
+                if metric
+                else "number"
+            )
+            config = json.dumps({"viz_type": viz_type})
+        else:
+            config = "{}"
+
         w = DashboardWidget(
             user_id=user_id,
-            metric_type_id=metric_type_id,
+            widget_type=widget_type,
+            metric_type_id=metric_type_id if widget_type == "metric" else None,
             position=position,
             size=size,
             config_json=config,
@@ -496,6 +502,28 @@ class DashboardWidgetService:
         Always returns a WidgetViz with at least ``title`` and ``type``
         set — even when no data exists (``empty=True``).
         """
+        if widget.widget_type != "metric" or not widget.metric_type_id:
+            if widget.widget_type == "workout_launcher":
+                return WidgetViz(
+                    type="workout_launcher",
+                    title="Workout Launcher",
+                    empty=False,
+                    value=""
+                )
+            if widget.widget_type == "sleep_coach":
+                return WidgetViz(
+                    type="sleep_coach",
+                    title="Sleep Coach",
+                    empty=False,
+                    value=""
+                )
+            return WidgetViz(
+                type="number",
+                title="Custom Widget",
+                empty=True,
+                empty_text="Custom widget layout",
+            )
+
         metric = self.uow.metric_types.get_by_id(widget.metric_type_id)
         if metric is None:
             return WidgetViz(

@@ -148,6 +148,20 @@ export class SalusDB extends Dexie {
     this.version(8).stores({
       analytics_cache: '&key'
     });
+    this.version(9)
+      .stores({
+        dashboard_widget: 'id, user_id, metric_type_id, widget_type'
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('dashboard_widget')
+          .toCollection()
+          .modify((widget: Record<string, unknown>) => {
+            if (!widget.widget_type) {
+              widget.widget_type = 'metric';
+            }
+          });
+      });
   }
 }
 
