@@ -172,19 +172,29 @@
       {/snippet}
 
       {#snippet stats()}
-        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
-          <Stat
-            value={prMaxWeight > 0 ? prMaxWeight.toFixed(1) : '—'}
-            unit="kg"
-            label="PR Weight"
-          />
-          <Stat
-            value={prEstOneRm > 0 ? prEstOneRm.toFixed(1) : '—'}
-            unit="kg"
-            label="PR Est. 1RM"
-          />
-          <Stat value={totalSets} label="Total Sets" />
-          <Stat value={totalReps} label="Total Reps" />
+        <div
+          class="grid grid-cols-2 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <Stat
+              value={prMaxWeight > 0 ? prMaxWeight.toFixed(1) : '—'}
+              unit="kg"
+              label="PR Weight"
+            />
+          </div>
+          <div class="px-6 py-4">
+            <Stat
+              value={prEstOneRm > 0 ? prEstOneRm.toFixed(1) : '—'}
+              unit="kg"
+              label="PR Est. 1RM"
+            />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={totalSets} label="Total Sets" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={totalReps} label="Total Reps" />
+          </div>
         </div>
       {/snippet}
     </PageHeader>

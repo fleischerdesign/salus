@@ -206,16 +206,32 @@
 
     {#snippet stats()}
       {#if overview}
-        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
-          <Stat value={overview.latest_value ?? '—'} unit={$metric?.unit} label="Latest" />
-          <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
-          <Stat value={overview.entry_count} label="Total Entries" />
+        <div
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <Stat value={overview.latest_value ?? '—'} unit={$metric?.unit} label="Latest" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={overview.entry_count} label="Total Entries" />
+          </div>
         </div>
       {:else}
-        <div class="flex items-center gap-x-8 px-6 py-4">
-          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
-          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
-          <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+        <div
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+          </div>
+          <div class="px-6 py-4">
+            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+          </div>
+          <div class="px-6 py-4">
+            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+          </div>
         </div>
       {/if}
     {/snippet}
