@@ -8,6 +8,10 @@ from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.goal import GoalCreate
 from salus.services.analytics.calculations import compute_goal_progress
+from salus.services.analytics.stats import (
+    linear_regression,
+    prediction_interval,
+)
 from salus.services.plugin.hooks import HookRegistry
 
 logger = logging.getLogger("salus.services.goal")
@@ -85,6 +89,14 @@ class GoalService:
             status = "fulfilled" if fulfilled else "pending"
             percent = 100 if fulfilled else 0
 
+        forecast: dict = {}
+        if (
+            goal.frequency == GoalFrequency.ONCE
+            and goal.deadline is not None
+            and not deadline_passed
+        ):
+            forecast = self._compute_deadline_forecast(goal, entries)
+
         if fulfilled and self._registry:
             for sub in self._registry.event_subscribers:
                 try:
@@ -101,7 +113,54 @@ class GoalService:
             percent=int(percent),
             status=status,
             is_fulfilled=fulfilled,
+            on_track=forecast.get("on_track"),
+            predicted_value=forecast.get("predicted"),
+            predicted_ci_lower=forecast.get("ci_lower"),
+            predicted_ci_upper=forecast.get("ci_upper"),
+            trend_r_squared=forecast.get("r_squared"),
         )
+
+    def _compute_deadline_forecast(
+        self, goal: Goal, entries: list[Measurement]
+    ) -> dict:
+        entries_sorted = sorted(entries, key=lambda e: e.start_time)
+        if len(entries_sorted) < 3:
+            return {}
+        xs: list[float] = []
+        ys: list[float] = []
+        for e in entries_sorted:
+            days_since = (e.start_time.date() - goal.created_at.date()).days
+            xs.append(float(days_since))
+            if e.value_numeric is not None:
+                ys.append(e.value_numeric)
+            elif e.value_text:
+                try:
+                    ys.append(float(e.value_text))
+                except (ValueError, TypeError):
+                    continue
+        if len(ys) < 3:
+            return {}
+        xs_slice = xs[-len(ys):]
+        reg = linear_regression(xs_slice, ys)
+        if reg is None:
+            return {}
+        if goal.deadline is None:
+            return {}
+        days_total = (goal.deadline - goal.created_at.date()).days
+        pi = prediction_interval(reg, float(days_total), confidence=0.80)
+        if pi is None:
+            return {}
+        if goal.direction == GoalDirection.INCREASE:
+            on_track = pi.lower >= goal.target_value
+        else:
+            on_track = pi.upper <= goal.target_value
+        return {
+            "on_track": on_track,
+            "predicted": round(pi.point_estimate, 2),
+            "ci_lower": round(pi.lower, 2),
+            "ci_upper": round(pi.upper, 2),
+            "r_squared": round(reg.r_squared, 4),
+        }
 
 
 def _filter_today(entries: list[Measurement]) -> list[Measurement]:

@@ -289,6 +289,13 @@ class IWorkoutLogEntryRepository(IRepository[WorkoutLogEntry], Protocol):
         self, user_id: str, exercise_id: str
     ) -> list[WorkoutLogEntry]: ...
 
+    def get_exercise_progression(
+        self,
+        user_id: str,
+        exercise_id: str,
+        since: "datetime | None" = None,
+    ) -> list[dict]: ...
+
 
 @runtime_checkable
 class IShareRecipientRepository(IRepository[ShareRecipient], Protocol):

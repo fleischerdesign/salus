@@ -1,0 +1,15 @@
+name: "Benjamini-Hochberg FDR (original paper Table 1)"
+reference:
+  citation: "Benjamini & Hochberg 1995, Controlling the False Discovery Rate, J.R. Statist. Soc. B"
+  doi: "10.1098/rstb.1995.0152"
+input:
+  p_values: [0.0001,0.0004,0.0019,0.0095,0.0201]
+  alpha: 0.05
+expected:
+  adjusted: [0.0005,0.001,0.0031666666666666666,0.011875,0.0201]
+  rejected: [true,true,falsetrue,true,falsetrue,true,falsetrue,true,falsetrue]
+  alpha: 0.05
+  method: "Benjamini-Hochberg FDR"
+tolerance:
+  adjusted: 1e-6
+

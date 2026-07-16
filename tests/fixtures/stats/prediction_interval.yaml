@@ -1,0 +1,17 @@
+name: "Prediction interval (Kutner copier data, x_new=25)"
+reference:
+  citation: "Kutner et al. §2.4"
+  doi: null
+input:
+  xs: [1,2,3,3,4,5,5,5,6,7,7,8,8,9,9,10,10,11,12,13,14,14,15,17,18,18,20,22,24,24,25,25,29,29,30,30,32,34,34,36,36,37,38,39,40,43,44]
+  ys: [2,1,3,5,5,3,1,8,5,4,5,3,1,1,2,3,7,5,4,3,2,9,4,10,5,9,11,9,10,12,6,8,11,8,12,14,14,13,16,18,18,19,24,21,26,27,23]
+  x_new: 25
+  confidence: 0.95
+expected:
+  point_estimate: 12.024810
+  confidence: 0.95
+tolerance:
+  lower: 0.1
+  upper: 0.1
+  point_estimate: 1e-4
+

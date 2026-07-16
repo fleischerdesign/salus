@@ -4,6 +4,12 @@ from datetime import datetime, timedelta
 from salus.models.insight import Insight
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import parse_date
+from salus.services.analytics.stats import (
+    change_point_pelt,
+    mann_kendall,
+    pearson,
+    sleep_debt_cumulative,
+)
 from salus.services.insight.providers.base import ILlmProvider
 from salus.services.plugin.hooks import HookRegistry
 
@@ -30,6 +36,79 @@ class InsightService:
     def list_history(self, user_id: str, limit: int = 30) -> list[Insight]:
         """Returns recent insights for the user, newest first."""
         return self._uow.insights.list_by_user(user_id, limit=limit)
+
+    def _build_analytics_context(
+        self,
+        daily_logs: dict[str, dict[str, list[float]]],
+        goals,
+        metric_map: dict,
+    ) -> str:
+        lines: list[str] = []
+        all_days = sorted(daily_logs.keys())
+
+        if len(all_days) < 3:
+            return "Insufficient data for statistical analysis."
+
+        flat: dict[str, list[float]] = {}
+        for day in all_days:
+            for name, vals in daily_logs[day].items():
+                if name not in flat:
+                    flat[name] = []
+                flat[name].extend(vals)
+
+        for name, vals in flat.items():
+            if len(vals) < 3:
+                continue
+            mk = mann_kendall(vals)
+            if mk and mk.trend != "none":
+                direction = "↑" if mk.trend == "increasing" else "↓"
+                lines.append(
+                    f"- {name}: {direction} trend (p={mk.p_value:.4f}, tau={mk.tau:.3f}, n={mk.n})."
+                )
+
+        metric_keys = sorted(flat.keys())
+        for i, ma in enumerate(metric_keys):
+            for mb in metric_keys[i + 1 :]:
+                xs = flat[ma]
+                ys = flat[mb]
+                n = min(len(xs), len(ys))
+                if n < 5:
+                    continue
+                corr = pearson(xs[:n], ys[:n])
+                if corr and abs(corr.r) > 0.3 and corr.p_value < 0.10:
+                    sign = "positive" if corr.r > 0 else "negative"
+                    lines.append(
+                        f"- {ma} ↔ {mb}: {sign} correlation (r={corr.r:.3f}, p={corr.p_value:.4f}, n={n})."
+                    )
+
+        sleep_vals = flat.get("Sleep", [])
+        if len(sleep_vals) >= 5:
+            debt = sleep_debt_cumulative(sleep_vals, 30)
+            last_debt = debt.debt[-1]
+            direction = "deficit" if last_debt > 0 else "surplus"
+            lines.append(
+                f"- Cumulative sleep debt: {last_debt:+.1f}h {direction} vs. {debt.baseline_h}h baseline (n={len(sleep_vals)})."
+            )
+
+        weight_vals = flat.get("Weight", [])
+        if len(weight_vals) >= 7:
+            cps = change_point_pelt(weight_vals, "BIC")
+            if cps and cps["indices"]:
+                idx_list = cps["indices"]
+                lines.append(
+                    f"- Weight changepoints detected at day indices: {idx_list}."
+                )
+
+        if lines:
+            lines.insert(
+                0, "Pre-computed statistical findings (use as ground truth):"
+            )
+            lines.append(
+                "Cite p-values and effect sizes where relevant. "
+                "If a finding is borderline (p 0.05–0.10), "
+                "present it as exploratory, not conclusive."
+            )
+        return "\n".join(lines) if lines else "No statistically significant patterns detected (insufficient data)."
 
     def generate_daily_insight(
         self, user_id: str, date_str: str, locale: str = "en"
@@ -110,6 +189,10 @@ class InsightService:
             else "No measurements logged in the last 7 days."
         )
 
+        analytics_context = self._build_analytics_context(
+            daily_logs, goals, metric_map
+        )
+
         # Format goals summary
         goals_lines = []
         for g in goals:
@@ -143,6 +226,7 @@ class InsightService:
         user_prompt = (
             f"Here is my biometric and health log history leading up to {date_str}:\n\n"
             f"### Active Goals:\n{goals_context}\n\n"
+            f"### Pre-computed Analytics (statistically validated):\n{analytics_context}\n\n"
             f"### Measurement History (Last 7 days):\n{history_context}\n\n"
         )
 

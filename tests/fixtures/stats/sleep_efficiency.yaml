@@ -1,0 +1,19 @@
+name: "Sleep efficiency AASM"
+reference:
+  citation: "AASM Scoring Manual v2.6, 2023"
+  doi: null
+input:
+  test_cases:
+    - {tst_min: 420, tib_min: 480, expected: 0.875, warning: null}
+    - {tst_min: 0, tib_min: 0, expected: 0.0, warning: "TIB was zero"}
+    - {tst_min: 480, tib_min: 480, expected: 1.0, warning: null}
+  expected:
+    efficiency_0: 0.875
+    efficiency_1: 0.0
+    efficiency_2: 1.0
+    warning_0: null
+    warning_1: "TIB was zero"
+    warning_2: null
+tolerance:
+  efficiency: 1e-6
+

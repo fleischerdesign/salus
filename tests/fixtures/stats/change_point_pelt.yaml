@@ -1,0 +1,11 @@
+name: "Change-point PELT (synthetic 2 changes)"
+reference:
+  citation: "Killick, Fearnhead, Eckley 2012"
+  doi: null
+input:
+  series: [1,1,1,1,5,5,5,5,2,2,2,2]
+  penalty: "BIC"
+expected:
+  n_changepoints: 2
+  indices_approx: [4, 8]
+

@@ -29,6 +29,11 @@ class _ThemeBody(BaseModel):
     theme: str
 
 
+class _ProfileUpdateBody(BaseModel):
+    display_name: str | None = None
+    height_cm: float | None = None
+
+
 # ---------------------------------------------------------------------------
 # Account
 # ---------------------------------------------------------------------------
@@ -50,6 +55,7 @@ async def api_settings_account(
             "username": current_user.username,
             "email": current_user.email,
             "display_name": current_user.display_name,
+            "height_cm": current_user.height_cm,
             "is_admin": current_user.is_admin,
             "is_active": current_user.is_active,
             "theme": current_user.theme,
@@ -147,4 +153,14 @@ async def api_set_theme(
     user_svc: UserService = Depends(get_user_service),
 ):
     user_svc.set_theme(uid(current_user), body.theme)
+    return Response(status_code=204)
+
+
+@router.put("/settings/account", status_code=204)
+async def api_update_profile(
+    body: _ProfileUpdateBody,
+    current_user: User = Depends(get_current_user),
+    user_svc: UserService = Depends(get_user_service),
+):
+    user_svc.update_profile(uid(current_user), body.display_name, body.height_cm)
     return Response(status_code=204)

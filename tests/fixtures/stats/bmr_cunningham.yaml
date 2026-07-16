@@ -1,0 +1,16 @@
+name: "BMR Cunningham (80kg, 15% BF)"
+reference:
+  citation: "Cunningham 1991, Am J Clin Nutr"
+  doi: "10.1093/ajcn/54.4.672"
+input:
+  test_cases:
+    - {weight_kg: 80, body_fat_pct: 0.15, expected: 1996}
+    - {weight_kg: 70, body_fat_pct: null, expected: null}
+    - {weight_kg: 60, body_fat_pct: 0.20, expected: 1556}
+  expected:
+    bmr_0: 1996
+    bmr_1: null
+    bmr_2: 1556
+tolerance:
+  bmr: 1e-4
+

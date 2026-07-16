@@ -1,0 +1,15 @@
+name: "Sleep debt cumulative (14-day, age 30)"
+reference:
+  citation: "Hirshkowitz et al. 2015, NSF sleep-duration recommendations"
+  doi: "10.1016/j.sleep.2014.07.014"
+input:
+  durations_h: [7.5,8.0,7.0,8.5,7.0,8.0,7.5,9.0,6.5,8.0,8.0,7.0,7.5,8.5]
+  age_y: 30
+expected:
+  baseline_h: 8.0
+  debt_7d: 2.5000
+  debt_14d: 4.0000
+tolerance:
+  debt: 1e-6
+  baseline_h: 0
+

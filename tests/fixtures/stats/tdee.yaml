@@ -1,0 +1,13 @@
+name: "TDEE composition"
+reference:
+  citation: "Standard (Cunningham + PAL + TEF)"
+  doi: null
+input:
+  bmr: 1996.0
+  pal: 1.75
+  tef: 222.6
+expected:
+  tdee: 3716
+tolerance:
+  tdee: 1e-6
+

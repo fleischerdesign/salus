@@ -1,0 +1,22 @@
+name: "Pearson correlation (Anscombe I quartet)"
+reference:
+  citation: "Anscombe 1973, Graphs in Statistical Analysis, The American Statistician 27(1)"
+  doi: "10.1080/00031305.1973.10478966"
+input:
+  xs: [10,8,13,9,11,14,6,4,12,7,5]
+  ys: [8.04,6.95,7.58,8.81,8.33,9.96,7.24,4.26,10.84,4.82,5.68]
+expected:
+  r: 0.816421
+  n: 11
+  t_statistic: 4.241455
+  p_value: 0.00217
+  ci_lower: 0.424381
+  ci_upper: 0.950694
+  df: 9
+tolerance:
+  r: 1e-6
+  t_statistic: 1e-4
+  p_value: 1e-3
+  ci_lower: 1e-4
+  ci_upper: 1e-4
+

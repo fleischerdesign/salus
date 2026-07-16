@@ -1,0 +1,23 @@
+name: "Resting HR windowed (30 min post-wake)"
+reference:
+  citation: "Brage et al. 2005"
+  doi: null
+input:
+  readings:
+    - {timestamp: 100, bpm: 72}
+    - {timestamp: 200, bpm: 68}
+    - {timestamp: 300, bpm: 65}
+    - {timestamp: 400, bpm: 62}
+    - {timestamp: 500, bpm: 60}
+    - {timestamp: 600, bpm: 58}
+    - {timestamp: 700, bpm: 57}
+    - {timestamp: 800, bpm: 56}
+    - {timestamp: 900, bpm: 58}
+    - {timestamp: 1000, bpm: 61}
+  wake_ts: 0
+  window_min: 5
+expected:
+  resting_bpm: 57.0
+tolerance:
+  resting_bpm: 0.5
+

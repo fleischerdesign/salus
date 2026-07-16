@@ -1,0 +1,14 @@
+name: "PAL from HRR"
+reference:
+  citation: "Brage et al. 2005"
+  doi: null
+input:
+  test_cases:
+    - {hrr_pct: 0.5, calibration: 1.5, expected: 1.7500}
+    - {hrr_pct: 2.0, calibration: 1.5, expected: 2.5}
+  expected:
+    normal: 1.7500
+    clamped: 2.5
+tolerance:
+  pal: 1e-6
+

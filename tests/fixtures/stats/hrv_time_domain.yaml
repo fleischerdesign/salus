@@ -1,0 +1,18 @@
+name: "HRV time-domain (10 RR intervals)"
+reference:
+  citation: "Sessa et al. 2018, Eur Heart J (AHA/EHRA/ACC consensus)"
+  doi: "10.1093/eurheartj/ehy786"
+input:
+  rr_intervals_ms: [800,815,830,795,810,820,805,825,808,818]
+expected:
+  mean_rr: 812.6000
+  sdnn: 11.0574
+  rmssd: 18.3000
+  pnn50: 0.0000
+  n: 10
+tolerance:
+  mean_rr: 1e-4
+  sdnn: 1e-4
+  rmssd: 1e-4
+  pnn50: 1e-4
+

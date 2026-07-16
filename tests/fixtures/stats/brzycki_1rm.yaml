@@ -1,0 +1,14 @@
+name: "Brzycki 1RM"
+reference:
+  citation: "Brzycki 1993, Ergonomics"
+  doi: "10.1080/00140139308967886"
+input:
+  test_cases:
+    - {weight: 100, reps: 5, expected: 112.5000}
+    - {weight: 80, reps: 12, expected: null}
+  expected:
+    rm_100x5: 112.5000
+    rm_80x12: null
+tolerance:
+  one_rm: 1e-6
+

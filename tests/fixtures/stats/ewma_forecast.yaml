@@ -1,0 +1,15 @@
+name: "EWMA forecast (simple trend series, alpha=0.3)"
+reference:
+  citation: "Hyndman & Athanasopoulos, FPP3 Ch.7"
+  doi: null
+input:
+  series: [10,12,11,13,12,14,13,15,14,16]
+  alpha: 0.3
+  horizon: 1
+expected:
+  n_train: 10
+  alpha: 0.3
+  horizon: 1
+tolerance:
+  point_last: 0.01
+

@@ -1,0 +1,12 @@
+name: "Quantile type 7 (R default)"
+reference:
+  citation: "Hyndman & Fan 1996"
+  doi: null
+input:
+  xs: [1,2,3,4,5,6,7,8,9,10]
+  p: 0.5
+expected:
+  median: 5.5
+tolerance:
+  median: 1e-6
+

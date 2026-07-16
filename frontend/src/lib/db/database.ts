@@ -56,6 +56,7 @@ export class SalusDB extends Dexie {
   federated_access_log!: EntityTable<FederatedAccessLog, 'id'>;
   outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
+  analytics_cache!: EntityTable<{ key: string; payload: unknown; computedAt: number; inputHash: number }, 'key'>;
 
   constructor() {
     super('salus');
@@ -141,6 +142,9 @@ export class SalusDB extends Dexie {
           await tx.table('outbox').bulkPut(migrated);
         }
       });
+    this.version(8).stores({
+      analytics_cache: '&key'
+    });
   }
 }
 

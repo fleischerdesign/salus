@@ -295,6 +295,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/compute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Api Analytics Compute */
+        post: operations["api_analytics_compute_api_v1_analytics_compute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/correlations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Correlations */
+        get: operations["api_analytics_correlations_api_v1_analytics_correlations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Forecast */
+        get: operations["api_analytics_forecast_api_v1_analytics_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/heatmap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Heatmap */
+        get: operations["api_analytics_heatmap_api_v1_analytics_heatmap_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/methodology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Methodology */
+        get: operations["api_analytics_methodology_api_v1_analytics_methodology_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Overview */
+        get: operations["api_analytics_overview_api_v1_analytics_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/timeseries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Timeseries */
+        get: operations["api_analytics_timeseries_api_v1_analytics_timeseries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/wellness-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Wellness Score */
+        get: operations["api_analytics_wellness_score_api_v1_analytics_wellness_score_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/workout/progression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Analytics Workout Progression */
+        get: operations["api_analytics_workout_progression_api_v1_analytics_workout_progression_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/api-tokens": {
         parameters: {
             query?: never;
@@ -1265,7 +1418,8 @@ export interface paths {
         };
         /** Api Settings Account */
         get: operations["api_settings_account_api_v1_settings_account_get"];
-        put?: never;
+        /** Api Update Profile */
+        put: operations["api_update_profile_api_v1_settings_account_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2200,6 +2354,13 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** _ProfileUpdateBody */
+        _ProfileUpdateBody: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Height Cm */
+            height_cm?: number | null;
+        };
         /** _ThemeBody */
         _ThemeBody: {
             /** Theme */
@@ -2233,6 +2394,105 @@ export interface components {
             storage: {
                 [key: string]: unknown;
             };
+        };
+        /** AnalyticsComputeRequest */
+        AnalyticsComputeRequest: {
+            /** Method */
+            method: string;
+            /** Metric */
+            metric: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            } | null;
+            /** Range */
+            range: string;
+        };
+        /** AnalyticsComputeResponse */
+        AnalyticsComputeResponse: {
+            /** Result */
+            result: unknown;
+        };
+        /** AnalyticsExerciseSession */
+        AnalyticsExerciseSession: {
+            /** Calories */
+            calories: number;
+            /** Date */
+            date: string;
+            /** Distance Meters */
+            distance_meters: number;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Time */
+            time: string;
+            /** Type Name */
+            type_name: string;
+        };
+        /** AnalyticsOverview */
+        AnalyticsOverview: {
+            /** Days */
+            days: number;
+            /** Exercise Sessions */
+            exercise_sessions: components["schemas"]["AnalyticsExerciseSession"][];
+            latest_sleep: components["schemas"]["AnalyticsSleepSummary"] | null;
+            /** Range Key */
+            range_key: string;
+            /** Sleep Summaries */
+            sleep_summaries: components["schemas"]["AnalyticsSleepSummary"][];
+            /** Steps Points */
+            steps_points: {
+                [key: string]: unknown;
+            }[];
+            tdee: components["schemas"]["AnalyticsTdeeData"] | null;
+            /** Weight Points */
+            weight_points: {
+                [key: string]: unknown;
+            }[];
+            weight_trend: components["schemas"]["AnalyticsWeightTrend"];
+        };
+        /** AnalyticsSleepSummary */
+        AnalyticsSleepSummary: {
+            /** Awake Pct */
+            awake_pct: number;
+            /** Date */
+            date: string;
+            /** Deep Pct */
+            deep_pct: number;
+            /** Duration Hours */
+            duration_hours: number;
+            /** Light Pct */
+            light_pct: number;
+            /** Rem Pct */
+            rem_pct: number;
+        };
+        /** AnalyticsTdeeData */
+        AnalyticsTdeeData: {
+            /** Bmr Kcal */
+            bmr_kcal: number;
+            /** Hrr Pct */
+            hrr_pct: number;
+            /** Pal Factor */
+            pal_factor: number;
+            /** Tdee Kcal */
+            tdee_kcal: number;
+        };
+        /** AnalyticsWeightPoint */
+        AnalyticsWeightPoint: {
+            /** Date */
+            date: string;
+            /** Weight Kg */
+            weight_kg: number;
+        };
+        /** AnalyticsWeightTrend */
+        AnalyticsWeightTrend: {
+            /** Current */
+            current: number | null;
+            /** Delta */
+            delta: number | null;
+            /** Points */
+            points: components["schemas"]["AnalyticsWeightPoint"][];
+            /** Start */
+            start: number | null;
         };
         /** AsymmetricShareCreate */
         AsymmetricShareCreate: {
@@ -2291,6 +2551,46 @@ export interface components {
              * @default 1
              */
             timezone_offset_hours: number;
+        };
+        /** CorrelationMatrixResponse */
+        CorrelationMatrixResponse: {
+            /** Correction */
+            correction: string;
+            /** Min N */
+            min_n: number;
+            /** N Comparisons */
+            n_comparisons: number;
+            /** Pairs */
+            pairs: components["schemas"]["CorrelationModel"][];
+            /** Range Key */
+            range_key: string;
+        };
+        /** CorrelationModel */
+        CorrelationModel: {
+            /** Ci 95 Lower */
+            ci_95_lower: number;
+            /** Ci 95 Upper */
+            ci_95_upper: number;
+            /** Effect Size D */
+            effect_size_d: number;
+            /** Interpretation */
+            interpretation: string;
+            /** Metric A */
+            metric_a: string;
+            /** Metric B */
+            metric_b: string;
+            /** N */
+            n: number;
+            /** P Adjusted Bh */
+            p_adjusted_bh: number;
+            /** Pearson P */
+            pearson_p: number;
+            /** Pearson R */
+            pearson_r: number;
+            /** Spearman P */
+            spearman_p: number;
+            /** Spearman R */
+            spearman_r: number;
         };
         /**
          * DataType
@@ -2383,6 +2683,34 @@ export interface components {
             /** Video Url */
             video_url?: string | null;
         };
+        /** ForecastPoint */
+        ForecastPoint: {
+            /** Ci Lower */
+            ci_lower: number;
+            /** Ci Upper */
+            ci_upper: number;
+            /** Date */
+            date: string;
+            /** Predicted */
+            predicted: number;
+        };
+        /** ForecastResponse */
+        ForecastResponse: {
+            /** Horizon Days */
+            horizon_days: number;
+            /** Mape */
+            mape: number | null;
+            /** Method */
+            method: string;
+            /** Metric */
+            metric: string;
+            /** N Train */
+            n_train: number;
+            /** Points */
+            points: components["schemas"]["ForecastPoint"][];
+            /** R Squared */
+            r_squared: number;
+        };
         /** GoalCreate */
         GoalCreate: {
             /** Deadline */
@@ -2421,6 +2749,28 @@ export interface components {
          * @enum {string}
          */
         GoalFrequency: "daily" | "weekly" | "once";
+        /** HeatmapDay */
+        HeatmapDay: {
+            /** Date */
+            date: string;
+            /** Percentile Rank */
+            percentile_rank: number | null;
+            /** Value */
+            value: number | null;
+        };
+        /** HeatmapResponse */
+        HeatmapResponse: {
+            /** Days */
+            days: components["schemas"]["HeatmapDay"][];
+            /** Max Value */
+            max_value: number | null;
+            /** Method */
+            method: string;
+            /** Metric */
+            metric: string;
+            /** Year */
+            year: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2452,6 +2802,24 @@ export interface components {
             timestamp?: string | null;
             /** Value */
             value: string;
+        };
+        /** MethodologyEntry */
+        MethodologyEntry: {
+            /** Citation */
+            citation: string;
+            /** Description */
+            description: string;
+            /** Doi */
+            doi: string | null;
+            /** Invariants */
+            invariants: string[];
+            /** Name */
+            name: string;
+        };
+        /** MethodologyIndexResponse */
+        MethodologyIndexResponse: {
+            /** Methods */
+            methods: components["schemas"]["MethodologyEntry"][];
         };
         /** MetricTypeCreate */
         MetricTypeCreate: {
@@ -2490,6 +2858,19 @@ export interface components {
             name: string;
             /** Unit */
             unit: string;
+        };
+        /** OneRMResultModel */
+        OneRMResultModel: {
+            /** Ci Lower */
+            ci_lower: number;
+            /** Ci Upper */
+            ci_upper: number;
+            /** N Sets */
+            n_sets: number;
+            /** One Rm */
+            one_rm: number;
+            /** R Squared */
+            r_squared: number;
         };
         /** OpenScienceSynthesizeRequest */
         OpenScienceSynthesizeRequest: {
@@ -2659,6 +3040,30 @@ export interface components {
              */
             type: string;
         };
+        /** TimeSeriesPoint */
+        TimeSeriesPoint: {
+            /** Ci Lower */
+            ci_lower?: number | null;
+            /** Ci Upper */
+            ci_upper?: number | null;
+            /** Date */
+            date: string;
+            /** Value */
+            value: number;
+        };
+        /** TimeSeriesResponse */
+        TimeSeriesResponse: {
+            /** Bucket */
+            bucket: string;
+            /** Metric */
+            metric: string;
+            /** N */
+            n: number;
+            /** Points */
+            points: components["schemas"]["TimeSeriesPoint"][];
+            /** Range Key */
+            range_key: string;
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -2670,6 +3075,8 @@ export interface components {
             display_name: string | null;
             /** Email */
             email: string | null;
+            /** Height Cm */
+            height_cm: number | null;
             /** Id */
             id: string;
             /** Is Active */
@@ -2702,6 +3109,28 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WellnessComponent */
+        WellnessComponent: {
+            /** Raw Value */
+            raw_value: number;
+            /** Z Score */
+            z_score: number;
+        };
+        /** WellnessScoreResponse */
+        WellnessScoreResponse: {
+            /** Date */
+            date: string;
+            hrv: components["schemas"]["WellnessComponent"];
+            /** Interpretation */
+            interpretation: string;
+            /** N Baseline Days */
+            n_baseline_days: number;
+            resting_hr: components["schemas"]["WellnessComponent"];
+            /** Score */
+            score: number;
+            sleep: components["schemas"]["WellnessComponent"];
+            steps: components["schemas"]["WellnessComponent"];
         };
         /** WidgetCreateResponse */
         WidgetCreateResponse: {
@@ -2848,6 +3277,31 @@ export interface components {
             plan_exercises: components["schemas"]["WorkoutPlanExerciseResponse"][];
             /** Position */
             position: number;
+        };
+        /** WorkoutProgressionResponse */
+        WorkoutProgressionResponse: {
+            /** Exercise Name */
+            exercise_name: string;
+            /** Is Plateaued */
+            is_plateaued: boolean;
+            one_rm: components["schemas"]["OneRMResultModel"];
+            /** R Squared */
+            r_squared: number;
+            /** Sessions */
+            sessions: components["schemas"]["WorkoutSessionItem"][];
+            /** Slope Kg Per Week */
+            slope_kg_per_week: number;
+        };
+        /** WorkoutSessionItem */
+        WorkoutSessionItem: {
+            /** Date */
+            date: string;
+            /** Max Weight */
+            max_weight: number;
+            /** Sets Count */
+            sets_count: number;
+            /** Total Tonnage */
+            total_tonnage: number;
         };
         /** WorkoutSessionResponse */
         WorkoutSessionResponse: {
@@ -3412,6 +3866,307 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_compute_api_v1_analytics_compute_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalyticsComputeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsComputeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_correlations_api_v1_analytics_correlations_get: {
+        parameters: {
+            query?: {
+                min_n?: number;
+                range?: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrelationMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_forecast_api_v1_analytics_forecast_get: {
+        parameters: {
+            query: {
+                horizon_days?: number;
+                metric: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_heatmap_api_v1_analytics_heatmap_get: {
+        parameters: {
+            query: {
+                metric: string;
+                year: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeatmapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_methodology_api_v1_analytics_methodology_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodologyIndexResponse"];
+                };
+            };
+        };
+    };
+    api_analytics_overview_api_v1_analytics_overview_get: {
+        parameters: {
+            query?: {
+                date?: string;
+                range?: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_timeseries_api_v1_analytics_timeseries_get: {
+        parameters: {
+            query: {
+                bucket?: string;
+                metric: string;
+                range?: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeSeriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_wellness_score_api_v1_analytics_wellness_score_get: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WellnessScoreResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_analytics_workout_progression_api_v1_analytics_workout_progression_get: {
+        parameters: {
+            query: {
+                exercise_id: string;
+                range_days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutProgressionResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -6120,6 +6875,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    api_update_profile_api_v1_settings_account_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_ProfileUpdateBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

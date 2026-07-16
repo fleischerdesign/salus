@@ -1,0 +1,14 @@
+name: "Epley 1RM"
+reference:
+  citation: "Epley 1985"
+  doi: null
+input:
+  test_cases:
+    - {weight: 100, reps: 5, expected: 116.6667}
+    - {weight: 80, reps: 10, expected: 106.6667}
+  expected:
+    rm_100x5: 116.6667
+    rm_80x10: 106.6667
+tolerance:
+  one_rm: 1e-6
+

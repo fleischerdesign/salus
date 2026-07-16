@@ -1,0 +1,9 @@
+name: "RMSSD to score normalization"
+reference:
+  citation: "Heuristic approximation"
+  doi: null
+input:
+  test_cases:
+    - {rmssd: 50, mean_rmssd: 40, std_rmssd: 10, expected: 80.0}
+    - {rmssd: 10, mean_rmssd: 40, std_rmssd: 10, expected: 20.0}
+

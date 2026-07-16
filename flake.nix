@@ -94,12 +94,11 @@
             pkgs.ruff
             pkgs.pyright
             pkgs.nodejs_22
+            pkgs.just
           ];
           shellHook = ''
             echo "salus — health tracking dev environment"
-            echo "python, uv, ruff, pyright, node available"
-            echo "Backend:  uv run uvicorn src.salus.main:app --reload"
-            echo "Frontend: cd frontend && npm run dev"
+            just --list
           '';
         };
       }

@@ -26,6 +26,7 @@ class User(SQLModel, table=True):
     password_hash: str | None = Field(default=None)
     email: str | None = Field(default=None, unique=True)
     display_name: str | None = Field(default=None)
+    height_cm: float | None = Field(default=None)
     is_admin: bool = Field(default=False)
     is_active: bool = Field(default=True)
     theme: str = Field(default="system")

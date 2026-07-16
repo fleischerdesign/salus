@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     username: str
     email: str | None
     display_name: str | None
+    height_cm: float | None
     is_admin: bool
     is_active: bool
     theme: str

@@ -157,6 +157,19 @@ class UserService:
         user.theme = theme
         return self.uow.users.update(user)
 
+    def update_profile(
+        self,
+        user_id: str,
+        display_name: str | None = None,
+        height_cm: float | None = None,
+    ) -> User:
+        user = self.get_by_id(user_id)
+        if display_name is not None:
+            user.display_name = display_name
+        if height_cm is not None:
+            user.height_cm = height_cm
+        return self.uow.users.update(user)
+
     def dismiss_onboarding(self, user_id: str) -> None:
         user = self.get_by_id(user_id)
         user.onboarding_dismissed = True

@@ -242,27 +242,25 @@ WritePipeline commit → event_bus.publish(user_id)
 ```bash
 # Enter dev shell
 nix develop
-
-# Backend
-uv run uvicorn src.salus.main:app --reload
-uv run pytest -v
-uv run ruff check src/
-uv run pyright src/
-
-# Frontend
-cd frontend
-npm install
-npm run dev          # Dev server with HMR + API proxy
-npm run build        # Production build
-npm run check        # Type-check Svelte components
-npm run lint         # Lint + format check
-npm run format       # Auto-format
-npm run test         # Vitest
-
-# Full pre-commit check
-uv run ruff check src/ && uv run pytest -v && uv run pyright src/
-cd frontend && npm run lint && npm run check
 ```
+
+Run `just --list` to see all available commands. Key recipes:
+
+| Command | What it does |
+|---|---|
+| `just dev-backend` | Backend dev server (port 8000) |
+| `just dev-frontend` | Frontend dev server (port 5173 → proxy to 8000) |
+| `just test-backend` | Run backend tests (pytest) |
+| `just test-frontend` | Run frontend tests (vitest) |
+| `just lint-backend` | Lint Python (ruff) |
+| `just lint-frontend` | Lint frontend (prettier + eslint) |
+| `just typecheck-backend` | Type-check Python (pyright) |
+| `just typecheck-frontend` | Type-check frontend (svelte-check) |
+| `just format-frontend` | Auto-format frontend (prettier) |
+| `just build-frontend` | Production build frontend |
+| `just install-frontend` | Install frontend dependencies |
+| `just sync-backend` | Sync Python dependencies (uv sync) |
+| `just check` | Full pre-commit: lint + typecheck + test (backend + frontend) |
 
 ## Git workflow
 

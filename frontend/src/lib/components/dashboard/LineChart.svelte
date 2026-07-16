@@ -12,9 +12,19 @@
     height?: number;
     leftUnit?: string;
     rightUnit?: string;
+    regressionLine?: Array<{ x: number; y: number }> | null;
+    regressionCI?: Array<{ x: number; lower: number; upper: number }> | null;
   }
 
-  let { labels, series, height = 280, leftUnit, rightUnit }: Props = $props();
+  let {
+    labels,
+    series,
+    height = 280,
+    leftUnit,
+    rightUnit,
+    regressionLine,
+    regressionCI,
+  }: Props = $props();
 
   const padLeft = 44;
   let padRight = $derived(series.some((s) => s.yAxis === 'right') ? 44 : 12);
@@ -201,6 +211,29 @@
       >
         {rightUnit}
       </text>
+    {/if}
+
+    <!-- Regression band + line -->
+    {#if regressionCI && regressionLine}
+      <path
+        d={[
+          ...regressionCI.map((p) => `${scaleX(p.x)},${scaleY(p.lower, 'left')}`),
+          ...[...regressionCI].reverse().map((p) => `${scaleX(p.x)},${scaleY(p.upper, 'left')}`)
+        ]
+          .map((pt, i) => (i === 0 ? `M ${pt}` : `L ${pt}`))
+          .join(' ') + ' Z'}
+        fill="var(--color-primary-500)"
+        opacity="0.08"
+        stroke="none"
+      />
+      <polyline
+        points={regressionLine.map((p) => `${scaleX(p.x)},${scaleY(p.y, 'left')}`).join(' ')}
+        fill="none"
+        stroke="var(--color-primary-500)"
+        stroke-width="2"
+        stroke-dasharray="6 3"
+        opacity="0.6"
+      />
     {/if}
 
     <!-- Series areas + lines -->

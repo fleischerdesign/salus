@@ -1,0 +1,16 @@
+name: "Heart Rate Reserve % (Brage 2005 clamping)"
+reference:
+  citation: "Brage et al. 2005, Br J Sports Med"
+  doi: "10.1136/bjsm.2004.015456"
+input:
+  test_cases:
+    - {hr_avg: 120, hr_resting: 60, hr_max: 190, expected: 0.461538}
+    - {hr_avg: 200, hr_resting: 60, hr_max: 190, expected: 0.85}
+    - {hr_avg: 50, hr_resting: 60, hr_max: 190, expected: 0.05}
+  expected:
+    normal: 0.461538
+    clamped_high: 0.85
+    clamped_low: 0.05
+tolerance:
+  hrr: 1e-6
+

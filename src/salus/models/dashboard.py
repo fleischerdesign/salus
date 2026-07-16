@@ -36,6 +36,15 @@ class WidgetViz:
     segments: list[dict] | None = None
     empty: bool = False
     empty_text: str | None = None
+    trend: list[float] | None = None
+    trend_labels: list[str] | None = None
+    trend_slope: float | None = None
+    trend_r_squared: float | None = None
+    trend_direction: str | None = None
+    forecast_value: float | None = None
+    forecast_lower: float | None = None
+    forecast_upper: float | None = None
+    sparkline_path: str | None = None
 
 
 @dataclass

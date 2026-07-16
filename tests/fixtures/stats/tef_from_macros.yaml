@@ -1,0 +1,13 @@
+name: "TEF from macros"
+reference:
+  citation: "Reed & Hill 1996"
+  doi: null
+input:
+  protein_g: 150
+  carbs_g: 250
+  fat_g: 70
+expected:
+  tef: 222.6000
+tolerance:
+  tef: 1e-6
+

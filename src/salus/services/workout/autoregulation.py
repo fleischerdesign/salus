@@ -1,8 +1,9 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from salus.models.workout import Exercise, WorkoutPlanExercise
-from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.activity import ActivityAnalysisService
+from salus.services.analytics.sleep import SleepAnalysisService
+from salus.services.analytics.stats import recovery_composite
 
 
 class AutoregulationService:
@@ -17,90 +18,75 @@ class AutoregulationService:
     def calculate_recovery_score(
         self, user_id: str, date_str: Optional[str] = None
     ) -> tuple[float, float, float, float]:
-        """
-        Calculates user's recovery score out of 100.
-        Returns: (overall_score, sleep_score, rhr_score, steps_score)
-        """
         if date_str is None:
             date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-        # 1. Sleep Score (centered at 80.0 for matching baseline)
         sleep_trend = self.sleep_svc.trend(days=7, user_id=user_id)
         if sleep_trend:
-            baseline_sleep = sum(s.duration_hours for s in sleep_trend) / len(
-                sleep_trend
+            durations = [s.duration_hours for s in sleep_trend]
+            mu_sleep = sum(durations) / len(durations)
+            sig_sleep = (
+                (sum((d - mu_sleep) ** 2 for d in durations) / max(len(durations) - 1, 1))
+                ** 0.5
             )
+            last_sleep = durations[-1] if durations else 7.0
         else:
-            baseline_sleep = 8.0
+            mu_sleep = 7.0
+            sig_sleep = 1.0
+            last_sleep = 7.0
 
-        last_night_sleep = self.sleep_svc.last_night(user_id=user_id, date_str=date_str)
-        if last_night_sleep:
-            duration = last_night_sleep.duration_hours
-            if duration >= baseline_sleep:
-                # Up to +20 points for sleeping more than average
-                sleep_score = 80.0 + (duration - baseline_sleep) * 10.0
-            else:
-                # -15 points per hour of deficit
-                sleep_score = 80.0 - (baseline_sleep - duration) * 15.0
-        else:
-            # If no sleep data is recorded, assume standard recovery (80.0)
-            sleep_score = 80.0
-        sleep_score = max(0.0, min(100.0, sleep_score))
-
-        # 2. Resting Heart Rate Score (centered at 80.0)
         anchor = datetime.strptime(date_str, "%Y-%m-%d")
-        rhrs = []
+        hr_values = []
         for i in range(1, 8):
             day_str = (anchor - timedelta(days=i)).strftime("%Y-%m-%d")
-            sum_hr = self.activity_svc.heart_rate_summary(
+            summary = self.activity_svc.heart_rate_summary(
                 user_id=user_id, date_str=day_str
             )
-            if sum_hr and sum_hr.resting_bpm:
-                rhrs.append(sum_hr.resting_bpm)
-        baseline_rhr = sum(rhrs) / len(rhrs) if rhrs else 60.0
-
-        today_hr = self.activity_svc.heart_rate_summary(
+            if summary and summary.resting_bpm:
+                hr_values.append(summary.resting_bpm)
+        mu_hr = sum(hr_values) / len(hr_values) if hr_values else 60.0
+        sig_hr = (
+            (sum((v - mu_hr) ** 2 for v in hr_values) / max(len(hr_values) - 1, 1))
+            ** 0.5
+            if len(hr_values) >= 2
+            else 5.0
+        )
+        today_hr_info = self.activity_svc.heart_rate_summary(
             user_id=user_id, date_str=date_str
         )
-        if today_hr and today_hr.resting_bpm:
-            today_rhr = today_hr.resting_bpm
-            if today_rhr <= baseline_rhr:
-                # Lower RHR indicates better recovery
-                rhr_score = 80.0 + (baseline_rhr - today_rhr) * 5.0
-            else:
-                # Elevated RHR indicates fatigue
-                rhr_score = 80.0 - (today_rhr - baseline_rhr) * 10.0
-        else:
-            rhr_score = 80.0
-        rhr_score = max(0.0, min(100.0, rhr_score))
+        today_rhr = today_hr_info.resting_bpm if (today_hr_info and today_hr_info.resting_bpm) else mu_hr
 
-        # 3. Steps/Activity Local Fatigue (centered at 80.0)
         steps_trend = self.activity_svc.steps_trend(
             days=8, user_id=user_id, date=date_str
         )
         if len(steps_trend) >= 2:
-            yesterday_steps = steps_trend[-2].count
-            baseline_steps = sum(s.count for s in steps_trend[:-1]) / (
-                len(steps_trend) - 1
+            step_vals = [float(s.count) for s in steps_trend[:-1]]
+            mu_log = sum(max(v, 1) for v in step_vals) / len(step_vals)
+            sig_log = (
+                (sum((max(v, 1) - mu_log) ** 2 for v in step_vals) / max(len(step_vals) - 1, 1))
+                ** 0.5
+                if len(step_vals) >= 2
+                else 1.0
             )
-            if baseline_steps <= 0:
-                baseline_steps = 10000.0
-
-            if yesterday_steps > baseline_steps:
-                steps_score = (
-                    80.0 - ((yesterday_steps - baseline_steps) / baseline_steps) * 40.0
-                )
-            else:
-                steps_score = (
-                    80.0 + ((baseline_steps - yesterday_steps) / baseline_steps) * 10.0
-                )
+            yesterday_steps = int(steps_trend[-2].count)
         else:
-            steps_score = 80.0
-        steps_score = max(0.0, min(100.0, steps_score))
+            mu_log = 8.0
+            sig_log = 1.0
+            yesterday_steps = 5000
 
-        # Weighted recovery score
-        overall = (0.5 * sleep_score) + (0.3 * rhr_score) + (0.2 * steps_score)
-        return overall, sleep_score, rhr_score, steps_score
+        score = recovery_composite(
+            sleep_score=last_sleep,
+            hrv_rmssd=50.0,
+            resting_hr=today_rhr,
+            steps=yesterday_steps,
+            baselines={
+                "sleep": (mu_sleep, max(sig_sleep, 0.01)),
+                "hrv": (50.0, 10.0),
+                "resting_hr": (mu_hr, max(sig_hr, 0.01)),
+                "log_steps": (mu_log, max(sig_log, 0.01)),
+            },
+        )
+        return score.score, score.sleep_z, score.hr_z, score.steps_z
 
     def get_autoregulated_targets(
         self,
@@ -147,32 +133,32 @@ class AutoregulationService:
             rpe_adjust = 0.0
             reasons = []
 
-            if overall > 85.0:
+            if overall > 75.0:
                 sets_adjust = 1
                 weight_mult = 1.05
                 rpe_adjust = 0.5
                 reasons.append(
-                    f"Excellent recovery ({overall:.0f}% score). Suggesting peak weights/volume."
+                    f"Primed recovery ({overall:.0f}/100). Peak weights/volume recommended."
                 )
-            elif overall < 40.0:
+            elif overall < 35.0:
                 sets_adjust = -1
                 weight_mult = 0.85
                 rpe_adjust = -2.0
                 reasons.append(
-                    f"Critical fatigue ({overall:.0f}% score). Suggesting deload."
+                    f"Underrecovered ({overall:.0f}/100). Deload recommended."
                 )
-            elif overall < 60.0:
+            elif overall < 50.0:
                 sets_adjust = -1
                 weight_mult = 0.92
                 rpe_adjust = -1.0
                 reasons.append(
-                    f"Mild fatigue ({overall:.0f}% score). Suggesting conservative load."
+                    f"Moderate fatigue ({overall:.0f}/100). Conservative load recommended."
                 )
             else:
                 reasons.append("Standard recovery. Keep planned targets.")
 
-            # Localized steps/leg fatigue check
-            if steps_score < 75.0:
+            # Localized leg fatigue check (steps_z > 0 = more steps than baseline)
+            if steps_score > 1.0:
                 # Parse exercise target muscles
                 primary = {
                     m.strip().lower()

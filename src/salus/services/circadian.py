@@ -5,10 +5,11 @@ from typing import Any
 from salus.models.circadian import CircadianProfile
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.circadian import (
-    CircadianProfileCreate,
     CircadianAdviceResponse,
+    CircadianProfileCreate,
     SolarTimes,
 )
+from salus.services.analytics.stats import pearson
 
 
 class CircadianService:
@@ -235,8 +236,15 @@ class CircadianService:
             "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
         }
 
-        # Chronotype detection
+        # Chronotype — data-driven detection
         chronotype = profile.configured_chronotype
+        detected = self._detect_chronotype(user_id)
+        if detected is not None:
+            chronotype = (
+                f"{profile.configured_chronotype} (detected: {detected})"
+                if detected != profile.configured_chronotype
+                else chronotype
+            )
 
         return CircadianAdviceResponse(
             solar_times=SolarTimes(
@@ -258,3 +266,51 @@ class CircadianService:
             light_advice=light_advice,
             eating_window=eating_window,
         )
+
+    def _detect_chronotype(self, user_id: str) -> str | None:
+        try:
+            with self.uow:
+                sleep_mt = self.uow.metric_types.find_by_name_and_user(
+                    "Sleep", user_id
+                )
+                if sleep_mt is None or sleep_mt.id is None:
+                    return None
+                sleeps = self.uow.measurements.find_by_metric_type(
+                    metric_type_id=sleep_mt.id, user_id=user_id
+                )
+                onset_times: list[float] = []
+                daylight_hours: list[float] = []
+                for s in sleeps[:14]:
+                    if s.start_time is None:
+                        continue
+                    onset_hour = s.start_time.hour + s.start_time.minute / 60.0
+                    onset_times.append(onset_hour)
+                    doy = s.start_time.timetuple().tm_yday
+                    lat = 52.52
+                    decl = 23.45 * math.sin(
+                        math.radians((360 / 365) * (284 + doy))
+                    )
+                    day_len = (
+                        24.0
+                        - (24.0 / 180.0)
+                        * math.degrees(
+                            math.acos(
+                                -math.tan(math.radians(lat))
+                                * math.tan(math.radians(decl))
+                            )
+                        )
+                        if abs(math.tan(math.radians(lat)) * math.tan(math.radians(decl))) < 1
+                        else (24.0 if math.tan(math.radians(lat)) * math.tan(math.radians(decl)) < 0 else 0.0)
+                    )
+                    daylight_hours.append(day_len)
+                if len(onset_times) < 7:
+                    return None
+                n = min(len(onset_times), len(daylight_hours))
+                corr = pearson(daylight_hours[:n], onset_times[:n])
+                if corr and abs(corr.r) > 0.3:
+                    if corr.r > 0:
+                        return "owl"
+                    return "lark"
+                return None
+        except Exception:
+            return None

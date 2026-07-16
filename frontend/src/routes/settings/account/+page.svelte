@@ -37,6 +37,7 @@
   let newToken = $state('');
   let error = $state('');
   let success = $state('');
+  let heightCm = $state(auth.user?.height_cm ?? '');
 
   const themeOptions = [
     { value: 'system', label: 'System' },
@@ -121,6 +122,19 @@
       });
     }
   }
+
+  async function updateProfile() {
+    const h = parseFloat(String(heightCm));
+    if (isNaN(h) || h <= 0) return;
+    await mutate({
+      kind: 'crud',
+      op: 'update',
+      entity: 'user',
+      id: auth.user?.id ?? '',
+      data: { height_cm: h },
+      optimistic: { ...(auth.user ?? {}), height_cm: h }
+    });
+  }
 </script>
 
 {#if $userProfiles === undefined}
@@ -146,6 +160,13 @@
           {:else}
             <p class="text-sm text-surface-400">No email set</p>
           {/if}
+          <form onsubmit={(e) => { e.preventDefault(); updateProfile(); }} class="mt-2 flex items-end gap-2">
+            <div>
+              <label for="height_cm" class="text-[11px] font-medium text-surface-500">Height (cm)</label>
+              <input id="height_cm" type="number" bind:value={heightCm} min="50" max="250" step="0.1" class="h-8 w-20 rounded border border-surface-300 px-2 text-sm" />
+            </div>
+            <Btn variant="secondary" size="sm" type="submit">Save</Btn>
+          </form>
         </div>
       </div>
     </Card>

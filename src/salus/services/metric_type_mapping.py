@@ -88,6 +88,16 @@ DEFAULT_METRIC_TYPES: list[
     ("Water", "ml", DataType.NUMBER, "#06b6d4", "water", "water-drop", "small", False),
     ("Stress", "", DataType.NUMBER, "#f43f5e", "stress", "psychology", "small", False),
     (
+        "HRV",
+        "ms",
+        DataType.NUMBER,
+        "#06b6d4",
+        "hrv",
+        "monitoring",
+        "small",
+        True,
+    ),
+    (
         "Readiness",
         "",
         DataType.NUMBER,
@@ -119,6 +129,9 @@ DATA_TYPE_KEYWORD_TO_METRIC: dict[str, str] = {
     "water": "Water",
     "stress": "Stress",
     "readiness": "Readiness",
+    "hrv": "HRV",
+    "HRV": "HRV",
+    "heart_rate_variability": "HRV",
 }
 
 

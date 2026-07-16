@@ -28,6 +28,7 @@ from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import (
     api,
     api_admin,
+    api_analytics,
     api_auth,
     api_dashboard,
     api_misc,
@@ -200,6 +201,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(security_headers_middleware)
 
     app.include_router(api_auth.router)
+    app.include_router(api_analytics.router)
     app.include_router(api_dashboard.router)
     app.include_router(api_misc.router)
     app.include_router(api_settings.router)

@@ -122,3 +122,8 @@ class GoalProgress:
     percent: int
     status: str  # "fulfilled" | "pending" | "missed"
     is_fulfilled: bool
+    on_track: bool | None = None
+    predicted_value: float | None = None
+    predicted_ci_lower: float | None = None
+    predicted_ci_upper: float | None = None
+    trend_r_squared: float | None = None

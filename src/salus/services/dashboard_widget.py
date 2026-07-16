@@ -10,6 +10,11 @@ from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
+from salus.services.analytics.stats import (
+    linear_regression,
+    mann_kendall,
+    prediction_interval,
+)
 from salus.services.analytics.weight import WeightAnalysisService
 from salus.services.goal import GoalService
 
@@ -98,6 +103,41 @@ def _rounded_segments(stages: list[tuple[str, float, str]]) -> list[dict]:
         {"label": label, "pct": pcts[i], "css_class": css}
         for i, (label, _, css) in enumerate(stages)
     ]
+
+
+def _enrich_with_trend(
+    viz: WidgetViz,
+    daily_values: list[float],
+    daily_labels: list[str],
+) -> WidgetViz:
+    if len(daily_values) < 5:
+        return viz
+    xs = [float(i) for i in range(len(daily_values))]
+    reg = linear_regression(xs, daily_values)
+    mk = mann_kendall(daily_values)
+    if reg:
+        viz.trend_slope = round(reg.slope, 4)
+        viz.trend_r_squared = round(reg.r_squared, 4)
+        pi = prediction_interval(reg, float(len(xs)), confidence=0.80)
+        if pi:
+            viz.forecast_value = round(pi.point_estimate, 2)
+            viz.forecast_lower = round(pi.lower, 2)
+            viz.forecast_upper = round(pi.upper, 2)
+    if mk:
+        viz.trend_direction = mk.trend
+    viz.trend = [round(v, 2) for v in daily_values[-7:]]
+    viz.trend_labels = daily_labels[-7:]
+    recent = daily_values[-7:]
+    if len(recent) >= 2:
+        mn = min(recent)
+        mx = max(recent) - mn or 1.0
+        points = []
+        for i, v in enumerate(recent):
+            x = i * (100.0 / max(len(recent) - 1, 1))
+            y = 60.0 - (v - mn) / mx * 50.0
+            points.append(f"{x:.2f},{y:.2f}")
+        viz.sparkline_path = " ".join(points)
+    return viz
 
 
 @runtime_checkable

@@ -1,0 +1,19 @@
+name: "Mann-Kendall trend test (synthetic monotonic increasing)"
+reference:
+  citation: "Mann 1945; Kendall 1975, Rank Correlation Methods"
+  doi: null
+input:
+  series: [5,7,6,9,11,10,12,13,14,15]
+expected:
+  s: 41
+  z: 3.577709
+  p_value: 0.000347
+  trend: "increasing"
+  n: 10
+  tau: 0.911111
+tolerance:
+  s: 0
+  z: 1e-4
+  p_value: 1e-3
+  tau: 1e-6
+

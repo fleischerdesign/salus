@@ -1,0 +1,14 @@
+name: "HR max (Tanaka)"
+reference:
+  citation: "Tanaka et al. 2001, Circulation"
+  doi: "10.1161/01.CIR.96.2.220"
+input:
+  test_cases:
+    - {age_y: 30, expected: 187}
+    - {age_y: 60, expected: 166}
+  expected:
+    hr_30: 187
+    hr_60: 166
+tolerance:
+  hr: 1e-6
+

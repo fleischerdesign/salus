@@ -1,0 +1,16 @@
+name: "Cohen's d paired (pre/post test scores)"
+reference:
+  citation: "Cohen 1988, Statistical Power Analysis for the Behavioral Sciences, 2nd ed."
+  doi: null
+input:
+  x: [70,75,72,68,74,76,71,73,69,77]
+  y: [68,72,70,65,71,74,69,70,67,73]
+expected:
+  d: 3.718504
+  hedges_g: 3.358649
+  n: 10
+  interpretation: "large"
+tolerance:
+  d: 1e-4
+  hedges_g: 1e-4
+

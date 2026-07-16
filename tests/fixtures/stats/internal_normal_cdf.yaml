@@ -1,0 +1,14 @@
+name: "Normal CDF"
+reference:
+  citation: "Standard"
+  doi: null
+input:
+  test_cases:
+    - {x: 0.0, mu: 0, sigma: 1, expected: 0.5}
+    - {x: 1.96, mu: 0, sigma: 1, expected: 0.975}
+  expected:
+    phi_0: 0.5
+    phi_1_96: 0.975
+tolerance:
+  phi: 1e-4
+

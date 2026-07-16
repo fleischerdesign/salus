@@ -1,0 +1,16 @@
+name: "BMR Mifflin-St Jeor"
+reference:
+  citation: "Mifflin et al. 1990, Am J Clin Nutr"
+  doi: "10.1093/ajcn/51.2.241"
+input:
+  test_cases:
+    - {weight_kg: 80, height_cm: 180, age_y: 30, sex: "male", expected: 1780}
+    - {weight_kg: 65, height_cm: 165, age_y: 28, sex: "female", expected: 1380.25}
+    - {weight_kg: 70, height_cm: 170, age_y: 35, sex: null, expected: 1426.5}
+  expected:
+    bmr_male: 1780
+    bmr_female: 1380.25
+    bmr_null: 1426.5
+tolerance:
+  bmr: 1e-4
+

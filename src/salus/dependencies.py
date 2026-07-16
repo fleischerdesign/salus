@@ -314,12 +314,13 @@ def get_nutrition_analysis_service(
 
 
 def get_analytics_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
     sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
     activity_svc: ActivityAnalysisService = Depends(get_activity_analysis_service),
     weight_svc: WeightAnalysisService = Depends(get_weight_analysis_service),
     nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
 ) -> AnalyticsService:
-    return AnalyticsService(sleep_svc, activity_svc, weight_svc, nutrition_svc)
+    return AnalyticsService(uow, sleep_svc, activity_svc, weight_svc, nutrition_svc)
 
 
 def get_dashboard_widget_repo(

@@ -1,0 +1,12 @@
+name: "MAPE (synthetic)"
+reference:
+  citation: "Standard"
+  doi: null
+input:
+  y_true: [100,200,300,400]
+  y_pred: [110,190,310,380]
+expected:
+  mape: 5.833333
+tolerance:
+  mape: 1e-6
+
