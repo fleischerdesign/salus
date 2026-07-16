@@ -5,7 +5,6 @@
   import { db } from '$lib/db/database';
   import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -85,18 +84,29 @@
       backUrl="/workouts/plans"
     >
       {#snippet actions()}
-        <div class="mr-2 flex items-center gap-1.5">
-          <Badge
-            variant={$plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
-            class="capitalize"
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+          <!-- Badges Segment -->
+          <div class="flex items-center gap-1.5 px-6">
+            <Badge
+              variant={$plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
+              class="capitalize"
+            >
+              {$plan.autoreg_mode}
+            </Badge>
+            <Badge variant="default">{$planExercises.length} exercises</Badge>
+          </div>
+
+          <!-- Start Workout Segment -->
+          <button
+            type="button"
+            disabled={starting}
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
+            onclick={startSession}
           >
-            {$plan.autoreg_mode}
-          </Badge>
-          <Badge variant="default">{$planExercises.length} exercises</Badge>
+            <Icon name="play-arrow" size="sm" />
+            <span>Start Workout</span>
+          </button>
         </div>
-        <Btn variant="primary" loading={starting} onclick={startSession}>
-          <Icon name="play-arrow" size="sm" />Start Workout
-        </Btn>
       {/snippet}
     </PageHeader>
 

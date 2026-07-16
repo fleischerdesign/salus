@@ -159,7 +159,7 @@
       backUrl="/workouts/exercises"
     >
       {#snippet actions()}
-        <div class="flex flex-wrap gap-1.5">
+        <div class="flex h-full items-center gap-1.5 px-6">
           <Badge variant="default" class="capitalize">
             {$exercise.equipment}
           </Badge>
@@ -168,6 +168,23 @@
               <Badge variant="primary" class="capitalize">{muscle.trim()}</Badge>
             {/if}
           {/each}
+        </div>
+      {/snippet}
+
+      {#snippet stats()}
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
+          <Stat
+            value={prMaxWeight > 0 ? prMaxWeight.toFixed(1) : '—'}
+            unit="kg"
+            label="PR Weight"
+          />
+          <Stat
+            value={prEstOneRm > 0 ? prEstOneRm.toFixed(1) : '—'}
+            unit="kg"
+            label="PR Est. 1RM"
+          />
+          <Stat value={totalSets} label="Total Sets" />
+          <Stat value={totalReps} label="Total Reps" />
         </div>
       {/snippet}
     </PageHeader>
@@ -250,25 +267,6 @@
       </div>
 
       <div class="space-y-4">
-        <Card padding={false}>
-          {#snippet header()}
-            <div class="flex items-center gap-2">
-              <Icon name="trophy" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900"> Personal Records </span>
-            </div>
-          {/snippet}
-          <div class="flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
-            <Stat
-              value={prMaxWeight > 0 ? prMaxWeight.toFixed(1) : '—'}
-              unit="kg"
-              label="Max Weight"
-            />
-            <Stat value={prEstOneRm > 0 ? prEstOneRm.toFixed(1) : '—'} unit="kg" label="Est. 1RM" />
-            <Stat value={totalSets} label="Total Sets" />
-            <Stat value={totalReps} label="Total Reps" />
-          </div>
-        </Card>
-
         <Card padding={false}>
           {#snippet header()}
             <div class="flex items-center gap-2">
