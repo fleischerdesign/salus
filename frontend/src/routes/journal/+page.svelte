@@ -6,6 +6,7 @@
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
+  import Icon from '$components/ui/Icon.svelte';
   import type { JournalEntry } from '$lib/db/types';
   import { createJournalEntry } from '$lib/mutations/wellness';
 
@@ -97,11 +98,12 @@
             <div class="mt-2 flex items-center gap-2">
               <span class="text-[11px] text-surface-400">{entry.entry_date}</span>
               {#if entry.mood_score != null}
-                <span class="text-sm"
-                  >{['', '😫', '😢', '😞', '😕', '😐', '🙂', '😊', '😄', '😁', '🤩'][
-                    entry.mood_score
-                  ]}</span
-                >
+                <Icon
+                  name={['', 'mood-bad', 'sentiment-dissatisfied', 'sentiment-dissatisfied',
+                    'sentiment-neutral', 'sentiment-neutral', 'sentiment-satisfied', 'sentiment-satisfied',
+                    'sentiment-very-satisfied', 'sentiment-very-satisfied', 'celebration'][entry.mood_score]}
+                  size="lg"
+                />
               {/if}
             </div>
           </div>
