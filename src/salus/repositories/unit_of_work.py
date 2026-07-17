@@ -48,6 +48,11 @@ from salus.repositories.protocols import (
     IMedicationScheduleRepository,
     IMedicationLogRepository,
     IMedicationInventoryRepository,
+    IFoodItemRepository,
+    IMealRepository,
+    IMealItemRepository,
+    IRecipeRepository,
+    IRecipeIngredientRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -82,6 +87,13 @@ from salus.repositories.medication import (
     MedicationScheduleRepository,
     MedicationLogRepository,
     MedicationInventoryRepository,
+)
+from salus.repositories.food import (
+    FoodItemRepository,
+    MealRepository,
+    MealItemRepository,
+    RecipeRepository,
+    RecipeIngredientRepository,
 )
 
 if TYPE_CHECKING:
@@ -130,6 +142,12 @@ class IUnitOfWork(Protocol):
     medication_logs: IMedicationLogRepository
     medication_inventories: IMedicationInventoryRepository
 
+    food_items: IFoodItemRepository
+    meals: IMealRepository
+    meal_items: IMealItemRepository
+    recipes: IRecipeRepository
+    recipe_ingredients: IRecipeIngredientRepository
+
     def __enter__(self) -> "IUnitOfWork": ...
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None: ...
@@ -177,6 +195,11 @@ class SqlUnitOfWork:
     medication_schedules: IMedicationScheduleRepository
     medication_logs: IMedicationLogRepository
     medication_inventories: IMedicationInventoryRepository
+    food_items: IFoodItemRepository
+    meals: IMealRepository
+    meal_items: IMealItemRepository
+    recipes: IRecipeRepository
+    recipe_ingredients: IRecipeIngredientRepository
 
     def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
@@ -217,6 +240,11 @@ class SqlUnitOfWork:
         self.medication_schedules = MedicationScheduleRepository(session)
         self.medication_logs = MedicationLogRepository(session)
         self.medication_inventories = MedicationInventoryRepository(session)
+        self.food_items = FoodItemRepository(session)
+        self.meals = MealRepository(session)
+        self.meal_items = MealItemRepository(session)
+        self.recipes = RecipeRepository(session)
+        self.recipe_ingredients = RecipeIngredientRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

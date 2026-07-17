@@ -73,6 +73,9 @@ from salus.services.mood import MoodService
 from salus.services.journal import JournalService
 from salus.services.achievement.service import AchievementService
 from salus.services.medication import MedicationService
+from salus.services.food_item import FoodItemService
+from salus.services.meal import MealService
+from salus.services.recipe import RecipeService
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -610,3 +613,21 @@ def get_medication_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> MedicationService:
     return MedicationService(uow)
+
+
+def get_food_item_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> FoodItemService:
+    return FoodItemService(uow)
+
+
+def get_meal_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> MealService:
+    return MealService(uow)
+
+
+def get_recipe_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> RecipeService:
+    return RecipeService(uow)

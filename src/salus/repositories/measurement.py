@@ -219,3 +219,12 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
             .limit(limit)
         )
         return list(self.session.exec(stmt).all())
+
+    def find_by_external_id(self, external_id: str, source: str | None = None) -> Measurement | None:
+        stmt = select(Measurement).where(
+            Measurement.external_id == external_id,
+            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        if source:
+            stmt = stmt.where(Measurement.source == source)
+        return self.session.exec(stmt).first()

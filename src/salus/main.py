@@ -32,11 +32,14 @@ from salus.routers import (
     api_analytics,
     api_auth,
     api_dashboard,
+    api_food,
     api_habit,
     api_journal,
+    api_meal,
     api_medication,
     api_misc,
     api_mood,
+    api_recipe,
     api_rest,
     api_settings,
     api_sharing,
@@ -237,6 +240,9 @@ def create_app() -> FastAPI:
     app.include_router(api_journal.router)
     app.include_router(api_achievement.router)
     app.include_router(api_medication.router)
+    app.include_router(api_food.router)
+    app.include_router(api_meal.router)
+    app.include_router(api_recipe.router)
     api_rest.register_auto_crud(app)
 
     frontend_build = os.path.join(

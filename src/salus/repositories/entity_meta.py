@@ -27,6 +27,13 @@ from salus.models.medication import (
     MedicationLog,
     MedicationSchedule,
 )
+from salus.models.food import (
+    FoodItem,
+    Meal,
+    MealItem,
+    Recipe,
+    RecipeIngredient,
+)
 
 if TYPE_CHECKING:
     from salus.schemas.sync import SyncOperation
@@ -88,6 +95,11 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="medication_schedule", model=MedicationSchedule, batch_size=500),
     EntityMeta(name="medication_log", model=MedicationLog, batch_size=2000),
     EntityMeta(name="medication_inventory", model=MedicationInventory, batch_size=500),
+    EntityMeta(name="food_item", model=FoodItem, strategy="shared_nullable", batch_size=2000),
+    EntityMeta(name="meal", model=Meal, batch_size=500),
+    EntityMeta(name="meal_item", model=MealItem, batch_size=2000),
+    EntityMeta(name="recipe", model=Recipe, batch_size=500),
+    EntityMeta(name="recipe_ingredient", model=RecipeIngredient, batch_size=500),
 ]
 
 # ── Derived mappings ──

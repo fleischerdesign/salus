@@ -33,6 +33,13 @@ from salus.models.medication import (
     MedicationLog,
     MedicationSchedule,
 )
+from salus.models.food import (
+    FoodItem,
+    Meal,
+    MealItem,
+    Recipe,
+    RecipeIngredient,
+)
 
 T = TypeVar("T")
 
@@ -483,3 +490,40 @@ class IMedicationLogRepository(IRepository[MedicationLog], Protocol):
 @runtime_checkable
 class IMedicationInventoryRepository(IRepository[MedicationInventory], Protocol):
     def find_by_medication(self, medication_id: str) -> MedicationInventory | None: ...
+
+
+@runtime_checkable
+class IFoodItemRepository(IRepository[FoodItem], Protocol):
+    def search(self, query: str, limit: int = 20) -> list[FoodItem]: ...
+
+    def find_by_barcode(self, barcode: str) -> FoodItem | None: ...
+
+    def find_all_verified(self) -> list[FoodItem]: ...
+
+    def find_by_user(self, user_id: str) -> list[FoodItem]: ...
+
+    def find_frequent(self, user_id: str, limit: int = 20) -> list[FoodItem]: ...
+
+
+@runtime_checkable
+class IMealRepository(IRepository[Meal], Protocol):
+    def find_by_user_and_date_range(self, user_id: str, since: date, until: date) -> list[Meal]: ...
+
+    def find_by_user_and_date(self, user_id: str, log_date: date) -> list[Meal]: ...
+
+    def find_by_user(self, user_id: str) -> list[Meal]: ...
+
+
+@runtime_checkable
+class IMealItemRepository(IRepository[MealItem], Protocol):
+    def find_by_meal(self, meal_id: str) -> list[MealItem]: ...
+
+
+@runtime_checkable
+class IRecipeRepository(IRepository[Recipe], Protocol):
+    def find_by_user(self, user_id: str) -> list[Recipe]: ...
+
+
+@runtime_checkable
+class IRecipeIngredientRepository(IRepository[RecipeIngredient], Protocol):
+    def find_by_recipe(self, recipe_id: str) -> list[RecipeIngredient]: ...
