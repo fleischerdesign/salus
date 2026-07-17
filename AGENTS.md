@@ -275,12 +275,76 @@ WritePipeline commit → event_bus.publish(user_id)
 1. `models/<name>.py` — SQLModel table
 2. `schemas/<name>.py` — Pydantic Create/Response models
 3. `repositories/<name>.py` — Repository class
-4. `services/<name>.py` — Business logic service
-5. `routers/api_<name>.py` — JSON API routes under `/api/v1/`
-6. `dependencies.py` — Repository + Service factories
-7. `main.py` — `app.include_router()`
-8. Frontend: Svelte page component using the API
-9. `tests/test_<name>.py` — pytest tests
+4. `repositories/protocols.py` — `@runtime_checkable` Protocol class, import model types
+5. `repositories/unit_of_work.py` — Add protocol import, concrete repo import, property to `IUnitOfWork` AND `SqlUnitOfWork` (both protocol type annotation AND `__init__` assignment)
+6. `repositories/entity_meta.py` — `EntityMeta` entry with correct `strategy` and `batch_size`
+7. `services/<name>.py` — Business logic service
+8. `dependencies.py` — Repository + Service factories
+9. `routers/api_<name>.py` — JSON API routes under `/api/v1/`
+10. `main.py` — `app.include_router()`
+11. `tests/test_<name>.py` — pytest tests
+12. Frontend: `types.ts` — TypeScript interfaces matching SQLModel fields
+13. Frontend: `database.ts` — new `this.version(N).stores({...})` block (only new tables, never repeat existing ones)
+14. Frontend: `mutations/<name>.ts` — async functions wrapping `mutate()` for each CRUD operation
+15. `cd frontend && npm run gen-schema` — regenerate typed API client after new endpoints
+16. `cd frontend && npm run icons` — regenerate icon bundle after new icon references
+
+### Sync strategy decision
+
+Every new entity needs a sync strategy. Available values:
+
+| Strategy | When to use | Example |
+|---|---|---|
+| `user_scoped` (default) | Data belongs to one user, synced only to their devices | `habit`, `meal`, `medication` |
+| `shared_nullable` | System-seeded items (user_id=null) + user-created items (user_id set). All users see system items, only creator sees theirs. | `exercise`, `food_item` |
+| `global` | Immutable reference data, same for all users, no user_id column | `metric_definition`, `achievement_definition` |
+| `relational` | Child entity whose owner is determined via parent FK chain | `workout_plan_exercise`, `workout_log_entry` |
+| `append_only` | Write-once, never updated or deleted | `api_token`, `federated_access_log` |
+
+`batch_size`: parent entities → 500, high-volume log children → 2000.
+
+### Metric system vs Domain Model decision
+
+Not every domain belongs in the metric system. Use this framework:
+
+| Question | Yes → | No → |
+|---|---|---|
+| Is the entity primarily a numeric measurement over time? | Metric system | Domain model |
+| Is the set of entities finite and code-defined? | Metric system | Domain model |
+| Does the entity have complex internal structure (sub-items, schedules)? | Domain model | Metric system |
+| Does the domain produce data that should appear on the dashboard/analytics? | Add Measurement bridge | Keep standalone |
+
+**Hybrid pattern (Food):** Own domain model for rich structure (food_item, meal, meal_item, recipe), PLUS a Measurement bridge that writes `metric_code="nutrition"` rows so dashboard/analytics/goals consume the data unchanged. Link via `Measurement.external_id` and `source` field for lifecycle management (delete meal → delete measurement).
+
+**Standalone pattern (Medication):** Own domain model only. No measurement bridge because schedules + inventory don't map to numeric time-series metrics. Can still integrate via Goals (adherence %) and Insights (refill reminders).
+
+### Frontend data loading (Dexie-first)
+
+**NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB, loaded via `liveQuery()` + `$effect()`. The sync engine handles server communication transparently.
+
+```typescript
+// ✅ CORRECT — reactive Dexie subscription
+$effect(() => {
+  const sub = liveQuery(() => db.medication.where('deleted_at').equals('').toArray())
+    .subscribe(v => { items = v; });
+  return () => sub.unsubscribe();
+});
+
+// ❌ WRONG — direct API call
+onMount(async () => {
+  const res = await api.GET('/api/v1/medications');
+  items = res.data;
+});
+```
+
+**All writes go through `mutate()`**, never `api.POST()` or `fetch()`:
+```typescript
+// ✅ CORRECT
+await mutate({ kind: 'crud', op: 'create', entity: 'medication', id: crypto.randomUUID(), data });
+
+// ❌ WRONG
+await api.POST('/api/v1/medications', { body: data });
+```
 
 ## Commands
 
