@@ -11,7 +11,7 @@ This file is written for LLM agents. Follow these rules exactly.
 - **Clean** — No dead code, no magic numbers, no commented-out blocks, no TODO comments without a ticket reference.
 - **Konsistent** — Follow the existing patterns in the codebase exactly. New code should be indistinguishable from existing code in style, structure, and conventions.
 - **Agnostisch wo möglich** — Don't couple to implementation details. Use protocols/interfaces. Avoid vendor-lock. Prefer standards-based solutions.
-- **System-Integration** — Every new feature MUST be designed with full integration into the existing ecosystem (sync, offline, dashboard, analytics, goals, insights, live-sync). Features are not islands — they interact. When designing a new domain, think about: (a) how it feeds the Measurement/metric system, (b) how the dashboard and analytics consume it, (c) how goals can reference it, (d) how insights can derive coaching from it, (e) how it syncs offline across devices.
+- **System-Integration** — Every new domain MUST be evaluated against the existing ecosystem. Ask: (a) does it produce data that belongs in the Measurement/metric system? (b) should the dashboard surface it via a widget? (c) can analytics derive trends from it? (d) can goals reference it? (e) can insights generate coaching from it? (f) does it need to sync offline across devices? Not every domain needs every integration — Medication doesn't write Measurements, Journal doesn't need Goals — but every omission must be a conscious decision with a documented rationale, not an oversight.
 
 ## Stack
 
