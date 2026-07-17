@@ -3,6 +3,16 @@
 Health data tracker. FastAPI (backend) + SvelteKit SPA (frontend) + SQLite / PostgreSQL.
 This file is written for LLM agents. Follow these rules exactly.
 
+## Core Principles (ALWAYS apply)
+
+- **DRY** — Zero duplication. Every piece of knowledge has a single, authoritative representation.
+- **SOLID** — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
+- **Akademisch professionell** — Code reads like a textbook: clear naming, minimal comments (code explains itself), rigorous correctness.
+- **Clean** — No dead code, no magic numbers, no commented-out blocks, no TODO comments without a ticket reference.
+- **Konsistent** — Follow the existing patterns in the codebase exactly. New code should be indistinguishable from existing code in style, structure, and conventions.
+- **Agnostisch wo möglich** — Don't couple to implementation details. Use protocols/interfaces. Avoid vendor-lock. Prefer standards-based solutions.
+- **System-Integration** — Every new feature MUST be designed with full integration into the existing ecosystem (sync, offline, dashboard, analytics, goals, insights, live-sync). Features are not islands — they interact. When designing a new domain, think about: (a) how it feeds the Measurement/metric system, (b) how the dashboard and analytics consume it, (c) how goals can reference it, (d) how insights can derive coaching from it, (e) how it syncs offline across devices.
+
 ## Stack
 
 | Concern | Choice |
