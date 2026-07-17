@@ -8,12 +8,7 @@
     class?: string;
   }
 
-  let {
-    checked = false,
-    disabled = false,
-    onchange,
-    class: extraClass = ''
-  }: Props = $props();
+  let { checked = false, disabled = false, onchange, class: extraClass = '' }: Props = $props();
 
   function handleClick(e: MouseEvent) {
     e.stopPropagation();

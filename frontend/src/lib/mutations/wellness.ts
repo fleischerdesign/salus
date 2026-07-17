@@ -48,7 +48,7 @@ export async function toggleHabit(habitId: string) {
       habit_id: habitId,
       log_date: today,
       completed: true,
-      completed_at: now,
+      completed_at: now
     },
     optimistic: {
       id,
@@ -59,7 +59,7 @@ export async function toggleHabit(habitId: string) {
       completed_at: now,
       notes: null,
       created_at: now,
-      deleted_at: null,
+      deleted_at: null
     }
   });
 }

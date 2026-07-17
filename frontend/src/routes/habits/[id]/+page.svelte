@@ -29,26 +29,29 @@
 
   function computeFreqLabel(h: Habit): string {
     switch (h.frequency) {
-      case 'daily': return 'Daily';
-      case 'weekly_n': return `${h.target_count}×/week`;
+      case 'daily':
+        return 'Daily';
+      case 'weekly_n':
+        return `${h.target_count}×/week`;
       case 'custom_days': {
         if (h.days_bitmask == null) return '';
         const active = dayNames.filter((_, i) => (h.days_bitmask! >> i) & 1);
         return active.join(', ');
       }
-      default: return '';
+      default:
+        return '';
     }
   }
 
   const freqLabel = $derived(habit ? computeFreqLabel(habit) : '');
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayCompleted = $derived(
-    logs.some((l) => l.log_date === todayStr && l.completed)
-  );
+  const todayCompleted = $derived(logs.some((l) => l.log_date === todayStr && l.completed));
 
   const completedLogs = $derived(logs.filter((l) => l.completed));
-  const completedDates = $derived([...new Set(completedLogs.map((l) => l.log_date))].sort().reverse());
+  const completedDates = $derived(
+    [...new Set(completedLogs.map((l) => l.log_date))].sort().reverse()
+  );
 
   const currentStreak = $derived.by(() => {
     let streak = 0;
@@ -105,7 +108,10 @@
       habit = v;
     });
     const sub2 = liveQuery(() =>
-      db.habit_log.where({ habit_id: id }).filter((l) => !l.deleted_at).toArray()
+      db.habit_log
+        .where({ habit_id: id })
+        .filter((l) => !l.deleted_at)
+        .toArray()
     ).subscribe((v) => {
       logs = v;
       loading = false;
@@ -149,7 +155,11 @@
   {#if loading}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if !habit}
-    <EmptyState icon="check-circle" title="Habit not found" description="This habit may have been deleted." />
+    <EmptyState
+      icon="check-circle"
+      title="Habit not found"
+      description="This habit may have been deleted."
+    />
   {:else}
     <PageHeader
       title={habit.name}
@@ -206,12 +216,15 @@
           {#if calendarCells.length === 0}
             <div class="flex justify-center py-8 text-xs text-surface-400">No data yet.</div>
           {:else}
-            <div class="inline-grid grid-flow-col gap-1" style="grid-template-rows: repeat(7, 1fr);">
+            <div
+              class="inline-grid grid-flow-col gap-1"
+              style="grid-template-rows: repeat(7, 1fr);"
+            >
               {#each calendarCells as cell}
                 <div
                   class="h-3 w-3 rounded-sm {cell.completed
                     ? 'bg-primary-500'
-                    : 'bg-surface-100'} {cell.today ? 'ring-1 ring-inset ring-primary-300' : ''}"
+                    : 'bg-surface-100'} {cell.today ? 'ring-1 ring-primary-300 ring-inset' : ''}"
                   title={cell.date}
                 ></div>
               {/each}
@@ -276,7 +289,10 @@
               <div class="flex items-center justify-between px-6 py-2.5">
                 <span class="text-sm text-surface-700">{log.log_date}</span>
                 <span class="text-xs text-surface-400">
-                  {new Date(log.completed_at ?? log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(log.completed_at ?? log.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </span>
               </div>
             {/each}

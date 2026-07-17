@@ -1,11 +1,13 @@
 from pydantic import BaseModel, Field
 
+from salus.models.medication import MedicationForm
+
 
 class MedicationCreate(BaseModel):
     name: str
     active_ingredient: str | None = None
     strength: str | None = None
-    form: str = Field(default="tablet")
+    form: MedicationForm = Field(default=MedicationForm.TABLET)
     instructions: str | None = None
     color_hex: str = Field(default="#4f46e5")
     icon: str = Field(default="medication")
@@ -15,7 +17,7 @@ class MedicationUpdate(BaseModel):
     name: str | None = None
     active_ingredient: str | None = None
     strength: str | None = None
-    form: str | None = None
+    form: MedicationForm | None = None
     instructions: str | None = None
     color_hex: str | None = None
     icon: str | None = None
@@ -33,7 +35,6 @@ class MedicationResponse(BaseModel):
     icon: str
     is_active: bool
     created_at: str
-    has_schedules: bool = False
 
 
 class MedicationScheduleCreate(BaseModel):
@@ -102,7 +103,7 @@ class MedicationTodayItem(BaseModel):
     time: str | None = None
     taken: bool = False
     skipped: bool = False
-    kicked_at: str | None = None
+    taken_at: str | None = None
     medication_item_id: str | None = None
 
 

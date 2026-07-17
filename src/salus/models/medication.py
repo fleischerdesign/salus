@@ -29,7 +29,7 @@ class Medication(SQLModel, table=True):
     name: str
     active_ingredient: str | None = Field(default=None)
     strength: str | None = Field(default=None)
-    form: str = Field(default="tablet")
+    form: MedicationForm = Field(default=MedicationForm.TABLET)
     instructions: str | None = Field(default=None)
     color_hex: str = Field(default="#4f46e5")
     icon: str = Field(default="medication")

@@ -99,9 +99,19 @@
               <span class="text-[11px] text-surface-400">{entry.entry_date}</span>
               {#if entry.mood_score != null}
                 <Icon
-                  name={['', 'mood-bad', 'sentiment-dissatisfied', 'sentiment-dissatisfied',
-                    'sentiment-neutral', 'sentiment-neutral', 'sentiment-satisfied', 'sentiment-satisfied',
-                    'sentiment-very-satisfied', 'sentiment-very-satisfied', 'celebration'][entry.mood_score]}
+                  name={[
+                    '',
+                    'mood-bad',
+                    'sentiment-dissatisfied',
+                    'sentiment-dissatisfied',
+                    'sentiment-neutral',
+                    'sentiment-neutral',
+                    'sentiment-satisfied',
+                    'sentiment-satisfied',
+                    'sentiment-very-satisfied',
+                    'sentiment-very-satisfied',
+                    'celebration'
+                  ][entry.mood_score]}
                   size="lg"
                 />
               {/if}

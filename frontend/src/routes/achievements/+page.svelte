@@ -66,7 +66,9 @@
             : 'opacity-50 grayscale'}"
         >
           {#if isUnlocked}
-            <div class="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-amber-50 to-yellow-50"></div>
+            <div
+              class="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-amber-50 to-yellow-50"
+            ></div>
           {/if}
           <div
             class="relative flex h-12 w-12 items-center justify-center rounded-full text-2xl {isUnlocked

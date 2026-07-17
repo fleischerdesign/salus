@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from salus.exceptions import NotFoundError
+from salus.exceptions import ApiError, NotFoundError
 from salus.models.medication import (
     Medication,
     MedicationInventory,
@@ -260,8 +260,10 @@ class MedicationService:
             return self.uow.medication_inventories.update(existing)
 
         if data.initial_count is None or data.remaining_count is None or data.refill_at_count is None:
-            raise ValueError(
-                "initial_count, remaining_count, refill_at_count are required for new inventory"
+            raise ApiError(
+                code="invalid_inventory",
+                message="initial_count, remaining_count, refill_at_count are required for new inventory",
+                status_code=400,
             )
 
         inv = MedicationInventory(

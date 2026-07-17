@@ -80,7 +80,8 @@
 
   <FormField label="Times">
     <div class="flex flex-col gap-2">
-      {#each times as _unused, i}
+      <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+      {#each times as _time, i}
         <div class="flex items-center gap-2">
           <Input name="time" type="time" bind:value={times[i]} />
           {#if times.length > 1}

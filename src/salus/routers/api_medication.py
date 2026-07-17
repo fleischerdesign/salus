@@ -21,7 +21,6 @@ router = APIRouter(prefix="/api/v1/medications")
 
 
 def _medication_to_response(m) -> dict:
-    has_schedules = hasattr(m, "_has_schedules") and m._has_schedules
     return {
         "id": m.id,
         "name": m.name,
@@ -33,7 +32,6 @@ def _medication_to_response(m) -> dict:
         "icon": m.icon,
         "is_active": m.is_active,
         "created_at": m.created_at.isoformat() if m.created_at else "",
-        "has_schedules": has_schedules,
     }
 
 
