@@ -16,6 +16,7 @@ from salus.services.analytics.stats import (
     prediction_interval,
 )
 from salus.services.analytics.weight import WeightAnalysisService
+from salus.services.analytics.blood_pressure import BloodPressureAnalysisService
 from salus.services.goal import GoalService
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ VIZ_TYPE_DEFAULTS: dict[str, str] = {
     "weight": "number",
     "nutrition": "bar",
     "exercise": "number",
+    "blood_pressure": "line_chart",
 }
 
 
@@ -385,6 +387,45 @@ class GenericVizBuilder:
         )
 
 
+class BloodPressureVizBuilder:
+    def build(self, ctx, user_id, target, color):
+        points = ctx._blood_pressure.trend(days=30, user_id=user_id)
+        if not points:
+            return None
+
+        recent = points[-14:]
+        labels = [p.date[-5:] for p in recent]
+        systolic_data = [round(p.systolic, 1) for p in recent]
+        diastolic_data = [round(p.diastolic, 1) for p in recent]
+
+        latest = points[-1]
+
+        series = [
+            {
+                "label": "Systolic",
+                "data": systolic_data,
+                "color": "#ef4444",
+                "yAxis": "left",
+            },
+            {
+                "label": "Diastolic",
+                "data": diastolic_data,
+                "color": "#3b82f6",
+                "yAxis": "left",
+            },
+        ]
+
+        return WidgetViz(
+            type="line_chart",
+            title="Blood Pressure",
+            value=f"{latest.systolic:.0f} / {latest.diastolic:.0f}",
+            unit="mmHg",
+            color=color,
+            labels=labels,
+            series=series,
+        )
+
+
 _VIZ_BUILDERS: dict[str, VizBuilder] = {
     "steps": StepsVizBuilder(),
     "heart_rate": HeartRateVizBuilder(),
@@ -392,6 +433,7 @@ _VIZ_BUILDERS: dict[str, VizBuilder] = {
     "nutrition": NutritionVizBuilder(),
     "weight": WeightVizBuilder(),
     "exercise": ExerciseVizBuilder(),
+    "blood_pressure": BloodPressureVizBuilder(),
 }
 
 
@@ -408,6 +450,7 @@ class DashboardWidgetService:
         nutrition_svc: NutritionAnalysisService,
         weight_svc: WeightAnalysisService,
         goal_svc: GoalService,
+        bp_svc: BloodPressureAnalysisService,
     ) -> None:
         self.uow = uow
         self._activity = activity_svc
@@ -415,6 +458,7 @@ class DashboardWidgetService:
         self._nutrition = nutrition_svc
         self._weight = weight_svc
         self._goal = goal_svc
+        self._blood_pressure = bp_svc
 
         # Request-level caches to optimize N+1 query patterns
         self._goals_cache: list[Goal] | None = None

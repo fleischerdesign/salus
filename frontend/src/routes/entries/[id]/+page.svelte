@@ -49,8 +49,8 @@
         if (g) {
           isGroup = true;
           group = g;
-        const defs = (await db.metric_definition.toArray()).filter(d => d.group_key === g.key);
-        defs.sort((a, b) => a.sort_order - b.sort_order);
+          const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === g.key);
+          defs.sort((a, b) => a.sort_order - b.sort_order);
           const prefs = await db.user_metric_preference.toArray();
           groupMetrics = mergeMetricPrefs(defs, prefs);
           metricDetail = null;
@@ -114,8 +114,13 @@
     group?.input_mode === 'combined' ? groupByTimestamp(entriesForGroup) : null
   );
 
-  function groupByTimestamp(entries: Entry[]): { timestamp: string; values: Record<string, string | number | null>; notes: string | null }[] {
-    const map = new Map<string, { values: Record<string, string | number | null>; notes: string | null }>();
+  function groupByTimestamp(
+    entries: Entry[]
+  ): { timestamp: string; values: Record<string, string | number | null>; notes: string | null }[] {
+    const map = new Map<
+      string,
+      { values: Record<string, string | number | null>; notes: string | null }
+    >();
     for (const e of entries) {
       const key = e.start_time;
       const existing = map.get(key);
@@ -123,13 +128,18 @@
         existing.values[e.metric_code!] = e.value_text ?? e.value_numeric ?? '—';
         if (e.notes) existing.notes = e.notes;
       } else {
-        map.set(key, { values: { [e.metric_code!]: e.value_text ?? e.value_numeric ?? '—' }, notes: e.notes });
+        map.set(key, {
+          values: { [e.metric_code!]: e.value_text ?? e.value_numeric ?? '—' },
+          notes: e.notes
+        });
       }
     }
     return [...map.entries()].map(([timestamp, data]) => ({ timestamp, ...data }));
   }
 
-  let chartDataForGroup = $state<{ code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[]>([]);
+  let chartDataForGroup = $state<
+    { code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[]
+  >([]);
 
   $effect(() => {
     const gKey = group?.key;
@@ -139,7 +149,13 @@
     }
     const subscription = liveQuery(async () => {
       const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-      const result: { code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[] = [];
+      const result: {
+        code: string;
+        name: string;
+        color: string;
+        data: (number | null)[];
+        labels: string[];
+      }[] = [];
       for (const d of defs) {
         const meas = await db.measurement.where('metric_code').equals(d.code).toArray();
         const clean = meas
@@ -147,14 +163,20 @@
           .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
         if (clean.length > 0) {
           result.push({
-            code: d.code, name: d.name, color: '#4f46e5',
+            code: d.code,
+            name: d.name,
+            color: '#4f46e5',
             labels: clean.map((e) => new Date(e.start_time).toLocaleDateString()),
-            data: clean.map((e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null))
+            data: clean.map(
+              (e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null)
+            )
           });
         }
       }
       return result;
-    }).subscribe((v) => { chartDataForGroup = v; });
+    }).subscribe((v) => {
+      chartDataForGroup = v;
+    });
     return () => subscription.unsubscribe();
   });
 
@@ -187,7 +209,11 @@
 
   function formatDate(ts: string): string {
     return new Date(ts).toLocaleDateString(undefined, {
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 
@@ -196,23 +222,34 @@
   }
 
   function openCreateModal() {
-    editingEntry = null; entryValue = '';
-    combinedValues = Object.fromEntries(allGroupMetrics.map(m => [m.code, '']));
-    entryTimestamp = toDatetimeLocal(new Date().toISOString()); entryNotes = ''; entryError = '';
+    editingEntry = null;
+    entryValue = '';
+    combinedValues = Object.fromEntries(allGroupMetrics.map((m) => [m.code, '']));
+    entryTimestamp = toDatetimeLocal(new Date().toISOString());
+    entryNotes = '';
+    entryError = '';
     showEntryModal = true;
   }
 
   function openEditModal(e: Entry) {
-    editingEntry = e; entryValue = e.value_text ?? e.value_numeric?.toString() ?? '';
+    editingEntry = e;
+    entryValue = e.value_text ?? e.value_numeric?.toString() ?? '';
     combinedValues = {};
-    entryTimestamp = toDatetimeLocal(e.start_time); entryNotes = e.notes ?? ''; entryError = '';
+    entryTimestamp = toDatetimeLocal(e.start_time);
+    entryNotes = e.notes ?? '';
+    entryError = '';
     showEntryModal = true;
   }
 
-  function closeEntryModal() { showEntryModal = false; editingEntry = null; }
+  function closeEntryModal() {
+    showEntryModal = false;
+    editingEntry = null;
+  }
 
   async function saveEntry(e: SubmitEvent) {
-    e.preventDefault(); entryError = ''; saving = true;
+    e.preventDefault();
+    entryError = '';
+    saving = true;
 
     if (isGroup && !editingEntry) {
       const ts = entryTimestamp ? new Date(entryTimestamp).toISOString() : undefined;
@@ -244,13 +281,21 @@
       }
       for (const { code, value } of values) {
         const { ok, error } = await createMeasurement(code, {
-          value_numeric: value, start_time: ts || new Date().toISOString(),
-          notes: notesVal, data_type: 'number', source: 'manual'
+          value_numeric: value,
+          start_time: ts || new Date().toISOString(),
+          notes: notesVal,
+          data_type: 'number',
+          source: 'manual'
         });
-        if (!ok) { entryError = error || 'Failed'; saving = false; return; }
+        if (!ok) {
+          entryError = error || 'Failed';
+          saving = false;
+          return;
+        }
       }
       saving = false;
-      closeEntryModal(); return;
+      closeEntryModal();
+      return;
     }
 
     if (!metricDetail) return;
@@ -260,41 +305,68 @@
     const body: Record<string, unknown> = {
       value_numeric: isNaN(Number(value)) ? null : Number(value),
       value_text: isNaN(Number(value)) ? value : null,
-      start_time: ts || new Date().toISOString(), notes: notesVal,
-      metric_code: metricId, data_type: 'number', source: 'manual'
+      start_time: ts || new Date().toISOString(),
+      notes: notesVal,
+      metric_code: metricId,
+      data_type: 'number',
+      source: 'manual'
     };
     if (editingEntry) {
       const { ok, error } = await updateMeasurement(editingEntry.id, body);
-      saving = false; if (!ok) { entryError = error || 'Failed'; return; }
+      saving = false;
+      if (!ok) {
+        entryError = error || 'Failed';
+        return;
+      }
     } else {
       const { ok, error } = await createMeasurement(metricId!, body);
-      saving = false; if (!ok) { entryError = error || 'Failed'; return; }
+      saving = false;
+      if (!ok) {
+        entryError = error || 'Failed';
+        return;
+      }
     }
     closeEntryModal();
   }
 
   async function confirmDeleteEntry() {
     if (!entryToDelete) return;
-    const target = entryToDelete; entryToDelete = null;
+    const target = entryToDelete;
+    entryToDelete = null;
     await deleteMeasurement(target.id);
   }
 
-  function onPageChange(p: number) { pageNum = p; }
+  function onPageChange(p: number) {
+    pageNum = p;
+  }
 
   let prevMetricId = $state<string | undefined>(undefined);
   $effect(() => {
-    if (metricId !== prevMetricId) { prevMetricId = metricId; pageNum = 1; }
+    if (metricId !== prevMetricId) {
+      prevMetricId = metricId;
+      pageNum = 1;
+    }
   });
 
   function buildMenuItems(e: Entry): MenuItem[] {
     return [
       { label: 'Edit', icon: 'edit', onclick: () => openEditModal(e) },
-      { label: 'Delete', icon: 'delete', variant: 'danger', onclick: () => { entryToDelete = e; deleteDialogOpen = true; } }
+      {
+        label: 'Delete',
+        icon: 'delete',
+        variant: 'danger',
+        onclick: () => {
+          entryToDelete = e;
+          deleteDialogOpen = true;
+        }
+      }
     ];
   }
 </script>
 
-<svelte:head><title>Salus — {isGroup ? group?.name : metricDetail?.name ?? 'Entries'}</title></svelte:head>
+<svelte:head
+  ><title>Salus — {isGroup ? group?.name : (metricDetail?.name ?? 'Entries')}</title></svelte:head
+>
 
 {#if loading}
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
@@ -309,9 +381,13 @@
       iconColor={groupMetrics[0]?.color || '#4f46e5'}
     >
       {#snippet actions()}
-          <button type="button" class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700" onclick={openCreateModal}>
-            <Icon name="add" size="sm" /><span>New Entry</span>
-          </button>
+        <button
+          type="button"
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+          onclick={openCreateModal}
+        >
+          <Icon name="add" size="sm" /><span>New Entry</span>
+        </button>
       {/snippet}
     </PageHeader>
 
@@ -323,7 +399,10 @@
             <Card padding={false} hoverable>
               {#snippet header()}
                 <div class="flex items-center gap-3">
-                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style="background-color: {m.color}20; color: {m.color}">
+                  <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                    style="background-color: {m.color}20; color: {m.color}"
+                  >
                     <Icon name={m.icon || 'monitoring'} />
                   </div>
                   <div class="min-w-0 flex-1">
@@ -334,8 +413,15 @@
               {/snippet}
               <div class="p-6">
                 {#if ov}
-                  <div class="flex items-baseline gap-1"><span class="text-lg font-bold text-surface-900">{ov.latest_value ?? '—'}</span>{#if ov.latest_value && m.unit}<span class="text-xs text-surface-400">{m.unit}</span>{/if}</div>
-                  <p class="mt-0.5 text-xs text-surface-400">{ov.latest_date ?? 'No entries'} · {ov.entry_count} entries</p>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-lg font-bold text-surface-900">{ov.latest_value ?? '—'}</span
+                    >{#if ov.latest_value && m.unit}<span class="text-xs text-surface-400"
+                        >{m.unit}</span
+                      >{/if}
+                  </div>
+                  <p class="mt-0.5 text-xs text-surface-400">
+                    {ov.latest_date ?? 'No entries'} · {ov.entry_count} entries
+                  </p>
                 {:else}
                   <p class="text-xs text-surface-400">No entries yet</p>
                 {/if}
@@ -350,10 +436,19 @@
       <Card padding={false}>
         {#snippet header()}
           <div class="flex w-full items-center justify-between pr-2">
-            <div class="flex items-center gap-2"><Icon name="monitoring" size="sm" class="text-surface-400" /><span class="text-sm font-semibold text-surface-900">Trend</span></div>
+            <div class="flex items-center gap-2">
+              <Icon name="monitoring" size="sm" class="text-surface-400" /><span
+                class="text-sm font-semibold text-surface-900">Trend</span
+              >
+            </div>
             <div class="flex gap-1">
               {#each ['7d', '30d', '90d', '1y'] as r}
-                <Btn variant={range === r ? 'primary' : 'secondary'} size="sm" onclick={() => (range = r)}>{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn>
+                <Btn
+                  variant={range === r ? 'primary' : 'secondary'}
+                  size="sm"
+                  onclick={() => (range = r)}
+                  >{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn
+                >
               {/each}
             </div>
           </div>
@@ -361,7 +456,12 @@
         <div class="p-6">
           <LineChart
             labels={chartDataForGroup[0].labels}
-            series={chartDataForGroup.map((s) => ({ label: s.name, data: s.data as number[], color: s.color, yAxis: 'left' as const }))}
+            series={chartDataForGroup.map((s) => ({
+              label: s.name,
+              data: s.data as number[],
+              color: s.color,
+              yAxis: 'left' as const
+            }))}
             leftUnit={groupMetrics[0]?.unit || ''}
           />
         </div>
@@ -374,7 +474,11 @@
       {:else if pairedEntries && pairedEntries.length > 0}
         <Card padding={false}>
           {#snippet header()}
-            <div class="flex items-center gap-2"><Icon name="list" size="sm" class="text-surface-400" /><span class="text-sm font-semibold text-surface-900">Entries</span></div>
+            <div class="flex items-center gap-2">
+              <Icon name="list" size="sm" class="text-surface-400" /><span
+                class="text-sm font-semibold text-surface-900">Entries</span
+              >
+            </div>
           {/snippet}
           <div class="divide-y divide-surface-100">
             {#each pairedEntries as pe (pe.timestamp)}
@@ -386,11 +490,17 @@
                         <div class="flex flex-wrap items-baseline gap-1">
                           {#each Object.keys(pe.values) as code}
                             {@const sub = groupMetrics.find((m) => m.code === code)}
-                            <span class="text-sm font-bold text-surface-900">{pe.values[code]}</span>
-                            {#if sub?.unit}<span class="text-xs text-surface-400">{sub.unit}</span>{/if}
+                            <span class="text-sm font-bold text-surface-900">{pe.values[code]}</span
+                            >
+                            {#if sub?.unit}<span class="text-xs text-surface-400">{sub.unit}</span
+                              >{/if}
                           {/each}
                         </div>
-                        <p class="mt-0.5 truncate text-xs text-surface-500">{formatDate(pe.timestamp)}{#if pe.notes}<span class="italic"> · "{pe.notes}"</span>{/if}</p>
+                        <p class="mt-0.5 truncate text-xs text-surface-500">
+                          {formatDate(pe.timestamp)}{#if pe.notes}<span class="italic">
+                              · "{pe.notes}"</span
+                            >{/if}
+                        </p>
                       </div>
                     </div>
                   {/snippet}
@@ -400,37 +510,66 @@
           </div>
         </Card>
       {:else}
-        <EmptyState title="No entries yet" description="Log your first blood pressure reading." icon="edit-note">
+        <EmptyState
+          title="No entries yet"
+          description="Log your first blood pressure reading."
+          icon="edit-note"
+        >
           <Btn variant="primary" onclick={openCreateModal}>+ New Entry</Btn>
         </EmptyState>
       {/if}
     {/if}
   </div>
-
 {:else}
   {@const md = metricDetail!}
   <div class="space-y-6">
     {#if !metricDetail}
       <div class="flex justify-center py-20"><Spinner size="lg" /></div>
     {:else}
-      <PageHeader title={md.name} subtitle={md.unit || '—'} backUrl="/entries" icon={md.icon || 'monitoring'} iconColor={md.color}>
+      <PageHeader
+        title={md.name}
+        subtitle={md.unit || '—'}
+        backUrl="/entries"
+        icon={md.icon || 'monitoring'}
+        iconColor={md.color}
+      >
         {#snippet actions()}
-          <button type="button" class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700" onclick={openCreateModal}>
+          <button
+            type="button"
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+            onclick={openCreateModal}
+          >
             <Icon name="add" size="sm" /><span>New Entry</span>
           </button>
         {/snippet}
         {#snippet stats()}
           {#if overview}
-            <div class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-              <div class="px-6 py-4"><Stat value={overview.latest_value ?? '—'} unit={md.unit} label="Latest" /></div>
-              <div class="px-6 py-4"><Stat value={overview.latest_date ?? '—'} label="Last Entry" /></div>
-              <div class="px-6 py-4"><Stat value={overview.entry_count} label="Total Entries" /></div>
+            <div
+              class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+            >
+              <div class="px-6 py-4">
+                <Stat value={overview.latest_value ?? '—'} unit={md.unit} label="Latest" />
+              </div>
+              <div class="px-6 py-4">
+                <Stat value={overview.latest_date ?? '—'} label="Last Entry" />
+              </div>
+              <div class="px-6 py-4">
+                <Stat value={overview.entry_count} label="Total Entries" />
+              </div>
             </div>
           {:else}
-            <div class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-              <div class="px-6 py-4"><div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div></div>
-              <div class="px-6 py-4"><div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div></div>
-              <div class="px-6 py-4"><div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div></div>
+            <div
+              class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+            >
+              <div class="px-6 py-4">
+                <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+              </div>
+              <div class="px-6 py-4">
+                <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+              </div>
+              <div class="px-6 py-4">
+                <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+              </div>
             </div>
           {/if}
         {/snippet}
@@ -440,10 +579,19 @@
         <Card padding={false}>
           {#snippet header()}
             <div class="flex w-full items-center justify-between pr-2">
-              <div class="flex items-center gap-2"><Icon name="monitoring" size="sm" class="text-surface-400" /><span class="text-sm font-semibold text-surface-900">Trend & History</span></div>
+              <div class="flex items-center gap-2">
+                <Icon name="monitoring" size="sm" class="text-surface-400" /><span
+                  class="text-sm font-semibold text-surface-900">Trend & History</span
+                >
+              </div>
               <div class="flex gap-1">
                 {#each ['7d', '30d', '90d', '1y'] as r}
-                  <Btn variant={range === r ? 'primary' : 'secondary'} size="sm" onclick={() => (range = r)}>{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn>
+                  <Btn
+                    variant={range === r ? 'primary' : 'secondary'}
+                    size="sm"
+                    onclick={() => (range = r)}
+                    >{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn
+                  >
                 {/each}
               </div>
             </div>
@@ -451,14 +599,26 @@
           <div class="p-6">
             <LineChart
               labels={$trend.labels}
-              series={[{ label: md.name ?? 'Value', data: $trend.values, color: md.color ?? 'var(--color-primary-500)', yAxis: 'left' }]}
+              series={[
+                {
+                  label: md.name ?? 'Value',
+                  data: $trend.values,
+                  color: md.color ?? 'var(--color-primary-500)',
+                  yAxis: 'left'
+                }
+              ]}
               leftUnit={md.unit}
               regressionLine={$trend.regression?.points}
               regressionCI={$trend.regression?.ci}
             />
             {#if $trend.regression}
               <div class="mt-2 text-center text-xs text-surface-400">
-                OLS Trend: {$trend.regression.slope > 0 ? 'Increasing' : $trend.regression.slope < 0 ? 'Decreasing' : 'Flat'} (r² = {$trend.regression.r_squared.toFixed(3)} · n = {$trend.regression.n})
+                OLS Trend: {$trend.regression.slope > 0
+                  ? 'Increasing'
+                  : $trend.regression.slope < 0
+                    ? 'Decreasing'
+                    : 'Flat'} (r² = {$trend.regression.r_squared.toFixed(3)} · n = {$trend
+                  .regression.n})
               </div>
             {/if}
           </div>
@@ -468,7 +628,11 @@
       {#if $allEntries === undefined}
         <div class="flex justify-center py-20"><Spinner size="lg" /></div>
       {:else if total === 0}
-        <EmptyState title="No entries yet" description="Log your first entry for this metric." icon="edit-note">
+        <EmptyState
+          title="No entries yet"
+          description="Log your first entry for this metric."
+          icon="edit-note"
+        >
           <Btn variant="primary" onclick={openCreateModal}>+ New Entry</Btn>
         </EmptyState>
       {:else}
@@ -480,12 +644,35 @@
                   {#snippet children()}
                     <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
                       <div class="min-w-0">
-                        <div class="flex items-baseline gap-1"><span class="truncate text-sm font-bold text-surface-900">{displayValue(e)}</span>{#if md.unit}<span class="text-xs text-surface-400">{md.unit}</span>{/if}</div>
-                        <p class="mt-0.5 truncate text-xs text-surface-500">{formatDate(e.start_time)}{#if e.notes}<span class="italic"> · "{e.notes}"</span>{/if}</p>
+                        <div class="flex items-baseline gap-1">
+                          <span class="truncate text-sm font-bold text-surface-900"
+                            >{displayValue(e)}</span
+                          >{#if md.unit}<span class="text-xs text-surface-400">{md.unit}</span>{/if}
+                        </div>
+                        <p class="mt-0.5 truncate text-xs text-surface-500">
+                          {formatDate(e.start_time)}{#if e.notes}<span class="italic">
+                              · "{e.notes}"</span
+                            >{/if}
+                        </p>
                       </div>
-                      <div class="duration-micro hidden items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 md:flex [@media(hover:none)]:opacity-60">
-                        <button type="button" class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700" aria-label="Edit entry" onclick={() => openEditModal(e)}><Icon name="edit" size="sm" /></button>
-                        <button type="button" class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500" aria-label="Delete entry" onclick={() => { entryToDelete = e; deleteDialogOpen = true; }}><Icon name="delete" size="sm" /></button>
+                      <div
+                        class="duration-micro hidden items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 md:flex [@media(hover:none)]:opacity-60"
+                      >
+                        <button
+                          type="button"
+                          class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+                          aria-label="Edit entry"
+                          onclick={() => openEditModal(e)}><Icon name="edit" size="sm" /></button
+                        >
+                        <button
+                          type="button"
+                          class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                          aria-label="Delete entry"
+                          onclick={() => {
+                            entryToDelete = e;
+                            deleteDialogOpen = true;
+                          }}><Icon name="delete" size="sm" /></button
+                        >
                       </div>
                       <div class="md:hidden"><Menu items={buildMenuItems(e)} /></div>
                     </div>
@@ -501,21 +688,44 @@
   </div>
 {/if}
 
-<Modal title={editingEntry ? 'Edit Entry' : (isGroup ? `New ${group?.name} Reading` : 'New Entry')} bind:open={showEntryModal}>
+<Modal
+  title={editingEntry ? 'Edit Entry' : isGroup ? `New ${group?.name} Reading` : 'New Entry'}
+  bind:open={showEntryModal}
+>
   <form onsubmit={saveEntry} class="flex flex-col gap-4">
     {#if isGroup && !editingEntry}
       <div class="flex gap-4">
         {#each allGroupMetrics as m (m.code)}
-          <FormField label="{m.name} ({m.unit})" required={group?.input_mode === 'combined'} class="flex-1">
-            <Input name={m.code} bind:value={combinedValues[m.code]} required={group?.input_mode === 'combined'} type="number" />
+          <FormField
+            label="{m.name} ({m.unit})"
+            required={group?.input_mode === 'combined'}
+            class="flex-1"
+          >
+            <Input
+              name={m.code}
+              bind:value={combinedValues[m.code]}
+              required={group?.input_mode === 'combined'}
+              type="number"
+            />
           </FormField>
         {/each}
       </div>
     {:else}
-      <FormField label="Value" required><Input name="value" bind:value={entryValue} required /></FormField>
+      <FormField label="Value" required
+        ><Input name="value" bind:value={entryValue} required /></FormField
+      >
     {/if}
-    <FormField label="Timestamp"><Input name="timestamp" type="datetime-local" bind:value={entryTimestamp} /></FormField>
-    <FormField label="Notes"><Textarea name="notes" bind:value={entryNotes} rows={3} placeholder="Optional notes…" /></FormField>
+    <FormField label="Timestamp"
+      ><Input name="timestamp" type="datetime-local" bind:value={entryTimestamp} /></FormField
+    >
+    <FormField label="Notes"
+      ><Textarea
+        name="notes"
+        bind:value={entryNotes}
+        rows={3}
+        placeholder="Optional notes…"
+      /></FormField
+    >
     {#if entryError}<p class="text-sm text-error-500">{entryError}</p>{/if}
     <div class="flex justify-end gap-2">
       <Btn variant="ghost" onclick={closeEntryModal}>Cancel</Btn>
@@ -524,4 +734,14 @@
   </form>
 </Modal>
 
-<ConfirmDialog bind:open={deleteDialogOpen} title="Delete Entry" variant="danger" message="Delete this entry? This cannot be undone." confirmLabel="Delete" onconfirm={confirmDeleteEntry} oncancel={() => { entryToDelete = null; }} />
+<ConfirmDialog
+  bind:open={deleteDialogOpen}
+  title="Delete Entry"
+  variant="danger"
+  message="Delete this entry? This cannot be undone."
+  confirmLabel="Delete"
+  onconfirm={confirmDeleteEntry}
+  oncancel={() => {
+    entryToDelete = null;
+  }}
+/>

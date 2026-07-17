@@ -63,6 +63,13 @@
     { href: '/community/access-log', icon: 'history', label: 'Access Log' }
   ];
 
+  const wellnessItems = [
+    { href: '/habits', icon: 'check-circle', label: 'Habits' },
+    { href: '/mood', icon: 'sentiment-satisfied', label: 'Mood' },
+    { href: '/journal', icon: 'edit-note', label: 'Journal' },
+    { href: '/achievements', icon: 'emoji-events', label: 'Achievements' }
+  ];
+
   let mobileOpen = $state(false);
 
   function navLinkClass(link: { href: string }) {
@@ -125,6 +132,17 @@
         { type: 'link', href: '/community/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
         { type: 'link', href: '/community/connections', icon: 'groups', label: 'Connections' },
         { type: 'link', href: '/community/access-log', icon: 'history', label: 'Access Log' }
+      ]
+    },
+    {
+      type: 'group',
+      label: 'Wellness',
+      icon: 'spa',
+      items: [
+        { type: 'link', href: '/habits', icon: 'check-circle', label: 'Habits' },
+        { type: 'link', href: '/mood', icon: 'sentiment-satisfied', label: 'Mood' },
+        { type: 'link', href: '/journal', icon: 'edit-note', label: 'Journal' },
+        { type: 'link', href: '/achievements', icon: 'emoji-events', label: 'Achievements' }
       ]
     },
     { type: 'link', href: '/settings', icon: 'settings', label: 'Settings' }
@@ -238,6 +256,7 @@
       <NavDropdown label="Workouts" items={workoutItems} />
       <NavDropdown label="Coach" items={coachItems} />
       <NavDropdown label="Community" items={communityItems} />
+      <NavDropdown label="Wellness" items={wellnessItems} />
     </nav>
 
     <div class="flex-1"></div>

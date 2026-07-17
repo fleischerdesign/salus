@@ -37,6 +37,13 @@ from salus.repositories.protocols import (
     IFederatedAccessLogRepository,
     IWorkoutPlanExerciseRepository,
     IWorkoutLogEntryRepository,
+    IHabitRepository,
+    IHabitLogRepository,
+    IMoodTagRepository,
+    IMoodEntryRepository,
+    IJournalEntryRepository,
+    IAchievementDefinitionRepository,
+    IUserAchievementRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -62,6 +69,10 @@ from salus.repositories.federated_measurement_cache import FederatedMeasurementC
 from salus.repositories.federated_access_log import FederatedAccessLogRepository
 from salus.repositories.workout_plan_exercise import WorkoutPlanExerciseRepository
 from salus.repositories.workout_log_entry import WorkoutLogEntryRepository
+from salus.repositories.habit import HabitRepository, HabitLogRepository
+from salus.repositories.mood import MoodTagRepository, MoodEntryRepository
+from salus.repositories.journal import JournalEntryRepository
+from salus.repositories.achievement import AchievementDefinitionRepository, UserAchievementRepository
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -95,6 +106,14 @@ class IUnitOfWork(Protocol):
     federated_access_logs: IFederatedAccessLogRepository
     workout_plan_exercises: IWorkoutPlanExerciseRepository
     workout_log_entries: IWorkoutLogEntryRepository
+
+    habits: IHabitRepository
+    habit_logs: IHabitLogRepository
+    mood_tags: IMoodTagRepository
+    mood_entries: IMoodEntryRepository
+    journal_entries: IJournalEntryRepository
+    achievement_definitions: IAchievementDefinitionRepository
+    user_achievements: IUserAchievementRepository
 
     def __enter__(self) -> "IUnitOfWork": ...
 
@@ -132,6 +151,13 @@ class SqlUnitOfWork:
     federated_access_logs: IFederatedAccessLogRepository
     workout_plan_exercises: IWorkoutPlanExerciseRepository
     workout_log_entries: IWorkoutLogEntryRepository
+    habits: IHabitRepository
+    habit_logs: IHabitLogRepository
+    mood_tags: IMoodTagRepository
+    mood_entries: IMoodEntryRepository
+    journal_entries: IJournalEntryRepository
+    achievement_definitions: IAchievementDefinitionRepository
+    user_achievements: IUserAchievementRepository
 
     def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
@@ -161,6 +187,13 @@ class SqlUnitOfWork:
         self.federated_access_logs = FederatedAccessLogRepository(session)
         self.workout_plan_exercises = WorkoutPlanExerciseRepository(session)
         self.workout_log_entries = WorkoutLogEntryRepository(session)
+        self.habits = HabitRepository(session)
+        self.habit_logs = HabitLogRepository(session)
+        self.mood_tags = MoodTagRepository(session)
+        self.mood_entries = MoodEntryRepository(session)
+        self.journal_entries = JournalEntryRepository(session)
+        self.achievement_definitions = AchievementDefinitionRepository(session)
+        self.user_achievements = UserAchievementRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

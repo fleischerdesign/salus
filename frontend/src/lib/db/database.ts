@@ -27,7 +27,14 @@ import type {
   SystemConfigItem,
   ApiToken,
   CommunityActivity,
-  FederatedAccessLog
+  FederatedAccessLog,
+  Habit,
+  HabitLog,
+  MoodTag,
+  MoodEntry,
+  JournalEntry,
+  AchievementDefinition,
+  UserAchievement
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -58,6 +65,13 @@ export class SalusDB extends Dexie {
   user!: EntityTable<UserProfile, 'id'>;
   community_activity!: EntityTable<CommunityActivity, 'id'>;
   federated_access_log!: EntityTable<FederatedAccessLog, 'id'>;
+  habit!: EntityTable<Habit, 'id'>;
+  habit_log!: EntityTable<HabitLog, 'id'>;
+  mood_tag!: EntityTable<MoodTag, 'code'>;
+  mood_entry!: EntityTable<MoodEntry, 'id'>;
+  journal_entry!: EntityTable<JournalEntry, 'id'>;
+  achievement_definition!: EntityTable<AchievementDefinition, 'code'>;
+  user_achievement!: EntityTable<UserAchievement, 'id'>;
   outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
   analytics_cache!: EntityTable<
@@ -177,6 +191,15 @@ export class SalusDB extends Dexie {
     });
     this.version(12).stores({
       metric_group: '&key'
+    });
+    this.version(13).stores({
+      habit: 'id, user_id',
+      habit_log: 'id, habit_id, user_id, log_date',
+      mood_tag: '&code',
+      mood_entry: 'id, user_id',
+      journal_entry: 'id, user_id',
+      achievement_definition: '&code',
+      user_achievement: 'id, user_id, achievement_code'
     });
   }
 }

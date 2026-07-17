@@ -24,6 +24,7 @@ from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.orchestrator import AnalyticsService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.weight import WeightAnalysisService
+from salus.services.analytics.blood_pressure import BloodPressureAnalysisService
 from salus.services.admin import AdminService
 from salus.services.config import ConfigService
 from salus.services.api_token import ApiTokenService
@@ -67,6 +68,10 @@ from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
 from salus.services.event_bus import EventBus
+from salus.services.habit import HabitService
+from salus.services.mood import MoodService
+from salus.services.journal import JournalService
+from salus.services.achievement.service import AchievementService
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -320,6 +325,12 @@ def get_nutrition_analysis_service(
     return NutritionAnalysisService(repo)
 
 
+def get_blood_pressure_analysis_service(
+    repo: MeasurementRepository = Depends(get_measurement_repo),
+) -> BloodPressureAnalysisService:
+    return BloodPressureAnalysisService(repo)
+
+
 def get_analytics_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
     sleep_svc: SleepAnalysisService = Depends(get_sleep_analysis_service),
@@ -343,6 +354,7 @@ def get_dashboard_widget_service(
     nutrition_svc: NutritionAnalysisService = Depends(get_nutrition_analysis_service),
     weight_svc: WeightAnalysisService = Depends(get_weight_analysis_service),
     goal_svc: GoalService = Depends(get_goal_service),
+    bp_svc: BloodPressureAnalysisService = Depends(get_blood_pressure_analysis_service),
 ) -> DashboardWidgetService:
     return DashboardWidgetService(
         uow,
@@ -351,6 +363,7 @@ def get_dashboard_widget_service(
         nutrition_svc,
         weight_svc,
         goal_svc,
+        bp_svc,
     )
 
 
@@ -566,3 +579,27 @@ def get_data_portability_service(
 
 def get_event_bus(request: Request) -> EventBus:
     return request.app.state.event_bus
+
+
+def get_habit_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> HabitService:
+    return HabitService(uow)
+
+
+def get_mood_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> MoodService:
+    return MoodService(uow)
+
+
+def get_journal_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> JournalService:
+    return JournalService(uow)
+
+
+def get_achievement_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> AchievementService:
+    return AchievementService(uow)

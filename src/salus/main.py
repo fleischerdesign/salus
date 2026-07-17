@@ -27,11 +27,15 @@ from salus.models.insight import Insight as InsightModel  # noqa: F401
 from salus.repositories.system_config import SystemConfigRepository
 from salus.routers import (
     api,
+    api_achievement,
     api_admin,
     api_analytics,
     api_auth,
     api_dashboard,
+    api_habit,
+    api_journal,
     api_misc,
+    api_mood,
     api_rest,
     api_settings,
     api_sharing,
@@ -46,6 +50,8 @@ from salus.routers import (
 from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
+from salus.services.achievement.service import AchievementService
+from salus.services.mood import MoodService
 
 
 def _check_secrets() -> None:
@@ -142,6 +148,16 @@ async def lifespan(app: FastAPI):
         except Exception:
             logging.error("Failed to seed default config", exc_info=True)
             raise
+
+        try:
+            AchievementService(uow).seed_definitions()
+        except Exception:
+            logging.error("Failed to seed achievement definitions", exc_info=True)
+
+        try:
+            MoodService(uow).seed_tags()
+        except Exception:
+            logging.error("Failed to seed mood tags", exc_info=True)
     finally:
         session.close()
         startup_session.close()
@@ -215,6 +231,10 @@ def create_app() -> FastAPI:
     app.include_router(asymmetric_share.router)
     app.include_router(open_science.router)
     app.include_router(api_sync.router)
+    app.include_router(api_habit.router)
+    app.include_router(api_mood.router)
+    app.include_router(api_journal.router)
+    app.include_router(api_achievement.router)
     api_rest.register_auto_crud(app)
 
     frontend_build = os.path.join(

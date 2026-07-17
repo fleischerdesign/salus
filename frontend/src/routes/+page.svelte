@@ -28,6 +28,7 @@
   import VizSleepCoach from '$components/dashboard/VizSleepCoach.svelte';
   import VizWater from '$components/dashboard/VizWater.svelte';
   import VizCircadian from '$components/dashboard/VizCircadian.svelte';
+  import VizLineChart from '$components/dashboard/VizLineChart.svelte';
 
   let displayDate = $state(new Date().toISOString().split('T')[0]);
   let displayDateFormatted = $state(
@@ -448,6 +449,12 @@
             <VizWater />
           {:else if viz.type === 'circadian_timeline'}
             <VizCircadian />
+          {:else if viz.type === 'line_chart'}
+            <VizLineChart
+              labels={viz.labels ?? []}
+              series={(viz.series ?? []) as { label: string; data: number[]; color: string }[]}
+              unit={viz.unit ?? undefined}
+            />
           {:else}
             <VizNumber
               value={viz.value ?? '—'}

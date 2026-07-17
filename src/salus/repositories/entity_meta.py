@@ -17,6 +17,10 @@ from salus.models.notification import Notification
 from salus.models.sharing import FederatedAccessLog, LeaderboardGroup, LeaderboardMember, SharingRelationship
 from salus.models.user import User
 from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
+from salus.models.habit import Habit, HabitLog
+from salus.models.mood import MoodTag, MoodEntry
+from salus.models.journal import JournalEntry
+from salus.models.achievement import AchievementDefinition, UserAchievement
 
 if TYPE_CHECKING:
     from salus.schemas.sync import SyncOperation
@@ -67,6 +71,13 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="api_token", model=ApiToken, strategy="append_only", timestamp_field="created_at", no_soft_delete=True, batch_size=500),
     EntityMeta(name="federated_access_log", model=FederatedAccessLog, strategy="append_only", owner_field="owner_id", timestamp_field="accessed_at", no_soft_delete=True, batch_size=500),
     EntityMeta(name="user", model=User, strategy="user_scoped", batch_size=500),
+    EntityMeta(name="habit", model=Habit, batch_size=500),
+    EntityMeta(name="habit_log", model=HabitLog, batch_size=2000),
+    EntityMeta(name="mood_tag", model=MoodTag, strategy="global", no_soft_delete=True, batch_size=500),
+    EntityMeta(name="mood_entry", model=MoodEntry, batch_size=500),
+    EntityMeta(name="journal_entry", model=JournalEntry, batch_size=500),
+    EntityMeta(name="achievement_definition", model=AchievementDefinition, strategy="global", no_soft_delete=True, batch_size=500),
+    EntityMeta(name="user_achievement", model=UserAchievement, no_soft_delete=True, batch_size=500),
 ]
 
 # ── Derived mappings ──

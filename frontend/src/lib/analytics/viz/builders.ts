@@ -12,7 +12,8 @@ export interface WidgetViz {
     | 'workout_launcher'
     | 'sleep_coach'
     | 'water_logger'
-    | 'circadian_timeline';
+    | 'circadian_timeline'
+    | 'line_chart';
   title: string;
   value: string | number;
   unit?: string;
@@ -26,6 +27,8 @@ export interface WidgetViz {
   goal_target?: number;
   sparkline_path?: string;
   segments?: Array<{ label: string; pct: number }>;
+  labels?: string[];
+  series?: Array<{ label: string; data: number[]; color: string; yAxis?: string }>;
 }
 
 export interface VizContext {
@@ -354,13 +357,90 @@ export function buildGenericViz(ctx: VizContext): WidgetViz {
   };
 }
 
+export function buildBloodPressureViz(ctx: VizContext): WidgetViz {
+  const sysM = ctx.allMeasurements
+    .filter((m) => m.metric_code === 'systolic_bp' && !m.deleted_at && m.value_numeric != null)
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  const diaM = ctx.allMeasurements
+    .filter((m) => m.metric_code === 'diastolic_bp' && !m.deleted_at && m.value_numeric != null)
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+  if (sysM.length === 0 || diaM.length === 0) {
+    return {
+      type: 'line_chart',
+      title: 'Blood Pressure',
+      value: '—',
+      unit: 'mmHg',
+      color: ctx.color ?? '#ef4444',
+      empty: true,
+      empty_text: 'No blood pressure data.'
+    };
+  }
+
+  const byDate = new Map<string, { systolic: number[]; diastolic: number[] }>();
+  for (const m of sysM) {
+    const d = m.start_time.split('T')[0];
+    if (!byDate.has(d)) byDate.set(d, { systolic: [], diastolic: [] });
+    byDate.get(d)!.systolic.push(m.value_numeric!);
+  }
+  for (const m of diaM) {
+    const d = m.start_time.split('T')[0];
+    if (!byDate.has(d)) byDate.set(d, { systolic: [], diastolic: [] });
+    byDate.get(d)!.diastolic.push(m.value_numeric!);
+  }
+
+  const sorted = [...byDate.entries()]
+    .filter(([, v]) => v.systolic.length > 0 && v.diastolic.length > 0)
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  if (sorted.length === 0) {
+    return {
+      type: 'line_chart',
+      title: 'Blood Pressure',
+      value: '—',
+      unit: 'mmHg',
+      color: ctx.color ?? '#ef4444',
+      empty: true,
+      empty_text: 'No blood pressure data.'
+    };
+  }
+
+  const recent = sorted.slice(-14);
+  const labels = recent.map(([d]) => d.slice(5));
+  const systolicData = recent.map(([, v]) => {
+    const avg = v.systolic.reduce((s, x) => s + x, 0) / v.systolic.length;
+    return Math.round(avg * 10) / 10;
+  });
+  const diastolicData = recent.map(([, v]) => {
+    const avg = v.diastolic.reduce((s, x) => s + x, 0) / v.diastolic.length;
+    return Math.round(avg * 10) / 10;
+  });
+
+  const latestSys = systolicData[systolicData.length - 1];
+  const latestDia = diastolicData[diastolicData.length - 1];
+
+  return {
+    type: 'line_chart',
+    title: 'Blood Pressure',
+    value: `${latestSys.toFixed(0)} / ${latestDia.toFixed(0)}`,
+    unit: 'mmHg',
+    color: ctx.color ?? '#ef4444',
+    labels,
+    series: [
+      { label: 'Systolic', data: systolicData, color: '#ef4444' },
+      { label: 'Diastolic', data: diastolicData, color: '#3b82f6' }
+    ]
+  };
+}
+
 export const builders: Record<string, BuilderFn> = {
   steps: buildStepsViz,
   heart_rate: buildHeartRateViz,
   sleep: buildSleepViz,
   weight: buildWeightViz,
   nutrition: buildNutritionViz,
-  exercise: buildExerciseViz
+  exercise: buildExerciseViz,
+  blood_pressure: buildBloodPressureViz
 };
 
 export function buildViz(ctx: VizContext): WidgetViz {

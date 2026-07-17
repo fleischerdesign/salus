@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol, TypeVar, runtime_checkable
 
 from salus.models.api_token import ApiToken
@@ -23,6 +23,10 @@ from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.notification import Notification
 from salus.models.sync_push_log import SyncPushLog
+from salus.models.habit import Habit, HabitLog
+from salus.models.mood import MoodTag, MoodEntry
+from salus.models.journal import JournalEntry
+from salus.models.achievement import AchievementDefinition, UserAchievement
 
 T = TypeVar("T")
 
@@ -380,3 +384,66 @@ class IFederatedMeasurementCacheRepository(IRepository[FederatedMeasurementCache
 @runtime_checkable
 class IFederatedAccessLogRepository(IRepository[FederatedAccessLog], Protocol):
     def find_by_owner(self, owner_id: str) -> list[FederatedAccessLog]: ...
+
+
+@runtime_checkable
+class IHabitRepository(IRepository[Habit], Protocol):
+    def find_by_user(self, user_id: str) -> list[Habit]: ...
+
+    def find_active(self, user_id: str) -> list[Habit]: ...
+
+
+@runtime_checkable
+class IHabitLogRepository(IRepository[HabitLog], Protocol):
+    def find_by_habit(self, habit_id: str) -> list[HabitLog]: ...
+
+    def find_by_habit_and_user(self, habit_id: str, user_id: str) -> list[HabitLog]: ...
+
+    def find_by_user_and_date_range(self, user_id: str, since: date, until: date) -> list[HabitLog]: ...
+
+    def find_by_habit_and_date(self, habit_id: str, log_date: date) -> HabitLog | None: ...
+
+    def find_all_by_user(self, user_id: str) -> list[HabitLog]: ...
+
+
+@runtime_checkable
+class IMoodTagRepository(IRepository[MoodTag], Protocol):
+    def find_all_tags(self) -> list[MoodTag]: ...
+
+
+@runtime_checkable
+class IMoodEntryRepository(IRepository[MoodEntry], Protocol):
+    def find_by_user(self, user_id: str) -> list[MoodEntry]: ...
+
+    def find_by_user_range(self, user_id: str, since: date, until: date) -> list[MoodEntry]: ...
+
+    def find_by_user_and_date(self, user_id: str, entry_date: date) -> MoodEntry | None: ...
+
+
+@runtime_checkable
+class IJournalEntryRepository(IRepository[JournalEntry], Protocol):
+    def find_by_user(self, user_id: str, offset: int = 0, limit: int = 20) -> list[JournalEntry]: ...
+
+    def count_by_user(self, user_id: str) -> int: ...
+
+    def find_by_user_range(self, user_id: str, since: date, until: date) -> list[JournalEntry]: ...
+
+    def find_by_user_and_date(self, user_id: str, entry_date: date) -> JournalEntry | None: ...
+
+    def search(self, user_id: str, query: str, offset: int = 0, limit: int = 20) -> list[JournalEntry]: ...
+
+
+@runtime_checkable
+class IAchievementDefinitionRepository(IRepository[AchievementDefinition], Protocol):
+    def find_all(self) -> list[AchievementDefinition]: ...
+
+    def find_by_code(self, code: str) -> AchievementDefinition | None: ...
+
+    def find_by_category(self, category: str) -> list[AchievementDefinition]: ...
+
+
+@runtime_checkable
+class IUserAchievementRepository(IRepository[UserAchievement], Protocol):
+    def find_by_user(self, user_id: str) -> list[UserAchievement]: ...
+
+    def find_by_user_and_code(self, user_id: str, achievement_code: str) -> UserAchievement | None: ...

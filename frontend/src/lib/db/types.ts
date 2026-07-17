@@ -381,3 +381,90 @@ export interface ApiToken {
   last_used_at: string | null;
   is_active: boolean;
 }
+
+export interface Habit {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  icon: string;
+  frequency: string;
+  target_count: number;
+  days_bitmask: number | null;
+  stack_hint: string | null;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface HabitLog {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  log_date: string;
+  completed: boolean;
+  completed_at: string | null;
+  notes: string | null;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface MoodTag {
+  code: string;
+  label: string;
+  emoji: string | null;
+  category: string;
+  is_system: boolean;
+}
+
+export interface MoodEntry {
+  id: string;
+  user_id: string;
+  entry_date: string;
+  mood_score: number;
+  energy_level: number | null;
+  stress_level: number | null;
+  tag_codes: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface JournalEntry {
+  id: string;
+  user_id: string;
+  entry_date: string;
+  title: string | null;
+  content: string;
+  mood_score: number | null;
+  is_private: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface AchievementDefinition {
+  code: string;
+  title: string;
+  description: string;
+  icon: string;
+  tier: string;
+  category: string;
+  condition_type: string;
+  condition_config: string;
+  is_hidden: boolean;
+  sort_order: number;
+}
+
+export interface UserAchievement {
+  id: string;
+  user_id: string;
+  achievement_code: string;
+  unlocked_at: string;
+  progress_current: number | null;
+  progress_target: number | null;
+  notified: boolean;
+}

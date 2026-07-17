@@ -30,8 +30,18 @@ class UserService:
 
         # Seed global metric definitions (idempotent)
         for md_data in METRIC_DEFINITIONS:
-            if session.get(MetricDefinition, md_data["code"]) is None:
+            existing = session.get(MetricDefinition, md_data["code"])
+            if existing is None:
                 session.add(MetricDefinition(**md_data))
+            else:
+                # Update mutable fields for existing definitions (e.g. source_data_type)
+                changed = False
+                for key in ("source_data_type", "group_key", "unit", "name", "sort_order"):
+                    if key in md_data and getattr(existing, key) != md_data[key]:
+                        setattr(existing, key, md_data[key])
+                        changed = True
+                if changed:
+                    session.add(existing)
 
         # Seed user preferences
         for p in DEFAULT_METRIC_PREFERENCES:

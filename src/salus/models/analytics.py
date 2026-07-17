@@ -127,3 +127,10 @@ class GoalProgress:
     predicted_ci_lower: float | None = None
     predicted_ci_upper: float | None = None
     trend_r_squared: float | None = None
+
+
+@dataclass
+class BloodPressurePoint:
+    date: str
+    systolic: float
+    diastolic: float

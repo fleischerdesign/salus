@@ -45,6 +45,8 @@ class WidgetViz:
     forecast_lower: float | None = None
     forecast_upper: float | None = None
     sparkline_path: str | None = None
+    labels: list[str] | None = None
+    series: list[dict] | None = None
 
 
 @dataclass

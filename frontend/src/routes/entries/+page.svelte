@@ -18,15 +18,11 @@
   let allPrefs = liveQuery(() => db.user_metric_preference.toArray());
   let groups = liveQuery(() => db.metric_group.toArray());
 
-  let metrics = $derived(
-    $allDefs && $allPrefs ? mergeMetricPrefs($allDefs, $allPrefs) : null
-  );
+  let metrics = $derived($allDefs && $allPrefs ? mergeMetricPrefs($allDefs, $allPrefs) : null);
   let overviews = liveQuery(() => fetchMetricOverview());
 
   let groupedMetrics = $derived(
-    metrics && $groups
-      ? metrics.filter((m) => m.group_key != null)
-      : []
+    metrics && $groups ? metrics.filter((m) => m.group_key != null) : []
   );
   let standaloneMetrics = $derived(
     metrics ? metrics.filter((m) => m.group_key == null && m.enabled) : []
@@ -82,11 +78,7 @@
       {#each $groups as group, i (group.key)}
         {@const gMetrics = metricsInGroup(group.key)}
         {#if gMetrics.length > 0}
-          <a
-            href="/entries/{group.key}"
-            class="no-underline"
-            in:fade={{ ...staggerFade(i) }}
-          >
+          <a href="/entries/{group.key}" class="no-underline" in:fade={{ ...staggerFade(i) }}>
             <Card padding={false} hoverable>
               {#snippet header()}
                 <div class="flex items-center gap-3">
@@ -102,7 +94,9 @@
                       {gMetrics.map((m) => m.name).join(', ')}
                     </p>
                   </div>
-                  <div class="flex h-6 items-center rounded-full bg-surface-100 px-2 text-xs text-surface-500">
+                  <div
+                    class="flex h-6 items-center rounded-full bg-surface-100 px-2 text-xs text-surface-500"
+                  >
                     {gMetrics.length}
                   </div>
                 </div>
@@ -129,7 +123,11 @@
       <!-- Standalone metric cards -->
       {#each standaloneMetrics as m, i (m.code)}
         {@const ov = overviewForMetric($overviews, m.code)}
-        <a href="/entries/{m.code}" class="no-underline" in:fade={{ ...staggerFade(groupedMetrics.length + i) }}>
+        <a
+          href="/entries/{m.code}"
+          class="no-underline"
+          in:fade={{ ...staggerFade(groupedMetrics.length + i) }}
+        >
           <Card padding={false} hoverable>
             {#snippet header()}
               <div class="flex items-center gap-3">
