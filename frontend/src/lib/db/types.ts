@@ -524,3 +524,75 @@ export interface MedicationInventory {
   updated_at: string | null;
   deleted_at: string | null;
 }
+
+export interface FoodItem {
+  id: string;
+  name: string;
+  brand: string | null;
+  barcode: string | null;
+  serving_size: number;
+  serving_unit: string;
+  calories_per_serving: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number | null;
+  sugar_g: number | null;
+  saturated_fat_g: number | null;
+  sodium_mg: number | null;
+  is_verified: boolean;
+  user_id: string | null;
+  source: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface Meal {
+  id: string;
+  user_id: string;
+  log_date: string;
+  meal_type: string;
+  name: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface MealItem {
+  id: string;
+  meal_id: string;
+  user_id: string;
+  food_item_id: string;
+  servings: number;
+  amount_g: number | null;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface Recipe {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  instructions: string | null;
+  servings: number;
+  prep_time_min: number | null;
+  cook_time_min: number | null;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface RecipeIngredient {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  food_item_id: string;
+  amount_g: number;
+  notes: string | null;
+  created_at: string;
+  deleted_at: string | null;
+}

@@ -23,6 +23,7 @@ const SKIP_NAMES = new Set([
   'systolic', 'diastolic', 'deadline', 'instructions', 'locale', 'timestamp',
   'content', 'title',
   'dosage', 'strength', 'time',
+  'brand', 'calories', 'carbs', 'fat', 'protein', 'servings',
 ]);
 
 function walk(dir) {

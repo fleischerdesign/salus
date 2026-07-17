@@ -38,7 +38,12 @@ import type {
   Medication,
   MedicationSchedule,
   MedicationLog,
-  MedicationInventory
+  MedicationInventory,
+  FoodItem,
+  Meal,
+  MealItem,
+  Recipe,
+  RecipeIngredient
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -80,6 +85,11 @@ export class SalusDB extends Dexie {
   medication_schedule!: EntityTable<MedicationSchedule, 'id'>;
   medication_log!: EntityTable<MedicationLog, 'id'>;
   medication_inventory!: EntityTable<MedicationInventory, 'id'>;
+  food_item!: EntityTable<FoodItem, 'id'>;
+  meal!: EntityTable<Meal, 'id'>;
+  meal_item!: EntityTable<MealItem, 'id'>;
+  recipe!: EntityTable<Recipe, 'id'>;
+  recipe_ingredient!: EntityTable<RecipeIngredient, 'id'>;
   outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
   analytics_cache!: EntityTable<
@@ -214,6 +224,13 @@ export class SalusDB extends Dexie {
       medication_schedule: 'id, medication_id, user_id',
       medication_log: 'id, medication_id, user_id',
       medication_inventory: 'id, medication_id, user_id'
+    });
+    this.version(16).stores({
+      food_item: 'id, barcode',
+      meal: 'id, user_id, log_date',
+      meal_item: 'id, meal_id, user_id, food_item_id',
+      recipe: 'id, user_id',
+      recipe_ingredient: 'id, recipe_id, user_id, food_item_id'
     });
   }
 }
