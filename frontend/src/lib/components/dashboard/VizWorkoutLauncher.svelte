@@ -59,7 +59,7 @@
   {#if $activeSession}
     <div class="flex flex-col gap-3 rounded-lg border border-primary-100 bg-primary-50 p-4">
       <div class="flex items-center gap-2 text-primary-700">
-        <span class="material-symbols-outlined animate-pulse text-xl">fitbit_workout</span>
+        <Icon name="exercise" size="lg" class="animate-pulse text-primary-700" />
         <span class="text-sm font-semibold">Workout in progress!</span>
       </div>
       <p class="text-xs text-primary-600">

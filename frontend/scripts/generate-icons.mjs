@@ -15,12 +15,13 @@ const METRIC_TYPE_ICON_RE = /['"]([a-z0-9][a-z0-9-]+)['"]\s*,\s*['"](?:small|med
 
 const SKIP_NAMES = new Set([
   'name', 'label', 'value', 'password', 'username', 'email',
-  'metric', 'exercise', 'reps', 'rpe', 'weight', 'unit', 'target',
+  'metric', 'reps', 'rpe', 'weight', 'unit', 'target',
   'direction', 'frequency', 'timeframe', 'equipment', 'muscles',
   'notes', 'size', 'handle', 'lat', 'lon', 'tz', 'viewport',
   'file', 'theme', 'icon', 'new', 'current', 'progress',
   'chronotype', 'multiselect', 'edit-size',
   'systolic', 'diastolic', 'deadline', 'instructions', 'locale', 'timestamp',
+  'content', 'title',
 ]);
 
 function walk(dir) {

@@ -3,6 +3,7 @@
   import { db } from '$lib/db/database';
   import type { MoodEntry } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import Card from '$components/ui/Card.svelte';
   import MoodPicker from '$components/mood/MoodPicker.svelte';
   import MoodCalendar from '$components/mood/MoodCalendar.svelte';
   import { createMoodEntry } from '$lib/mutations/wellness';
@@ -49,16 +50,16 @@
   {#if loading}
     <div class="h-32 animate-pulse rounded-xl bg-surface-100"></div>
   {:else}
-    <div class="rounded-xl border border-surface-200 bg-surface-0 p-6">
+    <Card>
       <h3 class="mb-3 text-sm font-semibold text-surface-700">How are you today?</h3>
       <MoodPicker {score} onSelect={handleSelect} />
       {#if saving}
         <p class="mt-2 text-xs text-surface-400">Saving...</p>
       {/if}
-    </div>
+    </Card>
 
-    <div class="rounded-xl border border-surface-200 bg-surface-0 p-6">
+    <Card>
       <MoodCalendar {entries} onSelectDate={(d) => {}} />
-    </div>
+    </Card>
   {/if}
 </div>

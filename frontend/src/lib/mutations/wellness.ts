@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { db } from '$lib/db/database';
 
 export async function createHabit(data: {
   name: string;
@@ -20,11 +21,47 @@ export async function createHabit(data: {
 }
 
 export async function toggleHabit(habitId: string) {
-  const res = await fetch(`/api/v1/habits/${habitId}/check`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
+  const today = new Date().toISOString().split('T')[0];
+  const existing = await db.habit_log
+    .where({ habit_id: habitId })
+    .filter((l) => l.log_date === today && l.completed)
+    .first();
+
+  if (existing) {
+    return mutate({
+      kind: 'crud',
+      op: 'delete',
+      entity: 'habit_log',
+      id: existing.id,
+      data: { id: existing.id }
+    });
+  }
+
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  return mutate({
+    kind: 'crud',
+    op: 'create',
+    entity: 'habit_log',
+    id,
+    data: {
+      habit_id: habitId,
+      log_date: today,
+      completed: true,
+      completed_at: now,
+    },
+    optimistic: {
+      id,
+      habit_id: habitId,
+      user_id: '',
+      log_date: today,
+      completed: true,
+      completed_at: now,
+      notes: null,
+      created_at: now,
+      deleted_at: null,
+    }
   });
-  return res.json();
 }
 
 export async function updateHabit(

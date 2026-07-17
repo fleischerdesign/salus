@@ -34,6 +34,10 @@ from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, Wor
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.sync_push_log import SyncPushLog
+from salus.models.achievement import AchievementDefinition, UserAchievement
+from salus.models.mood import MoodTag, MoodEntry
+from salus.models.habit import Habit, HabitLog
+from salus.models.journal import JournalEntry
 
 
 # Dynamically load plugins to register custom tables/models in SQLModel.metadata

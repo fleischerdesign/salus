@@ -13,6 +13,7 @@
   import { db } from '$lib/db/database';
   import { setLocaleState } from '$lib/api/headers';
   import { onMount } from 'svelte';
+  import Icon from '$components/ui/Icon.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
@@ -88,7 +89,7 @@
     >
       <div class="flex flex-col items-center gap-4 text-center">
         <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
-          <span class="material-symbols-outlined text-3xl text-surface-400">vpn_key_off</span>
+          <Icon name="vpn-key-off" size="2xl" class="text-surface-400" />
         </div>
         <div>
           <p class="text-sm font-semibold text-surface-900">Session expired</p>

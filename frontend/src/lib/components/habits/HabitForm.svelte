@@ -91,6 +91,7 @@
   }
 </script>
 
+<!-- scanner hints: icon="self-improvement" icon="restaurant" icon="music-note" -->
 <Modal title={habit ? 'Edit Habit' : 'New Habit'} bind:open>
   <form
     onsubmit={(e) => {

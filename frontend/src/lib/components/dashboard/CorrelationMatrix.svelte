@@ -1,5 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition';
+  import Icon from '$components/ui/Icon.svelte';
   import MethodologyBadge from '$components/ui/MethodologyBadge.svelte';
 
   interface CorrPair {
@@ -110,7 +111,7 @@
           onclick={() => (selected = null)}
           aria-label="Close"
         >
-          <span class="material-symbols-outlined text-sm">close</span>
+          <Icon name="close" size="sm" />
         </button>
       </div>
       <div class="grid grid-cols-2 gap-2 text-xs text-surface-600 sm:grid-cols-4">

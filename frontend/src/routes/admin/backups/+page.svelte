@@ -53,73 +53,43 @@
   async function createBackup() {
     creating = true;
     error = '';
-    try {
-      const res = await fetch('/api/v1/admin/backups', {
-        method: 'POST',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
-      });
-      creating = false;
-      if (!res.ok) {
-        let msg = 'Request failed';
-        try {
-          const body = await res.json();
-          msg = body.detail ?? body.message ?? 'Request failed';
-        } catch {
-          /* use default */
-        }
-        error = msg;
-        return;
-      }
-      success = 'Backup created successfully.';
-      await load();
-    } catch {
-      creating = false;
-      error = 'Network error';
+    const { error: apiError } = await api.POST('/api/v1/admin/backups');
+    creating = false;
+    if (apiError) {
+      error = 'Request failed';
+      return;
     }
+    success = 'Backup created successfully.';
+    await load();
   }
 
   async function doRestore() {
     if (!restoreTarget) return;
     error = '';
-    try {
-      const res = await fetch(`/api/v1/admin/backups/${restoreTarget}/restore`, {
-        method: 'POST',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
-      });
-      restoreTarget = null;
-      if (!res.ok) {
-        let msg = 'Request failed';
-        try {
-          const body = await res.json();
-          msg = body.detail ?? body.message ?? 'Request failed';
-        } catch {
-          /* use default */
-        }
-        error = msg;
-        return;
-      }
-      success = 'Database restored successfully. The server may restart.';
-      await load();
-    } catch {
-      restoreTarget = null;
-      error = 'Network error';
+    const { error: apiError } = await api.POST('/api/v1/admin/backups/{filename}/restore', {
+      params: { path: { filename: restoreTarget } }
+    });
+    restoreTarget = null;
+    if (apiError) {
+      error = 'Request failed';
+      return;
     }
+    success = 'Database restored successfully. The server may restart.';
+    await load();
   }
 
   async function doDelete() {
     if (!deleteTarget) return;
-    try {
-      await fetch(`/api/v1/admin/backups/${deleteTarget}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-      deleteTarget = null;
-      success = 'Backup deleted.';
-      await load();
-    } catch {
-      deleteTarget = null;
-      error = 'Network error';
+    const { error: apiError } = await api.DELETE('/api/v1/admin/backups/{filename}', {
+      params: { path: { filename: deleteTarget } }
+    });
+    deleteTarget = null;
+    if (apiError) {
+      error = 'Request failed';
+      return;
     }
+    success = 'Backup deleted.';
+    await load();
   }
 
   async function uploadBackup(e: SubmitEvent) {
@@ -133,7 +103,11 @@
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
     try {
-      const res = await fetch('/api/v1/admin/backups/upload', { method: 'POST', body: fd });
+      const res = await fetch('/api/v1/admin/backups/upload', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: fd
+      });
       if (!res.ok) {
         error = 'Upload failed.';
         return;

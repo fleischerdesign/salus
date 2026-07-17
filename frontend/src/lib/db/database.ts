@@ -197,7 +197,7 @@ export class SalusDB extends Dexie {
       habit_log: 'id, habit_id, user_id, log_date',
       mood_tag: '&code',
       mood_entry: 'id, user_id',
-      journal_entry: 'id, user_id',
+      journal_entry: 'id, user_id, entry_date',
       achievement_definition: '&code',
       user_achievement: 'id, user_id, achievement_code'
     });

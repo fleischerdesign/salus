@@ -6,6 +6,8 @@
   import HabitGrid from '$components/habits/HabitGrid.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
   import { toggleHabit, createHabit as createHabitMut, deleteHabit } from '$lib/mutations/wellness';
+  import Icon from '$components/ui/Icon.svelte';
+  import Card from '$components/ui/Card.svelte';
 
   let loading = $state(true);
   let habits = $state<Habit[]>([]);
@@ -85,7 +87,7 @@
             formOpen = true;
           }}
         >
-          <span class="material-symbols-outlined text-base">add</span><span>New Habit</span>
+          <Icon name="add" class="text-base" /><span>New Habit</span>
         </button>
       </div>
     {/snippet}
@@ -115,12 +117,14 @@
         >
         <div class="mt-2 grid grid-cols-1 gap-3 opacity-60 sm:grid-cols-2 lg:grid-cols-3">
           {#each archivedHabits as habit}
-            <div
-              class="flex items-center gap-3 rounded-xl border border-surface-200 bg-surface-0 p-3"
-            >
-              <span class="material-symbols-outlined text-surface-400">{habit.icon}</span>
-              <span class="text-sm text-surface-500">{habit.name}</span>
-            </div>
+            <a href="/habits/{habit.id}" class="no-underline">
+              <Card padding={false}>
+                <div class="flex items-center gap-3 p-3">
+                  <Icon name={habit.icon} class="text-surface-400" />
+                  <span class="text-sm text-surface-500">{habit.name}</span>
+                </div>
+              </Card>
+            </a>
           {/each}
         </div>
       </details>

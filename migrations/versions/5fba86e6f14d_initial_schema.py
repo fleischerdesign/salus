@@ -444,6 +444,107 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["session_id"], ["workout_session.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_table(
+        "achievement_definition",
+        sa.Column("code", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("title", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("icon", sqlmodel.sql.sqltypes.AutoString(), nullable=False, server_default="emoji-events"),
+        sa.Column("tier", sa.Enum("BRONZE", "SILVER", "GOLD", "PLATINUM", name="achievementtier"), nullable=False, server_default="BRONZE"),
+        sa.Column("category", sa.Enum("TRACKING", "STREAK", "MILESTONE", "GOAL", "WORKOUT", "HABIT", "SOCIAL", "SPECIAL", name="achievementcategory"), nullable=False, server_default="TRACKING"),
+        sa.Column("condition_type", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("condition_config", sqlmodel.sql.sqltypes.AutoString(), nullable=False, server_default="{}"),
+        sa.Column("is_hidden", sa.Boolean(), nullable=False, server_default="0"),
+        sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
+        sa.PrimaryKeyConstraint("code"),
+    )
+    op.create_table(
+        "mood_tag",
+        sa.Column("code", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("label", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("emoji", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("category", sa.Enum("POSITIVE", "NEUTRAL", "NEGATIVE", name="moodtagcategory"), nullable=False, server_default="NEUTRAL"),
+        sa.Column("is_system", sa.Boolean(), nullable=False, server_default="1"),
+        sa.PrimaryKeyConstraint("code"),
+    )
+    op.create_table(
+        "habit",
+        sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("color", sqlmodel.sql.sqltypes.AutoString(), nullable=False, server_default="#4f46e5"),
+        sa.Column("icon", sqlmodel.sql.sqltypes.AutoString(), nullable=False, server_default="check-circle"),
+        sa.Column("frequency", sa.Enum("DAILY", "WEEKLY_N", "CUSTOM_DAYS", name="habitfrequency"), nullable=False, server_default="DAILY"),
+        sa.Column("target_count", sa.Integer(), nullable=False, server_default="1"),
+        sa.Column("days_bitmask", sa.Integer(), nullable=True),
+        sa.Column("stack_hint", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("is_archived", sa.Boolean(), nullable=False, server_default="0"),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("deleted_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
+        "journal_entry",
+        sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("entry_date", sa.Date(), nullable=False),
+        sa.Column("title", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("content", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("mood_score", sa.Integer(), nullable=True),
+        sa.Column("is_private", sa.Boolean(), nullable=False, server_default="1"),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("deleted_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
+        "user_achievement",
+        sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("achievement_code", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("unlocked_at", sa.DateTime(), nullable=False),
+        sa.Column("progress_current", sa.Float(), nullable=True),
+        sa.Column("progress_target", sa.Float(), nullable=True),
+        sa.Column("notified", sa.Boolean(), nullable=False, server_default="0"),
+        sa.ForeignKeyConstraint(["achievement_code"], ["achievement_definition.code"]),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
+        "mood_entry",
+        sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("entry_date", sa.Date(), nullable=False),
+        sa.Column("mood_score", sa.Integer(), nullable=False),
+        sa.Column("energy_level", sa.Integer(), nullable=True),
+        sa.Column("stress_level", sa.Integer(), nullable=True),
+        sa.Column("tag_codes", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("notes", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("deleted_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
+        "habit_log",
+        sa.Column("id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("habit_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("user_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("log_date", sa.Date(), nullable=False),
+        sa.Column("completed", sa.Boolean(), nullable=False, server_default="0"),
+        sa.Column("completed_at", sa.DateTime(), nullable=True),
+        sa.Column("notes", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("deleted_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(["habit_id"], ["habit.id"]),
+        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
 
     op.execute(
         """INSERT INTO metric_group (key, name, icon, input_mode) VALUES
@@ -475,6 +576,13 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.drop_table("habit_log")
+    op.drop_table("mood_entry")
+    op.drop_table("user_achievement")
+    op.drop_table("journal_entry")
+    op.drop_table("habit")
+    op.drop_table("mood_tag")
+    op.drop_table("achievement_definition")
     op.drop_table("workout_log_entry")
     op.drop_table("workout_session")
     op.drop_table("workout_plan_exercise")

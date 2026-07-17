@@ -85,7 +85,7 @@
 <div class="flex flex-col gap-4">
   {#if !$sleepDebtData}
     <div class="flex flex-col items-center justify-center py-6 text-center">
-      <span class="material-symbols-outlined text-3xl text-surface-300">bedtime</span>
+      <Icon name="bedtime" size="2xl" class="text-surface-300" />
       <p class="mt-2 text-xs text-surface-500">
         Requires at least 3 logged nights of sleep to calculate sleep debt.
       </p>

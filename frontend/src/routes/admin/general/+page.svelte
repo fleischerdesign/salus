@@ -3,6 +3,7 @@
   import { db } from '$lib/db/database';
   import { pullFull } from '$lib/db/sync-pull';
   import type { SystemConfigItem } from '$lib/db/types';
+  import { setConfig } from '$lib/mutations/admin';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
@@ -30,14 +31,9 @@
   async function saveEdit() {
     if (!editingKey) return;
     error = '';
-    const res = await fetch('/api/v1/admin/config/' + editingKey, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: editValue })
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      error = (body as { detail?: string }).detail ?? 'Failed to update';
+    const result = await setConfig(editingKey, editValue);
+    if (!result.ok) {
+      error = result.error ?? 'Failed to update';
       return;
     }
     success = `Updated ${editingKey}`;

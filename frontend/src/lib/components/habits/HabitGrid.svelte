@@ -1,5 +1,6 @@
 <script lang="ts">
   import HabitCard from './HabitCard.svelte';
+  import Icon from '$components/ui/Icon.svelte';
   import type { Habit } from '$lib/db/types';
 
   interface Props {
@@ -18,7 +19,7 @@
 {#if habits.length === 0}
   <div class="flex flex-col items-center justify-center gap-3 py-16 text-center">
     <div class="rounded-full bg-surface-100 p-4 text-surface-400">
-      <span class="material-symbols-outlined text-3xl">check-circle</span>
+      <Icon name="check-circle" size="2xl" class="text-surface-400" />
     </div>
     <h3 class="text-lg font-semibold text-surface-900">No habits yet</h3>
     <p class="max-w-xs text-sm text-surface-500">

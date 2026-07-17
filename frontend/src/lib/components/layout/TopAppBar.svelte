@@ -207,6 +207,7 @@
   }
 </script>
 
+<!-- scanner hint: icon="menu" -->
 <header class="sticky top-0 z-200 h-16 border-b border-surface-200 bg-surface-0" data-scrolled>
   <div class="mx-auto flex h-full max-w-[1440px] items-center gap-6 px-6 md:px-10">
     {#if auth.isAuthenticated}

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Icon from '$components/ui/Icon.svelte';
+
   interface Props {
     score: number;
     onSelect: (score: number) => void;
@@ -6,7 +8,18 @@
 
   let { score, onSelect }: Props = $props();
 
-  const emojis = ['😫', '😢', '😞', '😕', '😐', '🙂', '😊', '😄', '😁', '🤩'];
+  const moodIcons = [
+    'mood-bad',
+    'sentiment-dissatisfied',
+    'sentiment-dissatisfied',
+    'sentiment-neutral',
+    'sentiment-neutral',
+    'sentiment-satisfied',
+    'sentiment-satisfied',
+    'sentiment-very-satisfied',
+    'sentiment-very-satisfied',
+    'celebration'
+  ];
   const labels = [
     'Terrible',
     'Awful',
@@ -35,7 +48,7 @@
 
 <div class="space-y-4">
   <div class="grid grid-cols-10 gap-1.5">
-    {#each emojis as emoji, i}
+    {#each moodIcons as icon, i}
       {@const idx = i + 1}
       {@const selected = score === idx}
       <button
@@ -47,14 +60,14 @@
         class:ring-primary-400={selected}
         onclick={() => onSelect(idx)}
       >
-        <span class="text-2xl">{emoji}</span>
+        <Icon name={icon} size="xl" />
         <span class="text-[10px] leading-tight text-surface-500">{labels[i]}</span>
       </button>
     {/each}
   </div>
   {#if score > 0}
     <div class="flex items-center gap-3 rounded-lg bg-surface-50 px-4 py-2.5">
-      <span class="text-lg">{emojis[score - 1]}</span>
+      <Icon name={moodIcons[score - 1]} size="lg" />
       <div class="flex-1">
         <div class="text-sm font-semibold text-surface-800">{labels[score - 1]}</div>
         <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
@@ -68,3 +81,5 @@
     </div>
   {/if}
 </div>
+
+<!-- scanner hints: icon="mood-bad" icon="sentiment-dissatisfied" icon="sentiment-neutral" icon="sentiment-very-satisfied" -->

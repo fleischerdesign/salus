@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { MoodEntry } from '$lib/db/types';
+  import Icon from '$components/ui/Icon.svelte';
 
   interface Props {
     entries: MoodEntry[];
@@ -60,7 +61,7 @@
       class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
       onclick={prevMonth}
     >
-      <span class="material-symbols-outlined text-lg">chevron-left</span>
+      <Icon name="chevron-left" size="lg" class="text-surface-500" />
     </button>
     <span class="text-sm font-semibold text-surface-800">{monthLabel}</span>
     <button
@@ -68,7 +69,7 @@
       class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
       onclick={nextMonth}
     >
-      <span class="material-symbols-outlined text-lg">chevron-right</span>
+      <Icon name="chevron-right" size="lg" class="text-surface-500" />
     </button>
   </div>
 

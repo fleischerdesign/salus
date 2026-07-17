@@ -2,6 +2,8 @@
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import Card from '$components/ui/Card.svelte';
+  import Icon from '$components/ui/Icon.svelte';
   import type { AchievementDefinition, UserAchievement } from '$lib/db/types';
 
   let loading = $state(true);
@@ -56,31 +58,38 @@
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
       {#each visibleDefs as def (def.code)}
         {@const isUnlocked = unlockedCodes.has(def.code)}
-        <div
-          class="duration-micro flex flex-col items-center gap-2 rounded-xl border p-4 transition-all"
-          class:border-surface-200={!isUnlocked}
-          class:border-amber-300={isUnlocked}
-          class:bg-surface-0={!isUnlocked}
-          class:bg-gradient-to-br={isUnlocked}
-          class:from-amber-50={isUnlocked}
-          class:to-yellow-50={isUnlocked}
-          class:shadow-sm={isUnlocked}
-          class:opacity-50={!isUnlocked}
-          class:grayscale={!isUnlocked}
+        <Card
+          padding={false}
+          variant={isUnlocked ? 'elevated' : 'flat'}
+          class="duration-micro flex flex-col items-center gap-2 p-4 transition-all {isUnlocked
+            ? 'border-amber-300'
+            : 'opacity-50 grayscale'}"
         >
+          {#if isUnlocked}
+            <div class="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-amber-50 to-yellow-50"></div>
+          {/if}
           <div
-            class="flex h-12 w-12 items-center justify-center rounded-full text-2xl {isUnlocked
+            class="relative flex h-12 w-12 items-center justify-center rounded-full text-2xl {isUnlocked
               ? (tierColors[def.tier] ?? 'from-surface-400 to-surface-500' + ' text-white')
               : 'bg-surface-100 text-surface-300'} {isUnlocked ? 'bg-gradient-to-br' : ''}"
           >
-            <span class="material-symbols-outlined text-2xl">{isUnlocked ? def.icon : 'lock'}</span>
+            <Icon name={isUnlocked ? def.icon : 'lock'} size="xl" />
           </div>
-          <div class="text-center">
+          <div class="relative text-center">
             <div class="line-clamp-1 text-xs font-semibold text-surface-800">{def.title}</div>
             <div class="text-[10px] text-surface-400 capitalize">{def.tier}</div>
           </div>
-        </div>
+        </Card>
       {/each}
     </div>
+    {#if visibleDefs.length === 0}
+      <div class="flex flex-col items-center gap-3 py-16 text-center">
+        <Icon name="emoji-events" size="2xl" class="text-surface-300" />
+        <h3 class="text-lg font-semibold text-surface-700">No achievements synced yet</h3>
+        <p class="max-w-xs text-sm text-surface-400">
+          Your achievements will appear here once data has been synced.
+        </p>
+      </div>
+    {/if}
   {/if}
 </div>

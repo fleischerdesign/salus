@@ -39,18 +39,12 @@
   }
 
   async function togglePlugin(plugin: Plugin) {
-    const res = await fetch(`/api/v1/admin/plugins/${plugin.plugin_id}/toggle`, {
-      method: 'POST',
-      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enable: !plugin.enabled })
+    const { error: apiError } = await api.POST('/api/v1/admin/plugins/{plugin_id}/toggle', {
+      params: { path: { plugin_id: plugin.plugin_id } },
+      body: { enable: !plugin.enabled }
     });
-    if (!res.ok) {
-      try {
-        const body = await res.json();
-        error = body.detail ?? body.message ?? 'Request failed';
-      } catch {
-        error = 'Request failed';
-      }
+    if (apiError) {
+      error = 'Request failed';
       return;
     }
     await load();
@@ -58,10 +52,13 @@
 
   async function uninstallPlugin(plugin: Plugin) {
     if (!confirm(`Uninstall ${plugin.name}?`)) return;
-    await fetch(`/api/v1/admin/plugins/${plugin.plugin_id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders()
+    const { error: apiError } = await api.DELETE('/api/v1/admin/plugins/{plugin_id}', {
+      params: { path: { plugin_id: plugin.plugin_id } }
     });
+    if (apiError) {
+      error = 'Uninstall failed';
+      return;
+    }
     await load();
   }
 
@@ -76,7 +73,11 @@
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
     try {
-      const res = await fetch('/api/v1/admin/plugins/upload', { method: 'POST', body: fd });
+      const res = await fetch('/api/v1/admin/plugins/upload', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: fd
+      });
       if (!res.ok) {
         error = 'Upload failed.';
         return;
