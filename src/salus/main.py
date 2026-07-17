@@ -34,6 +34,7 @@ from salus.routers import (
     api_dashboard,
     api_habit,
     api_journal,
+    api_medication,
     api_misc,
     api_mood,
     api_rest,
@@ -235,6 +236,7 @@ def create_app() -> FastAPI:
     app.include_router(api_mood.router)
     app.include_router(api_journal.router)
     app.include_router(api_achievement.router)
+    app.include_router(api_medication.router)
     api_rest.register_auto_crud(app)
 
     frontend_build = os.path.join(

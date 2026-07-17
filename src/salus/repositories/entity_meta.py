@@ -21,6 +21,12 @@ from salus.models.habit import Habit, HabitLog
 from salus.models.mood import MoodTag, MoodEntry
 from salus.models.journal import JournalEntry
 from salus.models.achievement import AchievementDefinition, UserAchievement
+from salus.models.medication import (
+    Medication,
+    MedicationInventory,
+    MedicationLog,
+    MedicationSchedule,
+)
 
 if TYPE_CHECKING:
     from salus.schemas.sync import SyncOperation
@@ -78,6 +84,10 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="journal_entry", model=JournalEntry, batch_size=500),
     EntityMeta(name="achievement_definition", model=AchievementDefinition, strategy="global", no_soft_delete=True, batch_size=500),
     EntityMeta(name="user_achievement", model=UserAchievement, no_soft_delete=True, batch_size=500),
+    EntityMeta(name="medication", model=Medication, batch_size=500),
+    EntityMeta(name="medication_schedule", model=MedicationSchedule, batch_size=500),
+    EntityMeta(name="medication_log", model=MedicationLog, batch_size=2000),
+    EntityMeta(name="medication_inventory", model=MedicationInventory, batch_size=500),
 ]
 
 # ── Derived mappings ──

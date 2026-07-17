@@ -468,3 +468,59 @@ export interface UserAchievement {
   progress_target: number | null;
   notified: boolean;
 }
+
+export interface Medication {
+  id: string;
+  user_id: string;
+  name: string;
+  active_ingredient: string | null;
+  strength: string | null;
+  form: string;
+  instructions: string | null;
+  color_hex: string;
+  icon: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface MedicationSchedule {
+  id: string;
+  medication_id: string;
+  user_id: string;
+  dosage: string;
+  times: string[];
+  days_of_week: number[] | null;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface MedicationLog {
+  id: string;
+  medication_id: string;
+  user_id: string;
+  schedule_id: string | null;
+  taken_at: string | null;
+  dosage_taken: string | null;
+  skipped: boolean;
+  notes: string | null;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface MedicationInventory {
+  id: string;
+  medication_id: string;
+  user_id: string;
+  initial_count: number;
+  remaining_count: number;
+  refill_at_count: number;
+  prescription_refills: number | null;
+  next_refill_date: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}

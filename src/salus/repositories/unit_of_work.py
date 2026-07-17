@@ -44,6 +44,10 @@ from salus.repositories.protocols import (
     IJournalEntryRepository,
     IAchievementDefinitionRepository,
     IUserAchievementRepository,
+    IMedicationRepository,
+    IMedicationScheduleRepository,
+    IMedicationLogRepository,
+    IMedicationInventoryRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -73,6 +77,12 @@ from salus.repositories.habit import HabitRepository, HabitLogRepository
 from salus.repositories.mood import MoodTagRepository, MoodEntryRepository
 from salus.repositories.journal import JournalEntryRepository
 from salus.repositories.achievement import AchievementDefinitionRepository, UserAchievementRepository
+from salus.repositories.medication import (
+    MedicationRepository,
+    MedicationScheduleRepository,
+    MedicationLogRepository,
+    MedicationInventoryRepository,
+)
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -114,6 +124,11 @@ class IUnitOfWork(Protocol):
     journal_entries: IJournalEntryRepository
     achievement_definitions: IAchievementDefinitionRepository
     user_achievements: IUserAchievementRepository
+
+    medications: IMedicationRepository
+    medication_schedules: IMedicationScheduleRepository
+    medication_logs: IMedicationLogRepository
+    medication_inventories: IMedicationInventoryRepository
 
     def __enter__(self) -> "IUnitOfWork": ...
 
@@ -158,6 +173,10 @@ class SqlUnitOfWork:
     journal_entries: IJournalEntryRepository
     achievement_definitions: IAchievementDefinitionRepository
     user_achievements: IUserAchievementRepository
+    medications: IMedicationRepository
+    medication_schedules: IMedicationScheduleRepository
+    medication_logs: IMedicationLogRepository
+    medication_inventories: IMedicationInventoryRepository
 
     def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
@@ -194,6 +213,10 @@ class SqlUnitOfWork:
         self.journal_entries = JournalEntryRepository(session)
         self.achievement_definitions = AchievementDefinitionRepository(session)
         self.user_achievements = UserAchievementRepository(session)
+        self.medications = MedicationRepository(session)
+        self.medication_schedules = MedicationScheduleRepository(session)
+        self.medication_logs = MedicationLogRepository(session)
+        self.medication_inventories = MedicationInventoryRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

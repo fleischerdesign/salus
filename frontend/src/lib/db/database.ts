@@ -34,7 +34,11 @@ import type {
   MoodEntry,
   JournalEntry,
   AchievementDefinition,
-  UserAchievement
+  UserAchievement,
+  Medication,
+  MedicationSchedule,
+  MedicationLog,
+  MedicationInventory
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -72,6 +76,10 @@ export class SalusDB extends Dexie {
   journal_entry!: EntityTable<JournalEntry, 'id'>;
   achievement_definition!: EntityTable<AchievementDefinition, 'code'>;
   user_achievement!: EntityTable<UserAchievement, 'id'>;
+  medication!: EntityTable<Medication, 'id'>;
+  medication_schedule!: EntityTable<MedicationSchedule, 'id'>;
+  medication_log!: EntityTable<MedicationLog, 'id'>;
+  medication_inventory!: EntityTable<MedicationInventory, 'id'>;
   outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
   analytics_cache!: EntityTable<
@@ -200,6 +208,12 @@ export class SalusDB extends Dexie {
       journal_entry: 'id, user_id, entry_date',
       achievement_definition: '&code',
       user_achievement: 'id, user_id, achievement_code'
+    });
+    this.version(14).stores({
+      medication: 'id, user_id',
+      medication_schedule: 'id, medication_id, user_id',
+      medication_log: 'id, medication_id, user_id',
+      medication_inventory: 'id, medication_id, user_id'
     });
   }
 }

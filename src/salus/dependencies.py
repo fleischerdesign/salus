@@ -72,6 +72,7 @@ from salus.services.habit import HabitService
 from salus.services.mood import MoodService
 from salus.services.journal import JournalService
 from salus.services.achievement.service import AchievementService
+from salus.services.medication import MedicationService
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -603,3 +604,9 @@ def get_achievement_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
 ) -> AchievementService:
     return AchievementService(uow)
+
+
+def get_medication_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> MedicationService:
+    return MedicationService(uow)

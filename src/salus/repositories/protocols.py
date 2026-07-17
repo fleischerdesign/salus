@@ -27,6 +27,12 @@ from salus.models.habit import Habit, HabitLog
 from salus.models.mood import MoodTag, MoodEntry
 from salus.models.journal import JournalEntry
 from salus.models.achievement import AchievementDefinition, UserAchievement
+from salus.models.medication import (
+    Medication,
+    MedicationInventory,
+    MedicationLog,
+    MedicationSchedule,
+)
 
 T = TypeVar("T")
 
@@ -447,3 +453,33 @@ class IUserAchievementRepository(IRepository[UserAchievement], Protocol):
     def find_by_user(self, user_id: str) -> list[UserAchievement]: ...
 
     def find_by_user_and_code(self, user_id: str, achievement_code: str) -> UserAchievement | None: ...
+
+
+@runtime_checkable
+class IMedicationRepository(IRepository[Medication], Protocol):
+    def find_by_user(self, user_id: str) -> list[Medication]: ...
+
+    def find_active(self, user_id: str) -> list[Medication]: ...
+
+
+@runtime_checkable
+class IMedicationScheduleRepository(IRepository[MedicationSchedule], Protocol):
+    def find_by_medication(self, medication_id: str) -> list[MedicationSchedule]: ...
+
+    def find_by_user(self, user_id: str) -> list[MedicationSchedule]: ...
+
+
+@runtime_checkable
+class IMedicationLogRepository(IRepository[MedicationLog], Protocol):
+    def find_by_medication(self, medication_id: str) -> list[MedicationLog]: ...
+
+    def find_by_user_and_date(self, user_id: str, log_date: date) -> list[MedicationLog]: ...
+
+    def find_by_schedule_and_time(self, schedule_id: str, taken_at_start: datetime, taken_at_end: datetime) -> MedicationLog | None: ...
+
+    def find_all_by_user(self, user_id: str) -> list[MedicationLog]: ...
+
+
+@runtime_checkable
+class IMedicationInventoryRepository(IRepository[MedicationInventory], Protocol):
+    def find_by_medication(self, medication_id: str) -> MedicationInventory | None: ...

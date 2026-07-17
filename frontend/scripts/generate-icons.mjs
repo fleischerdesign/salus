@@ -22,6 +22,7 @@ const SKIP_NAMES = new Set([
   'chronotype', 'multiselect', 'edit-size',
   'systolic', 'diastolic', 'deadline', 'instructions', 'locale', 'timestamp',
   'content', 'title',
+  'dosage', 'strength', 'time',
 ]);
 
 function walk(dir) {
