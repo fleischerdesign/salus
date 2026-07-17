@@ -19,7 +19,249 @@
 
 ---
 
-## 2. What is COMPLETE (Backend)
+## 2. Integration Architecture — How Food Connects to Everything
+
+### 2.1 Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FOOD DOMAIN MODEL                           │
+│                                                                     │
+│  food_item (shared_nullable)          recipe (user_scoped)           │
+│  ┌──────────────────────┐            ┌──────────────────┐           │
+│  │ name, macros, brand  │            │ name, servings    │           │
+│  │ barcode, serving_size│            │ instructions      │           │
+│  │ is_verified, source  │            │ prep/cook time     │           │
+│  └─────────┬────────────┘            └────────┬─────────┘           │
+│            │                                  │                     │
+│            ├── meal_item ──┐      recipe_ingredient                │
+│            │   (servings)  │         (amount_g)                    │
+│            │               │            │                          │
+│            │         ┌─────▼────┐       │                          │
+│            │         │   meal   │◄──────┘ (via cook endpoint)      │
+│            │         │ user_id  │                                   │
+│            │         │ log_date │                                   │
+│            │         │ meal_type│                                   │
+│            │         └────┬─────┘                                   │
+│            │              │                                         │
+│            └──────────────┘                                         │
+│                           │                                         │
+│              ┌────────────▼────────────┐                            │
+│              │   _calc_macros()        │  ← pure function           │
+│              │   calories, P, C, F     │                            │
+│              └────────────┬────────────┘                            │
+│                           │                                         │
+│  ─ ─ ─ ─ ─ ─ ─ ─ BRIDGE ─▼─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│                           │                                         │
+│              ┌────────────▼────────────┐                            │
+│              │   Measurement           │                            │
+│              │   metric_code=nutrition │                            │
+│              │   data_type=nutrition    │                            │
+│              │   source="meal"          │                            │
+│              │   external_id=meal.id    │                            │
+│              │   value_json={           │                            │
+│              │     calories: 420,       │                            │
+│              │     protein_grams: 12,   │                            │
+│              │     carbs_grams: 65,     │                            │
+│              │     fat_grams: 9         │                            │
+│              │   }                      │                            │
+│              │   start_time=<meal_time> │                            │
+│              └────────────┬─────────────┘                            │
+│                           │                                         │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┼ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│                           │                                         │
+│     ┌─────────────────────┼─────────────────────────────┐           │
+│     │                     ▼                             │           │
+│     │  ┌──────────┐  ┌──────────┐  ┌──────────────┐    │           │
+│     │  │ Dashboard│  │ Analytics│  │    Goals      │    │           │
+│     │  │          │  │          │  │               │    │           │
+│     │  │ Widget:  │  │ daily_   │  │ "180g Protein │    │           │
+│     │  │ nutrition│  │ totals() │  │  pro Tag"     │    │           │
+│     │  │ chart    │  │ tdee()   │  │ → Progressbar │    │           │
+│     │  └──────────┘  │ trend()  │  └──────────────┘    │           │
+│     │                │ correl() │                       │           │
+│     │  ┌──────────┐  └──────────┘  ┌──────────────┐    │           │
+│     │  │ Insights │                │  Workout     │    │           │
+│     │  │ AI Coach │                │  Autoreg.    │    │           │
+│     │  │          │                │  TDEE-based  │    │           │
+│     │  │ "Ernäh-  │                │  recovery    │    │           │
+│     │  │ rungs-   │                │  score       │    │           │
+│     │  │ coaching"│                └──────────────┘    │           │
+│     │  └──────────┘                                    │           │
+│     │                                                  │           │
+│     │    ALLE lesen Measurements OHNE Änderung         │           │
+│     │    NutritionAnalysisService.daily_totals()       │           │
+│     │    liest value_json → NutritionDay dataclass     │           │
+│     └──────────────────────────────────────────────────┘           │
+│                                                                     │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│                                                                     │
+│  SYNC / OFFLINE                                                     │
+│  ┌────────────────────────────────────────────────────┐             │
+│  │  Dexie v16  │  Outbox (mutate)  │  Entity Meta     │             │
+│  │  ───────────┼──────────────────┼───────────────── │             │
+│  │  food_item  │  createFoodItem  │  shared_nullable  │             │
+│  │  meal       │  createMeal      │  user_scoped      │             │
+│  │  meal_item  │  (implicit via   │  user_scoped      │             │
+│  │  recipe     │   meal create)   │  user_scoped      │             │
+│  │  recipe_ing │  createRecipe    │  user_scoped      │             │
+│  └────────────────────────────────────────────────────┘             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Integration Points — Detailed
+
+#### A. Measurement Bridge (the core integration)
+
+**How it works:**
+Every `MealService.create()`, `MealService.update()`, and `RecipeService.cook()` writes a `Measurement` row with `metric_code="nutrition"`, `data_type="nutrition"`, `source="meal"`, and `external_id=meal.id`. The `value_json` column stores `{calories, protein_grams, carbs_grams, fat_grams}`.
+
+**Meal lifecycle = Measurement lifecycle (atomic via UoW):**
+```
+Create meal → Create Measurement(external_id=meal.id)
+Update meal → Delete old Measurement + Create new
+Delete meal → Soft-delete Measurement + Meal + MealItems (one transaction)
+Recipe cook → Create Meal + Items + Measurement (one transaction)
+```
+
+**Why Measurement, not custom analytics tables:**
+The Measurement table is the universal data sink. Dashboard widgets, the analytics pipeline, goal progress evaluation, and the AI coach ALL read Measurements. By writing a `nutrition` Measurement, food data flows into every existing system without a single line of code changed in those systems.
+
+**Code references:**
+- `MealService._measurement_for_meal()` — creates Measurement from meal + items
+- `MealService._delete_measurement_for_meal()` — finds by `external_id` + `source` and soft-deletes
+- `MeasurementRepository.find_by_external_id()` — added specifically for this pattern
+- `Measurement.display_value` — already formats nutrition JSON as `"2100 kcal (140g P, 210g C, 70g F)"`
+
+#### B. Dashboard Integration
+
+**What already works:**
+Dashboard widgets fetch measurements via `IMeasurementRepository.find_all(data_types=["nutrition"])`. Our bridge creates measurements with `data_type="nutrition"`, so nutrition data appears in the dashboard automatically.
+
+**Widget rendering:**
+- The existing `NutritionSummary` widget (if any) reads the most recent `nutrition` measurements
+- Or a new dashboard widget can be added that filters `source="meal"` measurements
+- The `Measurement.display_value` property renders macro totals in a readable format
+
+#### C. Analytics Pipeline Integration
+
+**Services that consume nutrition data unchanged:**
+
+| Service | Method | What it reads |
+|---|---|---|
+| `NutritionAnalysisService` | `daily_totals(user_id, since, until)` | `Measurement` rows with `data_types=["nutrition"]` → aggregates per day → returns `list[NutritionDay]` |
+| `NutritionAnalysisService` | `today(user_id)` | Today's nutrition measurements → single `NutritionDay` |
+| `AnalyticsOrchestrator` | `_compute_tdee()` | Reads nutrition measurements for TDEE calculation (thermic effect of food) |
+| `CorrelationAnalysis` | `compute_correlations()` | Cross-references `nutrition` measurements with `sleep`, `exercise`, `weight`, `mood` for pattern detection |
+
+**The NutritionDay dataclass** (`src/salus/models/analytics.py:96-102`):
+```python
+class NutritionDay:
+    date: date
+    total_kcal: float
+    protein_g: float
+    carbs_g: float
+    fat_g: float
+```
+This is already the exact shape our measurement bridge produces — zero translation needed.
+
+#### D. Goals Integration
+
+**How it works:**
+The goal system tracks progress via `Measurement` rows for a given `metric_code`. A user can set a goal like:
+- "180g protein per day" — `Goal(metric_code="nutrition", target_value=180 ...)`
+- "2200 kcal bulk phase" — `Goal(metric_code="nutrition", target_value=2200 ...)`
+- "< 50g fat" — `Goal(metric_code="nutrition", target_value=50 ...)`
+
+The goal evaluator reads today's `nutrition` measurement, extracts the relevant field from `value_json`, and compares against the target.
+
+**What's needed:**
+The existing `Goal` model targets `metric_code` + single `target_value`. The nutrition JSON has 4 sub-fields (calories, protein, carbs, fat). The goal evaluator needs to know WHICH sub-field to compare. This could be done by:
+- Extending `Goal` with a `nutrition_field` enum (calories/protein/carbs/fat)
+- Or having 4 separate metric_definitions (`nutrition_calories`, `nutrition_protein`, etc.) — but this was explicitly rejected in the architecture decision to avoid metric proliferation
+
+**Status:** Goal integration is architecturally sound but needs the evaluator to handle JSON sub-fields. This is a small extension to the existing `evaluate_goal()` logic.
+
+#### E. Insights / AI Coach Integration
+
+**How it works:**
+The `InsightService` can generate nutrition-related insights by:
+1. Calling `NutritionAnalysisService.daily_totals()` → 7-day macro trends
+2. Comparing to goals (e.g., "You've hit your protein target 5/7 days this week")
+3. Cross-referencing with other metrics (e.g., "On days with >100g protein, your workout volume is 15% higher")
+4. Detecting patterns (e.g., "Your fat intake increases on weekends by 30%")
+
+**No changes needed** — the insight service already reads measurements, and our bridge creates measurements. The insight logic just needs prompts/rules for nutrition analysis.
+
+#### F. Workout Autoregulation Integration
+
+**How it works:**
+The workout autoregulation system in `AnalyticsOrchestrator._compute_tdee()` already calculates Total Daily Energy Expenditure using:
+- BMR (from weight, height, age, sex)
+- PAL (Physical Activity Level — from heart rate data)
+- TEF (Thermic Effect of Food — **from nutrition measurements**)
+
+Our bridge creates the nutrition measurements that `_compute_tdee()` reads. This means:
+- Recovery score automatically considers whether the user is in a caloric surplus or deficit
+- Workout volume recommendations can factor in energy availability
+- "You're undereating for your training load" type of insights become possible
+
+**Code reference:** `src/salus/services/analytics/orchestrator.py:488-494`
+
+#### G. Live Sync (SSE) Integration
+
+**How it works:**
+When a meal is created/updated/deleted:
+1. `MealService` commits via UoW
+2. The `Measurement` create/update/delete triggers the WritePipeline
+3. WritePipeline calls `event_bus.publish(user_id)` 
+4. SSE pushes to connected clients
+5. Frontend `live-events.ts` debounces → `pullDelta()` → Dexie updates reactively
+
+This means: if User A logs a meal on their phone, User A's laptop dashboard updates within 2 seconds.
+
+#### H. Correlation Analysis Integration
+
+**Cross-domain correlations that work automatically:**
+Since all data flows into the Measurement table, the correlation engine can find relationships between:
+- `nutrition.calories` ↔ `weight` (caloric surplus/deficit vs weight change)
+- `nutrition.protein_g` ↔ `workout.volume_kg` (protein intake vs strength progression)
+- `nutrition.carbs_g` ↔ `sleep.duration` (carb timing vs sleep quality)
+- `nutrition.fat_g` ↔ `mood.score` (fat intake vs mood)
+
+**No code needed** — the correlation analysis reads Measurement rows by `metric_code` and `data_type`. Our bridge creates `data_type="nutrition"` measurements. The correlator just needs to include `"nutrition"` in its data_type filter.
+
+---
+
+### 2.3 Yazio / FDDB Feature Parity Assessment
+
+| Feature | Yazio | FDDB | Salus (now) | Salus (after Gaps 1-8) | Salus (after ALL) |
+|---|---|---|---|---|---|
+| Mahlzeiten loggen | ✅ | ✅ | ✅ (happy path) | ✅ | ✅ |
+| Food-DB-Suche | ✅ | ✅ | ✅ (text only) | ✅ | ✅ |
+| Barcode-Scanner | ✅ | ✅ (main feature) | ❌ | ❌ | ✅ (Gap 9) |
+| Produkt-Datenbank | ✅ (paid DB) | ✅ (1.4M items) | ❌ (empty) | ❌ | ✅ (Gap 10 + 12) |
+| Makro-Tracking | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Kalorienziele | ✅ | ✅ | ❌ | ✅ (via Goals) | ✅ |
+| Rezepte | ✅ | ❌ | ✅ | ✅ | ✅ |
+| "Cook"-Workflow | ❌ | ❌ | ✅ (broken) | ✅ | ✅ |
+| Progress-Fotos | ✅ | ❌ | ❌ | ❌ | ✅ (Gap 11) |
+| Wochen-Trend | ✅ | ✅ | ❌ | ❌ | ✅ (Gap 8) |
+| Offline-fähig | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Self-hosted | ❌ | ❌ | ✅ | ✅ | ✅ |
+| KI-Coaching | ❌ | ❌ | ✅ (via Insights) | ✅ | ✅ |
+| E2EE-Sharing | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Korrelationen | ❌ | ❌ | ✅ (via Analytics) | ✅ | ✅ |
+
+**Salus-Alleinstellungsmerkmale, die Yazio/FDDB nicht haben:**
+- **Offline-First** — Logging funktioniert ohne Internet, sync bei Konnektivität
+- **Self-Hosted** — Daten verlassen nie den eigenen Server
+- **Korrelationen** — Ernährung × Schlaf × Training × Stimmung in einem System
+- **KI-Coaching** — Personalisiertes Ernährungs-Coaching auf Basis aller Gesundheitsdaten
+
+---
+
+## 3. What is COMPLETE (Backend)
 
 ### Models (`src/salus/models/food.py`)
 - `FoodItem` — nutritional data + barcode index, nullable `user_id` (shared_nullable)
@@ -115,6 +357,26 @@
 ---
 
 ## 4. GAPS — Critical (Blocks Production Use)
+
+### Gap 0: Measurement JSON field names don't match Analytics/Dashboard
+**Files:** `src/salus/services/meal.py`, `src/salus/services/recipe.py`
+
+**The bug:** Three different field-name conventions exist in the codebase for the same nutrition data:
+
+| Field | `display_value` reads | `NutritionAnalysisService` reads | Our bridge writes |
+|---|---|---|---|
+| Calories | `total_kcal` | `calories` | `calories` |
+| Protein | `protein_g` | `protein_grams` | `protein_g` |
+| Carbs | `carbs_g` | `carbs_grams` | `carbs_g` |
+| Fat | `fat_g` | `fat_grams` | `fat_g` |
+
+**Impact:** Neither the dashboard widget (`display_value` expects `total_kcal`) nor the analytics pipeline (`daily_totals` expects `*_grams`) can read our measurements. The entire Measurement bridge is writing data into a format that no consumer understands.
+
+**Required fix:**
+1. Standardize on ONE convention. The `NutritionAnalysisService` convention (`calories`, `protein_grams`, `carbs_grams`, `fat_grams`) is the most "consumer" of nutrition data — align to it.
+2. Update `_calc_macros()` in both `meal.py` and `recipe.py` to use the standard keys
+3. Update `Measurement.display_value` to also support `calories` key (add fallback)
+4. Add a migration note: existing `total_kcal`-format measurements remain readable via fallback
 
 ### Gap 1: Meal Items cannot be edited or removed after meal creation
 **Files:** `MealItemRow.svelte`, `routes/meals/+page.svelte`, `routes/meals/[id]/+page.svelte`
@@ -241,10 +503,10 @@ Everything else in the API schema is implemented and tested.
 
 | Priority | Gaps | Effort | Impact |
 |---|---|---|---|
-| **P0 — Blockers** | Gap 1 (item edit), Gap 2 (add items to meal) | 1-2h | Makes the app usable — user can correct mistakes |
+| **P0 — Critical bugs** | Gap 0 (measurement field names), Gap 1 (item edit), Gap 2 (add items to meal) | 2h | Fixes the broken analytics bridge + makes logging usable |
 | **P1 — Core UX** | Gap 3 (cook via backend), Gap 4 (servings picker), Gap 5 (navigation) | 2h | Completes the recipe flow, connects the islands |
 | **P2 — Completeness** | Gap 6 (food-item edit/delete + backend), Gap 7 (recipe ingredient amounts) | 3h | Completes CRUD for all entities |
-| **P3 — Polish** | Gap 8 (weekly overview), Gap 12 (food seeding) | 3h | Makes the nutrition page feel complete |
+| **P3 — Polish** | Gap 8 (weekly overview), Gap 12 (food seeding), EC1 (food_item deletion blocking) | 3h | Makes the nutrition page feel complete, protects data integrity |
 
 ---
 
@@ -283,3 +545,74 @@ When resuming work, the following files need attention:
 2. **`any` types in callback signatures** — cosmetic, same pattern used in medication/habits pages.
 3. **Prettier formatting** on `schema.d.ts` and `icons.json` — auto-generated files, formatting noise.
 4. **`generate-icons.mjs` skip list** — growing list of false-positive `name="..."` attributes on `<Input>` components. Could be fixed by making the regex context-aware (only match inside `<Icon` tags), but low priority.
+
+---
+
+## 10. Edge Cases & Data Integrity
+
+### EC1: Deleted food_item referenced by meal_items
+**Scenario:** User creates food_item "Haferflocken", logs it in 3 meals, then deletes the food_item.
+**Current behavior:** `FoodItem` is soft-deleted. `MealItem` rows still reference the old `food_item_id`. `_calc_macros()` checks `food_map.get(item.food_item_id)` — returns `None` → macro contribution = 0.
+**Impact:** Meal totals silently drop. User sees "0 kcal" for the item but the meal still exists.
+**Mitigation needed:** When a food_item is about to be deleted, check if any meal_items reference it. If yes, either:
+- Block deletion with a message: "This item is used in 3 meals. Delete those first?"
+- Or soft-delete the item but preserve its name/macros in the meal_item as a snapshot (denormalize)
+
+### EC2: Recipe ingredient references deleted food_item
+**Same as EC1 but for recipes.** Mitigation identical — block or snapshot.
+
+### EC3: Meal with 0 items after all items removed
+**Scenario:** User removes all items from a meal.
+**Current behavior:** `MealService.create()` rejects empty meals via `ApiError(code="empty_meal")`. But `update()` with empty items array is NOT checked.
+**Impact:** Meal exists with no items and 0-value measurement.
+**Fix:** Add validation in `update()` — if `data.items` is provided and empty, reject.
+
+### EC4: Multi-device sync race condition
+**Scenario:** User logs meal on phone (offline), then edits it on laptop (online). Phone comes online later.
+**Resolution:** Last-write-wins via `updated_at` timestamps. Conflict dialog offers field-level merge if needed. This is handled by the existing sync/conflict system — no food-specific code needed.
+
+### EC5: DayNavigator crosses into future dates
+**Scenario:** User clicks "Next" repeatedly into next week.
+**Current behavior:** Shows empty state — no meals. OK.
+**Potential improvement:** Disable "Next" button when viewing today/tomorrow. The DayNavigator currently allows unlimited forward navigation.
+
+---
+
+## 11. Frontend Data Flow — Dexie-First Pattern
+
+The frontend NEVER calls the REST API directly for reading data. All data flows through Dexie IndexedDB:
+
+```
+Dexie (IndexedDB) ← liveQuery subscribe ← $effect setup/teardown ← $state
+     │                                                              │
+     │ sync pulls (pullFull / pullDelta)                           │ $derived
+     │                                                              │ computed views
+     │  syncEngine.flushSingle()                                    ▼
+     │  outbox flush                                         Components + Pages
+     │
+     │  mutate() ← user actions (create/update/delete)
+     │  kind:'crud', optimistic payload
+```
+
+**Key implications for food/meal data:**
+- `/meals` page loads meals + meal_items + food_items via 3 `liveQuery()` subscriptions
+- `NutritionSummary` is `$derived.by()` — pure computation, no extra DB queries
+- All writes go through `mutate()` (outbox → sync push)
+- Optimistic payload in `createMeal` sets `user_id=''` — server fills it in
+- No direct `fetch()` or `api.GET()` calls in any page or component
+- This is exactly the same pattern used by habits, medications, mood, and journal
+
+---
+
+## 12. Missing from the Original Spec (not yet implemented)
+
+These features were mentioned in the original `docs/food-meal-logging.md` spec but are NOT yet scoped or planned:
+
+| Feature | Spec reference | Reason deferred |
+|---|---|---|
+| OpenFoodFacts API Key per user | Section "Ergänzungen" | Requires user settings UI for API key storage |
+| Server-side OFF proxy | Section "Open Questions" | Backend implementation + rate limiting |
+| BarcodeDetector vs ZXing debate | Section "Open Questions" | Need cross-browser solution decision |
+| Meal Photos (local + server) | Section "Ergänzungen" | File upload + IndexedDB blob = v2 complexity |
+| Calorie Target (TDEE) config | Section "Frontend" | TDEE calculator exists in analytics, needs UI |
+| "Häufig zusammen gegessen" | Not in spec | Co-occurrence analysis for food pairing suggestions
