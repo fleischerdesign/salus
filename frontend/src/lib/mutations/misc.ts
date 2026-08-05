@@ -85,3 +85,15 @@ export const deleteAsymmetricShare = (shareId: string) =>
     queueable: false,
     payload: { id: shareId }
   });
+
+export const updateSourcePreferences = (
+  metricCode: string,
+  items: Array<{ source: string; priority_rank: number; is_enabled: boolean }>
+) =>
+  mutate({
+    kind: 'command',
+    command: 'update_source_preferences',
+    queueable: false,
+    payload: { metric_code: metricCode, items },
+    responseTable: 'user_source_preference'
+  });

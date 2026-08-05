@@ -27,6 +27,7 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import Pagination from '$components/ui/Pagination.svelte';
+  import MetricSettingsModal from '$components/forms/MetricSettingsModal.svelte';
   import { page } from '$app/state';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
@@ -36,6 +37,7 @@
 
   let loading = $state(true);
   let metric = $state<MetricWithPreference | null>(null);
+  let settingsModalOpen = $state(false);
 
   $effect(() => {
     const code = childMetricCode;
@@ -221,13 +223,24 @@
       iconColor={m.color}
     >
       {#snippet actions()}
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
-          onclick={openCreateModal}
-        >
-          <Icon name="add" size="sm" /><span>New Entry</span>
-        </button>
+        <div class="flex h-full items-center">
+          <button
+            type="button"
+            class="duration-micro flex h-full items-center justify-center border-r border-surface-200 px-4 text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+            onclick={() => (settingsModalOpen = true)}
+            title="Metric Settings & Source Priority"
+            aria-label="Metric Settings"
+          >
+            <Icon name="settings" size="sm" />
+          </button>
+          <button
+            type="button"
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+            onclick={openCreateModal}
+          >
+            <Icon name="add" size="sm" /><span>New Entry</span>
+          </button>
+        </div>
       {/snippet}
       {#snippet stats()}
         {#if overview}
@@ -407,3 +420,11 @@
     entryToDelete = null;
   }}
 />
+
+{#if metric}
+  <MetricSettingsModal
+    bind:open={settingsModalOpen}
+    metricCode={metric.code}
+    metricName={metric.name}
+  />
+{/if}

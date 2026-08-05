@@ -21,7 +21,11 @@
 </script>
 
 {#if recipes.length === 0}
-  <EmptyState icon="menu-book" title="No recipes" description="Create your first recipe to quickly log frequent meals.">
+  <EmptyState
+    icon="menu-book"
+    title="No recipes"
+    description="Create your first recipe to quickly log frequent meals."
+  >
     <button onclick={onCreate} class="btn btn-primary mt-4">Create Recipe</button>
   </EmptyState>
 {:else}

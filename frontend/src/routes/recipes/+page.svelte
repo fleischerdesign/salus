@@ -18,15 +18,41 @@
 
   $effect(() => {
     const sub1 = liveQuery(() =>
-      db.recipe.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { recipes = v; });
+      db.recipe
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      recipes = v;
+    });
     const sub2 = liveQuery(() =>
-      db.recipe_ingredient.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { ingredients = v; });
+      db.recipe_ingredient
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      ingredients = v;
+    });
     const sub3 = liveQuery(() =>
-      db.food_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { foodItems = v; loading = false; });
-    return () => { sub1.unsubscribe(); sub2.unsubscribe(); sub3.unsubscribe(); };
+      db.food_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      foodItems = v;
+      loading = false;
+    });
+    return () => {
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
+    };
   });
 
   const foodMap = $derived.by(() => {
@@ -112,11 +138,7 @@
   {#if loading}
     <div class="flex justify-center py-20"><Spinner /></div>
   {:else}
-    <RecipeGrid
-      recipes={recipeData}
-      onCook={handleCook}
-      onCreate={() => (formOpen = true)}
-    />
+    <RecipeGrid recipes={recipeData} onCook={handleCook} onCreate={() => (formOpen = true)} />
   {/if}
 
   <RecipeForm

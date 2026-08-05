@@ -14,6 +14,7 @@
     totalCarbs: number;
     totalFat: number;
     onEdit: () => void;
+    onDelete?: () => void;
   }
 
   let {
@@ -26,44 +27,58 @@
     totalCarbs,
     totalFat,
     onEdit,
+    onDelete
   }: Props = $props();
 
   let expanded = $state(false);
 
-  const mealTypeLabel = $derived(
-    mealType.charAt(0).toUpperCase() + mealType.slice(1)
-  );
+  const mealTypeLabel = $derived(mealType.charAt(0).toUpperCase() + mealType.slice(1));
 </script>
 
 <Card padding={false}>
   <div
-    class="flex w-full items-center justify-between px-4 py-3 hover:bg-surface-50 cursor-pointer"
+    class="flex w-full cursor-pointer items-center justify-between px-4 py-3 hover:bg-surface-50"
     onclick={() => (expanded = !expanded)}
-    onkeydown={(e) => { if (e.key === 'Enter') expanded = !expanded; }}
+    onkeydown={(e) => {
+      if (e.key === 'Enter') expanded = !expanded;
+    }}
     role="button"
     tabindex="0"
   >
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-500">
+    <div class="flex min-w-0 items-center gap-3">
+      <div
+        class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-500"
+      >
         <Icon name="restaurant" size="md" />
       </div>
       <div class="min-w-0">
         <div class="flex items-center gap-2">
           <span class="text-xs font-medium text-surface-400 uppercase">{mealTypeLabel}</span>
           {#if name}
-            <span class="text-sm font-medium text-surface-700 truncate">{name}</span>
+            <span class="truncate text-sm font-medium text-surface-700">{name}</span>
           {/if}
         </div>
         <div class="text-xs text-surface-400">
-          {Math.round(totalCalories)} kcal · {Math.round(totalProtein)}P · {Math.round(totalCarbs)}C · {Math.round(totalFat)}F
+          {Math.round(totalCalories)} kcal · {Math.round(totalProtein)}P · {Math.round(totalCarbs)}C
+          · {Math.round(totalFat)}F
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-1 flex-shrink-0 ml-3">
-      <button onclick={(e) => { e.stopPropagation(); onEdit(); }} class="rounded p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600">
+    <div class="ml-3 flex flex-shrink-0 items-center gap-1">
+      <button
+        onclick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
+        class="rounded p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600"
+      >
         <Icon name="edit" size="sm" />
       </button>
-      <Icon name={expanded ? 'keyboard-arrow-up' : 'expand-more'} size="sm" class="text-surface-400" />
+      <Icon
+        name={expanded ? 'keyboard-arrow-up' : 'expand-more'}
+        size="sm"
+        class="text-surface-400"
+      />
     </div>
   </div>
 

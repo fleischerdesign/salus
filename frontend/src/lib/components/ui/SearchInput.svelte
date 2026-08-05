@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
-  import { onMount, onDestroy } from 'svelte';
+  import { onDestroy } from 'svelte';
 
   interface Props {
     name?: string;
@@ -39,8 +39,10 @@
   });
 </script>
 
-<div class="relative {extraClass}">
-  <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-surface-400">
+<div class="relative flex items-center {extraClass}">
+  <span
+    class="pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center text-surface-400"
+  >
     <Icon name="search" size="sm" />
   </span>
   <input
@@ -49,12 +51,12 @@
     {placeholder}
     value
     oninput={handleInput}
-    class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+    class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm font-normal text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
   />
   {#if value}
     <button
       type="button"
-      class="duration-micro absolute top-1/2 right-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-600"
+      class="duration-micro absolute inset-y-0 right-0 flex w-9 items-center justify-center text-surface-400 transition-colors hover:text-surface-600"
       aria-label="Clear search"
       onclick={clear}
     >

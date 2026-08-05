@@ -1,4 +1,4 @@
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.achievement import AchievementDefinition, UserAchievement
 from salus.repositories.base import Repository
@@ -10,7 +10,7 @@ class AchievementDefinitionRepository(Repository[AchievementDefinition]):
     def find_all(self) -> list[AchievementDefinition]:
         return list(
             self.session.exec(
-                select(AchievementDefinition).order_by(AchievementDefinition.sort_order)  # pyright: ignore[reportAttributeAccessIssue]
+                select(AchievementDefinition).order_by(col(AchievementDefinition.sort_order))
             ).all()
         )
 
@@ -21,8 +21,8 @@ class AchievementDefinitionRepository(Repository[AchievementDefinition]):
         return list(
             self.session.exec(
                 select(AchievementDefinition).where(
-                    AchievementDefinition.category == category  # pyright: ignore[reportAttributeAccessIssue]
-                ).order_by(AchievementDefinition.sort_order)  # pyright: ignore[reportAttributeAccessIssue]
+                    col(AchievementDefinition.category) == category
+                ).order_by(col(AchievementDefinition.sort_order))
             ).all()
         )
 
@@ -34,8 +34,8 @@ class UserAchievementRepository(Repository[UserAchievement]):
         return list(
             self.session.exec(
                 select(UserAchievement).where(
-                    UserAchievement.user_id == user_id
-                ).order_by(UserAchievement.unlocked_at.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                    col(UserAchievement.user_id) == user_id
+                ).order_by(col(UserAchievement.unlocked_at).desc())
             ).all()
         )
 

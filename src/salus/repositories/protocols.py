@@ -40,6 +40,7 @@ from salus.models.food import (
     Recipe,
     RecipeIngredient,
 )
+from salus.models.user_source_preference import UserSourcePreference
 
 T = TypeVar("T")
 
@@ -118,6 +119,10 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
     def find_by_metric_type_paginated(
         self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
     ) -> tuple[list[Measurement], int]: ...
+
+    def find_by_external_id(
+        self, external_id: str, source: str | None = None
+    ) -> Measurement | None: ...
 
     def count_by_metric_type(self, metric_code: str, user_id: str) -> int: ...
 
@@ -527,3 +532,14 @@ class IRecipeRepository(IRepository[Recipe], Protocol):
 @runtime_checkable
 class IRecipeIngredientRepository(IRepository[RecipeIngredient], Protocol):
     def find_by_recipe(self, recipe_id: str) -> list[RecipeIngredient]: ...
+
+
+@runtime_checkable
+class IUserSourcePreferenceRepository(IRepository[UserSourcePreference], Protocol):
+    def find_by_user(self, user_id: str) -> list[UserSourcePreference]: ...
+
+    def find_by_user_and_metric(self, user_id: str, metric_code: str) -> list[UserSourcePreference]: ...
+
+    def find_by_user_metric_source(
+        self, user_id: str, metric_code: str, source: str
+    ) -> UserSourcePreference | None: ...

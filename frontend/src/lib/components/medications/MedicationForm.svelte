@@ -32,13 +32,13 @@
 
   const forms = ['tablet', 'capsule', 'liquid', 'injection', 'patch', 'cream', 'drops'];
 
-  let name = $state(medication?.name ?? '');
-  let activeIngredient = $state(medication?.active_ingredient ?? '');
-  let strength = $state(medication?.strength ?? '');
-  let form = $state(medication?.form ?? 'tablet');
-  let instructions = $state(medication?.instructions ?? '');
-  let colorHex = $state(medication?.color_hex ?? '#4f46e5');
-  let icon = $state(medication?.icon ?? 'medication');
+  let name = $state('');
+  let activeIngredient = $state('');
+  let strength = $state('');
+  let form = $state('tablet');
+  let instructions = $state('');
+  let colorHex = $state('#4f46e5');
+  let icon = $state('medication');
 
   $effect(() => {
     if (medication) {

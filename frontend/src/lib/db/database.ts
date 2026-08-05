@@ -5,6 +5,7 @@ import type {
   MetricDefinition,
   MetricGroup,
   UserMetricPreference,
+  UserSourcePreference,
   Measurement,
   Goal,
   CircadianProfile,
@@ -50,6 +51,7 @@ export class SalusDB extends Dexie {
   metric_group!: EntityTable<MetricGroup, 'key'>;
   metric_definition!: EntityTable<MetricDefinition, 'code'>;
   user_metric_preference!: EntityTable<UserMetricPreference, 'id'>;
+  user_source_preference!: EntityTable<UserSourcePreference, 'id'>;
   measurement!: EntityTable<Measurement, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
   circadian_profile!: EntityTable<CircadianProfile, 'id'>;
@@ -231,6 +233,31 @@ export class SalusDB extends Dexie {
       meal_item: 'id, meal_id, user_id, food_item_id',
       recipe: 'id, user_id',
       recipe_ingredient: 'id, recipe_id, user_id, food_item_id'
+    });
+    this.version(17).stores({
+      habit: 'id, user_id',
+      habit_log: 'id, habit_id, user_id, log_date',
+      mood_tag: '&code',
+      mood_entry: 'id, user_id',
+      journal_entry: 'id, user_id, entry_date',
+      achievement_definition: '&code',
+      user_achievement: 'id, user_id, achievement_code',
+      medication: 'id, user_id',
+      medication_schedule: 'id, medication_id, user_id',
+      medication_log: 'id, medication_id, user_id',
+      medication_inventory: 'id, medication_id, user_id',
+      food_item: 'id, barcode',
+      meal: 'id, user_id, log_date',
+      meal_item: 'id, meal_id, user_id, food_item_id',
+      recipe: 'id, user_id',
+      recipe_ingredient: 'id, recipe_id, user_id, food_item_id'
+    });
+    this.version(18).stores({
+      user_source_preference: 'id, user_id, metric_code, source'
+    });
+    this.version(19).stores({
+      measurement: 'id, user_id, metric_code, start_time, source',
+      user_source_preference: 'id, user_id, metric_code, source'
     });
   }
 }

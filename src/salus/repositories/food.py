@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.food import (
     FoodItem,
@@ -56,7 +56,7 @@ class FoodItemRepository(Repository[FoodItem]):
         return list(
             self.session.exec(
                 select(FoodItem)
-                .join(MealItem, MealItem.food_item_id == FoodItem.id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+                .join(MealItem, col(MealItem.food_item_id) == col(FoodItem.id))
                 .where(
                     MealItem.user_id == user_id,
                     MealItem.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]

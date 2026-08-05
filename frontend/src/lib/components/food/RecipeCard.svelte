@@ -32,14 +32,18 @@
 <div
   class="group block cursor-pointer"
   onclick={() => goto('/recipes/' + id)}
-  onkeydown={(e) => { if (e.key === 'Enter') goto('/recipes/' + id); }}
+  onkeydown={(e) => {
+    if (e.key === 'Enter') goto('/recipes/' + id);
+  }}
   role="link"
   tabindex="0"
 >
   <Card hoverable padding={false}>
     <div class="p-4 pb-2">
       <div class="flex items-start gap-3">
-        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+        <div
+          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600"
+        >
           <Icon name="menu-book" size="md" />
         </div>
 
@@ -52,7 +56,9 @@
             {servings} serving{servings !== 1 ? 's' : ''}
             · {Math.round(totalCalories / servings)} kcal/serving
             {#if prepTimeMin || cookTimeMin}
-              · {prepTimeMin ? `${prepTimeMin}m prep` : ''}{prepTimeMin && cookTimeMin ? ' + ' : ''}{cookTimeMin ? `${cookTimeMin}m cook` : ''}
+              · {prepTimeMin ? `${prepTimeMin}m prep` : ''}{prepTimeMin && cookTimeMin
+                ? ' + '
+                : ''}{cookTimeMin ? `${cookTimeMin}m cook` : ''}
             {/if}
           </div>
         </div>
@@ -68,8 +74,11 @@
     <div class="flex items-center justify-between px-4 py-2.5">
       <span class="text-xs text-surface-400">{Math.round(totalCalories)} kcal total</span>
       <button
-        onclick={(e) => { e.stopPropagation(); onCook(); }}
-        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-600 transition-colors"
+        onclick={(e) => {
+          e.stopPropagation();
+          onCook();
+        }}
+        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-600"
       >
         Cook
       </button>

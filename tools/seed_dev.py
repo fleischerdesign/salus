@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from salus.database import get_session
 from salus.repositories.dashboard import DashboardWidgetRepository
 from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_type import MetricTypeRepository
+from salus.repositories.metric_definition import MetricDefinitionRepository
 from salus.repositories.user import UserRepository
 from salus.models.dashboard import DashboardWidget, WidgetSize
 from salus.models.measurement import Measurement
@@ -27,18 +27,19 @@ def seed_dashboard(session, user_id: str) -> None:
     if existing:
         print(f"  Dashboard: {len(existing)} widgets (skip)")
         return
-    metric_repo = MetricTypeRepository(session)
-    metrics = metric_repo.find_all(user_id=None)
+    metric_repo = MetricDefinitionRepository(session)
+    metrics = metric_repo.find_all()
     large = {"steps", "sleep"}
     count = 0
     for m in metrics:
-        if not m.widget_enabled or m.id is None:
+        if not m.code:
             continue
         w = DashboardWidget(
             id=uuid7_str(),
             user_id=user_id,
-            metric_type_id=m.id,
-            size=WidgetSize.LARGE if m.name.lower() in large else WidgetSize.MEDIUM,
+            widget_type="metric",
+            metric_code=m.code,
+            size=WidgetSize.LARGE if m.code.lower() in large else WidgetSize.MEDIUM,
             position=count,
         )
         dashboard_repo.add(w)
@@ -51,11 +52,11 @@ def seed_data(session, user_id: str) -> None:
     measurement_repo = MeasurementRepository(session)
     existing = measurement_repo.find_all(user_id, limit=1)
     if existing:
-        print(f"  Data: measurements exist (skip)")
+        print("  Data: measurements exist (skip)")
         return
 
-    metric_repo = MetricTypeRepository(session)
-    metrics = {m.source_data_type: m for m in metric_repo.find_all(user_id=None) if m.id and m.source_data_type}
+    metric_repo = MetricDefinitionRepository(session)
+    metrics = {m.code: m for m in metric_repo.find_all() if m.code}
     now = datetime.now(timezone.utc)
     measurements: list[Measurement] = []
 
@@ -69,8 +70,8 @@ def seed_data(session, user_id: str) -> None:
         mt = metrics.get("weight")
         if mt:
             measurements.append(Measurement(
-                id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                data_type=mt.source_data_type, source="seed",
+                id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                data_type=mt.source_data_type or mt.code, source="seed",
                 value_numeric=round(weight, 1),
                 start_time=day_start,
             ))
@@ -80,8 +81,8 @@ def seed_data(session, user_id: str) -> None:
         mt = metrics.get("steps")
         if mt:
             measurements.append(Measurement(
-                id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                data_type=mt.source_data_type, source="seed",
+                id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                data_type=mt.source_data_type or mt.code, source="seed",
                 value_numeric=float(steps),
                 start_time=day_start,
             ))
@@ -90,8 +91,8 @@ def seed_data(session, user_id: str) -> None:
         mt = metrics.get("heart_rate")
         if mt:
             measurements.append(Measurement(
-                id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                data_type=mt.source_data_type, source="seed",
+                id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                data_type=mt.source_data_type or mt.code, source="seed",
                 value_numeric=round(rhr, 1),
                 start_time=day_start,
             ))
@@ -106,8 +107,8 @@ def seed_data(session, user_id: str) -> None:
         mt = metrics.get("sleep")
         if mt:
             measurements.append(Measurement(
-                id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                data_type=mt.source_data_type, source="seed",
+                id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                data_type=mt.source_data_type or mt.code, source="seed",
                 start_time=day_start - timedelta(hours=8),
                 end_time=day_start,
                 value_json=json.dumps({
@@ -129,8 +130,8 @@ def seed_data(session, user_id: str) -> None:
             mt = metrics.get("nutrition")
             if mt:
                 measurements.append(Measurement(
-                    id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                    data_type=mt.source_data_type, source="seed",
+                    id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                    data_type=mt.source_data_type or mt.code, source="seed",
                     start_time=day_start + timedelta(hours=12),
                     value_json=json.dumps({
                         "calories": calories, "protein_grams": protein,
@@ -146,8 +147,8 @@ def seed_data(session, user_id: str) -> None:
             mt = metrics.get("exercise")
             if mt:
                 measurements.append(Measurement(
-                    id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                    data_type=mt.source_data_type, source="seed",
+                    id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                    data_type=mt.source_data_type or mt.code, source="seed",
                     start_time=day_start + timedelta(hours=17),
                     end_time=day_start + timedelta(hours=17, seconds=dur),
                     value_json=json.dumps({
@@ -163,8 +164,8 @@ def seed_data(session, user_id: str) -> None:
             if mt:
                 rmssd = 45 + random.gauss(0, 8)
                 measurements.append(Measurement(
-                    id=uuid7_str(), user_id=user_id, metric_type_id=mt.id,
-                    data_type=mt.source_data_type, source="seed",
+                    id=uuid7_str(), user_id=user_id, metric_code=mt.code,
+                    data_type=mt.source_data_type or mt.code, source="seed",
                     value_numeric=round(max(20, min(80, rmssd)), 1),
                     start_time=day_start,
                 ))

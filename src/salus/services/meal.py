@@ -76,9 +76,10 @@ class MealService:
         )
 
     def _delete_measurement_for_meal(self, meal: Meal) -> None:
-        existing = self.uow.measurements.find_by_external_id(meal.id, "meal")
-        if existing:
-            self.uow.measurements.delete(existing)
+        if meal.id:
+            existing = self.uow.measurements.find_by_external_id(meal.id, "meal")
+            if existing:
+                self.uow.measurements.delete(existing)
 
     def _meal_to_response(self, meal: Meal, items: list[MealItem], food_map: dict) -> dict:
         macros = _calc_macros(items, food_map)

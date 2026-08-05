@@ -4,12 +4,19 @@ from pydantic import BaseModel
 from salus.dependencies import (
     get_api_token_service,
     get_current_user,
+    get_source_resolution_service,
     get_user_service,
 )
 from salus.exceptions import ApiError, ConflictError
 from salus.models.user import User
+from salus.schemas.user_source_preference import (
+    BulkSourcePriorityUpdate,
+    MetricSourcePriorityItem,
+    UserSourcePreferenceResponse,
+)
 from salus.services._helpers import uid
 from salus.services.api_token import ApiTokenService
+from salus.services.source_resolution import SourceResolutionService
 from salus.services.user import UserService
 
 router = APIRouter(prefix="/api/v1")
@@ -164,3 +171,44 @@ async def api_update_profile(
 ):
     user_svc.update_profile(uid(current_user), body.display_name, body.height_cm)
     return Response(status_code=204)
+
+
+# ---------------------------------------------------------------------------
+# Source Preferences
+# ---------------------------------------------------------------------------
+
+
+@router.get("/settings/source-preferences", response_model=dict[str, list[UserSourcePreferenceResponse]])
+async def api_get_source_preferences(
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.get_user_preferences(uid(current_user))
+
+
+@router.get("/settings/source-preferences/{metric_code}", response_model=list[UserSourcePreferenceResponse])
+async def api_get_metric_source_preferences(
+    metric_code: str,
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.get_metric_preferences(uid(current_user), metric_code)
+
+
+@router.put("/settings/source-preferences/{metric_code}", response_model=list[UserSourcePreferenceResponse])
+async def api_set_metric_source_preferences(
+    metric_code: str,
+    items: list[MetricSourcePriorityItem],
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.set_metric_preferences(uid(current_user), metric_code, items)
+
+
+@router.post("/settings/source-preferences/bulk", response_model=dict[str, list[UserSourcePreferenceResponse]])
+async def api_bulk_set_source_preferences(
+    updates: list[BulkSourcePriorityUpdate],
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.bulk_set_preferences(uid(current_user), updates)

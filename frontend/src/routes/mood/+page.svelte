@@ -13,8 +13,7 @@
   let saving = $state(false);
 
   let todayStr = new Date().toISOString().split('T')[0];
-  let todayEntry = $derived(entries.find((e) => e.entry_date === todayStr));
-  let score = $state(todayEntry?.mood_score ?? 0);
+  let score = $state(0);
 
   $effect(() => {
     const sub = liveQuery(() => db.mood_entry.toArray()).subscribe((v) => {

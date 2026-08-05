@@ -32,11 +32,19 @@
 
   const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  let dosage = $state(initialDosage);
-  let times = $state(initialTimes.length > 0 ? [...initialTimes] : ['08:00']);
-  let daysOfWeek = $state(initialDays ?? [1, 2, 3, 4, 5, 6, 7]);
-  let startDate = $state(initialStartDate || new Date().toISOString().split('T')[0]);
-  let endDate = $state(initialEndDate);
+  let dosage = $state('');
+  let times = $state<string[]>(['08:00']);
+  let daysOfWeek = $state<number[]>([1, 2, 3, 4, 5, 6, 7]);
+  let startDate = $state(new Date().toISOString().split('T')[0]);
+  let endDate = $state<string | undefined>(undefined);
+
+  $effect(() => {
+    dosage = initialDosage;
+    times = initialTimes.length > 0 ? [...initialTimes] : ['08:00'];
+    daysOfWeek = initialDays ?? [1, 2, 3, 4, 5, 6, 7];
+    startDate = initialStartDate || new Date().toISOString().split('T')[0];
+    endDate = initialEndDate;
+  });
 
   const isValid = $derived(dosage.trim().length > 0 && times.length > 0);
 

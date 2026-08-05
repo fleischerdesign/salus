@@ -34,6 +34,7 @@ from salus.models.food import (
     Recipe,
     RecipeIngredient,
 )
+from salus.models.user_source_preference import UserSourcePreference
 
 if TYPE_CHECKING:
     from salus.schemas.sync import SyncOperation
@@ -59,6 +60,7 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="metric_group", model=MetricGroup, strategy="global", batch_size=500),
     EntityMeta(name="metric_definition", model=MetricDefinition, strategy="global", batch_size=500),
     EntityMeta(name="user_metric_preference", model=UserMetricPreference, batch_size=500),
+    EntityMeta(name="user_source_preference", model=UserSourcePreference, batch_size=500),
     EntityMeta(name="measurement", model=Measurement, batch_size=2000),
     EntityMeta(name="goal", model=Goal, batch_size=500),
     EntityMeta(name="circadian_profile", model=CircadianProfile, batch_size=500),

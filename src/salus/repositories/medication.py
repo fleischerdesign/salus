@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.medication import (
     Medication,
@@ -69,7 +69,7 @@ class MedicationLogRepository(Repository[MedicationLog]):
                 select(MedicationLog).where(
                     MedicationLog.medication_id == medication_id,
                     MedicationLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-                ).order_by(MedicationLog.taken_at.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                ).order_by(col(MedicationLog.taken_at).desc())
             ).all()
         )
 
@@ -80,8 +80,8 @@ class MedicationLogRepository(Repository[MedicationLog]):
             self.session.exec(
                 select(MedicationLog).where(
                     MedicationLog.user_id == user_id,
-                    MedicationLog.taken_at >= start,
-                    MedicationLog.taken_at <= end,
+                    col(MedicationLog.taken_at) >= start,
+                    col(MedicationLog.taken_at) <= end,
                     MedicationLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
             ).all()
@@ -92,8 +92,8 @@ class MedicationLogRepository(Repository[MedicationLog]):
     ) -> MedicationLog | None:
         stmt = select(MedicationLog).where(
             MedicationLog.schedule_id == schedule_id,
-            MedicationLog.taken_at >= taken_at_start,
-            MedicationLog.taken_at <= taken_at_end,
+            col(MedicationLog.taken_at) >= taken_at_start,
+            col(MedicationLog.taken_at) <= taken_at_end,
             MedicationLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
         return self.session.exec(stmt).first()
@@ -104,7 +104,7 @@ class MedicationLogRepository(Repository[MedicationLog]):
                 select(MedicationLog).where(
                     MedicationLog.user_id == user_id,
                     MedicationLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-                ).order_by(MedicationLog.taken_at.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                ).order_by(col(MedicationLog.taken_at).desc())
             ).all()
         )
 

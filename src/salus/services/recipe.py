@@ -227,13 +227,13 @@ class RecipeService:
                 {
                     "id": mi.id,
                     "food_item_id": mi.food_item_id,
-                    "food_item_name": food_map.get(mi.food_item_id).name if food_map.get(mi.food_item_id) else "",
+                    "food_item_name": food.name if (food := food_map.get(mi.food_item_id)) else "",
                     "servings": mi.servings,
                     "amount_g": mi.amount_g,
-                    "calories": round((food_map.get(mi.food_item_id).calories_per_serving * mi.servings) if food_map.get(mi.food_item_id) else 0, 1),
-                    "protein_g": round((food_map.get(mi.food_item_id).protein_g * mi.servings) if food_map.get(mi.food_item_id) else 0, 1),
-                    "carbs_g": round((food_map.get(mi.food_item_id).carbs_g * mi.servings) if food_map.get(mi.food_item_id) else 0, 1),
-                    "fat_g": round((food_map.get(mi.food_item_id).fat_g * mi.servings) if food_map.get(mi.food_item_id) else 0, 1),
+                    "calories": round(food.calories_per_serving * mi.servings, 1) if (food := food_map.get(mi.food_item_id)) else 0,
+                    "protein_g": round(food.protein_g * mi.servings, 1) if (food := food_map.get(mi.food_item_id)) else 0,
+                    "carbs_g": round(food.carbs_g * mi.servings, 1) if (food := food_map.get(mi.food_item_id)) else 0,
+                    "fat_g": round(food.fat_g * mi.servings, 1) if (food := food_map.get(mi.food_item_id)) else 0,
                 }
                 for mi in meal_items
             ],

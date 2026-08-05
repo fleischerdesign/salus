@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.journal import JournalEntry
 from salus.repositories.base import Repository
@@ -17,7 +17,7 @@ class JournalEntryRepository(Repository[JournalEntry]):
                     JournalEntry.user_id == user_id,
                     JournalEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
-                .order_by(JournalEntry.entry_date.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                .order_by(col(JournalEntry.entry_date).desc())
                 .offset(offset)
                 .limit(limit)
             ).all()
@@ -43,11 +43,11 @@ class JournalEntryRepository(Repository[JournalEntry]):
                 select(JournalEntry)
                 .where(
                     JournalEntry.user_id == user_id,
-                    JournalEntry.entry_date >= since,
-                    JournalEntry.entry_date <= until,
+                    col(JournalEntry.entry_date) >= since,
+                    col(JournalEntry.entry_date) <= until,
                     JournalEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
-                .order_by(JournalEntry.entry_date.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                .order_by(col(JournalEntry.entry_date).desc())
             ).all()
         )
 
@@ -56,7 +56,7 @@ class JournalEntryRepository(Repository[JournalEntry]):
     ) -> JournalEntry | None:
         stmt = select(JournalEntry).where(
             JournalEntry.user_id == user_id,
-            JournalEntry.entry_date == entry_date,
+            col(JournalEntry.entry_date) == entry_date,
             JournalEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
         return self.session.exec(stmt).first()
@@ -67,10 +67,10 @@ class JournalEntryRepository(Repository[JournalEntry]):
                 select(JournalEntry)
                 .where(
                     JournalEntry.user_id == user_id,
-                    JournalEntry.content.contains(query),
+                    col(JournalEntry.content).contains(query),
                     JournalEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
-                .order_by(JournalEntry.entry_date.desc())  # pyright: ignore[reportAttributeAccessIssue]
+                .order_by(col(JournalEntry.entry_date).desc())
                 .offset(offset)
                 .limit(limit)
             ).all()

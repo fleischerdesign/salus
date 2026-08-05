@@ -40,7 +40,7 @@ export function roundedSegments(
   }
   const raw = stages.map((s) => (s.value / total) * 100);
   const pcts = raw.map((r) => Math.round(r));
-  let diff = 100 - pcts.reduce((s, v) => s + v, 0);
+  const diff = 100 - pcts.reduce((s, v) => s + v, 0);
   if (diff !== 0) {
     const fractions = raw
       .map((r, i) => ({ frac: r - pcts[i], idx: i }))

@@ -75,6 +75,18 @@ export interface MetricWithPreference extends MetricDefinition {
   position: number;
 }
 
+export interface UserSourcePreference {
+  id: string;
+  user_id: string;
+  metric_code: string;
+  source: string;
+  priority_rank: number;
+  is_enabled: boolean;
+  created_at: string;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+}
+
 export function mergeMetricPrefs(
   definitions: MetricDefinition[],
   preferences: UserMetricPreference[]

@@ -30,14 +30,33 @@
     if (!id) return;
     const sub1 = liveQuery(() =>
       db.recipe.get(id).then((r) => (r && !r.deleted_at ? r : null))
-    ).subscribe((v) => { recipe = v; });
+    ).subscribe((v) => {
+      recipe = v;
+    });
     const sub2 = liveQuery(() =>
-      db.recipe_ingredient.where({ recipe_id: id }).filter((i) => !i.deleted_at).toArray()
-    ).subscribe((v) => { ingredients = v; });
+      db.recipe_ingredient
+        .where({ recipe_id: id })
+        .filter((i) => !i.deleted_at)
+        .toArray()
+    ).subscribe((v) => {
+      ingredients = v;
+    });
     const sub3 = liveQuery(() =>
-      db.food_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { foodItems = v; loading = false; });
-    return () => { sub1.unsubscribe(); sub2.unsubscribe(); sub3.unsubscribe(); };
+      db.food_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      foodItems = v;
+      loading = false;
+    });
+    return () => {
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
+    };
   });
 
   const foodMap = $derived.by(() => {
@@ -49,7 +68,10 @@
   });
 
   const macros = $derived.by(() => {
-    let calories = 0, protein = 0, carbs = 0, fat = 0;
+    let calories = 0,
+      protein = 0,
+      carbs = 0,
+      fat = 0;
     for (const ing of ingredients) {
       const food = foodMap[ing.food_item_id];
       if (!food) continue;
@@ -100,7 +122,11 @@
 {#if loading}
   <div class="flex justify-center py-20"><Spinner /></div>
 {:else if !recipe}
-  <EmptyState icon="menu-book" title="Recipe not found" description="This recipe may have been deleted." />
+  <EmptyState
+    icon="menu-book"
+    title="Recipe not found"
+    description="This recipe may have been deleted."
+  />
 {:else}
   <PageHeader
     title={recipe.name}
@@ -136,24 +162,30 @@
   </PageHeader>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <div class="lg:col-span-2 flex flex-col gap-4">
+    <div class="flex flex-col gap-4 lg:col-span-2">
       <Card>
-        <h3 class="text-sm font-semibold text-surface-700 mb-4">Ingredients</h3>
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">Ingredients</h3>
         <div class="divide-y divide-surface-100">
           {#each ingredients as ing (ing.id)}
             {@const food = foodMap[ing.food_item_id]}
             <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <div class="flex items-center gap-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-100 text-surface-500">
+                <div
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-100 text-surface-500"
+                >
                   <Icon name="restaurant" size="sm" />
                 </div>
                 <div>
                   <div class="text-sm font-medium text-surface-700">{food?.name ?? 'Unknown'}</div>
-                  <div class="text-xs text-surface-400">{ing.amount_g}g{ing.notes ? ` · ${ing.notes}` : ''}</div>
+                  <div class="text-xs text-surface-400">
+                    {ing.amount_g}g{ing.notes ? ` · ${ing.notes}` : ''}
+                  </div>
                 </div>
               </div>
               <div class="text-xs text-surface-500">
-                {food ? Math.round((food.calories_per_serving / food.serving_size) * ing.amount_g) : '—'} kcal
+                {food
+                  ? Math.round((food.calories_per_serving / food.serving_size) * ing.amount_g)
+                  : '—'} kcal
               </div>
             </div>
           {/each}
@@ -162,23 +194,27 @@
 
       {#if recipe.instructions}
         <Card>
-          <h3 class="text-sm font-semibold text-surface-700 mb-4">Instructions</h3>
-          <div class="prose prose-sm text-surface-600 whitespace-pre-line">{recipe.instructions}</div>
+          <h3 class="mb-4 text-sm font-semibold text-surface-700">Instructions</h3>
+          <div class="prose prose-sm whitespace-pre-line text-surface-600">
+            {recipe.instructions}
+          </div>
         </Card>
       {/if}
     </div>
 
     <div class="flex flex-col gap-4">
       <Card>
-        <h3 class="text-sm font-semibold text-surface-700 mb-2">Nutrition</h3>
-        <div class="text-sm space-y-1">
+        <h3 class="mb-2 text-sm font-semibold text-surface-700">Nutrition</h3>
+        <div class="space-y-1 text-sm">
           <div class="flex justify-between">
             <span class="text-surface-400">Total</span>
             <span class="font-medium text-surface-700">{Math.round(macros.calories)} kcal</span>
           </div>
           <div class="flex justify-between">
             <span class="text-surface-400">Per serving</span>
-            <span class="font-medium text-surface-700">{Math.round(macros.calories / recipe.servings)} kcal</span>
+            <span class="font-medium text-surface-700"
+              >{Math.round(macros.calories / recipe.servings)} kcal</span
+            >
           </div>
         </div>
         <div class="mt-3 grid grid-cols-3 gap-2 text-center">
@@ -199,7 +235,7 @@
 
       {#if recipe.description}
         <Card>
-          <h3 class="text-sm font-semibold text-surface-700 mb-2">About</h3>
+          <h3 class="mb-2 text-sm font-semibold text-surface-700">About</h3>
           <p class="text-sm text-surface-600">{recipe.description}</p>
         </Card>
       {/if}

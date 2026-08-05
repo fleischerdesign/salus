@@ -27,14 +27,33 @@
     if (!id) return;
     const sub1 = liveQuery(() =>
       db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null))
-    ).subscribe((v) => { meal = v; });
+    ).subscribe((v) => {
+      meal = v;
+    });
     const sub2 = liveQuery(() =>
-      db.meal_item.where({ meal_id: id }).filter((mi) => !mi.deleted_at).toArray()
-    ).subscribe((v) => { mealItems = v; });
+      db.meal_item
+        .where({ meal_id: id })
+        .filter((mi) => !mi.deleted_at)
+        .toArray()
+    ).subscribe((v) => {
+      mealItems = v;
+    });
     const sub3 = liveQuery(() =>
-      db.food_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { foodItems = v; loading = false; });
-    return () => { sub1.unsubscribe(); sub2.unsubscribe(); sub3.unsubscribe(); };
+      db.food_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      foodItems = v;
+      loading = false;
+    });
+    return () => {
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
+    };
   });
 
   const foodMap = $derived.by(() => {
@@ -46,7 +65,10 @@
   });
 
   const macros = $derived.by(() => {
-    let calories = 0, protein = 0, carbs = 0, fat = 0;
+    let calories = 0,
+      protein = 0,
+      carbs = 0,
+      fat = 0;
     for (const mi of mealItems) {
       const food = foodMap[mi.food_item_id];
       if (!food) continue;
@@ -70,11 +92,19 @@
 {#if loading}
   <div class="flex justify-center py-20"><Spinner /></div>
 {:else if !meal}
-  <EmptyState icon="restaurant" title="Meal not found" description="This meal may have been deleted." />
+  <EmptyState
+    icon="restaurant"
+    title="Meal not found"
+    description="This meal may have been deleted."
+  />
 {:else}
   <PageHeader
     title={meal.name ?? `${meal.meal_type.charAt(0).toUpperCase() + meal.meal_type.slice(1)}`}
-    subtitle={new Date(meal.log_date + 'T12:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+    subtitle={new Date(meal.log_date + 'T12:00').toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    })}
     icon="restaurant"
     iconColor="#f59e0b"
   >
@@ -92,10 +122,12 @@
   </PageHeader>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <div class="lg:col-span-2 flex flex-col gap-4">
+    <div class="flex flex-col gap-4 lg:col-span-2">
       <Card>
-        <h3 class="text-sm font-semibold text-surface-700 mb-4">
-          Items · {Math.round(macros.calories)} kcal · {Math.round(macros.protein)}P · {Math.round(macros.carbs)}C · {Math.round(macros.fat)}F
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">
+          Items · {Math.round(macros.calories)} kcal · {Math.round(macros.protein)}P · {Math.round(
+            macros.carbs
+          )}C · {Math.round(macros.fat)}F
         </h3>
         <div class="flex flex-col gap-2">
           {#each mealItems as mi (mi.id)}
@@ -121,11 +153,13 @@
 
     <div class="flex flex-col gap-4">
       <Card>
-        <h3 class="text-sm font-semibold text-surface-700 mb-2">Details</h3>
-        <div class="text-sm space-y-2">
+        <h3 class="mb-2 text-sm font-semibold text-surface-700">Details</h3>
+        <div class="space-y-2 text-sm">
           <div>
             <span class="text-surface-400">Type: </span>
-            <Badge variant="default">{meal.meal_type.charAt(0).toUpperCase() + meal.meal_type.slice(1)}</Badge>
+            <Badge variant="default"
+              >{meal.meal_type.charAt(0).toUpperCase() + meal.meal_type.slice(1)}</Badge
+            >
           </div>
           <div>
             <span class="text-surface-400">Date: </span>
@@ -137,10 +171,12 @@
               <span class="text-surface-700">{meal.notes}</span>
             </div>
           {/if}
-          <div class="pt-2 border-t border-surface-100">
+          <div class="border-t border-surface-100 pt-2">
             <div class="font-medium text-surface-700">{Math.round(macros.calories)} kcal</div>
-            <div class="text-xs text-surface-400 mt-1">
-              {Math.round(macros.protein)}g protein · {Math.round(macros.carbs)}g carbs · {Math.round(macros.fat)}g fat
+            <div class="mt-1 text-xs text-surface-400">
+              {Math.round(macros.protein)}g protein · {Math.round(macros.carbs)}g carbs · {Math.round(
+                macros.fat
+              )}g fat
             </div>
           </div>
         </div>

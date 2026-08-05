@@ -14,7 +14,8 @@
   const tabs = [
     { key: 'account', label: 'Account', icon: 'person' },
     { key: 'privacy', label: 'Privacy', icon: 'shield' },
-    { key: 'shares', label: 'Shares', icon: 'share' }
+    { key: 'shares', label: 'Shares', icon: 'share' },
+    { key: 'sources', label: 'Data Sources', icon: 'devices' }
   ];
 
   let activeTab = $derived(

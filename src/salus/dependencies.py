@@ -67,6 +67,7 @@ from salus.services.asymmetric_share import AsymmetricShareService
 from salus.services.portability import DataPortabilityService
 from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
+from salus.services.source_resolution import SourceResolutionService
 from salus.services.event_bus import EventBus
 from salus.services.habit import HabitService
 from salus.services.mood import MoodService
@@ -567,6 +568,12 @@ def get_leaderboard_service(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ) -> LeaderboardService:
     return LeaderboardService(uow, sharing_svc)
+
+
+def get_source_resolution_service(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+) -> SourceResolutionService:
+    return SourceResolutionService(uow)
 
 
 def get_notification_service(

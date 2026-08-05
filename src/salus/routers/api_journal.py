@@ -11,17 +11,17 @@ from salus.services.journal import JournalService
 router = APIRouter(prefix="/api/v1/journal")
 
 
-def _entry_to_response(e) -> dict:
-    return {
-        "id": e.id,
-        "entry_date": e.entry_date.isoformat() if e.entry_date else "",
-        "title": e.title,
-        "content": e.content,
-        "mood_score": e.mood_score,
-        "is_private": e.is_private,
-        "created_at": e.created_at.isoformat() if e.created_at else "",
-        "updated_at": e.updated_at.isoformat() if e.updated_at else None,
-    }
+def _entry_to_response(e) -> JournalEntryResponse:
+    return JournalEntryResponse(
+        id=e.id or "",
+        entry_date=e.entry_date.isoformat() if e.entry_date else "",
+        title=e.title,
+        content=e.content,
+        mood_score=e.mood_score,
+        is_private=e.is_private,
+        created_at=e.created_at.isoformat() if e.created_at else "",
+        updated_at=e.updated_at.isoformat() if e.updated_at else None,
+    )
 
 
 @router.get("", response_model=list[JournalEntryResponse])

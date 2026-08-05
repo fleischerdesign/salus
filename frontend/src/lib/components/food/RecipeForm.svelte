@@ -80,9 +80,7 @@
   const filteredItems = $derived(
     search.trim()
       ? foodItems.filter(
-          (f) =>
-            f.name.toLowerCase().includes(search.toLowerCase()) &&
-            !f.deleted_at
+          (f) => f.name.toLowerCase().includes(search.toLowerCase()) && !f.deleted_at
         )
       : []
   );
@@ -136,7 +134,7 @@
   }
 </script>
 
-<Modal open={open} onclose={onClose} title={recipe ? 'Edit Recipe' : 'New Recipe'} size="lg">
+<Modal {open} onclose={onClose} title={recipe ? 'Edit Recipe' : 'New Recipe'} size="lg">
   <div class="flex flex-col gap-4">
     <FormField label="Name" required>
       <Input name="recipe_name" placeholder="e.g. Protein Pancakes" bind:value={name} />
@@ -159,11 +157,7 @@
     </div>
 
     <FormField label="Add Ingredients">
-      <Input
-        name="recipe_food_search"
-        placeholder="Search food items..."
-        bind:value={search}
-      />
+      <Input name="recipe_food_search" placeholder="Search food items..." bind:value={search} />
     </FormField>
 
     {#if search.trim() && filteredItems.length > 0}
@@ -171,11 +165,13 @@
         {#each filteredItems.slice(0, 10) as food (food.id)}
           <button
             onclick={() => addIngredient(food)}
-            class="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-surface-50 border-b border-surface-100 last:border-b-0"
+            class="flex w-full items-center justify-between border-b border-surface-100 px-3 py-2 text-left last:border-b-0 hover:bg-surface-50"
           >
             <div>
               <div class="text-sm font-medium text-surface-700">{food.name}</div>
-              <div class="text-xs text-surface-400">{food.calories_per_serving} kcal per {food.serving_size}{food.serving_unit}</div>
+              <div class="text-xs text-surface-400">
+                {food.calories_per_serving} kcal per {food.serving_size}{food.serving_unit}
+              </div>
             </div>
             <Icon name="add-circle" size="sm" class="text-primary-500" />
           </button>
@@ -185,17 +181,30 @@
 
     {#if ingredients.length > 0}
       <div class="rounded-lg border border-surface-200 p-3">
-        <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">Ingredients</h4>
+        <h4 class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+          Ingredients
+        </h4>
         <div class="flex flex-col gap-2">
           {#each ingredients as ing (ing.foodItemId)}
             <div class="flex items-center gap-3 rounded-lg bg-surface-50 px-3 py-2">
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-surface-700 truncate">{ing.name}</div>
-                <div class="text-xs text-surface-400">{Math.round(ing.calories * (ing.amountG / 100))} kcal</div>
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-medium text-surface-700">{ing.name}</div>
+                <div class="text-xs text-surface-400">
+                  {Math.round(ing.calories * (ing.amountG / 100))} kcal
+                </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <Input name={'amount_' + ing.foodItemId} type="number" value={ing.amountG} min={1} class="!h-8 w-20 text-xs" />
-                <button onclick={() => removeIngredient(ing.foodItemId)} class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:text-error-500">
+              <div class="flex flex-shrink-0 items-center gap-2">
+                <Input
+                  name={'amount_' + ing.foodItemId}
+                  type="number"
+                  value={ing.amountG}
+                  min={1}
+                  class="!h-8 w-20 text-xs"
+                />
+                <button
+                  onclick={() => removeIngredient(ing.foodItemId)}
+                  class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:text-error-500"
+                >
                   <Icon name="close" size="sm" />
                 </button>
               </div>
@@ -206,7 +215,12 @@
     {/if}
 
     <FormField label="Instructions">
-      <Textarea name="instructions" placeholder="Step-by-step preparation..." bind:value={instructions} rows={4} />
+      <Textarea
+        name="instructions"
+        placeholder="Step-by-step preparation..."
+        bind:value={instructions}
+        rows={4}
+      />
     </FormField>
 
     <div class="flex justify-end gap-3 pt-2">

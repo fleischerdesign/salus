@@ -17,7 +17,11 @@
 </script>
 
 {#if meals.length === 0}
-  <EmptyState icon="restaurant" title="No meals logged" description="Log your first meal to start tracking nutrition.">
+  <EmptyState
+    icon="restaurant"
+    title="No meals logged"
+    description="Log your first meal to start tracking nutrition."
+  >
     <button onclick={onCreate} class="btn btn-primary mt-4">Log Meal</button>
   </EmptyState>
 {:else}

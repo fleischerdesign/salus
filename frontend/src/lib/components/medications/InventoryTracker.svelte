@@ -13,9 +13,9 @@
 
   let { inventory, onUpdate }: Props = $props();
 
-  let remaining = $state(inventory?.remaining_count ?? 0);
-  let initial = $state(inventory?.initial_count ?? 0);
-  let refillAt = $state(inventory?.refill_at_count ?? 0);
+  let remaining = $state(0);
+  let initial = $state(0);
+  let refillAt = $state(0);
 
   $effect(() => {
     if (inventory) {

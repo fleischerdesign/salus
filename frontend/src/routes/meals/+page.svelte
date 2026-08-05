@@ -21,15 +21,41 @@
 
   $effect(() => {
     const sub1 = liveQuery(() =>
-      db.meal.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { meals = v; });
+      db.meal
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      meals = v;
+    });
     const sub2 = liveQuery(() =>
-      db.meal_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { mealItems = v; });
+      db.meal_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      mealItems = v;
+    });
     const sub3 = liveQuery(() =>
-      db.food_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { foodItems = v; loading = false; });
-    return () => { sub1.unsubscribe(); sub2.unsubscribe(); sub3.unsubscribe(); };
+      db.food_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      foodItems = v;
+      loading = false;
+    });
+    return () => {
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
+    };
   });
 
   const today = $derived(new Date().toISOString().split('T')[0]);
@@ -60,10 +86,14 @@
   });
 
   const macroTotals = $derived.by(() => {
-    const map: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {};
+    const map: Record<string, { calories: number; protein: number; carbs: number; fat: number }> =
+      {};
     for (const meal of mealsForDate) {
       const items = mealItemsMap[meal.id ?? ''] ?? [];
-      let calories = 0, protein = 0, carbs = 0, fat = 0;
+      let calories = 0,
+        protein = 0,
+        carbs = 0,
+        fat = 0;
       for (const mi of items) {
         const food = foodMap[mi.food_item_id];
         if (!food) continue;
@@ -78,7 +108,10 @@
   });
 
   const dailyTotals = $derived.by(() => {
-    let calories = 0, protein = 0, carbs = 0, fat = 0;
+    let calories = 0,
+      protein = 0,
+      carbs = 0,
+      fat = 0;
     for (const m of Object.values(macroTotals)) {
       calories += m.calories;
       protein += m.protein;
@@ -88,7 +121,12 @@
     return { calories, protein, carbs, fat };
   });
 
-  async function handleSave(data: { meal_type: string; name: string; notes: string; items: { food_item_id: string; servings: number }[] }) {
+  async function handleSave(data: {
+    meal_type: string;
+    name: string;
+    notes: string;
+    items: { food_item_id: string; servings: number }[];
+  }) {
     await createMeal({ ...data, log_date: selectedDate });
     formOpen = false;
   }
@@ -130,7 +168,12 @@
     </div>
   {:else}
     <DayNavigator
-      dateDisplay={new Date(selectedDate + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
+      dateDisplay={new Date(selectedDate + 'T12:00').toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      })}
       onPrev={() => {
         const d = new Date(selectedDate + 'T12:00');
         d.setDate(d.getDate() - 1);
@@ -174,10 +217,5 @@
     />
   {/if}
 
-  <MealForm
-    open={formOpen}
-    {foodItems}
-    onSave={handleSave}
-    onClose={() => (formOpen = false)}
-  />
+  <MealForm open={formOpen} {foodItems} onSave={handleSave} onClose={() => (formOpen = false)} />
 </div>

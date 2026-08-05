@@ -30,8 +30,16 @@
 
   $effect(() => {
     const sub = liveQuery(() =>
-      db.food_item.where('deleted_at').equals('').or('deleted_at').equals(null as any).toArray()
-    ).subscribe((v) => { foodItems = v; loading = false; });
+      db.food_item
+        .where('deleted_at')
+        .equals('')
+        .or('deleted_at')
+        .equals(null as any)
+        .toArray()
+    ).subscribe((v) => {
+      foodItems = v;
+      loading = false;
+    });
     return () => sub.unsubscribe();
   });
 
@@ -116,25 +124,36 @@
                       <span class="text-surface-400">({item.brand})</span>
                     {/if}
                   </div>
-                  <div class="text-xs text-surface-400 mt-0.5">
-                    {item.serving_size}{item.serving_unit} · {item.calories_per_serving} kcal · {item.protein_g}P · {item.carbs_g}C · {item.fat_g}F
+                  <div class="mt-0.5 text-xs text-surface-400">
+                    {item.serving_size}{item.serving_unit} · {item.calories_per_serving} kcal · {item.protein_g}P
+                    · {item.carbs_g}C · {item.fat_g}F
                   </div>
                 </div>
                 {#if item.is_verified}
-                  <span class="flex-shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600">Verified</span>
+                  <span
+                    class="flex-shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600"
+                    >Verified</span
+                  >
                 {:else if item.user_id}
-                  <span class="flex-shrink-0 rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500">Custom</span>
+                  <span
+                    class="flex-shrink-0 rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500"
+                    >Custom</span
+                  >
                 {/if}
               </div>
             {/each}
           </div>
         </Card>
       {:else}
-        <p class="text-sm text-surface-400 text-center py-8">No results found. Create a new food item.</p>
+        <p class="py-8 text-center text-sm text-surface-400">
+          No results found. Create a new food item.
+        </p>
       {/if}
     {:else if frequentItems.length > 0}
       <div>
-        <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-surface-400">All Items</h3>
+        <h3 class="mb-3 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+          All Items
+        </h3>
         <div class="flex flex-wrap gap-2">
           {#each frequentItems as item (item.id)}
             <Chip variant="neutral">{item.name}</Chip>

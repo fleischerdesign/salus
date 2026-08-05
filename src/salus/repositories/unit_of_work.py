@@ -53,6 +53,7 @@ from salus.repositories.protocols import (
     IMealItemRepository,
     IRecipeRepository,
     IRecipeIngredientRepository,
+    IUserSourcePreferenceRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -95,6 +96,7 @@ from salus.repositories.food import (
     RecipeRepository,
     RecipeIngredientRepository,
 )
+from salus.repositories.user_source_preference import UserSourcePreferenceRepository
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -107,6 +109,7 @@ class IUnitOfWork(Protocol):
     metric_definitions: IMetricDefinitionRepository
     metric_groups: IMetricGroupRepository
     metric_preferences: IMetricPreferenceRepository
+    user_source_preferences: IUserSourcePreferenceRepository
     measurements: IMeasurementRepository
     goals: IGoalRepository
     api_tokens: IApiTokenRepository
@@ -200,6 +203,7 @@ class SqlUnitOfWork:
     meal_items: IMealItemRepository
     recipes: IRecipeRepository
     recipe_ingredients: IRecipeIngredientRepository
+    user_source_preferences: IUserSourcePreferenceRepository
 
     def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
@@ -245,6 +249,7 @@ class SqlUnitOfWork:
         self.meal_items = MealItemRepository(session)
         self.recipes = RecipeRepository(session)
         self.recipe_ingredients = RecipeIngredientRepository(session)
+        self.user_source_preferences = UserSourcePreferenceRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

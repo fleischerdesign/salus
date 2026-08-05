@@ -55,18 +55,14 @@
   const filteredItems = $derived(
     search.trim()
       ? foodItems.filter(
-          (f) =>
-            f.name.toLowerCase().includes(search.toLowerCase()) &&
-            !f.deleted_at
+          (f) => f.name.toLowerCase().includes(search.toLowerCase()) && !f.deleted_at
         )
       : []
   );
 
   const showSearch = $derived(search.trim().length > 0);
 
-  const totalCalories = $derived(
-    selections.reduce((sum, s) => sum + s.calories * s.servings, 0)
-  );
+  const totalCalories = $derived(selections.reduce((sum, s) => sum + s.calories * s.servings, 0));
 
   function addItem(food: FoodItem) {
     const existing = selections.find((s) => s.foodItemId === food.id);
@@ -126,14 +122,14 @@
   }
 </script>
 
-<Modal open={open} onclose={onClose} title="Log Meal" size="md">
+<Modal {open} onclose={onClose} title="Log Meal" size="md">
   <div class="flex flex-col gap-4">
     <div class="grid grid-cols-5 gap-2">
       {#each mealTypes as mt}
         <button
           type="button"
           onclick={() => (mealType = mt)}
-          class="rounded-lg border px-2 py-2 text-xs font-medium transition-colors text-center"
+          class="rounded-lg border px-2 py-2 text-center text-xs font-medium transition-colors"
           class:border-primary-500={mealType === mt}
           class:bg-primary-50={mealType === mt}
           class:text-primary-700={mealType === mt}
@@ -150,11 +146,7 @@
     </FormField>
 
     <FormField label="Add Food Items">
-      <Input
-        name="food_search"
-        placeholder="Search food database..."
-        bind:value={search}
-      />
+      <Input name="food_search" placeholder="Search food database..." bind:value={search} />
     </FormField>
 
     {#if showSearch && filteredItems.length > 0}
@@ -162,7 +154,7 @@
         {#each filteredItems.slice(0, 10) as food (food.id)}
           <button
             onclick={() => addItem(food)}
-            class="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-surface-50 border-b border-surface-100 last:border-b-0"
+            class="flex w-full items-center justify-between border-b border-surface-100 px-3 py-2 text-left last:border-b-0 hover:bg-surface-50"
           >
             <div>
               <div class="text-sm font-medium text-surface-700">{food.name}</div>
@@ -175,13 +167,15 @@
         {/each}
       </div>
     {:else if showSearch}
-      <p class="text-sm text-surface-400 text-center py-2">No items found. Create one in the Food Database.</p>
+      <p class="py-2 text-center text-sm text-surface-400">
+        No items found. Create one in the Food Database.
+      </p>
     {/if}
 
     {#if selections.length > 0}
       <div class="rounded-lg border border-surface-200 p-3">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Items</h4>
+        <div class="mb-2 flex items-center justify-between">
+          <h4 class="text-xs font-semibold tracking-wider text-surface-400 uppercase">Items</h4>
           <span class="text-xs font-medium text-surface-600">{Math.round(totalCalories)} kcal</span>
         </div>
         <div class="flex flex-col gap-2">

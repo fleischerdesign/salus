@@ -32,16 +32,30 @@
 
   let { open, habit = null, onSave, onClose }: Props = $props();
 
-  let name = $state(habit?.name ?? '');
-  let description = $state(habit?.description ?? '');
-  let color = $state(habit?.color ?? '#4f46e5');
-  let icon = $state(habit?.icon ?? 'check-circle');
-  let frequency = $state(habit?.frequency ?? 'daily');
-  let targetCount = $state(habit?.target_count ?? 1);
-  let targetCountStr = $state(String(habit?.target_count ?? 1));
-  let stackHint = $state(habit?.stack_hint ?? '');
-  let daysMask = $state(habit?.days_bitmask ?? 0);
+  let name = $state('');
+  let description = $state('');
+  let color = $state('#4f46e5');
+  let icon = $state('check-circle');
+  let frequency = $state('daily');
+  let targetCount = $state(1);
+  let targetCountStr = $state('1');
+  let stackHint = $state('');
+  let daysMask = $state(0);
   let saving = $state(false);
+
+  $effect(() => {
+    if (habit) {
+      name = habit.name;
+      description = habit.description ?? '';
+      color = habit.color ?? '#4f46e5';
+      icon = habit.icon ?? 'check-circle';
+      frequency = habit.frequency ?? 'daily';
+      targetCount = habit.target_count ?? 1;
+      targetCountStr = String(habit.target_count ?? 1);
+      stackHint = habit.stack_hint ?? '';
+      daysMask = habit.days_bitmask ?? 0;
+    }
+  });
 
   const colors = [
     '#4f46e5',
