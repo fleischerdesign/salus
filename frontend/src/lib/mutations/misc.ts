@@ -1,5 +1,6 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
+import { db } from '$lib/db/database';
 
 export const saveCircadianProfile = (
   latitude: number,
@@ -86,14 +87,33 @@ export const deleteAsymmetricShare = (shareId: string) =>
     payload: { id: shareId }
   });
 
-export const updateSourcePreferences = (
+export const updateSourcePreferences = async (
   metricCode: string,
-  items: Array<{ source: string; priority_rank: number; is_enabled: boolean }>
-) =>
-  mutate({
-    kind: 'command',
-    command: 'update_source_preferences',
-    queueable: false,
-    payload: { metric_code: metricCode, items },
-    responseTable: 'user_source_preference'
-  });
+  items: Array<{ id?: string; source: string; priority_rank: number; is_enabled: boolean }>
+) => {
+  const now = new Date().toISOString();
+  for (const item of items) {
+    const prefId =
+      item.id && !item.id.startsWith('temp-') ? item.id : `${metricCode}:${item.source}`;
+    const record = {
+      id: prefId,
+      metric_code: metricCode,
+      source: item.source,
+      priority_rank: item.priority_rank,
+      is_enabled: item.is_enabled,
+      updated_at: now
+    };
+
+    // 1. Optimistic local Dexie update (works 100% offline)
+    await db.user_source_preference.put(record as any);
+
+    // 2. Enqueue into Dexie outbox for background sync push
+    await mutate({
+      kind: 'crud',
+      op: 'update',
+      entity: 'user_source_preference',
+      id: prefId,
+      optimistic: record
+    });
+  }
+};
