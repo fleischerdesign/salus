@@ -107,8 +107,8 @@
 
   async function startSession(planId: string) {
     const plan = ($plans ?? []).find((p) => p.id === planId);
-    const { ok } = await startWorkout(planId, plan?.autoreg_mode || 'advisory');
-    if (ok) await goto('/workouts/active');
+    await startWorkout(planId, plan?.autoreg_mode || 'advisory');
+    await goto('/workouts/active');
   }
 </script>
 
@@ -183,7 +183,7 @@
 
               {#if exerciseNames(plan.id).length > 0}
                 <ul class="space-y-1 text-xs text-surface-500">
-                  {#each exerciseNames(plan.id) as pe (pe.name)}
+                  {#each exerciseNames(plan.id) as pe, idx (`${pe.name}-${idx}`)}
                     <li class="flex items-center justify-between gap-2">
                       <span class="truncate">{pe.name}</span>
                       <span class="shrink-0 font-medium text-surface-400"

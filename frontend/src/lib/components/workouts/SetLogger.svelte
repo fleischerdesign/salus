@@ -81,7 +81,7 @@
       (isOn
         ? 'border-success-500 bg-success-500 text-white hover:border-error-500 hover:bg-error-500'
         : isBusy
-          ? 'border-surface-300 bg-surface-50 cursor-wait'
+          ? 'border-surface-300 bg-surface-50 cursor-wait text-primary-500'
           : logState === 'failed'
             ? 'border-error-500 bg-error-50 text-error-600'
             : 'border-surface-300 bg-surface-50 text-surface-400 hover:border-primary-400 hover:text-primary-600')
@@ -210,11 +210,11 @@
     aria-label={isOn ? 'Remove set' : 'Log set'}
   >
     {#if isBusy}
-      <Icon name="sync" size="sm" class="animate-spin" />
+      <Icon name="progress-activity" size="sm" class="animate-spin text-primary-500" />
     {:else if isOn}
       <Icon name="check" size="sm" />
     {:else if logState === 'failed'}
-      <Icon name="sync-problem" size="sm" />
+      <Icon name="warning" size="sm" class="text-error-500" />
     {:else}
       <Icon name="check" size="sm" />
     {/if}

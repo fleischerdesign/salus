@@ -2,7 +2,7 @@
   import { liveQuery } from 'dexie';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import { completeWorkout, logSet, deleteLogSet } from '$lib/mutations/workout';
+  import { completeWorkout, cancelWorkout, logSet, deleteLogSet } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -13,6 +13,8 @@
   import FormField from '$components/forms/FormField.svelte';
   import RestTimer from '$components/workouts/RestTimer.svelte';
   import SetLogger from '$components/workouts/SetLogger.svelte';
+  import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
+  import Modal from '$components/ui/Modal.svelte';
 
   type LogState = 'pending' | 'logging' | 'logged' | 'failed';
 
@@ -57,10 +59,22 @@
       : false
   );
 
+  let autoStartRest = $state(
+    typeof localStorage !== 'undefined' ? localStorage.getItem('salus_auto_rest') !== 'false' : true
+  );
+
+  function toggleAutoRest() {
+    autoStartRest = !autoStartRest;
+    localStorage.setItem('salus_auto_rest', autoStartRest ? 'true' : 'false');
+  }
+
   let startTimer: ((seconds?: number) => void) | null = $state(null);
 
   let notes = $state('');
   let completing = $state(false);
+  let canceling = $state(false);
+  let cancelDialogOpen = $state(false);
+  let settingsModalOpen = $state(false);
 
   let loading = $derived($session == null || $planExercises == null || $allLogs == null);
 
@@ -69,48 +83,69 @@
     return map;
   });
 
-  let targets = $derived(
-    ($planExercises ?? []).map((pe) => {
-      const ex = $exercises?.get(pe.exercise_id);
-      const exerciseLogs = ($allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
-      const lastWeight =
-        exerciseLogs.length > 0 ? exerciseLogs[exerciseLogs.length - 1].weight : null;
-      const maxWeight = Math.max(0, ...exerciseLogs.map((l) => l.weight ?? 0));
-      const maxEst1rm = Math.max(
-        0,
-        ...exerciseLogs.map((l) => {
-          if (l.weight == null || l.reps == null) return 0;
-          return l.weight / (1.0278 - 0.0278 * l.reps);
-        })
-      );
+  interface Target {
+    exercise_id: string;
+    name: string;
+    suggested_sets: number;
+    suggested_reps: number;
+    suggested_rpe: number;
+    weight_multiplier: number;
+    is_autoreg_exempt: boolean;
+    reason: string;
+    rest_seconds: number;
+    last_weight: number;
+    pr_weight: number;
+    pr_est_1rm: number;
+  }
+
+  let targets = $derived.by<Target[] | null>(() => {
+    if (!$session || !$planExercises || !$exercises) return null;
+
+    const sessionScore = $session.recovery_score ?? 100;
+    const factor = sessionScore / 100;
+
+    return $planExercises.map((pe) => {
+      const ex = $exercises.get(pe.exercise_id);
+      const exLogs = ($allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
+
+      let lastWeight = 40;
+      let prWeight = 0;
+      let prEst1rm = 0;
+
+      for (const l of exLogs) {
+        if (l.weight > prWeight) prWeight = l.weight;
+        const est1rm =
+          l.reps <= 0 ? 0 : l.reps === 1 ? l.weight : l.weight / (1.0278 - 0.0278 * l.reps);
+        if (est1rm > prEst1rm) prEst1rm = est1rm;
+        lastWeight = l.weight;
+      }
+
+      let multiplier = 1.0;
+      let reason = '';
+      if (!pe.is_autoreg_exempt && factor < 0.95) {
+        multiplier = Math.max(0.8, factor);
+        reason = `Autoregulated: recovery score is ${Math.round(sessionScore)}%, intensity scaled to ${Math.round(multiplier * 100)}%.`;
+      }
 
       return {
         exercise_id: pe.exercise_id,
-        name: ex?.name ?? `Exercise ${pe.exercise_id}`,
+        name: ex?.name ?? 'Exercise',
         suggested_sets: pe.target_sets ?? 3,
-        suggested_reps: pe.target_reps ?? 10,
-        suggested_rpe: pe.target_rpe ?? 7,
-        weight_multiplier: 1.0,
-        is_autoreg_exempt: pe.is_autoreg_exempt,
-        reason: '',
+        suggested_reps: pe.target_reps ?? 8,
+        suggested_rpe: pe.target_rpe ?? 8,
+        weight_multiplier: multiplier,
+        is_autoreg_exempt: pe.is_autoreg_exempt ?? false,
+        reason,
+        rest_seconds: ex?.suggested_rest_seconds ?? pe.rest_seconds ?? 90,
         last_weight: lastWeight,
-        pr_weight: maxWeight,
-        pr_est_1rm: maxEst1rm,
-        rest_seconds: pe.rest_seconds ?? 120
+        pr_weight: prWeight,
+        pr_est_1rm: prEst1rm
       };
-    })
-  );
-
-  $effect(() => {
-    const init: Record<string, LogState> = {};
-    for (const log of $allLogs ?? []) {
-      init[`${log.exercise_id}-${log.set_number}`] = 'logged';
-    }
-    logStates = init;
+    });
   });
 
   function speak(text: string) {
-    if (!audioEnabled || !window.speechSynthesis) return;
+    if (!audioEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = document.documentElement.lang || 'en-US';
@@ -133,7 +168,12 @@
   }
 
   function getLogState(exId: string, setNum: number): LogState {
-    return logStates[`${exId}-${setNum}`] ?? 'pending';
+    const key = `${exId}-${setNum}`;
+    if (logStates[key]) return logStates[key];
+    const isLogged = ($allLogs ?? []).some(
+      (l) => l.exercise_id === exId && l.set_number === setNum && !l.deleted_at
+    );
+    return isLogged ? 'logged' : 'pending';
   }
 
   function getInitialWeight(exId: string, setNum: number): number {
@@ -171,7 +211,9 @@
       logStates = { ...logStates, [key]: 'logged' };
       if (data.rpe >= 10) rpePrompts.set(exId, setNum);
       speak(`Set ${setNum} logged.`);
-      startTimer?.(targets?.find((t) => t.exercise_id === exId)?.rest_seconds);
+      if (autoStartRest) {
+        startTimer?.(targets?.find((t) => t.exercise_id === exId)?.rest_seconds);
+      }
     } else {
       logStates = { ...logStates, [key]: 'failed' };
       speak('Failed to log set.');
@@ -230,6 +272,15 @@
     }
     completing = false;
   }
+
+  async function confirmCancel() {
+    if (!$session) return;
+    canceling = true;
+    const sessionId = $session.id;
+    await cancelWorkout(sessionId);
+    canceling = false;
+    await goto('/workouts');
+  }
 </script>
 
 <svelte:head><title>Salus — Active Workout</title></svelte:head>
@@ -246,21 +297,25 @@
       backUrl="/workouts"
     >
       {#snippet actions()}
-        {#if $session.recovery_score}
-          <Badge variant="success">
-            <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
-          </Badge>
-        {/if}
-        <button
-          type="button"
-          class="duration-micro flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors {audioEnabled
-            ? 'border-primary-300 bg-primary-50 text-primary-700'
-            : 'border-surface-200 bg-surface-50 text-surface-500 hover:border-surface-300'}"
-          onclick={toggleAudio}
-        >
-          <Icon name={audioEnabled ? 'volume-up' : 'volume-off'} size="sm" />
-          {audioEnabled ? 'Audio On' : 'Audio Off'}
-        </button>
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+          {#if $session.recovery_score}
+            <div
+              class="flex h-full items-center justify-center gap-2 bg-emerald-50 px-6 text-xs font-semibold whitespace-nowrap text-emerald-800"
+            >
+              <Icon name="bolt" size="sm" class="text-emerald-600" />
+              <span>Recovery {Math.round($session.recovery_score)}%</span>
+            </div>
+          {/if}
+          <button
+            type="button"
+            class="duration-micro flex h-full w-14 items-center justify-center text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+            onclick={() => (settingsModalOpen = true)}
+            title="Session Settings"
+            aria-label="Session Settings"
+          >
+            <Icon name="settings" size="sm" />
+          </button>
+        </div>
       {/snippet}
     </PageHeader>
 
@@ -368,7 +423,10 @@
             placeholder="How did it feel today? Any pain or outstanding form?"
           />
         </FormField>
-        <div class="mt-4 flex justify-end">
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <Btn variant="danger" loading={canceling} onclick={() => (cancelDialogOpen = true)}>
+            Cancel Workout
+          </Btn>
           <Btn variant="primary" loading={completing} onclick={complete}>Complete Workout</Btn>
         </div>
       </div>
@@ -394,3 +452,65 @@
     oncomplete={() => speak('Rest finished. Time for your next set!')}
   />
 </div>
+
+<ConfirmDialog
+  bind:open={cancelDialogOpen}
+  title="Cancel Workout"
+  variant="danger"
+  message="Are you sure you want to cancel this workout session? All logged sets for this session will be discarded."
+  confirmLabel="Cancel Workout"
+  onconfirm={confirmCancel}
+/>
+
+<Modal bind:open={settingsModalOpen} title="Session Settings" size="md">
+  <div class="space-y-4 divide-y divide-surface-100">
+    <div class="flex items-center justify-between pt-1">
+      <div>
+        <p class="text-sm font-semibold text-surface-900">Audio Guide</p>
+        <p class="text-xs text-surface-500">Spoken rest timer and set completion alerts</p>
+      </div>
+      <button
+        type="button"
+        class="duration-micro flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors {audioEnabled
+          ? 'border-primary-300 bg-primary-50 text-primary-700'
+          : 'border-surface-200 bg-surface-50 text-surface-500 hover:border-surface-300'}"
+        onclick={toggleAudio}
+      >
+        <Icon name={audioEnabled ? 'volume-up' : 'volume-off'} size="sm" />
+        {audioEnabled ? 'Audio On' : 'Audio Off'}
+      </button>
+    </div>
+
+    <div class="flex items-center justify-between pt-4">
+      <div>
+        <p class="text-sm font-semibold text-surface-900">Auto-Start Rest Timer</p>
+        <p class="text-xs text-surface-500">Automatically start timer when logging a set</p>
+      </div>
+      <button
+        type="button"
+        class="duration-micro flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors {autoStartRest
+          ? 'border-primary-300 bg-primary-50 text-primary-700'
+          : 'border-surface-200 bg-surface-50 text-surface-500 hover:border-surface-300'}"
+        onclick={toggleAutoRest}
+      >
+        <Icon name={autoStartRest ? 'timer' : 'timer-off'} size="sm" />
+        {autoStartRest ? 'Auto Start' : 'Manual'}
+      </button>
+    </div>
+
+    {#if $session?.autoreg_mode}
+      <div class="flex items-center justify-between pt-4">
+        <div>
+          <p class="text-sm font-semibold text-surface-900">Autoregulation Mode</p>
+          <p class="text-xs text-surface-500">Intensity scaling mode for this workout session</p>
+        </div>
+        <Badge
+          variant={$session.autoreg_mode === 'disabled' ? 'default' : 'primary'}
+          class="capitalize"
+        >
+          {$session.autoreg_mode}
+        </Badge>
+      </div>
+    {/if}
+  </div>
+</Modal>

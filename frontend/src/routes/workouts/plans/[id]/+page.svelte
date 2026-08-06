@@ -53,9 +53,9 @@
 
   async function startSession() {
     starting = true;
-    const { ok } = await startWorkout(planId!, $plan?.autoreg_mode || 'advisory');
+    await startWorkout(planId!, $plan?.autoreg_mode || 'advisory');
     starting = false;
-    if (ok) await goto('/workouts/active');
+    await goto('/workouts/active');
   }
 
   function formatDuration(sessStart: string, sessEnd: string | null): string {

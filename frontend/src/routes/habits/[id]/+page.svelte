@@ -9,7 +9,6 @@
   import Stat from '$components/ui/Stat.svelte';
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
@@ -170,11 +169,17 @@
       iconBgColor={habit.color}
     >
       {#snippet stats()}
-        <div class="grid gap-6 px-6 py-6 sm:grid-cols-3">
-          <Stat value={currentStreak} unit="days" label="Current Streak" />
-          <Stat value={totalCompletions} unit="times" label="Total" />
-          {#if weeklyCompletionRate != null}
-            <div class="flex flex-col items-start gap-3">
+        <div
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <Stat value={currentStreak} unit="days" label="Current Streak" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={totalCompletions} unit="times" label="Total" />
+          </div>
+          <div class="flex items-center px-6 py-4">
+            {#if weeklyCompletionRate != null}
               <ProgressBar
                 value={weeklyCompletionRate}
                 max={100}
@@ -183,23 +188,28 @@
                 label={`${weeklyCompletionRate}% completion`}
                 class="w-full"
               />
-            </div>
-          {/if}
+            {/if}
+          </div>
         </div>
       {/snippet}
       {#snippet actions()}
-        <div class="flex h-full items-stretch gap-2">
-          <Btn variant="secondary" size="sm" onclick={() => (editOpen = true)}>
-            <Icon name="edit" size="sm" />Edit
-          </Btn>
-          <Btn
-            variant="secondary"
-            size="sm"
-            class="!text-error-600 hover:!bg-error-50"
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+          <button
+            type="button"
+            class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold whitespace-nowrap text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+            onclick={() => (editOpen = true)}
+          >
+            <Icon name="edit" size="sm" />
+            <span>Edit</span>
+          </button>
+          <button
+            type="button"
+            class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold whitespace-nowrap text-error-600 transition-colors hover:bg-error-50 hover:text-error-700"
             onclick={() => (deleteOpen = true)}
           >
-            <Icon name="delete" size="sm" />Delete
-          </Btn>
+            <Icon name="delete" size="sm" />
+            <span>Delete</span>
+          </button>
         </div>
       {/snippet}
     </PageHeader>

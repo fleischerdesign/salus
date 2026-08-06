@@ -128,6 +128,25 @@ class CompleteWorkoutHandler:
         return uow.workout_sessions.get_by_id(session_id)  # pyright: ignore[reportArgumentType]
 
 
+@register("cancel_workout")
+class CancelWorkoutHandler:
+    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
+        session_id = payload.get("session_id")
+        if not session_id:
+            return CommandResult(status="error", message="session_id is required")
+
+        session = uow.workout_sessions.get_by_id(session_id)  # pyright: ignore[reportArgumentType]
+        if not session:
+            return CommandResult(status="deleted", id=session_id)
+        if session.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            return CommandResult(status="forbidden", message="Not your workout session")
+
+        session.deleted_at = datetime.now(timezone.utc)
+        uow.workout_sessions.add(session)
+        uow.commit()
+        return CommandResult(status="deleted", id=session_id)
+
+
 @register("log_set")
 class LogSetHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:

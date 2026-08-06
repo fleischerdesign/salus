@@ -58,8 +58,11 @@ default:
 
 # --- Dev seed ---
 
-@seed-dev:
-    python3 tools/seed_dev.py
+@seed *ARGS:
+    uv run python tools/seed_dev.py {{ARGS}}
+
+@seed-dev *ARGS:
+    uv run python tools/seed_dev.py {{ARGS}}
 
 # --- Full check ---
 

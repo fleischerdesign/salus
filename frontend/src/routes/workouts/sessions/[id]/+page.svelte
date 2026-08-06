@@ -2,9 +2,7 @@
   import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { db } from '$lib/db/database';
-  import type { WorkoutSession } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Stat from '$components/ui/Stat.svelte';
@@ -82,19 +80,34 @@
       backUrl="/workouts/sessions"
     >
       {#snippet actions()}
-        {#if $session.recovery_score}
-          <Badge variant="success">
-            <Icon name="bolt" size="sm" />Recovery {Math.round($session.recovery_score)}%
-          </Badge>
-        {/if}
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+          {#if $session.recovery_score}
+            <div
+              class="flex h-full items-center justify-center gap-2 bg-emerald-50 px-6 text-xs font-semibold whitespace-nowrap text-emerald-800"
+            >
+              <Icon name="bolt" size="sm" class="text-emerald-600" />
+              <span>Recovery {Math.round($session.recovery_score)}%</span>
+            </div>
+          {/if}
+        </div>
       {/snippet}
 
       {#snippet stats()}
-        <div class="flex flex-wrap items-center gap-x-8 gap-y-4 px-6 py-4">
-          <Stat value={totalVolume.toFixed(0)} unit="kg" label="Total Volume" />
-          <Stat value={durationMin} unit="min" label="Duration" />
-          <Stat value={totalSets} label="Sets Logged" />
-          <Stat value={avgRpe > 0 ? avgRpe.toFixed(1) : '—'} label="Avg. RPE" />
+        <div
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <Stat value={totalVolume.toFixed(0)} unit="kg" label="Total Volume" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={durationMin} unit="min" label="Duration" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={totalSets} label="Sets Logged" />
+          </div>
+          <div class="px-6 py-4">
+            <Stat value={avgRpe > 0 ? avgRpe.toFixed(1) : '—'} label="Avg. RPE" />
+          </div>
         </div>
       {/snippet}
     </PageHeader>

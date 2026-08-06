@@ -259,6 +259,16 @@ export class SalusDB extends Dexie {
       measurement: 'id, user_id, metric_code, start_time, source',
       user_source_preference: 'id, user_id, metric_code, source'
     });
+    this.version(20).stores({
+      metric_definition: 'code, name, source_data_type',
+      user_profile: 'id, username',
+      food_item: 'id, barcode, deleted_at',
+      meal: 'id, user_id, log_date, deleted_at',
+      meal_item: 'id, meal_id, user_id, food_item_id, deleted_at',
+      recipe: 'id, user_id, deleted_at',
+      recipe_ingredient: 'id, recipe_id, user_id, food_item_id, deleted_at',
+      medication: 'id, user_id, deleted_at'
+    });
   }
 }
 

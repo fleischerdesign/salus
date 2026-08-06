@@ -3,7 +3,6 @@
   import { db } from '$lib/db/database';
   import type { Measurement as Entry } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
-  import { mergeMetricPrefs } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import { useTrend } from '$lib/analytics/views/analytics';
   import LineChart from '$components/dashboard/LineChart.svelte';

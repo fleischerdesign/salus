@@ -42,6 +42,19 @@ export const completeWorkout = (sessionId: string, notes?: string) =>
     }
   });
 
+export const cancelWorkout = (sessionId: string) =>
+  mutate({
+    kind: 'command',
+    command: 'cancel_workout',
+    queueable: true,
+    payload: { session_id: sessionId },
+    optimisticTable: 'workout_session',
+    optimisticData: {
+      id: sessionId,
+      deleted_at: now()
+    }
+  });
+
 export const logSet = (
   sessionId: string,
   exerciseId: string,
