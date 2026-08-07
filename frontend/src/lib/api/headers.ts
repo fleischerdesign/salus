@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 let _locale = 'en';
 
 if (typeof localStorage !== 'undefined') {
@@ -18,6 +20,59 @@ export function setLocaleState(locale: string): void {
 
 export function getLocale(): string {
   return _locale;
+}
+
+export function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') return 'http://localhost:8000';
+  const custom = localStorage.getItem('salus_server_url');
+  if (custom) return custom.replace(/\/+$/, '');
+  if (Capacitor.isNativePlatform()) {
+    return custom ? custom.replace(/\/+$/, '') : '';
+  }
+  return window.location.origin;
+}
+
+export function setApiBaseUrl(url: string): string {
+  let clean = url.trim().replace(/\/+$/, '');
+  if (clean && !clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `https://${clean}`;
+  }
+  if (typeof localStorage !== 'undefined') {
+    if (clean) {
+      localStorage.setItem('salus_server_url', clean);
+    } else {
+      localStorage.removeItem('salus_server_url');
+    }
+  }
+  return clean;
+}
+
+export async function testServerConnection(
+  targetUrl: string
+): Promise<{ success: boolean; message: string }> {
+  let clean = targetUrl.trim().replace(/\/+$/, '');
+  if (!clean) return { success: false, message: 'Server URL cannot be empty.' };
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `https://${clean}`;
+  }
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${clean}/api/v1/sync/entities`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      return { success: true, message: 'Connection successful!' };
+    }
+    return { success: false, message: `Server returned HTTP status ${res.status}` };
+  } catch (err: unknown) {
+    const errorObj = err as { name?: string };
+    if (errorObj?.name === 'AbortError') {
+      return { success: false, message: 'Connection timed out after 5 seconds.' };
+    }
+    return { success: false, message: 'Could not connect to server. Check URL and server status.' };
+  }
 }
 
 export function getAuthHeaders(): Record<string, string> {

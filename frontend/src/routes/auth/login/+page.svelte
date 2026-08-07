@@ -11,10 +11,33 @@
   import Divider from '$components/ui/Divider.svelte';
   import Icon from '$components/ui/Icon.svelte';
 
+  import { Capacitor } from '@capacitor/core';
+  import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
+
   let username = $state('');
   let password = $state('');
   let error = $state('');
   let loading = $state(false);
+
+  let showServerConfig = $state(Capacitor.isNativePlatform() && !getApiBaseUrl());
+  let serverUrl = $state(getApiBaseUrl() || '');
+  let serverTesting = $state(false);
+  let serverMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleSaveServerUrl() {
+    serverTesting = true;
+    serverMessage = null;
+    const testRes = await testServerConnection(serverUrl);
+    serverTesting = false;
+    if (testRes.success) {
+      const saved = setApiBaseUrl(serverUrl);
+      serverUrl = saved;
+      serverMessage = { type: 'success', text: 'Server host connected!' };
+      authConfig.load();
+    } else {
+      serverMessage = { type: 'error', text: testRes.message };
+    }
+  }
 
   const PROVIDER_METADATA: Record<string, { label: string; icon: string; path: string }> = {
     google: {
@@ -58,17 +81,15 @@
     loading = true;
 
     const res = await rawPost('/api/v1/auth/login', { username, password });
-    const body = await res.json().catch(() => null);
-    const data = res.ok ? (body as { token: string; user: Record<string, unknown> }) : null;
-    const err = res.ok ? null : (body?.error ?? body?.detail ?? 'Login failed');
-
     loading = false;
 
-    if (err || !data) {
-      error = err ?? 'Login failed';
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      error = errData.detail || 'Login failed';
       return;
     }
 
+    const data = await res.json();
     auth.setSession(data.token, data.user as User);
     await goto('/');
   }
@@ -85,6 +106,49 @@
         Sign In
       </h2>
       <p class="mb-8 text-center text-base text-surface-500">Access your health data dashboard</p>
+
+      <!-- Server Host pill/expander for Native APK / Decentralized instances -->
+      <div class="mb-5 rounded-xl border border-surface-200 bg-surface-50/60 p-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 overflow-hidden">
+            <Icon name="dns" size="sm" class="shrink-0 text-surface-400" />
+            <span class="truncate text-xs font-medium text-surface-600">
+              {getApiBaseUrl() || 'No server connected'}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="shrink-0 cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700"
+            onclick={() => (showServerConfig = !showServerConfig)}
+          >
+            {showServerConfig ? 'Close' : 'Change Host'}
+          </button>
+        </div>
+
+        {#if showServerConfig}
+          <div class="mt-3 space-y-2 border-t border-surface-200/60 pt-3">
+            {#if serverMessage}
+              <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>
+                {serverMessage.text}
+              </AlertBanner>
+            {/if}
+            <Input
+              name="serverUrl"
+              placeholder="https://salus.my-domain.com"
+              bind:value={serverUrl}
+            />
+            <Btn
+              variant="secondary"
+              size="sm"
+              fullWidth
+              loading={serverTesting}
+              onclick={handleSaveServerUrl}
+            >
+              Connect & Verify Server
+            </Btn>
+          </div>
+        {/if}
+      </div>
 
       {#if error}
         <div class="mb-4">

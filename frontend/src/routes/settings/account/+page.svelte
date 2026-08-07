@@ -2,7 +2,13 @@
   import { onMount } from 'svelte';
   import { auth } from '$stores/auth.svelte';
   import { authConfig } from '$stores/authConfig.svelte';
-  import { setLocaleState } from '$lib/api/headers';
+  import { Capacitor } from '@capacitor/core';
+  import {
+    setLocaleState,
+    getApiBaseUrl,
+    setApiBaseUrl,
+    testServerConnection
+  } from '$lib/api/headers';
 
   const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
     google: {
@@ -31,6 +37,27 @@
   onMount(() => {
     authConfig.load();
   });
+
+  let serverUrl = $state(getApiBaseUrl());
+  let serverTesting = $state(false);
+  let serverMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleSaveServerUrl(e: Event) {
+    e.preventDefault();
+    serverTesting = true;
+    serverMessage = null;
+
+    const testRes = await testServerConnection(serverUrl);
+    serverTesting = false;
+
+    if (testRes.success) {
+      const saved = setApiBaseUrl(serverUrl);
+      serverUrl = saved;
+      serverMessage = { type: 'success', text: 'Server URL saved and connection verified!' };
+    } else {
+      serverMessage = { type: 'error', text: testRes.message };
+    }
+  }
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { mutate } from '$lib/mutate';
