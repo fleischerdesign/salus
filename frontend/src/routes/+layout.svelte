@@ -15,12 +15,14 @@
   import { onMount } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
   import { page } from '$app/state';
-  import { goto } from '$app/navigation';
+  import { beforeNavigate, goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
   import TopAppBar from '$components/layout/TopAppBar.svelte';
   import PageTransition from '$components/ui/PageTransition.svelte';
   import Toast from '$components/ui/Toast.svelte';
   import ConflictResolver from '$components/feedback/ConflictResolver.svelte';
+  import { syncEngine } from '$lib/db/sync-engine.svelte';
+  import { updateService } from '$lib/stores/update.svelte';
 
   let { children } = $props();
 
@@ -30,16 +32,75 @@
   let userProfiles = liveQuery(() => db.user_profile.toArray());
   let userProfile = $derived($userProfiles && $userProfiles.length > 0 ? $userProfiles[0] : null);
 
-  // ── Auth bootstrap: assume valid token → app renders instantly ──
+  // ── Reactive Guards Integration for PWA Auto-Reload ──
 
-  onMount(async () => {
+  let activeSessions = liveQuery(() =>
+    db.workout_session.where('status').equals('active').toArray()
+  );
+  $effect(() => {
+    updateService.setActiveWorkout(Boolean($activeSessions && $activeSessions.length > 0));
+  });
+
+  $effect(() => {
+    updateService.setIsSyncing(syncEngine.status !== 'idle');
+  });
+
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    const updateFocusState = () => {
+      const activeEl = document.activeElement;
+      const isInputFocused =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.getAttribute('contenteditable') === 'true');
+      updateService.setIsDirty(Boolean(isInputFocused));
+    };
+
+    document.addEventListener('focusin', updateFocusState);
+    document.addEventListener('focusout', updateFocusState);
+    return () => {
+      document.removeEventListener('focusin', updateFocusState);
+      document.removeEventListener('focusout', updateFocusState);
+    };
+  });
+
+  // ── Auth bootstrap & SW Update Listener ──
+
+  onMount(() => {
     if (!auth.token) {
       auth.setLoading(false);
-      if (!isPublic) await goto('/auth/login');
-      return;
+      if (!isPublic) goto('/auth/login');
+    } else {
+      auth.setLoading(false);
     }
 
-    auth.setLoading(false);
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'SALUS_UPDATE_AVAILABLE') {
+          updateService.setUpdatePending(true);
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+    }
+  });
+
+  // ── Guarded Auto-Reload on Navigation or Backgrounding ──
+
+  beforeNavigate(() => {
+    updateService.triggerSafeReload();
+  });
+
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        updateService.triggerSafeReload();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   });
 
   // ── Locale from Dexie (updates reactive, persists to localStorage for headers.ts) ──

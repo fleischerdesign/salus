@@ -10,9 +10,18 @@ const ASSETS = [...build, ...files, '/_app/version.json', '/index.html'];
 const API_RE = /^\/(?:api|auth)\//;
 const IMMUTABLE = '/_app/immutable/';
 
+const IS_NATIVE_ORIGIN =
+  typeof self !== 'undefined' &&
+  (self.location.origin === 'https://localhost' ||
+    self.location.origin === 'capacitor://localhost');
+
 // ---- install: cache all files in parallel, tolerate individual failures ----
 
 self.addEventListener('install', (event) => {
+  if (IS_NATIVE_ORIGIN) {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   let failed = 0;
   const t0 = Date.now();
   event.waitUntil(
@@ -33,14 +42,18 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ---- activate: claim clients, purge old caches ----
+// ---- activate: claim clients, purge old caches, notify open tabs ----
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       await self.clients.claim();
-      const keys = await caches.keys();
-      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+      if (!IS_NATIVE_ORIGIN) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+        const allClients = await self.clients.matchAll({ type: 'window' });
+        allClients.forEach((client) => client.postMessage({ type: 'SALUS_UPDATE_AVAILABLE' }));
+      }
     })()
   );
 });
