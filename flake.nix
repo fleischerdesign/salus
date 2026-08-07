@@ -87,20 +87,35 @@
           '';
         };
 
-        devShells.default = pkgs.mkShell {
-          packages = [
-            pkgs.python313
-            pkgs.uv
-            pkgs.ruff
-            pkgs.pyright
-            pkgs.nodejs_22
-            pkgs.just
-          ];
-          shellHook = ''
-            echo "salus — health tracking dev environment"
-            just --list
-          '';
-        };
+        devShells.default =
+          let
+            androidSdk = pkgs.androidenv.composeAndroidPackages {
+              buildToolsVersions = [ "35.0.0" "34.0.0" ];
+              platformVersions = [ "35" "34" ];
+              abiVersions = [ "x86_64" "arm64-v8a" ];
+              includeNDK = false;
+            };
+          in
+          pkgs.mkShell {
+            packages = [
+              pkgs.python313
+              pkgs.uv
+              pkgs.ruff
+              pkgs.pyright
+              pkgs.nodejs_22
+              pkgs.just
+              pkgs.jdk17
+              pkgs.gradle
+              androidSdk.androidsdk
+            ];
+            ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+            ANDROID_SDK_ROOT = "${androidSdk.androidsdk}/libexec/android-sdk";
+            JAVA_HOME = "${pkgs.jdk17}";
+            shellHook = ''
+              echo "salus — health tracking & native android dev environment"
+              just --list
+            '';
+          };
       }
     )
     // {

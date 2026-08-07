@@ -43,6 +43,12 @@ default:
 @build-frontend:
     cd frontend && npm run build
 
+@build-apk:
+    just build-frontend
+    cd frontend && npx cap sync android
+    cd frontend/android && ./gradlew assembleRelease
+    @echo "APK built: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+
 # --- Install / Sync ---
 
 @install-frontend:

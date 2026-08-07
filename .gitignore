@@ -51,3 +51,17 @@ pytest_out.txt
 /design/
 .coverage
 data/backups/
+
+# Frontend & Capacitor / Android Build Artifacts
+frontend/build/
+frontend/.svelte-kit/
+frontend/node_modules/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/.idea/
+frontend/android/*.iml
+frontend/android/app/*.iml
+frontend/android/captures/
+.gradle/
