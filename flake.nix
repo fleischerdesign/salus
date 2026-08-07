@@ -15,7 +15,13 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            allowUnfree = true;
+            android_sdk.accept_license = true;
+          };
+        };
         lib = nixpkgs.lib;
         python = pkgs.python313;
         pythonEnv = python.withPackages (
@@ -31,6 +37,12 @@
             bcrypt
           ]
         );
+        androidSdk = pkgs.androidenv.composeAndroidPackages {
+          buildToolsVersions = [ "36.0.0" "35.0.0" "34.0.0" ];
+          platformVersions = [ "36" "35" "34" ];
+          abiVersions = [ "x86_64" "arm64-v8a" ];
+          includeNDK = false;
+        };
       in
       {
         packages.default = pkgs.stdenv.mkDerivation {
@@ -87,35 +99,27 @@
           '';
         };
 
-        devShells.default =
-          let
-            androidSdk = pkgs.androidenv.composeAndroidPackages {
-              buildToolsVersions = [ "35.0.0" "34.0.0" ];
-              platformVersions = [ "35" "34" ];
-              abiVersions = [ "x86_64" "arm64-v8a" ];
-              includeNDK = false;
-            };
-          in
-          pkgs.mkShell {
-            packages = [
-              pkgs.python313
-              pkgs.uv
-              pkgs.ruff
-              pkgs.pyright
-              pkgs.nodejs_22
-              pkgs.just
-              pkgs.jdk17
-              pkgs.gradle
-              androidSdk.androidsdk
-            ];
-            ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
-            ANDROID_SDK_ROOT = "${androidSdk.androidsdk}/libexec/android-sdk";
-            JAVA_HOME = "${pkgs.jdk17}";
-            shellHook = ''
-              echo "salus — health tracking & native android dev environment"
-              just --list
-            '';
-          };
+        devShells.default = pkgs.mkShell {
+          packages = [
+            pkgs.python313
+            pkgs.uv
+            pkgs.ruff
+            pkgs.pyright
+            pkgs.nodejs_22
+            pkgs.just
+            pkgs.jdk21
+            pkgs.gradle
+            androidSdk.androidsdk
+          ];
+          ANDROID_HOME = "${androidSdk.androidsdk}/libexec/android-sdk";
+          ANDROID_SDK_ROOT = "${androidSdk.androidsdk}/libexec/android-sdk";
+          JAVA_HOME = "${pkgs.jdk21}";
+          GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidSdk.androidsdk}/libexec/android-sdk/build-tools/36.0.0/aapt2";
+          shellHook = ''
+            echo "salus — health tracking & native android dev environment"
+            just --list
+          '';
+        };
       }
     )
     // {

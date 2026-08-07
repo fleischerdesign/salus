@@ -1,3 +1,6 @@
+export NIXPKGS_ALLOW_UNFREE := "1"
+export NIXPKGS_ACCEPT_ANDROID_SDK_LICENSE := "1"
+
 default:
     @just --list
 
@@ -46,8 +49,8 @@ default:
 @build-apk:
     just build-frontend
     cd frontend && npx cap sync android
-    cd frontend/android && ./gradlew assembleRelease
-    @echo "APK built: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+    cd frontend/android && ./gradlew --stop && ./gradlew assembleRelease
+    @echo "APK built successfully: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk"
 
 # --- Install / Sync ---
 
