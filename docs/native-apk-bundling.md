@@ -193,10 +193,10 @@ Before proceeding with implementation, the following architectural decisions mus
 - **Option B**: Native Android service writes directly to FastAPI REST API (`/api/v1/sync/push`).
 - **Recommendation**: **Option A**. Ingesting via the frontend JavaScript bridge ensures all data passes through the client-side `mutate()` gateway, preserving outbox Temporal ordering, conflict detection, and optimistic UI updates.
 
-### Decision 2: OTA (Over-The-Air) Asset Updates
-- **Option A**: Build standard APK/AAB binaries; user updates app via Play Store / APK download.
-- **Option B**: Integrate CapGo / Live Updates to update HTML/JS/CSS assets without APK re-installation.
-- **Recommendation**: Start with **Option A** for complete security and simplicity. Introduce CapGo in Phase 3 if rapid frontend iteration is required.
+### Decision 2: Self-Hosted OTA (Over-The-Air) Asset Updates (`@capgo/capacitor-updater`)
+- **Option A**: Build standard APK/AAB binaries for every frontend change. User must reinstall APKs.
+- **Option B**: Self-Hosted CapGo OTA Live Updates. Frontend HTML/JS/CSS assets update transparently over-the-air.
+- **Selected Decision**: **Option B (Approved)**. We integrate `@capgo/capacitor-updater` backed by a self-hosted check endpoint on our Salus FastAPI server (`/api/v1/updates/check`). Frontend UI improvements update instantly OTA without requiring the user to re-install APKs. Native APK rebuilds are required strictly for Java/Kotlin plugin or manifest permission changes.
 
 ### Decision 3: Background Polling Frequency & Battery Impact
 - **Question**: How often should background `WorkManager` poll Health Connect / Samsung Health?
