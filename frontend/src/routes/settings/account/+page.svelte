@@ -161,22 +161,16 @@
   {/if}
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-    <!-- User Preferences (Theme & Language) -->
+    <!-- User Preferences (Language) -->
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Preferences</span>
+        <span class="text-sm font-semibold text-surface-900">Language</span>
       {/snippet}
-      <div class="space-y-5 p-5">
-        <div>
-          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">Theme</p>
-          <RadioGroup name="theme" options={themeOptions} value={theme} onchange={setTheme} />
-        </div>
-        <div class="border-t border-surface-100 pt-5">
-          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
-            Language
-          </p>
-          <RadioGroup name="locale" options={localeOptions} value={locale} onchange={setLocale} />
-        </div>
+      <div class="p-5">
+        <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+          Preferred Language
+        </p>
+        <RadioGroup name="locale" options={localeOptions} value={locale} onchange={setLocale} />
       </div>
     </Card>
 

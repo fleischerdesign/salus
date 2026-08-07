@@ -108,47 +108,49 @@
       <p class="mb-8 text-center text-base text-surface-500">Access your health data dashboard</p>
 
       <!-- Server Host pill/expander for Native APK / Decentralized instances -->
-      <div class="mb-5 rounded-xl border border-surface-200 bg-surface-50/60 p-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 overflow-hidden">
-            <Icon name="dns" size="sm" class="shrink-0 text-surface-400" />
-            <span class="truncate text-xs font-medium text-surface-600">
-              {getApiBaseUrl() || 'No server connected'}
-            </span>
-          </div>
-          <button
-            type="button"
-            class="shrink-0 cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700"
-            onclick={() => (showServerConfig = !showServerConfig)}
-          >
-            {showServerConfig ? 'Close' : 'Change Host'}
-          </button>
-        </div>
-
-        {#if showServerConfig}
-          <div class="mt-3 space-y-2 border-t border-surface-200/60 pt-3">
-            {#if serverMessage}
-              <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>
-                {serverMessage.text}
-              </AlertBanner>
-            {/if}
-            <Input
-              name="serverUrl"
-              placeholder="https://salus.my-domain.com"
-              bind:value={serverUrl}
-            />
-            <Btn
-              variant="secondary"
-              size="sm"
-              fullWidth
-              loading={serverTesting}
-              onclick={handleSaveServerUrl}
+      {#if Capacitor.isNativePlatform()}
+        <div class="mb-5 rounded-xl border border-surface-200 bg-surface-50/60 p-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <Icon name="dns" size="sm" class="shrink-0 text-surface-400" />
+              <span class="truncate text-xs font-medium text-surface-600">
+                {getApiBaseUrl() || 'No server connected'}
+              </span>
+            </div>
+            <button
+              type="button"
+              class="shrink-0 cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700"
+              onclick={() => (showServerConfig = !showServerConfig)}
             >
-              Connect & Verify Server
-            </Btn>
+              {showServerConfig ? 'Close' : 'Change Host'}
+            </button>
           </div>
-        {/if}
-      </div>
+
+          {#if showServerConfig}
+            <div class="mt-3 space-y-2 border-t border-surface-200/60 pt-3">
+              {#if serverMessage}
+                <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>
+                  {serverMessage.text}
+                </AlertBanner>
+              {/if}
+              <Input
+                name="serverUrl"
+                placeholder="https://salus.my-domain.com"
+                bind:value={serverUrl}
+              />
+              <Btn
+                variant="secondary"
+                size="sm"
+                fullWidth
+                loading={serverTesting}
+                onclick={handleSaveServerUrl}
+              >
+                Connect & Verify Server
+              </Btn>
+            </div>
+          {/if}
+        </div>
+      {/if}
 
       {#if error}
         <div class="mb-4">

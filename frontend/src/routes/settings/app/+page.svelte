@@ -9,10 +9,12 @@
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Toggle from '$components/ui/Toggle.svelte';
+  import RadioGroup from '$components/ui/RadioGroup.svelte';
+  import { db } from '$lib/db/database';
+  import { offlineService } from '$lib/db/offline-service';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
 
   const CURRENT_APP_VERSION = '0.1.0';
-
   let isNative = $state(Capacitor.isNativePlatform());
 
   // ── Version & GitHub Releases State ──
@@ -39,7 +41,7 @@
         }
       );
       if (!res.ok) {
-        throw new Error(`GitHub Releases responded with status ${res.status}`);
+        throw new Error(`GitHub Releases antwortete mit Status ${res.status}`);
       }
       const data = await res.json();
       const tagName = (data.tag_name || '').replace(/^v/, '');
@@ -52,13 +54,13 @@
       updateResult = {
         hasUpdate: Boolean(isNewer),
         latestVersion: data.tag_name || 'v0.1.0',
-        releaseNotes: data.body || 'No release notes provided.',
+        releaseNotes: data.body || 'Keine Versionshinweise vorhanden.',
         downloadUrl: apkAsset?.browser_download_url || data.html_url,
         publishedAt: data.published_at ? new Date(data.published_at).toLocaleDateString() : '',
         checked: true
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to reach GitHub Releases API.';
+      const msg = err instanceof Error ? err.message : 'Verbindung zu GitHub Releases fehlgeschlagen.';
       updateResult = {
         hasUpdate: false,
         checked: true,
@@ -69,10 +71,118 @@
     }
   }
 
-  // ── Hardware & Device-Local Settings ──
+  // ── Erscheinungsbild ──
+  let theme = $state(localStorage.getItem('salus_theme') || 'system');
+  let chartPalette = $state(localStorage.getItem('salus_chart_palette') || 'standard');
+
+  const themeOptions = [
+    { value: 'light', label: 'Hell' },
+    { value: 'dark', label: 'Dunkel' },
+    { value: 'system', label: 'System' }
+  ];
+
+  const paletteOptions = [
+    { value: 'standard', label: 'Standard' },
+    { value: 'colorblind', label: 'Farbenblind-optimiert' },
+    { value: 'high_contrast', label: 'Hoher Kontrast' }
+  ];
+
+  function setTheme(val: string) {
+    theme = val;
+    localStorage.setItem('salus_theme', val);
+    if (val === 'dark') document.documentElement.classList.add('dark');
+    else if (val === 'light') document.documentElement.classList.remove('dark');
+    else {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }
+
+  function setChartPalette(val: string) {
+    chartPalette = val;
+    localStorage.setItem('salus_chart_palette', val);
+  }
+
+  // ── Synchronisation ──
+  let batterySaverSync = $state(localStorage.getItem('salus_sync_battery_saver') === 'true');
+  let isResyncing = $state(false);
+  let resyncMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  function toggleBatterySaver(val: boolean) {
+    batterySaverSync = val;
+    localStorage.setItem('salus_sync_battery_saver', val ? 'true' : 'false');
+  }
+
+  async function handleForceResync() {
+    isResyncing = true;
+    resyncMessage = null;
+    try {
+      await offlineService.syncAll();
+      await loadDbCounts();
+      resyncMessage = { type: 'success', text: 'Synchronisation erfolgreich abgeschlossen.' };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Synchronisation fehlgeschlagen.';
+      resyncMessage = { type: 'error', text: msg };
+    } finally {
+      isResyncing = false;
+    }
+  }
+
+  // ── Lokaler Speicher ──
+  let storageUsage = $state<string>('Wird berechnet…');
+  let entityCounts = $state<{
+    measurements: number;
+    workouts: number;
+    meals: number;
+    habits: number;
+    medications: number;
+  }>({
+    measurements: 0,
+    workouts: 0,
+    meals: 0,
+    habits: 0,
+    medications: 0
+  });
+
+  async function loadDbCounts() {
+    try {
+      const [m, w, f, h, med] = await Promise.all([
+        db.measurement.count(),
+        db.workout_session.count(),
+        db.meal.count(),
+        db.habit.count(),
+        db.medication.count()
+      ]);
+      entityCounts = {
+        measurements: m,
+        workouts: w,
+        meals: f,
+        habits: h,
+        medications: med
+      };
+    } catch {
+      /* ignore */
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
+      try {
+        const est = await navigator.storage.estimate();
+        const usageMb = ((est.usage || 0) / (1024 * 1024)).toFixed(1);
+        storageUsage = `${usageMb} MB`;
+      } catch {
+        storageUsage = 'Offline verfügbar';
+      }
+    } else {
+      storageUsage = 'Offline verfügbar';
+    }
+  }
+
+  // ── Gerätesicherheit (Native Android) ──
   let hapticsEnabled = $state(localStorage.getItem('salus_haptics') !== 'false');
   let biometricsEnabled = $state(localStorage.getItem('salus_biometrics') === 'true');
-  let storageUsage = $state<string>('Calculating…');
 
   function toggleHaptics(val: boolean) {
     hapticsEnabled = val;
@@ -84,26 +194,7 @@
     localStorage.setItem('salus_biometrics', val ? 'true' : 'false');
   }
 
-  async function calculateStorage() {
-    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
-      try {
-        const est = await navigator.storage.estimate();
-        const usageMb = ((est.usage || 0) / (1024 * 1024)).toFixed(2);
-        const quotaMb = ((est.quota || 0) / (1024 * 1024)).toFixed(0);
-        storageUsage = `${usageMb} MB used of ${quotaMb} MB available`;
-      } catch {
-        storageUsage = 'IndexedDB storage available';
-      }
-    } else {
-      storageUsage = 'Local IndexedDB storage';
-    }
-  }
-
-  onMount(() => {
-    calculateStorage();
-  });
-
-  // ── Server Host Configuration ──
+  // ── Server-Adresse (Native Android) ──
   let serverUrl = $state(getApiBaseUrl());
   let serverTesting = $state(false);
   let serverMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -119,47 +210,28 @@
     if (testRes.success) {
       const saved = setApiBaseUrl(serverUrl);
       serverUrl = saved;
-      serverMessage = { type: 'success', text: 'Server host verified and saved successfully!' };
+      serverMessage = { type: 'success', text: 'Server erfolgreich verbunden und gespeichert!' };
     } else {
       serverMessage = { type: 'error', text: testRes.message };
     }
   }
+
+  onMount(() => {
+    loadDbCounts();
+  });
 </script>
 
 <div class="space-y-6">
-  <!-- System & Version Card -->
+  <!-- Version & Updates -->
   <Card padding={false}>
-    {#snippet header()}
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-surface-900">Salus App & Version</span>
-        {#if isNative}
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700"
-          >
-            <Icon name="smartphone" size="sm" /> Android APK
-          </span>
-        {:else}
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-surface-200 bg-surface-100 px-2.5 py-0.5 text-xs font-semibold text-surface-700"
-          >
-            <Icon name="language" size="sm" /> Web / PWA
-          </span>
-        {/if}
-      </div>
-    {/snippet}
-
     <div class="space-y-4 p-5">
       <div class="flex items-center justify-between">
-        <div>
-          <h4 class="text-base font-semibold text-surface-900">
-            Salus Client v{CURRENT_APP_VERSION}
-          </h4>
-          <p class="text-xs text-surface-500">
-            Decentralized health data tracker with offline-first Dexie engine.
-          </p>
-        </div>
+        <h3 class="flex items-center gap-2.5 text-base font-semibold text-surface-900">
+          Salus {isNative ? 'Android' : 'PWA'}
+          <Badge variant="default">v{CURRENT_APP_VERSION}</Badge>
+        </h3>
         <Btn variant="secondary" size="sm" loading={checkingUpdate} onclick={checkForUpdates}>
-          Check for Updates
+          Nach Updates suchen
         </Btn>
       </div>
 
@@ -176,7 +248,7 @@
                   <span
                     class="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white uppercase"
                   >
-                    New Release Available
+                    Neues Update verfügbar
                   </span>
                   <span class="font-mono text-xs font-bold text-indigo-900">
                     {updateResult.latestVersion}
@@ -190,13 +262,13 @@
                 </p>
               </div>
               <Btn variant="primary" size="sm" href={updateResult.downloadUrl} class="shrink-0">
-                Download Update
+                Herunterladen
               </Btn>
             </div>
           </div>
         {:else}
           <AlertBanner variant="success">
-            Salus is currently running the latest release (v{CURRENT_APP_VERSION}).
+            Salus ist auf dem neuesten Stand (v{CURRENT_APP_VERSION}).
           </AlertBanner>
         {/if}
       {/if}
@@ -204,72 +276,159 @@
   </Card>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-    <!-- Decentralized Server Host -->
+    <!-- Erscheinungsbild -->
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Decentralized Server Host</span>
+        <span class="text-sm font-semibold text-surface-900">Erscheinungsbild</span>
       {/snippet}
-      <form onsubmit={handleSaveServerUrl} class="space-y-4 p-5">
-        <p class="text-xs text-surface-500">
-          Target FastAPI instance for real-time synchronization, auth, and exports.
-        </p>
+      <div class="space-y-5 p-5">
+        <div>
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+            Farbschema
+          </p>
+          <RadioGroup name="theme" options={themeOptions} value={theme} onchange={setTheme} />
+        </div>
+        <div class="border-t border-surface-100 pt-5">
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+            Diagramm-Farben
+          </p>
+          <RadioGroup
+            name="chartPalette"
+            options={paletteOptions}
+            value={chartPalette}
+            onchange={setChartPalette}
+          />
+        </div>
+      </div>
+    </Card>
 
-        {#if serverMessage}
-          <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>
-            {serverMessage.text}
+    <!-- Synchronisation -->
+    <Card padding={false}>
+      {#snippet header()}
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-surface-900">Synchronisation</span>
+          <span
+            class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktiv
+          </span>
+        </div>
+      {/snippet}
+      <div class="space-y-4 p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Energiesparmodus</h5>
+            <p class="text-xs text-surface-400">
+              Synchronisationsintervall bei mobilen Daten reduzieren
+            </p>
+          </div>
+          <Toggle checked={batterySaverSync} onchange={toggleBatterySaver} />
+        </div>
+
+        {#if resyncMessage}
+          <AlertBanner variant={resyncMessage.type === 'success' ? 'success' : 'error'}>
+            {resyncMessage.text}
           </AlertBanner>
         {/if}
 
-        <FormField label="Server URL">
-          <Input
-            name="serverUrl"
-            bind:value={serverUrl}
-            placeholder="https://salus.my-domain.com"
-          />
-        </FormField>
-
-        <div class="flex justify-end">
-          <Btn variant="primary" type="submit" size="sm" loading={serverTesting}>
-            Test & Save Host
+        <div class="flex items-center justify-between border-t border-surface-100 pt-4">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Vollsync ausführen</h5>
+            <p class="text-xs text-surface-400">Alle Daten frisch vom Server abgleichen</p>
+          </div>
+          <Btn variant="secondary" size="sm" loading={isResyncing} onclick={handleForceResync}>
+            Jetzt abgleichen
           </Btn>
         </div>
-      </form>
+      </div>
     </Card>
 
-    <!-- Device & Hardware Capabilities -->
+    <!-- Lokaler Speicher -->
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Hardware & Device Options</span>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-surface-900">Lokaler Speicher</span>
+          <Badge variant="primary">{storageUsage}</Badge>
+        </div>
       {/snippet}
-      <div class="divide-y divide-surface-100 p-5">
-        <div class="flex items-center justify-between pb-4">
-          <div>
-            <h5 class="text-sm font-semibold text-surface-800">Haptic Vibration</h5>
-            <p class="text-xs text-surface-400">
-              Tactile pulses for workout set logging and rest timer
-            </p>
+      <div class="p-5">
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+            <span class="text-surface-600">Messungen</span>
+            <span class="font-bold text-surface-900">{entityCounts.measurements}</span>
           </div>
-          <Toggle checked={hapticsEnabled} onchange={toggleHaptics} />
-        </div>
-
-        <div class="flex items-center justify-between py-4">
-          <div>
-            <h5 class="text-sm font-semibold text-surface-800">Biometric App Lock</h5>
-            <p class="text-xs text-surface-400">Require Fingerprint or FaceID when opening Salus</p>
+          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+            <span class="text-surface-600">Workouts</span>
+            <span class="font-bold text-surface-900">{entityCounts.workouts}</span>
           </div>
-          <Toggle checked={biometricsEnabled} onchange={toggleBiometrics} />
-        </div>
-
-        <div class="pt-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h5 class="text-sm font-semibold text-surface-800">Local Offline Cache</h5>
-              <p class="font-mono text-xs text-surface-400">{storageUsage}</p>
-            </div>
-            <Btn variant="secondary" size="sm" onclick={calculateStorage}>Inspect Storage</Btn>
+          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+            <span class="text-surface-600">Mahlzeiten</span>
+            <span class="font-bold text-surface-900">{entityCounts.meals}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+            <span class="text-surface-600">Gewohnheiten</span>
+            <span class="font-bold text-surface-900">{entityCounts.habits}</span>
           </div>
         </div>
       </div>
     </Card>
+
+    {#if isNative}
+      <!-- Native Android: Gerätesicherheit -->
+      <Card padding={false}>
+        {#snippet header()}
+          <span class="text-sm font-semibold text-surface-900">Gerätesicherheit</span>
+        {/snippet}
+        <div class="divide-y divide-surface-100 p-5">
+          <div class="flex items-center justify-between pb-4">
+            <div>
+              <h5 class="text-sm font-semibold text-surface-800">Biometrische Sperre</h5>
+              <p class="text-xs text-surface-400">App-Zugriff per Fingerabdruck / FaceID schützen</p>
+            </div>
+            <Toggle checked={biometricsEnabled} onchange={toggleBiometrics} />
+          </div>
+
+          <div class="flex items-center justify-between pt-4">
+            <div>
+              <h5 class="text-sm font-semibold text-surface-800">Haptisches Feedback</h5>
+              <p class="text-xs text-surface-400">Vibration bei Trainingssätzen</p>
+            </div>
+            <Toggle checked={hapticsEnabled} onchange={toggleHaptics} />
+          </div>
+        </div>
+      </Card>
+
+      <!-- Native Android: Server-Adresse -->
+      <Card padding={false}>
+        {#snippet header()}
+          <span class="text-sm font-semibold text-surface-900">Server-Adresse</span>
+        {/snippet}
+        <form onsubmit={handleSaveServerUrl} class="space-y-4 p-5">
+          <p class="text-xs text-surface-500">
+            Ziel-URL deiner dezentralen Salus FastAPI-Instanz.
+          </p>
+
+          {#if serverMessage}
+            <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>
+              {serverMessage.text}
+            </AlertBanner>
+          {/if}
+
+          <FormField label="Server URL">
+            <Input
+              name="serverUrl"
+              bind:value={serverUrl}
+              placeholder="https://salus.meine-domain.de"
+            />
+          </FormField>
+
+          <div class="flex justify-end">
+            <Btn variant="primary" type="submit" size="sm" loading={serverTesting}>
+              Speichern & Testen
+            </Btn>
+          </div>
+        </form>
+      </Card>
+    {/if}
   </div>
 </div>

@@ -346,6 +346,23 @@ await mutate({ kind: 'crud', op: 'create', entity: 'medication', id: crypto.rand
 await api.POST('/api/v1/medications', { body: data });
 ```
 
+### Context-Sensitive Platform Model (APK vs. Web/PWA) & Settings Decoupling
+
+Salus operates across two runtime environments with strict context-awareness:
+
+| Runtime | Environment | Server Host Resolution | Hardware Capabilities |
+|---|---|---|---|
+| **Native Android APK** | Local Capacitor WebView (`https://localhost`) | Configured via `salus_server_url` / dynamic `getApiBaseUrl()` | Android Health Connect, WorkManager background sync, Biometric lock, Native haptics |
+| **Web Browser / PWA** | Hosted instance origin (`window.location.origin`) | Fixed to current origin session (`window.location.origin`) | Service Worker offline cache, IndexedDB storage meter, WebAuthn |
+
+**Device-Local vs. Cloud-Synced Preferences Rule:**
+- **Cloud-Synced (`user_preference`)**: Cross-device user settings (Theme, Language, Unit system, Start of week). Syncs automatically via UoW/Sync pipeline.
+- **Device-Local (`localStorage` / Dexie device config)**: Hardware-specific options (Biometric app lock, Haptic vibration, Local cache quota, Server Host URL). **NEVER synced across devices.**
+
+**UI Context-Sensitivity (`/settings/app` & `/auth/login`):**
+- Features requiring native hardware (Server Host URL inputs, biometric sensors, haptic toggles) MUST be guarded with `{#if Capacitor.isNativePlatform()}`.
+- Web/PWA sessions display read-only origin info (`Active Origin: window.location.origin`) and browser storage gauges instead of redundant server host inputs.
+
 ## Commands
 
 ```bash
