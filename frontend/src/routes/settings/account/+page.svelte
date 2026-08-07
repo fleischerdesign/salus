@@ -2,13 +2,22 @@
   import { onMount } from 'svelte';
   import { auth } from '$stores/auth.svelte';
   import { authConfig } from '$stores/authConfig.svelte';
-  import { Capacitor } from '@capacitor/core';
+  import { setLocaleState } from '$lib/api/headers';
+  import { liveQuery } from 'dexie';
+  import { db } from '$lib/db/database';
   import {
-    setLocaleState,
-    getApiBaseUrl,
-    setApiBaseUrl,
-    testServerConnection
-  } from '$lib/api/headers';
+    changePassword as doChangePassword,
+    createToken as doCreateToken,
+    revokeToken as doRevokeToken
+  } from '$lib/mutations/account';
+  import Card from '$components/ui/Card.svelte';
+  import Btn from '$components/ui/Btn.svelte';
+  import Input from '$components/ui/Input.svelte';
+  import FormField from '$components/forms/FormField.svelte';
+  import AlertBanner from '$components/ui/AlertBanner.svelte';
+  import Badge from '$components/ui/Badge.svelte';
+  import RadioGroup from '$components/ui/RadioGroup.svelte';
+  import Avatar from '$components/ui/Avatar.svelte';
 
   const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
     google: {
@@ -38,44 +47,6 @@
     authConfig.load();
   });
 
-  let serverUrl = $state(getApiBaseUrl());
-  let serverTesting = $state(false);
-  let serverMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  async function handleSaveServerUrl(e: Event) {
-    e.preventDefault();
-    serverTesting = true;
-    serverMessage = null;
-
-    const testRes = await testServerConnection(serverUrl);
-    serverTesting = false;
-
-    if (testRes.success) {
-      const saved = setApiBaseUrl(serverUrl);
-      serverUrl = saved;
-      serverMessage = { type: 'success', text: 'Server URL saved and connection verified!' };
-    } else {
-      serverMessage = { type: 'error', text: testRes.message };
-    }
-  }
-  import { liveQuery } from 'dexie';
-  import { db } from '$lib/db/database';
-  import { mutate } from '$lib/mutate';
-  import {
-    changePassword as doChangePassword,
-    createToken as doCreateToken,
-    revokeToken as doRevokeToken
-  } from '$lib/mutations/account';
-  import Card from '$components/ui/Card.svelte';
-  import Btn from '$components/ui/Btn.svelte';
-  import Input from '$components/ui/Input.svelte';
-  import FormField from '$components/forms/FormField.svelte';
-  import AlertBanner from '$components/ui/AlertBanner.svelte';
-  import Badge from '$components/ui/Badge.svelte';
-  import RadioGroup from '$components/ui/RadioGroup.svelte';
-  import Spinner from '$components/ui/Spinner.svelte';
-  import Avatar from '$components/ui/Avatar.svelte';
-
   let userProfiles = liveQuery(() => db.user_profile.toArray());
   let apiTokens = liveQuery(() =>
     db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false))
@@ -85,171 +56,117 @@
   let newPassword = $state('');
   let pwError = $state('');
   let pwSuccess = $state('');
-  let changing = $state(false);
+  let pwLoading = $state(false);
 
-  let theme = $state('system');
-  let locale = $state('en');
   let tokenLabel = $state('');
-  let tokenCreating = $state(false);
   let newToken = $state('');
-  let error = $state('');
-  let success = $state('');
-  let heightCm = $state(auth.user?.height_cm ?? '');
+  let tokenCreating = $state(false);
+
+  let theme = $state(localStorage.getItem('salus_theme') || 'system');
+  let locale = $state(localStorage.getItem('salus_locale') || 'en');
 
   const themeOptions = [
-    { value: 'system', label: 'System' },
     { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' }
+    { value: 'dark', label: 'Dark' },
+    { value: 'system', label: 'System' }
   ];
 
   const localeOptions = [
     { value: 'en', label: 'English' },
-    { value: 'de', label: 'German' }
+    { value: 'de', label: 'Deutsch' },
+    { value: 'es', label: 'Español' },
+    { value: 'fr', label: 'Français' }
   ];
 
-  let userProfile = $derived($userProfiles && $userProfiles.length > 0 ? $userProfiles[0] : null);
-
-  $effect(() => {
-    if (userProfile) {
-      theme = userProfile.theme || 'system';
-      locale = userProfile.locale || 'en';
+  function setTheme(val: string) {
+    theme = val;
+    localStorage.setItem('salus_theme', val);
+    if (val === 'dark') document.documentElement.classList.add('dark');
+    else if (val === 'light') document.documentElement.classList.remove('dark');
+    else {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
-  });
+  }
+
+  function setLocale(val: string) {
+    locale = val;
+    localStorage.setItem('salus_locale', val);
+    setLocaleState(val);
+  }
 
   async function changePassword(e: SubmitEvent) {
     e.preventDefault();
     pwError = '';
     pwSuccess = '';
-    changing = true;
-    const resp = await doChangePassword(currentPassword, newPassword);
-    changing = false;
-    if (!resp.ok) {
-      pwError = resp.error ?? 'Request failed';
-      return;
+    pwLoading = true;
+
+    try {
+      await doChangePassword(currentPassword, newPassword);
+      pwSuccess = 'Password changed successfully.';
+      currentPassword = '';
+      newPassword = '';
+    } catch (err: unknown) {
+      pwError = err instanceof Error ? err.message : 'Failed to change password.';
+    } finally {
+      pwLoading = false;
     }
-    pwSuccess = 'Password changed.';
-    currentPassword = '';
-    newPassword = '';
   }
 
   async function createToken(e: SubmitEvent) {
     e.preventDefault();
+    if (!tokenLabel.trim()) return;
     tokenCreating = true;
-    const resp = await doCreateToken(tokenLabel);
-    tokenCreating = false;
-    if (!resp.ok) return;
-    newToken = (resp.data as { plaintext?: string })?.plaintext ?? '';
-    tokenLabel = '';
-  }
-
-  async function revokeToken(id: string) {
-    if (!confirm('Revoke this API token?')) return;
-    const token = await db.api_token.get(id);
-    if (!token) return;
-    await doRevokeToken(id);
-    await db.api_token.put({ ...token, is_active: false });
-  }
-
-  async function setTheme(t: string) {
-    theme = t;
-    document.documentElement.setAttribute('data-theme', t);
-    if (userProfile) {
-      await mutate({
-        kind: 'crud',
-        op: 'update',
-        entity: 'user',
-        id: userProfile.id,
-        data: { theme: t },
-        optimistic: { ...userProfile, theme: t }
-      });
+    try {
+      const res = (await doCreateToken(tokenLabel)) as {
+        token?: string;
+        data?: { token?: string };
+      };
+      const tokenValue = res?.token || res?.data?.token;
+      if (tokenValue) {
+        newToken = tokenValue;
+        tokenLabel = '';
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      tokenCreating = false;
     }
   }
 
-  async function setLocale(loc: string) {
-    locale = loc;
-    setLocaleState(loc);
-    if (userProfile) {
-      await mutate({
-        kind: 'crud',
-        op: 'update',
-        entity: 'user',
-        id: userProfile.id,
-        data: { locale: loc },
-        optimistic: { ...userProfile, locale: loc }
-      });
-    }
-  }
-
-  async function updateProfile() {
-    const h = parseFloat(String(heightCm));
-    if (isNaN(h) || h <= 0) return;
-    await mutate({
-      kind: 'crud',
-      op: 'update',
-      entity: 'user',
-      id: auth.user?.id ?? '',
-      data: { height_cm: h },
-      optimistic: { ...(auth.user ?? {}), height_cm: h }
-    });
+  async function revokeToken(id: string | number) {
+    await doRevokeToken(String(id));
   }
 </script>
 
-{#if $userProfiles === undefined}
-  <div class="flex justify-center py-12"><Spinner /></div>
-{:else}
-  {#if error}<AlertBanner variant="error" class="mb-4">{error}</AlertBanner>{/if}
-  {#if success}<AlertBanner variant="success" class="mb-4">{success}</AlertBanner>{/if}
-
-  <div class="space-y-6">
-    <!-- Profile -->
-    <Card>
-      {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Profile</span>
-      {/snippet}
-      <div class="flex items-center gap-4">
-        <Avatar name={auth.user?.display_name || auth.user?.username || '?'} size="lg" />
-        <div>
-          <p class="text-base font-semibold text-surface-900">
-            {auth.user?.display_name || auth.user?.username}
-          </p>
-          {#if auth.user?.email}
-            <p class="text-sm text-surface-500">{auth.user.email}</p>
-          {:else}
-            <p class="text-sm text-surface-400">No email set</p>
-          {/if}
-          <form
-            onsubmit={(e) => {
-              e.preventDefault();
-              updateProfile();
-            }}
-            class="mt-2 flex items-end gap-2"
-          >
-            <div>
-              <label for="height_cm" class="text-[11px] font-medium text-surface-500"
-                >Height (cm)</label
-              >
-              <input
-                id="height_cm"
-                type="number"
-                bind:value={heightCm}
-                min="50"
-                max="250"
-                step="0.1"
-                class="h-8 w-20 rounded border border-surface-300 px-2 text-sm"
-              />
-            </div>
-            <Btn variant="secondary" size="sm" type="submit">Save</Btn>
-          </form>
-        </div>
+<div class="space-y-6">
+  {#if $userProfiles && $userProfiles.length > 0}
+    {@const profile = $userProfiles[0]}
+    <!-- User Profile Header -->
+    <div class="flex items-center gap-4 rounded-xl border border-surface-200 bg-surface-0 p-5">
+      <Avatar name={profile.display_name || auth.user?.username} size="lg" />
+      <div>
+        <h3 class="text-base font-semibold text-surface-900">
+          {profile.display_name || auth.user?.username || 'User'}
+        </h3>
+        <p class="font-mono text-xs text-surface-500">@{auth.user?.username || 'user'}</p>
+        {#if auth.user?.email}
+          <p class="text-xs text-surface-400">{auth.user.email}</p>
+        {/if}
       </div>
-    </Card>
+    </div>
+  {/if}
 
-    <!-- Appearance -->
-    <Card>
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- User Preferences (Theme & Language) -->
+    <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Appearance</span>
+        <span class="text-sm font-semibold text-surface-900">Preferences</span>
       {/snippet}
-      <div class="space-y-5">
+      <div class="space-y-5 p-5">
         <div>
           <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">Theme</p>
           <RadioGroup name="theme" options={themeOptions} value={theme} onchange={setTheme} />
@@ -331,35 +248,14 @@
                   </div>
                   <button
                     type="button"
-                    class="duration-micro rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
-                    onclick={() => revokeToken(t.id)}>Revoke</button
+                    class="duration-micro cursor-pointer rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
+                    onclick={() => revokeToken(String(t.id))}>Revoke</button
                   >
                 </div>
               {/each}
             </div>
           </div>
         {/if}
-      </div>
-    </Card>
-
-    <!-- Connected Sources -->
-    <Card padding={false}>
-      {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">Connected Sources</span>
-      {/snippet}
-      <div class="divide-y divide-surface-100">
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-700">Samsung Health</span>
-          <Badge variant="success">Active</Badge>
-        </div>
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-700">Apple Health</span>
-          <Badge variant="default">Available</Badge>
-        </div>
-        <div class="flex items-center justify-between px-5 py-3">
-          <span class="text-sm text-surface-700">Oura Ring</span>
-          <Badge variant="default">Available</Badge>
-        </div>
       </div>
     </Card>
 
@@ -375,32 +271,39 @@
             name="username"
             value={auth.user.username ?? ''}
             autocomplete="username"
-            hidden
+            class="hidden"
+            tabindex="-1"
+            aria-hidden="true"
           />
           <FormField label="Current Password">
             <Input
-              name="current"
+              name="current-password"
               type="password"
               bind:value={currentPassword}
-              required
               autocomplete="current-password"
+              required
             />
           </FormField>
           <FormField label="New Password">
             <Input
-              name="new"
+              name="new-password"
               type="password"
               bind:value={newPassword}
-              required
-              minlength={6}
               autocomplete="new-password"
+              required
             />
           </FormField>
-          {#if pwError}<AlertBanner variant="error">{pwError}</AlertBanner>{/if}
-          {#if pwSuccess}<AlertBanner variant="success">{pwSuccess}</AlertBanner>{/if}
-          <Btn variant="primary" type="submit" loading={changing}>Change Password</Btn>
+          {#if pwError}
+            <AlertBanner variant="error">{pwError}</AlertBanner>
+          {/if}
+          {#if pwSuccess}
+            <AlertBanner variant="success">{pwSuccess}</AlertBanner>
+          {/if}
+          <div class="flex justify-end">
+            <Btn variant="primary" type="submit" loading={pwLoading}>Update Password</Btn>
+          </div>
         </form>
       </Card>
     {/if}
   </div>
-{/if}
+</div>
