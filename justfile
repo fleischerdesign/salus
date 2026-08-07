@@ -49,8 +49,13 @@ default:
 @build-apk:
     just build-frontend
     cd frontend && npx cap sync android
-    cd frontend/android && ./gradlew --stop && ./gradlew assembleRelease
-    @echo "APK built successfully: frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+    cd frontend/android && ./gradlew --stop && ./gradlew assembleDebug
+    @echo "APK built successfully: frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+
+@install-apk:
+    just build-apk
+    adb install -r frontend/android/app/build/outputs/apk/debug/app-debug.apk
+    @echo "Salus APK successfully installed on connected Android device!"
 
 # --- Install / Sync ---
 
