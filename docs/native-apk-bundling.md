@@ -193,10 +193,14 @@ Before proceeding with implementation, the following architectural decisions mus
 - **Option B**: Native Android service writes directly to FastAPI REST API (`/api/v1/sync/push`).
 - **Recommendation**: **Option A**. Ingesting via the frontend JavaScript bridge ensures all data passes through the client-side `mutate()` gateway, preserving outbox Temporal ordering, conflict detection, and optimistic UI updates.
 
-### Decision 2: Self-Hosted OTA (Over-The-Air) Asset Updates (`@capgo/capacitor-updater`)
+### Decision 2: GitHub Releases OTA (Over-The-Air) Asset Updates (`@capgo/capacitor-updater`)
 - **Option A**: Build standard APK/AAB binaries for every frontend change. User must reinstall APKs.
-- **Option B**: Self-Hosted CapGo OTA Live Updates. Frontend HTML/JS/CSS assets update transparently over-the-air.
-- **Selected Decision**: **Option B (Approved)**. We integrate `@capgo/capacitor-updater` backed by a self-hosted check endpoint on our Salus FastAPI server (`/api/v1/updates/check`). Frontend UI improvements update instantly OTA without requiring the user to re-install APKs. Native APK rebuilds are required strictly for Java/Kotlin plugin or manifest permission changes.
+- **Option B**: Self-Hosted CapGo OTA Live Updates served via FastAPI server storage.
+- **Option C (Approved)**: **GitHub Releases Direct OTA**. We configure `@capgo/capacitor-updater` to query the public GitHub Releases API (`api.github.com/repos/fleischerdesign/salus/releases/latest`). 
+  When a release workflow attaches `frontend-build.zip`, native APKs fetch the update directly from GitHub's global CDN.
+  - Zero storage/bandwidth impact on FastAPI server.
+  - Single Source of Truth: Version tags (e.g. `v1.2.0`) correspond 1:1 with GitHub releases.
+  - Automated fallback & rollback handled natively by CapGo.
 
 ### Decision 3: Background Polling Frequency & Battery Impact
 - **Question**: How often should background `WorkManager` poll Health Connect / Samsung Health?
