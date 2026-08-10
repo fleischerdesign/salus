@@ -69,7 +69,7 @@
 
             makeWrapper ${pythonEnv}/bin/uvicorn $out/bin/salus \
               --set PYTHONPATH "$out/lib/salus/src:$out/lib/salus" \
-              --add-flags "salus.main:app --host 0.0.0.0 --port ''${PORT:-8000}"
+              --add-flags "salus.main:app --host 0.0.0.0"
           '';
         };
 

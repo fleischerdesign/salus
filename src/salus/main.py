@@ -135,7 +135,24 @@ async def lifespan(app: FastAPI):
     from alembic.config import Config
     from sqlalchemy import inspect
 
-    alembic_cfg = Config("alembic.ini")
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    alembic_ini_path = os.path.join(base_dir, "alembic.ini")
+    if not os.path.exists(alembic_ini_path):
+        alembic_ini_path = "alembic.ini"
+
+    if os.path.exists(alembic_ini_path):
+        alembic_cfg = Config(alembic_ini_path)
+    else:
+        alembic_cfg = Config()
+
+    migrations_dir = os.path.join(base_dir, "migrations")
+    if os.path.isdir(migrations_dir):
+        alembic_cfg.set_main_option("script_location", migrations_dir)
+    elif not alembic_cfg.get_main_option("script_location"):
+        alembic_cfg.set_main_option("script_location", "migrations")
+
+    alembic_cfg.set_main_option("sqlalchemy.url", str(lifespan_engine.url))
+
     inspector = inspect(lifespan_engine)
     if (
         "user" in inspector.get_table_names()
