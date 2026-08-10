@@ -32,9 +32,16 @@
             python-multipart
             pydantic-settings
             python-jose
+            cryptography
             authlib
+            httpx
             ldap3
             bcrypt
+            psycopg2
+            alembic
+            slowapi
+            qrcode
+            pillow
           ]
         );
         androidSdk = pkgs.androidenv.composeAndroidPackages {
@@ -55,11 +62,13 @@
             mkdir -p $out/lib/salus $out/bin
             cp -r src $out/lib/salus/
             cp pyproject.toml $out/lib/salus/
+            cp alembic.ini $out/lib/salus/
+            cp -r migrations $out/lib/salus/
             mkdir -p $out/lib/salus/frontend
             cp -r ${self.packages.${system}.frontend} $out/lib/salus/frontend/build
 
             makeWrapper ${pythonEnv}/bin/uvicorn $out/bin/salus \
-              --set PYTHONPATH "$out/lib/salus/src" \
+              --set PYTHONPATH "$out/lib/salus/src:$out/lib/salus" \
               --add-flags "salus.main:app --host 0.0.0.0 --port ''${PORT:-8000}"
           '';
         };
