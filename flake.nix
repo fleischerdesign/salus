@@ -4,6 +4,24 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -11,7 +29,16 @@
       self,
       nixpkgs,
       flake-utils,
+      pyproject-nix,
+      uv2nix,
+      pyproject-build-systems,
     }:
+    let
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+      overlay = workspace.mkPyprojectOverlay {
+        sourcePreference = "wheel";
+      };
+    in
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -23,27 +50,19 @@
           };
         };
         lib = nixpkgs.lib;
-        python = pkgs.python313;
-        pythonEnv = python.withPackages (
-          ps: with ps; [
-            fastapi
-            uvicorn
-            sqlmodel
-            python-multipart
-            pydantic-settings
-            python-jose
-            cryptography
-            authlib
-            httpx
-            ldap3
-            bcrypt
-            psycopg2
-            alembic
-            slowapi
-            qrcode
-            pillow
-          ]
-        );
+
+        pythonSet =
+          (pkgs.callPackage pyproject-nix.build.packages {
+            python = pkgs.python313;
+          }).overrideScope
+            (
+              pkgs.lib.composeManyExtensions [
+                pyproject-build-systems.overlays.default
+                overlay
+              ]
+            );
+
+        pythonEnv = pythonSet.mkVirtualEnv "salus-env" workspace.deps.default;
         androidSdk = pkgs.androidenv.composeAndroidPackages {
           buildToolsVersions = [ "36.0.0" "35.0.0" "34.0.0" ];
           platformVersions = [ "36" "35" "34" ];
