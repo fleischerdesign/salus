@@ -26,7 +26,13 @@ class Settings(BaseSettings):
     ldap_user_dn_template: str = "uid={username},{base_dn}"
     ldap_use_tls: bool = False
 
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:8000",
+        "https://localhost",
+        "capacitor://localhost",
+        "http://localhost",
+    ]
 
     llm_provider: str = "ollama"
     llm_api_key: str | None = None

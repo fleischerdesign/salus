@@ -58,11 +58,11 @@ export async function testServerConnection(
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${clean}/api/v1/sync/entities`, {
+    const res = await fetch(`${clean}/api/v1/auth/config`, {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
-    if (res.ok) {
+    if (res.ok || res.status === 401) {
       return { success: true, message: 'Connection successful!' };
     }
     return { success: false, message: `Server returned HTTP status ${res.status}` };
