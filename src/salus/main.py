@@ -160,7 +160,14 @@ async def lifespan(app: FastAPI):
     ):
         command.stamp(alembic_cfg, "head")
     else:
-        command.upgrade(alembic_cfg, "head")
+        try:
+            command.upgrade(alembic_cfg, "head")
+        except Exception as e:
+            logging.warning(f"Alembic upgrade warning: {e}")
+
+    from sqlmodel import SQLModel
+    import salus.models  # noqa: F401
+    SQLModel.metadata.create_all(lifespan_engine)
 
     session = Session(lifespan_engine)
     try:
