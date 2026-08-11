@@ -346,6 +346,28 @@ await mutate({ kind: 'crud', op: 'create', entity: 'medication', id: crypto.rand
 await api.POST('/api/v1/medications', { body: data });
 ```
 
+### High-Performance Time-Series & Frontend Data Architecture (Strict Rules)
+
+Continuous health tracking (e.g. Android Health Connect, Apple Health, wearable smartwatches) ingests **tens of thousands of data points per week** into `db.measurement`. To guarantee deterministic **sub-10ms UI rendering (60–120 FPS)** without frame drops:
+
+1. **Cursor Streaming over Array Allocation (`.each()` vs `.toArray()`)**:
+   - **NEVER** call `.toArray()` on unbounded time-series tables (`db.measurement`).
+   - Use IndexedDB Cursor Streaming (`.each((m) => { ... })`) directly over composite indexes (e.g. `[metric_code+start_time]`).
+   - Aggregations (hourly buckets, sums, averages, min/max, percentiles, heatmaps) MUST be computed in-flight within the stream to prevent allocating thousands of heavy JavaScript objects on the V8 heap.
+
+2. **Contract-Driven Lookback Windowing**:
+   - High-Frequency Metrics (`heart_rate`, `steps`): Query **only Today + Yesterday (1-day lookback)**. Never fetch arbitrary 7-day or 30-day windows for continuous high-frequency streams.
+   - Low-Frequency Metrics (`weight`, `body_fat`, `blood_pressure`): 7-day lookback for sparklines/trends.
+   - Always specify explicit lower AND upper bounds: `.between([code, windowStart], [code, windowEnd])`.
+
+3. **Separation of Static Dimensions from Time-Series Facts**:
+   - Static metadata (`MetricDefinition`, `UserMetricPreference`, `Goal`, `DashboardWidget`) must be cached in-memory (`getDashboardMeta()`).
+   - Date switches must NEVER re-query static tables from IndexedDB; only time-series facts for active metric codes are fetched.
+
+4. **In-Card Skeleton Loading (`Card` and `ChromeCard`)**:
+   - Use `loading?: boolean` and optional `skeleton?: Snippet` on cards.
+   - Do NOT unmount cards or show full-screen layout thrashing on date switches. Card headers, titles, and grid slots remain locked in place while only the inner body transitions smoothly.
+
 ### Context-Sensitive Platform Model (APK vs. Web/PWA) & Settings Decoupling
 
 Salus operates across two runtime environments with strict context-awareness:

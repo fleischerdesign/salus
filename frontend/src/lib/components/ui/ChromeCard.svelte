@@ -12,6 +12,8 @@
     editMode?: boolean;
     dragHandle?: boolean;
     dense?: boolean;
+    loading?: boolean;
+    skeleton?: Snippet;
     children?: Snippet;
     class?: string;
   }
@@ -26,6 +28,8 @@
     editMode = false,
     dragHandle = false,
     dense = false,
+    loading = false,
+    skeleton,
     children,
     class: extraClass = ''
   }: Props = $props();
@@ -89,7 +93,18 @@
 
   <!-- Body -->
   <div class="min-h-[80px] {dense ? 'px-4 pt-2 pb-4' : 'p-6'}">
-    {@render children?.()}
+    {#if loading}
+      {#if skeleton}
+        {@render skeleton()}
+      {:else}
+        <div class="space-y-2.5">
+          <div class="h-7 w-20 animate-pulse rounded bg-surface-100"></div>
+          <div class="h-16 w-full animate-pulse rounded bg-surface-100"></div>
+        </div>
+      {/if}
+    {:else}
+      {@render children?.()}
+    {/if}
   </div>
 </div>
 
@@ -98,16 +113,5 @@
     opacity: 0.4;
     border: 2px dashed var(--color-primary-500);
     border-radius: var(--radius-lg);
-    background: var(--color-primary-50);
-  }
-  :global(.widget-grid__ghost > *) {
-    visibility: hidden;
-  }
-  :global(.sortable-fallback) {
-    position: fixed !important;
-    z-index: 10000;
-    pointer-events: none;
-    box-shadow: var(--shadow-lg);
-    opacity: 0.9;
   }
 </style>

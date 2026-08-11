@@ -26,17 +26,19 @@
     return liveQuery(async () => {
       const start = new Date(+y, 0, 1).toISOString();
       const end = new Date(+y + 1, 0, 1).toISOString();
-      const measurements = await db.measurement
+      const daily = new Map<string, number>();
+
+      await db.measurement
         .where('[metric_code+start_time]')
         .between([m, start], [m, end])
-        .filter((item) => !item.deleted_at && item.value_numeric != null)
-        .toArray();
-      const daily = new Map<string, number>();
-      for (const item of measurements) {
-        const d = item.start_time.slice(0, 10);
-        const cur = daily.get(d) ?? -Infinity;
-        daily.set(d, Math.max(cur, item.value_numeric!));
-      }
+        .each((item) => {
+          if (!item.deleted_at && item.value_numeric != null) {
+            const d = item.start_time.slice(0, 10);
+            const cur = daily.get(d) ?? -Infinity;
+            daily.set(d, Math.max(cur, item.value_numeric));
+          }
+        });
+
       return daily;
     });
   });

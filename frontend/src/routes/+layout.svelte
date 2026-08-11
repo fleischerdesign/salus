@@ -24,6 +24,8 @@
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { updateService } from '$lib/stores/update.svelte';
   import { getSystemStats } from '$lib/db/metric-stats';
+  import { healthSyncService } from '$lib/native/health-sync';
+  import { nativeBridge } from '$lib/native/bridge';
 
   let { children } = $props();
 
@@ -75,6 +77,9 @@
     } else {
       auth.setLoading(false);
       getSystemStats().catch(() => {});
+      if (nativeBridge.isNative) {
+        healthSyncService.syncNow().catch(() => {});
+      }
     }
 
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {

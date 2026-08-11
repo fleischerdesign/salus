@@ -8,7 +8,11 @@
     updateWidget as updateWidgetMut,
     deleteWidget as deleteWidgetMut
   } from '$lib/mutations/dashboard';
-  import { fetchDashboard, type DashboardWidgetView } from '$lib/analytics/views/dashboard';
+  import {
+    fetchDashboard,
+    type DashboardWidgetView,
+    type DashboardData
+  } from '$lib/analytics/views/dashboard';
   import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -31,17 +35,62 @@
   import VizCircadian from '$components/dashboard/VizCircadian.svelte';
   import VizLineChart from '$components/dashboard/VizLineChart.svelte';
 
-  let displayDate = $state(new Date().toISOString().split('T')[0]);
-  let displayDateFormatted = $state(
-    new Date().toLocaleDateString('en-US', {
+  function getTodayString(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  let displayDate = $state(getTodayString());
+
+  let displayDateFormatted = $derived.by(() => {
+    const [y, m, d] = displayDate.split('-').map(Number);
+    if (!y || !m || !d) return displayDate;
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric'
-    })
-  );
-  const isToday = $derived(displayDate === new Date().toISOString().split('T')[0]);
+    });
+  });
 
-  let dashboardData = liveQuery(() => fetchDashboard(displayDate));
+  const isToday = $derived(displayDate === getTodayString());
+
+  let dashboardData = $state<DashboardData | null>(null);
+  let isTransitioning = $state(false);
+
+  $effect(() => {
+    const targetDate = displayDate;
+    isTransitioning = true;
+    let active = true;
+
+    // Direct immediate async load
+    fetchDashboard(targetDate)
+      .then((v) => {
+        if (active && displayDate === targetDate) {
+          dashboardData = v;
+          isTransitioning = false;
+        }
+      })
+      .catch(() => {
+        if (active) isTransitioning = false;
+      });
+
+    // Reactive liveQuery subscription for background database updates
+    const sub = liveQuery(() => fetchDashboard(targetDate)).subscribe((v) => {
+      if (active && displayDate === targetDate) {
+        dashboardData = v;
+        isTransitioning = false;
+      }
+    });
+
+    return () => {
+      active = false;
+      sub.unsubscribe();
+    };
+  });
 
   let editing = $state(false);
   let addModalOpen = $state(false);
@@ -61,21 +110,21 @@
   let gridEl: HTMLElement | null = $state(null);
   let sortableInstance: Sortable | null = null;
 
-  let widgets = $derived($dashboardData?.widgets ?? []);
-  let metrics = $derived($dashboardData?.metrics ?? []);
+  let widgets = $derived(dashboardData?.widgets ?? []);
+  let metrics = $derived(dashboardData?.metrics ?? []);
 
-  function setDate(d: Date) {
-    displayDate = d.toISOString().split('T')[0];
-    displayDateFormatted = d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
+  function changeDay(deltaDays: number) {
+    const [y, m, d] = displayDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d + deltaDays);
+    const ny = date.getFullYear();
+    const nm = String(date.getMonth() + 1).padStart(2, '0');
+    const nd = String(date.getDate()).padStart(2, '0');
+    displayDate = `${ny}-${nm}-${nd}`;
   }
 
   function handleDateChange(dateStr: string) {
-    const d = new Date(dateStr + 'T00:00:00');
-    setDate(d);
+    if (!dateStr) return;
+    displayDate = dateStr;
   }
 
   async function addWidget() {
@@ -244,7 +293,7 @@
     }
   });
 
-  let loading = $derived($dashboardData == null);
+  let loading = $derived(dashboardData == null);
 </script>
 
 <svelte:head><title>Salus — Dashboard</title></svelte:head>
@@ -262,33 +311,29 @@
         <div class="flex h-full items-center gap-2 px-6">
           <button
             class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
-            onclick={() => setDate(new Date(new Date(displayDate).getTime() - 86400000))}
+            onclick={() => changeDay(-1)}
             aria-label="Previous day"
             type="button"
           >
             <Icon name="chevron-left" />
           </button>
 
-          <button
-            class="duration-micro cursor-pointer px-2 text-sm font-semibold tracking-[0.05em] text-surface-700 transition-colors hover:text-primary-600"
-            type="button"
-            onclick={() => {
-              const input = document.getElementById('dash-hidden-date') as HTMLInputElement;
-              input?.showPicker();
-            }}
+          <label
+            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-[0.05em] text-surface-700 transition-colors hover:text-primary-600"
           >
-            {displayDateFormatted}
-          </button>
-          <input
-            id="dash-hidden-date"
-            type="date"
-            class="sr-only"
-            onchange={(e) => handleDateChange((e.target as HTMLInputElement).value)}
-          />
+            <span>{displayDateFormatted}</span>
+            <input
+              id="dash-hidden-date"
+              type="date"
+              class="absolute inset-0 cursor-pointer opacity-0"
+              value={displayDate}
+              onchange={(e) => handleDateChange((e.target as HTMLInputElement).value)}
+            />
+          </label>
 
           <button
             class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
-            onclick={() => setDate(new Date(new Date(displayDate).getTime() + 86400000))}
+            onclick={() => changeDay(1)}
             aria-label="Next day"
             type="button"
           >
@@ -299,7 +344,7 @@
             <button
               type="button"
               class="ml-1 rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600 transition-colors hover:text-primary-700"
-              onclick={() => handleDateChange(new Date().toISOString().split('T')[0])}
+              onclick={() => handleDateChange(getTodayString())}
             >
               Today
             </button>
@@ -378,6 +423,7 @@
           editMode={editing}
           dragHandle={editing}
           dense
+          loading={isTransitioning}
           class={widget.size === 'large'
             ? 'lg:col-span-6'
             : widget.size === 'medium'
@@ -420,7 +466,9 @@
             />
           {:else if viz.type === 'progress'}
             <VizProgress
-              value={Number(viz.value) || 0}
+              value={typeof viz.value === 'number'
+                ? viz.value
+                : Number(String(viz.value ?? 0).replace(/,/g, '')) || 0}
               target={viz.goal_target ?? undefined}
               unit={viz.unit ?? undefined}
               color={viz.color ?? undefined}
@@ -428,8 +476,11 @@
             />
           {:else if viz.type === 'pills'}
             <VizPills
-              items={viz.segments as
-                { label: string; value: number; unit?: string; color?: string }[] | undefined}
+              value={viz.value}
+              unit={viz.unit}
+              subtitle={viz.subtitle}
+              color={viz.color ?? '#f43f5e'}
+              buckets={viz.segments as any}
             />
           {:else if viz.type === 'bar'}
             <VizBar

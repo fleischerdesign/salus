@@ -338,17 +338,23 @@ export function useCorrelations(
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    const rawMeasurements = await db.measurement
+    const pivot = new Map<string, number[]>();
+
+    await db.measurement
       .where('start_time')
       .above(cutoff.toISOString())
-      .toArray();
-    const measurements = rawMeasurements.filter((m) => !m.deleted_at && m.value_numeric != null);
-    const pivot = new Map<string, number[]>();
-    for (const m of measurements) {
-      const dt = m.metric_code || m.data_type;
-      if (!pivot.has(dt)) pivot.set(dt, []);
-      pivot.get(dt)!.push(m.value_numeric!);
-    }
+      .each((m) => {
+        if (!m.deleted_at && m.value_numeric != null) {
+          const dt = m.metric_code || m.data_type;
+          let list = pivot.get(dt);
+          if (!list) {
+            list = [];
+            pivot.set(dt, list);
+          }
+          list.push(m.value_numeric);
+        }
+      });
+
     const metrics = [...pivot.keys()].filter((k) => pivot.get(k)!.length >= 14);
     const pairs: Correlation[] = [];
     const pValues: number[] = [];
@@ -376,6 +382,7 @@ export function useCorrelations(
         pValues.push(pr.p_value);
       }
     }
+
     if (pairs.length > 0) {
       const fdr = benjaminiHochberg(pValues);
       for (let i = 0; i < pairs.length; i++) {
@@ -386,8 +393,10 @@ export function useCorrelations(
         };
       }
     }
+
     return { pairs, n_comparisons: pairs.length, correction: 'Benjamini-Hochberg FDR' };
   });
+
   return data;
 }
 
@@ -407,39 +416,44 @@ export interface TrendResult {
 export function useTrend(metric: string, rangeKey: string = '90d') {
   const data = liveQuery(async () => {
     if (!metric) return { values: [], labels: [], regression: null };
-
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     const cutoffISO = cutoff.toISOString();
 
-    const measurements = await db.measurement
+    const dayMap = new Map<string, { sum: number; count: number }>();
+    const rawValues: number[] = [];
+    const rawLabels: string[] = [];
+    let count = 0;
+
+    await db.measurement
       .where('[metric_code+start_time]')
       .between([metric, cutoffISO], [metric, Dexie.maxKey])
-      .filter((m) => !m.deleted_at && m.value_numeric != null)
-      .toArray();
+      .each((m) => {
+        if (!m.deleted_at && m.value_numeric != null) {
+          count++;
+          const day = m.start_time.split('T')[0];
+          const existing = dayMap.get(day);
+          if (existing) {
+            existing.sum += m.value_numeric;
+            existing.count += 1;
+          } else {
+            dayMap.set(day, { sum: m.value_numeric, count: 1 });
+          }
+          rawValues.push(m.value_numeric);
+          rawLabels.push(m.start_time.slice(5));
+        }
+      });
 
     let values: number[];
     let labels: string[];
 
-    if (measurements.length > 150) {
-      // Aggregate by day for silky smooth rendering of high-frequency metrics (e.g. continuous heart rate)
-      const dayMap = new Map<string, { sum: number; count: number }>();
-      for (const m of measurements) {
-        const day = m.start_time.split('T')[0];
-        const existing = dayMap.get(day);
-        if (existing) {
-          existing.sum += m.value_numeric!;
-          existing.count += 1;
-        } else {
-          dayMap.set(day, { sum: m.value_numeric!, count: 1 });
-        }
-      }
+    if (count > 150) {
       labels = Array.from(dayMap.keys()).map((d) => d.slice(5));
       values = Array.from(dayMap.values()).map((v) => Math.round((v.sum / v.count) * 10) / 10);
     } else {
-      values = measurements.map((m) => m.value_numeric!);
-      labels = measurements.map((m) => m.start_time.slice(5));
+      values = rawValues;
+      labels = rawLabels;
     }
 
     if (values.length < 3) return { values, labels, regression: null };

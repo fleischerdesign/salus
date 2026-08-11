@@ -156,6 +156,26 @@ class HealthConnectPlugin : Plugin() {
         }
     }
 
+    private suspend inline fun <reified T : Record> readAllRecords(
+        client: HealthConnectClient,
+        timeRangeFilter: TimeRangeFilter
+    ): List<T> {
+        val allRecords = mutableListOf<T>()
+        var pageToken: String? = null
+        do {
+            val request = ReadRecordsRequest(
+                recordType = T::class,
+                timeRangeFilter = timeRangeFilter,
+                pageToken = pageToken,
+                pageSize = 5000
+            )
+            val response = client.readRecords(request)
+            allRecords.addAll(response.records)
+            pageToken = response.pageToken
+        } while (pageToken != null)
+        return allRecords
+    }
+
     @PluginMethod
     fun fetchDelta(call: PluginCall) {
         val client = healthConnectClient
@@ -181,13 +201,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 1. Steps
                 try {
-                    val stepsResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = StepsRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in stepsResponse.records) {
+                    val stepsRecords = readAllRecords<StepsRecord>(client, timeRangeFilter)
+                    for (record in stepsRecords) {
                         val item = JSObject()
                         item.put("metric_code", "steps")
                         item.put("value", record.count.toDouble())
@@ -201,13 +216,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 2. Heart Rate
                 try {
-                    val hrResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = HeartRateRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in hrResponse.records) {
+                    val hrRecords = readAllRecords<HeartRateRecord>(client, timeRangeFilter)
+                    for (record in hrRecords) {
                         for (sample in record.samples) {
                             val item = JSObject()
                             item.put("metric_code", "heart_rate")
@@ -223,13 +233,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 3. Resting Heart Rate
                 try {
-                    val rhrResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = RestingHeartRateRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in rhrResponse.records) {
+                    val rhrRecords = readAllRecords<RestingHeartRateRecord>(client, timeRangeFilter)
+                    for (record in rhrRecords) {
                         val item = JSObject()
                         item.put("metric_code", "resting_heart_rate")
                         item.put("value", record.beatsPerMinute.toDouble())
@@ -243,13 +248,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 4. Sleep
                 try {
-                    val sleepResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = SleepSessionRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in sleepResponse.records) {
+                    val sleepRecords = readAllRecords<SleepSessionRecord>(client, timeRangeFilter)
+                    for (record in sleepRecords) {
                         val durationMinutes = Duration.between(record.startTime, record.endTime).toMinutes().toDouble()
                         val item = JSObject()
                         item.put("metric_code", "sleep")
@@ -264,13 +264,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 5. Total Calories Burned
                 try {
-                    val calResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = TotalCaloriesBurnedRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in calResponse.records) {
+                    val calRecords = readAllRecords<TotalCaloriesBurnedRecord>(client, timeRangeFilter)
+                    for (record in calRecords) {
                         val item = JSObject()
                         item.put("metric_code", "calories_burned")
                         item.put("value", record.energy.inKilocalories)
@@ -284,13 +279,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 6. Weight
                 try {
-                    val weightResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = WeightRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in weightResponse.records) {
+                    val weightRecords = readAllRecords<WeightRecord>(client, timeRangeFilter)
+                    for (record in weightRecords) {
                         val item = JSObject()
                         item.put("metric_code", "weight")
                         item.put("value", record.weight.inKilograms)
@@ -304,13 +294,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 7. Blood Pressure
                 try {
-                    val bpResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = BloodPressureRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in bpResponse.records) {
+                    val bpRecords = readAllRecords<BloodPressureRecord>(client, timeRangeFilter)
+                    for (record in bpRecords) {
                         val sysItem = JSObject()
                         sysItem.put("metric_code", "systolic_bp")
                         sysItem.put("value", record.systolic.inMillimetersOfMercury)
@@ -333,13 +318,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 8. Oxygen Saturation (SpO2)
                 try {
-                    val spo2Response = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = OxygenSaturationRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in spo2Response.records) {
+                    val spo2Records = readAllRecords<OxygenSaturationRecord>(client, timeRangeFilter)
+                    for (record in spo2Records) {
                         val item = JSObject()
                         item.put("metric_code", "spo2")
                         item.put("value", record.percentage.value)
@@ -353,13 +333,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 9. Active Calories Burned
                 try {
-                    val activeCalResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = ActiveCaloriesBurnedRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in activeCalResponse.records) {
+                    val activeCalRecords = readAllRecords<ActiveCaloriesBurnedRecord>(client, timeRangeFilter)
+                    for (record in activeCalRecords) {
                         val item = JSObject()
                         item.put("metric_code", "active_calories")
                         item.put("value", record.energy.inKilocalories)
@@ -373,13 +348,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 10. Distance
                 try {
-                    val distResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = DistanceRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in distResponse.records) {
+                    val distRecords = readAllRecords<DistanceRecord>(client, timeRangeFilter)
+                    for (record in distRecords) {
                         val item = JSObject()
                         item.put("metric_code", "distance")
                         item.put("value", record.distance.inKilometers)
@@ -393,13 +363,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 11. Elevation Gained
                 try {
-                    val elevResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = ElevationGainedRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in elevResponse.records) {
+                    val elevRecords = readAllRecords<ElevationGainedRecord>(client, timeRangeFilter)
+                    for (record in elevRecords) {
                         val item = JSObject()
                         item.put("metric_code", "elevation_gained")
                         item.put("value", record.elevation.inMeters)
@@ -413,13 +378,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 12. Floors Climbed
                 try {
-                    val floorsResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = FloorsClimbedRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in floorsResponse.records) {
+                    val floorsRecords = readAllRecords<FloorsClimbedRecord>(client, timeRangeFilter)
+                    for (record in floorsRecords) {
                         val item = JSObject()
                         item.put("metric_code", "floors_climbed")
                         item.put("value", record.floors)
@@ -433,13 +393,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 13. VO2 Max
                 try {
-                    val vo2Response = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = Vo2MaxRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in vo2Response.records) {
+                    val vo2Records = readAllRecords<Vo2MaxRecord>(client, timeRangeFilter)
+                    for (record in vo2Records) {
                         val item = JSObject()
                         item.put("metric_code", "vo2_max")
                         item.put("value", record.vo2MillilitersPerMinuteKilogram)
@@ -453,13 +408,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 14. Respiratory Rate
                 try {
-                    val respResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = RespiratoryRateRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in respResponse.records) {
+                    val respRecords = readAllRecords<RespiratoryRateRecord>(client, timeRangeFilter)
+                    for (record in respRecords) {
                         val item = JSObject()
                         item.put("metric_code", "respiratory_rate")
                         item.put("value", record.rate)
@@ -473,13 +423,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 15. Body Temperature
                 try {
-                    val tempResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = BodyTemperatureRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in tempResponse.records) {
+                    val tempRecords = readAllRecords<BodyTemperatureRecord>(client, timeRangeFilter)
+                    for (record in tempRecords) {
                         val item = JSObject()
                         item.put("metric_code", "body_temperature")
                         item.put("value", record.temperature.inCelsius)
@@ -493,13 +438,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 16. Height
                 try {
-                    val heightResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = HeightRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in heightResponse.records) {
+                    val heightRecords = readAllRecords<HeightRecord>(client, timeRangeFilter)
+                    for (record in heightRecords) {
                         val item = JSObject()
                         item.put("metric_code", "height")
                         item.put("value", record.height.inMeters * 100)
@@ -513,13 +453,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 17. Body Fat
                 try {
-                    val bodyFatResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = BodyFatRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in bodyFatResponse.records) {
+                    val bodyFatRecords = readAllRecords<BodyFatRecord>(client, timeRangeFilter)
+                    for (record in bodyFatRecords) {
                         val item = JSObject()
                         item.put("metric_code", "body_fat")
                         item.put("value", record.percentage.value)
@@ -533,13 +468,8 @@ class HealthConnectPlugin : Plugin() {
 
                 // 18. Heart Rate Variability (HRV RMSSD)
                 try {
-                    val hrvResponse = client.readRecords(
-                        ReadRecordsRequest(
-                            recordType = HeartRateVariabilityRmssdRecord::class,
-                            timeRangeFilter = timeRangeFilter
-                        )
-                    )
-                    for (record in hrvResponse.records) {
+                    val hrvRecords = readAllRecords<HeartRateVariabilityRmssdRecord>(client, timeRangeFilter)
+                    for (record in hrvRecords) {
                         val item = JSObject()
                         item.put("metric_code", "hrv")
                         item.put("value", record.heartRateVariabilityMillis)

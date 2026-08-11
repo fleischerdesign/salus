@@ -188,7 +188,8 @@ export const syncEngine = {
     _status = 'syncing';
     _error = null;
 
-    const items = await db.outbox.orderBy('createdAt').toArray();
+    const target = await db.outbox.where('client_id').equals(clientId).first();
+    const items = target ? [target] : await db.outbox.orderBy('createdAt').limit(1).toArray();
     if (items.length === 0) {
       _status = 'idle';
       return { ok: true };

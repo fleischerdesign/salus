@@ -1,6 +1,12 @@
 import Dexie from 'dexie';
 import { db } from '$lib/db/database';
-import type { DashboardWidget, MetricDefinition, MetricWithPreference } from '$lib/db/types';
+import type {
+  DashboardWidget,
+  MetricDefinition,
+  MetricWithPreference,
+  Goal,
+  Measurement
+} from '$lib/db/types';
 import { mergeMetricPrefs } from '$lib/db/types';
 import { buildViz, type WidgetViz } from '../viz/builders';
 
@@ -18,10 +24,25 @@ export interface DashboardData {
   metrics: MetricWithPreference[];
 }
 
-export async function fetchDashboard(date: string): Promise<DashboardData> {
-  const dayStart = new Date(date + 'T00:00:00').getTime();
-  const dayEnd = dayStart + 86400000;
-  const windowStart = new Date(dayStart - 30 * 86400000).toISOString();
+interface CachedMeta {
+  timestamp: number;
+  widgets: DashboardWidget[];
+  metrics: MetricWithPreference[];
+  goals: Goal[];
+  metricById: Map<string, MetricWithPreference>;
+}
+
+let cachedMeta: CachedMeta | null = null;
+
+export function invalidateDashboardMetaCache(): void {
+  cachedMeta = null;
+}
+
+async function getDashboardMeta(): Promise<CachedMeta> {
+  const now = Date.now();
+  if (cachedMeta && now - cachedMeta.timestamp < 30000) {
+    return cachedMeta;
+  }
 
   const [allWidgets, allMetrics, allPrefs, allGoals] = await Promise.all([
     db.dashboard_widget.toArray(),
@@ -34,32 +55,73 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
     .filter((w) => !w.deleted_at && w.is_visible)
     .sort((a, b) => a.position - b.position);
   const metrics = mergeMetricPrefs(allMetrics as MetricDefinition[], allPrefs);
+  const goals = allGoals.filter((g) => !g.deleted_at);
+  const metricById = new Map(metrics.map((m) => [m.code, m]));
+
+  cachedMeta = {
+    timestamp: now,
+    widgets,
+    metrics,
+    goals,
+    metricById
+  };
+
+  return cachedMeta;
+}
+
+function getMetricLookbackDays(metricCode: string): number {
+  switch (metricCode) {
+    case 'weight':
+    case 'body_fat':
+    case 'blood_pressure':
+    case 'systolic_bp':
+    case 'diastolic_bp':
+      return 7; // Low-frequency metrics with 7-day sparklines
+    default:
+      return 1; // High-frequency (heart_rate, steps, etc.) only need yesterday + today
+  }
+}
+
+export async function fetchDashboard(date: string): Promise<DashboardData> {
+  const dayStart = new Date(date + 'T00:00:00').getTime();
+  const dayEnd = dayStart + 86400000;
+  const windowEnd = new Date(dayEnd).toISOString();
+
+  const { widgets, metrics, goals, metricById } = await getDashboardMeta();
 
   if (widgets.length === 0) {
     return { widgets: [], metrics };
   }
 
-  const goals = allGoals.filter((g) => !g.deleted_at);
-  const metricById = new Map(metrics.map((m) => [m.code, m]));
-
-  const activeMetricCodes = [
+  const activeMetricCodes: string[] = [
     ...new Set(
       widgets
         .filter((w) => w.widget_type === 'metric' && Boolean(w.metric_code))
-        .map((w) => w.metric_code)
+        .map((w) => w.metric_code!)
     )
   ];
 
+  // Cursor stream each metric directly without intermediate Dexie object cloning
   const measurementArrays = await Promise.all(
-    activeMetricCodes.map((code) =>
-      db.measurement
+    activeMetricCodes.map(async (code) => {
+      const lookback = getMetricLookbackDays(code);
+      const metricWindowStart = new Date(dayStart - lookback * 86400000).toISOString();
+      const results: Measurement[] = [];
+
+      await db.measurement
         .where('[metric_code+start_time]')
-        .between([code, windowStart], [code, Dexie.maxKey])
-        .toArray()
-    )
+        .between([code, metricWindowStart], [code, windowEnd])
+        .each((m) => {
+          if (!m.deleted_at) {
+            results.push(m);
+          }
+        });
+
+      return results;
+    })
   );
 
-  const measurements = measurementArrays.flat().filter((m) => !m.deleted_at);
+  const measurements = measurementArrays.flat();
 
   const dayMeasurements = measurements.filter((m) => {
     const t = new Date(m.start_time).getTime();

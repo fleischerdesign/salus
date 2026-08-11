@@ -8,6 +8,8 @@
     variant?: 'elevated' | 'outlined' | 'flat';
     hoverable?: boolean;
     disabled?: boolean;
+    loading?: boolean;
+    skeleton?: Snippet;
     children?: Snippet;
     class?: string;
     border?: boolean;
@@ -20,6 +22,8 @@
     variant = 'outlined',
     hoverable = false,
     disabled = false,
+    loading = false,
+    skeleton,
     children,
     class: extraClass = '',
     border = true
@@ -53,6 +57,18 @@
     </div>
   {/if}
   <div class={padding ? 'p-6' : ''}>
-    {@render children?.()}
+    {#if loading}
+      {#if skeleton}
+        {@render skeleton()}
+      {:else}
+        <div class="space-y-3">
+          <div class="h-5 w-1/3 animate-pulse rounded bg-surface-100"></div>
+          <div class="h-4 w-3/4 animate-pulse rounded bg-surface-100"></div>
+          <div class="h-4 w-1/2 animate-pulse rounded bg-surface-100"></div>
+        </div>
+      {/if}
+    {:else}
+      {@render children?.()}
+    {/if}
   </div>
 </div>

@@ -26,7 +26,17 @@ export interface WidgetViz {
   goal_percent?: number;
   goal_target?: number;
   sparkline_path?: string;
-  segments?: Array<{ label: string; pct: number }>;
+  segments?: Array<{
+    label: string;
+    pct?: number;
+    value?: number;
+    unit?: string;
+    color?: string;
+    min?: number;
+    max?: number;
+    avg?: number;
+    count?: number;
+  }>;
   labels?: string[];
   series?: Array<{ label: string; data: number[]; color: string; yAxis?: string }>;
 }
@@ -68,15 +78,16 @@ function parseSleepJson(
   }
 }
 
-function stepsTrend(measurements: Measurement[], date: string): number | null {
-  const dayM = measurements.filter((m) => m.start_time.startsWith(date) && !m.deleted_at);
-  const counts = dayM.map((m) => m.value_numeric ?? 0);
-  return counts.length > 0 ? Math.max(...counts) : null;
+function stepsTrend(measurements: Measurement[]): number | null {
+  const dayM = measurements.filter((m) => !m.deleted_at && m.value_numeric != null);
+  if (dayM.length === 0) return null;
+  const total = dayM.reduce((sum, m) => sum + (m.value_numeric ?? 0), 0);
+  return total > 0 ? Math.round(total) : null;
 }
 
-function latestWeight(measurements: Measurement[], date: string): number | null {
+function latestWeight(measurements: Measurement[]): number | null {
   const dayM = measurements
-    .filter((m) => m.start_time.startsWith(date) && !m.deleted_at)
+    .filter((m) => !m.deleted_at)
     .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
   return dayM[0]?.value_numeric ?? null;
 }
@@ -90,23 +101,30 @@ function findGoal(goals: Goal[], sourceDataType: string, metricCode: string): Go
 /* ── Builders ── */
 
 export function buildStepsViz(ctx: VizContext): WidgetViz {
-  const todaySteps = stepsTrend(ctx.dayMeasurements, ctx.date);
+  const dayM = ctx.dayMeasurements.filter((m) => m.metric_code === ctx.metric.code);
+  const todaySteps = stepsTrend(dayM);
   if (todaySteps == null) {
     return {
       type: 'progress',
       title: 'Steps',
-      value: '—',
+      value: 0,
       unit: 'steps',
       empty: true,
       empty_text: 'No step data yet.'
     };
   }
-  const yesterdaySteps = stepsTrend(ctx.allMeasurements, yesterday(ctx.date));
+  const yStart = new Date(yesterday(ctx.date) + 'T00:00:00').getTime();
+  const yestM = ctx.allMeasurements.filter((m) => {
+    if (m.metric_code !== ctx.metric.code) return false;
+    const t = new Date(m.start_time).getTime();
+    return t >= yStart && t < yStart + 86400000 && !m.deleted_at;
+  });
+  const yesterdaySteps = stepsTrend(yestM);
   const goal = findGoal(ctx.goals, 'steps', ctx.metric.code);
   const viz: WidgetViz = {
     type: 'progress',
     title: 'Steps',
-    value: todaySteps.toLocaleString(),
+    value: todaySteps,
     unit: 'steps',
     subtitle: 'today',
     color: ctx.color ?? '#4f46e5',
@@ -121,7 +139,13 @@ export function buildStepsViz(ctx: VizContext): WidgetViz {
 }
 
 export function buildHeartRateViz(ctx: VizContext): WidgetViz {
-  const dayM = ctx.dayMeasurements.filter((m) => !m.deleted_at);
+  const dayM = ctx.dayMeasurements.filter(
+    (m) =>
+      m.metric_code === ctx.metric.code &&
+      !m.deleted_at &&
+      m.value_numeric != null &&
+      m.value_numeric > 0
+  );
   if (dayM.length === 0) {
     return {
       type: 'pills',
@@ -132,40 +156,85 @@ export function buildHeartRateViz(ctx: VizContext): WidgetViz {
       empty_text: 'No heart rate data.'
     };
   }
-  const bpms = dayM.map((m) => m.value_numeric ?? 0).filter((v) => v > 0);
-  if (bpms.length === 0) {
-    return {
-      type: 'pills',
-      title: 'Heart Rate',
-      value: '—',
-      unit: 'bpm',
-      empty: true,
-      empty_text: 'No heart rate data.'
-    };
-  }
-  const restingBpm = Math.round(Math.min(...bpms));
-  const maxBpm = Math.round(Math.max(...bpms));
-  const avgBpm = Math.round(bpms.reduce((s, v) => s + v, 0) / bpms.length);
-  const yestM = ctx.allMeasurements.filter(
-    (m) => m.start_time.startsWith(yesterday(ctx.date)) && !m.deleted_at
+  const bpms = dayM.map((m) => m.value_numeric!);
+  const dayMin = Math.round(Math.min(...bpms));
+  const dayMax = Math.round(Math.max(...bpms));
+  const dayAvg = Math.round(bpms.reduce((s, v) => s + v, 0) / bpms.length);
+
+  // Latest measurement on that day
+  const sortedDay = [...dayM].sort(
+    (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
   );
-  const yestBpms = yestM.map((m) => m.value_numeric ?? 0).filter((v) => v > 0);
-  const yestResting = yestBpms.length > 0 ? Math.round(Math.min(...yestBpms)) : null;
+  const latestBpm = Math.round(sortedDay[0].value_numeric!);
+
+  // Yesterday delta
+  const yStart = new Date(yesterday(ctx.date) + 'T00:00:00').getTime();
+  const yestM = ctx.allMeasurements.filter((m) => {
+    if (m.metric_code !== ctx.metric.code) return false;
+    const t = new Date(m.start_time).getTime();
+    return (
+      t >= yStart &&
+      t < yStart + 86400000 &&
+      !m.deleted_at &&
+      m.value_numeric != null &&
+      m.value_numeric > 0
+    );
+  });
+  const yestBpms = yestM.map((m) => m.value_numeric!);
+  const yestMin = yestBpms.length > 0 ? Math.round(Math.min(...yestBpms)) : null;
+
+  // 24 Hourly Buckets (0..23) for Apple Health style Range Pills in single O(N) pass
+  const hourlyVals: number[][] = Array.from({ length: 24 }, () => []);
+  for (const m of dayM) {
+    if (m.value_numeric != null && m.value_numeric > 0) {
+      const h = new Date(m.start_time).getHours();
+      if (h >= 0 && h < 24) {
+        hourlyVals[h].push(m.value_numeric);
+      }
+    }
+  }
+
+  const buckets = hourlyVals.map((vals, h) => {
+    if (vals.length === 0) {
+      return {
+        label: `${h.toString().padStart(2, '0')}:00`,
+        min: 0,
+        max: 0,
+        avg: 0,
+        count: 0
+      };
+    }
+    return {
+      label: `${h.toString().padStart(2, '0')}:00`,
+      min: Math.round(Math.min(...vals)),
+      max: Math.round(Math.max(...vals)),
+      avg: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length),
+      count: vals.length
+    };
+  });
 
   return {
     type: 'pills',
     title: 'Heart Rate',
-    value: `${restingBpm}`,
+    value: latestBpm,
     unit: 'bpm',
-    color: ctx.color ?? '#4f46e5',
-    subtitle: `Min ${restingBpm} · Max ${maxBpm} · Ø ${avgBpm}`,
-    delta: deltaStr(restingBpm, yestResting, { unit: ' bpm', isInteger: true, upIsGood: false })
+    color: ctx.color ?? '#f43f5e',
+    subtitle: `${dayMin}–${dayMax} bpm (Ø ${dayAvg})`,
+    delta: deltaStr(dayMin, yestMin, { unit: ' bpm', isInteger: true, upIsGood: false }),
+    segments: buckets.map((b) => ({
+      label: b.label,
+      value: b.max,
+      min: b.min,
+      max: b.max,
+      avg: b.avg,
+      count: b.count
+    }))
   };
 }
 
 export function buildSleepViz(ctx: VizContext): WidgetViz {
   const sleepM = ctx.dayMeasurements
-    .filter((m) => !m.deleted_at && m.value_json)
+    .filter((m) => m.metric_code === ctx.metric.code && !m.deleted_at && m.value_json)
     .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
   const latest = sleepM[0];
   const sleep = parseSleepJson(latest?.value_json ?? null);
@@ -200,7 +269,8 @@ export function buildSleepViz(ctx: VizContext): WidgetViz {
 }
 
 export function buildWeightViz(ctx: VizContext): WidgetViz {
-  const w = latestWeight(ctx.dayMeasurements, ctx.date);
+  const dayM = ctx.dayMeasurements.filter((m) => m.metric_code === ctx.metric.code);
+  const w = latestWeight(dayM);
   if (w == null) {
     return {
       type: 'number',
@@ -211,9 +281,15 @@ export function buildWeightViz(ctx: VizContext): WidgetViz {
       empty_text: 'No weight data yet.'
     };
   }
-  const yestW = latestWeight(ctx.allMeasurements, yesterday(ctx.date));
+  const yStart = new Date(yesterday(ctx.date) + 'T00:00:00').getTime();
+  const yestM = ctx.allMeasurements.filter((m) => {
+    if (m.metric_code !== ctx.metric.code) return false;
+    const t = new Date(m.start_time).getTime();
+    return t >= yStart && t < yStart + 86400000 && !m.deleted_at;
+  });
+  const yestW = latestWeight(yestM);
   const recentWeights = ctx.allMeasurements
-    .filter((m) => !m.deleted_at && m.value_numeric != null)
+    .filter((m) => m.metric_code === ctx.metric.code && !m.deleted_at && m.value_numeric != null)
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
     .slice(-7)
     .map((m) => m.value_numeric!);
@@ -311,10 +387,8 @@ export function buildExerciseViz(ctx: VizContext): WidgetViz {
 }
 
 export function buildGenericViz(ctx: VizContext): WidgetViz {
-  const latestM = ctx.allMeasurements
-    .filter(
-      (m) => m.metric_code === ctx.metric.code && !m.deleted_at && m.start_time.startsWith(ctx.date)
-    )
+  const latestM = ctx.dayMeasurements
+    .filter((m) => m.metric_code === ctx.metric.code && !m.deleted_at)
     .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())[0];
 
   if (!latestM) {
