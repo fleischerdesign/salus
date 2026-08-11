@@ -101,13 +101,13 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
     db.metric_definition.toArray(),
     db.user_metric_preference.toArray(),
     Promise.all(
-      metricCodes.map((code) =>
-        db.measurement
+      metricCodes.map(async (code) => {
+        const raw = await db.measurement
           .where('[metric_code+start_time]')
           .between([code, cutoff], [code, Dexie.maxKey])
-          .filter((m) => !m.deleted_at)
-          .toArray()
-      )
+          .toArray();
+        return raw.filter((m) => !m.deleted_at);
+      })
     )
   ]);
 
@@ -173,11 +173,11 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
       }
     : undefined;
   const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
-  const measurements = await db.measurement
+  const rawMeasurements = await db.measurement
     .where('[metric_code+start_time]')
     .between([g.metric_code, cutoff], [g.metric_code, Dexie.maxKey])
-    .filter((m) => !m.deleted_at)
     .toArray();
+  const measurements = rawMeasurements.filter((m) => !m.deleted_at);
   const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
 
   const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;

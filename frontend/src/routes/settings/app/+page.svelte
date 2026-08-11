@@ -7,11 +7,10 @@
   import FormField from '$components/forms/FormField.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import Badge from '$components/ui/Badge.svelte';
-  import Icon from '$components/ui/Icon.svelte';
   import Toggle from '$components/ui/Toggle.svelte';
   import RadioGroup from '$components/ui/RadioGroup.svelte';
   import { db } from '$lib/db/database';
-  import { offlineService } from '$lib/db/offline-service';
+  import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
 
   const CURRENT_APP_VERSION = '0.1.0';
@@ -107,6 +106,9 @@
     localStorage.setItem('salus_chart_palette', val);
   }
 
+  import { toastSettings } from '$stores/toast-settings.svelte';
+  import { useOffline } from '$lib/db/use-offline.svelte';
+
   // ── Synchronisation ──
   let batterySaverSync = $state(localStorage.getItem('salus_sync_battery_saver') === 'true');
   let isResyncing = $state(false);
@@ -121,7 +123,7 @@
     isResyncing = true;
     resyncMessage = null;
     try {
-      await offlineService.syncAll();
+      await useOffline.syncAll({ manual: true });
       await loadDbCounts();
       resyncMessage = { type: 'success', text: 'Synchronisation erfolgreich abgeschlossen.' };
     } catch (err: unknown) {
@@ -150,15 +152,15 @@
 
   async function loadDbCounts() {
     try {
-      const [m, w, f, h, med] = await Promise.all([
-        db.measurement.count(),
+      const sysStats = await getSystemStats();
+      const [w, f, h, med] = await Promise.all([
         db.workout_session.count(),
         db.meal.count(),
         db.habit.count(),
         db.medication.count()
       ]);
       entityCounts = {
-        measurements: m,
+        measurements: sysStats.total_measurements,
         workouts: w,
         meals: f,
         habits: h,
@@ -340,6 +342,66 @@
           <Btn variant="secondary" size="sm" loading={isResyncing} onclick={handleForceResync}>
             Jetzt abgleichen
           </Btn>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Toasts & Benachrichtigungen -->
+    <Card padding={false}>
+      {#snippet header()}
+        <span class="text-sm font-semibold text-surface-900">Toasts & Benachrichtigungen</span>
+      {/snippet}
+      <div class="space-y-4 p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Health-Connect-Import</h5>
+            <p class="text-xs text-surface-400">
+              Erfolgsmeldung mit Anzahl importierter Datenpunkte anzeigen
+            </p>
+          </div>
+          <Toggle
+            checked={toastSettings.healthConnect}
+            onchange={(val) => toastSettings.setHealthConnect(val)}
+          />
+        </div>
+
+        <div class="flex items-center justify-between border-t border-surface-100 pt-4">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Manueller Cloud-Sync</h5>
+            <p class="text-xs text-surface-400">
+              Fortschrittsbalken und Bestätigung bei manuellem Sync
+            </p>
+          </div>
+          <Toggle
+            checked={toastSettings.manualSync}
+            onchange={(val) => toastSettings.setManualSync(val)}
+          />
+        </div>
+
+        <div class="flex items-center justify-between border-t border-surface-100 pt-4">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Automatischer Hintergrund-Sync</h5>
+            <p class="text-xs text-surface-400">
+              Meldungen bei automatischem Hintergrund-Sync und App-Start
+            </p>
+          </div>
+          <Toggle
+            checked={toastSettings.backgroundSync}
+            onchange={(val) => toastSettings.setBackgroundSync(val)}
+          />
+        </div>
+
+        <div class="flex items-center justify-between border-t border-surface-100 pt-4">
+          <div>
+            <h5 class="text-sm font-semibold text-surface-800">Netzwerk-Status</h5>
+            <p class="text-xs text-surface-400">
+              Hinweise bei Verbindungsverlust und Wiederverbindung
+            </p>
+          </div>
+          <Toggle
+            checked={toastSettings.networkStatus}
+            onchange={(val) => toastSettings.setNetworkStatus(val)}
+          />
         </div>
       </div>
     </Card>

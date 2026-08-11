@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
+  import { getSourceStat } from '$lib/db/metric-stats';
   import { Capacitor } from '@capacitor/core';
   import { healthSyncService } from '$lib/native/health-sync';
   import Modal from '$components/ui/Modal.svelte';
@@ -49,29 +50,24 @@
 
     const sub = liveQuery(async () => {
       const allDefs = await db.metric_definition.toArray();
-      const suppliedCounts = await Promise.all(
-        allDefs.map(async (def) => {
-          const cnt = await db.measurement
-            .where('metric_code')
-            .equals(def.code)
-            .filter((m) => m.source === srcId && !m.deleted_at)
-            .count();
-          return { code: def.code, name: def.name, count: cnt };
-        })
-      );
+      const defNameByCode = new Map(allDefs.map((d) => [d.code, d.name]));
+      const srcStat = await getSourceStat(srcId);
 
-      const supplied = suppliedCounts.filter((item) => item.count > 0);
+      const supplied: Array<{ code: string; name: string; count: number }> = [];
+      if (srcStat && srcStat.metrics) {
+        for (const [code, cnt] of Object.entries(srcStat.metrics)) {
+          if (cnt > 0) {
+            supplied.push({
+              code,
+              name: defNameByCode.get(code) ?? code,
+              count: cnt
+            });
+          }
+        }
+      }
       supplied.sort((a, b) => b.count - a.count);
 
-      const latestMeas = await db.measurement
-        .where('source')
-        .equals(srcId)
-        .filter((m) => !m.deleted_at)
-        .last();
-
-      const latest = latestMeas?.start_time ?? latestMeas?.created_at ?? null;
-
-      return { supplied, lastTime: latest };
+      return { supplied, lastTime: srcStat?.latest_time ?? null };
     }).subscribe((val) => {
       if (val) {
         metricsSupplied = val.supplied;
@@ -98,6 +94,9 @@
     }
   }
 
+  import { toast } from '$components/ui/toast-state.svelte';
+  import { toastSettings } from '$stores/toast-settings.svelte';
+
   async function handleSyncNow() {
     syncing = true;
     syncFeedback = null;
@@ -107,6 +106,9 @@
         type: res.success ? 'success' : 'error',
         text: res.message
       };
+      if (toastSettings.healthConnect) {
+        toast(res.message, res.success ? (res.count > 0 ? 'success' : 'info') : 'error');
+      }
       if (res.success && res.count > 0) {
         const status = await healthSyncService.checkPermissions();
         healthConnectGranted = status.granted;
@@ -114,6 +116,9 @@
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
       syncFeedback = { type: 'error', text: err };
+      if (toastSettings.healthConnect) {
+        toast(`Health Connect sync failed: ${err}`, 'error');
+      }
     } finally {
       syncing = false;
     }

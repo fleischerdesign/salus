@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
+  import { getSourceStats } from '$lib/db/metric-stats';
   import type { MetricDefinition, UserSourcePreference } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -50,20 +51,14 @@
     const sub = liveQuery(async () => {
       const allMetrics = await db.metric_definition.toArray();
       const allPrefs = await db.user_source_preference.toArray();
+      const srcStats = await getSourceStats();
 
       const counts: Record<string, number> = {};
       const knownPerMetric: Record<string, Set<string>> = {};
 
-      await Promise.all(
-        KNOWN_SOURCES.map(async (src) => {
-          const cnt = await db.measurement
-            .where('source')
-            .equals(src.id)
-            .filter((m) => !m.deleted_at)
-            .count();
-          counts[src.id] = cnt;
-        })
-      );
+      for (const src of KNOWN_SOURCES) {
+        counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
+      }
 
       allPrefs.forEach((p) => {
         if (p.metric_code && p.source) {

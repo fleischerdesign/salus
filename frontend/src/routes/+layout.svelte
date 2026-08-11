@@ -23,6 +23,7 @@
   import ConflictResolver from '$components/feedback/ConflictResolver.svelte';
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { updateService } from '$lib/stores/update.svelte';
+  import { getSystemStats } from '$lib/db/metric-stats';
 
   let { children } = $props();
 
@@ -73,6 +74,7 @@
       if (!isPublic) goto('/auth/login');
     } else {
       auth.setLoading(false);
+      getSystemStats().catch(() => {});
     }
 
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {

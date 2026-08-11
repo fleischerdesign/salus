@@ -298,12 +298,24 @@ export function useAnalytics(rangeKey: string = '30d') {
     cutoff.setDate(cutoff.getDate() - days);
     const cutoffISO = cutoff.toISOString();
 
-    const measurements = await db.measurement
-      .where('start_time')
-      .above(cutoffISO)
-      .filter((m) => !m.deleted_at)
-      .toArray();
+    const targetCodes = [
+      'steps',
+      'weight',
+      'body_weight',
+      'sleep',
+      'exercise',
+      'resting_heart_rate'
+    ];
+    const arrays = await Promise.all(
+      targetCodes.map((code) =>
+        db.measurement
+          .where('[metric_code+start_time]')
+          .between([code, cutoffISO], [code, Dexie.maxKey])
+          .toArray()
+      )
+    );
 
+    const measurements = arrays.flat().filter((m) => !m.deleted_at);
     return computeAnalytics(measurements, rangeKey);
   });
 
@@ -326,11 +338,11 @@ export function useCorrelations(
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    const measurements = await db.measurement
+    const rawMeasurements = await db.measurement
       .where('start_time')
       .above(cutoff.toISOString())
-      .filter((m) => !m.deleted_at && m.value_numeric != null)
       .toArray();
+    const measurements = rawMeasurements.filter((m) => !m.deleted_at && m.value_numeric != null);
     const pivot = new Map<string, number[]>();
     for (const m of measurements) {
       const dt = m.metric_code || m.data_type;
@@ -473,11 +485,17 @@ export function useWellness(dateStr?: string) {
     const sinceISO = since.toISOString();
     const untilISO = new Date(target.getTime() + 86400000).toISOString();
 
-    const measurements = await db.measurement
-      .where('start_time')
-      .between(sinceISO, untilISO, true, false)
-      .filter((m) => !m.deleted_at && m.value_numeric != null)
-      .toArray();
+    const targetCodes = ['resting_heart_rate', 'heart_rate', 'steps', 'sleep'];
+    const arrays = await Promise.all(
+      targetCodes.map((code) =>
+        db.measurement
+          .where('[metric_code+start_time]')
+          .between([code, sinceISO], [code, untilISO], true, false)
+          .toArray()
+      )
+    );
+
+    const measurements = arrays.flat().filter((m) => !m.deleted_at && m.value_numeric != null);
 
     const hrVals = measurements
       .filter(
@@ -584,13 +602,14 @@ export function useGoalForecast(goalId: string) {
 
 export function useSleepDebt(age: number = 30) {
   const data = liveQuery(async () => {
-    const recent = (
-      await db.measurement
-        .where('metric_code')
-        .equals('sleep')
-        .filter((m) => !m.deleted_at)
-        .toArray()
-    ).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+    const rawRecent = await db.measurement
+      .where('[metric_code+start_time]')
+      .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
+      .reverse()
+      .limit(28)
+      .toArray();
+
+    const recent = rawRecent.filter((m) => !m.deleted_at);
 
     const durations: number[] = [];
     for (const m of recent.slice(0, 28)) {

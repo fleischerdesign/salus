@@ -69,6 +69,8 @@
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
+  import { getMetricStat } from '$lib/db/metric-stats';
+
   $effect(() => {
     const code = childMetricCode;
     const page = pageNum;
@@ -80,19 +82,17 @@
     }
     entriesLoading = true;
     const sub = liveQuery(async () => {
-      const coll = db.measurement
+      const stat = await getMetricStat(code);
+      const rawItems = await db.measurement
         .where('[metric_code+start_time]')
         .between([code, Dexie.minKey], [code, Dexie.maxKey])
-        .filter((e) => !e.deleted_at);
-
-      const count = await coll.count();
-      const items = await coll
         .reverse()
         .offset((page - 1) * perPage)
         .limit(perPage)
         .toArray();
 
-      return { count, items };
+      const items = rawItems.filter((e) => !e.deleted_at);
+      return { count: stat?.entry_count ?? 0, items };
     }).subscribe((res) => {
       totalEntriesCount = res.count;
       pagedEntries = res.items;

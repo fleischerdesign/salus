@@ -1,5 +1,4 @@
-import Dexie from 'dexie';
-import { db } from '$lib/db/database';
+import { getMetricStats } from '$lib/db/metric-stats';
 
 export interface MetricOverview {
   metric_id: string;
@@ -9,31 +8,21 @@ export interface MetricOverview {
 }
 
 export async function fetchMetricOverview(): Promise<MetricOverview[]> {
-  const defs = await db.metric_definition.toArray();
-  if (defs.length === 0) return [];
+  const stats = await getMetricStats();
+  const overviews: MetricOverview[] = [];
 
-  const results = await Promise.all(
-    defs.map(async (def) => {
-      const coll = db.measurement
-        .where('[metric_code+start_time]')
-        .between([def.code, Dexie.minKey], [def.code, Dexie.maxKey])
-        .filter((m) => !m.deleted_at);
+  for (const [code, stat] of Object.entries(stats)) {
+    if (stat.entry_count > 0) {
+      overviews.push({
+        metric_id: code,
+        latest_value: stat.latest_value,
+        latest_date: stat.latest_date,
+        entry_count: stat.entry_count
+      });
+    }
+  }
 
-      const count = await coll.count();
-      if (count === 0) return null;
-
-      const latest = await coll.last();
-
-      return {
-        metric_id: def.code,
-        latest_value: latest?.value_text ?? latest?.value_numeric?.toString() ?? null,
-        latest_date: latest?.start_time ? latest.start_time.split('T')[0] : null,
-        entry_count: count
-      };
-    })
-  );
-
-  return results.filter((o): o is MetricOverview => o !== null);
+  return overviews;
 }
 
 export function overviewForMetric(

@@ -1,6 +1,7 @@
 import { db } from './database';
 import { rawGet } from '$lib/api/client';
 import { fetchEntityNames } from './entity-info';
+import { recomputeAllStats } from '$lib/db/metric-stats';
 
 const SYNC_META_KEYS = new Set(['cursors', 'has_more', 'synced_at']);
 const CHUNK_SIZE = 500;
@@ -61,7 +62,8 @@ export async function pullFull(
 
   while (hasMore) {
     batch++;
-    onProgress?.(`Fetching data (batch ${batch})...`, saturatingProgress(batch));
+    const baseProgress = saturatingProgress(batch);
+    onProgress?.(`Fetching data (batch ${batch})...`, baseProgress);
 
     const cursorParam =
       Object.keys(cursors).length > 0 ? `?cursor=${btoa(JSON.stringify(cursors))}` : '';
@@ -79,10 +81,19 @@ export async function pullFull(
     syncedAt = data.synced_at ?? syncedAt;
 
     // Stream directly into IndexedDB per batch — O(1) memory footprint
-    for (const [table, rows] of Object.entries(data)) {
+    const entries = Object.entries(data);
+    let entryIdx = 0;
+    for (const [table, rows] of entries) {
       if (SYNC_META_KEYS.has(table)) continue;
       if (!tableNames.has(table)) continue;
       if (rows == null) continue;
+
+      entryIdx++;
+      const stepProgress = Math.min(
+        0.95,
+        baseProgress + (entryIdx / Math.max(1, entries.length)) * 0.15
+      );
+      onProgress?.(`Saving ${table}...`, stepProgress);
 
       if (!clearedTables.has(table)) {
         await db.table(table).clear();
@@ -104,6 +115,8 @@ export async function pullFull(
     await db.meta.put({ key: 'lastSyncAt', value: new Date(syncedAt).getTime() });
   }
 
+  await recomputeAllStats();
+  onProgress?.('Sync complete.', 1.0);
   return true;
 }
 
@@ -115,7 +128,7 @@ export async function pullDelta(
   const since = last?.value as number | undefined;
   const sinceParam = since ? `?since=${new Date(since).toISOString()}` : '';
 
-  onProgress?.('Fetching recent changes...', 0.1);
+  onProgress?.('Fetching recent changes...', 0.15);
 
   let res: Response;
   try {
@@ -135,20 +148,27 @@ export async function pullDelta(
   let opIdx = 0;
 
   for (const [table, rows] of changedEntities) {
-    const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+    const applyProgress = totalOps > 0 ? 0.2 + (opIdx / totalOps) * 0.75 : 0.2;
     onProgress?.(`Saving ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
     await _bulkPutChunked(table, rows);
     opIdx++;
   }
 
   for (const [table, ids] of deletedEntities) {
-    const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+    const applyProgress = totalOps > 0 ? 0.2 + (opIdx / totalOps) * 0.75 : 0.2;
     onProgress?.(`Cleaning ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
     await _bulkDeleteChunked(table, ids);
     opIdx++;
   }
 
   await db.meta.put({ key: 'lastSyncAt', value: new Date(data.synced_at).getTime() });
+  if (
+    changedEntities.some(([t]) => t === 'measurement') ||
+    deletedEntities.some(([t]) => t === 'measurement')
+  ) {
+    await recomputeAllStats();
+  }
+  onProgress?.('Sync complete.', 1.0);
 
   return true;
 }

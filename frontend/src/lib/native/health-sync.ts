@@ -2,6 +2,7 @@ import { nativeBridge } from './bridge';
 import { db } from '$lib/db/database';
 import type { Measurement, OutboxOp } from '$lib/db/types';
 import { syncEngine } from '$lib/db/sync-engine.svelte';
+import { recomputeAllStats } from '$lib/db/metric-stats';
 
 export interface HealthSyncResult {
   success: boolean;
@@ -131,6 +132,10 @@ export const healthSyncService = {
       await db.outbox.bulkPut(newOutboxOps);
       if (maxMeasuredAt) {
         await db.meta.put({ key: 'health_connect:last_sync', value: maxMeasuredAt });
+      }
+
+      if (newMeasurements.length > 0) {
+        await recomputeAllStats();
       }
 
       // Trigger asynchronous background flush to server without blocking UI

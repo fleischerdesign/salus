@@ -1,9 +1,13 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { MetricWithPreference } from '$lib/db/types';
+  import type { MetricGroup, MetricWithPreference } from '$lib/db/types';
   import { mergeMetricPrefs } from '$lib/db/types';
-  import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
+  import {
+    fetchMetricOverview,
+    overviewForMetric,
+    type MetricOverview
+  } from '$lib/analytics/views/metric-overview';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import Card from '$components/ui/Card.svelte';
@@ -14,15 +18,29 @@
 
   type Metric = MetricWithPreference;
 
-  let allDefs = liveQuery(() => db.metric_definition.toArray());
-  let allPrefs = liveQuery(() => db.user_metric_preference.toArray());
-  let groups = liveQuery(() => db.metric_group.toArray());
+  interface LogbookData {
+    metrics: MetricWithPreference[];
+    groups: MetricGroup[];
+    overviews: MetricOverview[];
+  }
 
-  let metrics = $derived($allDefs && $allPrefs ? mergeMetricPrefs($allDefs, $allPrefs) : null);
-  let overviews = liveQuery(() => fetchMetricOverview());
+  let logbookData = liveQuery<LogbookData>(async () => {
+    const [allDefs, allPrefs, groups, overviews] = await Promise.all([
+      db.metric_definition.toArray(),
+      db.user_metric_preference.toArray(),
+      db.metric_group.toArray(),
+      fetchMetricOverview()
+    ]);
+    const metrics = mergeMetricPrefs(allDefs, allPrefs);
+    return { metrics, groups, overviews };
+  });
+
+  let metrics = $derived($logbookData?.metrics);
+  let groups = $derived($logbookData?.groups ?? []);
+  let overviews = $derived($logbookData?.overviews ?? []);
 
   let groupedMetrics = $derived(
-    metrics && $groups ? metrics.filter((m) => m.group_key != null) : []
+    metrics && groups ? metrics.filter((m) => m.group_key != null) : []
   );
   let standaloneMetrics = $derived(
     metrics ? metrics.filter((m) => m.group_key == null && m.enabled) : []
@@ -36,7 +54,7 @@
     const groupMetrics = metricsInGroup(groupKey);
     let latest: string | null = null;
     for (const m of groupMetrics) {
-      const ov = overviewForMetric($overviews ?? [], m.code);
+      const ov = overviewForMetric(overviews, m.code);
       if (ov?.latest_date && (!latest || ov.latest_date > latest)) {
         latest = ov.latest_date;
       }
@@ -47,7 +65,7 @@
   function groupTotalEntries(groupKey: string): number {
     let total = 0;
     for (const m of metricsInGroup(groupKey)) {
-      const ov = overviewForMetric($overviews ?? [], m.code);
+      const ov = overviewForMetric(overviews, m.code);
       if (ov) total += ov.entry_count;
     }
     return total;
@@ -64,7 +82,7 @@
     iconColor="#4f46e5"
   />
 
-  {#if metrics === undefined || $overviews === undefined || $groups === undefined}
+  {#if $logbookData === undefined}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if (metrics?.length ?? 0) === 0}
     <EmptyState
@@ -75,7 +93,7 @@
   {:else}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <!-- Group cards -->
-      {#each $groups as group, i (group.key)}
+      {#each groups as group, i (group.key)}
         {@const gMetrics = metricsInGroup(group.key)}
         {#if gMetrics.length > 0}
           <a href="/entries/{group.key}" class="no-underline" in:fade={{ ...staggerFade(i) }}>
@@ -122,7 +140,7 @@
 
       <!-- Standalone metric cards -->
       {#each standaloneMetrics as m, i (m.code)}
-        {@const ov = overviewForMetric($overviews, m.code)}
+        {@const ov = overviewForMetric(overviews, m.code)}
         <a
           href="/entries/{m.code}"
           class="no-underline"
