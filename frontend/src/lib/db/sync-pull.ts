@@ -3,6 +3,7 @@ import { rawGet } from '$lib/api/client';
 import { fetchEntityNames } from './entity-info';
 
 const SYNC_META_KEYS = new Set(['cursors', 'has_more', 'synced_at']);
+const CHUNK_SIZE = 500;
 
 function isRecordArray(value: unknown): value is Record<string, unknown>[] {
   return Array.isArray(value);
@@ -19,15 +20,44 @@ interface FullSyncResponse {
   [table: string]: unknown;
 }
 
+interface DeltaResponse {
+  changed: Record<string, Record<string, unknown>[]>;
+  deleted: Record<string, (string | number)[]>;
+  synced_at: string;
+}
+
+/**
+ * Persists records into a Dexie table in bounded chunks
+ * to guarantee O(1) peak memory consumption and prevent UI thread starvation.
+ */
+async function _bulkPutChunked(table: string, rows: Record<string, unknown>[]): Promise<void> {
+  const tableRef = db.table(table);
+  for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+    const chunk = rows.slice(i, i + CHUNK_SIZE);
+    await tableRef.bulkPut(chunk);
+  }
+}
+
+/**
+ * Deletes records from a Dexie table in bounded chunks.
+ */
+async function _bulkDeleteChunked(table: string, ids: (string | number)[]): Promise<void> {
+  const tableRef = db.table(table);
+  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + CHUNK_SIZE);
+    await tableRef.bulkDelete(chunk);
+  }
+}
+
 export async function pullFull(
   onProgress?: (message: string, progress?: number) => void
 ): Promise<boolean | 'unauthorized'> {
   const tableNames = await fetchEntityNames();
   let cursors: Record<string, number> = {};
   let hasMore = true;
-  const allRows: Record<string, Record<string, unknown>[]> = {};
   let syncedAt: string | null = null;
   let batch = 0;
+  const clearedTables = new Set<string>();
 
   while (hasMore) {
     batch++;
@@ -48,17 +78,21 @@ export async function pullFull(
 
     syncedAt = data.synced_at ?? syncedAt;
 
+    // Stream directly into IndexedDB per batch — O(1) memory footprint
     for (const [table, rows] of Object.entries(data)) {
       if (SYNC_META_KEYS.has(table)) continue;
       if (!tableNames.has(table)) continue;
       if (rows == null) continue;
 
-      if (!allRows[table]) allRows[table] = [];
+      if (!clearedTables.has(table)) {
+        await db.table(table).clear();
+        clearedTables.add(table);
+      }
 
-      if (isRecordArray(rows)) {
-        allRows[table].push(...rows);
-      } else if (typeof rows === 'object') {
-        allRows[table].push(rows as Record<string, unknown>);
+      if (isRecordArray(rows) && rows.length > 0) {
+        await _bulkPutChunked(table, rows);
+      } else if (typeof rows === 'object' && rows !== null && !Array.isArray(rows)) {
+        await db.table(table).put(rows as Record<string, unknown>);
       }
     }
 
@@ -66,39 +100,11 @@ export async function pullFull(
     hasMore = data.has_more;
   }
 
-  const entities = Object.keys(allRows);
-  const total = entities.length;
-  let idx = 0;
-
-  await db.transaction('rw', db.tables, async () => {
-    for (const [table, rows] of Object.entries(allRows)) {
-      const applyProgress = total > 0 ? 0.6 + (idx / total) * 0.35 : 0.6;
-      onProgress?.(`Saving ${table} (${idx + 1}/${total})...`, applyProgress);
-
-      await db.table(table).clear();
-
-      if (rows.length > 0) {
-        const first = rows[0];
-        if (first && typeof first === 'object' && !Array.isArray(first)) {
-          await db.table(table).bulkPut(rows);
-        }
-      }
-
-      idx++;
-    }
-
-    if (syncedAt) {
-      await db.meta.put({ key: 'lastSyncAt', value: new Date(syncedAt).getTime() });
-    }
-  });
+  if (syncedAt) {
+    await db.meta.put({ key: 'lastSyncAt', value: new Date(syncedAt).getTime() });
+  }
 
   return true;
-}
-
-interface DeltaResponse {
-  changed: Record<string, Record<string, unknown>[]>;
-  deleted: Record<string, number[]>;
-  synced_at: string;
 }
 
 export async function pullDelta(
@@ -128,23 +134,21 @@ export async function pullDelta(
   const totalOps = changedEntities.length + deletedEntities.length;
   let opIdx = 0;
 
-  await db.transaction('rw', db.tables, async () => {
-    for (const [table, rows] of changedEntities) {
-      const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
-      onProgress?.(`Saving ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
-      await db.table(table).bulkPut(rows);
-      opIdx++;
-    }
+  for (const [table, rows] of changedEntities) {
+    const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+    onProgress?.(`Saving ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
+    await _bulkPutChunked(table, rows);
+    opIdx++;
+  }
 
-    for (const [table, ids] of deletedEntities) {
-      const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
-      onProgress?.(`Cleaning ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
-      await db.table(table).bulkDelete(ids);
-      opIdx++;
-    }
+  for (const [table, ids] of deletedEntities) {
+    const applyProgress = totalOps > 0 ? 0.25 + (opIdx / totalOps) * 0.7 : 0.25;
+    onProgress?.(`Cleaning ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
+    await _bulkDeleteChunked(table, ids);
+    opIdx++;
+  }
 
-    await db.meta.put({ key: 'lastSyncAt', value: new Date(data.synced_at).getTime() });
-  });
+  await db.meta.put({ key: 'lastSyncAt', value: new Date(data.synced_at).getTime() });
 
   return true;
 }
