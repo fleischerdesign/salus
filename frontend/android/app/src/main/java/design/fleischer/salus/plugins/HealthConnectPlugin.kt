@@ -6,6 +6,8 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.*
+import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.time.TimeRangeFilter
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -16,6 +18,9 @@ import com.getcapacitor.annotation.CapacitorPlugin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @CapacitorPlugin(name = "HealthConnectPlugin")
 class HealthConnectPlugin : Plugin() {
@@ -64,7 +69,7 @@ class HealthConnectPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun checkPermissions(call: PluginCall) {
+    override fun checkPermissions(call: PluginCall) {
         val client = healthConnectClient
         if (client == null) {
             val ret = JSObject()
@@ -85,13 +90,13 @@ class HealthConnectPlugin : Plugin() {
                 ret.put("missing", missingArray)
                 call.resolve(ret)
             } catch (e: Exception) {
-                call.reject(e.message)
+                call.reject("Check permissions error: ${e.message}")
             }
         }
     }
 
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    override fun requestPermissions(call: PluginCall) {
         val client = healthConnectClient
         if (client == null) {
             call.reject("Health Connect is not available on this device")
@@ -131,10 +136,205 @@ class HealthConnectPlugin : Plugin() {
 
     @PluginMethod
     fun fetchDelta(call: PluginCall) {
+        val client = healthConnectClient
+        if (client == null) {
+            val ret = JSObject()
+            ret.put("metrics", JSArray())
+            call.resolve(ret)
+            return
+        }
+
         val sinceIso = call.getString("sinceIso") ?: ""
-        val ret = JSObject()
-        val metricsArray = JSArray()
-        ret.put("metrics", metricsArray)
-        call.resolve(ret)
+        val startTime = try {
+            if (sinceIso.isNotBlank()) Instant.parse(sinceIso) else Instant.now().minus(30, ChronoUnit.DAYS)
+        } catch (e: Exception) {
+            Instant.now().minus(30, ChronoUnit.DAYS)
+        }
+        val endTime = Instant.now()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                val metricsArray = JSArray()
+
+                // 1. Steps
+                try {
+                    val stepsResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = StepsRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in stepsResponse.records) {
+                        val item = JSObject()
+                        item.put("metric_code", "steps")
+                        item.put("value", record.count.toDouble())
+                        item.put("unit", "count")
+                        item.put("measured_at", record.startTime.toString())
+                        item.put("external_id", "hc_steps_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                // 2. Heart Rate
+                try {
+                    val hrResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = HeartRateRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in hrResponse.records) {
+                        for (sample in record.samples) {
+                            val item = JSObject()
+                            item.put("metric_code", "heart_rate")
+                            item.put("value", sample.beatsPerMinute.toDouble())
+                            item.put("unit", "bpm")
+                            item.put("measured_at", sample.time.toString())
+                            item.put("external_id", "hc_hr_${record.metadata.id}_${sample.time.toEpochMilli()}")
+                            item.put("source", "health_connect")
+                            metricsArray.put(item)
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                // 3. Resting Heart Rate
+                try {
+                    val rhrResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = RestingHeartRateRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in rhrResponse.records) {
+                        val item = JSObject()
+                        item.put("metric_code", "resting_heart_rate")
+                        item.put("value", record.beatsPerMinute.toDouble())
+                        item.put("unit", "bpm")
+                        item.put("measured_at", record.time.toString())
+                        item.put("external_id", "hc_rhr_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                // 4. Sleep
+                try {
+                    val sleepResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = SleepSessionRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in sleepResponse.records) {
+                        val durationMinutes = Duration.between(record.startTime, record.endTime).toMinutes().toDouble()
+                        val item = JSObject()
+                        item.put("metric_code", "sleep_duration")
+                        item.put("value", durationMinutes)
+                        item.put("unit", "min")
+                        item.put("measured_at", record.endTime.toString())
+                        item.put("external_id", "hc_sleep_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                // 5. Total Calories Burned
+                try {
+                    val calResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = TotalCaloriesBurnedRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in calResponse.records) {
+                        val item = JSObject()
+                        item.put("metric_code", "calories_burned")
+                        item.put("value", record.energy.inKilocalories)
+                        item.put("unit", "kcal")
+                        item.put("measured_at", record.startTime.toString())
+                        item.put("external_id", "hc_cal_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                // 6. Weight
+                try {
+                    val weightResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = WeightRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in weightResponse.records) {
+                        val item = JSObject()
+                        item.put("metric_code", "weight")
+                        item.put("value", record.weight.inKilograms)
+                        item.put("unit", "kg")
+                        item.put("measured_at", record.time.toString())
+                        item.put("external_id", "hc_weight_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                // 7. Blood Pressure
+                try {
+                    val bpResponse = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = BloodPressureRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in bpResponse.records) {
+                        val sysItem = JSObject()
+                        sysItem.put("metric_code", "systolic_bp")
+                        sysItem.put("value", record.systolic.inMillimetersOfMercury)
+                        sysItem.put("unit", "mmHg")
+                        sysItem.put("measured_at", record.time.toString())
+                        sysItem.put("external_id", "hc_bps_${record.metadata.id}")
+                        sysItem.put("source", "health_connect")
+                        metricsArray.put(sysItem)
+
+                        val diaItem = JSObject()
+                        diaItem.put("metric_code", "diastolic_bp")
+                        diaItem.put("value", record.diastolic.inMillimetersOfMercury)
+                        diaItem.put("unit", "mmHg")
+                        diaItem.put("measured_at", record.time.toString())
+                        diaItem.put("external_id", "hc_bpd_${record.metadata.id}")
+                        diaItem.put("source", "health_connect")
+                        metricsArray.put(diaItem)
+                    }
+                } catch (_: Exception) {}
+
+                // 8. Oxygen Saturation (SpO2)
+                try {
+                    val spo2Response = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = OxygenSaturationRecord::class,
+                            timeRangeFilter = timeRangeFilter
+                        )
+                    )
+                    for (record in spo2Response.records) {
+                        val item = JSObject()
+                        item.put("metric_code", "spo2")
+                        item.put("value", record.percentage.value)
+                        item.put("unit", "%")
+                        item.put("measured_at", record.time.toString())
+                        item.put("external_id", "hc_spo2_${record.metadata.id}")
+                        item.put("source", "health_connect")
+                        metricsArray.put(item)
+                    }
+                } catch (_: Exception) {}
+
+                val ret = JSObject()
+                ret.put("metrics", metricsArray)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("Health Connect fetch error: ${e.message}")
+            }
+        }
     }
 }

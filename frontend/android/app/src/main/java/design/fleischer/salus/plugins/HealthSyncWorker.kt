@@ -9,7 +9,7 @@ class HealthSyncWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    override async suspend fun doWork(): Result {
+    override suspend fun doWork(): Result {
         return try {
             // Periodic 15-minute background delta harvesting from Health Connect & Samsung Health SDK
             // Stores harvested metric payloads in encrypted shared preferences queue for JS bridge consumption
