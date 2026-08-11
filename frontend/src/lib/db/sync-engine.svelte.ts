@@ -210,7 +210,8 @@ export const syncEngine = {
         }
       });
 
-      const res = await fetch('/api/v1/sync/push', {
+      const baseUrl = getApiBaseUrl() || '';
+      const res = await fetch(`${baseUrl}/api/v1/sync/push`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ operations })

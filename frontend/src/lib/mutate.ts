@@ -1,6 +1,6 @@
 import { db } from './db/database';
 import { syncEngine } from './db/sync-engine.svelte';
-import { getAuthHeaders } from '$lib/api/headers';
+import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import { uuid7 } from './db/uuid';
 
 function isOnline(): boolean {
@@ -75,7 +75,8 @@ async function sendCommandNow(
   }
 
   try {
-    const res = await fetch('/api/v1/sync/push', {
+    const baseUrl = getApiBaseUrl() || '';
+    const res = await fetch(`${baseUrl}/api/v1/sync/push`, {
       method: 'POST',
       headers: {
         ...getAuthHeaders(),

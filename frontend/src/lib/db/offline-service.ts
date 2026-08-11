@@ -14,7 +14,8 @@ export const offlineService = {
 
     const last = await db.meta.get('lastSyncAt');
     const lastSync = (last?.value as number) ?? 0;
-    const useDelta = lastSync > 0 && Date.now() - lastSync < DELTA_MAX_AGE_MS;
+    const defCount = await db.metric_definition.count();
+    const useDelta = lastSync > 0 && defCount > 0 && Date.now() - lastSync < DELTA_MAX_AGE_MS;
 
     if (useDelta) {
       const deltaResult = await pullDelta(onProgress);

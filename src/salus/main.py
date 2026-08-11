@@ -151,19 +151,19 @@ async def lifespan(app: FastAPI):
     elif not alembic_cfg.get_main_option("script_location"):
         alembic_cfg.set_main_option("script_location", "migrations")
 
-    alembic_cfg.set_main_option("sqlalchemy.url", str(lifespan_engine.url))
-
     inspector = inspect(lifespan_engine)
-    if (
-        "user" in inspector.get_table_names()
-        and "alembic_version" not in inspector.get_table_names()
-    ):
-        command.stamp(alembic_cfg, "head")
-    else:
-        try:
-            command.upgrade(alembic_cfg, "head")
-        except Exception as e:
-            logging.warning(f"Alembic upgrade warning: {e}")
+    with lifespan_engine.connect() as connection:
+        alembic_cfg.attributes["connection"] = connection
+        if (
+            "user" in inspector.get_table_names()
+            and "alembic_version" not in inspector.get_table_names()
+        ):
+            command.stamp(alembic_cfg, "head")
+        else:
+            try:
+                command.upgrade(alembic_cfg, "head")
+            except Exception as e:
+                logging.warning(f"Alembic upgrade warning: {e}")
 
     from sqlmodel import SQLModel
     import salus.models  # noqa: F401

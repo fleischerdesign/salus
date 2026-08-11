@@ -24,7 +24,7 @@ export async function fetchMetricOverview(): Promise<MetricOverview[]> {
     return {
       metric_id: metric_code,
       latest_value: latest.value_text ?? latest.value_numeric?.toString() ?? null,
-      latest_date: latest.start_time.split('T')[0] ?? null,
+      latest_date: latest.start_time ? latest.start_time.split('T')[0] : null,
       entry_count: entries.length
     };
   });

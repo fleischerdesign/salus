@@ -93,19 +93,27 @@ def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
-    and associate a connection with the context.
+    and associate a connection with the context, or reuse an existing connection.
 
     """
-    from sqlalchemy import create_engine
-    connectable = create_engine(settings.database_url)
-
-    with connectable.connect() as connection:
+    connection = config.attributes.get("connection", None)
+    if connection is not None:
         context.configure(
             connection=connection, target_metadata=target_metadata
         )
-
         with context.begin_transaction():
             context.run_migrations()
+    else:
+        from sqlalchemy import create_engine
+        connectable = create_engine(settings.database_url)
+
+        with connectable.connect() as connection:
+            context.configure(
+                connection=connection, target_metadata=target_metadata
+            )
+
+            with context.begin_transaction():
+                context.run_migrations()
 
 
 if context.is_offline_mode():

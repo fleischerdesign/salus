@@ -411,6 +411,8 @@ class SyncService:
                             getattr(model, "deleted_at").is_(None),
                         )
                     ).all())
+                else:
+                    changed[name] = list(s.exec(select(model)).all())
                 if hasattr(model, "deleted_at") and pk_col is not None:
                     delete_ids = [
                         row[0] for row in s.exec(

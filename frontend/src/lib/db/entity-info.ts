@@ -1,4 +1,4 @@
-import { getAuthHeaders } from '$lib/api/headers';
+import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import { db } from './database';
 
 let _entityNames: Set<string> | null = null;
@@ -17,7 +17,8 @@ export async function fetchEntityNames(): Promise<Set<string>> {
 
   try {
     const headers = { ...getAuthHeaders(), Accept: 'application/json' };
-    const res = await fetch('/api/v1/sync/entities', { headers });
+    const baseUrl = getApiBaseUrl() || '';
+    const res = await fetch(`${baseUrl}/api/v1/sync/entities`, { headers });
     if (res.ok) {
       const data = (await res.json()) as SyncManifest;
       _entityNames = new Set(data.entities.map((e) => e.name));
