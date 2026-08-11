@@ -19,6 +19,8 @@ class Measurement(SQLModel, table=True):
     __tablename__ = "measurement"  # pyright: ignore[reportAssignmentType]
     __table_args__ = (
         Index("ix_measurement_user_metric_time", "user_id", "metric_code", "start_time"),
+        Index("ix_measurement_user_updated_at", "user_id", "updated_at"),
+        Index("ix_measurement_user_created_at", "user_id", "created_at"),
     )
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)

@@ -36,14 +36,18 @@ export const healthSyncService = {
       };
     }
 
-    // Determine since time from latest measurement with source='health_connect'
-    const latest = await db.measurement
-      .where('source')
-      .equals('health_connect')
-      .filter((m) => !m.deleted_at)
-      .sortBy('start_time');
+    // Determine since time from meta store or latest measurement
+    const metaSync = await db.meta.get('health_connect:last_sync');
+    let lastMeasuredAt = (metaSync?.value as string) ?? '';
 
-    const lastMeasuredAt = latest.length > 0 ? latest[latest.length - 1].start_time : '';
+    if (!lastMeasuredAt) {
+      const latest = await db.measurement
+        .where('start_time')
+        .above('')
+        .filter((m) => m.source === 'health_connect' && !m.deleted_at)
+        .last();
+      lastMeasuredAt = latest?.start_time ?? '';
+    }
 
     try {
       const metrics = await nativeBridge.health.fetchDelta(lastMeasuredAt);
@@ -55,17 +59,20 @@ export const healthSyncService = {
         };
       }
 
-      // Collect all existing external_ids in memory for O(1) deduplication
-      const existingRecords = await db.measurement
-        .filter((m) => m.source === 'health_connect' && !m.deleted_at)
-        .toArray();
+      // Check only incoming external IDs against indexedDB external_id index
+      const incomingExternalIds = metrics.map((m) => m.external_id).filter(Boolean);
+      const existingInDb =
+        incomingExternalIds.length > 0
+          ? await db.measurement.where('external_id').anyOf(incomingExternalIds).toArray()
+          : [];
       const existingExternalIds = new Set<string>(
-        existingRecords.map((r) => r.external_id).filter(Boolean) as string[]
+        existingInDb.map((r) => r.external_id).filter(Boolean) as string[]
       );
 
       const newMeasurements: Measurement[] = [];
       const newOutboxOps: OutboxOp[] = [];
       const nowIso = new Date().toISOString();
+      let maxMeasuredAt = lastMeasuredAt;
 
       for (const item of metrics) {
         if (item.external_id && existingExternalIds.has(item.external_id)) {
@@ -95,6 +102,9 @@ export const healthSyncService = {
         if (item.external_id) {
           existingExternalIds.add(item.external_id);
         }
+        if (item.measured_at && item.measured_at > maxMeasuredAt) {
+          maxMeasuredAt = item.measured_at;
+        }
 
         newOutboxOps.push({
           kind: 'crud',
@@ -116,9 +126,12 @@ export const healthSyncService = {
         };
       }
 
-      // Atomic high-performance bulk insertion in Dexie
+      // Atomic bulk insertion in Dexie
       await db.measurement.bulkPut(newMeasurements);
       await db.outbox.bulkPut(newOutboxOps);
+      if (maxMeasuredAt) {
+        await db.meta.put({ key: 'health_connect:last_sync', value: maxMeasuredAt });
+      }
 
       // Trigger asynchronous background flush to server without blocking UI
       syncEngine.flush().catch((e) => console.error('Outbox flush error:', e));

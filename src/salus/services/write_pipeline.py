@@ -25,6 +25,15 @@ class WritePipeline:
         self.uow = uow
         self.user = current_user
         self.session: Session = uow.session
+        self._valid_metric_codes: set[str] | None = None
+
+    def _get_valid_metric_codes(self) -> set[str]:
+        if self._valid_metric_codes is None:
+            from sqlmodel import select
+            from salus.models.metric_definition import MetricDefinition
+
+            self._valid_metric_codes = set(self.session.exec(select(MetricDefinition.code)).all())
+        return self._valid_metric_codes
 
     def process(self, operations: list[SyncOperation]) -> list[SyncResult]:
         results: list[SyncResult] = []
@@ -36,6 +45,7 @@ class WritePipeline:
             for op in operations:
                 result = self._process_one(op, client_id_map, dedup_cache)
                 results.append(result)
+            self.session.flush()
         except Exception:
             self.session.rollback()
             raise
@@ -49,17 +59,19 @@ class WritePipeline:
 
         self.uow.sync_push_logs.cleanup_expired(_DEDUP_TTL_HOURS)
 
-        rows = self.uow.sync_push_logs.find_by_client_ids(client_ids)
-
         cache: dict[str, SyncResult] = {}
-        for row in rows:
-            cache[row.client_id] = SyncResult(
-                type="create",
-                entity=row.entity,
-                client_id=row.client_id,
-                id=row.record_id,
-                status=row.status,
-            )
+        chunk_size = 500
+        for i in range(0, len(client_ids), chunk_size):
+            chunk = client_ids[i : i + chunk_size]
+            rows = self.uow.sync_push_logs.find_by_client_ids(chunk)
+            for row in rows:
+                cache[row.client_id] = SyncResult(
+                    type="create",
+                    entity=row.entity,
+                    client_id=row.client_id,
+                    id=row.record_id,
+                    status=row.status,
+                )
         return cache
 
     def _process_one(
@@ -213,9 +225,8 @@ class WritePipeline:
             data["updated_at"] = now
 
         if op.entity == "measurement":
-            from salus.models.metric_definition import MetricDefinition
             metric_code = data.get("metric_code")
-            if metric_code and self.session.get(MetricDefinition, metric_code) is None:
+            if metric_code and metric_code not in self._get_valid_metric_codes():
                 return SyncResult(
                     type=op.type, entity=op.entity or "", client_id=op.client_id,
                     status="error", message=f"Unknown metric_code: {metric_code}",
@@ -230,13 +241,6 @@ class WritePipeline:
             )
 
         self.session.add(instance)
-        try:
-            self.session.flush()
-        except Exception as e:
-            return SyncResult(
-                type=op.type, entity=op.entity or "", client_id=op.client_id,
-                status="error", message=f"Database error: {e}",
-            )
 
         record_id = instance.id  # pyright: ignore[reportAttributeAccessIssue]
         if op.client_id and record_id is not None:
@@ -294,7 +298,6 @@ class WritePipeline:
             instance.updated_at = datetime.now(timezone.utc)  # pyright: ignore[reportAttributeAccessIssue]
 
         self.session.add(instance)
-        self.session.flush()
 
         if op.client_id and op.id is not None:
             self._log_dedup(op.client_id, op.entity or "", op.id, "updated")
@@ -325,7 +328,6 @@ class WritePipeline:
             self.session.add(instance)
         else:
             self.session.delete(instance)
-        self.session.flush()
 
         if op.client_id and op.id is not None:
             self._log_dedup(op.client_id, op.entity or "", op.id, "deleted")

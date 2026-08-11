@@ -1,3 +1,5 @@
+import Dexie from 'dexie';
+
 interface SolarTimes {
   sunrise: string;
   sunset: string;
@@ -211,10 +213,11 @@ export async function fetchCircadianAdvice(
     .equals('sleep')
     .toArray();
   const sleepMT = metricTypes[0];
+  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString();
   const sleepMeasurements = sleepMT?.code
     ? await db.measurement
-        .where('metric_code')
-        .equals(sleepMT.code)
+        .where('[metric_code+start_time]')
+        .between([sleepMT.code, cutoff], [sleepMT.code, Dexie.maxKey])
         .filter((m) => !m.deleted_at && m.end_time != null)
         .toArray()
     : [];

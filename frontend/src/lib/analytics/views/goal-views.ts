@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { db } from '$lib/db/database';
 import type { Goal, Measurement } from '$lib/db/types';
 import { mergeMetricPrefs } from '$lib/db/types';
@@ -94,16 +95,23 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
   if (goals.length === 0) return [];
 
   const metricCodes = [...new Set(goals.map((g) => g.metric_code).filter(Boolean))];
-  const [metricDefs, prefs, measurements] = await Promise.all([
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+
+  const [metricDefs, prefs, measurementArrays] = await Promise.all([
     db.metric_definition.toArray(),
     db.user_metric_preference.toArray(),
-    db.measurement
-      .where('metric_code')
-      .anyOf(metricCodes)
-      .filter((m) => !m.deleted_at)
-      .toArray()
+    Promise.all(
+      metricCodes.map((code) =>
+        db.measurement
+          .where('[metric_code+start_time]')
+          .between([code, cutoff], [code, Dexie.maxKey])
+          .filter((m) => !m.deleted_at)
+          .toArray()
+      )
+    )
   ]);
 
+  const measurements = measurementArrays.flat();
   const metrics = mergeMetricPrefs(metricDefs, prefs);
   const metricById = new Map(metrics.map((m) => [m.code, m]));
 
@@ -164,7 +172,12 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
         position: pref?.position ?? 0
       }
     : undefined;
-  const measurements = await db.measurement.where('metric_code').equals(g.metric_code).toArray();
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  const measurements = await db.measurement
+    .where('[metric_code+start_time]')
+    .between([g.metric_code, cutoff], [g.metric_code, Dexie.maxKey])
+    .filter((m) => !m.deleted_at)
+    .toArray();
   const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
 
   const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;

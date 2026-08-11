@@ -32,8 +32,12 @@
         .equals(metricCode)
         .sortBy('priority_rank');
 
-      // Fetch distinct sources present in measurement table for this metric
-      const measurements = await db.measurement.where('metric_code').equals(metricCode).toArray();
+      // Fetch distinct sources present in measurement table for this metric (sample recent)
+      const measurements = await db.measurement
+        .where('metric_code')
+        .equals(metricCode)
+        .limit(100)
+        .toArray();
 
       const knownSources = new Set<string>();
       measurements.forEach((m) => {

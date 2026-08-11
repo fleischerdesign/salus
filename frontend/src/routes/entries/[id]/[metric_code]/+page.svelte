@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
+  import Dexie, { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Measurement as Entry } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
@@ -65,6 +65,7 @@
 
   let overviews = liveQuery(() => fetchMetricOverview());
 
+  let entriesLoading = $state(true);
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
@@ -74,27 +75,28 @@
     if (!code) {
       pagedEntries = [];
       totalEntriesCount = 0;
+      entriesLoading = false;
       return;
     }
+    entriesLoading = true;
     const sub = liveQuery(async () => {
-      const count = await db.measurement
-        .where('metric_code')
-        .equals(code)
-        .filter((e) => !e.deleted_at)
-        .count();
+      const coll = db.measurement
+        .where('[metric_code+start_time]')
+        .between([code, Dexie.minKey], [code, Dexie.maxKey])
+        .filter((e) => !e.deleted_at);
 
-      const items = await db.measurement
-        .where('metric_code')
-        .equals(code)
-        .filter((e) => !e.deleted_at)
+      const count = await coll.count();
+      const items = await coll
         .reverse()
-        .sortBy('start_time')
-        .then((arr) => arr.slice((page - 1) * perPage, page * perPage));
+        .offset((page - 1) * perPage)
+        .limit(perPage)
+        .toArray();
 
       return { count, items };
     }).subscribe((res) => {
       totalEntriesCount = res.count;
       pagedEntries = res.items;
+      entriesLoading = false;
     });
     return () => sub.unsubscribe();
   });
@@ -344,7 +346,7 @@
       </Card>
     {/if}
 
-    {#if loading}
+    {#if loading || entriesLoading}
       <div class="flex justify-center py-20"><Spinner size="lg" /></div>
     {:else if total === 0}
       <EmptyState

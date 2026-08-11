@@ -1,4 +1,4 @@
-import { liveQuery } from 'dexie';
+import Dexie, { liveQuery } from 'dexie';
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import {
@@ -142,7 +142,9 @@ interface StepDay {
 }
 
 function computeSteps(measurements: Measurement[]): StepDay[] {
-  const stepM = measurements.filter((m) => m.data_type === 'steps' && m.value_numeric != null);
+  const stepM = measurements.filter(
+    (m) => (m.data_type === 'steps' || m.metric_code === 'steps') && m.value_numeric != null
+  );
   const byDate = new Map<string, number[]>();
   for (const m of stepM) {
     const date = m.start_time.slice(0, 10);
@@ -164,16 +166,18 @@ interface WeightPoint {
 }
 
 function computeWeight(measurements: Measurement[]): WeightPoint[] {
-  const weightM = measurements.filter((m) => m.data_type === 'weight' && m.value_numeric != null);
+  const weightM = measurements.filter(
+    (m) => (m.data_type === 'weight' || m.metric_code === 'weight') && m.value_numeric != null
+  );
   const seen = new Set<string>();
   const points: WeightPoint[] = [];
   for (const m of weightM.sort(
     (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
   )) {
-    const date = m.start_time.slice(0, 5);
+    const date = m.start_time.slice(0, 10);
     if (seen.has(date)) continue;
     seen.add(date);
-    points.push({ date: m.start_time.slice(0, 10), weight_kg: m.value_numeric! });
+    points.push({ date, weight_kg: m.value_numeric! });
   }
   return points.reverse();
 }
@@ -186,7 +190,7 @@ function computeSleep(measurements: Measurement[]): Array<{
   deep_pct: number;
   rem_pct: number;
 }> {
-  const sleepM = measurements.filter((m) => m.data_type === 'sleep');
+  const sleepM = measurements.filter((m) => m.data_type === 'sleep' || m.metric_code === 'sleep');
   const results: Array<{
     date: string;
     duration_hours: number;
@@ -329,7 +333,7 @@ export function useCorrelations(
       .toArray();
     const pivot = new Map<string, number[]>();
     for (const m of measurements) {
-      const dt = m.data_type;
+      const dt = m.metric_code || m.data_type;
       if (!pivot.has(dt)) pivot.set(dt, []);
       pivot.get(dt)!.push(m.value_numeric!);
     }
@@ -390,26 +394,42 @@ export interface TrendResult {
 
 export function useTrend(metric: string, rangeKey: string = '90d') {
   const data = liveQuery(async () => {
+    if (!metric) return { values: [], labels: [], regression: null };
+
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     const cutoffISO = cutoff.toISOString();
 
-    const measurements = (
-      await db.measurement
-        .where('start_time')
-        .above(cutoffISO)
-        .filter(
-          (m) =>
-            !m.deleted_at &&
-            m.value_numeric != null &&
-            (m.metric_code === metric || m.data_type === metric)
-        )
-        .toArray()
-    ).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+    const measurements = await db.measurement
+      .where('[metric_code+start_time]')
+      .between([metric, cutoffISO], [metric, Dexie.maxKey])
+      .filter((m) => !m.deleted_at && m.value_numeric != null)
+      .toArray();
 
-    const values = measurements.map((m) => m.value_numeric!);
-    const labels = measurements.map((m) => m.start_time.slice(5));
+    let values: number[];
+    let labels: string[];
+
+    if (measurements.length > 150) {
+      // Aggregate by day for silky smooth rendering of high-frequency metrics (e.g. continuous heart rate)
+      const dayMap = new Map<string, { sum: number; count: number }>();
+      for (const m of measurements) {
+        const day = m.start_time.split('T')[0];
+        const existing = dayMap.get(day);
+        if (existing) {
+          existing.sum += m.value_numeric!;
+          existing.count += 1;
+        } else {
+          dayMap.set(day, { sum: m.value_numeric!, count: 1 });
+        }
+      }
+      labels = Array.from(dayMap.keys()).map((d) => d.slice(5));
+      values = Array.from(dayMap.values()).map((v) => Math.round((v.sum / v.count) * 10) / 10);
+    } else {
+      values = measurements.map((m) => m.value_numeric!);
+      labels = measurements.map((m) => m.start_time.slice(5));
+    }
+
     if (values.length < 3) return { values, labels, regression: null };
 
     const xs = values.map((_, i) => i);

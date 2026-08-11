@@ -27,15 +27,9 @@
       const start = new Date(+y, 0, 1).toISOString();
       const end = new Date(+y + 1, 0, 1).toISOString();
       const measurements = await db.measurement
-        .where('metric_code')
-        .equals(m)
-        .filter(
-          (item) =>
-            !item.deleted_at &&
-            item.start_time >= start &&
-            item.start_time < end &&
-            item.value_numeric != null
-        )
+        .where('[metric_code+start_time]')
+        .between([m, start], [m, end])
+        .filter((item) => !item.deleted_at && item.value_numeric != null)
         .toArray();
       const daily = new Map<string, number>();
       for (const item of measurements) {

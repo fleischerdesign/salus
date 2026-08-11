@@ -309,6 +309,8 @@ export const syncEngine = {
   }
 };
 
+const CRUD_BATCH_SIZE = 200;
+
 function _partitionBatches(items: OutboxOp[]): OutboxOp[][] {
   const batches: OutboxOp[][] = [];
   let crudBuffer: OutboxOp[] = [];
@@ -316,6 +318,10 @@ function _partitionBatches(items: OutboxOp[]): OutboxOp[][] {
   for (const item of items) {
     if (item.kind === 'crud') {
       crudBuffer.push(item);
+      if (crudBuffer.length >= CRUD_BATCH_SIZE) {
+        batches.push(crudBuffer);
+        crudBuffer = [];
+      }
     } else {
       if (crudBuffer.length > 0) {
         batches.push(crudBuffer);

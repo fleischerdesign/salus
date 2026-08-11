@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
+  import Dexie, { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { sleepDebtCumulative } from '$lib/analytics/stats';
   import Icon from '$components/ui/Icon.svelte';
 
   const sleepDebtData = liveQuery(async () => {
-    const recent = (
-      await db.measurement
-        .where('metric_code')
-        .equals('sleep')
-        .filter((m) => !m.deleted_at)
-        .toArray()
-    ).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+    const recent = await db.measurement
+      .where('[metric_code+start_time]')
+      .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
+      .filter((m) => !m.deleted_at)
+      .reverse()
+      .limit(28)
+      .toArray();
 
     const durations: number[] = [];
     for (const m of recent.slice(0, 28)) {

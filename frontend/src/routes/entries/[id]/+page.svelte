@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
+  import Dexie, { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Measurement as Entry, MetricGroup } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
@@ -71,6 +71,7 @@
 
   let overviews = liveQuery(() => fetchMetricOverview());
 
+  let entriesLoading = $state(true);
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
@@ -80,27 +81,28 @@
     if (!id || isGroup) {
       pagedEntries = [];
       totalEntriesCount = 0;
+      entriesLoading = false;
       return;
     }
+    entriesLoading = true;
     const sub = liveQuery(async () => {
-      const count = await db.measurement
-        .where('metric_code')
-        .equals(id)
-        .filter((e) => !e.deleted_at)
-        .count();
+      const coll = db.measurement
+        .where('[metric_code+start_time]')
+        .between([id, Dexie.minKey], [id, Dexie.maxKey])
+        .filter((e) => !e.deleted_at);
 
-      const items = await db.measurement
-        .where('metric_code')
-        .equals(id)
-        .filter((e) => !e.deleted_at)
+      const count = await coll.count();
+      const items = await coll
         .reverse()
-        .sortBy('start_time')
-        .then((arr) => arr.slice((page - 1) * perPage, page * perPage));
+        .offset((page - 1) * perPage)
+        .limit(perPage)
+        .toArray();
 
       return { count, items };
     }).subscribe((res) => {
       totalEntriesCount = res.count;
       pagedEntries = res.items;
+      entriesLoading = false;
     });
     return () => sub.unsubscribe();
   });
@@ -122,11 +124,16 @@
       const codes = defs.map((d) => d.code);
       if (codes.length === 0) return [] as Entry[];
       const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-      const all = await db.measurement
-        .where('metric_code')
-        .anyOf(codes)
-        .filter((e) => !e.deleted_at && e.start_time >= cutoff)
-        .toArray();
+      const results = await Promise.all(
+        codes.map((code) =>
+          db.measurement
+            .where('[metric_code+start_time]')
+            .between([code, cutoff], [code, Dexie.maxKey])
+            .filter((e) => !e.deleted_at)
+            .toArray()
+        )
+      );
+      const all = results.flat();
       return all.sort(
         (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
       );
@@ -185,14 +192,11 @@
         labels: string[];
       }[] = [];
       for (const d of defs) {
-        const meas = await db.measurement
-          .where('metric_code')
-          .equals(d.code)
-          .filter((e) => !e.deleted_at && e.start_time >= cutoff)
+        const clean = await db.measurement
+          .where('[metric_code+start_time]')
+          .between([d.code, cutoff], [d.code, Dexie.maxKey])
+          .filter((e) => !e.deleted_at)
           .toArray();
-        const clean = meas.sort(
-          (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-        );
         if (clean.length > 0) {
           result.push({
             code: d.code,
@@ -657,7 +661,7 @@
         </Card>
       {/if}
 
-      {#if loading}
+      {#if loading || (!isGroup && entriesLoading)}
         <div class="flex justify-center py-20"><Spinner size="lg" /></div>
       {:else if total === 0}
         <EmptyState

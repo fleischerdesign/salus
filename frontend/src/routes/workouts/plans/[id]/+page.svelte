@@ -45,9 +45,15 @@
       )
   );
 
-  let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) => arr.filter((l) => !l.deleted_at))
-  );
+  let logs = liveQuery(async () => {
+    const sessionIds = ($sessions ?? []).slice(0, 10).map((s) => s.id);
+    if (sessionIds.length === 0) return [];
+    return db.workout_log_entry
+      .where('session_id')
+      .anyOf(sessionIds)
+      .filter((l) => !l.deleted_at)
+      .toArray();
+  });
 
   let starting = $state(false);
 

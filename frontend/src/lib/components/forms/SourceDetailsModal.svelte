@@ -67,11 +67,9 @@
         .where('source')
         .equals(srcId)
         .filter((m) => !m.deleted_at)
-        .reverse()
-        .sortBy('created_at')
-        .then((arr) => (arr.length > 0 ? arr[arr.length - 1] : null));
+        .last();
 
-      const latest = latestMeas?.created_at ?? null;
+      const latest = latestMeas?.start_time ?? latestMeas?.created_at ?? null;
 
       return { supplied, lastTime: latest };
     }).subscribe((val) => {

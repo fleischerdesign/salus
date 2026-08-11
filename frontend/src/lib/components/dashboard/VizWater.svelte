@@ -14,13 +14,9 @@
     todayEnd.setHours(23, 59, 59, 999);
 
     const measurements = await db.measurement
-      .where('metric_code')
-      .equals(metric.code)
-      .filter((m) => {
-        if (m.deleted_at) return false;
-        const t = new Date(m.start_time).getTime();
-        return t >= todayStart.getTime() && t <= todayEnd.getTime();
-      })
+      .where('[metric_code+start_time]')
+      .between([metric.code, todayStart.toISOString()], [metric.code, todayEnd.toISOString()])
+      .filter((m) => !m.deleted_at)
       .toArray();
 
     const total = measurements.reduce((sum, m) => sum + (m.value_numeric ?? 0), 0);

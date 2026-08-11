@@ -1,5 +1,5 @@
+import Dexie from 'dexie';
 import { db } from '$lib/db/database';
-import type { Measurement } from '$lib/db/types';
 
 export interface MetricOverview {
   metric_id: string;
@@ -14,21 +14,15 @@ export async function fetchMetricOverview(): Promise<MetricOverview[]> {
 
   const results = await Promise.all(
     defs.map(async (def) => {
-      const count = await db.measurement
-        .where('metric_code')
-        .equals(def.code)
-        .filter((m) => !m.deleted_at)
-        .count();
+      const coll = db.measurement
+        .where('[metric_code+start_time]')
+        .between([def.code, Dexie.minKey], [def.code, Dexie.maxKey])
+        .filter((m) => !m.deleted_at);
 
+      const count = await coll.count();
       if (count === 0) return null;
 
-      const latest = await db.measurement
-        .where('metric_code')
-        .equals(def.code)
-        .filter((m) => !m.deleted_at)
-        .reverse()
-        .sortBy('start_time')
-        .then((arr) => (arr.length > 0 ? arr[arr.length - 1] : null));
+      const latest = await coll.last();
 
       return {
         metric_id: def.code,
