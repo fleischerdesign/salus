@@ -18,11 +18,19 @@ export interface DashboardData {
 }
 
 export async function fetchDashboard(date: string): Promise<DashboardData> {
-  const [allWidgets, allMetrics, allPrefs, allMeasurements, allGoals] = await Promise.all([
+  const dayStart = new Date(date + 'T00:00:00').getTime();
+  const dayEnd = dayStart + 86400000;
+  const windowStart = new Date(dayStart - 30 * 86400000).toISOString();
+
+  const [allWidgets, allMetrics, allPrefs, windowMeasurements, allGoals] = await Promise.all([
     db.dashboard_widget.toArray(),
     db.metric_definition.toArray(),
     db.user_metric_preference.toArray(),
-    db.measurement.toArray(),
+    db.measurement
+      .where('start_time')
+      .above(windowStart)
+      .filter((m) => !m.deleted_at)
+      .toArray(),
     db.goal.toArray()
   ]);
 
@@ -30,12 +38,10 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
     .filter((w) => !w.deleted_at && w.is_visible)
     .sort((a, b) => a.position - b.position);
   const metrics = mergeMetricPrefs(allMetrics as MetricDefinition[], allPrefs);
-  const measurements = allMeasurements.filter((m) => !m.deleted_at);
+  const measurements = windowMeasurements;
   const goals = allGoals.filter((g) => !g.deleted_at);
   const metricById = new Map(metrics.map((m) => [m.code, m]));
 
-  const dayStart = new Date(date + 'T00:00:00').getTime();
-  const dayEnd = dayStart + 86400000;
   const dayMeasurements = measurements.filter((m) => {
     const t = new Date(m.start_time).getTime();
     return t >= dayStart && t < dayEnd;

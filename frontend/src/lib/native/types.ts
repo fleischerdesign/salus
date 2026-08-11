@@ -1,9 +1,9 @@
 export interface IngestedMetricPayload {
   metric_code: string;
   value: number;
-  timestamp: string;
+  measured_at: string;
   source: 'health_connect' | 'samsung_health' | 'manual';
-  source_data_type: string;
+  source_data_type?: string;
   external_id: string;
 }
 

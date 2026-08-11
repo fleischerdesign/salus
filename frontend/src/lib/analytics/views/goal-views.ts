@@ -90,55 +90,62 @@ function computeDeadlineForecast(
 }
 
 export async function fetchGoalViews(): Promise<GoalView[]> {
-  const goals = await db.goal.toArray();
-  const metricDefs = await db.metric_definition.toArray();
-  const prefs = await db.user_metric_preference.toArray();
-  const measurements = await db.measurement.toArray();
+  const goals = (await db.goal.toArray()).filter((g) => !g.deleted_at);
+  if (goals.length === 0) return [];
+
+  const metricCodes = [...new Set(goals.map((g) => g.metric_code).filter(Boolean))];
+  const [metricDefs, prefs, measurements] = await Promise.all([
+    db.metric_definition.toArray(),
+    db.user_metric_preference.toArray(),
+    db.measurement
+      .where('metric_code')
+      .anyOf(metricCodes)
+      .filter((m) => !m.deleted_at)
+      .toArray()
+  ]);
 
   const metrics = mergeMetricPrefs(metricDefs, prefs);
   const metricById = new Map(metrics.map((m) => [m.code, m]));
 
-  return goals
-    .filter((g) => !g.deleted_at)
-    .map((g) => {
-      const metric = metricById.get(g.metric_code);
-      const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
+  return goals.map((g) => {
+    const metric = metricById.get(g.metric_code);
+    const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
 
-      const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
-      const progress = computeGoalProgress(
-        currentValue,
-        g.target_value,
-        g.direction as 'INCREASE' | 'DECREASE',
-        g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
-        deadlinePassed
-      );
+    const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
+    const progress = computeGoalProgress(
+      currentValue,
+      g.target_value,
+      g.direction as 'INCREASE' | 'DECREASE',
+      g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
+      deadlinePassed
+    );
 
-      let forecastVal = null;
-      if (g.frequency === 'once' && g.deadline && !deadlinePassed) {
-        forecastVal = computeDeadlineForecast(g, measurements, g.created_at);
-      }
+    let forecastVal = null;
+    if (g.frequency === 'once' && g.deadline && !deadlinePassed) {
+      forecastVal = computeDeadlineForecast(g, measurements, g.created_at);
+    }
 
-      return {
-        id: g.id,
-        metric_name: metric?.name ?? 'Unknown',
-        metric_color: metric?.color ?? '#4f46e5',
-        metric_icon: metric?.icon ?? 'track-changes',
-        metric_unit: metric?.unit ?? '',
+    return {
+      id: g.id,
+      metric_name: metric?.name ?? 'Unknown',
+      metric_color: metric?.color ?? '#4f46e5',
+      metric_icon: metric?.icon ?? 'track-changes',
+      metric_unit: metric?.unit ?? '',
+      target_value: g.target_value,
+      direction: g.direction,
+      frequency: g.frequency,
+      deadline: g.deadline,
+      is_active: g.is_active,
+      progress: {
+        current_value: currentValue,
         target_value: g.target_value,
-        direction: g.direction,
-        frequency: g.frequency,
-        deadline: g.deadline,
-        is_active: g.is_active,
-        progress: {
-          current_value: currentValue,
-          target_value: g.target_value,
-          percent: progress.percent,
-          status: progress.status,
-          is_fulfilled: progress.isFulfilled
-        },
-        forecast: forecastVal
-      };
-    });
+        percent: progress.percent,
+        status: progress.status,
+        is_fulfilled: progress.isFulfilled
+      },
+      forecast: forecastVal
+    };
+  });
 }
 
 export async function fetchGoalView(goalId: string): Promise<GoalView | null> {

@@ -29,20 +29,30 @@ export const healthSyncService = {
   async syncNow(): Promise<HealthSyncResult> {
     const isAvail = await nativeBridge.health.isAvailable();
     if (!isAvail) {
-      return { success: false, count: 0, message: 'Health Connect is not available on this platform.' };
+      return {
+        success: false,
+        count: 0,
+        message: 'Health Connect is not available on this platform.'
+      };
     }
 
     // Determine since time from latest measurement with source='health_connect'
     const latest = await db.measurement
-      .filter((m) => m.source === 'health_connect' && !m.deleted_at)
-      .sortBy('measured_at');
+      .where('source')
+      .equals('health_connect')
+      .filter((m) => !m.deleted_at)
+      .sortBy('start_time');
 
-    const lastMeasuredAt = latest.length > 0 ? latest[latest.length - 1].measured_at : '';
+    const lastMeasuredAt = latest.length > 0 ? latest[latest.length - 1].start_time : '';
 
     try {
       const metrics = await nativeBridge.health.fetchDelta(lastMeasuredAt);
       if (!metrics || metrics.length === 0) {
-        return { success: true, count: 0, message: 'Health Connect is up to date (0 new entries).' };
+        return {
+          success: true,
+          count: 0,
+          message: 'Health Connect is up to date (0 new entries).'
+        };
       }
 
       // Collect all existing external_ids in memory for O(1) deduplication
@@ -99,7 +109,11 @@ export const healthSyncService = {
       }
 
       if (newMeasurements.length === 0) {
-        return { success: true, count: 0, message: 'All Health Connect entries already exist locally.' };
+        return {
+          success: true,
+          count: 0,
+          message: 'All Health Connect entries already exist locally.'
+        };
       }
 
       // Atomic high-performance bulk insertion in Dexie

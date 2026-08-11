@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+from sqlalchemy import Index
 from sqlmodel import Field, Relationship, SQLModel
 
 import logging
@@ -16,6 +17,9 @@ if TYPE_CHECKING:
 
 class Measurement(SQLModel, table=True):
     __tablename__ = "measurement"  # pyright: ignore[reportAssignmentType]
+    __table_args__ = (
+        Index("ix_measurement_user_metric_time", "user_id", "metric_code", "start_time"),
+    )
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str | None = Field(default=None, foreign_key="user.id", index=True)

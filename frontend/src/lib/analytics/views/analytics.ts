@@ -289,16 +289,18 @@ const _analyticsMemo = new Map<string, { payload: unknown; inputHash: number }>(
 
 export function useAnalytics(rangeKey: string = '30d') {
   const data = liveQuery(async () => {
-    const measurements = await db.measurement.toArray();
-    const hash = hashInput(measurements);
-    const cacheKey = `analytics:${rangeKey}`;
-    const cached = _analyticsMemo.get(cacheKey);
-    if (cached && cached.inputHash === hash) {
-      return cached.payload as AnalyticsResult;
-    }
-    const result = computeAnalytics(measurements, rangeKey);
-    _analyticsMemo.set(cacheKey, { payload: result, inputHash: hash });
-    return result;
+    const days = RANGE_DAYS[rangeKey] ?? 30;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffISO = cutoff.toISOString();
+
+    const measurements = await db.measurement
+      .where('start_time')
+      .above(cutoffISO)
+      .filter((m) => !m.deleted_at)
+      .toArray();
+
+    return computeAnalytics(measurements, rangeKey);
   });
 
   return data;
@@ -391,14 +393,17 @@ export function useTrend(metric: string, rangeKey: string = '90d') {
     const days = RANGE_DAYS[rangeKey] ?? 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
+    const cutoffISO = cutoff.toISOString();
+
     const measurements = (
       await db.measurement
+        .where('start_time')
+        .above(cutoffISO)
         .filter(
           (m) =>
             !m.deleted_at &&
             m.value_numeric != null &&
-            m.data_type === metric &&
-            new Date(m.start_time) >= cutoff
+            (m.metric_code === metric || m.data_type === metric)
         )
         .toArray()
     ).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
@@ -449,23 +454,26 @@ export function useWellness(dateStr?: string) {
     const untilISO = new Date(target.getTime() + 86400000).toISOString();
 
     const measurements = await db.measurement
-      .filter(
-        (m) =>
-          !m.deleted_at &&
-          m.value_numeric != null &&
-          m.start_time >= sinceISO &&
-          m.start_time < untilISO
-      )
+      .where('start_time')
+      .between(sinceISO, untilISO, true, false)
+      .filter((m) => !m.deleted_at && m.value_numeric != null)
       .toArray();
 
     const hrVals = measurements
-      .filter((m) => m.data_type === 'heart_rate')
+      .filter(
+        (m) =>
+          m.data_type === 'heart_rate' ||
+          m.metric_code === 'heart_rate' ||
+          m.metric_code === 'resting_heart_rate'
+      )
       .map((m) => m.value_numeric!);
     const stepVals = measurements
-      .filter((m) => m.data_type === 'steps')
+      .filter((m) => m.data_type === 'steps' || m.metric_code === 'steps')
       .map((m) => m.value_numeric!);
     const sleepVals = measurements
-      .filter((m) => m.data_type === 'sleep' && m.value_numeric != null)
+      .filter(
+        (m) => (m.data_type === 'sleep' || m.metric_code === 'sleep') && m.value_numeric != null
+      )
       .map((m) => m.value_numeric!);
 
     const muHr = hrVals.length > 0 ? hrVals.reduce((a, b) => a + b, 0) / hrVals.length : 60;
@@ -512,9 +520,11 @@ export function useWellness(dateStr?: string) {
 export function useGoalForecast(goalId: string) {
   const data = liveQuery(async () => {
     const goal = await db.goal.get(goalId);
-    if (!goal) return null;
+    if (!goal || !goal.metric_code) return null;
     const measurements = await db.measurement
-      .filter((m) => !m.deleted_at && m.value_numeric != null && m.metric_code === goal.metric_code)
+      .where('metric_code')
+      .equals(goal.metric_code)
+      .filter((m) => !m.deleted_at && m.value_numeric != null)
       .toArray();
 
     measurements.sort(
@@ -555,7 +565,11 @@ export function useGoalForecast(goalId: string) {
 export function useSleepDebt(age: number = 30) {
   const data = liveQuery(async () => {
     const recent = (
-      await db.measurement.filter((m) => !m.deleted_at && m.data_type === 'sleep').toArray()
+      await db.measurement
+        .where('metric_code')
+        .equals('sleep')
+        .filter((m) => !m.deleted_at)
+        .toArray()
     ).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
     const durations: number[] = [];

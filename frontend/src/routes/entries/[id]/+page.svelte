@@ -71,17 +71,39 @@
 
   let overviews = liveQuery(() => fetchMetricOverview());
 
-  let allEntries = liveQuery(() =>
-    db.measurement
-      .where('metric_code')
-      .equals(metricId!)
-      .toArray()
-      .then((arr) =>
-        arr
-          .filter((e) => !e.deleted_at)
-          .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-      )
-  );
+  let totalEntriesCount = $state(0);
+  let pagedEntries = $state<Entry[]>([]);
+
+  $effect(() => {
+    const id = metricId;
+    const page = pageNum;
+    if (!id || isGroup) {
+      pagedEntries = [];
+      totalEntriesCount = 0;
+      return;
+    }
+    const sub = liveQuery(async () => {
+      const count = await db.measurement
+        .where('metric_code')
+        .equals(id)
+        .filter((e) => !e.deleted_at)
+        .count();
+
+      const items = await db.measurement
+        .where('metric_code')
+        .equals(id)
+        .filter((e) => !e.deleted_at)
+        .reverse()
+        .sortBy('start_time')
+        .then((arr) => arr.slice((page - 1) * perPage, page * perPage));
+
+      return { count, items };
+    }).subscribe((res) => {
+      totalEntriesCount = res.count;
+      pagedEntries = res.items;
+    });
+    return () => sub.unsubscribe();
+  });
 
   let entriesForGroup = $state<Entry[]>([]);
   let entriesForGroupLoading = $state(true);
@@ -99,10 +121,15 @@
       const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
       const codes = defs.map((d) => d.code);
       if (codes.length === 0) return [] as Entry[];
-      const all = await db.measurement.where('metric_code').anyOf(codes).toArray();
-      return all
-        .filter((e) => !e.deleted_at)
-        .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+      const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+      const all = await db.measurement
+        .where('metric_code')
+        .anyOf(codes)
+        .filter((e) => !e.deleted_at && e.start_time >= cutoff)
+        .toArray();
+      return all.sort(
+        (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+      );
     }).subscribe((v) => {
       entriesForGroup = v;
       entriesForGroupLoading = false;
@@ -149,6 +176,7 @@
     }
     const subscription = liveQuery(async () => {
       const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
+      const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
       const result: {
         code: string;
         name: string;
@@ -157,10 +185,14 @@
         labels: string[];
       }[] = [];
       for (const d of defs) {
-        const meas = await db.measurement.where('metric_code').equals(d.code).toArray();
-        const clean = meas
-          .filter((e) => !e.deleted_at)
-          .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+        const meas = await db.measurement
+          .where('metric_code')
+          .equals(d.code)
+          .filter((e) => !e.deleted_at && e.start_time >= cutoff)
+          .toArray();
+        const clean = meas.sort(
+          (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+        );
         if (clean.length > 0) {
           result.push({
             code: d.code,
@@ -182,8 +214,8 @@
 
   let pageNum = $state(1);
   const perPage = 25;
-  let entries = $derived(($allEntries ?? []).slice((pageNum - 1) * perPage, pageNum * perPage));
-  let total = $derived($allEntries?.length ?? 0);
+  let entries = $derived(pagedEntries);
+  let total = $derived(totalEntriesCount);
   let range = $state('90d');
   let trend = $derived(useTrend(metricDetail?.data_type ?? '', range));
   let overview = $derived($overviews ? overviewForMetric($overviews, metricId!) : null);
@@ -625,7 +657,7 @@
         </Card>
       {/if}
 
-      {#if $allEntries === undefined}
+      {#if loading}
         <div class="flex justify-center py-20"><Spinner size="lg" /></div>
       {:else if total === 0}
         <EmptyState

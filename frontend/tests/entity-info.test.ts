@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { db } from '$lib/db/database';
+import { resetDb } from './helpers/db';
 import { createFetchMock } from './helpers/fetch';
 import { fetchEntityNames, getEntityNames, resetEntityNames } from '$lib/db/entity-info';
 
 describe('fetchEntityNames', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await resetDb();
     resetEntityNames();
     vi.clearAllMocks();
   });
@@ -22,7 +25,8 @@ describe('fetchEntityNames', () => {
     expect(cached).toEqual(new Set(['measurement', 'goal']));
   });
 
-  it('falls back to hardcoded list on network error', async () => {
+  it('falls back to cached list in Dexie on network error', async () => {
+    await db.meta.put({ key: 'sync:entity_names', value: ['measurement', 'goal'] });
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network failure')));
 
     const names = await fetchEntityNames();
@@ -31,7 +35,8 @@ describe('fetchEntityNames', () => {
     expect(names).toContain('goal');
   });
 
-  it('falls back to hardcoded list on 500', async () => {
+  it('falls back to cached list in Dexie on 500', async () => {
+    await db.meta.put({ key: 'sync:entity_names', value: ['measurement'] });
     const fetchMock = createFetchMock([{ status: 500 }]);
     vi.stubGlobal('fetch', fetchMock);
 
@@ -55,10 +60,9 @@ describe('fetchEntityNames', () => {
     expect(names).toEqual(new Set(['goal']));
   });
 
-  it('getEntityNames returns hardcoded fallback before first fetch', () => {
+  it('getEntityNames returns empty set before first fetch', () => {
     const names = getEntityNames();
 
-    expect(names).toContain('measurement');
-    expect(names).toContain('goal');
+    expect(names).toEqual(new Set());
   });
 });

@@ -60,7 +60,8 @@
         checked: true
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Verbindung zu GitHub Releases fehlgeschlagen.';
+      const msg =
+        err instanceof Error ? err.message : 'Verbindung zu GitHub Releases fehlgeschlagen.';
       updateResult = {
         hasUpdate: false,
         checked: true,
@@ -353,19 +354,27 @@
       {/snippet}
       <div class="p-5">
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+          <div
+            class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5"
+          >
             <span class="text-surface-600">Messungen</span>
             <span class="font-bold text-surface-900">{entityCounts.measurements}</span>
           </div>
-          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+          <div
+            class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5"
+          >
             <span class="text-surface-600">Workouts</span>
             <span class="font-bold text-surface-900">{entityCounts.workouts}</span>
           </div>
-          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+          <div
+            class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5"
+          >
             <span class="text-surface-600">Mahlzeiten</span>
             <span class="font-bold text-surface-900">{entityCounts.meals}</span>
           </div>
-          <div class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5">
+          <div
+            class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-2.5"
+          >
             <span class="text-surface-600">Gewohnheiten</span>
             <span class="font-bold text-surface-900">{entityCounts.habits}</span>
           </div>
@@ -383,7 +392,9 @@
           <div class="flex items-center justify-between pb-4">
             <div>
               <h5 class="text-sm font-semibold text-surface-800">Biometrische Sperre</h5>
-              <p class="text-xs text-surface-400">App-Zugriff per Fingerabdruck / FaceID schützen</p>
+              <p class="text-xs text-surface-400">
+                App-Zugriff per Fingerabdruck / FaceID schützen
+              </p>
             </div>
             <Toggle checked={biometricsEnabled} onchange={toggleBiometrics} />
           </div>
@@ -404,9 +415,7 @@
           <span class="text-sm font-semibold text-surface-900">Server-Adresse</span>
         {/snippet}
         <form onsubmit={handleSaveServerUrl} class="space-y-4 p-5">
-          <p class="text-xs text-surface-500">
-            Ziel-URL deiner dezentralen Salus FastAPI-Instanz.
-          </p>
+          <p class="text-xs text-surface-500">Ziel-URL deiner dezentralen Salus FastAPI-Instanz.</p>
 
           {#if serverMessage}
             <AlertBanner variant={serverMessage.type === 'success' ? 'success' : 'error'}>

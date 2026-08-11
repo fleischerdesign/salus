@@ -21,9 +21,20 @@
     )
   );
 
-  let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) => arr.filter((l) => !l.deleted_at))
-  );
+  let logs = liveQuery(async () => {
+    const recent = await db.workout_session
+      .filter((s) => !s.deleted_at && s.completed_at != null)
+      .reverse()
+      .sortBy('started_at')
+      .then((arr) => arr.slice(0, 50));
+    const sessIds = recent.map((s) => s.id);
+    if (sessIds.length === 0) return [];
+    return db.workout_log_entry
+      .where('session_id')
+      .anyOf(sessIds)
+      .filter((l) => !l.deleted_at)
+      .toArray();
+  });
 
   function formatDate(dt: string | null | undefined): string {
     if (!dt) return '—';

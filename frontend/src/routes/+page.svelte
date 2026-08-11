@@ -9,6 +9,7 @@
     deleteWidget as deleteWidgetMut
   } from '$lib/mutations/dashboard';
   import { fetchDashboard, type DashboardWidgetView } from '$lib/analytics/views/dashboard';
+  import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -169,8 +170,11 @@
 
   const availableMetrics = $derived(
     (metrics ?? [])
-      .filter((m) => !widgets.some((w) => w.metric_code === m.code))
-      .map((m) => ({
+      .filter(
+        (m: MetricWithPreference) =>
+          !widgets.some((w: DashboardWidgetView) => w.metric_code === m.code)
+      )
+      .map((m: MetricWithPreference) => ({
         id: String(m.code),
         name: m.name,
         description:
@@ -226,7 +230,7 @@
         color: '#f59e0b',
         source_data_type: 'circadian_timeline'
       }
-    ].filter((opt) => !widgets.some((w) => w.widget_type === opt.id))
+    ].filter((opt) => !widgets.some((w: DashboardWidgetView) => w.widget_type === opt.id))
   );
 
   $effect(() => {

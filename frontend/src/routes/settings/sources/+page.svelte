@@ -50,20 +50,27 @@
     const sub = liveQuery(async () => {
       const allMetrics = await db.metric_definition.toArray();
       const allPrefs = await db.user_source_preference.toArray();
-      const allMeasurements = await db.measurement.toArray();
 
       const counts: Record<string, number> = {};
       const knownPerMetric: Record<string, Set<string>> = {};
 
-      allMeasurements.forEach((m) => {
-        if (m.source) {
-          counts[m.source] = (counts[m.source] ?? 0) + 1;
-        }
-        if (m.metric_code && m.source) {
-          if (!knownPerMetric[m.metric_code]) {
-            knownPerMetric[m.metric_code] = new Set();
+      await Promise.all(
+        KNOWN_SOURCES.map(async (src) => {
+          const cnt = await db.measurement
+            .where('source')
+            .equals(src.id)
+            .filter((m) => !m.deleted_at)
+            .count();
+          counts[src.id] = cnt;
+        })
+      );
+
+      allPrefs.forEach((p) => {
+        if (p.metric_code && p.source) {
+          if (!knownPerMetric[p.metric_code]) {
+            knownPerMetric[p.metric_code] = new Set();
           }
-          knownPerMetric[m.metric_code].add(m.source);
+          knownPerMetric[p.metric_code].add(p.source);
         }
       });
 

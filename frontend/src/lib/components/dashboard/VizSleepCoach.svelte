@@ -6,7 +6,11 @@
 
   const sleepDebtData = liveQuery(async () => {
     const recent = (
-      await db.measurement.filter((m) => !m.deleted_at && m.data_type === 'sleep').toArray()
+      await db.measurement
+        .where('metric_code')
+        .equals('sleep')
+        .filter((m) => !m.deleted_at)
+        .toArray()
     ).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
     const durations: number[] = [];

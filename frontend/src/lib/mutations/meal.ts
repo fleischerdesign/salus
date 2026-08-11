@@ -1,5 +1,4 @@
 import { mutate } from '$lib/mutate';
-import { db } from '$lib/db/database';
 
 export async function createMeal(data: {
   log_date?: string;

@@ -13,15 +13,17 @@
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const measurements = await db.measurement.where('metric_code').equals(metric.code).toArray();
+    const measurements = await db.measurement
+      .where('metric_code')
+      .equals(metric.code)
+      .filter((m) => {
+        if (m.deleted_at) return false;
+        const t = new Date(m.start_time).getTime();
+        return t >= todayStart.getTime() && t <= todayEnd.getTime();
+      })
+      .toArray();
 
-    const todayMeasurements = measurements.filter((m) => {
-      if (m.deleted_at) return false;
-      const t = new Date(m.start_time).getTime();
-      return t >= todayStart.getTime() && t <= todayEnd.getTime();
-    });
-
-    const total = todayMeasurements.reduce((sum, m) => sum + (m.value_numeric ?? 0), 0);
+    const total = measurements.reduce((sum, m) => sum + (m.value_numeric ?? 0), 0);
     const goal = await db.goal.where('metric_code').equals(metric.code).first();
 
     return {

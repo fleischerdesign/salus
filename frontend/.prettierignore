@@ -1,0 +1,4 @@
+src/lib/api/schema.d.ts
+src/lib/icons.json
+build/
+.svelte-kit/

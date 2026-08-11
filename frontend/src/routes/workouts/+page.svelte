@@ -1,7 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { WorkoutPlan, Exercise, WorkoutSession } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -25,9 +24,20 @@
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );
-  let logs = liveQuery(() =>
-    db.workout_log_entry.toArray().then((arr) => arr.filter((l) => !l.deleted_at))
-  );
+  let logs = liveQuery(async () => {
+    const active = await db.workout_session
+      .filter((s) => !s.deleted_at)
+      .reverse()
+      .sortBy('started_at')
+      .then((arr) => arr.slice(0, 5));
+    const sessIds = active.map((s) => s.id);
+    if (sessIds.length === 0) return [];
+    return db.workout_log_entry
+      .where('session_id')
+      .anyOf(sessIds)
+      .filter((l) => !l.deleted_at)
+      .toArray();
+  });
 
   let recentSessions = $derived(($sessions ?? []).slice(0, 5));
   let activeSession = $derived($sessions?.find((s) => s.completed_at == null) ?? null);

@@ -48,32 +48,30 @@
     }
 
     const sub = liveQuery(async () => {
-      const measurements = await db.measurement.filter((m) => m.source === srcId && !m.deleted_at).toArray();
-      if (measurements.length === 0) {
-        return { supplied: [], lastTime: null };
-      }
-
-      measurements.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      const latest = measurements[0]?.created_at ?? null;
-
-      const metricMap: Record<string, number> = {};
-      measurements.forEach((m) => {
-        const code = m.metric_code || m.data_type;
-        metricMap[code] = (metricMap[code] ?? 0) + 1;
-      });
-
       const allDefs = await db.metric_definition.toArray();
-      const defMap = new Map(allDefs.map((d) => [d.code, d.name]));
+      const suppliedCounts = await Promise.all(
+        allDefs.map(async (def) => {
+          const cnt = await db.measurement
+            .where('metric_code')
+            .equals(def.code)
+            .filter((m) => m.source === srcId && !m.deleted_at)
+            .count();
+          return { code: def.code, name: def.name, count: cnt };
+        })
+      );
 
-      const supplied = Object.entries(metricMap).map(([code, cnt]) => ({
-        code,
-        name: defMap.get(code) ?? code.replace(/_/g, ' ').toUpperCase(),
-        count: cnt
-      }));
-
+      const supplied = suppliedCounts.filter((item) => item.count > 0);
       supplied.sort((a, b) => b.count - a.count);
+
+      const latestMeas = await db.measurement
+        .where('source')
+        .equals(srcId)
+        .filter((m) => !m.deleted_at)
+        .reverse()
+        .sortBy('created_at')
+        .then((arr) => (arr.length > 0 ? arr[arr.length - 1] : null));
+
+      const latest = latestMeas?.created_at ?? null;
 
       return { supplied, lastTime: latest };
     }).subscribe((val) => {
@@ -157,7 +155,9 @@
               <Icon name={source.icon} size="md" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-surface-900 dark:text-surface-100">{source.name}</h3>
+              <h3 class="text-sm font-bold text-surface-900 dark:text-surface-100">
+                {source.name}
+              </h3>
               <span class="font-mono text-xs text-surface-400">ID: {source.id}</span>
             </div>
           </div>
@@ -192,7 +192,7 @@
         <!-- NATIVE HEALTH CONNECT QUICK ACTION CONTROLS -->
         {#if source.id === 'health_connect' && isNativeAndroid}
           <div
-            class="rounded-lg border border-primary-200 bg-primary-50/50 p-4 dark:border-primary-800 dark:bg-primary-950/30"
+            class="dark:bg-primary-950/30 rounded-lg border border-primary-200 bg-primary-50/50 p-4 dark:border-primary-800"
           >
             <div class="flex items-center justify-between">
               <div>
@@ -215,12 +215,7 @@
                     Authorize
                   </Btn>
                 {/if}
-                <Btn
-                  variant="primary"
-                  size="sm"
-                  loading={syncing}
-                  onclick={handleSyncNow}
-                >
+                <Btn variant="primary" size="sm" loading={syncing} onclick={handleSyncNow}>
                   <Icon name="sync" size="sm" class="mr-1" />
                   Sync Now
                 </Btn>
@@ -233,22 +228,34 @@
           <!-- ACTIVE SOURCE DIAGNOSTICS -->
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
-              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900">
-                <span class="text-[11px] text-surface-500 dark:text-surface-400">Total Measurements</span>
+              <div
+                class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900"
+              >
+                <span class="text-[11px] text-surface-500 dark:text-surface-400"
+                  >Total Measurements</span
+                >
                 <div class="mt-0.5 text-base font-bold text-surface-900 dark:text-surface-100">
                   {count.toLocaleString()}
                 </div>
               </div>
-              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900">
-                <span class="text-[11px] text-surface-500 dark:text-surface-400">Last Data Ingest</span>
-                <div class="mt-1 truncate text-xs font-semibold text-surface-900 dark:text-surface-100">
+              <div
+                class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900"
+              >
+                <span class="text-[11px] text-surface-500 dark:text-surface-400"
+                  >Last Data Ingest</span
+                >
+                <div
+                  class="mt-1 truncate text-xs font-semibold text-surface-900 dark:text-surface-100"
+                >
                   {lastSyncTime ?? 'Recent'}
                 </div>
               </div>
             </div>
 
             <div>
-              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300">
+              <h4
+                class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300"
+              >
                 Metrics Supplied ({metricsSupplied.length})
               </h4>
               <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
@@ -258,7 +265,9 @@
                   >
                     <div class="flex items-center gap-2">
                       <Icon name="monitoring" size="sm" class="text-primary-600" />
-                      <span class="font-semibold text-surface-900 dark:text-surface-100">{item.name}</span>
+                      <span class="font-semibold text-surface-900 dark:text-surface-100"
+                        >{item.name}</span
+                      >
                     </div>
                     <span class="font-mono text-surface-500 dark:text-surface-400"
                       >{item.count.toLocaleString()} entries</span
@@ -271,18 +280,25 @@
         {:else}
           <!-- INACTIVE SOURCE DIAGNOSTICS & SETUP GUIDE -->
           <div class="space-y-4">
-            <div class="rounded-lg border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800">
-              <div class="mb-1 flex items-center gap-2 text-xs font-semibold text-surface-800 dark:text-surface-200">
+            <div
+              class="rounded-lg border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
+            >
+              <div
+                class="mb-1 flex items-center gap-2 text-xs font-semibold text-surface-800 dark:text-surface-200"
+              >
                 <Icon name="info" size="sm" class="text-surface-500" />
                 Connection Status
               </div>
               <p class="text-xs leading-relaxed text-surface-600 dark:text-surface-400">
-                No measurement data received from {source.name} yet. Tap Authorize / Sync Now above or grant permissions in system settings to start syncing.
+                No measurement data received from {source.name} yet. Tap Authorize / Sync Now above or
+                grant permissions in system settings to start syncing.
               </p>
             </div>
 
             <div>
-              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300">
+              <h4
+                class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300"
+              >
                 Setup Instructions
               </h4>
               <div
@@ -295,7 +311,9 @@
           </div>
         {/if}
 
-        <div class="flex items-center justify-end gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
+        <div
+          class="flex items-center justify-end gap-3 border-t border-surface-200 pt-4 dark:border-surface-700"
+        >
           <Btn variant="secondary" onclick={() => (open = false)}>Close</Btn>
         </div>
       </div>

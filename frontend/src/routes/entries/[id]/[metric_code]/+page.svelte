@@ -65,22 +65,44 @@
 
   let overviews = liveQuery(() => fetchMetricOverview());
 
-  let allEntries = liveQuery(() =>
-    db.measurement
-      .where('metric_code')
-      .equals(childMetricCode!)
-      .toArray()
-      .then((arr) =>
-        arr
-          .filter((e) => !e.deleted_at)
-          .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-      )
-  );
+  let totalEntriesCount = $state(0);
+  let pagedEntries = $state<Entry[]>([]);
+
+  $effect(() => {
+    const code = childMetricCode;
+    const page = pageNum;
+    if (!code) {
+      pagedEntries = [];
+      totalEntriesCount = 0;
+      return;
+    }
+    const sub = liveQuery(async () => {
+      const count = await db.measurement
+        .where('metric_code')
+        .equals(code)
+        .filter((e) => !e.deleted_at)
+        .count();
+
+      const items = await db.measurement
+        .where('metric_code')
+        .equals(code)
+        .filter((e) => !e.deleted_at)
+        .reverse()
+        .sortBy('start_time')
+        .then((arr) => arr.slice((page - 1) * perPage, page * perPage));
+
+      return { count, items };
+    }).subscribe((res) => {
+      totalEntriesCount = res.count;
+      pagedEntries = res.items;
+    });
+    return () => sub.unsubscribe();
+  });
 
   let pageNum = $state(1);
   const perPage = 25;
-  let entries = $derived(($allEntries ?? []).slice((pageNum - 1) * perPage, pageNum * perPage));
-  let total = $derived($allEntries?.length ?? 0);
+  let entries = $derived(pagedEntries);
+  let total = $derived(totalEntriesCount);
   let range = $state('90d');
   let trend = $derived(useTrend(metric?.data_type ?? '', range));
   let overview = $derived($overviews ? overviewForMetric($overviews, childMetricCode!) : null);
@@ -322,7 +344,7 @@
       </Card>
     {/if}
 
-    {#if $allEntries === undefined}
+    {#if loading}
       <div class="flex justify-center py-20"><Spinner size="lg" /></div>
     {:else if total === 0}
       <EmptyState

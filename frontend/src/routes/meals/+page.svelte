@@ -20,37 +20,38 @@
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
 
   $effect(() => {
+    const date = selectedDate;
     const sub1 = liveQuery(() =>
       db.meal
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
+        .where('log_date')
+        .equals(date)
+        .filter((m) => !m.deleted_at)
         .toArray()
     ).subscribe((v) => {
       meals = v;
     });
-    const sub2 = liveQuery(() =>
-      db.meal_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub2 = liveQuery(async () => {
+      const dayMeals = await db.meal
+        .where('log_date')
+        .equals(date)
+        .filter((m) => !m.deleted_at)
+        .toArray();
+      const mealIds = dayMeals.map((m) => m.id);
+      if (mealIds.length === 0) return [] as MealItem[];
+      return db.meal_item
+        .where('meal_id')
+        .anyOf(mealIds)
+        .filter((mi) => !mi.deleted_at)
+        .toArray();
+    }).subscribe((v) => {
       mealItems = v;
     });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      foodItems = v;
-      loading = false;
-    });
+    const sub3 = liveQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray()).subscribe(
+      (v) => {
+        foodItems = v;
+        loading = false;
+      }
+    );
     return () => {
       sub1.unsubscribe();
       sub2.unsubscribe();

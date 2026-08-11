@@ -55,6 +55,7 @@ from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
 from salus.services.achievement.service import AchievementService
+from salus.services.metric_definition import MetricDefinitionService
 from salus.services.mood import MoodService
 
 
