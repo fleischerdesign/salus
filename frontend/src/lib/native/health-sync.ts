@@ -1,6 +1,6 @@
 import { nativeBridge } from './bridge';
 import { db } from '$lib/db/database';
-import { mutate } from '$lib/mutate';
+import type { Measurement, OutboxOp } from '$lib/db/types';
 import { syncEngine } from '$lib/db/sync-engine.svelte';
 
 export interface HealthSyncResult {
@@ -45,47 +45,74 @@ export const healthSyncService = {
         return { success: true, count: 0, message: 'Health Connect is up to date (0 new entries).' };
       }
 
-      let inserted = 0;
+      // Collect all existing external_ids in memory for O(1) deduplication
+      const existingRecords = await db.measurement
+        .filter((m) => m.source === 'health_connect' && !m.deleted_at)
+        .toArray();
+      const existingExternalIds = new Set<string>(
+        existingRecords.map((r) => r.external_id).filter(Boolean) as string[]
+      );
+
+      const newMeasurements: Measurement[] = [];
+      const newOutboxOps: OutboxOp[] = [];
+      const nowIso = new Date().toISOString();
+
       for (const item of metrics) {
-        // Check if measurement with same external_id already exists in Dexie
-        if (item.external_id) {
-          const existing = await db.measurement
-            .filter((m) => m.external_id === item.external_id && !m.deleted_at)
-            .first();
-          if (existing) continue;
+        if (item.external_id && existingExternalIds.has(item.external_id)) {
+          continue;
         }
 
         const id = crypto.randomUUID();
-        await mutate({
-          kind: 'crud',
-          op: 'create',
-          entity: 'measurement',
+        const measurementData: Measurement = {
           id,
-          data: {
-            id,
-            metric_code: item.metric_code,
-            data_type: 'number',
-            value_numeric: item.value,
-            value_text: null,
-            value_boolean: null,
-            unit: item.unit,
-            measured_at: item.measured_at,
-            source: 'health_connect',
-            external_id: item.external_id,
-            notes: null,
-            created_at: new Date().toISOString()
-          }
+          user_id: '',
+          metric_code: item.metric_code,
+          data_type: 'number',
+          value_numeric: item.value,
+          value_text: null,
+          value_json: null,
+          start_time: item.measured_at,
+          end_time: item.measured_at,
+          source: 'health_connect',
+          external_id: item.external_id,
+          notes: null,
+          created_at: nowIso,
+          updated_at: nowIso,
+          deleted_at: null
+        };
+
+        newMeasurements.push(measurementData);
+        if (item.external_id) {
+          existingExternalIds.add(item.external_id);
+        }
+
+        newOutboxOps.push({
+          kind: 'crud',
+          opType: 'create',
+          entity: 'measurement',
+          client_id: crypto.randomUUID(),
+          data: measurementData as unknown as Record<string, unknown>,
+          realId: id,
+          createdAt: nowIso,
+          retries: 0
         });
-        inserted++;
       }
 
-      // Trigger immediate background outbox push to Salus server
+      if (newMeasurements.length === 0) {
+        return { success: true, count: 0, message: 'All Health Connect entries already exist locally.' };
+      }
+
+      // Atomic high-performance bulk insertion in Dexie
+      await db.measurement.bulkPut(newMeasurements);
+      await db.outbox.bulkPut(newOutboxOps);
+
+      // Trigger asynchronous background flush to server without blocking UI
       syncEngine.flush().catch((e) => console.error('Outbox flush error:', e));
 
       return {
         success: true,
-        count: inserted,
-        message: `Successfully synchronized ${inserted} measurements from Health Connect.`
+        count: newMeasurements.length,
+        message: `Successfully synchronized ${newMeasurements.length} measurements from Health Connect.`
       };
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);

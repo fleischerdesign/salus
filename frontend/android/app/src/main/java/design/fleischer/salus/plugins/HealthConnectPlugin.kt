@@ -230,9 +230,9 @@ class HealthConnectPlugin : Plugin() {
                     for (record in sleepResponse.records) {
                         val durationMinutes = Duration.between(record.startTime, record.endTime).toMinutes().toDouble()
                         val item = JSObject()
-                        item.put("metric_code", "sleep_duration")
+                        item.put("metric_code", "sleep")
                         item.put("value", durationMinutes)
-                        item.put("unit", "min")
+                        item.put("unit", "minutes")
                         item.put("measured_at", record.endTime.toString())
                         item.put("external_id", "hc_sleep_${record.metadata.id}")
                         item.put("source", "health_connect")

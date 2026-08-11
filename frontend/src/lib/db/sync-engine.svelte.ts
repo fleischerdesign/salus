@@ -1,6 +1,6 @@
 import { db } from './database';
 import type { OutboxOp, SyncStatus } from './types';
-import { getAuthHeaders } from '$lib/api/headers';
+import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import type { Mutation } from '$lib/mutate';
 
 let _status = $state<SyncStatus>('idle');
@@ -109,7 +109,8 @@ export const syncEngine = {
       }
     });
 
-    const res = await fetch('/api/v1/sync/push', {
+    const baseUrl = getApiBaseUrl() || '';
+    const res = await fetch(`${baseUrl}/api/v1/sync/push`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ operations })

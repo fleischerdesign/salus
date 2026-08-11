@@ -3,6 +3,7 @@ import { offlineService } from './offline-service';
 import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
 import { toast, dismissToast, updateToastProgress } from '$components/ui/toast-state.svelte';
+import { Capacitor } from '@capacitor/core';
 
 let _sessionExpired = $state(false);
 let _syncToastId: number | null = null;
@@ -56,7 +57,7 @@ export const useOffline = {
       }
     };
 
-    if ('serviceWorker' in navigator) {
+    if (!Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
       await navigator.serviceWorker.ready;
     }
 
