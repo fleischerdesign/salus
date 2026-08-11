@@ -212,6 +212,15 @@ class WritePipeline:
         if hasattr(entity_class, "updated_at") and "updated_at" not in data:
             data["updated_at"] = now
 
+        if op.entity == "measurement":
+            from salus.models.metric_definition import MetricDefinition
+            metric_code = data.get("metric_code")
+            if metric_code and self.session.get(MetricDefinition, metric_code) is None:
+                return SyncResult(
+                    type=op.type, entity=op.entity or "", client_id=op.client_id,
+                    status="error", message=f"Unknown metric_code: {metric_code}",
+                )
+
         try:
             instance = entity_class.model_validate(data)
         except Exception as e:
@@ -221,7 +230,13 @@ class WritePipeline:
             )
 
         self.session.add(instance)
-        self.session.flush()
+        try:
+            self.session.flush()
+        except Exception as e:
+            return SyncResult(
+                type=op.type, entity=op.entity or "", client_id=op.client_id,
+                status="error", message=f"Database error: {e}",
+            )
 
         record_id = instance.id  # pyright: ignore[reportAttributeAccessIssue]
         if op.client_id and record_id is not None:

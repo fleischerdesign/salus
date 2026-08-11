@@ -178,6 +178,11 @@ async def lifespan(app: FastAPI):
             raise
 
         try:
+            MetricDefinitionService(uow).seed_definitions()
+        except Exception:
+            logging.error("Failed to seed metric definitions", exc_info=True)
+
+        try:
             AchievementService(uow).seed_definitions()
         except Exception:
             logging.error("Failed to seed achievement definitions", exc_info=True)

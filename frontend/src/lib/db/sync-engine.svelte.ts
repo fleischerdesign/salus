@@ -124,6 +124,16 @@ export const syncEngine = {
       }
       _status = 'error';
       _error = `Sync push failed: ${res.status}`;
+      for (const item of batch) {
+        if (item.id != null) {
+          item.retries = (item.retries ?? 0) + 1;
+          if (item.retries >= MAX_RETRIES) {
+            await db.outbox.delete(item.id);
+          } else {
+            await db.outbox.put(item);
+          }
+        }
+      }
       return;
     }
 
