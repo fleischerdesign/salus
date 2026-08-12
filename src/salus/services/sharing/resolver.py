@@ -10,7 +10,7 @@ from salus.config import settings
 from salus.exceptions import ForbiddenError, NotFoundError
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid, parse_date, summarize_daily_values
+from salus.services._helpers import uid, parse_date, summarize_daily_values, make_handle
 from salus.services.sharing._http import retry_http_request
 
 if TYPE_CHECKING:
@@ -87,7 +87,7 @@ class FederationDataResolver:
 
         if not self.relationship_svc.is_remote(owner_handle):
             return self._resolve_local(
-                owner_handle, f"@{req_user.username}", data_type, date_str
+                owner_handle, make_handle(req_user), data_type, date_str
             )
         else:
             if not force_refresh:
@@ -233,7 +233,7 @@ class FederationDataResolver:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
 
             local_incoming = self.uow.sharing_relationships.find_active_by_grantee(
                 user_handle

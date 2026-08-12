@@ -76,7 +76,7 @@ class LeaderboardService:
 
             assert group.id is not None
             # Check if user is already a member
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             existing = self.uow.leaderboard_members.get_member(group.id, user_handle)
             if existing:
                 if existing.status == "active":
@@ -123,7 +123,7 @@ class LeaderboardService:
             if not user:
                 return []
 
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             # Load created groups
             created = self.uow.leaderboard_groups.find_by_creator(user_id)
             # Load joined groups
@@ -296,7 +296,7 @@ class LeaderboardService:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             member = self.uow.leaderboard_members.get_member(group_id, user_handle)
             if not member:
                 raise NotFoundError("You are not a member of this challenge")
