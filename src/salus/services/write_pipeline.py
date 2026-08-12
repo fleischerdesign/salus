@@ -14,11 +14,11 @@ from salus.repositories.entity_meta import (
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation, SyncResult
 from salus.services.command_registry import get_handler
+from salus.services.constants import DEDUP_TTL_HOURS, SYNC_BATCH_SIZE
 from salus.services.serialization import serialize_record
 import salus.services.commands  # noqa: F401 — triggers @register decorators
 
 _PK_FIELDS = {"id", "created_at"}
-_DEDUP_TTL_HOURS = 24
 
 
 class WritePipeline:
@@ -58,10 +58,10 @@ class WritePipeline:
         if not client_ids:
             return {}
 
-        self.uow.sync_push_logs.cleanup_expired(_DEDUP_TTL_HOURS)
+        self.uow.sync_push_logs.cleanup_expired(DEDUP_TTL_HOURS)
 
         cache: dict[str, SyncResult] = {}
-        chunk_size = 500
+        chunk_size = SYNC_BATCH_SIZE
         for i in range(0, len(client_ids), chunk_size):
             chunk = client_ids[i : i + chunk_size]
             rows = self.uow.sync_push_logs.find_by_client_ids(chunk)

@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Protocol, TypeVar, runtime_checkable
 
+from salus.services.constants import DEDUP_TTL_HOURS
 from salus.models.api_token import ApiToken
 from salus.models.dashboard import DashboardWidget
 from salus.models.goal import Goal
@@ -380,7 +381,7 @@ class INotificationRepository(IRepository[Notification], Protocol):
 
 @runtime_checkable
 class ISyncPushLogRepository(IRepository[SyncPushLog], Protocol):
-    def cleanup_expired(self, ttl_hours: int = 24) -> int: ...
+    def cleanup_expired(self, ttl_hours: int = DEDUP_TTL_HOURS) -> int: ...
 
     def find_by_client_ids(self, client_ids: list[str]) -> list[SyncPushLog]: ...
 

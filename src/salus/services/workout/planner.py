@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 from salus.exceptions import ForbiddenError, NotFoundError
+from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
 from salus.models.workout import (
     Exercise,
     WorkoutPlan,
@@ -355,7 +356,7 @@ class WorkoutService:
                         "name": ex.name,
                         "suggested_sets": plan_ex.target_sets,
                         "suggested_reps": plan_ex.target_reps,
-                        "suggested_rpe": plan_ex.target_rpe or 8.0,
+                        "suggested_rpe": plan_ex.target_rpe or DEFAULT_RPE,
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
                         "reason": "Autoregulation disabled for this plan.",
@@ -386,7 +387,7 @@ class WorkoutService:
                 rest_val = pe.rest_seconds if pe else None
                 if rest_val is None and e:
                     rest_val = e.suggested_rest_seconds
-                t["rest_seconds"] = rest_val if rest_val is not None else 90
+                t["rest_seconds"] = rest_val if rest_val is not None else DEFAULT_REST_SECONDS
 
             return targets
 

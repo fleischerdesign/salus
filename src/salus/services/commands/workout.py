@@ -6,6 +6,7 @@ from typing import Any, TYPE_CHECKING
 from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
 from salus.utils import uuid7_str
 from salus.services.command_registry import CommandResult, register
+from salus.services.constants import DEFAULT_TARGET_REPS, DEFAULT_TARGET_RPE, DEFAULT_TARGET_SETS
 from salus.services.serialization import serialize_record
 
 if TYPE_CHECKING:
@@ -279,9 +280,9 @@ class CreatePlanHandler:
                 plan_id=plan_id,
                 exercise_id=exercise_id,
                 sequence=item.get("sequence", 0),
-                target_sets=item.get("target_sets", 3),
-                target_reps=item.get("target_reps", 8),
-                target_rpe=item.get("target_rpe", 8.0),
+                target_sets=item.get("target_sets", DEFAULT_TARGET_SETS),
+                target_reps=item.get("target_reps", DEFAULT_TARGET_REPS),
+                target_rpe=item.get("target_rpe", DEFAULT_TARGET_RPE),
                 is_autoreg_exempt=item.get("is_autoreg_exempt", False),
                 rest_seconds=item.get("rest_seconds"),
                 created_at=now,
