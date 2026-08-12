@@ -85,10 +85,10 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
 ### ✅ P8 — Soft-Delete-Bugfix (committed: 1fd18da)
 - `find_all`/`find_recent_entries` filtern `deleted_at`.
 
-### ✅ P9 — Frontend (committed: e75fbba)
+### ✅ P9 — Frontend (committed: e75fbba, 93ca949)
 - ESLint 69→0 (inkl. `_-`-Präfix-Konvention), `SalusDB.notDeleted()`-Helper (7× `null as any` eliminiert),
   Dead Code entfernt, `handleSave` typisiert, a11y-Fixes. svelte-check 0/0, vitest 119, Build OK.
-- **Offen:** `useQuery()`-Ausrollen über ~29 Seiten (bewusst delegiert — mechanischer, großer Einzelrefactor).
+- `useLive()`-Ausrollen über 14 Seiten (Reactive-Dexie-Hook); komplexe Datenladung bleibt explizit.
 
 ### ✅ P10 — Streak zentralisiert (committed: df688c4)
 - 3× Streak → `services/achievement/streak.py:compute_streak`.
@@ -104,12 +104,23 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
 - planner `ValueError`→`ConflictError`/`RuntimeError`, dashboard_widget `ValueError`→`NotFoundError`,
   circadian loggt statt still zu schlucken.
 
-### P13 — God-Objects splitten (Teil committed: 99fdd6a)
-- sync.py: Admin/Community/Config extrahiert (`services/admin.py`, `services/community.py`,
-  `services/config.py`), toter Branch entfernt. SyncService besitzt nur noch die Sync-Engine.
-- **Offen:** dashboard_widget VizBuilder-Split, orchestrator 7-Domänen-Split
-  (characterization-getrieben, eigenes Arbeitspaket).
+### ✅ P13 — God-Objects splitten (committed: 99fdd6a, 81117fb, 999917c)
+- sync.py: Admin/Community/Config extrahiert, toter Branch entfernt.
+- dashboard_widget: 8 VizBuilder + Helper + Registry → `services/dashboard_viz/builders.py`;
+  toten `enrich_with_trend` entfernt.
+- orchestrator: `AnalyticsService` → Facade über 7 Strategie-Klassen
+  (`analytics/strategies/` mit `AnalyticsContext` + `_helpers.py`), verhaltensidentisch
+  durch Analytics-Testsuiten verifiziert.
 
-### P14 — Write-Kanäle + Events + AGENTS.md (Teil committed: 052c4c4)
+### ✅ P14 — Write-Kanäle + Events + AGENTS.md (committed: 052c4c4, 739d1f5)
 - AGENTS.md §17: Konzept-Regel dokumentiert.
-- **Offen:** Event-Publishing in Domain-Services nachziehen (SSE nach Commit, konsistent zu WritePipeline).
+- WritePipeline publiziert nach erfolgreichem Write (Single Choke-Point für Sync-Push +
+  auto-CRUD); `schedule_publish()`-Helper; Action-Routen (habit, medication, workout,
+  mood, circadian, insight) publizieren. `test_event_bus.py` deckt den Mechanismus ab.
+
+### ✅ P9-Rest — useLive-Ausrollen (committed: 93ca949)
+- `use-query.svelte.ts`: `useLive(querier, setValue)` reaktiv (Resubscribe bei
+  Parameterwechsel), `useQuery` als Sugar darauf.
+- 14 Seiten/Komponenten von Hand-Subscription-Boilerplate auf useLive migriert
+  (Templates unverändert). Komplexe Domain-Datenladung (entries, dashboard,
+  SourceDetailsModal) bleibt bewusst als explizite Logik.
