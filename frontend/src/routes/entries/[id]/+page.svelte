@@ -2,6 +2,7 @@
   import Dexie from 'dexie';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
+  import { MS_PER_DAY } from '$lib/utils/datetime';
   import type { Measurement as Entry, MetricGroup } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
   import { mergeMetricPrefs } from '$lib/db/types';
@@ -81,7 +82,7 @@
     const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
     const codes = defs.map((d) => d.code);
     if (codes.length === 0) return [] as Entry[];
-    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+    const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
     const results = await Promise.all(
       codes.map((code) =>
         db.measurement
@@ -138,7 +139,7 @@
     const gKey = group?.key;
     if (!isGroup || !gKey || group?.input_mode !== 'combined') return [];
     const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+    const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
     const result: {
       code: string;
       name: string;

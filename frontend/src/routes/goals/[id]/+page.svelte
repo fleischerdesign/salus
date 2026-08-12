@@ -300,7 +300,7 @@
               <span class="text-sm font-semibold text-surface-900">Recent Contributions</span>
             </div>
             <a
-              href="/entries/{goalView.id}"
+              href="/entries/{goalView.metric_code}"
               class="text-xs font-semibold text-primary-600 hover:text-primary-700"
             >
               Manage Entries

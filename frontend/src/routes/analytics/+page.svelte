@@ -571,7 +571,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="ecg_heart" size="sm" class="text-surface-400" />
-            <span class="text-sm font-semibold text-surface-900">Resting HR Forecast</span>>
+            <span class="text-sm font-semibold text-surface-900">Resting HR Forecast</span>
           </div>
         {/snippet}
         <div class="p-6">

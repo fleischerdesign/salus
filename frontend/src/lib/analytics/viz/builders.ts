@@ -1,5 +1,6 @@
 import type { Measurement, Goal, MetricDefinition, DashboardWidget } from '../../db/types';
 import { computeSparkline, deltaStr, yesterday, roundedSegments } from './helpers';
+import { MS_PER_DAY } from '$lib/utils/datetime';
 
 export interface WidgetViz {
   type:
@@ -117,7 +118,7 @@ export function buildStepsViz(ctx: VizContext): WidgetViz {
   const yestM = ctx.allMeasurements.filter((m) => {
     if (m.metric_code !== ctx.metric.code) return false;
     const t = new Date(m.start_time).getTime();
-    return t >= yStart && t < yStart + 86400000 && !m.deleted_at;
+    return t >= yStart && t < yStart + MS_PER_DAY && !m.deleted_at;
   });
   const yesterdaySteps = stepsTrend(yestM);
   const goal = findGoal(ctx.goals, 'steps', ctx.metric.code);
@@ -174,7 +175,7 @@ export function buildHeartRateViz(ctx: VizContext): WidgetViz {
     const t = new Date(m.start_time).getTime();
     return (
       t >= yStart &&
-      t < yStart + 86400000 &&
+      t < yStart + MS_PER_DAY &&
       !m.deleted_at &&
       m.value_numeric != null &&
       m.value_numeric > 0
@@ -285,7 +286,7 @@ export function buildWeightViz(ctx: VizContext): WidgetViz {
   const yestM = ctx.allMeasurements.filter((m) => {
     if (m.metric_code !== ctx.metric.code) return false;
     const t = new Date(m.start_time).getTime();
-    return t >= yStart && t < yStart + 86400000 && !m.deleted_at;
+    return t >= yStart && t < yStart + MS_PER_DAY && !m.deleted_at;
   });
   const yestW = latestWeight(yestM);
   const recentWeights = ctx.allMeasurements

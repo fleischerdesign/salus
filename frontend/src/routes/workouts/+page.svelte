@@ -31,7 +31,6 @@
   const logsQuery = useQuery(async () => {
     const active = await db.workout_session
       .filter((s) => !s.deleted_at)
-      .reverse()
       .sortBy('started_at')
       .then((arr) => arr.slice(0, 5));
     const sessIds = active.map((s) => s.id);

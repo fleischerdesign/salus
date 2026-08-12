@@ -2,6 +2,7 @@
   import { db } from '$lib/db/database';
   import { startWorkout } from '$lib/mutations/workout';
   import { goto } from '$app/navigation';
+  import { MS_PER_DAY } from '$lib/utils/datetime';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
@@ -51,7 +52,7 @@
 
   function formatRelativeTime(dateStr: string): string {
     const diffMs = Date.now() - new Date(dateStr).getTime();
-    const diffDays = Math.floor(diffMs / 86400000);
+    const diffDays = Math.floor(diffMs / MS_PER_DAY);
     if (diffDays === 0) return 'today';
     if (diffDays === 1) return 'yesterday';
     return `${diffDays} days ago`;

@@ -1,6 +1,7 @@
 import Dexie, { liveQuery } from 'dexie';
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
+import { MS_PER_DAY } from '$lib/utils/datetime';
 import {
   benjaminiHochberg,
   bmrCunningham,
@@ -459,7 +460,7 @@ export function useWellness(dateStr?: string) {
     const since = new Date(target);
     since.setDate(since.getDate() - 28);
     const sinceISO = since.toISOString();
-    const untilISO = new Date(target.getTime() + 86400000).toISOString();
+    const untilISO = new Date(target.getTime() + MS_PER_DAY).toISOString();
 
     const targetCodes = ['resting_heart_rate', 'heart_rate', 'steps', 'sleep'];
     const arrays = await Promise.all(
