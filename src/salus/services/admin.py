@@ -7,15 +7,17 @@ from salus.models.goal import Goal
 from salus.models.measurement import Measurement
 from salus.models.user import User
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid
 from sqlmodel import func, select
 
 
-def admin_user_list(s, exclude_user_id: str) -> list[dict]:
+def admin_user_list(s, exclude_user_id: str | None = None) -> list[dict]:
     measurement_subq = (
         select(func.count())
         .select_from(Measurement)
-        .where(Measurement.user_id == User.id)
+        .where(
+            Measurement.user_id == User.id,
+            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
         .correlate(User)
         .scalar_subquery()
         .label("measurement_count")
@@ -29,19 +31,21 @@ def admin_user_list(s, exclude_user_id: str) -> list[dict]:
         .label("goal_count")
     )
 
-    rows = s.exec(
-        select(  # pyright: ignore[reportCallIssue]
-            User.id,
-            User.username,
-            User.email,
-            User.display_name,
-            User.is_admin,
-            User.is_active,
-            User.created_at,
-            measurement_subq,
-            goal_subq,
-        ).where(User.id != exclude_user_id)
-    ).all()
+    stmt = select(  # pyright: ignore[reportCallIssue]
+        User.id,
+        User.username,
+        User.email,
+        User.display_name,
+        User.is_admin,
+        User.is_active,
+        User.created_at,
+        measurement_subq,
+        goal_subq,
+    )
+    if exclude_user_id is not None:
+        stmt = stmt.where(User.id != exclude_user_id)
+
+    rows = s.exec(stmt).all()
 
     return [
         {
@@ -51,7 +55,7 @@ def admin_user_list(s, exclude_user_id: str) -> list[dict]:
             "display_name": r[3],
             "is_admin": r[4],
             "is_active": r[5],
-            "created_at": r[6].isoformat() if r[6] else None,
+            "created_at": r[6],
             "measurement_count": r[7] or 0,
             "goal_count": r[8] or 0,
         }
@@ -125,26 +129,7 @@ class AdminService:
         }
 
     def list_users_with_stats(self) -> list[dict]:
-        users = self.uow.users.list_all()
-        result: list[dict] = []
-        for user in users:
-            user_id = uid(user) if user.id is not None else ""
-            measurements = self.uow.measurements.find_all(user_id=user_id)
-            goals = self.uow.goals.find_by_user(user_id)
-            result.append(
-                {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "display_name": user.display_name,
-                    "is_admin": user.is_admin,
-                    "is_active": user.is_active,
-                    "created_at": user.created_at,
-                    "measurement_count": len(measurements),
-                    "goal_count": len(goals),
-                }
-            )
-        return result
+        return admin_user_list(self.uow.session)
 
     def toggle_admin(self, user_id: str) -> User:
         return self.uow.users.toggle_admin(user_id)
