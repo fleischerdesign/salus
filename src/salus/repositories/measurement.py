@@ -94,6 +94,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         stmt = select(Measurement)
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
+        stmt = stmt.where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         if data_types:
             stmt = stmt.where(Measurement.data_type.in_(data_types))  # pyright: ignore[reportAttributeAccessIssue]
         if sources:
@@ -183,7 +184,11 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
     def find_recent_entries(self, user_id: str, limit: int = 20) -> list[Measurement]:
         stmt = (
             select(Measurement)
-            .where(Measurement.user_id == user_id, Measurement.source == "manual")
+            .where(
+                Measurement.user_id == user_id,
+                Measurement.source == "manual",
+                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+            )
             .order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
             .limit(limit)
         )
