@@ -343,12 +343,21 @@ Not every domain belongs in the metric system. Use this framework:
 
 **NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB. The single reactive-read idiom is the **`useQuery`** hook from `$lib/db/use-query.svelte` — it re-subscribes both on Dexie changes and when the querier's reactive dependencies (route params, dates) change. Do **not** hand-write `$effect(() => { liveQuery(...).subscribe(...) })` blocks and do **not** assign a `liveQuery` store (`let x = liveQuery(...)` + `$x`) — those miss state-parameter changes and leave stale data on navigation.
 
+**Never destructure `useQuery`'s result.** Svelte 5 `$state` reactivity is resolved at compile time (`$.get`/`$.set`); it does **not** survive returning a value out of a function and destructuring it. `const { value: medications } = useQuery(...)` captures a one-time snapshot — `loading` stays `true` and `value` stays `undefined` forever. Keep the query object and bind `value`/`loading` via `$derived` aliases, which are reactive reads.
+
 ```typescript
 // ✅ CORRECT — the only reactive-read idiom
+const medicationsQuery = useQuery(
+  () => db.medication.notDeleted(db.medication).toArray()
+);
+const medications = $derived(medicationsQuery.value);
+const loading = $derived(medicationsQuery.loading);
+// template: {#each medications ?? [] as med} · {#if loading}skeleton{/if}
+
+// ❌ WRONG — destructuring captures a one-time snapshot; loading stays true, value stays undefined
 const { value: medications, loading } = useQuery(
   () => db.medication.notDeleted(db.medication).toArray()
 );
-// template: {#each medications ?? [] as med} · {#if loading}skeleton{/if}
 
 // ❌ WRONG — direct API call
 onMount(async () => {

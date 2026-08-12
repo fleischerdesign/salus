@@ -3,7 +3,7 @@
 Branch: `feat/codebase-hygiene` (von `develop`). Jede Phase = 1 Commit (Conventional
 Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlägt
 `test_openapi_contract.py::TestSchemaDrift` fehl). Sicherheitsnetz: 430 Backend- +
-119 Frontend-Tests.
+121 Frontend-Tests.
 
 ## Zielarchitektur (eine Regel)
 
@@ -127,3 +127,20 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
 - AGENTS.md: `useQuery` als einziges reaktives Lese-Idiom dokumentiert.
 - Komplexe Datenladung (Dashboard, entries group/metric dispatch, SourceDetailsModal)
   behält ihre Orchestrierung in `$effect`, geseedet aus Query-Werten.
+
+### ✅ P9-Fix — useQuery-Snapshot-Bug behoben (committed: 1edb34e)
+- **Root Cause:** `const { value: x, loading } = useQuery(...)` destrukturierte die
+  Getter einmal im `<script>` (nicht-reaktiver Kontext) → unveränderlicher Snapshot.
+  Svelte-5-`$state`-Reaktivität ist Compile-Zeit (`$.get`/`$.set`) und überlebt
+  Funktions-Rückgabe + Destructuring nicht → `loading` blieb `true`, `value` `undefined`
+  (ewiger Spinner, kein Console-Fehler). P9-Rest hatte dieses Muster als Idiom eingeführt.
+- **Fix:** Query-Objekt behalten, `value`/`loading` per `$derived`-Alias binden — an allen
+  99 Call-Sites (53 Dateien); Hook unverändert. Downstream-Referenzen (Template,
+  `$derived`-Blöcke, `$effect`-Blöcke) bleiben unverändert und sind jetzt reaktiv.
+- **Edge-Cases:** `useQuery<LogbookData>` (Typargument), `loading: entriesLoading`-Rename,
+  `= []`-Default (NotificationBell), `configQuery`-Namenskollision.
+- **Regressionstest** `tests/component/use-query.test.ts` (liveQuery gegen In-Memory-Dexie):
+  loading-Flip, Datenzustellung, Live-Reaktivität. Frontend-Sicherheitsnetz → 121.
+- AGENTS.md §„Frontend data loading": Destructuring-Idiom als ❌ dokumentiert (war als ✅ notiert).
+- SchemaError-Audit: alle `.where()`-Keypaths gegen die Dexie-Indizes geprüft — keine
+  verbliebenen unindexierten Queries (ausstehende Reste aus c43bfc7 ausgeräumt).
