@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable, type IndexableType } from 'dexie';
+import { uuid7 } from './uuid';
 import type {
   OutboxOp,
   SyncMeta,
@@ -172,7 +173,7 @@ export class SalusDB extends Dexie {
           ...oldDomainQueue.map((item: Record<string, unknown>) => ({
             kind: 'command' as const,
             command: item.url as string,
-            client_id: crypto.randomUUID(),
+            client_id: uuid7(),
             payload: item.body as Record<string, unknown> | undefined,
             responseTable: item.responseTable as string | undefined,
             createdAt: (item.createdAt as string) ?? now,

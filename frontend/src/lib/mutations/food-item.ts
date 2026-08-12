@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { uuid7 } from '$lib/db/uuid';
 
 export async function createFoodItem(data: {
   name: string;
@@ -19,7 +20,7 @@ export async function createFoodItem(data: {
     kind: 'crud',
     op: 'create',
     entity: 'food_item',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data
   });
 }

@@ -1,4 +1,5 @@
 import { nativeBridge } from './bridge';
+import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 import type { Measurement, OutboxOp } from '$lib/db/types';
 import { syncEngine } from '$lib/db/sync-engine.svelte';
@@ -80,7 +81,7 @@ export const healthSyncService = {
           continue;
         }
 
-        const id = crypto.randomUUID();
+        const id = uuid7();
         const measurementData: Measurement = {
           id,
           user_id: '',
@@ -111,7 +112,7 @@ export const healthSyncService = {
           kind: 'crud',
           opType: 'create',
           entity: 'measurement',
-          client_id: crypto.randomUUID(),
+          client_id: uuid7(),
           data: measurementData as unknown as Record<string, unknown>,
           realId: id,
           createdAt: nowIso,

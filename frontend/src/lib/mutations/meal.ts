@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { uuid7 } from '$lib/db/uuid';
 
 export async function createMeal(data: {
   log_date?: string;
@@ -7,7 +8,7 @@ export async function createMeal(data: {
   notes?: string;
   items: { food_item_id: string; servings: number; amount_g?: number }[];
 }) {
-  const id = crypto.randomUUID();
+  const id = uuid7();
   const now = new Date().toISOString();
   const today = new Date().toISOString().split('T')[0];
 

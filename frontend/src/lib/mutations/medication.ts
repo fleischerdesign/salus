@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 
 export async function createMedication(data: {
@@ -14,7 +15,7 @@ export async function createMedication(data: {
     kind: 'crud',
     op: 'create',
     entity: 'medication',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data
   });
 }
@@ -65,7 +66,7 @@ export async function createSchedule(
     kind: 'crud',
     op: 'create',
     entity: 'medication_schedule',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data: { ...data, medication_id: medicationId }
   });
 }
@@ -108,7 +109,7 @@ export async function toggleMedicationLog(
     }
   }
 
-  const id = crypto.randomUUID();
+  const id = uuid7();
   const now = new Date().toISOString();
   return mutate({
     kind: 'crud',
@@ -139,7 +140,7 @@ export async function toggleMedicationLog(
 export async function skipDose(medicationId: string, scheduleId: string, time: string) {
   const today = new Date().toISOString().split('T')[0];
   const takenAt = `${today}T${time}:00`;
-  const id = crypto.randomUUID();
+  const id = uuid7();
   const now = new Date().toISOString();
 
   return mutate({
@@ -197,7 +198,7 @@ export async function updateInventory(
     kind: 'crud',
     op: 'create',
     entity: 'medication_inventory',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data: { ...data, medication_id: medicationId }
   });
 }

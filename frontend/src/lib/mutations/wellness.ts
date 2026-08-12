@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 
 export async function createHabit(data: {
@@ -15,7 +16,7 @@ export async function createHabit(data: {
     kind: 'crud',
     op: 'create',
     entity: 'habit',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data
   });
 }
@@ -37,7 +38,7 @@ export async function toggleHabit(habitId: string) {
     });
   }
 
-  const id = crypto.randomUUID();
+  const id = uuid7();
   const now = new Date().toISOString();
   return mutate({
     kind: 'crud',
@@ -109,7 +110,7 @@ export async function createMoodEntry(data: {
     kind: 'crud',
     op: 'create',
     entity: 'mood_entry',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data
   });
 }
@@ -125,7 +126,7 @@ export async function createJournalEntry(data: {
     kind: 'crud',
     op: 'create',
     entity: 'journal_entry',
-    id: crypto.randomUUID(),
+    id: uuid7(),
     data
   });
 }
