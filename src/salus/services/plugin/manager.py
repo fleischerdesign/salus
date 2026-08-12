@@ -4,6 +4,7 @@ import importlib.util
 import shutil
 import zipfile
 import io
+from collections.abc import Iterator
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -22,24 +23,31 @@ class PluginManager:
         self.registry = HookRegistry()
         self.loaded_plugins: dict[str, BasePlugin] = {}
 
-    def _get_enabled_plugin_ids(self) -> set[str]:
-        # 1. Discover all plugins on disk
-        all_ids = set()
-        if self.plugins_dir.exists():
-            for path in self.plugins_dir.iterdir():
-                if path.is_dir() and not path.name.startswith("__"):
-                    manifest_path = path / "manifest.json"
-                    if manifest_path.exists():
-                        try:
-                            with open(manifest_path, "r", encoding="utf-8") as f:
-                                m = json.load(f)
-                                if m.get("id"):
-                                    all_ids.add(m["id"])
-                        except Exception:
-                            pass
+    def _iter_manifests(self) -> Iterator[tuple[Path, Path, dict]]:
+        """Yields (dir_path, manifest_path, manifest) for every plugin directory on disk."""
+        if not self.plugins_dir.exists():
+            return
+        for path in self.plugins_dir.iterdir():
+            if not path.is_dir() or path.name.startswith("__"):
+                continue
+            manifest_path = path / "manifest.json"
+            if not manifest_path.exists():
+                logger.debug(f"Skipping directory {path.name}: manifest.json not found")
+                continue
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    manifest = json.load(f)
+            except Exception as e:
+                logger.warning(f"Failed to read plugin manifest {manifest_path}: {e}")
+                continue
+            yield path, manifest_path, manifest
 
-        # 2. Try to query database configs
-        from sqlalchemy.exc import OperationalError
+    def _get_enabled_plugin_ids(self) -> set[str]:
+        all_ids = {
+            manifest["id"]
+            for _, _, manifest in self._iter_manifests()
+            if manifest.get("id")
+        }
 
         try:
             with self.uow:
@@ -50,7 +58,7 @@ class PluginManager:
                     )
                     return all_ids
                 return set(json.loads(config.value))
-        except (OperationalError, Exception):
+        except Exception:
             logger.info(
                 "Database or system_config table not yet initialized. Defaulting to loading all discovered plugins on disk."
             )
@@ -67,52 +75,29 @@ class PluginManager:
 
         enabled_ids = self._get_enabled_plugin_ids()
 
-        for path in self.plugins_dir.iterdir():
-            if path.is_dir() and not path.name.startswith("__"):
-                manifest_path = path / "manifest.json"
-                if not manifest_path.exists():
-                    logger.debug(
-                        f"Skipping directory {path.name}: manifest.json not found"
-                    )
-                    continue
-
+        for path, manifest_path, manifest in self._iter_manifests():
+            plugin_id = manifest.get("id")
+            if plugin_id and plugin_id in enabled_ids:
                 try:
-                    with open(manifest_path, "r", encoding="utf-8") as f:
-                        manifest = json.load(f)
-                    plugin_id = manifest.get("id")
-                    if plugin_id and plugin_id in enabled_ids:
-                        self._load_plugin(path, manifest_path)
-                    else:
-                        logger.info(f"Plugin {plugin_id} is disabled. Skipping load.")
+                    self._load_plugin(path, manifest_path)
                 except Exception as e:
                     logger.error(
                         f"Failed to load plugin from {path.name}: {str(e)}",
                         exc_info=True,
                     )
+            elif plugin_id:
+                logger.info(f"Plugin {plugin_id} is disabled. Skipping load.")
 
     def get_discovered_plugins(self) -> list[dict]:
         """Scans disk to find all plugins and checks database for active status."""
-        discovered = []
         enabled_ids = self._get_enabled_plugin_ids()
-
-        if not self.plugins_dir.exists():
-            return []
-
-        for path in self.plugins_dir.iterdir():
-            if path.is_dir() and not path.name.startswith("__"):
-                manifest_path = path / "manifest.json"
-                if not manifest_path.exists():
-                    continue
-                try:
-                    with open(manifest_path, "r", encoding="utf-8") as f:
-                        manifest = json.load(f)
-                    plugin_id = manifest.get("id")
-                    if plugin_id:
-                        manifest["enabled"] = plugin_id in enabled_ids
-                        manifest["loaded"] = plugin_id in self.loaded_plugins
-                        discovered.append(manifest)
-                except Exception:
-                    pass
+        discovered = []
+        for _, _, manifest in self._iter_manifests():
+            plugin_id = manifest.get("id")
+            if plugin_id:
+                manifest["enabled"] = plugin_id in enabled_ids
+                manifest["loaded"] = plugin_id in self.loaded_plugins
+                discovered.append(manifest)
         return discovered
 
     def toggle_plugin(self, plugin_id: str, enable: bool) -> None:
@@ -131,18 +116,15 @@ class PluginManager:
         # Dynamically load or unload in memory
         if enable:
             if plugin_id not in self.loaded_plugins:
-                for path in self.plugins_dir.iterdir():
-                    if path.is_dir() and not path.name.startswith("__"):
-                        manifest_path = path / "manifest.json"
-                        if manifest_path.exists():
-                            try:
-                                with open(manifest_path, "r", encoding="utf-8") as f:
-                                    m = json.load(f)
-                                if m.get("id") == plugin_id:
-                                    self._load_plugin(path, manifest_path)
-                                    break
-                            except Exception:
-                                pass
+                for path, manifest_path, manifest in self._iter_manifests():
+                    if manifest.get("id") == plugin_id:
+                        try:
+                            self._load_plugin(path, manifest_path)
+                        except Exception as e:
+                            logger.error(
+                                f"Error loading plugin {plugin_id}: {e}", exc_info=True
+                            )
+                        break
         else:
             if plugin_id in self.loaded_plugins:
                 plugin_instance = self.loaded_plugins[plugin_id]
