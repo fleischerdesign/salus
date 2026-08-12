@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.mood import MoodEntry, MoodTag
 from salus.repositories.base import Repository
@@ -15,6 +15,13 @@ class MoodTagRepository(Repository[MoodTag]):
 
 class MoodEntryRepository(Repository[MoodEntry]):
     model = MoodEntry
+
+    def find_dates(self, user_id: str) -> list[date]:
+        stmt = select(col(MoodEntry.entry_date)).where(
+            MoodEntry.user_id == user_id,
+            MoodEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        return [row for row in self.session.exec(stmt).all()]
 
     def find_by_user(self, user_id: str) -> list[MoodEntry]:
         return list(

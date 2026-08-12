@@ -88,6 +88,8 @@ class IUserIdentityRepository(IRepository[UserIdentity], Protocol):
 
 @runtime_checkable
 class IMeasurementRepository(IRepository[Measurement], Protocol):
+    def find_start_dates(self, user_id: str) -> list[date]: ...
+
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None
     ) -> list[Measurement]: ...
@@ -284,6 +286,8 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
 
     def find_all_by_user(self, user_id: str) -> list[WorkoutSession]: ...
 
+    def find_completed_dates(self, user_id: str) -> list[date]: ...
+
     def count_completed_in_range(
         self, user_id: str, since: "datetime", until: "datetime"
     ) -> int: ...
@@ -417,6 +421,8 @@ class IHabitLogRepository(IRepository[HabitLog], Protocol):
 
     def find_all_by_user(self, user_id: str) -> list[HabitLog]: ...
 
+    def find_completed_dates_by_user(self, user_id: str) -> dict[str, list[date]]: ...
+
 
 @runtime_checkable
 class IMoodTagRepository(IRepository[MoodTag], Protocol):
@@ -425,6 +431,8 @@ class IMoodTagRepository(IRepository[MoodTag], Protocol):
 
 @runtime_checkable
 class IMoodEntryRepository(IRepository[MoodEntry], Protocol):
+    def find_dates(self, user_id: str) -> list[date]: ...
+
     def find_by_user(self, user_id: str) -> list[MoodEntry]: ...
 
     def find_by_user_range(self, user_id: str, since: date, until: date) -> list[MoodEntry]: ...

@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import desc, func
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.measurement import Measurement
 from salus.repositories.base import Repository
@@ -48,6 +48,13 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
             .limit(1)
         )
         return self.session.exec(stmt).first()
+
+    def find_start_dates(self, user_id: str) -> list[date]:
+        stmt = select(col(Measurement.start_time)).where(
+            Measurement.user_id == user_id,
+            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        return [row.date() for row in self.session.exec(stmt).all()]
 
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None

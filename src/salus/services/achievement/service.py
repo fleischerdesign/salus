@@ -1,9 +1,10 @@
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from salus.models.achievement import AchievementDefinition, UserAchievement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.achievement.evaluator import evaluate_achievement
+from salus.services.achievement.streak import compute_streak
 
 logger = logging.getLogger("salus.services.achievement")
 
@@ -64,6 +65,48 @@ class AchievementService:
                 "progress_target": ua.progress_target if ua else None,
             })
         return result
+
+    def get_streaks(self, user_id: str) -> dict:
+        today = date.today()
+
+        tracking_dates = self.uow.measurements.find_start_dates(user_id)
+        tr_current, tr_longest = compute_streak(tracking_dates, today)
+
+        mood_dates = self.uow.mood_entries.find_dates(user_id)
+        mo_current, mo_longest = compute_streak(mood_dates, today)
+
+        workout_dates = self.uow.workout_sessions.find_completed_dates(user_id)
+        wo_current, wo_longest = compute_streak(workout_dates, today)
+
+        completed_by_habit = self.uow.habit_logs.find_completed_dates_by_user(user_id)
+        habit_streaks: dict[str, dict] = {}
+        for habit in self.uow.habits.find_by_user(user_id):
+            log_dates = completed_by_habit.get(habit.id or "", [])
+            hc, hl = compute_streak(log_dates, today)
+            habit_streaks[habit.id or ""] = {
+                "current": hc,
+                "longest": hl,
+                "total_entries": len(log_dates),
+            }
+
+        return {
+            "tracking": {
+                "current": tr_current,
+                "longest": tr_longest,
+                "total_entries": len(tracking_dates),
+            },
+            "mood": {
+                "current": mo_current,
+                "longest": mo_longest,
+                "total_entries": len(mood_dates),
+            },
+            "workout": {
+                "current": wo_current,
+                "longest": wo_longest,
+                "total_entries": len(workout_dates),
+            },
+            "habits": habit_streaks,
+        }
 
     def evaluate(self, user_id: str) -> list[str]:
         definitions = self.uow.achievement_definitions.find_all()

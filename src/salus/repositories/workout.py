@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from sqlmodel import select, or_, desc, col
 from sqlalchemy.orm import selectinload
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
@@ -65,6 +65,18 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
                 select(WorkoutSession).where(WorkoutSession.user_id == user_id)
             ).all()
         )
+
+    def find_completed_dates(self, user_id: str) -> list[date]:
+        stmt = select(col(WorkoutSession.completed_at)).where(
+            WorkoutSession.user_id == user_id,
+            col(WorkoutSession.completed_at).isnot(None),
+            WorkoutSession.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        return [
+            row.date()
+            for row in self.session.exec(stmt).all()
+            if row is not None
+        ]
 
     def count_completed_in_range(
         self, user_id: str, since: datetime, until: datetime
