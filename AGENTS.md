@@ -270,6 +270,27 @@ WritePipeline commit → event_bus.publish(user_id)
 ### 16. Sync protocol versioning
 `X-Salus-Sync-Version: 1` header sent by frontend via `getAuthHeaders()`, validated by backend `_check_sync_version` dependency. Backend rejects unsupported versions with 400.
 
+### 17. REST API surface (one concept)
+
+> **auto-CRUD = the only way to CRUD. Action routers = only domain verbs. Sync = sync.**
+
+- **auto-CRUD** (`routers/api_rest.py`) is the single generic CRUD surface for sync entities
+  (list/get/create/update/delete). It is strategy-driven: `user_scoped`/`shared_nullable`/
+  `relational` get full CRUD; `global` and `append_only` are read-only. Write routes are derived
+  from `EntityMeta.strategy` — never special-case an entity by hand.
+- **Typed responses**: SQLModel classes are used as `response_model`; entities with computed
+  reads register an **enricher** + response model in `services/entity_enrichment.py` (e.g. habit
+  stats). No hand-rolled `_*_to_response` dict builders in routers.
+- **Action routers** exist only for domain verbs and aggregations (habit `check`/`stats`,
+  medication `today`/`schedule`/`log`/`inventory`, journal `date`/`search`, workout session
+  lifecycle, insight `generate`, notification `read-all`). Composed-aggregate domains (meal,
+  recipe, achievement progress) keep dedicated routers because their responses carry child
+  items/progress that flat auto-CRUD rows cannot express.
+- **Ownership**: auto-CRUD scopes reads by owner and returns 404 (not 403) on cross-user access,
+  matching the service convention of not revealing resource existence.
+- **Write channels** (documented): CRUD → WritePipeline (sync push + auto-CRUD); domain verbs →
+  services; commands → command handlers. All channels must publish SSE events after commit.
+
 ## Adding a new entity (checklist)
 
 1. `models/<name>.py` — SQLModel table

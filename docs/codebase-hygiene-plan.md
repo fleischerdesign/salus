@@ -72,13 +72,41 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
   sind nicht als flache auto-CRUD-Zeilen darstellbar.
 - `JournalEntry.entry_date` mit `default_factory=date.today`; Pipeline serialisiert `date`-Felder.
 
-### P5 — Streaks aus Router (offen)
-### P6 — DIP reparieren (offen)
-### P7 — uuid7_str in utils-Modul (offen)
-### P8 — Soft-Delete-Bugfix (offen)
-### P9 — Frontend (offen)
-### P10 — Repo-Boilerplate + Streak zentral (offen)
-### P11 — Magic Numbers + Validierung zentral (offen)
-### P12 — Fehler-Taxonomie (offen)
+### ✅ P5 — Streaks aus Router (committed: a42c961)
+- `AchievementService.get_streaks`; Set-basierte Repo-Queries, N+1 und Inline-SQL aus dem Router entfernt.
+
+### ✅ P6 — DIP reparieren (committed: a82b985)
+- `BackgroundIngestionService` via Factory-Injection; gemeinsamer `serialize_record()` (WritePipeline + Commands);
+  `build_autoregulation_service(uow)`.
+
+### ✅ P7 — uuid7_str in utils-Modul (committed: 9c68c01)
+- 24 Modelle/Dateien importieren aus `salus.utils` statt `services._helpers`; Layer-Inversion aufgelöst.
+
+### ✅ P8 — Soft-Delete-Bugfix (committed: 1fd18da)
+- `find_all`/`find_recent_entries` filtern `deleted_at`.
+
+### ✅ P9 — Frontend (committed: e75fbba)
+- ESLint 69→0 (inkl. `_-`-Präfix-Konvention), `SalusDB.notDeleted()`-Helper (7× `null as any` eliminiert),
+  Dead Code entfernt, `handleSave` typisiert, a11y-Fixes. svelte-check 0/0, vitest 119, Build OK.
+- **Offen:** `useQuery()`-Ausrollen über ~29 Seiten (bewusst delegiert — mechanischer, großer Einzelrefactor).
+
+### ✅ P10 — Streak zentralisiert (committed: df688c4)
+- 3× Streak → `services/achievement/streak.py:compute_streak`.
+- **Ehrlicher Befund:** `find_by_user`-Methoden sind signatur-varianter (limit/is_active/Optional/
+  andere Namen) — kein generischer Basis-Helper, ohne echte Duplikations-Eliminierung wäre reine Abstraktion.
+
+### ✅ P11 — Konstanten zentral (committed: a58c339)
+- `services/constants.py`; Dedup-TTL (3 Quellen), Batch-Sizes, Workout-Defaults verdrahtet.
+- **Ehrlicher Befund:** Exercise-Validierung war bereits DRY (eine `find_by_name`-Repo-Methode,
+  drei kontextbedingte Fehlerformen).
+
+### ✅ P12 — Fehler-Taxonomie (committed: f92868c)
+- planner `ValueError`→`ConflictError`/`RuntimeError`, dashboard_widget `ValueError`→`NotFoundError`,
+  circadian loggt statt still zu schlucken.
+
 ### P13 — God-Objects splitten (offen)
+- sync.py Admin/Community/Config, dashboard_widget VizBuilder, orchestrator 7 Domänen.
+  Risikoreichster Refactor — characterization-getrieben, eigenes Arbeitspaket.
+
 ### P14 — Write-Kanäle + Events + AGENTS.md (offen)
+- AGENTS.md: Konzept-Regel dokumentieren. Event-Publishing in Services als dokumentierter Folge-Punkt.
