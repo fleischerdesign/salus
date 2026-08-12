@@ -6,6 +6,7 @@ from typing import Protocol, runtime_checkable
 from salus.models.dashboard import DashboardWidget, WidgetSize, WidgetViz
 from salus.models.goal import Goal
 from salus.models.metric_definition import MetricDefinition
+from salus.exceptions import NotFoundError
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
@@ -497,7 +498,7 @@ class DashboardWidgetService:
     def get_widget(self, widget_id: str, user_id: str) -> DashboardWidget:
         w = self.uow.dashboard_widgets.get_by_id(widget_id)
         if w is None or w.user_id != user_id:
-            raise ValueError("Widget not found")
+            raise NotFoundError("Widget not found")
         return w
 
     def add_widget(

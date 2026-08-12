@@ -66,7 +66,9 @@ def test_exercise_catalog_and_creation(session: Session, workout_services):
     assert len(catalog) >= 1
     assert any(e.name == "Deficit Deadlift" for e in catalog)
 
-    with pytest.raises(ValueError):
+    from salus.exceptions import ConflictError
+
+    with pytest.raises(ConflictError):
         workout_svc.create_exercise(user_id=user_id, data=custom_ex)
 
 
@@ -437,7 +439,7 @@ def test_create_exercise_via_api(authenticated_client):
     assert body["name"] == "API Curls"
 
     duplicate = authenticated_client.post("/api/v1/workouts/exercises", json=data)
-    assert duplicate.status_code == 400
+    assert duplicate.status_code == 409
 
 
 def test_delete_exercise_via_api(authenticated_client):

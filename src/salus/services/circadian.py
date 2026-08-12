@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import datetime
 from typing import Any
@@ -10,6 +11,8 @@ from salus.schemas.circadian import (
     SolarTimes,
 )
 from salus.services.analytics.stats import pearson
+
+logger = logging.getLogger("salus.services.circadian")
 
 
 class CircadianService:
@@ -311,4 +314,5 @@ class CircadianService:
                     return "lark"
                 return None
         except Exception:
+            logger.exception("Chronotype detection failed")
             return None
