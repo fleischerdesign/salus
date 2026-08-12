@@ -8,47 +8,29 @@
   import RecipeForm from '$components/food/RecipeForm.svelte';
   import { createRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let recipes = $state<Recipe[]>([]);
-  let ingredients = $state<RecipeIngredient[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let formOpen = $state(false);
 
-  useLive(
-    () => db.notDeleted(db.recipe).toArray(),
-    (v) => {
-      recipes = v;
-    }
-  );
-  useLive(
-    () => db.notDeleted(db.recipe_ingredient).toArray(),
-    (v) => {
-      ingredients = v;
-    }
-  );
-  useLive(
-    () => db.notDeleted(db.food_item).toArray(),
-    (v) => {
-      foodItems = v;
-      loading = false;
-    }
-  );
+  const { value: recipes } = useQuery(() => db.notDeleted(db.recipe).toArray());
+  const { value: ingredients } = useQuery(() => db.notDeleted(db.recipe_ingredient).toArray());
+  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
   });
 
   const recipeData = $derived.by(() => {
-    return recipes
+    return (recipes ?? [])
       .filter((r) => !r.deleted_at)
       .map((r) => {
-        const recipeIngredients = ingredients.filter((i) => i.recipe_id === r.id && !i.deleted_at);
+        const recipeIngredients = (ingredients ?? []).filter(
+          (i) => i.recipe_id === r.id && !i.deleted_at
+        );
         let calories = 0;
         for (const ing of recipeIngredients) {
           const food = foodMap[ing.food_item_id];
@@ -75,9 +57,11 @@
   }
 
   async function handleCook(recipeId: string) {
-    const r = recipes.find((r) => r.id === recipeId);
+    const r = (recipes ?? []).find((r) => r.id === recipeId);
     if (!r) return;
-    const recipeIngredients = ingredients.filter((i) => i.recipe_id === recipeId && !i.deleted_at);
+    const recipeIngredients = (ingredients ?? []).filter(
+      (i) => i.recipe_id === recipeId && !i.deleted_at
+    );
     await createMeal({
       name: r.name ? `Recipe: ${r.name}` : undefined,
       meal_type: 'other',
@@ -121,7 +105,7 @@
   <RecipeForm
     open={formOpen}
     recipe={null}
-    {foodItems}
+    foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (formOpen = false)}
   />

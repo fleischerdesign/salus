@@ -12,44 +12,26 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import MealItemRow from '$components/food/MealItemRow.svelte';
   import { deleteMeal } from '$lib/mutations/meal';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
-  let loading = $state(true);
-  let meal = $state<Meal | null>(null);
-  let mealItems = $state<MealItem[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let deleteOpen = $state(false);
 
-  useLive(
-    () =>
-      id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null),
-    (v) => {
-      meal = v;
-    }
+  const { value: meal } = useQuery(() =>
+    id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
   );
-  useLive(
-    () =>
-      db.meal_item
-        .where({ meal_id: id })
-        .filter((mi) => !mi.deleted_at)
-        .toArray(),
-    (v) => {
-      mealItems = v;
-    }
+  const { value: mealItems } = useQuery(() =>
+    db.meal_item
+      .where({ meal_id: id })
+      .filter((mi) => !mi.deleted_at)
+      .toArray()
   );
-  useLive(
-    () => db.notDeleted(db.food_item).toArray(),
-    (v) => {
-      foodItems = v;
-      loading = false;
-    }
-  );
+  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -60,7 +42,7 @@
       protein = 0,
       carbs = 0,
       fat = 0;
-    for (const mi of mealItems) {
+    for (const mi of mealItems ?? []) {
       const food = foodMap[mi.food_item_id];
       if (!food) continue;
       calories += food.calories_per_serving * mi.servings;
@@ -121,7 +103,7 @@
           )}C · {Math.round(macros.fat)}F
         </h3>
         <div class="flex flex-col gap-2">
-          {#each mealItems as mi (mi.id)}
+          {#each mealItems ?? [] as mi (mi.id)}
             {@const food = foodMap[mi.food_item_id]}
             <MealItemRow
               name={food?.name ?? 'Unknown'}

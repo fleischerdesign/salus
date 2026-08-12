@@ -6,24 +6,19 @@
   import MoodPicker from '$components/mood/MoodPicker.svelte';
   import MoodCalendar from '$components/mood/MoodCalendar.svelte';
   import { createMoodEntry } from '$lib/mutations/wellness';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let entries = $state<MoodEntry[]>([]);
   let saving = $state(false);
 
   let todayStr = new Date().toISOString().split('T')[0];
   let score = $state(0);
 
-  useLive(
-    () => db.mood_entry.toArray(),
-    (v) => {
-      entries = v;
-      const te = v.find((e) => e.entry_date === todayStr);
-      score = te?.mood_score ?? 0;
-      loading = false;
-    }
-  );
+  const { value: entries, loading } = useQuery(() => db.mood_entry.toArray());
+
+  $effect(() => {
+    const te = (entries ?? []).find((e) => e.entry_date === todayStr);
+    score = te?.mood_score ?? 0;
+  });
 
   async function handleSelect(newScore: number) {
     score = newScore;
@@ -58,7 +53,7 @@
     </Card>
 
     <Card>
-      <MoodCalendar {entries} onSelectDate={() => {}} />
+      <MoodCalendar entries={entries ?? []} onSelectDate={() => {}} />
     </Card>
   {/if}
 </div>

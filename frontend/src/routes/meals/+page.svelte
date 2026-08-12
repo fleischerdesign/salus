@@ -9,66 +9,49 @@
   import MealGrid from '$components/food/MealGrid.svelte';
   import MealForm from '$components/food/MealForm.svelte';
   import { createMeal, deleteMeal } from '$lib/mutations/meal';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let meals = $state<Meal[]>([]);
-  let mealItems = $state<MealItem[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let formOpen = $state(false);
 
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
 
-  useLive(
-    () =>
-      db.meal
-        .where('log_date')
-        .equals(selectedDate)
-        .filter((m) => !m.deleted_at)
-        .toArray(),
-    (v) => {
-      meals = v;
-    }
+  const { value: meals } = useQuery(() =>
+    db.meal
+      .where('log_date')
+      .equals(selectedDate)
+      .filter((m) => !m.deleted_at)
+      .toArray()
   );
-  useLive(
-    async () => {
-      const dayMeals = await db.meal
-        .where('log_date')
-        .equals(selectedDate)
-        .filter((m) => !m.deleted_at)
-        .toArray();
-      const mealIds = dayMeals.map((m) => m.id);
-      if (mealIds.length === 0) return [] as MealItem[];
-      return db.meal_item
-        .where('meal_id')
-        .anyOf(mealIds)
-        .filter((mi) => !mi.deleted_at)
-        .toArray();
-    },
-    (v) => {
-      mealItems = v;
-    }
-  );
-  useLive(
-    () => db.food_item.filter((f) => !f.deleted_at).toArray(),
-    (v) => {
-      foodItems = v;
-      loading = false;
-    }
+  const { value: mealItems } = useQuery(async () => {
+    const dayMeals = await db.meal
+      .where('log_date')
+      .equals(selectedDate)
+      .filter((m) => !m.deleted_at)
+      .toArray();
+    const mealIds = dayMeals.map((m) => m.id);
+    if (mealIds.length === 0) return [] as MealItem[];
+    return db.meal_item
+      .where('meal_id')
+      .anyOf(mealIds)
+      .filter((mi) => !mi.deleted_at)
+      .toArray();
+  });
+  const { value: foodItems, loading } = useQuery(() =>
+    db.food_item.filter((f) => !f.deleted_at).toArray()
   );
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const isToday = $derived(selectedDate === today);
 
   const mealsForDate = $derived(
-    meals
+    (meals ?? [])
       .filter((m) => m.log_date === selectedDate && !m.deleted_at)
       .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
   );
 
   const mealItemsMap = $derived.by(() => {
     const map: Record<string, MealItem[]> = {};
-    for (const mi of mealItems) {
+    for (const mi of mealItems ?? []) {
       if (mi.deleted_at) continue;
       if (!map[mi.meal_id]) map[mi.meal_id] = [];
       map[mi.meal_id].push(mi);
@@ -78,7 +61,7 @@
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -216,5 +199,10 @@
     />
   {/if}
 
-  <MealForm open={formOpen} {foodItems} onSave={handleSave} onClose={() => (formOpen = false)} />
+  <MealForm
+    open={formOpen}
+    foodItems={foodItems ?? []}
+    onSave={handleSave}
+    onClose={() => (formOpen = false)}
+  />
 </div>

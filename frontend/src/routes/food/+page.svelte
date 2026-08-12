@@ -11,10 +11,8 @@
   import Btn from '$components/ui/Btn.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import { createFoodItem } from '$lib/mutations/food-item';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let foodItems = $state<FoodItem[]>([]);
   let search = $state('');
   let createOpen = $state(false);
   let saving = $state(false);
@@ -28,21 +26,17 @@
   let newServingSize = $state(100);
   let newServingUnit = $state('g');
 
-  useLive(
-    () => db.notDeleted(db.food_item).toArray(),
-    (v) => {
-      foodItems = v;
-      loading = false;
-    }
-  );
+  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
 
   const results = $derived(
     search.trim()
-      ? foodItems.filter((f) => f.name.toLowerCase().includes(search.toLowerCase())).slice(0, 20)
+      ? (foodItems ?? [])
+          .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
+          .slice(0, 20)
       : []
   );
 
-  const frequentItems = $derived(foodItems.slice(0, 10));
+  const frequentItems = $derived((foodItems ?? []).slice(0, 10));
 
   const canCreate = $derived(newName.trim().length > 0);
 

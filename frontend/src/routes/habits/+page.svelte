@@ -7,18 +7,18 @@
   import { toggleHabit, createHabit as createHabitMut } from '$lib/mutations/wellness';
   import Icon from '$components/ui/Icon.svelte';
   import Card from '$components/ui/Card.svelte';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let habits = $state<Habit[]>([]);
-  let logs = $state<HabitLog[]>([]);
+  const { value: habits } = useQuery(() => db.habit.toArray());
+  const { value: logs, loading } = useQuery(() => db.habit_log.toArray());
+
   let formOpen = $state(false);
   let editTarget = $state<Habit | null>(null);
 
   let stats = $derived(
     Object.fromEntries(
-      habits.map((h) => {
-        const hLogs = logs.filter((l) => l.habit_id === h.id && l.completed);
+      (habits ?? []).map((h) => {
+        const hLogs = (logs ?? []).filter((l) => l.habit_id === h.id && l.completed);
         const dates = [...new Set(hLogs.map((l) => l.log_date))].sort().reverse();
         const today = new Date().toISOString().split('T')[0];
         let currentStreak = 0;
@@ -40,20 +40,6 @@
     return dt.toISOString().split('T')[0];
   }
 
-  useLive(
-    () => db.habit.toArray(),
-    (v) => {
-      habits = v;
-    }
-  );
-  useLive(
-    () => db.habit_log.toArray(),
-    (v) => {
-      logs = v;
-      loading = false;
-    }
-  );
-
   async function handleToggle(habitId: string) {
     await toggleHabit(habitId);
   }
@@ -64,8 +50,8 @@
     editTarget = null;
   }
 
-  const activeHabits = $derived(habits.filter((h) => !h.is_archived));
-  const archivedHabits = $derived(habits.filter((h) => h.is_archived));
+  const activeHabits = $derived((habits ?? []).filter((h) => !h.is_archived));
+  const archivedHabits = $derived((habits ?? []).filter((h) => h.is_archived));
 </script>
 
 <svelte:head><title>Salus — Habits</title></svelte:head>

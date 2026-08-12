@@ -12,46 +12,28 @@
   import RecipeForm from '$components/food/RecipeForm.svelte';
   import { updateRecipe, deleteRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
-  let loading = $state(true);
-  let recipe = $state<Recipe | null>(null);
-  let ingredients = $state<RecipeIngredient[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let editOpen = $state(false);
   let deleteOpen = $state(false);
   let saving = $state(false);
 
-  useLive(
-    () =>
-      id ? db.recipe.get(id).then((r) => (r && !r.deleted_at ? r : null)) : Promise.resolve(null),
-    (v) => {
-      recipe = v;
-    }
+  const { value: recipe } = useQuery(() =>
+    id ? db.recipe.get(id).then((r) => (r && !r.deleted_at ? r : null)) : Promise.resolve(null)
   );
-  useLive(
-    () =>
-      db.recipe_ingredient
-        .where({ recipe_id: id })
-        .filter((i) => !i.deleted_at)
-        .toArray(),
-    (v) => {
-      ingredients = v;
-    }
+  const { value: ingredients } = useQuery(() =>
+    db.recipe_ingredient
+      .where({ recipe_id: id })
+      .filter((i) => !i.deleted_at)
+      .toArray()
   );
-  useLive(
-    () => db.notDeleted(db.food_item).toArray(),
-    (v) => {
-      foodItems = v;
-      loading = false;
-    }
-  );
+  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -62,7 +44,7 @@
       protein = 0,
       carbs = 0,
       fat = 0;
-    for (const ing of ingredients) {
+    for (const ing of ingredients ?? []) {
       const food = foodMap[ing.food_item_id];
       if (!food) continue;
       const factor = ing.amount_g / food.serving_size;
@@ -93,7 +75,7 @@
 
   async function handleCook() {
     if (!recipe) return;
-    const recipeIngredients = ingredients.filter((i) => !i.deleted_at);
+    const recipeIngredients = (ingredients ?? []).filter((i) => !i.deleted_at);
     await createMeal({
       name: `Recipe: ${recipe.name}`,
       meal_type: 'other',
@@ -259,7 +241,7 @@
       prep_time_min: recipe.prep_time_min,
       cook_time_min: recipe.cook_time_min
     }}
-    {foodItems}
+    foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (editOpen = false)}
     {saving}

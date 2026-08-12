@@ -20,7 +20,7 @@
   import MedicationForm from '$components/medications/MedicationForm.svelte';
   import ScheduleEditor from '$components/medications/ScheduleEditor.svelte';
   import InventoryTracker from '$components/medications/InventoryTracker.svelte';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import {
     updateMedication,
     deleteMedication,
@@ -33,65 +33,41 @@
 
   let id = $derived(page.params.id);
 
-  let loading = $state(true);
-  let medication = $state<Medication | null>(null);
-  let schedules = $state<MedicationSchedule[]>([]);
-  let logs = $state<MedicationLog[]>([]);
-  let inventory = $state<MedicationInventory | null>(null);
   let editOpen = $state(false);
   let deleteOpen = $state(false);
   let saving = $state(false);
 
-  useLive(
-    () =>
-      id
-        ? db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null))
-        : Promise.resolve(null),
-    (v) => {
-      medication = v;
-    }
+  const { value: medication } = useQuery(() =>
+    id ? db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
   );
-  useLive(
-    () =>
-      db.medication_schedule
-        .where({ medication_id: id })
-        .filter((s) => !s.deleted_at)
-        .toArray(),
-    (v) => {
-      schedules = v;
-    }
+  const { value: schedules } = useQuery(() =>
+    db.medication_schedule
+      .where({ medication_id: id })
+      .filter((s) => !s.deleted_at)
+      .toArray()
   );
-  useLive(
-    () =>
-      db.medication_log
-        .where({ medication_id: id })
-        .filter((l) => !l.deleted_at)
-        .toArray(),
-    (v) => {
-      logs = v;
-    }
+  const { value: logs } = useQuery(() =>
+    db.medication_log
+      .where({ medication_id: id })
+      .filter((l) => !l.deleted_at)
+      .toArray()
   );
-  useLive(
-    () =>
-      db.medication_inventory
-        .where({ medication_id: id })
-        .filter((i) => !i.deleted_at)
-        .first(),
-    (v) => {
-      inventory = v ?? null;
-      loading = false;
-    }
+  const { value: inventory, loading } = useQuery(() =>
+    db.medication_inventory
+      .where({ medication_id: id })
+      .filter((i) => !i.deleted_at)
+      .first()
   );
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const todayWeekday = $derived(new Date().getDay() || 7);
-  const totalTaken = $derived(logs.filter((l) => !l.skipped).length);
-  const totalSkipped = $derived(logs.filter((l) => l.skipped).length);
+  const totalTaken = $derived((logs ?? []).filter((l) => !l.skipped).length);
+  const totalSkipped = $derived((logs ?? []).filter((l) => l.skipped).length);
   const adherenceRate = $derived(
-    logs.length > 0 ? Math.round((totalTaken / logs.length) * 100) : 0
+    (logs ?? []).length > 0 ? Math.round((totalTaken / (logs ?? []).length) * 100) : 0
   );
 
-  const recentLogs = $derived(logs.slice(0, 14));
+  const recentLogs = $derived((logs ?? []).slice(0, 14));
 
   async function handleSave(data: Record<string, string>) {
     if (!id) return;
@@ -151,13 +127,13 @@
       taken: boolean;
       skipped: boolean;
     }[] = [];
-    for (const sched of schedules) {
+    for (const sched of schedules ?? []) {
       if (sched.days_of_week && !sched.days_of_week.includes(todayWeekday)) continue;
       if (sched.start_date && today < sched.start_date) continue;
       if (sched.end_date && today > sched.end_date) continue;
 
       for (const t of sched.times) {
-        const match = logs.find(
+        const match = (logs ?? []).find(
           (l) => l.schedule_id === sched.id && !l.deleted_at && l.taken_at?.startsWith(today)
         );
         items.push({
@@ -290,7 +266,7 @@
       <!-- Schedule Management -->
       <Card>
         <h3 class="mb-4 text-sm font-semibold text-surface-700">Schedules</h3>
-        {#if schedules.length > 0}
+        {#if (schedules ?? []).length > 0}
           <div class="flex flex-col gap-3">
             {#each schedules as sched (sched.id)}
               <div
@@ -367,10 +343,10 @@
         <Stat label="Adherence" value="{adherenceRate}%" />
         <Stat label="Taken" value={totalTaken} />
         <Stat label="Skipped" value={totalSkipped} />
-        <Stat label="Total Logs" value={logs.length} />
+        <Stat label="Total Logs" value={(logs ?? []).length} />
       </div>
 
-      <InventoryTracker {inventory} onUpdate={handleUpdateInventory} />
+      <InventoryTracker inventory={inventory ?? null} onUpdate={handleUpdateInventory} />
 
       {#if medication.is_active}
         <Btn variant="primary" onclick={() => handleToggle(null, null)}>

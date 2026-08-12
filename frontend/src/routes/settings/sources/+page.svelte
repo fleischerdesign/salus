@@ -11,9 +11,8 @@
   import SourcePriorityCard from '$components/forms/SourcePriorityCard.svelte';
   import SourceDetailsModal from '$components/forms/SourceDetailsModal.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
   let sourceSearchQuery = $state('');
   let matrixSearchQuery = $state('');
   let selectedCategory = $state('all');
@@ -46,63 +45,61 @@
     { id: 'seed', name: 'Dev Seed Data', icon: 'database', color: '#8b5cf6' }
   ];
 
-  loading = true;
-  useLive(
-    async () => {
-      const allMetrics = await db.metric_definition.toArray();
-      const allPrefs = await db.user_source_preference.toArray();
-      const srcStats = await getSourceStats();
+  const { value: sourceData, loading } = useQuery(async () => {
+    const allMetrics = await db.metric_definition.toArray();
+    const allPrefs = await db.user_source_preference.toArray();
+    const srcStats = await getSourceStats();
 
-      const counts: Record<string, number> = {};
-      const knownPerMetric: Record<string, Set<string>> = {};
+    const counts: Record<string, number> = {};
+    const knownPerMetric: Record<string, Set<string>> = {};
 
-      for (const src of KNOWN_SOURCES) {
-        counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
-      }
-
-      allPrefs.forEach((p) => {
-        if (p.metric_code && p.source) {
-          if (!knownPerMetric[p.metric_code]) {
-            knownPerMetric[p.metric_code] = new Set();
-          }
-          knownPerMetric[p.metric_code].add(p.source);
-        }
-      });
-
-      const prefGrouped: Record<string, UserSourcePreference[]> = {};
-      allPrefs.forEach((p) => {
-        if (!prefGrouped[p.metric_code]) {
-          prefGrouped[p.metric_code] = [];
-        }
-        prefGrouped[p.metric_code].push(p);
-      });
-
-      Object.keys(prefGrouped).forEach((code) => {
-        prefGrouped[code].sort((a, b) => a.priority_rank - b.priority_rank);
-      });
-
-      const knownConverted: Record<string, string[]> = {};
-      Object.keys(knownPerMetric).forEach((code) => {
-        knownConverted[code] = Array.from(knownPerMetric[code]);
-      });
-
-      return {
-        allMetrics: allMetrics.sort((a, b) => a.name.localeCompare(b.name)),
-        prefGrouped,
-        counts,
-        knownConverted
-      };
-    },
-    (val) => {
-      if (val) {
-        metrics = val.allMetrics;
-        preferencesMap = val.prefGrouped;
-        sourceCounts = val.counts;
-        metricKnownSources = val.knownConverted;
-      }
-      loading = false;
+    for (const src of KNOWN_SOURCES) {
+      counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
     }
-  );
+
+    allPrefs.forEach((p) => {
+      if (p.metric_code && p.source) {
+        if (!knownPerMetric[p.metric_code]) {
+          knownPerMetric[p.metric_code] = new Set();
+        }
+        knownPerMetric[p.metric_code].add(p.source);
+      }
+    });
+
+    const prefGrouped: Record<string, UserSourcePreference[]> = {};
+    allPrefs.forEach((p) => {
+      if (!prefGrouped[p.metric_code]) {
+        prefGrouped[p.metric_code] = [];
+      }
+      prefGrouped[p.metric_code].push(p);
+    });
+
+    Object.keys(prefGrouped).forEach((code) => {
+      prefGrouped[code].sort((a, b) => a.priority_rank - b.priority_rank);
+    });
+
+    const knownConverted: Record<string, string[]> = {};
+    Object.keys(knownPerMetric).forEach((code) => {
+      knownConverted[code] = Array.from(knownPerMetric[code]);
+    });
+
+    return {
+      allMetrics: allMetrics.sort((a, b) => a.name.localeCompare(b.name)),
+      prefGrouped,
+      counts,
+      knownConverted
+    };
+  });
+
+  $effect(() => {
+    const val = sourceData;
+    if (val) {
+      metrics = val.allMetrics;
+      preferencesMap = val.prefGrouped;
+      sourceCounts = val.counts;
+      metricKnownSources = val.knownConverted;
+    }
+  });
 
   let sortedAndFilteredSources = $derived.by(() => {
     const query = sourceSearchQuery.trim().toLowerCase();

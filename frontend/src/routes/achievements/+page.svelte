@@ -4,13 +4,12 @@
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import type { AchievementDefinition, UserAchievement } from '$lib/db/types';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let definitions = $state<AchievementDefinition[]>([]);
-  let unlocked = $state<UserAchievement[]>([]);
+  const { value: definitions } = useQuery(() => db.achievement_definition.toArray());
+  const { value: unlocked, loading } = useQuery(() => db.user_achievement.toArray());
 
-  const unlockedCodes = $derived(new Set(unlocked.map((u) => u.achievement_code)));
+  const unlockedCodes = $derived(new Set((unlocked ?? []).map((u) => u.achievement_code)));
 
   const tierColors: Record<string, string> = {
     bronze: 'from-amber-600 to-amber-700',
@@ -19,22 +18,8 @@
     platinum: 'from-cyan-400 to-blue-500'
   };
 
-  useLive(
-    () => db.achievement_definition.toArray(),
-    (v) => {
-      definitions = v;
-    }
-  );
-  useLive(
-    () => db.user_achievement.toArray(),
-    (v) => {
-      unlocked = v;
-      loading = false;
-    }
-  );
-
   const visibleDefs = $derived(
-    definitions.filter((d) => !d.is_hidden || unlockedCodes.has(d.code))
+    (definitions ?? []).filter((d) => !d.is_hidden || unlockedCodes.has(d.code))
   );
 </script>
 

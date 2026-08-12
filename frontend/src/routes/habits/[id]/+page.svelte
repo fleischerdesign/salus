@@ -15,12 +15,19 @@
   import CheckCircle from '$components/ui/CheckCircle.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
   import { updateHabit, deleteHabit, toggleHabit } from '$lib/mutations/wellness';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
-  let loading = $state(true);
-  let habit = $state<Habit | null>(null);
-  let logs = $state<HabitLog[]>([]);
+
+  const { value: habit } = useQuery(() =>
+    id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null)
+  );
+  const { value: logs, loading } = useQuery(() =>
+    db.habit_log
+      .where({ habit_id: id })
+      .filter((l) => !l.deleted_at)
+      .toArray()
+  );
   let editOpen = $state(false);
   let deleteOpen = $state(false);
 
@@ -45,9 +52,9 @@
   const freqLabel = $derived(habit ? computeFreqLabel(habit) : '');
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayCompleted = $derived(logs.some((l) => l.log_date === todayStr && l.completed));
+  const todayCompleted = $derived((logs ?? []).some((l) => l.log_date === todayStr && l.completed));
 
-  const completedLogs = $derived(logs.filter((l) => l.completed));
+  const completedLogs = $derived((logs ?? []).filter((l) => l.completed));
   const completedDates = $derived(
     [...new Set(completedLogs.map((l) => l.log_date))].sort().reverse()
   );
@@ -98,25 +105,6 @@
     const completedInRange = calendarCells.filter((c) => c.completed).length;
     return Math.round((completedInRange / totalDays) * 100);
   });
-
-  useLive(
-    () =>
-      id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null),
-    (v) => {
-      habit = v;
-    }
-  );
-  useLive(
-    () =>
-      db.habit_log
-        .where({ habit_id: id })
-        .filter((l) => !l.deleted_at)
-        .toArray(),
-    (v) => {
-      logs = v;
-      loading = false;
-    }
-  );
 
   async function handleToggle() {
     if (!id) return;
@@ -289,10 +277,10 @@
           </div>
         {/snippet}
         <div class="divide-y divide-surface-100">
-          {#if logs.length === 0}
+          {#if (logs ?? []).length === 0}
             <div class="px-6 py-8 text-center text-sm text-surface-400">No logs yet.</div>
           {:else}
-            {#each logs.filter((l) => l.completed).slice(0, 20) as log}
+            {#each (logs ?? []).filter((l) => l.completed).slice(0, 20) as log}
               <div class="flex items-center justify-between px-6 py-2.5">
                 <span class="text-sm text-surface-700">{log.log_date}</span>
                 <span class="text-xs text-surface-400">

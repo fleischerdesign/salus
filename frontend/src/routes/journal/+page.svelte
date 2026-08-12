@@ -8,20 +8,14 @@
   import Icon from '$components/ui/Icon.svelte';
   import type { JournalEntry } from '$lib/db/types';
   import { createJournalEntry } from '$lib/mutations/wellness';
-  import { useLive } from '$lib/db/use-query.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let entries = $state<JournalEntry[]>([]);
   let title = $state('');
   let content = $state('');
   let saving = $state(false);
 
-  useLive(
-    () => db.journal_entry.orderBy('entry_date').reverse().toArray(),
-    (v) => {
-      entries = v;
-      loading = false;
-    }
+  const { value: entries, loading } = useQuery(() =>
+    db.journal_entry.orderBy('entry_date').reverse().toArray()
   );
 
   async function handleSubmit() {
@@ -79,9 +73,9 @@
         <div class="h-20 animate-pulse rounded-xl bg-surface-100"></div>
       {/each}
     </div>
-  {:else if entries.length > 0}
+  {:else if (entries ?? []).length > 0}
     <div class="space-y-3">
-      {#each entries.slice(0, 20) as entry (entry.id)}
+      {#each (entries ?? []).slice(0, 20) as entry (entry.id)}
         <Card padding={false}>
           <div class="p-4">
             {#if entry.title}
