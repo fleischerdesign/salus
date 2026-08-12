@@ -55,7 +55,7 @@ async def api_sync(
         try:
             raw = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
             cursors = {k: str(v) for k, v in raw.items()}
-        except (ValueError, json.JSONDecodeError):
+        except ValueError:
             pass
     result = service.full_sync(current_user, cursors)
     result["sync_version"] = SYNC_PROTOCOL_VERSION

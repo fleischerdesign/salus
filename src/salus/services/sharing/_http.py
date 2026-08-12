@@ -26,9 +26,8 @@ def retry_http_request(
             resp.raise_for_status()
             return resp
         except (
-            httpx.ConnectError,
-            httpx.TimeoutException,
             httpx.NetworkError,
+            httpx.TimeoutException,
             httpx.RemoteProtocolError,
         ) as exc:
             if attempt == max_retries - 1:

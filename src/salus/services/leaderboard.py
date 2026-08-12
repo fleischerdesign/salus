@@ -1,4 +1,5 @@
 # pyright: reportOptionalOperand=false
+import logging
 import secrets
 from datetime import datetime, timezone, timedelta
 from typing import Optional, TYPE_CHECKING
@@ -13,6 +14,8 @@ from salus.models.sharing import (
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, make_handle, summarize_daily_values
+
+logger = logging.getLogger("salus.services.leaderboard")
 
 
 class LeaderboardService:
@@ -235,8 +238,11 @@ class LeaderboardService:
                                         val = item.get("value_numeric")
                                         if val is not None:
                                             day_values.append(val)
-                                except Exception:
-                                    pass
+                                except Exception as exc:
+                                    logger.debug(
+                                        f"Failed to fetch {group.metric_type_code} for "
+                                        f"{handle} on {date_str}: {exc}"
+                                    )
                                 curr_date += timedelta(days=1)
 
                             if day_values:
