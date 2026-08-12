@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
@@ -15,6 +16,7 @@ from salus.repositories.entity_meta import (
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
+from salus.services.entity_enrichment import ENRICHERS, RESPONSE_MODELS
 from salus.services.write_pipeline import WritePipeline
 
 _PLURAL_MAP: dict[str, str] = {
@@ -36,6 +38,7 @@ _PLURAL_MAP: dict[str, str] = {
     "leaderboard_member": "leaderboard-members",
     "share_recipient": "share-recipients",
     "asymmetric_share": "asymmetric-shares",
+    "habit": "habits",
 }
 
 # Entities whose CRUD is owned by a dedicated typed router, an auth/admin flow,
@@ -51,7 +54,6 @@ _SKIP_AUTO_CRUD: set[str] = {
     "user",
     "api_token",
     # dedicated typed routers own these domains
-    "habit",
     "habit_log",
     "mood_tag",
     "mood_entry",
@@ -104,11 +106,22 @@ def register_auto_crud(app: FastAPI) -> None:
         _register_entity_routes(app, meta, _PLURAL_MAP[meta.name])
 
 
+def _row_to_dict(obj: Any, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    result = obj.model_dump() if hasattr(obj, "model_dump") else {}
+    for k, v in result.items():
+        if isinstance(v, datetime):
+            result[k] = v.replace(tzinfo=None).isoformat()
+    if extra:
+        result.update(extra)
+    return result
+
+
 def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None:
     model_cls = ENTITY_REGISTRY[meta.name]
+    response_model = RESPONSE_MODELS.get(meta.name, model_cls)
     router = APIRouter(prefix=f"/api/v1/{plural}", tags=[plural])
 
-    @router.get("", response_model=list[model_cls])
+    @router.get("", response_model=list[response_model])
     async def list_all(
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
@@ -126,9 +139,13 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             )
         if hasattr(model_cls, "deleted_at"):
             query = query.where(getattr(model_cls, "deleted_at").is_(None))
-        return uow.session.exec(query).all()
+        rows = list(uow.session.exec(query).all())
+        if meta.name in ENRICHERS:
+            enriched = ENRICHERS[meta.name](uow, uid_user, rows)
+            return [_row_to_dict(r, enriched.get(getattr(r, "id", "") or "", {})) for r in rows]
+        return rows
 
-    @router.get("/{item_id}", response_model=model_cls)
+    @router.get("/{item_id}", response_model=response_model)
     async def get_one(
         item_id: str,
         user: User = Depends(get_current_user),
@@ -140,10 +157,13 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         if hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None:
             raise ApiError(code="not_found", message="Resource not found", status_code=404)
         _check_ownership(obj, user, meta, uow.session)
+        if meta.name in ENRICHERS:
+            enriched = ENRICHERS[meta.name](uow, uid(user), [obj])
+            return _row_to_dict(obj, enriched.get(getattr(obj, "id", "") or "", {}))
         return obj
 
     if meta.strategy in _WRITABLE_STRATEGIES:
-        @router.post("", status_code=201, response_model=model_cls)
+        @router.post("", status_code=201, response_model=response_model)
         async def create_one(
             request: Request,
             user: User = Depends(get_current_user),
@@ -155,9 +175,10 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             results = pipeline.process([op])
             result = results[0]
             raise_from_command_result(result.status, result.message)
-            return model_cls.model_validate(result.record or {})
+            return result.record or {}
 
-        @router.patch("/{item_id}", response_model=model_cls)
+        @router.put("/{item_id}", response_model=response_model)
+        @router.patch("/{item_id}", response_model=response_model)
         async def patch_one(
             item_id: str,
             request: Request,
@@ -170,7 +191,7 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             results = pipeline.process([op])
             result = results[0]
             raise_from_command_result(result.status, result.message)
-            return model_cls.model_validate(result.record or {})
+            return result.record or {}
 
         @router.delete("/{item_id}", status_code=204)
         async def delete_one(
@@ -199,12 +220,12 @@ def _check_ownership(obj: Any, user: User, meta: EntityMeta, session: Any) -> No
     if strategy == "user_scoped":
         owner_field = meta.owner_field or "user_id"
         if hasattr(obj, owner_field) and getattr(obj, owner_field) != uid_user:
-            raise ApiError(code="forbidden", message="Not authorized", status_code=403)
+            raise ApiError(code="not_found", message="Resource not found", status_code=404)
     elif strategy == "shared_nullable":
         owner_field = meta.owner_field or "user_id"
         if hasattr(obj, owner_field):
             obj_user = getattr(obj, owner_field)
             if obj_user is not None and obj_user != uid_user:
-                raise ApiError(code="forbidden", message="Not authorized", status_code=403)
+                raise ApiError(code="not_found", message="Resource not found", status_code=404)
     elif strategy == "global":
         pass

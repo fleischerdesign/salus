@@ -509,7 +509,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_asymmetric_shares__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_asymmetric_shares__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_asymmetric_shares__item_id__delete"];
@@ -699,7 +700,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_circadian_profiles__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_circadian_profiles__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_circadian_profiles__item_id__delete"];
@@ -753,7 +755,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_dashboard_widgets__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_dashboard_widgets__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_dashboard_widgets__item_id__delete"];
@@ -879,7 +882,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_exercises__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_exercises__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_exercises__item_id__delete"];
@@ -1103,7 +1107,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_goals__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_goals__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_goals__item_id__delete"];
@@ -1120,31 +1125,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Habits */
-        get: operations["list_habits_api_v1_habits_get"];
+        /** List All */
+        get: operations["list_all_api_v1_habits_get"];
         put?: never;
-        /** Create Habit */
-        post: operations["create_habit_api_v1_habits_post"];
+        /** Create One */
+        post: operations["create_one_api_v1_habits_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/habits/{habit_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Habit */
-        get: operations["get_habit_api_v1_habits__habit_id__get"];
-        /** Update Habit */
-        put: operations["update_habit_api_v1_habits__habit_id__put"];
-        post?: never;
-        /** Delete Habit */
-        delete: operations["delete_habit_api_v1_habits__habit_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1184,6 +1170,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/habits/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_habits__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_habits__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_habits__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_habits__item_id__patch"];
+        trace?: never;
+    };
     "/api/v1/insights": {
         parameters: {
             query?: never;
@@ -1211,7 +1217,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_insights__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_insights__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_insights__item_id__delete"];
@@ -1475,7 +1482,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_measurements__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_measurements__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_measurements__item_id__delete"];
@@ -1828,7 +1836,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_notifications__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_notifications__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_notifications__item_id__delete"];
@@ -2176,7 +2185,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_share_recipients__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_share_recipients__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_share_recipients__item_id__delete"];
@@ -2284,7 +2294,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_sharing_relationships__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_sharing_relationships__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_sharing_relationships__item_id__delete"];
@@ -2562,7 +2573,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_user_metric_preferences__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_user_metric_preferences__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_user_metric_preferences__item_id__delete"];
@@ -2599,7 +2611,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_user_source_preferences__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_user_source_preferences__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_user_source_preferences__item_id__delete"];
@@ -2636,7 +2649,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_workout_plans__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_workout_plans__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_workout_plans__item_id__delete"];
@@ -2673,7 +2687,8 @@ export interface paths {
         };
         /** Get One */
         get: operations["get_one_api_v1_workout_sessions__item_id__get"];
-        put?: never;
+        /** Patch One */
+        put: operations["patch_one_api_v1_workout_sessions__item_id__put"];
         post?: never;
         /** Delete One */
         delete: operations["delete_one_api_v1_workout_sessions__item_id__delete"];
@@ -3800,39 +3815,6 @@ export interface components {
             /** Longest Streak */
             longest_streak: number;
         };
-        /** HabitCreate */
-        HabitCreate: {
-            /**
-             * Color
-             * @default #4f46e5
-             */
-            color: string;
-            /** Days Bitmask */
-            days_bitmask?: number | null;
-            /** Description */
-            description?: string | null;
-            /** @default daily */
-            frequency: components["schemas"]["HabitFrequency"];
-            /**
-             * Icon
-             * @default check-circle
-             */
-            icon: string;
-            /** Name */
-            name: string;
-            /** Stack Hint */
-            stack_hint?: string | null;
-            /**
-             * Target Count
-             * @default 1
-             */
-            target_count: number;
-        };
-        /**
-         * HabitFrequency
-         * @enum {string}
-         */
-        HabitFrequency: "daily" | "weekly_n" | "custom_days";
         /** HabitResponse */
         HabitResponse: {
             /** Color */
@@ -3890,26 +3872,6 @@ export interface components {
             longest_streak: number;
             /** Total Checks */
             total_checks: number;
-        };
-        /** HabitUpdate */
-        HabitUpdate: {
-            /** Color */
-            color?: string | null;
-            /** Days Bitmask */
-            days_bitmask?: number | null;
-            /** Description */
-            description?: string | null;
-            frequency?: components["schemas"]["HabitFrequency"] | null;
-            /** Icon */
-            icon?: string | null;
-            /** Is Archived */
-            is_archived?: boolean | null;
-            /** Name */
-            name?: string | null;
-            /** Stack Hint */
-            stack_hint?: string | null;
-            /** Target Count */
-            target_count?: number | null;
         };
         /** HeatmapDay */
         HeatmapDay: {
@@ -6501,6 +6463,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_asymmetric_shares__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsymmetricShare"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_asymmetric_shares__item_id__delete: {
         parameters: {
             query?: never;
@@ -6884,6 +6877,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_circadian_profiles__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CircadianProfile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_circadian_profiles__item_id__delete: {
         parameters: {
             query?: never;
@@ -7018,6 +7042,37 @@ export interface operations {
         };
     };
     get_one_api_v1_dashboard_widgets__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardWidget"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_dashboard_widgets__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -7441,6 +7496,37 @@ export interface operations {
         };
     };
     get_one_api_v1_exercises__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Exercise"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_exercises__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -7913,6 +7999,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_goals__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Goal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_goals__item_id__delete: {
         parameters: {
             query?: never;
@@ -7973,7 +8090,7 @@ export interface operations {
             };
         };
     };
-    list_habits_api_v1_habits_get: {
+    list_all_api_v1_habits_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -7993,18 +8110,14 @@ export interface operations {
             };
         };
     };
-    create_habit_api_v1_habits_post: {
+    create_one_api_v1_habits_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["HabitCreate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             201: {
@@ -8013,110 +8126,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HabitResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_habit_api_v1_habits__habit_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                habit_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HabitResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_habit_api_v1_habits__habit_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                habit_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["HabitUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HabitResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_habit_api_v1_habits__habit_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                habit_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -8183,6 +8192,128 @@ export interface operations {
             };
         };
     };
+    get_one_api_v1_habits__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HabitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_habits__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HabitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_habits__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_habits__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HabitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_all_api_v1_insights_get: {
         parameters: {
             query?: never;
@@ -8224,6 +8355,37 @@ export interface operations {
         };
     };
     get_one_api_v1_insights__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Insight"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_insights__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -8924,6 +9086,37 @@ export interface operations {
         };
     };
     get_one_api_v1_measurements__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Measurement"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_measurements__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -9935,6 +10128,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_notifications__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_notifications__item_id__delete: {
         parameters: {
             query?: never;
@@ -10743,6 +10967,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_share_recipients__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareRecipient"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_share_recipients__item_id__delete: {
         parameters: {
             query?: never;
@@ -11039,6 +11294,37 @@ export interface operations {
         };
     };
     get_one_api_v1_sharing_relationships__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingRelationship"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_sharing_relationships__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -11688,6 +11974,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_user_metric_preferences__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMetricPreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_user_metric_preferences__item_id__delete: {
         parameters: {
             query?: never;
@@ -11789,6 +12106,37 @@ export interface operations {
         };
     };
     get_one_api_v1_user_source_preferences__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourcePreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_user_source_preferences__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -11950,6 +12298,37 @@ export interface operations {
             };
         };
     };
+    patch_one_api_v1_workout_plans__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_one_api_v1_workout_plans__item_id__delete: {
         parameters: {
             query?: never;
@@ -12051,6 +12430,37 @@ export interface operations {
         };
     };
     get_one_api_v1_workout_sessions__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_workout_sessions__item_id__put: {
         parameters: {
             query?: never;
             header?: never;
