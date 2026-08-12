@@ -93,6 +93,15 @@ class SPAStaticFiles(StaticFiles):
             raise
 
 
+def _run_seeder(label: str, seed_fn, *, fatal: bool = False) -> None:
+    try:
+        seed_fn()
+    except Exception:
+        logging.error(f"Failed to seed {label}", exc_info=True)
+        if fatal:
+            raise
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -195,26 +204,20 @@ async def lifespan(app: FastAPI):
 
     session = Session(lifespan_engine)
     try:
-        try:
-            ConfigService(SystemConfigRepository(session)).seed_defaults()
-        except Exception:
-            logging.error("Failed to seed default config", exc_info=True)
-            raise
-
-        try:
-            MetricDefinitionService(uow).seed_definitions()
-        except Exception:
-            logging.error("Failed to seed metric definitions", exc_info=True)
-
-        try:
-            AchievementService(uow).seed_definitions()
-        except Exception:
-            logging.error("Failed to seed achievement definitions", exc_info=True)
-
-        try:
-            MoodService(uow).seed_tags()
-        except Exception:
-            logging.error("Failed to seed mood tags", exc_info=True)
+        _run_seeder(
+            "default config",
+            lambda: ConfigService(SystemConfigRepository(session)).seed_defaults(),
+            fatal=True,
+        )
+        _run_seeder(
+            "metric definitions",
+            lambda: MetricDefinitionService(uow).seed_definitions(),
+        )
+        _run_seeder(
+            "achievement definitions",
+            lambda: AchievementService(uow).seed_definitions(),
+        )
+        _run_seeder("mood tags", lambda: MoodService(uow).seed_tags())
     finally:
         session.close()
         startup_session.close()

@@ -14,6 +14,15 @@ from salus.services.analytics.stats import pearson
 
 logger = logging.getLogger("salus.services.circadian")
 
+MINUTES_PER_DAY = 1440
+MELATONIN_DELAY_MINUTES = 240
+SLEEP_DURATION_MINUTES = 480
+
+
+def _mins_to_str(mins: float) -> str:
+    m = int(mins % MINUTES_PER_DAY)
+    return f"{m // 60:02d}:{m % 60:02d}"
+
 
 class CircadianService:
     def __init__(self, uow: IUnitOfWork) -> None:
@@ -137,16 +146,12 @@ class CircadianService:
             dawn_mins = solar_noon_mins - ha_civil * 4.0
             dusk_mins = solar_noon_mins + ha_civil * 4.0
 
-        def min_to_str(m: float) -> str:
-            m = int(m % 1440)
-            return f"{m // 60:02d}:{m % 60:02d}"
-
         return {
-            "sunrise": min_to_str(sunrise_mins),
-            "sunset": min_to_str(sunset_mins),
-            "solar_noon": min_to_str(solar_noon_mins),
-            "dawn": min_to_str(dawn_mins),
-            "dusk": min_to_str(dusk_mins),
+            "sunrise": _mins_to_str(sunrise_mins),
+            "sunset": _mins_to_str(sunset_mins),
+            "solar_noon": _mins_to_str(solar_noon_mins),
+            "dawn": _mins_to_str(dawn_mins),
+            "dusk": _mins_to_str(dusk_mins),
             "sunrise_mins": sunrise_mins,
             "sunset_mins": sunset_mins,
             "solar_noon_mins": solar_noon_mins,
@@ -183,15 +188,13 @@ class CircadianService:
         # Circadian rule engine calculations
         # Melatonin onset is typically ~4 hours after sunset
         sunset_mins = solar["sunset_mins"]
-        target_onset_mins = (sunset_mins + 240) % 1440
-        target_offset_mins = (target_onset_mins + 480) % 1440  # 8 hours sleep target
+        target_onset_mins = (sunset_mins + MELATONIN_DELAY_MINUTES) % MINUTES_PER_DAY
+        target_offset_mins = (
+            target_onset_mins + SLEEP_DURATION_MINUTES
+        ) % MINUTES_PER_DAY  # 8 hours sleep target
 
-        def mins_to_str(mins: float) -> str:
-            m = int(mins)
-            return f"{m // 60:02d}:{m % 60:02d}"
-
-        target_onset = mins_to_str(target_onset_mins)
-        target_offset = mins_to_str(target_offset_mins)
+        target_onset = _mins_to_str(target_onset_mins)
+        target_offset = _mins_to_str(target_offset_mins)
 
         # Calculate alignment score
         # Compare actual sleep onset with target sleep onset
@@ -217,7 +220,7 @@ class CircadianService:
         # Generate light advice
         light_advice = [
             {
-                "time_window": f"{solar['sunrise']} - {mins_to_str(solar['sunrise_mins'] + 120)}",
+                "time_window": f"{solar['sunrise']} - {_mins_to_str(solar['sunrise_mins'] + 120)}",
                 "action": "Morning Daylight Anchor",
                 "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.",
             },
@@ -234,8 +237,8 @@ class CircadianService:
         eating_end_mins = (actual_onset_mins - 180) % 1440
 
         eating_window = {
-            "start": mins_to_str(eating_start_mins),
-            "end": mins_to_str(eating_end_mins),
+            "start": _mins_to_str(eating_start_mins),
+            "end": _mins_to_str(eating_end_mins),
             "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
         }
 

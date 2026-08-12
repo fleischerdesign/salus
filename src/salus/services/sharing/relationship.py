@@ -106,6 +106,22 @@ class RelationshipService:
         object.__setattr__(rel, "raw_token", raw_token)
         return rel
 
+    def _pending_relationship_for_grantee(
+        self, grantee_user_id: str, relationship_id: str
+    ) -> SharingRelationship:
+        user = self.uow.users.get_by_id(grantee_user_id)
+        if not user:
+            raise NotFoundError("User not found")
+        grantee_handle = make_handle(user)
+
+        rel = self.uow.sharing_relationships.get_by_id(relationship_id)
+        if not rel or rel.grantee_handle != grantee_handle:
+            raise NotFoundError("Sharing relationship not found")
+
+        if rel.status != ConnectionStatus.PENDING:
+            raise ConflictError("Sharing invitation is not in pending state")
+        return rel
+
     def accept_relationship(
         self,
         grantee_user_id: str,
@@ -113,18 +129,7 @@ class RelationshipService:
         notify_callback: Optional[callable] = None,  # type: ignore[type-arg]
     ) -> SharingRelationship:
         with self.uow:
-            user = self.uow.users.get_by_id(grantee_user_id)
-            if not user:
-                raise NotFoundError("User not found")
-            grantee_handle = make_handle(user)
-
-            rel = self.uow.sharing_relationships.get_by_id(relationship_id)
-            if not rel or rel.grantee_handle != grantee_handle:
-                raise NotFoundError("Sharing relationship not found")
-
-            if rel.status != ConnectionStatus.PENDING:
-                raise ConflictError("Sharing invitation is not in pending state")
-
+            rel = self._pending_relationship_for_grantee(grantee_user_id, relationship_id)
             rel.status = ConnectionStatus.ACTIVE
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
@@ -139,18 +144,7 @@ class RelationshipService:
         self, grantee_user_id: str, relationship_id: str
     ) -> SharingRelationship:
         with self.uow:
-            user = self.uow.users.get_by_id(grantee_user_id)
-            if not user:
-                raise NotFoundError("User not found")
-            grantee_handle = make_handle(user)
-
-            rel = self.uow.sharing_relationships.get_by_id(relationship_id)
-            if not rel or rel.grantee_handle != grantee_handle:
-                raise NotFoundError("Sharing relationship not found")
-
-            if rel.status != ConnectionStatus.PENDING:
-                raise ConflictError("Sharing invitation is not in pending state")
-
+            rel = self._pending_relationship_for_grantee(grantee_user_id, relationship_id)
             rel.status = ConnectionStatus.DECLINED
             rel.updated_at = datetime.now(timezone.utc)
             self.uow.sharing_relationships.update(rel)
@@ -204,21 +198,22 @@ class RelationshipService:
 
             peer_sync_times: dict[str, datetime] = {}
 
-            for rel in all_outgoing:
-                handle = rel.grantee_handle
-                peer = _ensure_peer(handle, self.is_remote(handle))
+            def apply_relationship(
+                peer: PeerConnection, rel: SharingRelationship, direction: str,
+                include_pending: bool,
+            ) -> None:
                 rel_is_pending = rel.status == ConnectionStatus.PENDING
                 rel_is_active = rel.status == ConnectionStatus.ACTIVE
                 if rel_is_pending:
                     peer.is_pending = True
-                if rel_is_active or rel_is_pending:
+                if rel_is_active or (include_pending and rel_is_pending):
                     peer.metrics.append(
                         PeerMetricInfo(
                             metric_name=rel.metric_definition.name,
                             icon=getattr(rel.metric_definition, "icon", "monitoring"),
                             color=getattr(rel.metric_definition, "color", DEFAULT_METRIC_COLOR),
                             aggregation=rel.aggregation_level,
-                            direction="outgoing",
+                            direction=direction,
                             relationship_id=rel.id or "",
                         )
                     )
@@ -226,6 +221,11 @@ class RelationshipService:
                     peer.expiration is None or rel.expiration_date < peer.expiration
                 ):
                     peer.expiration = rel.expiration_date
+
+            for rel in all_outgoing:
+                handle = rel.grantee_handle
+                peer = _ensure_peer(handle, self.is_remote(handle))
+                apply_relationship(peer, rel, "outgoing", include_pending=True)
                 if rel.last_sync_at:
                     key = _peer_key(handle)
                     if (
@@ -240,25 +240,7 @@ class RelationshipService:
                 owner_username = rel.owner.username
                 handle = f"@{owner_username}"
                 peer = _ensure_peer(handle, False)
-                rel_is_pending = rel.status == ConnectionStatus.PENDING
-                rel_is_active = rel.status == ConnectionStatus.ACTIVE
-                if rel_is_pending:
-                    peer.is_pending = True
-                if rel_is_active:
-                    peer.metrics.append(
-                        PeerMetricInfo(
-                            metric_name=rel.metric_definition.name,
-                            icon=getattr(rel.metric_definition, "icon", "monitoring"),
-                            color=getattr(rel.metric_definition, "color", DEFAULT_METRIC_COLOR),
-                            aggregation=rel.aggregation_level,
-                            direction="incoming",
-                            relationship_id=rel.id or "",
-                        )
-                    )
-                if rel.expiration_date and (
-                    peer.expiration is None or rel.expiration_date < peer.expiration
-                ):
-                    peer.expiration = rel.expiration_date
+                apply_relationship(peer, rel, "incoming", include_pending=False)
 
         for peer in peers.values():
             has_out = any(m.direction == "outgoing" for m in peer.metrics)
