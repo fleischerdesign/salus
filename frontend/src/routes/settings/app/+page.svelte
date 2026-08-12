@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { Capacitor } from '@capacitor/core';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -219,7 +218,7 @@
     }
   }
 
-  onMount(() => {
+  $effect(() => {
     loadDbCounts();
   });
 </script>

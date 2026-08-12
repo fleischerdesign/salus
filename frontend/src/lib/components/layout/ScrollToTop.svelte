@@ -2,7 +2,6 @@
   import Icon from '$components/ui/Icon.svelte';
   import { fly } from 'svelte/transition';
   import { DURATIONS, motionParams } from '$lib/utils/motion';
-  import { onMount } from 'svelte';
 
   interface Props {
     threshold?: number;
@@ -21,7 +20,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onMount(() => {
+  $effect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   });
