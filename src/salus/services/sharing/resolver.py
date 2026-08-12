@@ -8,6 +8,7 @@ import httpx
 
 from salus.config import settings
 from salus.exceptions import ForbiddenError, NotFoundError
+from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, parse_date, summarize_daily_values
 from salus.services.sharing._http import retry_http_request
@@ -18,6 +19,42 @@ if TYPE_CHECKING:
     from salus.services.sharing.relationship import RelationshipService
 
 logger = logging.getLogger("salus.services.sharing.resolver")
+
+
+def build_day_result(
+    owner_username: str,
+    data_type: str,
+    date_str: str,
+    day_measurements: list[Measurement],
+    aggregation_level: str,
+) -> list[dict]:
+    if aggregation_level == "daily_summary":
+        if not day_measurements:
+            return []
+        values = [
+            m.value_numeric for m in day_measurements if m.value_numeric is not None
+        ]
+        val = summarize_daily_values(data_type, values)
+        return [
+            {
+                "data_type": data_type,
+                "value_numeric": val,
+                "start_time": date_str,
+                "source": "summary",
+                "external_id": f"summary-{owner_username}-{data_type}-{date_str}",
+            }
+        ]
+    return [
+        {
+            "data_type": m.data_type,
+            "value_numeric": m.value_numeric,
+            "value_json": m.value_json,
+            "start_time": m.start_time.isoformat(),
+            "source": m.source,
+            "external_id": m.external_id,
+        }
+        for m in day_measurements
+    ]
 
 
 class FederationDataResolver:
@@ -119,36 +156,13 @@ class FederationDataResolver:
                 m for m in raw_measurements if m.start_time.date() == target_date
             ]
 
-            if rel.aggregation_level == "daily_summary":
-                if not day_measurements:
-                    return []
-                values = [
-                    m.value_numeric
-                    for m in day_measurements
-                    if m.value_numeric is not None
-                ]
-                val = summarize_daily_values(data_type, values)
-                return [
-                    {
-                        "data_type": data_type,
-                        "value_numeric": val,
-                        "start_time": date_str,
-                        "source": "summary",
-                        "external_id": f"summary-{owner_username}-{data_type}-{date_str}",
-                    }
-                ]
-            else:
-                return [
-                    {
-                        "data_type": m.data_type,
-                        "value_numeric": m.value_numeric,
-                        "value_json": m.value_json,
-                        "start_time": m.start_time.isoformat(),
-                        "source": m.source,
-                        "external_id": m.external_id,
-                    }
-                    for m in day_measurements
-                ]
+            return build_day_result(
+                owner_username=owner_username,
+                data_type=data_type,
+                date_str=date_str,
+                day_measurements=day_measurements,
+                aggregation_level=rel.aggregation_level,
+            )
 
     def _fetch_remote(
         self, owner_handle: str, data_type: str, date_str: str

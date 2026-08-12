@@ -12392,6 +12392,8 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
                 "X-Salus-Sync-Version"?: number;
             };
             path?: never;

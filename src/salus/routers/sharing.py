@@ -19,8 +19,8 @@ from salus.models.sharing import (
 )
 from salus.models.user import User
 from salus.services.sharing import SharingService
+from salus.services.sharing.resolver import build_day_result
 from salus.exceptions import NotFoundError
-from salus.services._helpers import summarize_daily_values
 
 logger = logging.getLogger("salus.routers.sharing")
 router = APIRouter()
@@ -136,34 +136,13 @@ async def federated_shared_data(
             m for m in raw_measurements if m.start_time.date() == target_date
         ]
 
-        if rel.aggregation_level == "daily_summary":
-            if not day_measurements:
-                return JSONResponse({"status": "ok", "data": []})
-            values = [
-                m.value_numeric for m in day_measurements if m.value_numeric is not None
-            ]
-            val = summarize_daily_values(data_type, values)
-            result = [
-                {
-                    "data_type": data_type,
-                    "value_numeric": val,
-                    "start_time": date,
-                    "source": "summary",
-                    "external_id": f"summary-{owner_username}-{data_type}-{date}",
-                }
-            ]
-        else:
-            result = [
-                {
-                    "data_type": m.data_type,
-                    "value_numeric": m.value_numeric,
-                    "value_json": m.value_json,
-                    "start_time": m.start_time.isoformat(),
-                    "source": m.source,
-                    "external_id": m.external_id,
-                }
-                for m in day_measurements
-            ]
+        result = build_day_result(
+            owner_username=owner_username,
+            data_type=data_type,
+            date_str=date,
+            day_measurements=day_measurements,
+            aggregation_level=rel.aggregation_level,
+        )
 
         return JSONResponse({"status": "ok", "data": result})
 
