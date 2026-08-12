@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from sqlmodel import select
 
-from salus.dependencies import get_current_user_or_api, get_unit_of_work
+from salus.dependencies import get_current_user_or_api, get_event_bus, get_unit_of_work
 from salus.exceptions import ApiError, raise_from_command_result
 from salus.models.user import User
 from salus.repositories.entity_meta import (
@@ -16,6 +16,7 @@ from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
 from salus.services.entity_enrichment import ENRICHERS, RESPONSE_MODELS
+from salus.services.event_bus import EventBus
 from salus.services.write_pipeline import WritePipeline
 
 _PLURAL_MAP: dict[str, str] = {
@@ -185,9 +186,10 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             request: Request,
             user: User = Depends(get_current_user_or_api),
             uow: IUnitOfWork = Depends(get_unit_of_work),
+            event_bus: EventBus = Depends(get_event_bus),
         ):
             body = await request.json()
-            pipeline = WritePipeline(uow, user)
+            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="create", entity=meta.name, data=body)
             results = pipeline.process([op])
             result = results[0]
@@ -201,9 +203,10 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             request: Request,
             user: User = Depends(get_current_user_or_api),
             uow: IUnitOfWork = Depends(get_unit_of_work),
+            event_bus: EventBus = Depends(get_event_bus),
         ):
             body = await request.json()
-            pipeline = WritePipeline(uow, user)
+            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="update", entity=meta.name, id=item_id, data=body)
             results = pipeline.process([op])
             result = results[0]
@@ -215,13 +218,14 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             item_id: str,
             user: User = Depends(get_current_user_or_api),
             uow: IUnitOfWork = Depends(get_unit_of_work),
+            event_bus: EventBus = Depends(get_event_bus),
         ):
             obj = uow.session.get(model_cls, item_id)
             if not obj or (hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None):
                 raise ApiError(code="not_found", message="Resource not found", status_code=404)
             _check_ownership(obj, user, meta, uow.session)
 
-            pipeline = WritePipeline(uow, user)
+            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="delete", entity=meta.name, id=item_id)
             results = pipeline.process([op])
             result = results[0]

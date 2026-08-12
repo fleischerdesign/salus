@@ -8,6 +8,7 @@ from salus.dependencies import (
     get_current_user,
     get_goal_service,
     get_insight_service,
+    get_event_bus,
     get_measurement_service,
     get_notification_service,
     get_user_service,
@@ -19,6 +20,7 @@ from salus.schemas.circadian import CircadianProfileCreate
 from salus.schemas.goal import GoalCreate
 from salus.schemas.measurement import MeasurementCreate
 from salus.services._helpers import uid
+from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.api_token import ApiTokenService
 from salus.services.circadian import CircadianService
 from salus.services.goal import GoalService
@@ -70,8 +72,10 @@ async def api_generate_insight(
     date: str = Query(...),
     current_user: User = Depends(get_current_user),
     service: InsightService = Depends(get_insight_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     insight = service.generate_daily_insight(uid(current_user), date)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": insight.id,
         "date": insight.query_date,
@@ -87,8 +91,10 @@ async def api_circadian_profile(
     data: CircadianProfileCreate,
     current_user: User = Depends(get_current_user),
     service: CircadianService = Depends(get_circadian_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     profile = service.save_profile(user_id=uid(current_user), data=data)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": profile.id,
         "user_id": profile.user_id,

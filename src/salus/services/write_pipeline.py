@@ -13,19 +13,29 @@ from salus.repositories.entity_meta import (
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation, SyncResult
+from salus.services._helpers import uid
 from salus.services.command_registry import get_handler
 from salus.services.constants import DEDUP_TTL_HOURS, SYNC_BATCH_SIZE
+from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.serialization import serialize_record
 import salus.services.commands  # noqa: F401 — triggers @register decorators
 
 _PK_FIELDS = {"id", "created_at"}
 
+_SUCCESS_STATUSES = {"created", "updated", "deleted", "ok"}
+
 
 class WritePipeline:
-    def __init__(self, uow: IUnitOfWork, current_user: User) -> None:
+    def __init__(
+        self,
+        uow: IUnitOfWork,
+        current_user: User,
+        event_bus: EventBus | None = None,
+    ) -> None:
         self.uow = uow
         self.user = current_user
         self.session: Session = uow.session
+        self._event_bus = event_bus
         self._valid_metric_codes: set[str] | None = None
 
     def _get_valid_metric_codes(self) -> set[str]:
@@ -50,6 +60,9 @@ class WritePipeline:
         except Exception:
             self.session.rollback()
             raise
+
+        if any(r.status in _SUCCESS_STATUSES for r in results):
+            schedule_publish(self._event_bus, uid(self.user))
 
         return results
 

@@ -70,9 +70,8 @@ async def api_sync_push(
     event_bus: EventBus = Depends(get_event_bus),
     _version: int = Depends(_check_sync_version),
 ) -> SyncPushResponse:
-    pipeline = WritePipeline(uow, current_user)
+    pipeline = WritePipeline(uow, current_user, event_bus)
     results = pipeline.process(body.operations)
-    await event_bus.publish(uid(current_user))
     return SyncPushResponse(
         results=results,
         synced_at=datetime.now(timezone.utc).isoformat(),

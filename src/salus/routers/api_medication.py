@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 
-from salus.dependencies import get_current_user, get_medication_service
+from salus.dependencies import get_current_user, get_event_bus, get_medication_service
 from salus.models.user import User
 from salus.schemas.medication import (
     MedicationInventoryResponse,
@@ -12,6 +12,7 @@ from salus.schemas.medication import (
     MedicationTodayResponse,
 )
 from salus.services._helpers import uid
+from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.medication import MedicationService
 
 router = APIRouter(prefix="/api/v1/medications")
@@ -95,8 +96,10 @@ async def create_schedule(
     data: MedicationScheduleCreate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     s = medication_svc.add_schedule(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return _schedule_to_response(s)
 
 
@@ -105,8 +108,10 @@ async def delete_schedule(
     schedule_id: str,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     medication_svc.delete_schedule(schedule_id, uid(current_user))
+    schedule_publish(event_bus, uid(current_user))
     return Response(status_code=204)
 
 
@@ -119,8 +124,10 @@ async def log_intake(
     data: MedicationLogCreate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     log = medication_svc.log_intake(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return _log_to_response(log)
 
 
@@ -170,8 +177,10 @@ async def update_inventory(
     data: MedicationInventoryUpdate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     inv = medication_svc.update_inventory(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": inv.id,
         "medication_id": inv.medication_id,

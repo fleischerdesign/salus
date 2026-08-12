@@ -37,3 +37,19 @@ class InMemoryEventBus(EventBus):
                 queue.put_nowait(None)
             except asyncio.QueueFull:
                 pass
+
+
+def schedule_publish(event_bus: EventBus | None, user_id: str) -> None:
+    """Fire-and-forget an SSE live-sync notification for a user's data change.
+
+    Safe outside a running event loop (CLI, offline contexts): the
+    notification is a best-effort hint for other devices to pull, never a
+    write dependency. Call after a successful commit on any write channel.
+    """
+    if event_bus is None:
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    loop.create_task(event_bus.publish(user_id))
