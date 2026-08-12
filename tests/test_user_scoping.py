@@ -1,7 +1,7 @@
 def test_user_data_scoped(authenticated_client, client):
     authenticated_client.post(
-        "/api/v1/entries?metric_code=weight",
-        json={"value": "80.5"},
+        "/api/v1/measurements",
+        json={"metric_code": "weight", "value_text": "80.5"},
     )
 
     client.post("/api/v1/auth/logout")
@@ -18,12 +18,12 @@ def test_user_data_scoped(authenticated_client, client):
     names = [m["name"] for m in metrics]
     assert "AliceCustom" not in names
 
-    response = client.get("/api/v1/entries?metric_code=weight", headers=bob_headers)
+    response = client.get("/api/v1/measurements?metric_code=weight", headers=bob_headers)
     assert response.status_code == 200
-    assert response.json()["total"] == 0
+    assert response.json() == []
 
 
-def test_alice_cannot_see_bob_metrics(authenticated_client, client):
+def test_alice_cannot_see_bob_metric_preference(authenticated_client, client):
     client.post("/api/v1/auth/logout")
     resp = client.post(
         "/api/v1/auth/register",
@@ -32,14 +32,16 @@ def test_alice_cannot_see_bob_metrics(authenticated_client, client):
     bob_token = resp.json()["token"]
 
     client.post(
-        "/api/v1/metrics",
-        json={"name": "Hydration", "unit": "ml", "data_type": "number", "color": "#0ea5e9"},
+        "/api/v1/user-metric-preferences",
+        json={"metric_code": "cadence", "color": "#0ea5e9"},
         headers={"Authorization": f"Bearer {bob_token}"},
     )
 
     response = authenticated_client.get("/api/v1/metrics")
-    names = [m["name"] for m in response.json()]
-    assert "Hydration" not in names
+    metrics = response.json()
+    cadence = next((m for m in metrics if m["id"] == "cadence"), None)
+    assert cadence is not None
+    assert cadence["color"] != "#0ea5e9"
 
 
 def test_settings_page_loads(authenticated_client):

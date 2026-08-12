@@ -12,7 +12,7 @@ from salus.dependencies import (
     get_notification_service,
     get_user_service,
 )
-from salus.models.goal import GoalDirection, GoalFrequency
+from salus.models.goal import Goal, GoalDirection, GoalFrequency
 from salus.models.user import User
 from salus.schemas.analytics import InsightResponse
 from salus.schemas.circadian import CircadianProfileCreate
@@ -42,15 +42,6 @@ class _OnboardingGoalBody(BaseModel):
     direction: str = "increase"
 
 
-class GoalCreateResponse(BaseModel):
-    id: str
-    metric_code: str
-    target_value: float
-    direction: str
-    frequency: str
-    deadline: str | None = None
-
-
 class _CircadianProfileResponse(BaseModel):
     id: str
     user_id: str
@@ -70,54 +61,6 @@ class _OnboardingEntryResponse(BaseModel):
     metric_code: str
     value: str | float | None = None
     timestamp: str | None = None
-
-
-# ── Goals ──
-
-@router.get("/goals", response_model=list[GoalCreateResponse])
-async def api_list_goals(
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goals = goal_service.find_all(uid(current_user))
-    return [
-        {
-            "id": g.id,
-            "metric_code": g.metric_code,
-            "target_value": g.target_value,
-            "direction": g.direction.value,
-            "frequency": g.frequency.value,
-            "deadline": g.deadline.isoformat() if g.deadline else None,
-        }
-        for g in goals
-    ]
-
-
-@router.post("/goals", response_model=GoalCreateResponse, status_code=201)
-async def api_create_goal(
-    data: GoalCreate,
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goal = goal_service.create(data, uid(current_user))
-    return {
-        "id": goal.id,
-        "metric_code": goal.metric_code,
-        "target_value": goal.target_value,
-        "direction": goal.direction.value,
-        "frequency": goal.frequency.value,
-        "deadline": goal.deadline.isoformat() if goal.deadline else None,
-    }
-
-
-@router.delete("/goals/{goal_id}", status_code=204)
-async def api_delete_goal(
-    goal_id: str,
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goal_service.delete(goal_id, uid(current_user))
-    return Response(status_code=204)
 
 
 # ── Insights ──
@@ -220,7 +163,7 @@ async def api_onboarding_entry(
     }
 
 
-@router.post("/onboarding/goal", response_model=GoalCreateResponse, status_code=201)
+@router.post("/onboarding/goal", response_model=Goal, status_code=201)
 async def api_onboarding_goal(
     body: _OnboardingGoalBody,
     current_user: User = Depends(get_current_user),
@@ -232,12 +175,4 @@ async def api_onboarding_goal(
         direction=GoalDirection(body.direction),
         frequency=GoalFrequency.DAILY,
     )
-    goal = goal_service.create(data, uid(current_user))
-    return {
-        "id": goal.id,
-        "metric_code": goal.metric_code,
-        "target_value": goal.target_value,
-        "direction": goal.direction.value,
-        "frequency": goal.frequency.value,
-        "deadline": goal.deadline.isoformat() if goal.deadline else None,
-    }
+    return goal_service.create(data, uid(current_user))

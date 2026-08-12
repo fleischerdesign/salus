@@ -819,42 +819,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/entries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Api List Entries */
-        get: operations["api_list_entries_api_v1_entries_get"];
-        put?: never;
-        /** Api Create Entry */
-        post: operations["api_create_entry_api_v1_entries_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/entries/{entry_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Api Update Entry */
-        put: operations["api_update_entry_api_v1_entries__entry_id__put"];
-        post?: never;
-        /** Api Delete Entry */
-        delete: operations["api_delete_entry_api_v1_entries__entry_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/exercises": {
         parameters: {
             query?: never;
@@ -1076,23 +1040,6 @@ export interface paths {
         /** Create One */
         post: operations["create_one_api_v1_goals_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/goals/{goal_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Api Delete Goal */
-        delete: operations["api_delete_goal_api_v1_goals__goal_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1696,8 +1643,7 @@ export interface paths {
         /** Api List Metrics */
         get: operations["api_list_metrics_api_v1_metrics_get"];
         put?: never;
-        /** Api Create Metric */
-        post: operations["api_create_metric_api_v1_metrics_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1713,11 +1659,9 @@ export interface paths {
         };
         /** Api Get Metric */
         get: operations["api_get_metric_api_v1_metrics__metric_id__get"];
-        /** Api Update Metric */
-        put: operations["api_update_metric_api_v1_metrics__metric_id__put"];
+        put?: never;
         post?: never;
-        /** Api Delete Metric */
-        delete: operations["api_delete_metric_api_v1_metrics__metric_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3463,44 +3407,6 @@ export interface components {
          * @enum {string}
          */
         DataType: "number" | "text" | "boolean";
-        /** EntryListResponse */
-        EntryListResponse: {
-            /** Entries */
-            entries: components["schemas"]["EntryResponse"][];
-            /** Page */
-            page: number;
-            /** Per Page */
-            per_page: number;
-            /** Total */
-            total: number;
-            /** Total Pages */
-            total_pages: number;
-        };
-        /** EntryResponse */
-        EntryResponse: {
-            /** Id */
-            id: string;
-            /** Metric Code */
-            metric_code: string;
-            /** Notes */
-            notes: string | null;
-            /**
-             * Timestamp
-             * Format: date-time
-             */
-            timestamp: string;
-            /** Value */
-            value: string;
-        };
-        /** EntryUpdate */
-        EntryUpdate: {
-            /** Notes */
-            notes?: string | null;
-            /** Timestamp */
-            timestamp?: string | null;
-            /** Value */
-            value?: string | null;
-        };
         /**
          * Exercise
          * @description Catalog of exercises, editable by users.
@@ -3733,34 +3639,6 @@ export interface components {
             updated_at?: string | null;
             /** User Id */
             user_id: string;
-        };
-        /** GoalCreate */
-        GoalCreate: {
-            /** Deadline */
-            deadline?: string | null;
-            /** @default increase */
-            direction: components["schemas"]["GoalDirection"];
-            /** @default daily */
-            frequency: components["schemas"]["GoalFrequency"];
-            /** Metric Code */
-            metric_code: string;
-            /** Target Value */
-            target_value: number;
-        };
-        /** GoalCreateResponse */
-        GoalCreateResponse: {
-            /** Deadline */
-            deadline?: string | null;
-            /** Direction */
-            direction: string;
-            /** Frequency */
-            frequency: string;
-            /** Id */
-            id: string;
-            /** Metric Code */
-            metric_code: string;
-            /** Target Value */
-            target_value: number;
         };
         /**
          * GoalDirection
@@ -4222,15 +4100,6 @@ export interface components {
             /** Value Text */
             value_text?: string | null;
         };
-        /** MeasurementCreate */
-        MeasurementCreate: {
-            /** Notes */
-            notes?: string | null;
-            /** Timestamp */
-            timestamp?: string | null;
-            /** Value */
-            value: string;
-        };
         /** MedicationCreate */
         MedicationCreate: {
             /** Active Ingredient */
@@ -4514,28 +4383,6 @@ export interface components {
             metrics: components["schemas"]["GroupMetricResponse"][];
             /** Name */
             name: string;
-        };
-        /** MetricPreferenceCreate */
-        MetricPreferenceCreate: {
-            /**
-             * Color
-             * @default #4f46e5
-             */
-            color: string;
-            /** @default number */
-            data_type: components["schemas"]["DataType"];
-            /**
-             * Icon
-             * @default monitoring
-             */
-            icon: string;
-            /** Name */
-            name: string;
-            /**
-             * Unit
-             * @default
-             */
-            unit: string;
         };
         /** MetricSourcePriorityItem */
         MetricSourcePriorityItem: {
@@ -6395,7 +6242,10 @@ export interface operations {
     list_all_api_v1_asymmetric_shares_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -6410,12 +6260,24 @@ export interface operations {
                     "application/json": components["schemas"]["AsymmetricShare"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_asymmetric_shares_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -6430,12 +6292,24 @@ export interface operations {
                     "application/json": components["schemas"]["AsymmetricShare"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_asymmetric_shares__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6466,7 +6340,10 @@ export interface operations {
     patch_one_api_v1_asymmetric_shares__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6497,7 +6374,10 @@ export interface operations {
     delete_one_api_v1_asymmetric_shares__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6526,7 +6406,10 @@ export interface operations {
     patch_one_api_v1_asymmetric_shares__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6809,7 +6692,10 @@ export interface operations {
     list_all_api_v1_circadian_profiles_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -6824,12 +6710,24 @@ export interface operations {
                     "application/json": components["schemas"]["CircadianProfile"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_circadian_profiles_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -6844,12 +6742,24 @@ export interface operations {
                     "application/json": components["schemas"]["CircadianProfile"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_circadian_profiles__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6880,7 +6790,10 @@ export interface operations {
     patch_one_api_v1_circadian_profiles__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6911,7 +6824,10 @@ export interface operations {
     delete_one_api_v1_circadian_profiles__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -6940,7 +6856,10 @@ export interface operations {
     patch_one_api_v1_circadian_profiles__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7004,7 +6923,10 @@ export interface operations {
     list_all_api_v1_dashboard_widgets_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7019,12 +6941,24 @@ export interface operations {
                     "application/json": components["schemas"]["DashboardWidget"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_dashboard_widgets_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7039,12 +6973,24 @@ export interface operations {
                     "application/json": components["schemas"]["DashboardWidget"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_dashboard_widgets__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7075,7 +7021,10 @@ export interface operations {
     patch_one_api_v1_dashboard_widgets__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7106,7 +7055,10 @@ export interface operations {
     delete_one_api_v1_dashboard_widgets__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7135,7 +7087,10 @@ export interface operations {
     patch_one_api_v1_dashboard_widgets__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7311,154 +7266,13 @@ export interface operations {
             };
         };
     };
-    api_list_entries_api_v1_entries_get: {
-        parameters: {
-            query?: {
-                metric_code?: string | null;
-                page?: number;
-                per_page?: number;
-            };
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntryListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_create_entry_api_v1_entries_post: {
-        parameters: {
-            query: {
-                metric_code: string;
-            };
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MeasurementCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntryResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_update_entry_api_v1_entries__entry_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                entry_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EntryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntryResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_delete_entry_api_v1_entries__entry_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                entry_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_all_api_v1_exercises_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7473,12 +7287,24 @@ export interface operations {
                     "application/json": components["schemas"]["Exercise"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_exercises_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7493,12 +7319,24 @@ export interface operations {
                     "application/json": components["schemas"]["Exercise"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_exercises__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7529,7 +7367,10 @@ export interface operations {
     patch_one_api_v1_exercises__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7560,7 +7401,10 @@ export interface operations {
     delete_one_api_v1_exercises__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7589,7 +7433,10 @@ export interface operations {
     patch_one_api_v1_exercises__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7902,7 +7749,10 @@ export interface operations {
     list_all_api_v1_goals_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7917,12 +7767,24 @@ export interface operations {
                     "application/json": components["schemas"]["Goal"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_goals_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7936,26 +7798,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Goal"];
                 };
-            };
-        };
-    };
-    api_delete_goal_api_v1_goals__goal_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                goal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -7971,7 +7813,10 @@ export interface operations {
     get_one_api_v1_goals__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8002,7 +7847,10 @@ export interface operations {
     patch_one_api_v1_goals__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8033,7 +7881,10 @@ export interface operations {
     delete_one_api_v1_goals__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8062,7 +7913,10 @@ export interface operations {
     patch_one_api_v1_goals__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8093,7 +7947,10 @@ export interface operations {
     list_all_api_v1_habits_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8108,12 +7965,24 @@ export interface operations {
                     "application/json": components["schemas"]["HabitResponse"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_habits_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8126,6 +7995,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HabitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -8195,7 +8073,10 @@ export interface operations {
     get_one_api_v1_habits__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8226,7 +8107,10 @@ export interface operations {
     patch_one_api_v1_habits__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8257,7 +8141,10 @@ export interface operations {
     delete_one_api_v1_habits__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8286,7 +8173,10 @@ export interface operations {
     patch_one_api_v1_habits__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8317,7 +8207,10 @@ export interface operations {
     list_all_api_v1_insights_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8332,12 +8225,24 @@ export interface operations {
                     "application/json": components["schemas"]["Insight"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_insights_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8352,12 +8257,24 @@ export interface operations {
                     "application/json": components["schemas"]["Insight"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_insights__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8388,7 +8305,10 @@ export interface operations {
     patch_one_api_v1_insights__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8419,7 +8339,10 @@ export interface operations {
     delete_one_api_v1_insights__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8448,7 +8371,10 @@ export interface operations {
     patch_one_api_v1_insights__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8734,7 +8660,10 @@ export interface operations {
     list_all_api_v1_leaderboard_groups_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8749,12 +8678,24 @@ export interface operations {
                     "application/json": components["schemas"]["LeaderboardGroup"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_leaderboard_groups__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -8785,7 +8726,10 @@ export interface operations {
     list_all_api_v1_leaderboard_members_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -8800,12 +8744,24 @@ export interface operations {
                     "application/json": components["schemas"]["LeaderboardMember"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_leaderboard_members__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9048,7 +9004,10 @@ export interface operations {
     list_all_api_v1_measurements_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9063,12 +9022,24 @@ export interface operations {
                     "application/json": components["schemas"]["Measurement"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_measurements_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9083,12 +9054,24 @@ export interface operations {
                     "application/json": components["schemas"]["Measurement"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_measurements__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9119,7 +9102,10 @@ export interface operations {
     patch_one_api_v1_measurements__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9150,7 +9136,10 @@ export interface operations {
     delete_one_api_v1_measurements__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9179,7 +9168,10 @@ export interface operations {
     patch_one_api_v1_measurements__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9607,7 +9599,10 @@ export interface operations {
     list_all_api_v1_metric_definitions_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9622,12 +9617,24 @@ export interface operations {
                     "application/json": components["schemas"]["MetricDefinition"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_metric_definitions__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9658,7 +9665,10 @@ export interface operations {
     list_all_api_v1_metric_groups_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9673,12 +9683,24 @@ export interface operations {
                     "application/json": components["schemas"]["MetricGroup"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_metric_groups__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -9738,42 +9760,6 @@ export interface operations {
             };
         };
     };
-    api_create_metric_api_v1_metrics_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MetricPreferenceCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MetricTypeResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     api_get_metric_api_v1_metrics__metric_id__get: {
         parameters: {
             query?: never;
@@ -9796,76 +9782,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MetricTypeResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_update_metric_api_v1_metrics__metric_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                metric_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MetricPreferenceCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MetricTypeResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_delete_metric_api_v1_metrics__metric_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                metric_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -10060,7 +9976,10 @@ export interface operations {
     list_all_api_v1_notifications_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10075,12 +9994,24 @@ export interface operations {
                     "application/json": components["schemas"]["Notification"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_notifications_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10095,12 +10026,24 @@ export interface operations {
                     "application/json": components["schemas"]["Notification"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_notifications__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -10131,7 +10074,10 @@ export interface operations {
     patch_one_api_v1_notifications__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -10162,7 +10108,10 @@ export interface operations {
     delete_one_api_v1_notifications__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -10191,7 +10140,10 @@ export interface operations {
     patch_one_api_v1_notifications__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -10336,7 +10288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GoalCreateResponse"];
+                    "application/json": components["schemas"]["Goal"];
                 };
             };
             /** @description Validation Error */
@@ -10899,7 +10851,10 @@ export interface operations {
     list_all_api_v1_share_recipients_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10914,12 +10869,24 @@ export interface operations {
                     "application/json": components["schemas"]["ShareRecipient"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_share_recipients_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -10934,12 +10901,24 @@ export interface operations {
                     "application/json": components["schemas"]["ShareRecipient"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_share_recipients__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -10970,7 +10949,10 @@ export interface operations {
     patch_one_api_v1_share_recipients__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11001,7 +10983,10 @@ export interface operations {
     delete_one_api_v1_share_recipients__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11030,7 +11015,10 @@ export interface operations {
     patch_one_api_v1_share_recipients__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11256,7 +11244,10 @@ export interface operations {
     list_all_api_v1_sharing_relationships_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11271,12 +11262,24 @@ export interface operations {
                     "application/json": components["schemas"]["SharingRelationship"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_sharing_relationships_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11291,12 +11294,24 @@ export interface operations {
                     "application/json": components["schemas"]["SharingRelationship"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_sharing_relationships__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11327,7 +11342,10 @@ export interface operations {
     patch_one_api_v1_sharing_relationships__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11358,7 +11376,10 @@ export interface operations {
     delete_one_api_v1_sharing_relationships__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11387,7 +11408,10 @@ export interface operations {
     patch_one_api_v1_sharing_relationships__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11906,7 +11930,10 @@ export interface operations {
     list_all_api_v1_user_metric_preferences_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11921,12 +11948,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserMetricPreference"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_user_metric_preferences_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11941,12 +11980,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserMetricPreference"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_user_metric_preferences__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -11977,7 +12028,10 @@ export interface operations {
     patch_one_api_v1_user_metric_preferences__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12008,7 +12062,10 @@ export interface operations {
     delete_one_api_v1_user_metric_preferences__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12037,7 +12094,10 @@ export interface operations {
     patch_one_api_v1_user_metric_preferences__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12068,7 +12128,10 @@ export interface operations {
     list_all_api_v1_user_source_preferences_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12083,12 +12146,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserSourcePreference"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_user_source_preferences_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12103,12 +12178,24 @@ export interface operations {
                     "application/json": components["schemas"]["UserSourcePreference"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_user_source_preferences__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12139,7 +12226,10 @@ export interface operations {
     patch_one_api_v1_user_source_preferences__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12170,7 +12260,10 @@ export interface operations {
     delete_one_api_v1_user_source_preferences__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12199,7 +12292,10 @@ export interface operations {
     patch_one_api_v1_user_source_preferences__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12230,7 +12326,10 @@ export interface operations {
     list_all_api_v1_workout_plans_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12245,12 +12344,24 @@ export interface operations {
                     "application/json": components["schemas"]["WorkoutPlan"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_workout_plans_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12265,12 +12376,24 @@ export interface operations {
                     "application/json": components["schemas"]["WorkoutPlan"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_workout_plans__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12301,7 +12424,10 @@ export interface operations {
     patch_one_api_v1_workout_plans__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12332,7 +12458,10 @@ export interface operations {
     delete_one_api_v1_workout_plans__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12361,7 +12490,10 @@ export interface operations {
     patch_one_api_v1_workout_plans__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12392,7 +12524,10 @@ export interface operations {
     list_all_api_v1_workout_sessions_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12407,12 +12542,24 @@ export interface operations {
                     "application/json": components["schemas"]["WorkoutSession"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_one_api_v1_workout_sessions_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -12427,12 +12574,24 @@ export interface operations {
                     "application/json": components["schemas"]["WorkoutSession"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_one_api_v1_workout_sessions__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12463,7 +12622,10 @@ export interface operations {
     patch_one_api_v1_workout_sessions__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12494,7 +12656,10 @@ export interface operations {
     delete_one_api_v1_workout_sessions__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -12523,7 +12688,10 @@ export interface operations {
     patch_one_api_v1_workout_sessions__item_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };

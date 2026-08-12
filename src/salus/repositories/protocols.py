@@ -116,15 +116,9 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
         self, user_id: str, limit: int = 20
     ) -> list[Measurement]: ...
 
-    def find_by_metric_type_paginated(
-        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
-    ) -> tuple[list[Measurement], int]: ...
-
     def find_by_external_id(
         self, external_id: str, source: str | None = None
     ) -> Measurement | None: ...
-
-    def count_by_metric_type(self, metric_code: str, user_id: str) -> int: ...
 
     def get_latest_by_metric_type(
         self, metric_code: str, user_id: str

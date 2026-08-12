@@ -4,8 +4,8 @@ import json
 class TestExportService:
     def test_csv_download(self, authenticated_client):
         authenticated_client.post(
-            "/api/v1/entries?metric_code=weight",
-            json={"value": "80.5"},
+            "/api/v1/measurements",
+            json={"metric_code": "weight", "value_text": "80.5"},
         )
         response = authenticated_client.get("/export/download?format=csv")
         assert response.status_code == 200
@@ -15,8 +15,8 @@ class TestExportService:
 
     def test_json_download(self, authenticated_client):
         authenticated_client.post(
-            "/api/v1/entries?metric_code=weight",
-            json={"value": "80.5"},
+            "/api/v1/measurements",
+            json={"metric_code": "weight", "value_text": "80.5"},
         )
         response = authenticated_client.get("/export/download?format=json")
         assert response.status_code == 200

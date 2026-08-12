@@ -22,44 +22,6 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         super().__init__(session)
         self.registry = registry
 
-    def find_by_metric_type_paginated(
-        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
-    ) -> tuple[list[Measurement], int]:
-        stmt = select(Measurement).where(
-            Measurement.metric_code == metric_code,
-            Measurement.user_id == user_id,
-            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        )
-        count_stmt = (
-            select(func.count())
-            .select_from(Measurement)
-            .where(
-                Measurement.metric_code == metric_code,
-                Measurement.user_id == user_id,
-                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            )
-        )
-        total = self.session.exec(count_stmt).one()
-
-        stmt = stmt.order_by(desc(Measurement.start_time)).offset(offset).limit(limit)  # pyright: ignore[reportArgumentType]
-        results = list(self.session.exec(stmt).all())
-
-        if self.registry:
-            for synth in self.registry.metric_synthesizers:
-                try:
-                    synth_records = synth.synthesize(user_id, results)
-                    if synth_records:
-                        results.extend(
-                            [
-                                r
-                                for r in synth_records
-                                if r.metric_code == metric_code
-                            ]
-                        )
-                except Exception as e:
-                    logger.error(f"Error in metric synthesizer: {e}")
-        return results, total
-
     def count_by_metric_type(self, metric_code: str, user_id: str) -> int:
         count_stmt = (
             select(func.count())
