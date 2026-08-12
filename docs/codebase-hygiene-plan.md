@@ -104,9 +104,12 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
 - planner `ValueError`→`ConflictError`/`RuntimeError`, dashboard_widget `ValueError`→`NotFoundError`,
   circadian loggt statt still zu schlucken.
 
-### P13 — God-Objects splitten (offen)
-- sync.py Admin/Community/Config, dashboard_widget VizBuilder, orchestrator 7 Domänen.
-  Risikoreichster Refactor — characterization-getrieben, eigenes Arbeitspaket.
+### P13 — God-Objects splitten (Teil committed: 99fdd6a)
+- sync.py: Admin/Community/Config extrahiert (`services/admin.py`, `services/community.py`,
+  `services/config.py`), toter Branch entfernt. SyncService besitzt nur noch die Sync-Engine.
+- **Offen:** dashboard_widget VizBuilder-Split, orchestrator 7-Domänen-Split
+  (characterization-getrieben, eigenes Arbeitspaket).
 
-### P14 — Write-Kanäle + Events + AGENTS.md (offen)
-- AGENTS.md: Konzept-Regel dokumentieren. Event-Publishing in Services als dokumentierter Folge-Punkt.
+### P14 — Write-Kanäle + Events + AGENTS.md (Teil committed: 052c4c4)
+- AGENTS.md §17: Konzept-Regel dokumentiert.
+- **Offen:** Event-Publishing in Domain-Services nachziehen (SSE nach Commit, konsistent zu WritePipeline).
