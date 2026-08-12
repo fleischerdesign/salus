@@ -21,43 +21,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/achievement_definitions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_achievement_definitions_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_achievement_definitions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/achievement_definitions/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_achievement_definitions__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_achievement_definitions__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_achievement_definitions__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/achievements": {
         parameters: {
             query?: never;
@@ -517,43 +480,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/api-tokens": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_api_tokens_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_api_tokens_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/api-tokens/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_api_tokens__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_api_tokens__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_api_tokens__item_id__patch"];
         trace?: never;
     };
     "/api/v1/asymmetric-shares": {
@@ -1048,43 +974,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/food_items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_food_items_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_food_items_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/food_items/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_food_items__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_food_items__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_food_items__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/food/frequent": {
         parameters: {
             query?: never;
@@ -1224,43 +1113,6 @@ export interface paths {
         patch: operations["patch_one_api_v1_goals__item_id__patch"];
         trace?: never;
     };
-    "/api/v1/habit_logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_habit_logs_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_habit_logs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/habit_logs/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_habit_logs__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_habit_logs__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_habit_logs__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/habits": {
         parameters: {
             query?: never;
@@ -1268,11 +1120,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List All */
-        get: operations["list_all_api_v1_habits_get"];
+        /** List Habits */
+        get: operations["list_habits_api_v1_habits_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_habits_post"];
+        /** Create Habit */
+        post: operations["create_habit_api_v1_habits_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1330,25 +1182,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/habits/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_habits__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_habits__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_habits__item_id__patch"];
         trace?: never;
     };
     "/api/v1/insights": {
@@ -1423,43 +1256,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/journal_entrys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_journal_entrys_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_journal_entrys_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/journal_entrys/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_journal_entrys__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_journal_entrys__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_journal_entrys__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/journal/{entry_id}": {
         parameters: {
             query?: never;
@@ -1523,8 +1319,7 @@ export interface paths {
         /** List All */
         get: operations["list_all_api_v1_leaderboard_groups_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_leaderboard_groups_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1542,12 +1337,10 @@ export interface paths {
         get: operations["get_one_api_v1_leaderboard_groups__item_id__get"];
         put?: never;
         post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_leaderboard_groups__item_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_leaderboard_groups__item_id__patch"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/leaderboard-members": {
@@ -1560,8 +1353,7 @@ export interface paths {
         /** List All */
         get: operations["list_all_api_v1_leaderboard_members_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_leaderboard_members_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1579,49 +1371,10 @@ export interface paths {
         get: operations["get_one_api_v1_leaderboard_members__item_id__get"];
         put?: never;
         post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_leaderboard_members__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_leaderboard_members__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/meal_items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_meal_items_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_meal_items_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meal_items/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_meal_items__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_meal_items__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_meal_items__item_id__patch"];
         trace?: never;
     };
     "/api/v1/meals": {
@@ -1631,34 +1384,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List All */
-        get: operations["list_all_api_v1_meals_get"];
+        /** List Meals */
+        get: operations["list_meals_api_v1_meals_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_meals_post"];
+        /** Create Meal */
+        post: operations["create_meal_api_v1_meals_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meals/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_meals__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_meals__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_meals__item_id__patch"];
         trace?: never;
     };
     "/api/v1/meals/{meal_id}": {
@@ -1751,117 +1485,6 @@ export interface paths {
         patch: operations["patch_one_api_v1_measurements__item_id__patch"];
         trace?: never;
     };
-    "/api/v1/medication_inventorys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_medication_inventorys_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_medication_inventorys_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medication_inventorys/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_medication_inventorys__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_medication_inventorys__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_medication_inventorys__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/medication_logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_medication_logs_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_medication_logs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medication_logs/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_medication_logs__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_medication_logs__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_medication_logs__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/medication_schedules": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_medication_schedules_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_medication_schedules_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medication_schedules/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_medication_schedules__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_medication_schedules__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_medication_schedules__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/medications": {
         parameters: {
             query?: never;
@@ -1869,34 +1492,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List All */
-        get: operations["list_all_api_v1_medications_get"];
+        /** List Medications */
+        get: operations["list_medications_api_v1_medications_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_medications_post"];
+        /** Create Medication */
+        post: operations["create_medication_api_v1_medications_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medications/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_medications__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_medications__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_medications__item_id__patch"];
         trace?: never;
     };
     "/api/v1/medications/{medication_id}": {
@@ -2006,7 +1610,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/metric_definitions": {
+    "/api/v1/metric-definitions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2016,15 +1620,14 @@ export interface paths {
         /** List All */
         get: operations["list_all_api_v1_metric_definitions_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_metric_definitions_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/metric_definitions/{item_id}": {
+    "/api/v1/metric-definitions/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2035,15 +1638,13 @@ export interface paths {
         get: operations["get_one_api_v1_metric_definitions__item_id__get"];
         put?: never;
         post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_metric_definitions__item_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_metric_definitions__item_id__patch"];
+        patch?: never;
         trace?: never;
     };
-    "/api/v1/metric_groups": {
+    "/api/v1/metric-groups": {
         parameters: {
             query?: never;
             header?: never;
@@ -2053,15 +1654,14 @@ export interface paths {
         /** List All */
         get: operations["list_all_api_v1_metric_groups_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_metric_groups_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/metric_groups/{item_id}": {
+    "/api/v1/metric-groups/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2072,12 +1672,10 @@ export interface paths {
         get: operations["get_one_api_v1_metric_groups__item_id__get"];
         put?: never;
         post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_metric_groups__item_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_metric_groups__item_id__patch"];
+        patch?: never;
         trace?: never;
     };
     "/api/v1/metrics": {
@@ -2150,80 +1748,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mood_entrys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_mood_entrys_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_mood_entrys_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mood_entrys/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_mood_entrys__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_mood_entrys__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_mood_entrys__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/mood_tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_mood_tags_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_mood_tags_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mood_tags/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_mood_tags__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_mood_tags__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_mood_tags__item_id__patch"];
         trace?: never;
     };
     "/api/v1/mood/{entry_date}": {
@@ -2433,43 +1957,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/recipe_ingredients": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_recipe_ingredients_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_recipe_ingredients_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/recipe_ingredients/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_recipe_ingredients__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_recipe_ingredients__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_recipe_ingredients__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/recipes": {
         parameters: {
             query?: never;
@@ -2477,34 +1964,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List All */
-        get: operations["list_all_api_v1_recipes_get"];
+        /** List Recipes */
+        get: operations["list_recipes_api_v1_recipes_get"];
         put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_recipes_post"];
+        /** Create Recipe */
+        post: operations["create_recipe_api_v1_recipes_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/recipes/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_recipes__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_recipes__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_recipes__item_id__patch"];
         trace?: never;
     };
     "/api/v1/recipes/{recipe_id}": {
@@ -3067,44 +2535,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/user_achievements": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_user_achievements_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_user_achievements_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user_achievements/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_user_achievements__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_user_achievements__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_user_achievements__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/user_metric_preferences": {
+    "/api/v1/user-metric-preferences": {
         parameters: {
             query?: never;
             header?: never;
@@ -3122,7 +2553,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/user_metric_preferences/{item_id}": {
+    "/api/v1/user-metric-preferences/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3141,7 +2572,7 @@ export interface paths {
         patch: operations["patch_one_api_v1_user_metric_preferences__item_id__patch"];
         trace?: never;
     };
-    "/api/v1/user_source_preferences": {
+    "/api/v1/user-source-preferences": {
         parameters: {
             query?: never;
             header?: never;
@@ -3159,7 +2590,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/user_source_preferences/{item_id}": {
+    "/api/v1/user-source-preferences/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3176,43 +2607,6 @@ export interface paths {
         head?: never;
         /** Patch One */
         patch: operations["patch_one_api_v1_user_source_preferences__item_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_users_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_users_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_users__item_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_users__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_users__item_id__patch"];
         trace?: never;
     };
     "/api/v1/workout-plans": {
@@ -3842,6 +3236,30 @@ export interface components {
             /** Start */
             start: number | null;
         };
+        /** AsymmetricShare */
+        AsymmetricShare: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Encrypted Data */
+            encrypted_data: string;
+            /** Encrypted Key */
+            encrypted_key: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Recipient Id */
+            recipient_id: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** AsymmetricShareCreate */
         AsymmetricShareCreate: {
             /** Encrypted Data */
@@ -3894,6 +3312,39 @@ export interface components {
             metric_code: string;
             /** Priorities */
             priorities: components["schemas"]["MetricSourcePriorityItem"][];
+        };
+        /** CircadianProfile */
+        CircadianProfile: {
+            /**
+             * Configured Chronotype
+             * @default intermediate
+             */
+            configured_chronotype: string;
+            /** Created At */
+            created_at?: string | null;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /**
+             * Latitude
+             * @default 52.52
+             */
+            latitude: number;
+            /**
+             * Longitude
+             * @default 13.4
+             */
+            longitude: number;
+            /**
+             * Timezone Offset Hours
+             * @default 1
+             */
+            timezone_offset_hours: number;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
         };
         /** CircadianProfileCreate */
         CircadianProfileCreate: {
@@ -3952,6 +3403,46 @@ export interface components {
             /** Spearman R */
             spearman_r: number;
         };
+        /** DashboardWidget */
+        DashboardWidget: {
+            /**
+             * Config Json
+             * @default {}
+             */
+            config_json: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /**
+             * Is Visible
+             * @default true
+             */
+            is_visible: boolean;
+            /** Metric Code */
+            metric_code?: string | null;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /** @default medium */
+            size: components["schemas"]["WidgetSize"];
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+            /**
+             * Widget Type
+             * @default metric
+             */
+            widget_type: string;
+        };
         /**
          * DataType
          * @enum {string}
@@ -3994,6 +3485,43 @@ export interface components {
             timestamp?: string | null;
             /** Value */
             value?: string | null;
+        };
+        /**
+         * Exercise
+         * @description Catalog of exercises, editable by users.
+         */
+        Exercise: {
+            /** Created At */
+            created_at?: string | null;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Equipment
+             * @default barbell
+             */
+            equipment: string;
+            /** Id */
+            id?: string | null;
+            /** Image Url */
+            image_url?: string | null;
+            /** Instructions */
+            instructions?: string | null;
+            /** Name */
+            name: string;
+            /** Primary Muscles */
+            primary_muscles: string;
+            /** Secondary Muscles */
+            secondary_muscles?: string | null;
+            /** Suggested Rest Seconds */
+            suggested_rest_seconds?: number | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id?: string | null;
+            /** Video Url */
+            video_url?: string | null;
         };
         /** ExerciseCreate */
         ExerciseCreate: {
@@ -4159,6 +3687,37 @@ export interface components {
             points: components["schemas"]["ForecastPoint"][];
             /** R Squared */
             r_squared: number;
+        };
+        /** Goal */
+        Goal: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deadline */
+            deadline?: string | null;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** @default increase */
+            direction: components["schemas"]["GoalDirection"];
+            /** @default daily */
+            frequency: components["schemas"]["GoalFrequency"];
+            /** Id */
+            id?: string | null;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Metric Code */
+            metric_code: string;
+            /** Target Value */
+            target_value: number;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
         };
         /** GoalCreate */
         GoalCreate: {
@@ -4379,6 +3938,28 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Insight */
+        Insight: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Model Used */
+            model_used: string;
+            /** Query Date */
+            query_date: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** InsightResponse */
         InsightResponse: {
             /** Content */
@@ -4442,6 +4023,63 @@ export interface components {
             items: components["schemas"]["JournalEntryResponse"][];
             /** Total */
             total: number;
+        };
+        /** LeaderboardGroup */
+        LeaderboardGroup: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Creator Id */
+            creator_id: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Invite Code */
+            invite_code: string;
+            /**
+             * Metric Type Code
+             * @default steps
+             */
+            metric_type_code: string;
+            /** Name */
+            name: string;
+            /** Start Date */
+            start_date?: string | null;
+            /**
+             * Time Frame
+             * @default weekly
+             */
+            time_frame: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /** LeaderboardMember */
+        LeaderboardMember: {
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Group Id */
+            group_id: string;
+            /** Id */
+            id?: string | null;
+            /**
+             * Joined At
+             * Format: date-time
+             */
+            joined_at?: string;
+            /**
+             * Status
+             * @default active
+             */
+            status: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Handle */
+            user_handle: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -4576,6 +4214,51 @@ export interface components {
             name?: string | null;
             /** Notes */
             notes?: string | null;
+        };
+        /** Measurement */
+        Measurement: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Data Type
+             * @default
+             */
+            data_type: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** End Time */
+            end_time?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Metric Code */
+            metric_code?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Source
+             * @default manual
+             */
+            source: string;
+            /**
+             * Start Time
+             * Format: date-time
+             */
+            start_time?: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id?: string | null;
+            /** Value Json */
+            value_json?: string | null;
+            /** Value Numeric */
+            value_numeric?: number | null;
+            /** Value Text */
+            value_text?: string | null;
         };
         /** MeasurementCreate */
         MeasurementCreate: {
@@ -4811,6 +4494,50 @@ export interface components {
             /** Methods */
             methods: components["schemas"]["MethodologyEntry"][];
         };
+        /** MetricDefinition */
+        MetricDefinition: {
+            /** Code */
+            code: string;
+            /** @default number */
+            data_type: components["schemas"]["DataType"];
+            /** Description */
+            description?: string | null;
+            /** Group Key */
+            group_key?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+            /** Source Data Type */
+            source_data_type?: string | null;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+        };
+        /** MetricGroup */
+        MetricGroup: {
+            /** Description */
+            description?: string | null;
+            /**
+             * Icon
+             * @default monitoring
+             */
+            icon: string;
+            /**
+             * Input Mode
+             * @default individual
+             */
+            input_mode: string;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+        };
         /** MetricGroupResponse */
         MetricGroupResponse: {
             /** Description */
@@ -4946,6 +4673,36 @@ export interface components {
             emoji?: string | null;
             /** Label */
             label: string;
+        };
+        /** Notification */
+        Notification: {
+            /**
+             * Category
+             * @default system
+             */
+            category: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /**
+             * Is Read
+             * @default false
+             */
+            is_read: boolean;
+            /** Message */
+            message: string;
+            /** Title */
+            title: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
         };
         /** OneRMResultModel */
         OneRMResultModel: {
@@ -5102,6 +4859,26 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** ShareRecipient */
+        ShareRecipient: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /** Public Key */
+            public_key: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** ShareRecipientCreate */
         ShareRecipientCreate: {
             /** Name */
@@ -5124,6 +4901,45 @@ export interface components {
             public_key: string;
             /** User Id */
             user_id: string;
+        };
+        /** SharingRelationship */
+        SharingRelationship: {
+            /**
+             * Aggregation Level
+             * @default daily_summary
+             */
+            aggregation_level: string;
+            /** Api Token Hash */
+            api_token_hash?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Expiration Date */
+            expiration_date?: string | null;
+            /** Grantee Handle */
+            grantee_handle: string;
+            /** Id */
+            id?: string | null;
+            /** Last Sync At */
+            last_sync_at?: string | null;
+            /** Metric Code */
+            metric_code: string;
+            /** Owner Id */
+            owner_id: string;
+            /**
+             * Status
+             * @default pending
+             */
+            status: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
         };
         /** StreakResponse */
         StreakResponse: {
@@ -5283,6 +5099,45 @@ export interface components {
             /** Unlocked At */
             unlocked_at: string;
         };
+        /** UserMetricPreference */
+        UserMetricPreference: {
+            /**
+             * Color
+             * @default #4f46e5
+             */
+            color: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Icon
+             * @default monitoring
+             */
+            icon: string;
+            /** Id */
+            id?: string | null;
+            /** Metric Code */
+            metric_code: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /** User Id */
+            user_id: string;
+            /**
+             * Widget Enabled
+             * @default false
+             */
+            widget_enabled: boolean;
+            /**
+             * Widget Size
+             * @default medium
+             */
+            widget_size: string;
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -5315,6 +5170,36 @@ export interface components {
             updated_at: string;
             /** Username */
             username: string;
+        };
+        /** UserSourcePreference */
+        UserSourcePreference: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /**
+             * Is Enabled
+             * @default true
+             */
+            is_enabled: boolean;
+            /** Metric Code */
+            metric_code: string;
+            /**
+             * Priority Rank
+             * @default 1
+             */
+            priority_rank: number;
+            /** Source */
+            source: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
         };
         /** UserSourcePreferenceResponse */
         UserSourcePreferenceResponse: {
@@ -5405,6 +5290,11 @@ export interface components {
              */
             widget_type: string;
         };
+        /**
+         * WidgetSize
+         * @enum {string}
+         */
+        WidgetSize: "small" | "medium" | "large";
         /** WorkoutLogEntryCreate */
         WorkoutLogEntryCreate: {
             /** Exercise Id */
@@ -5435,6 +5325,42 @@ export interface components {
             set_number: number;
             /** Weight */
             weight: number;
+        };
+        /**
+         * WorkoutPlan
+         * @description User-created training programs.
+         */
+        WorkoutPlan: {
+            /**
+             * Autoreg Mode
+             * @default advisory
+             */
+            autoreg_mode: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** User Id */
+            user_id: string;
         };
         /** WorkoutPlanCreate */
         WorkoutPlanCreate: {
@@ -5543,6 +5469,40 @@ export interface components {
             /** Slope Kg Per Week */
             slope_kg_per_week: number;
         };
+        /**
+         * WorkoutSession
+         * @description An active or completed logging instance.
+         */
+        WorkoutSession: {
+            /**
+             * Autoreg Mode
+             * @default advisory
+             */
+            autoreg_mode: string;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Recovery Score */
+            recovery_score?: number | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at?: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** WorkoutSessionItem */
         WorkoutSessionItem: {
             /** Date */
@@ -5613,137 +5573,6 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_achievement_definitions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_achievement_definitions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_achievement_definitions__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_achievement_definitions__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_achievement_definitions__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
             cookie?: never;
         };
         requestBody?: never;
@@ -6601,137 +6430,6 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_api_tokens_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_api_tokens_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_api_tokens__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_api_tokens__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_api_tokens__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_all_api_v1_asymmetric_shares_get: {
         parameters: {
             query?: never;
@@ -6747,7 +6445,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["AsymmetricShare"][];
                 };
             };
         };
@@ -6767,7 +6465,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AsymmetricShare"];
                 };
             };
         };
@@ -6789,7 +6487,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AsymmetricShare"];
                 };
             };
             /** @description Validation Error */
@@ -6849,7 +6547,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AsymmetricShare"];
                 };
             };
             /** @description Validation Error */
@@ -7130,7 +6828,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["CircadianProfile"][];
                 };
             };
         };
@@ -7150,7 +6848,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CircadianProfile"];
                 };
             };
         };
@@ -7172,7 +6870,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CircadianProfile"];
                 };
             };
             /** @description Validation Error */
@@ -7232,7 +6930,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CircadianProfile"];
                 };
             };
             /** @description Validation Error */
@@ -7294,7 +6992,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["DashboardWidget"][];
                 };
             };
         };
@@ -7314,7 +7012,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DashboardWidget"];
                 };
             };
         };
@@ -7336,7 +7034,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DashboardWidget"];
                 };
             };
             /** @description Validation Error */
@@ -7396,7 +7094,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DashboardWidget"];
                 };
             };
             /** @description Validation Error */
@@ -7717,7 +7415,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["Exercise"][];
                 };
             };
         };
@@ -7737,7 +7435,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Exercise"];
                 };
             };
         };
@@ -7759,7 +7457,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Exercise"];
                 };
             };
             /** @description Validation Error */
@@ -7819,7 +7517,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Exercise"];
                 };
             };
             /** @description Validation Error */
@@ -7933,137 +7631,6 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_food_items_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_food_items_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_food_items__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_food_items__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_food_items__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
             cookie?: never;
         };
         requestBody?: never;
@@ -8261,7 +7828,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["Goal"][];
                 };
             };
         };
@@ -8281,7 +7848,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Goal"];
                 };
             };
         };
@@ -8332,7 +7899,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Goal"];
                 };
             };
             /** @description Validation Error */
@@ -8392,7 +7959,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Goal"];
                 };
             };
             /** @description Validation Error */
@@ -8406,7 +7973,7 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_habit_logs_get: {
+    list_habits_api_v1_habits_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -8421,19 +7988,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["HabitResponse"][];
                 };
             };
         };
     };
-    create_one_api_v1_habit_logs_post: {
+    create_habit_api_v1_habits_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HabitCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -8441,29 +8012,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_habit_logs__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HabitResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8473,106 +8022,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_habit_logs__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_habit_logs__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_habits_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_habits_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
         };
@@ -8734,97 +8183,6 @@ export interface operations {
             };
         };
     };
-    get_one_api_v1_habits__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_habits__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_habits__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_all_api_v1_insights_get: {
         parameters: {
             query?: never;
@@ -8840,7 +8198,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["Insight"][];
                 };
             };
         };
@@ -8860,7 +8218,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Insight"];
                 };
             };
         };
@@ -8882,7 +8240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Insight"];
                 };
             };
             /** @description Validation Error */
@@ -8942,7 +8300,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Insight"];
                 };
             };
             /** @description Validation Error */
@@ -9039,137 +8397,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JournalEntryResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_journal_entrys_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_journal_entrys_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_journal_entrys__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_journal_entrys__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_journal_entrys__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -9357,27 +8584,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_leaderboard_groups_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LeaderboardGroup"][];
                 };
             };
         };
@@ -9399,67 +8606,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_leaderboard_groups__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_leaderboard_groups__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LeaderboardGroup"];
                 };
             };
             /** @description Validation Error */
@@ -9488,27 +8635,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_leaderboard_members_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LeaderboardMember"][];
                 };
             };
         };
@@ -9530,7 +8657,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["LeaderboardMember"];
                 };
             };
             /** @description Validation Error */
@@ -9544,69 +8671,12 @@ export interface operations {
             };
         };
     };
-    delete_one_api_v1_leaderboard_members__item_id__delete: {
+    list_meals_api_v1_meals_get: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
+            query?: {
+                since?: string | null;
+                until?: string | null;
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_leaderboard_members__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_meal_items_get: {
-        parameters: {
-            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -9619,19 +8689,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["MealResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
     };
-    create_one_api_v1_meal_items_post: {
+    create_meal_api_v1_meals_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MealCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -9639,220 +8722,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_meal_items__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_meal_items__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_meal_items__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_meals_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_meals_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_meals__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_meals__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_meals__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MealResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10028,7 +8898,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["Measurement"][];
                 };
             };
         };
@@ -10048,7 +8918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Measurement"];
                 };
             };
         };
@@ -10070,7 +8940,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Measurement"];
                 };
             };
             /** @description Validation Error */
@@ -10130,7 +9000,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Measurement"];
                 };
             };
             /** @description Validation Error */
@@ -10144,7 +9014,7 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_medication_inventorys_get: {
+    list_medications_api_v1_medications_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -10159,19 +9029,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["MedicationResponse"][];
                 };
             };
         };
     };
-    create_one_api_v1_medication_inventorys_post: {
+    create_medication_api_v1_medications_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MedicationCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -10179,482 +9053,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_medication_inventorys__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_medication_inventorys__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_medication_inventorys__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_medication_logs_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_medication_logs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_medication_logs__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_medication_logs__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_medication_logs__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_medication_schedules_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_medication_schedules_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_medication_schedules__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_medication_schedules__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_medication_schedules__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_medications_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_medications_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_medications__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_medications__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_medications__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MedicationResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11027,27 +9426,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_metric_definitions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MetricDefinition"][];
                 };
             };
         };
@@ -11069,67 +9448,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_metric_definitions__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_metric_definitions__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MetricDefinition"];
                 };
             };
             /** @description Validation Error */
@@ -11158,27 +9477,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_metric_groups_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MetricGroup"][];
                 };
             };
         };
@@ -11200,67 +9499,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_metric_groups__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_metric_groups__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MetricGroup"];
                 };
             };
             /** @description Validation Error */
@@ -11543,268 +9782,6 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_mood_entrys_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_mood_entrys_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_mood_entrys__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_mood_entrys__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_mood_entrys__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_mood_tags_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_mood_tags_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_mood_tags__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_mood_tags__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_mood_tags__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_by_date_api_v1_mood__entry_date__get: {
         parameters: {
             query?: never;
@@ -11902,7 +9879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["Notification"][];
                 };
             };
         };
@@ -11922,7 +9899,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Notification"];
                 };
             };
         };
@@ -11944,7 +9921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Notification"];
                 };
             };
             /** @description Validation Error */
@@ -12004,7 +9981,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Notification"];
                 };
             };
             /** @description Validation Error */
@@ -12214,7 +10191,7 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_recipe_ingredients_get: {
+    list_recipes_api_v1_recipes_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -12229,19 +10206,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["RecipeResponse"][];
                 };
             };
         };
     };
-    create_one_api_v1_recipe_ingredients_post: {
+    create_recipe_api_v1_recipes_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -12249,220 +10230,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_recipe_ingredients__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_recipe_ingredients__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_recipe_ingredients__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_recipes_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_recipes_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_recipes__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_recipes__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_recipes__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RecipeResponse"];
                 };
             };
             /** @description Validation Error */
@@ -12919,7 +10687,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["ShareRecipient"][];
                 };
             };
         };
@@ -12939,7 +10707,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ShareRecipient"];
                 };
             };
         };
@@ -12961,7 +10729,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ShareRecipient"];
                 };
             };
             /** @description Validation Error */
@@ -13021,7 +10789,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ShareRecipient"];
                 };
             };
             /** @description Validation Error */
@@ -13245,7 +11013,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["SharingRelationship"][];
                 };
             };
         };
@@ -13265,7 +11033,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SharingRelationship"];
                 };
             };
         };
@@ -13287,7 +11055,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SharingRelationship"];
                 };
             };
             /** @description Validation Error */
@@ -13347,7 +11115,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SharingRelationship"];
                 };
             };
             /** @description Validation Error */
@@ -13849,137 +11617,6 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_user_achievements_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_user_achievements_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_user_achievements__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_user_achievements__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_user_achievements__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_all_api_v1_user_metric_preferences_get: {
         parameters: {
             query?: never;
@@ -13995,7 +11632,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["UserMetricPreference"][];
                 };
             };
         };
@@ -14015,7 +11652,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserMetricPreference"];
                 };
             };
         };
@@ -14037,7 +11674,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserMetricPreference"];
                 };
             };
             /** @description Validation Error */
@@ -14097,7 +11734,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserMetricPreference"];
                 };
             };
             /** @description Validation Error */
@@ -14126,7 +11763,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["UserSourcePreference"][];
                 };
             };
         };
@@ -14146,7 +11783,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserSourcePreference"];
                 };
             };
         };
@@ -14168,7 +11805,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserSourcePreference"];
                 };
             };
             /** @description Validation Error */
@@ -14228,138 +11865,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_all_api_v1_users_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown[];
-                };
-            };
-        };
-    };
-    create_one_api_v1_users_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_one_api_v1_users__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_users__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_users__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserSourcePreference"];
                 };
             };
             /** @description Validation Error */
@@ -14388,7 +11894,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["WorkoutPlan"][];
                 };
             };
         };
@@ -14408,7 +11914,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutPlan"];
                 };
             };
         };
@@ -14430,7 +11936,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutPlan"];
                 };
             };
             /** @description Validation Error */
@@ -14490,7 +11996,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutPlan"];
                 };
             };
             /** @description Validation Error */
@@ -14519,7 +12025,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown[];
+                    "application/json": components["schemas"]["WorkoutSession"][];
                 };
             };
         };
@@ -14539,7 +12045,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutSession"];
                 };
             };
         };
@@ -14561,7 +12067,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutSession"];
                 };
             };
             /** @description Validation Error */
@@ -14621,7 +12127,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["WorkoutSession"];
                 };
             };
             /** @description Validation Error */

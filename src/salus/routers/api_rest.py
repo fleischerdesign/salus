@@ -6,22 +6,28 @@ from sqlmodel import select
 from salus.dependencies import get_current_user, get_unit_of_work
 from salus.exceptions import ApiError, raise_from_command_result
 from salus.models.user import User
-from salus.repositories.entity_meta import ENTITY_META, EntityMeta, ENTITY_REGISTRY
+from salus.repositories.entity_meta import (
+    ENTITY_META,
+    ENTITY_META_BY_NAME,
+    ENTITY_REGISTRY,
+    EntityMeta,
+)
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
 from salus.services.write_pipeline import WritePipeline
 
 _PLURAL_MAP: dict[str, str] = {
-    "metric_type": "metric-types",
+    "metric_group": "metric-groups",
+    "metric_definition": "metric-definitions",
+    "user_metric_preference": "user-metric-preferences",
+    "user_source_preference": "user-source-preferences",
     "measurement": "measurements",
     "goal": "goals",
     "circadian_profile": "circadian-profiles",
     "exercise": "exercises",
     "workout_plan": "workout-plans",
-    "workout_plan_exercise": "workout-plan-exercises",
     "workout_session": "workout-sessions",
-    "workout_log_entry": "workout-log-entries",
     "insight": "insights",
     "notification": "notifications",
     "dashboard_widget": "dashboard-widgets",
@@ -30,36 +36,83 @@ _PLURAL_MAP: dict[str, str] = {
     "leaderboard_member": "leaderboard-members",
     "share_recipient": "share-recipients",
     "asymmetric_share": "asymmetric-shares",
-    "api_token": "api-tokens",
-    "federated_access_log": "federated-access-logs",
-    "user": "users",
 }
 
+# Entities whose CRUD is owned by a dedicated typed router, an auth/admin flow,
+# or an internal pipeline — never by the generic CRUD generator.
 _SKIP_AUTO_CRUD: set[str] = {
+    # relational children with dedicated domain workflows
     "workout_plan_exercise",
     "workout_log_entry",
-    "federated_access_log",
+    # internal infrastructure tables
     "sync_push_log",
+    "federated_access_log",
+    # auth/credential resources, never a generic resource (password/token hashes)
+    "user",
+    "api_token",
+    # dedicated typed routers own these domains
+    "habit",
+    "habit_log",
+    "mood_tag",
+    "mood_entry",
+    "journal_entry",
+    "medication",
+    "medication_schedule",
+    "medication_log",
+    "medication_inventory",
+    "food_item",
+    "meal",
+    "meal_item",
+    "recipe",
+    "recipe_ingredient",
+    "achievement_definition",
+    "user_achievement",
 }
+
+# Write routes are only generated for entities whose data is user-owned.
+# Global reference data (metric_definition, leaderboard_group, ...) and
+# append-only records are immutable via the generic API — they mirror the
+# sync strategy (EntityMeta.strategy) and stay read-only.
+_WRITABLE_STRATEGIES: frozenset[str] = frozenset(
+    {"user_scoped", "shared_nullable", "relational"}
+)
+
+
+def _validate_entity_map() -> None:
+    unknown = [name for name in _PLURAL_MAP if name not in ENTITY_META_BY_NAME]
+    if unknown:
+        raise RuntimeError(f"auto-CRUD: unknown entities in _PLURAL_MAP: {unknown}")
+    skipped_in_map = [name for name in _SKIP_AUTO_CRUD if name in _PLURAL_MAP]
+    if skipped_in_map:
+        raise RuntimeError(
+            f"auto-CRUD: skipped entities must not be in _PLURAL_MAP: {skipped_in_map}"
+        )
+    unlisted = [
+        meta.name
+        for meta in ENTITY_META
+        if meta.name not in _SKIP_AUTO_CRUD and meta.name not in _PLURAL_MAP
+    ]
+    if unlisted:
+        raise RuntimeError(f"auto-CRUD: entities without a plural entry: {unlisted}")
 
 
 def register_auto_crud(app: FastAPI) -> None:
+    _validate_entity_map()
     for meta in ENTITY_META:
         if meta.name in _SKIP_AUTO_CRUD:
             continue
-        plural = _PLURAL_MAP.get(meta.name, meta.name + "s")
-        _register_entity_routes(app, meta, plural)
+        _register_entity_routes(app, meta, _PLURAL_MAP[meta.name])
 
 
 def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None:
+    model_cls = ENTITY_REGISTRY[meta.name]
     router = APIRouter(prefix=f"/api/v1/{plural}", tags=[plural])
 
-    @router.get("", response_model=list)
+    @router.get("", response_model=list[model_cls])
     async def list_all(
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
     ):
-        model_cls = ENTITY_REGISTRY[meta.name]
         query = select(model_cls)
         strategy = meta.strategy
         uid_user = uid(user)
@@ -73,71 +126,69 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             )
         if hasattr(model_cls, "deleted_at"):
             query = query.where(getattr(model_cls, "deleted_at").is_(None))
-        rows = uow.session.exec(query).all()
-        return [_serialize_row(r) for r in rows]
+        return uow.session.exec(query).all()
 
-    @router.get("/{item_id}")
+    @router.get("/{item_id}", response_model=model_cls)
     async def get_one(
         item_id: str,
         user: User = Depends(get_current_user),
         uow: IUnitOfWork = Depends(get_unit_of_work),
     ):
-        model_cls = ENTITY_REGISTRY[meta.name]
         obj = uow.session.get(model_cls, item_id)
         if not obj:
             raise ApiError(code="not_found", message="Resource not found", status_code=404)
         if hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None:
             raise ApiError(code="not_found", message="Resource not found", status_code=404)
         _check_ownership(obj, user, meta, uow.session)
-        return _serialize_row(obj)
+        return obj
 
-    @router.post("", status_code=201)
-    async def create_one(
-        request: Request,
-        user: User = Depends(get_current_user),
-        uow: IUnitOfWork = Depends(get_unit_of_work),
-    ):
-        body = await request.json()
-        pipeline = WritePipeline(uow, user)
-        op = SyncOperation(type="create", entity=meta.name, data=body)
-        results = pipeline.process([op])
-        result = results[0]
-        raise_from_command_result(result.status, result.message)
-        return result.record or {}
+    if meta.strategy in _WRITABLE_STRATEGIES:
+        @router.post("", status_code=201, response_model=model_cls)
+        async def create_one(
+            request: Request,
+            user: User = Depends(get_current_user),
+            uow: IUnitOfWork = Depends(get_unit_of_work),
+        ):
+            body = await request.json()
+            pipeline = WritePipeline(uow, user)
+            op = SyncOperation(type="create", entity=meta.name, data=body)
+            results = pipeline.process([op])
+            result = results[0]
+            raise_from_command_result(result.status, result.message)
+            return model_cls.model_validate(result.record or {})
 
-    @router.patch("/{item_id}")
-    async def patch_one(
-        item_id: str,
-        request: Request,
-        user: User = Depends(get_current_user),
-        uow: IUnitOfWork = Depends(get_unit_of_work),
-    ):
-        body = await request.json()
-        pipeline = WritePipeline(uow, user)
-        op = SyncOperation(type="update", entity=meta.name, id=item_id, data=body)
-        results = pipeline.process([op])
-        result = results[0]
-        raise_from_command_result(result.status, result.message)
-        return result.record or {}
+        @router.patch("/{item_id}", response_model=model_cls)
+        async def patch_one(
+            item_id: str,
+            request: Request,
+            user: User = Depends(get_current_user),
+            uow: IUnitOfWork = Depends(get_unit_of_work),
+        ):
+            body = await request.json()
+            pipeline = WritePipeline(uow, user)
+            op = SyncOperation(type="update", entity=meta.name, id=item_id, data=body)
+            results = pipeline.process([op])
+            result = results[0]
+            raise_from_command_result(result.status, result.message)
+            return model_cls.model_validate(result.record or {})
 
-    @router.delete("/{item_id}", status_code=204)
-    async def delete_one(
-        item_id: str,
-        user: User = Depends(get_current_user),
-        uow: IUnitOfWork = Depends(get_unit_of_work),
-    ):
-        model_cls = ENTITY_REGISTRY[meta.name]
-        obj = uow.session.get(model_cls, item_id)
-        if not obj or (hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None):
-            raise ApiError(code="not_found", message="Resource not found", status_code=404)
-        _check_ownership(obj, user, meta, uow.session)
+        @router.delete("/{item_id}", status_code=204)
+        async def delete_one(
+            item_id: str,
+            user: User = Depends(get_current_user),
+            uow: IUnitOfWork = Depends(get_unit_of_work),
+        ):
+            obj = uow.session.get(model_cls, item_id)
+            if not obj or (hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None):
+                raise ApiError(code="not_found", message="Resource not found", status_code=404)
+            _check_ownership(obj, user, meta, uow.session)
 
-        pipeline = WritePipeline(uow, user)
-        op = SyncOperation(type="delete", entity=meta.name, id=item_id)
-        results = pipeline.process([op])
-        result = results[0]
-        raise_from_command_result(result.status, result.message)
-        return Response(status_code=204)
+            pipeline = WritePipeline(uow, user)
+            op = SyncOperation(type="delete", entity=meta.name, id=item_id)
+            results = pipeline.process([op])
+            result = results[0]
+            raise_from_command_result(result.status, result.message)
+            return Response(status_code=204)
 
     app.include_router(router)
 
@@ -157,18 +208,3 @@ def _check_ownership(obj: Any, user: User, meta: EntityMeta, session: Any) -> No
                 raise ApiError(code="forbidden", message="Not authorized", status_code=403)
     elif strategy == "global":
         pass
-
-
-def _serialize_row(obj: Any) -> dict[str, Any]:
-    from datetime import datetime
-
-    if hasattr(obj, "model_dump"):
-        result = obj.model_dump()
-    elif hasattr(obj, "__dict__"):
-        result = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
-    else:
-        return {}
-    for k, v in result.items():
-        if isinstance(v, datetime):
-            result[k] = v.replace(tzinfo=None).isoformat() if v.tzinfo else v.isoformat()
-    return result
