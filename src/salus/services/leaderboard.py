@@ -266,28 +266,18 @@ class LeaderboardService:
         if not self.sharing_svc:
             return 0.0
         try:
+            data = self.sharing_svc.resolve_and_fetch_range(
+                requester_id=requester_id,
+                owner_handle=handle,
+                source_data_type=group.source_data_type,
+                start_date=start_date,
+                end_date=end_date,
+            )
             day_values = []
-            curr_date = start_date
-            while curr_date <= end_date:
-                date_str = curr_date.strftime("%Y-%m-%d")
-                try:
-                    data = self.sharing_svc.resolve_and_fetch(
-                        requester_id=requester_id,
-                        owner_handle=handle,
-                        source_data_type=group.source_data_type,
-                        date_str=date_str,
-                    )
-                    for item in data:
-                        val = item.get("value_numeric")
-                        if val is not None:
-                            day_values.append(val)
-                except Exception as exc:
-                    logger.debug(
-                        f"Failed to fetch {group.source_data_type} for "
-                        f"{handle} on {date_str}: {exc}"
-                    )
-                curr_date += timedelta(days=1)
-
+            for item in data:
+                val = item.get("value_numeric")
+                if val is not None:
+                    day_values.append(val)
             if not day_values:
                 return 0.0
             return summarize_daily_values(group.source_data_type, day_values) or 0.0

@@ -51,6 +51,7 @@ async def federated_shared_data(
     owner_username: Annotated[str, Query()],
     source_data_type: Annotated[str, Query()],
     date: Annotated[str, Query()],
+    end_date: Annotated[Optional[str], Query()] = None,
     sharing_svc: SharingService = Depends(get_sharing_service),
     credentials: Annotated[
         Optional[HTTPAuthorizationCredentials], Security(security)
@@ -116,15 +117,33 @@ async def federated_shared_data(
                 status_code=400, detail="Invalid date format. Expected YYYY-MM-DD."
             )
 
-        result = sharing_svc.serve_shared_day(
-            owner_username=owner_username,
-            owner_id=uid(owner),
-            requester_handle=rel.grantee_handle,
-            source_data_type=source_data_type,
-            date_str=date,
-            target_date=target_date,
-            aggregation_level=rel.aggregation_level,
-        )
+        if end_date:
+            try:
+                parsed_end = datetime.strptime(end_date, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid end_date format. Expected YYYY-MM-DD.",
+                )
+            result = sharing_svc.serve_shared_range(
+                owner_username=owner_username,
+                owner_id=uid(owner),
+                requester_handle=rel.grantee_handle,
+                source_data_type=source_data_type,
+                start_date=target_date,
+                end_date=parsed_end,
+                aggregation_level=rel.aggregation_level,
+            )
+        else:
+            result = sharing_svc.serve_shared_day(
+                owner_username=owner_username,
+                owner_id=uid(owner),
+                requester_handle=rel.grantee_handle,
+                source_data_type=source_data_type,
+                date_str=date,
+                target_date=target_date,
+                aggregation_level=rel.aggregation_level,
+            )
 
         return JSONResponse({"status": "ok", "data": result})
 

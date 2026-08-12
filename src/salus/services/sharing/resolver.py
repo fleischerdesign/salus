@@ -1,6 +1,6 @@
 import json as _json
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 from typing import Any, TYPE_CHECKING
 from urllib.parse import urlparse
 
@@ -118,6 +118,36 @@ class FederationDataResolver:
 
             return data
 
+    def resolve_and_fetch_range(
+        self,
+        requester_id: str,
+        owner_handle: str,
+        source_data_type: str,
+        start_date: date,
+        end_date: date,
+    ) -> list[dict]:
+        owner_handle = self.relationship_svc.normalize_handle(owner_handle)
+
+        if not self.relationship_svc.is_remote(owner_handle):
+            results: list[dict] = []
+            curr = start_date
+            while curr <= end_date:
+                results.extend(
+                    self.resolve_and_fetch(
+                        requester_id, owner_handle, source_data_type,
+                        curr.strftime("%Y-%m-%d"),
+                    )
+                )
+                curr += timedelta(days=1)
+            return results
+
+        return self._fetch_remote(
+            owner_handle,
+            source_data_type,
+            start_date.strftime("%Y-%m-%d"),
+            end_date=end_date.strftime("%Y-%m-%d"),
+        )
+
     def _resolve_local(
         self, owner_handle: str, requester_handle: str, source_data_type: str, date_str: str
     ) -> list[dict]:
@@ -169,7 +199,8 @@ class FederationDataResolver:
             )
 
     def _fetch_remote(
-        self, owner_handle: str, source_data_type: str, date_str: str
+        self, owner_handle: str, source_data_type: str, date_str: str,
+        end_date: str | None = None,
     ) -> list[dict]:
         parts = owner_handle[1:].split(":", 1)
         if len(parts) != 2:
@@ -199,6 +230,8 @@ class FederationDataResolver:
             "source_data_type": source_data_type,
             "date": date_str,
         }
+        if end_date:
+            query_params["end_date"] = end_date
         req_url = httpx.URL(remote_url, params=query_params)
         sig_headers = self.key_svc.sign_request(requester_handle, "GET", str(req_url))
 

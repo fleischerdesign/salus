@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import delete
 from sqlmodel import select
 
 from salus.models.sync_push_log import SyncPushLog
@@ -12,11 +14,10 @@ class SyncPushLogRepository(Repository[SyncPushLog], ISyncPushLogRepository):
 
     def cleanup_expired(self, ttl_hours: int = DEDUP_TTL_HOURS) -> int:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=ttl_hours)
-        stmt = select(SyncPushLog).where(SyncPushLog.created_at < cutoff)
-        expired = list(self.session.exec(stmt).all())
-        for entry in expired:
-            self.session.delete(entry)
-        return len(expired)
+        result = self.session.execute(
+            delete(SyncPushLog).where(SyncPushLog.created_at < cutoff)  # type: ignore[reportArgumentType]
+        )
+        return result.rowcount or 0  # type: ignore[reportAttributeAccessIssue]
 
     def find_by_client_ids(self, client_ids: list[str]) -> list[SyncPushLog]:
         stmt = select(SyncPushLog).where(

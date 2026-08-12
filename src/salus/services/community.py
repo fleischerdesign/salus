@@ -12,7 +12,7 @@ def community_activity_feed(s, user_id: str, username: str) -> list[dict]:
 
     incoming = s.exec(
         select(SharingRelationship)
-        .options(selectinload(SharingRelationship.owner))
+        .options(selectinload(SharingRelationship.owner))  # type: ignore[arg-type]
         .where(
             SharingRelationship.grantee_handle == user_handle,
             SharingRelationship.status == "active",

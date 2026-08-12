@@ -112,6 +112,18 @@ class SharingService:
             requester_id, owner_handle, source_data_type, date_str, force_refresh,
         )
 
+    def resolve_and_fetch_range(
+        self,
+        requester_id: str,
+        owner_handle: str,
+        source_data_type: str,
+        start_date: date,
+        end_date: date,
+    ) -> list[dict]:
+        return self._resolver.resolve_and_fetch_range(
+            requester_id, owner_handle, source_data_type, start_date, end_date,
+        )
+
     def get_feed_activities(self, user_id: str) -> list[dict]:
         return self._resolver.get_feed_activities(user_id)
 
@@ -153,6 +165,33 @@ class SharingService:
                 day_measurements=day_measurements,
                 aggregation_level=aggregation_level,
             )
+
+    def serve_shared_range(
+        self,
+        owner_username: str,
+        owner_id: str,
+        requester_handle: str,
+        source_data_type: str,
+        start_date: date,
+        end_date: date,
+        aggregation_level: str,
+    ) -> list[dict]:
+        results: list[dict] = []
+        curr = start_date
+        while curr <= end_date:
+            results.extend(
+                self.serve_shared_day(
+                    owner_username=owner_username,
+                    owner_id=owner_id,
+                    requester_handle=requester_handle,
+                    source_data_type=source_data_type,
+                    date_str=curr.isoformat(),
+                    target_date=curr,
+                    aggregation_level=aggregation_level,
+                )
+            )
+            curr += timedelta(days=1)
+        return results
 
     # ── Federation keys ──
 

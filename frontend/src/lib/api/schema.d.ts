@@ -7581,6 +7581,7 @@ export interface operations {
         parameters: {
             query: {
                 date: string;
+                end_date?: string | null;
                 owner_username: string;
                 source_data_type: string;
             };
