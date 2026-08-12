@@ -2,7 +2,6 @@
   import { page } from '$app/state';
   import { auth } from '$stores/auth.svelte';
   import { db } from '$lib/db/database';
-  import { liveQuery } from 'dexie';
   import { slide, fly, fade } from 'svelte/transition';
   import { DURATIONS, motionParams } from '$lib/utils/motion';
   import NavDropdown from '$components/ui/NavDropdown.svelte';
@@ -12,6 +11,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import { useOnline } from '$stores/online.svelte';
   import { syncEngine } from '$lib/db/sync-engine.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const online = useOnline();
   const dotStatus = $derived.by(() => {
@@ -32,10 +32,10 @@
     { href: '/workouts/sessions', icon: 'history', label: 'Sessions' }
   ];
 
-  const activeSession = liveQuery(() =>
+  const { value: activeSession } = useQuery(() =>
     db.workout_session.filter((s) => !s.deleted_at && !s.completed_at).first()
   );
-  let hasActiveSession = $derived($activeSession != null);
+  let hasActiveSession = $derived(activeSession != null);
 
   let workoutItems = $derived(
     hasActiveSession

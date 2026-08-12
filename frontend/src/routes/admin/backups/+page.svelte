@@ -1,6 +1,5 @@
 <script lang="ts">
   import { api } from '$lib/api/client';
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { getAuthHeaders } from '$lib/api/headers';
   import Card from '$components/ui/Card.svelte';
@@ -10,6 +9,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   interface Backup {
     filename: string;
@@ -24,10 +24,10 @@
   let success = $state('');
   let passwordConfigured = $state(true);
 
-  let configQuery = liveQuery(() => db.system_config.toArray());
+  const { value: configQuery } = useQuery(() => db.system_config.toArray());
 
   $effect(() => {
-    const config = $configQuery ?? [];
+    const config = configQuery ?? [];
     const pwConfig = config.find((c) => c.key === 'SALUS_BACKUP_PASSWORD');
     passwordConfigured = pwConfig ? pwConfig.is_env_override || pwConfig.db_has_value : false;
   });

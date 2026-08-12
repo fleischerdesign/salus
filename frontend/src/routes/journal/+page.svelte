@@ -6,7 +6,7 @@
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import type { JournalEntry } from '$lib/db/types';
+
   import { createJournalEntry } from '$lib/mutations/wellness';
   import { useQuery } from '$lib/db/use-query.svelte';
 

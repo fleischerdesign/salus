@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
   import { slide } from 'svelte/transition';
@@ -8,11 +8,7 @@
     updateWidget as updateWidgetMut,
     deleteWidget as deleteWidgetMut
   } from '$lib/mutations/dashboard';
-  import {
-    fetchDashboard,
-    type DashboardWidgetView,
-    type DashboardData
-  } from '$lib/analytics/views/dashboard';
+  import { fetchDashboard, type DashboardWidgetView } from '$lib/analytics/views/dashboard';
   import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -58,38 +54,16 @@
 
   const isToday = $derived(displayDate === getTodayString());
 
-  let dashboardData = $state<DashboardData | null>(null);
+  const { value: dashboardData } = useQuery(() => fetchDashboard(displayDate));
   let isTransitioning = $state(false);
 
   $effect(() => {
-    const targetDate = displayDate;
+    void displayDate;
     isTransitioning = true;
-    let active = true;
+  });
 
-    // Direct immediate async load
-    fetchDashboard(targetDate)
-      .then((v) => {
-        if (active && displayDate === targetDate) {
-          dashboardData = v;
-          isTransitioning = false;
-        }
-      })
-      .catch(() => {
-        if (active) isTransitioning = false;
-      });
-
-    // Reactive liveQuery subscription for background database updates
-    const sub = liveQuery(() => fetchDashboard(targetDate)).subscribe((v) => {
-      if (active && displayDate === targetDate) {
-        dashboardData = v;
-        isTransitioning = false;
-      }
-    });
-
-    return () => {
-      active = false;
-      sub.unsubscribe();
-    };
+  $effect(() => {
+    if (dashboardData) isTransitioning = false;
   });
 
   let editing = $state(false);

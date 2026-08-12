@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
@@ -11,14 +10,15 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const planId = $derived(page.params.id as string);
 
-  let plan = liveQuery(() =>
+  const { value: plan } = useQuery(() =>
     db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null))
   );
 
-  let planExercises = liveQuery(() =>
+  const { value: planExercises } = useQuery(() =>
     db.workout_plan_exercise
       .toArray()
       .then((arr) =>
@@ -28,14 +28,14 @@
       )
   );
 
-  let exercises = liveQuery(() =>
+  const { value: exercises } = useQuery(() =>
     db.exercise.toArray().then((arr) => {
       const map = new Map(arr.map((e) => [e.id, e]));
       return map;
     })
   );
 
-  let sessions = liveQuery(() =>
+  const { value: sessions } = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) =>
@@ -45,8 +45,8 @@
       )
   );
 
-  let logs = liveQuery(async () => {
-    const sessionIds = ($sessions ?? []).slice(0, 10).map((s) => s.id);
+  const { value: logs } = useQuery(async () => {
+    const sessionIds = (sessions ?? []).slice(0, 10).map((s) => s.id);
     if (sessionIds.length === 0) return [];
     return db.workout_log_entry
       .where('session_id')
@@ -59,7 +59,7 @@
 
   async function startSession() {
     starting = true;
-    await startWorkout(planId!, $plan?.autoreg_mode || 'advisory');
+    await startWorkout(planId!, plan?.autoreg_mode || 'advisory');
     starting = false;
     await goto('/workouts/active');
   }
@@ -70,21 +70,21 @@
   }
 
   function sessionVolume(sessId: string): number {
-    return ($logs ?? [])
+    return (logs ?? [])
       .filter((l) => l.session_id === sessId)
       .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
 </script>
 
-<svelte:head><title>Salus — {$plan?.name ?? 'Plan'}</title></svelte:head>
+<svelte:head><title>Salus — {plan?.name ?? 'Plan'}</title></svelte:head>
 
-{#if !$plan || !$planExercises}
+{#if !plan || !planExercises}
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-{:else if $plan}
+{:else if plan}
   <div class="space-y-6">
     <PageHeader
-      title={$plan.name}
-      subtitle={$plan.description || 'Training routine details and completed history.'}
+      title={plan.name}
+      subtitle={plan.description || 'Training routine details and completed history.'}
       icon="event_note"
       iconColor="#4f46e5"
       backUrl="/workouts/plans"
@@ -94,12 +94,12 @@
           <!-- Badges Segment -->
           <div class="flex items-center gap-1.5 px-6">
             <Badge
-              variant={$plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
+              variant={plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
               class="capitalize"
             >
-              {$plan.autoreg_mode}
+              {plan.autoreg_mode}
             </Badge>
-            <Badge variant="default">{$planExercises.length} exercises</Badge>
+            <Badge variant="default">{planExercises.length} exercises</Badge>
           </div>
 
           <!-- Start Workout Segment -->
@@ -119,7 +119,7 @@
     <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div class="space-y-3">
         <h2 class="text-lg font-semibold text-surface-900">Exercises</h2>
-        {#if $planExercises.length === 0}
+        {#if planExercises.length === 0}
           <EmptyState
             title="No exercises"
             description="No exercises in this plan yet."
@@ -128,8 +128,8 @@
         {:else}
           <Card padding={false}>
             <div class="divide-y divide-surface-100">
-              {#each $planExercises as pe (pe.id)}
-                {@const ex = $exercises?.get(pe.exercise_id)}
+              {#each planExercises as pe (pe.id)}
+                {@const ex = exercises?.get(pe.exercise_id)}
                 <ListItem hoverable>
                   {#snippet children()}
                     <a
@@ -161,14 +161,14 @@
 
       <div class="space-y-3">
         <h2 class="text-lg font-semibold text-surface-900">Session History</h2>
-        {#if !$sessions || $sessions.length === 0}
+        {#if !sessions || (sessions ?? []).length === 0}
           <Card
             ><p class="text-sm text-surface-400">No completed sessions for this plan yet.</p></Card
           >
         {:else}
           <Card padding={false}>
             <div class="divide-y divide-surface-100">
-              {#each $sessions.slice(0, 10) as sess (sess.id)}
+              {#each (sessions ?? []).slice(0, 10) as sess (sess.id)}
                 <ListItem hoverable>
                   {#snippet children()}
                     <a

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
 
   import { createGoal, deleteGoal } from '$lib/mutations/goal';
@@ -19,9 +18,10 @@
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let goals = liveQuery(() => fetchGoalViews());
-  let metrics = liveQuery(() => db.metric_definition.toArray());
+  const { value: goals } = useQuery(() => fetchGoalViews());
+  const { value: metrics } = useQuery(() => db.metric_definition.toArray());
 
   // Form state
   let showForm = $state(false);
@@ -117,7 +117,7 @@
   }
 
   const metricOptions = $derived(
-    ($metrics ?? []).map((m) => ({
+    (metrics ?? []).map((m) => ({
       value: String(m.code),
       label: `${m.name}${m.unit ? ` (${m.unit})` : ''}`
     }))
@@ -145,9 +145,9 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$goals || !$metrics}
+  {#if !goals || !metrics}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-  {:else if $goals.length === 0}
+  {:else if (goals ?? []).length === 0}
     <EmptyState
       title="No goals yet"
       description="Set your first health goal to track progress."
@@ -157,7 +157,7 @@
     </EmptyState>
   {:else}
     <div class="grid [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] gap-4">
-      {#each $goals as g, i (g.id)}
+      {#each goals ?? [] as g, i (g.id)}
         <div in:fade={{ ...staggerFade(i) }}>
           <a href="/goals/{g.id}" class="group/card block">
             <Card padding={false} class="cursor-pointer transition-shadow hover:shadow-md">

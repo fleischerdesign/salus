@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
@@ -8,14 +7,15 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let plans = liveQuery(() =>
+  const { value: plans } = useQuery(() =>
     db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at))
   );
-  let exercises = liveQuery(() =>
+  const { value: exercises } = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
-  let sessions = liveQuery(() =>
+  const { value: sessions } = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) =>
@@ -24,7 +24,7 @@
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );
-  let logs = liveQuery(async () => {
+  const { value: logs } = useQuery(async () => {
     const active = await db.workout_session
       .filter((s) => !s.deleted_at)
       .reverse()
@@ -39,13 +39,13 @@
       .toArray();
   });
 
-  let recentSessions = $derived(($sessions ?? []).slice(0, 5));
-  let activeSession = $derived($sessions?.find((s) => s.completed_at == null) ?? null);
+  let recentSessions = $derived((sessions ?? []).slice(0, 5));
+  let activeSession = $derived(sessions?.find((s) => s.completed_at == null) ?? null);
 
-  let loaded = $derived($plans != null && $exercises != null && $sessions != null && $logs != null);
+  let loaded = $derived(plans != null && exercises != null && sessions != null && logs != null);
 
   function sessionVolume(sessId: string): number {
-    return ($logs ?? [])
+    return (logs ?? [])
       .filter((l) => l.session_id === sessId)
       .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
@@ -106,16 +106,16 @@
               <div class="flex-1">
                 <p class="text-sm font-semibold text-surface-900">Training Plans</p>
                 <p class="text-xs text-surface-400">
-                  {$plans.length}
-                  {$plans.length === 1 ? 'plan' : 'plans'}
+                  {(plans ?? []).length}
+                  {(plans ?? []).length === 1 ? 'plan' : 'plans'}
                 </p>
               </div>
             </div>
           {/snippet}
           <div class="p-6">
-            {#if $plans.length > 0}
+            {#if (plans ?? []).length > 0}
               <div class="space-y-1.5">
-                {#each $plans.slice(0, 3) as plan, i (plan.id)}
+                {#each (plans ?? []).slice(0, 3) as plan, i (plan.id)}
                   <div
                     in:fade={{ ...staggerFade(i) }}
                     class="flex items-center justify-between text-sm"
@@ -143,22 +143,22 @@
               <div class="flex-1">
                 <p class="text-sm font-semibold text-surface-900">Exercise Library</p>
                 <p class="text-xs text-surface-400">
-                  {$exercises.length}
-                  {$exercises.length === 1 ? 'exercise' : 'exercises'}
+                  {(exercises ?? []).length}
+                  {(exercises ?? []).length === 1 ? 'exercise' : 'exercises'}
                 </p>
               </div>
             </div>
           {/snippet}
           <div class="p-6">
-            {#if $exercises.length > 0}
+            {#if (exercises ?? []).length > 0}
               <div class="flex flex-wrap gap-1.5">
-                {#each $exercises.slice(0, 6) as ex, i (ex.id)}
+                {#each (exercises ?? []).slice(0, 6) as ex, i (ex.id)}
                   <span in:fade={{ ...staggerFade(i) }}
                     ><Badge variant="default">{ex.name}</Badge></span
                   >
                 {/each}
-                {#if $exercises.length > 6}
-                  <span class="text-xs text-surface-400">+{$exercises.length - 6} more</span>
+                {#if (exercises ?? []).length > 6}
+                  <span class="text-xs text-surface-400">+{(exercises ?? []).length - 6} more</span>
                 {/if}
               </div>
             {:else}

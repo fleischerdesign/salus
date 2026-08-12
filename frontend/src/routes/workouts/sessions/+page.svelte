@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { WorkoutSession } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
@@ -11,8 +10,9 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let sessions = liveQuery(() =>
+  const { value: sessions } = useQuery(() =>
     db.workout_session.toArray().then((arr) =>
       arr
         .filter((s) => !s.deleted_at && s.completed_at != null)
@@ -21,7 +21,7 @@
     )
   );
 
-  let logs = liveQuery(async () => {
+  const { value: logs } = useQuery(async () => {
     const recent = await db.workout_session
       .filter((s) => !s.deleted_at && s.completed_at != null)
       .reverse()
@@ -52,7 +52,7 @@
   }
 
   function sessionLogs(sessId: string) {
-    return ($logs ?? []).filter((l) => l.session_id === sessId);
+    return (logs ?? []).filter((l) => l.session_id === sessId);
   }
 
   function sessionVolume(sessId: string): number {
@@ -75,9 +75,9 @@
     backUrl="/workouts"
   />
 
-  {#if !$sessions || !$logs}
+  {#if !sessions || !logs}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-  {:else if $sessions.length === 0}
+  {:else if (sessions ?? []).length === 0}
     <EmptyState
       title="No sessions recorded"
       description="Start a workout to see your training history here."
@@ -86,7 +86,7 @@
   {:else}
     <Card padding={false}>
       <div class="divide-y divide-surface-100">
-        {#each $sessions as sess, i (sess.id)}
+        {#each sessions ?? [] as sess, i (sess.id)}
           <div in:fade={{ ...staggerFade(i) }}>
             {#if sess.completed_at}
               <ListItem hoverable>

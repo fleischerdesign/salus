@@ -3,7 +3,7 @@
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import type { AchievementDefinition, UserAchievement } from '$lib/db/types';
+
   import { useQuery } from '$lib/db/use-query.svelte';
 
   const { value: definitions } = useQuery(() => db.achievement_definition.toArray());

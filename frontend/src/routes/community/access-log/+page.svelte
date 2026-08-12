@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import Card from '$components/ui/Card.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Table from '$components/ui/Table.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let logs = liveQuery(() =>
+  const { value: logs } = useQuery(() =>
     db.federated_access_log
       .toArray()
       .then((arr) =>
@@ -35,9 +35,9 @@
   />
 
   <Card padding={false}>
-    {#if $logs === undefined}
+    {#if logs === undefined}
       <div class="flex justify-center py-12"><Spinner /></div>
-    {:else if $logs && $logs.length === 0}
+    {:else if logs && (logs ?? []).length === 0}
       <div class="py-12">
         <EmptyState
           icon="history"
@@ -49,7 +49,7 @@
       <div class="overflow-x-auto">
         <Table
           {columns}
-          rows={$logs.map((l) => ({
+          rows={(logs ?? []).map((l) => ({
             requester: l.requester_handle,
             data_type: l.data_type,
             target_date: new Date(l.target_date).toLocaleDateString(),

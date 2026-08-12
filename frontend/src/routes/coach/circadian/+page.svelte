@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { saveCircadianProfile } from '$lib/mutations/misc';
   import { fetchCircadianAdvice, type CircadianAdvice } from '$lib/analytics/views/circadian';
@@ -11,8 +10,9 @@
   import FormField from '$components/forms/FormField.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let profile = liveQuery(() =>
+  const { value: profile } = useQuery(() =>
     db.circadian_profile.toArray().then((arr) => arr.find((p) => !p.deleted_at) ?? null)
   );
 
@@ -32,7 +32,7 @@
   ];
 
   $effect(() => {
-    const p = $profile;
+    const p = profile;
     if (p) {
       latitude = p.latitude ?? 52.52;
       longitude = p.longitude ?? 13.4;

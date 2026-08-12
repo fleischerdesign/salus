@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { mergeMetricPrefs } from '$lib/db/types';
   import { auth } from '$lib/stores/auth.svelte';
@@ -15,6 +14,7 @@
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const handle = $derived((page.params.handle as string) ?? '');
 
@@ -40,7 +40,7 @@
   }
 
   // Load single peer connection details
-  let peer = liveQuery(async () => {
+  const { value: peer } = useQuery(async () => {
     const uid = auth.user?.id;
     const username = auth.user?.username;
     if (!uid || !username || !handle) return null;
@@ -119,7 +119,7 @@
   });
 
   // Filter activities belonging only to this connection
-  let activities = liveQuery(async () => {
+  const { value: activities } = useQuery(async () => {
     if (!handle) return [];
     const p = await db.user_profile.where('username').equals(handle).first();
     const displayName = p?.display_name ?? '';
@@ -161,21 +161,21 @@
 <div class="space-y-6">
   <!-- Header -->
   <PageHeader
-    title={$peer?.display_name || handle}
+    title={peer?.display_name || handle}
     subtitle={handle}
     backUrl="/community/connections"
     icon="person"
     iconColor="#4f46e5"
   >
     {#snippet actions()}
-      {#if $peer}
+      {#if peer}
         <div class="flex gap-1.5 font-sans">
-          {#if $peer.is_remote}
+          {#if peer.is_remote}
             <Badge variant="primary">Remote</Badge>
           {/if}
-          {#if $peer.is_pending}
+          {#if peer.is_pending}
             <Badge variant="warning">Pending</Badge>
-          {:else if !$peer.is_mutual}
+          {:else if !peer.is_mutual}
             <Badge variant="default">Outgoing</Badge>
           {:else}
             <Badge variant="success">Mutual</Badge>
@@ -185,15 +185,15 @@
     {/snippet}
 
     {#snippet stats()}
-      {#if $peer}
+      {#if peer}
         <div class="grid gap-6 px-6 py-6 md:grid-cols-2">
-          {#if $peer.last_sync}
+          {#if peer.last_sync}
             <div class="space-y-1">
               <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
                 >Last Synced</span
               >
               <div class="text-sm font-semibold text-surface-700">
-                {new Date($peer.last_sync).toLocaleDateString(undefined, {
+                {new Date(peer.last_sync).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
@@ -204,13 +204,13 @@
             </div>
           {/if}
 
-          {#if $peer.expiration}
+          {#if peer.expiration}
             <div class="space-y-1">
               <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
                 >Expires On</span
               >
               <div class="text-sm font-semibold text-surface-700">
-                {new Date($peer.expiration).toLocaleDateString(undefined, {
+                {new Date(peer.expiration).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric'
@@ -223,7 +223,7 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$peer || !$activities}
+  {#if !peer || !activities}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else}
     <div class="grid gap-6 lg:grid-cols-12">
@@ -233,11 +233,11 @@
           <span class="text-sm font-semibold text-surface-900">Shared Metrics</span>
         {/snippet}
         <div class="space-y-4 p-6">
-          {#if $peer.metrics.length === 0}
+          {#if peer.metrics.length === 0}
             <p class="text-xs text-surface-400">No active metrics sharing setup.</p>
           {:else}
             <div class="space-y-3">
-              {#each $peer.metrics as m}
+              {#each peer.metrics as m}
                 <div
                   class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-3"
                 >
@@ -259,7 +259,7 @@
               variant="danger"
               class="w-full justify-center"
               size="sm"
-              onclick={() => revoke($peer.metrics[0]?.relationship_id)}
+              onclick={() => revoke(peer.metrics[0]?.relationship_id)}
             >
               Revoke Connection
             </Btn>
@@ -273,7 +273,7 @@
           <span class="text-sm font-semibold text-surface-900">Recent Activities</span>
         {/snippet}
         <div class="divide-y divide-surface-100">
-          {#if $activities.length === 0}
+          {#if (activities ?? []).length === 0}
             <div class="p-8">
               <EmptyState
                 icon="rss-feed"
@@ -282,7 +282,7 @@
               />
             </div>
           {:else}
-            {#each $activities as act, i (act.id)}
+            {#each activities ?? [] as act, i (act.id)}
               <div
                 in:fade={{ ...staggerFade(i) }}
                 class="p-5 transition-colors hover:bg-surface-50"

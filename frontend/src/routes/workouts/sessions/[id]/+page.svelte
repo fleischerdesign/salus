@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { db } from '$lib/db/database';
   import Card from '$components/ui/Card.svelte';
@@ -9,20 +8,21 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import Table from '$components/ui/Table.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const sessionId = $derived(page.params.id as string);
 
-  let session = liveQuery(() =>
+  const { value: session } = useQuery(() =>
     db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null))
   );
 
-  let logs = liveQuery(() =>
+  const { value: logs } = useQuery(() =>
     db.workout_log_entry
       .toArray()
       .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at))
   );
 
-  let exercises = liveQuery(() =>
+  const { value: exercises } = useQuery(() =>
     db.exercise.toArray().then((arr) => {
       const map = new Map(arr.map((e) => [e.id, e]));
       return map;
@@ -30,9 +30,9 @@
   );
 
   let groupedLogs = $derived.by(() => {
-    const map = new Map<string, typeof $logs>();
-    for (const log of $logs ?? []) {
-      const name = $exercises?.get(log.exercise_id)?.name ?? `Exercise ${log.exercise_id}`;
+    const map = new Map<string, NonNullable<typeof logs>>();
+    for (const log of logs ?? []) {
+      const name = exercises?.get(log.exercise_id)?.name ?? `Exercise ${log.exercise_id}`;
       const arr = map.get(name);
       if (arr) arr.push(log);
       else map.set(name, [log]);
@@ -41,22 +41,22 @@
   });
 
   let totalVolume = $derived(
-    ($logs ?? []).reduce((sum, log) => sum + (log.weight ?? 0) * (log.reps ?? 0), 0)
+    (logs ?? []).reduce((sum, log) => sum + (log.weight ?? 0) * (log.reps ?? 0), 0)
   );
 
-  let totalSets = $derived(($logs ?? []).length);
+  let totalSets = $derived((logs ?? []).length);
 
   let avgRpe = $derived.by(() => {
-    if (!$logs || $logs.length === 0) return 0;
-    const rpes = $logs.map((l) => l.rpe).filter((r): r is number => r != null);
+    if (!logs || logs.length === 0) return 0;
+    const rpes = logs.map((l) => l.rpe).filter((r): r is number => r != null);
     if (rpes.length === 0) return 0;
     return rpes.reduce((s, r) => s + r, 0) / rpes.length;
   });
 
   let durationMin = $derived.by(() => {
-    if (!$session || !$session.started_at || !$session.completed_at) return 0;
+    if (!session || !session.started_at || !session.completed_at) return 0;
     return Math.round(
-      (new Date($session.completed_at).getTime() - new Date($session.started_at).getTime()) / 60000
+      (new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000
     );
   });
 
@@ -68,25 +68,25 @@
 
 <svelte:head><title>Salus — Session</title></svelte:head>
 
-{#if !$session}
+{#if !session}
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-{:else if $session}
+{:else if session}
   <div class="space-y-6">
     <PageHeader
       title="Workout Session"
-      subtitle={`${new Date($session.completed_at ?? $session.started_at).toLocaleDateString()} • ${durationMin} min`}
+      subtitle={`${new Date(session.completed_at ?? session.started_at).toLocaleDateString()} • ${durationMin} min`}
       icon="fitness-center"
       iconColor="#4f46e5"
       backUrl="/workouts/sessions"
     >
       {#snippet actions()}
         <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
-          {#if $session.recovery_score}
+          {#if session.recovery_score}
             <div
               class="flex h-full items-center justify-center gap-2 bg-emerald-50 px-6 text-xs font-semibold whitespace-nowrap text-emerald-800"
             >
               <Icon name="bolt" size="sm" class="text-emerald-600" />
-              <span>Recovery {Math.round($session.recovery_score)}%</span>
+              <span>Recovery {Math.round(session.recovery_score)}%</span>
             </div>
           {/if}
         </div>
@@ -112,15 +112,15 @@
       {/snippet}
     </PageHeader>
 
-    {#if $session.notes}
+    {#if session.notes}
       <Card>
-        <p class="text-sm text-surface-600 italic">"{$session.notes}"</p>
+        <p class="text-sm text-surface-600 italic">"{session.notes}"</p>
       </Card>
     {/if}
 
     <div class="space-y-4">
       <h2 class="text-lg font-semibold text-surface-900">Exercise Log</h2>
-      {#if !$logs || groupedLogs.size === 0}
+      {#if !logs || groupedLogs.size === 0}
         <EmptyState
           title="No exercises logged"
           description="No sets were logged in this session."

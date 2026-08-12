@@ -1,6 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
-  import type { Habit, HabitLog } from '$lib/db/types';
+  import type { Habit } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import HabitGrid from '$components/habits/HabitGrid.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';

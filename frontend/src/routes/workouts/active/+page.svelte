@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import { completeWorkout, cancelWorkout, logSet, deleteLogSet } from '$lib/mutations/workout';
@@ -15,16 +14,17 @@
   import SetLogger from '$components/workouts/SetLogger.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import Modal from '$components/ui/Modal.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   type LogState = 'pending' | 'logging' | 'logged' | 'failed';
 
-  let session = liveQuery(() =>
+  const { value: session } = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null)
   );
 
-  let planExercises = liveQuery(async () => {
+  const { value: planExercises } = useQuery(async () => {
     const activeSession = await db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
@@ -36,7 +36,7 @@
     return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
   });
 
-  let allLogs = liveQuery(async () => {
+  const { value: allLogs } = useQuery(async () => {
     const activeSession = await db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
@@ -76,9 +76,9 @@
   let cancelDialogOpen = $state(false);
   let settingsModalOpen = $state(false);
 
-  let loading = $derived($session == null || $planExercises == null || $allLogs == null);
+  let loading = $derived(session == null || planExercises == null || allLogs == null);
 
-  let exercises = liveQuery(async () => {
+  const { value: exercises } = useQuery(async () => {
     const map = new Map((await db.exercise.toArray()).map((e) => [e.id, e]));
     return map;
   });
@@ -99,14 +99,14 @@
   }
 
   let targets = $derived.by<Target[] | null>(() => {
-    if (!$session || !$planExercises || !$exercises) return null;
+    if (!session || !planExercises || !exercises) return null;
 
-    const sessionScore = $session.recovery_score ?? 100;
+    const sessionScore = session.recovery_score ?? 100;
     const factor = sessionScore / 100;
 
-    return $planExercises.map((pe) => {
-      const ex = $exercises.get(pe.exercise_id);
-      const exLogs = ($allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
+    return (planExercises ?? []).map((pe) => {
+      const ex = exercises.get(pe.exercise_id);
+      const exLogs = (allLogs ?? []).filter((l) => l.exercise_id === pe.exercise_id);
 
       let lastWeight = 40;
       let prWeight = 0;
@@ -170,14 +170,14 @@
   function getLogState(exId: string, setNum: number): LogState {
     const key = `${exId}-${setNum}`;
     if (logStates[key]) return logStates[key];
-    const isLogged = ($allLogs ?? []).some(
+    const isLogged = (allLogs ?? []).some(
       (l) => l.exercise_id === exId && l.set_number === setNum && !l.deleted_at
     );
     return isLogged ? 'logged' : 'pending';
   }
 
   function getInitialWeight(exId: string, setNum: number): number {
-    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
+    const log = (allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.weight) return log.weight;
     const key = `${exId}-${setNum}`;
     if (scaledWeights[key] !== undefined) return scaledWeights[key];
@@ -185,13 +185,13 @@
   }
 
   function getInitialReps(exId: string, setNum: number): number {
-    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
+    const log = (allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.reps) return log.reps;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_reps ?? 10;
   }
 
   function getInitialRpe(exId: string, setNum: number): number {
-    const log = ($allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
+    const log = (allLogs ?? []).find((l) => l.exercise_id === exId && l.set_number === setNum);
     if (log?.rpe != null) return log.rpe;
     return targets?.find((t) => t.exercise_id === exId)?.suggested_rpe ?? 7;
   }
@@ -204,7 +204,7 @@
     const key = `${exId}-${setNum}`;
     logStates = { ...logStates, [key]: 'logging' };
 
-    const sessionId = $session?.id ?? '';
+    const sessionId = session?.id ?? '';
     const { ok } = await logSet(sessionId, exId, setNum, data.weight, data.reps, data.rpe);
 
     if (ok) {
@@ -224,7 +224,7 @@
     const key = `${exId}-${setNum}`;
     logStates = { ...logStates, [key]: 'logging' };
 
-    const existingId = ($allLogs ?? []).find(
+    const existingId = (allLogs ?? []).find(
       (l) => l.exercise_id === exId && l.set_number === setNum
     )?.id;
 
@@ -242,7 +242,7 @@
   function applyWeightScaling(exId: string, totalSets: number) {
     const triggerSet = rpePrompts.get(exId);
     if (triggerSet === undefined) return;
-    const triggerLog = ($allLogs ?? []).find(
+    const triggerLog = (allLogs ?? []).find(
       (l) => l.exercise_id === exId && l.set_number === triggerSet
     );
     if (!triggerLog?.weight) return;
@@ -265,7 +265,7 @@
 
   async function complete() {
     completing = true;
-    const sessionId = $session?.id ?? '';
+    const sessionId = session?.id ?? '';
     const { ok } = await completeWorkout(sessionId, notes || undefined);
     if (ok) {
       await goto(`/workouts/sessions/${sessionId}`);
@@ -274,9 +274,9 @@
   }
 
   async function confirmCancel() {
-    if (!$session) return;
+    if (!session) return;
     canceling = true;
-    const sessionId = $session.id;
+    const sessionId = session.id;
     await cancelWorkout(sessionId);
     canceling = false;
     await goto('/workouts');
@@ -288,22 +288,22 @@
 <div class="space-y-6">
   {#if loading}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-  {:else if $session}
+  {:else if session}
     <PageHeader
       title="Active Workout Session"
-      subtitle={`Started ${formatTime($session.started_at)}`}
+      subtitle={`Started ${formatTime(session.started_at)}`}
       icon="fitness-center"
       iconColor="#4f46e5"
       backUrl="/workouts"
     >
       {#snippet actions()}
         <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
-          {#if $session.recovery_score}
+          {#if session.recovery_score}
             <div
               class="flex h-full items-center justify-center gap-2 bg-emerald-50 px-6 text-xs font-semibold whitespace-nowrap text-emerald-800"
             >
               <Icon name="bolt" size="sm" class="text-emerald-600" />
-              <span>Recovery {Math.round($session.recovery_score)}%</span>
+              <span>Recovery {Math.round(session.recovery_score)}%</span>
             </div>
           {/if}
           <button
@@ -498,17 +498,17 @@
       </button>
     </div>
 
-    {#if $session?.autoreg_mode}
+    {#if session?.autoreg_mode}
       <div class="flex items-center justify-between pt-4">
         <div>
           <p class="text-sm font-semibold text-surface-900">Autoregulation Mode</p>
           <p class="text-xs text-surface-500">Intensity scaling mode for this workout session</p>
         </div>
         <Badge
-          variant={$session.autoreg_mode === 'disabled' ? 'default' : 'primary'}
+          variant={session.autoreg_mode === 'disabled' ? 'default' : 'primary'}
           class="capitalize"
         >
-          {$session.autoreg_mode}
+          {session.autoreg_mode}
         </Badge>
       </div>
     {/if}

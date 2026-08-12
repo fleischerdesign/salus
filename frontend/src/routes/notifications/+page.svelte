@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import { db } from '$lib/db/database';
@@ -8,8 +7,9 @@
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let notifications = liveQuery(() =>
+  const { value: notifications } = useQuery(() =>
     db.notification
       .toArray()
       .then((arr) =>
@@ -19,7 +19,7 @@
       )
   );
 
-  let unreadCount = $derived($notifications?.filter((n) => !n.is_read).length ?? 0);
+  let unreadCount = $derived(notifications?.filter((n) => !n.is_read).length ?? 0);
 
   async function markAllRead() {
     await markAllNotificationsRead();
@@ -47,17 +47,17 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$notifications}
+  {#if !notifications}
     <div class="flex flex-col gap-3">
       {#each Array(5) as _}
         <div class="h-20 animate-pulse rounded-lg bg-surface-200"></div>
       {/each}
     </div>
-  {:else if $notifications.length === 0}
+  {:else if (notifications ?? []).length === 0}
     <EmptyState title="No notifications" icon="notifications" />
   {:else}
     <div class="flex flex-col gap-3">
-      {#each $notifications as n, i (n.id)}
+      {#each notifications ?? [] as n, i (n.id)}
         <div in:fade={{ ...staggerFade(i) }}>
           <Card>
             <div class="flex items-start justify-between">

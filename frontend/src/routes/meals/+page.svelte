@@ -1,6 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
-  import type { FoodItem, Meal, MealItem } from '$lib/db/types';
+  import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';

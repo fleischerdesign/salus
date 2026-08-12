@@ -1,10 +1,11 @@
 <script lang="ts">
-  import Dexie, { liveQuery } from 'dexie';
+  import Dexie from 'dexie';
   import { db } from '$lib/db/database';
   import { sleepDebtCumulative } from '$lib/analytics/stats';
   import Icon from '$components/ui/Icon.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  const sleepDebtData = liveQuery(async () => {
+  const { value: sleepDebtData } = useQuery(async () => {
     const recent = await db.measurement
       .where('[metric_code+start_time]')
       .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
@@ -40,7 +41,7 @@
 
   // Calculate target sleep and wind-down tonight
   const coaching = $derived.by(() => {
-    const data = $sleepDebtData;
+    const data = sleepDebtData;
     if (!data) return null;
 
     const baseSleep = data.baselineH;
@@ -87,7 +88,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  {#if !$sleepDebtData}
+  {#if !sleepDebtData}
     <div class="flex flex-col items-center justify-center py-6 text-center">
       <Icon name="bedtime" size="2xl" class="text-surface-300" />
       <p class="mt-2 text-xs text-surface-500">
@@ -95,7 +96,7 @@
       </p>
     </div>
   {:else}
-    {@const debt = $sleepDebtData.cumulativeDebt}
+    {@const debt = sleepDebtData.cumulativeDebt}
     <div class="xs:grid-cols-2 grid grid-cols-1 gap-4">
       <!-- Sleep Debt Status Card -->
       <div

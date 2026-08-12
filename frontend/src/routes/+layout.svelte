@@ -9,7 +9,6 @@
   import icons from '$lib/icons.json';
   addCollection(icons);
   import { auth } from '$stores/auth.svelte';
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { setLocaleState } from '$lib/api/headers';
   import { onMount } from 'svelte';
@@ -26,22 +25,25 @@
   import { getSystemStats } from '$lib/db/metric-stats';
   import { healthSyncService } from '$lib/native/health-sync';
   import { nativeBridge } from '$lib/native/bridge';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
 
   const publicPaths = ['/auth/login', '/auth/register'];
   let isPublic = $derived(publicPaths.includes(page.url.pathname));
 
-  let userProfiles = liveQuery(() => db.user_profile.toArray());
-  let userProfile = $derived($userProfiles && $userProfiles.length > 0 ? $userProfiles[0] : null);
+  const { value: userProfiles } = useQuery(() => db.user_profile.toArray());
+  let userProfile = $derived(
+    userProfiles && (userProfiles ?? []).length > 0 ? userProfiles[0] : null
+  );
 
   // ── Reactive Guards Integration for PWA Auto-Reload ──
 
-  let activeSessions = liveQuery(() =>
+  const { value: activeSessions } = useQuery(() =>
     db.workout_session.where('status').equals('active').toArray()
   );
   $effect(() => {
-    updateService.setActiveWorkout(Boolean($activeSessions && $activeSessions.length > 0));
+    updateService.setActiveWorkout(Boolean(activeSessions && (activeSessions ?? []).length > 0));
   });
 
   $effect(() => {

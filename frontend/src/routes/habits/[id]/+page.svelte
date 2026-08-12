@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import type { Habit, HabitLog } from '$lib/db/types';
+  import type { Habit } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';

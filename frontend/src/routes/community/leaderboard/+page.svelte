@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import { createLeaderboard, joinLeaderboard } from '$lib/mutations/community';
@@ -16,6 +15,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import Badge from '$components/ui/Badge.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   interface Challenge {
     id: string;
@@ -30,7 +30,7 @@
     is_creator: boolean;
   }
 
-  let challenges = liveQuery(async () => {
+  const { value: challenges } = useQuery(async () => {
     const groups = await db.leaderboard_group.toArray();
     const members = await db.leaderboard_member.toArray();
 
@@ -163,9 +163,9 @@
   <div class="grid gap-6 lg:grid-cols-[2fr_1.2fr]">
     <div>
       <h2 class="mb-4 text-lg font-semibold text-surface-900">Active Challenges</h2>
-      {#if !$challenges}
+      {#if !challenges}
         <div class="flex justify-center py-12"><Spinner /></div>
-      {:else if $challenges.length === 0}
+      {:else if (challenges ?? []).length === 0}
         <EmptyState
           icon="emoji-events"
           title="No Active Challenges"
@@ -173,7 +173,7 @@
         />
       {:else}
         <div class="space-y-4">
-          {#each $challenges as c, i (c.id)}
+          {#each challenges ?? [] as c, i (c.id)}
             <a
               href="/community/leaderboard/{c.id}"
               class="no-underline"

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { deleteLeaderboard, leaveLeaderboard } from '$lib/mutations/community';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
@@ -14,6 +13,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   interface Ranking {
     rank: number;
@@ -39,7 +39,7 @@
 
   const challengeId = $derived(page.params.id);
 
-  let detail = liveQuery(async () => {
+  const { value: detail } = useQuery(async () => {
     const group = await db.leaderboard_group.get(challengeId!);
     if (!group || group.deleted_at) return null;
 
@@ -98,7 +98,7 @@
   }
 
   async function copyInviteCode() {
-    const current = $detail;
+    const current = detail;
     if (!current) return;
     await navigator.clipboard.writeText(current.invite_code);
     copied = true;
@@ -119,16 +119,16 @@
 
 <svelte:head><title>Salus — Challenge</title></svelte:head>
 
-{#if !$detail}
+{#if !detail}
   <div class="flex justify-center py-20">
     <Spinner size="lg" />
   </div>
-{:else if $detail}
+{:else if detail}
   <div class="max-w-4xl space-y-6">
     <PageHeader
-      title={$detail.name}
-      subtitle={`${$detail.time_frame} • ${$detail.metric_type_code} • ${new Date($detail.start_date).toLocaleDateString()} — ${new Date($detail.end_date).toLocaleDateString()}`}
-      icon={metricIcon[$detail.metric_type_code] ?? 'emoji-events'}
+      title={detail.name}
+      subtitle={`${detail.time_frame} • ${detail.metric_type_code} • ${new Date(detail.start_date).toLocaleDateString()} — ${new Date(detail.end_date).toLocaleDateString()}`}
+      icon={metricIcon[detail.metric_type_code] ?? 'emoji-events'}
       iconColor="#4f46e5"
       backUrl="/community/leaderboard"
     >
@@ -141,7 +141,7 @@
               Invite Code
             </p>
             <code class="text-sm font-bold tracking-wide text-surface-700"
-              >{$detail.invite_code}</code
+              >{detail.invite_code}</code
             >
           </div>
           <Btn variant="secondary" size="sm" onclick={copyInviteCode}>
@@ -153,17 +153,17 @@
 
     <Card padding={false}>
       {#snippet header()}
-        {#if $detail}
+        {#if detail}
           <div class="flex items-center justify-between">
             <span class="text-sm font-semibold text-surface-900">Standings</span>
             <span class="text-xs font-semibold tracking-wider text-primary-500 uppercase"
-              >{$detail.metric_type_code}</span
+              >{detail.metric_type_code}</span
             >
           </div>
         {/if}
       {/snippet}
 
-      {#if $detail.rankings.length === 0}
+      {#if detail.rankings.length === 0}
         <div class="py-12">
           <EmptyState
             icon="leaderboard"
@@ -173,7 +173,7 @@
         </div>
       {:else}
         <div class="divide-y divide-surface-100">
-          {#each $detail.rankings as r, i (r.rank)}
+          {#each detail.rankings as r, i (r.rank)}
             <div
               in:fade={{ ...staggerFade(i) }}
               class="flex items-center justify-between px-5 py-3.5 {r.is_me ? 'bg-primary-50' : ''}"
@@ -196,7 +196,7 @@
               <span class="text-sm font-semibold text-surface-700">
                 {r.score}
                 <span class="ml-1 text-xs font-medium text-surface-500"
-                  >{scoreUnit[$detail.metric_type_code] ?? ''}</span
+                  >{scoreUnit[detail.metric_type_code] ?? ''}</span
                 >
               </span>
             </div>
@@ -206,8 +206,8 @@
     </Card>
 
     <div class="flex items-center justify-between">
-      <p class="text-sm text-surface-400">Created by <strong>@{$detail.created_by}</strong></p>
-      {#if $detail.is_creator}
+      <p class="text-sm text-surface-400">Created by <strong>@{detail.created_by}</strong></p>
+      {#if detail.is_creator}
         <Btn variant="danger" size="sm" onclick={disband}>Disband Challenge</Btn>
       {:else}
         <Btn variant="secondary" size="sm" onclick={leave}>Leave Challenge</Btn>

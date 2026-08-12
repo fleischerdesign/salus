@@ -3,7 +3,6 @@
   import { auth } from '$stores/auth.svelte';
   import { authConfig } from '$stores/authConfig.svelte';
   import { setLocaleState } from '$lib/api/headers';
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import {
     changePassword as doChangePassword,
@@ -17,6 +16,7 @@
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import RadioGroup from '$components/ui/RadioGroup.svelte';
   import Avatar from '$components/ui/Avatar.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
     google: {
@@ -46,8 +46,8 @@
     authConfig.load();
   });
 
-  let userProfiles = liveQuery(() => db.user_profile.toArray());
-  let apiTokens = liveQuery(() =>
+  const { value: userProfiles } = useQuery(() => db.user_profile.toArray());
+  const { value: apiTokens } = useQuery(() =>
     db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false))
   );
 
@@ -121,8 +121,8 @@
 </script>
 
 <div class="space-y-6">
-  {#if $userProfiles && $userProfiles.length > 0}
-    {@const profile = $userProfiles[0]}
+  {#if userProfiles && (userProfiles ?? []).length > 0}
+    {@const profile = userProfiles[0]}
     <!-- User Profile Header -->
     <div class="flex items-center gap-4 rounded-xl border border-surface-200 bg-surface-0 p-5">
       <Avatar name={profile.display_name || auth.user?.username} size="lg" />
@@ -200,13 +200,13 @@
           </div>
         {/if}
 
-        {#if $apiTokens && $apiTokens.filter((t) => t.is_active).length > 0}
+        {#if apiTokens && (apiTokens ?? []).filter((t) => t.is_active).length > 0}
           <div class="border-t border-surface-100 pt-3">
             <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
               Active Tokens
             </p>
             <div class="space-y-2">
-              {#each $apiTokens.filter((t) => t.is_active) as t}
+              {#each (apiTokens ?? []).filter((t) => t.is_active) as t}
                 <div
                   class="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2"
                 >

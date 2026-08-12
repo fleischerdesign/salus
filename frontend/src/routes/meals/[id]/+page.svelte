@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import type { Meal, MealItem, FoodItem } from '$lib/db/types';
+  import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Spinner from '$components/ui/Spinner.svelte';

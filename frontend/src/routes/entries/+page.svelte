@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { MetricGroup, MetricWithPreference } from '$lib/db/types';
   import { mergeMetricPrefs } from '$lib/db/types';
@@ -15,6 +14,7 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   type Metric = MetricWithPreference;
 
@@ -24,7 +24,7 @@
     overviews: MetricOverview[];
   }
 
-  let logbookData = liveQuery<LogbookData>(async () => {
+  const { value: logbookData } = useQuery<LogbookData>(async () => {
     const [allDefs, allPrefs, groups, overviews] = await Promise.all([
       db.metric_definition.toArray(),
       db.user_metric_preference.toArray(),
@@ -35,9 +35,9 @@
     return { metrics, groups, overviews };
   });
 
-  let metrics = $derived($logbookData?.metrics);
-  let groups = $derived($logbookData?.groups ?? []);
-  let overviews = $derived($logbookData?.overviews ?? []);
+  let metrics = $derived(logbookData?.metrics);
+  let groups = $derived(logbookData?.groups ?? []);
+  let overviews = $derived(logbookData?.overviews ?? []);
 
   let groupedMetrics = $derived(
     metrics && groups ? metrics.filter((m) => m.group_key != null) : []
@@ -82,7 +82,7 @@
     iconColor="#4f46e5"
   />
 
-  {#if $logbookData === undefined}
+  {#if logbookData === undefined}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if (metrics?.length ?? 0) === 0}
     <EmptyState
