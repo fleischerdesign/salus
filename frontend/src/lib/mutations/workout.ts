@@ -1,9 +1,6 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
-
-function now(): string {
-  return new Date().toISOString();
-}
+import { nowIso } from '$lib/utils/datetime';
 
 export const startWorkout = (planId: string | null, autoregMode = 'advisory') => {
   const id = uuid7();
@@ -17,12 +14,12 @@ export const startWorkout = (planId: string | null, autoregMode = 'advisory') =>
       id,
       user_id: 'self',
       plan_id: planId,
-      started_at: now(),
+      started_at: nowIso(),
       completed_at: null,
       autoreg_mode: autoregMode,
       recovery_score: null,
       notes: null,
-      created_at: now(),
+      created_at: nowIso(),
       updated_at: null,
       deleted_at: null
     },
@@ -39,7 +36,7 @@ export const completeWorkout = (sessionId: string, notes?: string) =>
     optimisticTable: 'workout_session',
     optimisticData: {
       id: sessionId,
-      completed_at: now(),
+      completed_at: nowIso(),
       notes: notes ?? null
     }
   });
@@ -53,7 +50,7 @@ export const cancelWorkout = (sessionId: string) =>
     optimisticTable: 'workout_session',
     optimisticData: {
       id: sessionId,
-      deleted_at: now()
+      deleted_at: nowIso()
     }
   });
 
@@ -88,7 +85,7 @@ export const logSet = (
       weight,
       reps,
       rpe: rpe ?? null,
-      created_at: now(),
+      created_at: nowIso(),
       updated_at: null,
       deleted_at: null
     },
@@ -103,5 +100,5 @@ export const deleteLogSet = (logEntryId: string) =>
     queueable: true,
     payload: { id: logEntryId },
     optimisticTable: 'workout_log_entry',
-    optimisticData: { id: logEntryId, deleted_at: now() }
+    optimisticData: { id: logEntryId, deleted_at: nowIso() }
   });

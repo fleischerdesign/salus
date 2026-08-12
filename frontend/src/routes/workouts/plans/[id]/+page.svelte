@@ -11,6 +11,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { sessionVolume } from '$lib/utils/workout';
 
   const planId = $derived(page.params.id as string);
 
@@ -72,12 +73,6 @@
   function formatDuration(sessStart: string, sessEnd: string | null): string {
     if (!sessStart || !sessEnd) return '—';
     return `${Math.round((new Date(sessEnd).getTime() - new Date(sessStart).getTime()) / 60000)} min`;
-  }
-
-  function sessionVolume(sessId: string): number {
-    return (logs ?? [])
-      .filter((l) => l.session_id === sessId)
-      .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
 </script>
 
@@ -186,6 +181,7 @@
                         </p>
                         <p class="text-xs text-surface-400">
                           {formatDuration(sess.started_at, sess.completed_at)} · {sessionVolume(
+                            logs,
                             sess.id
                           ).toFixed(0)} kg
                         </p>

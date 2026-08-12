@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
-  import type { MetricWithPreference } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/db/types';
   import { fetchMetricOverview } from '$lib/analytics/views/metric-overview';
   import MetricEntryDetail from '$components/entries/MetricEntryDetail.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -15,16 +15,8 @@
     if (!code) return null;
     const def = await db.metric_definition.get(code);
     if (!def) return null;
-    const prefs = await db.user_metric_preference.where('metric_code').equals(code).first();
-    return {
-      ...def,
-      color: prefs?.color ?? '#4f46e5',
-      icon: prefs?.icon ?? 'monitoring',
-      widget_size: prefs?.widget_size ?? 'medium',
-      widget_enabled: prefs?.widget_enabled ?? false,
-      enabled: prefs?.enabled ?? true,
-      position: prefs?.position ?? 0
-    } satisfies MetricWithPreference;
+    const pref = await db.user_metric_preference.where('metric_code').equals(code).first();
+    return mergeMetricPrefs([def], pref ? [pref] : [])[0] ?? null;
   });
   const metric = $derived(metricDataQuery.value);
   const loading = $derived(metricDataQuery.loading);

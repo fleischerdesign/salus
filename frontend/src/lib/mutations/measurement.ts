@@ -1,9 +1,6 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
-
-function now(): string {
-  return new Date().toISOString();
-}
+import { nowIso } from '$lib/utils/datetime';
 
 export const createMeasurement = (metricCode: string, data: Record<string, unknown>) => {
   const id = uuid7();
@@ -12,7 +9,7 @@ export const createMeasurement = (metricCode: string, data: Record<string, unkno
     user_id: 'self',
     metric_code: metricCode,
     ...data,
-    created_at: now(),
+    created_at: nowIso(),
     updated_at: null,
     deleted_at: null
   };
@@ -51,7 +48,7 @@ export const createMetricType = (data: Record<string, unknown>) => {
     id,
     user_id: 'self',
     ...data,
-    created_at: now(),
+    created_at: nowIso(),
     updated_at: null,
     deleted_at: null
   };
