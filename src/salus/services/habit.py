@@ -1,4 +1,3 @@
-from collections import defaultdict
 from datetime import date, datetime, timezone
 
 from salus.exceptions import NotFoundError
@@ -129,13 +128,3 @@ class HabitService:
                 "total_checks": len(completed_dates),
             }
         return result
-
-
-def compute_all_log_dates(
-    habit_logs: list[HabitLog],
-) -> dict[str, list[date]]:
-    by_habit: dict[str, list[date]] = defaultdict(list)
-    for log in habit_logs:
-        if log.completed:
-            by_habit[log.habit_id].append(log.log_date)
-    return dict(by_habit)

@@ -6,7 +6,28 @@ if TYPE_CHECKING:
 
 DEFAULT_METRIC_COLOR = "#4f46e5"
 
-__all__ = ["uid", "DEFAULT_METRIC_COLOR", "make_handle", "parse_date"]
+_SUMMABLE_METRIC_CODES = frozenset({"steps", "water"})
+
+__all__ = [
+    "uid",
+    "DEFAULT_METRIC_COLOR",
+    "make_handle",
+    "parse_date",
+    "summarize_daily_values",
+]
+
+
+def summarize_daily_values(metric_code: str, values: list[float]) -> float | None:
+    """Aggregate a metric's values: sum for additive metrics, mean otherwise.
+
+    Returns ``None`` when there are no values to aggregate.
+    """
+    if not values:
+        return None
+    total = sum(values)
+    if metric_code in _SUMMABLE_METRIC_CODES:
+        return float(total)
+    return float(total / len(values))
 
 
 def parse_date(date_str: str) -> date | None:

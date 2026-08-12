@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SELF_USER_ID } from '$lib/constants';
   import { db } from '$lib/db/database';
   import type { UserSourcePreference } from '$lib/db/types';
   import Modal from '$components/ui/Modal.svelte';
@@ -50,7 +51,7 @@
       if (!existingSources.has(s)) {
         combined.push({
           id: `temp-${s}`,
-          user_id: '',
+          user_id: SELF_USER_ID,
           metric_code: metricCode,
           source: s,
           priority_rank: nextRank++,

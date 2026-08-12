@@ -11,6 +11,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { sessionVolume } from '$lib/utils/workout';
 
   const planId = $derived(page.params.id as string);
 
@@ -21,12 +22,10 @@
 
   const planExercisesQuery = useQuery(() =>
     db.workout_plan_exercise
+      .where('plan_id')
+      .equals(planId!)
       .toArray()
-      .then((arr) =>
-        arr
-          .filter((pe) => pe.plan_id === planId && !pe.deleted_at)
-          .sort((a, b) => a.sequence - b.sequence)
-      )
+      .then((arr) => arr.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence))
   );
   const planExercises = $derived(planExercisesQuery.value);
 
@@ -40,10 +39,12 @@
 
   const sessionsQuery = useQuery(() =>
     db.workout_session
+      .where('plan_id')
+      .equals(planId!)
       .toArray()
       .then((arr) =>
         arr
-          .filter((s) => !s.deleted_at && s.plan_id === planId && s.completed_at != null)
+          .filter((s) => !s.deleted_at && s.completed_at != null)
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );
@@ -72,12 +73,6 @@
   function formatDuration(sessStart: string, sessEnd: string | null): string {
     if (!sessStart || !sessEnd) return '—';
     return `${Math.round((new Date(sessEnd).getTime() - new Date(sessStart).getTime()) / 60000)} min`;
-  }
-
-  function sessionVolume(sessId: string): number {
-    return (logs ?? [])
-      .filter((l) => l.session_id === sessId)
-      .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
   }
 </script>
 
@@ -186,6 +181,7 @@
                         </p>
                         <p class="text-xs text-surface-400">
                           {formatDuration(sess.started_at, sess.completed_at)} · {sessionVolume(
+                            logs,
                             sess.id
                           ).toFixed(0)} kg
                         </p>

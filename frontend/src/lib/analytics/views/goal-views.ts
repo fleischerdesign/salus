@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import { db } from '$lib/db/database';
 import type { Goal, Measurement } from '$lib/db/types';
+import { MS_PER_DAY } from '$lib/utils/datetime';
 import { mergeMetricPrefs } from '$lib/db/types';
 import { computeGoalProgress } from '$lib/analytics/calculations';
 import type { GoalStatus } from '$lib/analytics/calculations';
@@ -8,6 +9,7 @@ import { linearRegression, predictionInterval } from '$lib/analytics/stats';
 
 export interface GoalView {
   id: string;
+  metric_code: string;
   metric_name: string;
   metric_color: string;
   metric_icon: string;
@@ -95,7 +97,7 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
   if (goals.length === 0) return [];
 
   const metricCodes = [...new Set(goals.map((g) => g.metric_code).filter(Boolean))];
-  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  const cutoff = new Date(Date.now() - 30 * MS_PER_DAY).toISOString();
 
   const [metricDefs, prefs, measurementArrays] = await Promise.all([
     db.metric_definition.toArray(),
@@ -138,6 +140,7 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
 
     return {
       id: g.id,
+      metric_code: g.metric_code,
       metric_name: metric?.name ?? 'Unknown',
       metric_color: metric?.color ?? '#4f46e5',
       metric_icon: metric?.icon ?? 'track-changes',
@@ -175,7 +178,7 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
         position: pref?.position ?? 0
       }
     : undefined;
-  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  const cutoff = new Date(Date.now() - 30 * MS_PER_DAY).toISOString();
   const measurements: Measurement[] = [];
 
   await db.measurement
@@ -203,6 +206,7 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
 
   return {
     id: g.id,
+    metric_code: g.metric_code,
     metric_name: metric?.name ?? 'Unknown',
     metric_color: metric?.color ?? '#4f46e5',
     metric_icon: metric?.icon ?? 'track-changes',

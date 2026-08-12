@@ -5,9 +5,8 @@ import time as _time
 import uuid as _uuid
 from urllib.parse import urlparse
 
-import httpx
-
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services.sharing.webfinger import fetch_actor_document, parse_handle
 
 logger = logging.getLogger("salus.services.sharing.keys")
 
@@ -67,38 +66,10 @@ class FederationKeyService:
         if sender_handle in self._public_key_cache:
             return self._public_key_cache[sender_handle]
 
-        parts = sender_handle[1:].split(":", 1)
-        if len(parts) != 2:
-            raise ValueError(f"Invalid remote handle: {sender_handle}")
-        username, domain = parts
-
-        scheme = (
-            "http"
-            if "localhost" in domain or "127.0.0.1" in domain or "testserver" in domain
-            else "https"
-        )
-        webfinger_url = f"{scheme}://{domain}/.well-known/webfinger"
+        username, domain = parse_handle(sender_handle)
 
         try:
-            resp = httpx.get(
-                webfinger_url,
-                params={"resource": f"acct:{username}@{domain}"},
-                timeout=3.0,
-            )
-            resp.raise_for_status()
-            jrd = resp.json()
-            actor_url = None
-            for link in jrd.get("links", []):
-                if link.get("rel") == "self":
-                    actor_url = link.get("href")
-                    break
-
-            if not actor_url:
-                raise ValueError("No actor link found")
-
-            resp_actor = httpx.get(actor_url, timeout=3.0)
-            resp_actor.raise_for_status()
-            actor = resp_actor.json()
+            actor = fetch_actor_document(username, domain)
             pub_key_pem = actor.get("publicKey", {}).get("publicKeyPem")
             if not pub_key_pem:
                 raise ValueError("No publicKeyPem in Actor profile")

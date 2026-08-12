@@ -1,18 +1,16 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
-
-function now(): string {
-  return new Date().toISOString();
-}
+import { nowIso } from '$lib/utils/datetime';
 
 export const createMeasurement = (metricCode: string, data: Record<string, unknown>) => {
   const id = uuid7();
   const record = {
     id,
-    user_id: 'self',
+    user_id: SELF_USER_ID,
     metric_code: metricCode,
     ...data,
-    created_at: now(),
+    created_at: nowIso(),
     updated_at: null,
     deleted_at: null
   };
@@ -43,43 +41,4 @@ export const deleteMeasurement = (measurementId: string) =>
     entity: 'measurement',
     id: measurementId,
     optimistic: { id: measurementId }
-  });
-
-export const createMetricType = (data: Record<string, unknown>) => {
-  const id = uuid7();
-  const record = {
-    id,
-    user_id: 'self',
-    ...data,
-    created_at: now(),
-    updated_at: null,
-    deleted_at: null
-  };
-  return mutate({
-    kind: 'crud',
-    op: 'create',
-    entity: 'user_metric_preference',
-    id,
-    data: record,
-    optimistic: record
-  });
-};
-
-export const updateMetricType = (metricTypeId: string, data: Record<string, unknown>) =>
-  mutate({
-    kind: 'crud',
-    op: 'update',
-    entity: 'user_metric_preference',
-    id: metricTypeId,
-    data,
-    optimistic: { id: metricTypeId, ...data }
-  });
-
-export const deleteMetricType = (metricTypeId: string) =>
-  mutate({
-    kind: 'crud',
-    op: 'delete',
-    entity: 'user_metric_preference',
-    id: metricTypeId,
-    optimistic: { id: metricTypeId }
   });

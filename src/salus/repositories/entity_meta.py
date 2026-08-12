@@ -209,9 +209,23 @@ def _validate_metric_preference_create(
     return None
 
 
+def _validate_measurement_create(
+    session: Session, current_user: User, data: dict, op: "SyncOperation",
+) -> str | None:
+    if op.type != "create":
+        return None
+    metric_code = data.get("metric_code")
+    if not metric_code:
+        return None
+    if session.get(MetricDefinition, metric_code) is None:
+        return f"Unknown metric_code: {metric_code}"
+    return None
+
+
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "user": _validate_user_update,
     "api_token": _validate_api_token_update,
     "exercise": _validate_exercise_create,
     "user_metric_preference": _validate_metric_preference_create,
+    "measurement": _validate_measurement_create,
 }

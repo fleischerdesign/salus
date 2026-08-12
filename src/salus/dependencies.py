@@ -45,7 +45,6 @@ from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
-from salus.repositories.insight import InsightRepository
 from salus.services.sharing import (
     SharingService,
     RelationshipService,
@@ -56,7 +55,6 @@ from salus.services.sharing import (
 )
 from salus.services.leaderboard import LeaderboardService
 from salus.services.notification import NotificationService
-from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LLMProviderFactory
 from salus.services.insight.service import InsightService
 from salus.services.workout.autoregulation import AutoregulationService
@@ -69,6 +67,8 @@ from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
 from salus.services.source_resolution import SourceResolutionService
 from salus.services.event_bus import EventBus
+from salus.services.sync import SYNC_PROTOCOL_VERSION, SyncService
+from salus.services.write_pipeline import WritePipeline
 from salus.services.habit import HabitService
 from salus.services.mood import MoodService
 from salus.services.journal import JournalService
@@ -457,10 +457,6 @@ async def get_current_user_or_api(
     return user
 
 
-def get_insight_repo(session: Session = Depends(get_session)) -> IInsightRepository:
-    return InsightRepository(session)
-
-
 def get_insight_service(
     uow: IUnitOfWork = Depends(get_unit_of_work),
     registry: HookRegistry | None = Depends(get_plugin_registry),
@@ -590,6 +586,31 @@ def get_data_portability_service(
 
 def get_event_bus(request: Request) -> EventBus:
     return request.app.state.event_bus
+
+
+def get_write_pipeline(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_user_or_api),
+    event_bus: EventBus = Depends(get_event_bus),
+) -> WritePipeline:
+    return WritePipeline(uow, current_user, event_bus)
+
+
+def get_sync_service(uow: IUnitOfWork = Depends(get_unit_of_work)) -> SyncService:
+    return SyncService(uow)
+
+
+def check_sync_version(
+    x_salus_sync_version: int = Header(
+        default=SYNC_PROTOCOL_VERSION, alias="X-Salus-Sync-Version"
+    ),
+) -> int:
+    if x_salus_sync_version != SYNC_PROTOCOL_VERSION:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported sync protocol version. Expected {SYNC_PROTOCOL_VERSION}, got {x_salus_sync_version}",
+        )
+    return x_salus_sync_version
 
 
 def get_habit_service(

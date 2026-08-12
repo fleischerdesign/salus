@@ -8,7 +8,7 @@
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import { linearRegression, predictionInterval } from '$lib/analytics/stats';
+  import { regressionSeries } from '$lib/analytics/stats';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   const goalId = $derived(page.params.id as string);
@@ -42,21 +42,10 @@
     let regressionLine: Array<{ x: number; y: number }> | null = null;
     let regressionCI: Array<{ x: number; lower: number; upper: number }> | null = null;
     if (values.length >= 3) {
-      const xs = values.map((_, i) => i);
-      const reg = linearRegression(xs, values);
-      if (reg) {
-        regressionLine = xs.map((x) => ({
-          x,
-          y: reg.intercept + reg.slope * x
-        }));
-        regressionCI = xs.map((x) => {
-          const pi = predictionInterval(reg, x, 0.8);
-          return {
-            x,
-            lower: pi?.lower ?? reg.intercept + reg.slope * x,
-            upper: pi?.upper ?? reg.intercept + reg.slope * x
-          };
-        });
+      const series = regressionSeries(values, 0.8);
+      if (series) {
+        regressionLine = series.points;
+        regressionCI = series.ci;
       }
     }
 
@@ -311,7 +300,7 @@
               <span class="text-sm font-semibold text-surface-900">Recent Contributions</span>
             </div>
             <a
-              href="/entries/{goalView.id}"
+              href="/entries/{goalView.metric_code}"
               class="text-xs font-semibold text-primary-600 hover:text-primary-700"
             >
               Manage Entries

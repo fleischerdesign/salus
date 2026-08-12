@@ -9,7 +9,7 @@ from salus.exceptions import NotFoundError, ConflictError
 from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sharing import PeerConnection, PeerMetricInfo
-from salus.services._helpers import DEFAULT_METRIC_COLOR
+from salus.services._helpers import DEFAULT_METRIC_COLOR, make_handle
 
 logger = logging.getLogger("salus.services.sharing.relationship")
 
@@ -116,7 +116,7 @@ class RelationshipService:
             user = self.uow.users.get_by_id(grantee_user_id)
             if not user:
                 raise NotFoundError("User not found")
-            grantee_handle = f"@{user.username}"
+            grantee_handle = make_handle(user)
 
             rel = self.uow.sharing_relationships.get_by_id(relationship_id)
             if not rel or rel.grantee_handle != grantee_handle:
@@ -142,7 +142,7 @@ class RelationshipService:
             user = self.uow.users.get_by_id(grantee_user_id)
             if not user:
                 raise NotFoundError("User not found")
-            grantee_handle = f"@{user.username}"
+            grantee_handle = make_handle(user)
 
             rel = self.uow.sharing_relationships.get_by_id(relationship_id)
             if not rel or rel.grantee_handle != grantee_handle:
@@ -197,7 +197,7 @@ class RelationshipService:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
 
             all_outgoing = self.uow.sharing_relationships.find_by_owner(user_id)
             all_incoming = self.uow.sharing_relationships.find_by_grantee(user_handle)
@@ -276,5 +276,5 @@ class RelationshipService:
             if not user:
                 raise NotFoundError("User not found")
             return self.uow.sharing_relationships.find_pending_by_grantee(
-                f"@{user.username}"
+                make_handle(user)
             )

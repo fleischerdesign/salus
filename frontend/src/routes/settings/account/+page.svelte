@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { auth } from '$stores/auth.svelte';
   import { authConfig } from '$stores/authConfig.svelte';
   import { setLocaleState } from '$lib/api/headers';
@@ -42,7 +41,7 @@
     );
   }
 
-  onMount(() => {
+  $effect(() => {
     authConfig.load();
   });
 

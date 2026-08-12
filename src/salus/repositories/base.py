@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 T = TypeVar("T")
 
@@ -53,20 +53,3 @@ class Repository(Generic[T]):
     def commit(self) -> None:
         """Commit the current transaction."""
         self.session.commit()
-
-    # ── Sync helpers ──
-
-    def find_updated_since(self, since: datetime) -> list[T]:
-        """Return all non-deleted records updated since the given timestamp."""
-        stmt = select(self.model).where(
-            getattr(self.model, 'updated_at') >= since,
-            getattr(self.model, 'deleted_at').is_(None),
-        )
-        return list(self.session.exec(stmt).all())
-
-    def find_deleted_since(self, since: datetime) -> list[str]:
-        """Return IDs of records soft-deleted since the given timestamp."""
-        stmt = select(getattr(self.model, 'id')).where(
-            getattr(self.model, 'deleted_at') >= since,
-        )
-        return [row for row in self.session.exec(stmt).all()]

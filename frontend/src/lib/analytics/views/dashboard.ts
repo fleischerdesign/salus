@@ -1,4 +1,5 @@
 import { db } from '$lib/db/database';
+import { MS_PER_DAY } from '$lib/utils/datetime';
 import type {
   DashboardWidget,
   MetricDefinition,
@@ -83,7 +84,7 @@ function getMetricLookbackDays(metricCode: string): number {
 
 export async function fetchDashboard(date: string): Promise<DashboardData> {
   const dayStart = new Date(date + 'T00:00:00').getTime();
-  const dayEnd = dayStart + 86400000;
+  const dayEnd = dayStart + MS_PER_DAY;
   const windowEnd = new Date(dayEnd).toISOString();
 
   const { widgets, metrics, goals, metricById } = await getDashboardMeta();
@@ -104,7 +105,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
   const measurementArrays = await Promise.all(
     activeMetricCodes.map(async (code) => {
       const lookback = getMetricLookbackDays(code);
-      const metricWindowStart = new Date(dayStart - lookback * 86400000).toISOString();
+      const metricWindowStart = new Date(dayStart - lookback * MS_PER_DAY).toISOString();
       const results: Measurement[] = [];
 
       await db.measurement

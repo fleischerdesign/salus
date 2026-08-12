@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { MS_PER_DAY } from '$lib/utils/datetime';
 
 interface SolarTimes {
   sunrise: string;
@@ -68,7 +69,7 @@ function rad2deg(r: number): number {
 }
 
 function toJulian(d: Date, tzOffset: number): number {
-  return d.getTime() / 86400000 + 2440587.5 - tzOffset / 24;
+  return d.getTime() / MS_PER_DAY + 2440587.5 - tzOffset / 24;
 }
 
 function jdToTime(jd: number, tzOffset: number): string {
@@ -213,7 +214,7 @@ export async function fetchCircadianAdvice(
     .equals('sleep')
     .toArray();
   const sleepMT = metricTypes[0];
-  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString();
+  const cutoff = new Date(Date.now() - 14 * MS_PER_DAY).toISOString();
   const rawSleeps = sleepMT?.code
     ? await db.measurement
         .where('[metric_code+start_time]')

@@ -1,10 +1,11 @@
 import { Capacitor } from '@capacitor/core';
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
 
 let _locale = 'en';
 
 if (typeof localStorage !== 'undefined') {
   try {
-    const raw = localStorage.getItem('salus_user');
+    const raw = localStorage.getItem(AUTH_USER_KEY);
     if (raw) {
       const user = JSON.parse(raw);
       if (user?.locale) _locale = user.locale;
@@ -80,7 +81,7 @@ export function getAuthHeaders(): Record<string, string> {
     'Accept-Language': _locale,
     'X-Salus-Sync-Version': '1'
   };
-  const token = localStorage.getItem('salus_token');
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return headers;
 }

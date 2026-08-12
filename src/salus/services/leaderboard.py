@@ -1,6 +1,7 @@
 # pyright: reportOptionalOperand=false
+import logging
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,7 +13,9 @@ from salus.models.sharing import (
     LeaderboardMember,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid, make_handle
+from salus.services._helpers import uid, make_handle, summarize_daily_values
+
+logger = logging.getLogger("salus.services.leaderboard")
 
 
 class LeaderboardService:
@@ -73,7 +76,7 @@ class LeaderboardService:
 
             assert group.id is not None
             # Check if user is already a member
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             existing = self.uow.leaderboard_members.get_member(group.id, user_handle)
             if existing:
                 if existing.status == "active":
@@ -120,7 +123,7 @@ class LeaderboardService:
             if not user:
                 return []
 
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             # Load created groups
             created = self.uow.leaderboard_groups.find_by_creator(user_id)
             # Load joined groups
@@ -154,96 +157,20 @@ class LeaderboardService:
             if not member_check or member_check.status != "active":
                 raise ForbiddenError("You are not a member of this challenge group")
 
-            # Determine timeframe start/end dates
-            now = datetime.now(timezone.utc)
-            if group.time_frame == "weekly":
-                start_date = (now - timedelta(days=7)).date()
-            elif group.time_frame == "monthly":
-                start_date = (now - timedelta(days=30)).date()
-            else:
-                start_date = (
-                    group.start_date.date()
-                    if group.start_date
-                    else (now - timedelta(days=7)).date()
-                )
+            start_date, end_date = self._timeframe(group)
 
-            end_date = group.end_date.date() if group.end_date else now.date()
-
-            # Retrieve active members
             members = self.uow.leaderboard_members.find_by_group_id(group.id)
             active_members = [m for m in members if m.status == "active"]
 
             rankings = []
             for m in active_members:
                 handle = m.user_handle
-                score = 0.0
-
                 if ":" not in handle:
-                    # Local User query
-                    username = handle[1:]
-                    local_user = self.uow.users.get_by_username(username)
-                    if local_user:
-                        if group.metric_type_code == "workouts":
-                            since_dt = datetime.combine(
-                                start_date, datetime.min.time(), tzinfo=timezone.utc
-                            )
-                            until_dt = datetime.combine(
-                                end_date, datetime.max.time(), tzinfo=timezone.utc
-                            )
-                            score = float(
-                                self.uow.workout_sessions.count_completed_in_range(
-                                    uid(local_user), since_dt, until_dt
-                                )
-                            )
-                        else:
-                            # Sum/Avg measurement metrics
-                            measurements = self.uow.measurements.find_all(
-                                user_id=uid(local_user),
-                                data_types=[group.metric_type_code],
-                            )
-                            day_values = [
-                                ms.value_numeric
-                                for ms in measurements
-                                if ms.start_time.date() >= start_date
-                                and ms.start_time.date() <= end_date
-                                and ms.value_numeric is not None
-                            ]
-                            if day_values:
-                                if group.metric_type_code in ("steps", "water"):
-                                    score = float(sum(day_values))
-                                else:
-                                    score = float(sum(day_values) / len(day_values))
+                    score = self._score_local_member(group, handle, start_date, end_date)
                 else:
-                    # Remote User query
-                    score = 0.0
-                    if self.sharing_svc:
-                        try:
-                            day_values = []
-                            curr_date = start_date
-                            while curr_date <= end_date:
-                                date_str = curr_date.strftime("%Y-%m-%d")
-                                try:
-                                    data = self.sharing_svc.resolve_and_fetch(
-                                        requester_id=current_user_id,
-                                        owner_handle=handle,
-                                        data_type=group.metric_type_code,
-                                        date_str=date_str,
-                                    )
-                                    for item in data:
-                                        val = item.get("value_numeric")
-                                        if val is not None:
-                                            day_values.append(val)
-                                except Exception:
-                                    pass
-                                curr_date += timedelta(days=1)
-
-                            if day_values:
-                                if group.metric_type_code in ("steps", "water"):
-                                    score = float(sum(day_values))
-                                else:
-                                    score = float(sum(day_values) / len(day_values))
-                        except Exception:
-                            score = 0.0
+                    score = self._score_remote_member(
+                        group, handle, start_date, end_date, current_user_id
+                    )
 
                 rankings.append(
                     {
@@ -264,12 +191,112 @@ class LeaderboardService:
                 "end_date": end_date,
             }
 
+    def _timeframe(self, group: LeaderboardGroup) -> tuple[date, date]:
+        now = datetime.now(timezone.utc)
+        if group.time_frame == "weekly":
+            start_date = (now - timedelta(days=7)).date()
+        elif group.time_frame == "monthly":
+            start_date = (now - timedelta(days=30)).date()
+        else:
+            start_date = (
+                group.start_date.date()
+                if group.start_date
+                else (now - timedelta(days=7)).date()
+            )
+        end_date = group.end_date.date() if group.end_date else now.date()
+        return start_date, end_date
+
+    def _score_local_member(
+        self,
+        group: LeaderboardGroup,
+        handle: str,
+        start_date: date,
+        end_date: date,
+    ) -> float:
+        username = handle[1:]
+        local_user = self.uow.users.get_by_username(username)
+        if not local_user:
+            return 0.0
+
+        if group.metric_type_code == "workouts":
+            since_dt = datetime.combine(
+                start_date, datetime.min.time(), tzinfo=timezone.utc
+            )
+            until_dt = datetime.combine(
+                end_date, datetime.max.time(), tzinfo=timezone.utc
+            )
+            return float(
+                self.uow.workout_sessions.count_completed_in_range(
+                    uid(local_user), since_dt, until_dt
+                )
+            )
+
+        measurements = self.uow.measurements.find_all(
+            user_id=uid(local_user),
+            data_types=[group.metric_type_code],
+            since=datetime.combine(
+                start_date, datetime.min.time(), tzinfo=timezone.utc
+            ),
+            until=datetime.combine(
+                end_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
+            ),
+        )
+        day_values = [
+            ms.value_numeric
+            for ms in measurements
+            if ms.start_time.date() >= start_date
+            and ms.start_time.date() <= end_date
+            and ms.value_numeric is not None
+        ]
+        if not day_values:
+            return 0.0
+        return summarize_daily_values(group.metric_type_code, day_values) or 0.0
+
+    def _score_remote_member(
+        self,
+        group: LeaderboardGroup,
+        handle: str,
+        start_date: date,
+        end_date: date,
+        requester_id: str,
+    ) -> float:
+        if not self.sharing_svc:
+            return 0.0
+        try:
+            day_values = []
+            curr_date = start_date
+            while curr_date <= end_date:
+                date_str = curr_date.strftime("%Y-%m-%d")
+                try:
+                    data = self.sharing_svc.resolve_and_fetch(
+                        requester_id=requester_id,
+                        owner_handle=handle,
+                        data_type=group.metric_type_code,
+                        date_str=date_str,
+                    )
+                    for item in data:
+                        val = item.get("value_numeric")
+                        if val is not None:
+                            day_values.append(val)
+                except Exception as exc:
+                    logger.debug(
+                        f"Failed to fetch {group.metric_type_code} for "
+                        f"{handle} on {date_str}: {exc}"
+                    )
+                curr_date += timedelta(days=1)
+
+            if not day_values:
+                return 0.0
+            return summarize_daily_values(group.metric_type_code, day_values) or 0.0
+        except Exception:
+            return 0.0
+
     def leave_group(self, user_id: str, group_id: str) -> None:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
             member = self.uow.leaderboard_members.get_member(group_id, user_handle)
             if not member:
                 raise NotFoundError("You are not a member of this challenge")

@@ -8,8 +8,9 @@ import httpx
 
 from salus.config import settings
 from salus.exceptions import ForbiddenError, NotFoundError
+from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid, parse_date
+from salus.services._helpers import uid, parse_date, summarize_daily_values, make_handle
 from salus.services.sharing._http import retry_http_request
 
 if TYPE_CHECKING:
@@ -18,6 +19,42 @@ if TYPE_CHECKING:
     from salus.services.sharing.relationship import RelationshipService
 
 logger = logging.getLogger("salus.services.sharing.resolver")
+
+
+def build_day_result(
+    owner_username: str,
+    data_type: str,
+    date_str: str,
+    day_measurements: list[Measurement],
+    aggregation_level: str,
+) -> list[dict]:
+    if aggregation_level == "daily_summary":
+        if not day_measurements:
+            return []
+        values = [
+            m.value_numeric for m in day_measurements if m.value_numeric is not None
+        ]
+        val = summarize_daily_values(data_type, values)
+        return [
+            {
+                "data_type": data_type,
+                "value_numeric": val,
+                "start_time": date_str,
+                "source": "summary",
+                "external_id": f"summary-{owner_username}-{data_type}-{date_str}",
+            }
+        ]
+    return [
+        {
+            "data_type": m.data_type,
+            "value_numeric": m.value_numeric,
+            "value_json": m.value_json,
+            "start_time": m.start_time.isoformat(),
+            "source": m.source,
+            "external_id": m.external_id,
+        }
+        for m in day_measurements
+    ]
 
 
 class FederationDataResolver:
@@ -50,7 +87,7 @@ class FederationDataResolver:
 
         if not self.relationship_svc.is_remote(owner_handle):
             return self._resolve_local(
-                owner_handle, f"@{req_user.username}", data_type, date_str
+                owner_handle, make_handle(req_user), data_type, date_str
             )
         else:
             if not force_refresh:
@@ -108,51 +145,28 @@ class FederationDataResolver:
                     f"Access denied: no active sharing relationship from {owner_handle}"
                 )
 
+            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
+            since_dt = datetime.combine(
+                target_date, datetime.min.time(), tzinfo=timezone.utc
+            )
             raw_measurements = self.uow.measurements.find_all(
                 user_id=uid(owner_user),
                 data_types=[data_type],
+                since=since_dt,
+                until=since_dt + timedelta(days=1),
             )
-
-            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
 
             day_measurements = [
                 m for m in raw_measurements if m.start_time.date() == target_date
             ]
 
-            if rel.aggregation_level == "daily_summary":
-                if not day_measurements:
-                    return []
-                values = [
-                    m.value_numeric
-                    for m in day_measurements
-                    if m.value_numeric is not None
-                ]
-                val = (
-                    sum(values)
-                    if data_type in ("steps", "water")
-                    else (sum(values) / len(values) if values else None)
-                )
-                return [
-                    {
-                        "data_type": data_type,
-                        "value_numeric": val,
-                        "start_time": date_str,
-                        "source": "summary",
-                        "external_id": f"summary-{owner_username}-{data_type}-{date_str}",
-                    }
-                ]
-            else:
-                return [
-                    {
-                        "data_type": m.data_type,
-                        "value_numeric": m.value_numeric,
-                        "value_json": m.value_json,
-                        "start_time": m.start_time.isoformat(),
-                        "source": m.source,
-                        "external_id": m.external_id,
-                    }
-                    for m in day_measurements
-                ]
+            return build_day_result(
+                owner_username=owner_username,
+                data_type=data_type,
+                date_str=date_str,
+                day_measurements=day_measurements,
+                aggregation_level=rel.aggregation_level,
+            )
 
     def _fetch_remote(
         self, owner_handle: str, data_type: str, date_str: str
@@ -219,7 +233,7 @@ class FederationDataResolver:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
-            user_handle = f"@{user.username}"
+            user_handle = make_handle(user)
 
             local_incoming = self.uow.sharing_relationships.find_active_by_grantee(
                 user_handle

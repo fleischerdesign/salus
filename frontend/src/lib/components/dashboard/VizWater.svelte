@@ -3,10 +3,12 @@
   import { createMeasurement } from '$lib/mutations/measurement';
   import { useQuery } from '$lib/db/use-query.svelte';
 
+  const DEFAULT_WATER_GOAL_ML = 2500;
+
   // Query water metric and today's measurements
   const waterDataQuery = useQuery(async () => {
     const metric = await db.metric_definition.where('source_data_type').equals('water').first();
-    if (!metric) return { total: 0, goal: 2500, metricCode: '' };
+    if (!metric) return { total: 0, goal: DEFAULT_WATER_GOAL_ML, metricCode: '' };
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -27,14 +29,14 @@
 
     return {
       total,
-      goal: goal?.target_value ?? 2500,
+      goal: goal?.target_value ?? DEFAULT_WATER_GOAL_ML,
       metricCode: metric.code
     };
   });
   const waterData = $derived(waterDataQuery.value);
 
   let total = $derived(waterData?.total ?? 0);
-  let goal = $derived(waterData?.goal ?? 2500);
+  let goal = $derived(waterData?.goal ?? DEFAULT_WATER_GOAL_ML);
   let metricCode = $derived(waterData?.metricCode ?? '');
 
   let percent = $derived(Math.min(100, Math.round((total / goal) * 100)));

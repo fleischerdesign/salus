@@ -1,32 +1,32 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
+import { nowIso } from '$lib/utils/datetime';
 
-function now(): string {
-  return new Date().toISOString();
-}
-
-export const startWorkout = (planId: string | null, autoregMode = 'advisory') =>
-  mutate({
+export const startWorkout = (planId: string | null, autoregMode = 'advisory') => {
+  const id = uuid7();
+  return mutate({
     kind: 'command',
     command: 'start_workout',
     queueable: true,
-    payload: { id: uuid7(), plan_id: planId },
+    payload: { id, plan_id: planId },
     optimisticTable: 'workout_session',
     optimisticData: {
-      id: uuid7(),
-      user_id: 'self',
+      id,
+      user_id: SELF_USER_ID,
       plan_id: planId,
-      started_at: now(),
+      started_at: nowIso(),
       completed_at: null,
       autoreg_mode: autoregMode,
       recovery_score: null,
       notes: null,
-      created_at: now(),
+      created_at: nowIso(),
       updated_at: null,
       deleted_at: null
     },
     responseTable: 'workout_session'
   });
+};
 
 export const completeWorkout = (sessionId: string, notes?: string) =>
   mutate({
@@ -37,7 +37,7 @@ export const completeWorkout = (sessionId: string, notes?: string) =>
     optimisticTable: 'workout_session',
     optimisticData: {
       id: sessionId,
-      completed_at: now(),
+      completed_at: nowIso(),
       notes: notes ?? null
     }
   });
@@ -51,7 +51,7 @@ export const cancelWorkout = (sessionId: string) =>
     optimisticTable: 'workout_session',
     optimisticData: {
       id: sessionId,
-      deleted_at: now()
+      deleted_at: nowIso()
     }
   });
 
@@ -86,7 +86,7 @@ export const logSet = (
       weight,
       reps,
       rpe: rpe ?? null,
-      created_at: now(),
+      created_at: nowIso(),
       updated_at: null,
       deleted_at: null
     },
@@ -101,5 +101,5 @@ export const deleteLogSet = (logEntryId: string) =>
     queueable: true,
     payload: { id: logEntryId },
     optimisticTable: 'workout_log_entry',
-    optimisticData: { id: logEntryId, deleted_at: now() }
+    optimisticData: { id: logEntryId, deleted_at: nowIso() }
   });

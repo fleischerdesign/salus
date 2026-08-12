@@ -8,6 +8,7 @@
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { sessionVolume } from '$lib/utils/workout';
 
   const plansQuery = useQuery(() =>
     db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at))
@@ -30,7 +31,6 @@
   const logsQuery = useQuery(async () => {
     const active = await db.workout_session
       .filter((s) => !s.deleted_at)
-      .reverse()
       .sortBy('started_at')
       .then((arr) => arr.slice(0, 5));
     const sessIds = active.map((s) => s.id);
@@ -47,12 +47,6 @@
   let activeSession = $derived(sessions?.find((s) => s.completed_at == null) ?? null);
 
   let loaded = $derived(plans != null && exercises != null && sessions != null && logs != null);
-
-  function sessionVolume(sessId: string): number {
-    return (logs ?? [])
-      .filter((l) => l.session_id === sessId)
-      .reduce((sum, l) => sum + (l.weight ?? 0) * (l.reps ?? 0), 0);
-  }
 
   function formatDate(dt: string | null | undefined): string {
     if (!dt) return '—';
@@ -202,7 +196,7 @@
                       {formatDate(sess.completed_at ?? sess.started_at)}
                     </span>
                     <span class="text-xs text-surface-400"
-                      >{sessionVolume(sess.id).toFixed(0)} kg</span
+                      >{sessionVolume(logs, sess.id).toFixed(0)} kg</span
                     >
                   </div>
                 {/each}

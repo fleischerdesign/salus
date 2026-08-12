@@ -7,6 +7,7 @@ import httpx
 
 from salus.models.sharing import SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services._helpers import make_handle
 from salus.services.sharing.relationship import RelationshipService
 from salus.services.sharing._http import retry_http_request
 
@@ -53,7 +54,7 @@ class PeerNotificationService:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 return
-            owner_handle = f"@{user.username}"
+            owner_handle = make_handle(user)
 
             relationships = self.uow.sharing_relationships.find_active_by_owner_and_data_type(
                 user_id, data_type

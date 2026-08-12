@@ -1,6 +1,7 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema.d';
 import { getLocale, getAuthHeaders, getApiBaseUrl } from './headers';
+import { AUTH_TOKEN_KEY } from '$lib/constants';
 
 const _api = createClient<paths>({
   get baseUrl() {
@@ -8,7 +9,7 @@ const _api = createClient<paths>({
   },
   headers: {
     get Authorization() {
-      const token = localStorage.getItem('salus_token');
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
       return token ? `Bearer ${token}` : '';
     },
     get 'Accept-Language'() {

@@ -1,9 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, FastAPI, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, Query, Request, Response
 from sqlmodel import select
 
-from salus.dependencies import get_current_user_or_api, get_event_bus, get_unit_of_work
+from salus.dependencies import (
+    get_current_user_or_api,
+    get_unit_of_work,
+    get_write_pipeline,
+)
 from salus.exceptions import ApiError, raise_from_command_result
 from salus.models.user import User
 from salus.repositories.entity_meta import (
@@ -16,7 +20,6 @@ from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
 from salus.services.entity_enrichment import ENRICHERS, RESPONSE_MODELS
-from salus.services.event_bus import EventBus
 from salus.services.write_pipeline import WritePipeline
 
 _PLURAL_MAP: dict[str, str] = {
@@ -132,6 +135,8 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         request: Request,
         user: User = Depends(get_current_user_or_api),
         uow: IUnitOfWork = Depends(get_unit_of_work),
+        limit: int | None = Query(default=None, ge=1),
+        offset: int = Query(default=0, ge=0),
     ):
         query = select(model_cls)
         strategy = meta.strategy
@@ -145,10 +150,14 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
                 | (getattr(model_cls, owner_field).is_(None))
             )
         for key, value in request.query_params.items():
+            if key in ("limit", "offset"):
+                continue
             if hasattr(model_cls, key) and value != "":
                 query = query.where(getattr(model_cls, key) == value)
         if hasattr(model_cls, "deleted_at"):
             query = query.where(getattr(model_cls, "deleted_at").is_(None))
+        if limit is not None:
+            query = query.offset(offset).limit(limit)
         rows = list(uow.session.exec(query).all())
         if meta.name in RESPONSE_MODELS:
             enriched = (
@@ -184,12 +193,9 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         @router.post("", status_code=201, response_model=response_model)
         async def create_one(
             request: Request,
-            user: User = Depends(get_current_user_or_api),
-            uow: IUnitOfWork = Depends(get_unit_of_work),
-            event_bus: EventBus = Depends(get_event_bus),
+            pipeline: WritePipeline = Depends(get_write_pipeline),
         ):
             body = await request.json()
-            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="create", entity=meta.name, data=body)
             results = pipeline.process([op])
             result = results[0]
@@ -201,12 +207,9 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         async def patch_one(
             item_id: str,
             request: Request,
-            user: User = Depends(get_current_user_or_api),
-            uow: IUnitOfWork = Depends(get_unit_of_work),
-            event_bus: EventBus = Depends(get_event_bus),
+            pipeline: WritePipeline = Depends(get_write_pipeline),
         ):
             body = await request.json()
-            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="update", entity=meta.name, id=item_id, data=body)
             results = pipeline.process([op])
             result = results[0]
@@ -218,14 +221,13 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             item_id: str,
             user: User = Depends(get_current_user_or_api),
             uow: IUnitOfWork = Depends(get_unit_of_work),
-            event_bus: EventBus = Depends(get_event_bus),
+            pipeline: WritePipeline = Depends(get_write_pipeline),
         ):
             obj = uow.session.get(model_cls, item_id)
             if not obj or (hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None):
                 raise ApiError(code="not_found", message="Resource not found", status_code=404)
             _check_ownership(obj, user, meta, uow.session)
 
-            pipeline = WritePipeline(uow, user, event_bus)
             op = SyncOperation(type="delete", entity=meta.name, id=item_id)
             results = pipeline.process([op])
             result = results[0]
@@ -248,5 +250,17 @@ def _check_ownership(obj: Any, user: User, meta: EntityMeta, session: Any) -> No
             obj_user = getattr(obj, owner_field)
             if obj_user is not None and obj_user != uid_user:
                 raise ApiError(code="not_found", message="Resource not found", status_code=404)
+    elif strategy == "relational":
+        parent_field = meta.parent_field
+        parent_model = meta.parent_model
+        parent_owner_field = meta.parent_owner_field or "user_id"
+        if parent_field and parent_model and parent_owner_field:
+            parent_id = getattr(obj, parent_field, None)
+            if parent_id is not None:
+                parent = session.get(parent_model, parent_id)
+                if parent is not None and getattr(parent, parent_owner_field, None) != uid_user:
+                    raise ApiError(
+                        code="not_found", message="Resource not found", status_code=404
+                    )
     elif strategy == "global":
         pass

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Dexie from 'dexie';
   import { db } from '$lib/db/database';
-  import { sleepDebtCumulative } from '$lib/analytics/stats';
+  import { sleepDebtCumulative, extractSleepDurations } from '$lib/analytics/stats';
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
@@ -14,20 +14,7 @@
       .limit(28)
       .toArray();
 
-    const durations: number[] = [];
-    for (const m of recent.slice(0, 28)) {
-      if (m.value_numeric != null) {
-        durations.push(m.value_numeric);
-      } else if (m.value_json) {
-        try {
-          const d = JSON.parse(m.value_json);
-          const dur = (d.duration_seconds ?? 0) / 3600;
-          if (dur > 0) durations.push(dur);
-        } catch {
-          /* skip */
-        }
-      }
-    }
+    const durations = extractSleepDurations(recent);
 
     if (durations.length < 3) return null;
     // Calculate cumulative debt (age default 30)

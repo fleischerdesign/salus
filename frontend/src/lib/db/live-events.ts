@@ -1,3 +1,5 @@
+import { AUTH_TOKEN_KEY } from '$lib/constants';
+
 let _eventSource: EventSource | null = null;
 let _debounceTimer: ReturnType<typeof setTimeout> | null = null;
 const DEBOUNCE_MS = 2000;
@@ -5,7 +7,7 @@ const DEBOUNCE_MS = 2000;
 export function connectLiveSync(onSync: () => void): void {
   disconnectLiveSync();
 
-  const token = localStorage.getItem('salus_token');
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (!token) return;
 
   _eventSource = new EventSource('/api/v1/sync/events');
