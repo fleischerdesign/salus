@@ -1,7 +1,7 @@
 import hashlib
 import io
 import logging
-import threading
+
 from datetime import datetime
 from typing import Annotated, Optional
 
@@ -16,7 +16,9 @@ from salus.dependencies import (
 )
 from salus.models.user import User
 from salus.services.sharing import SharingService
+from salus.services.sharing._tasks import run_background
 from salus.exceptions import NotFoundError
+from salus.services._helpers import uid
 
 logger = logging.getLogger("salus.routers.sharing")
 router = APIRouter()
@@ -82,7 +84,7 @@ async def federated_shared_data(
                     body=None,
                 )
                 rel = sharing_svc.uow.sharing_relationships.find_active_with_owner_metric_and_grantee(
-                    owner.id, requester_handle, metric.code  # type: ignore[reportArgumentType]
+                    uid(owner), requester_handle, metric.code
                 )
                 if not rel:
                     raise HTTPException(
@@ -106,8 +108,6 @@ async def federated_shared_data(
             )
             if not rel or rel.owner_id != owner.id or rel.metric_code != metric.code:
                 raise HTTPException(status_code=401, detail="Invalid or inactive token")
-
-        from salus.services._helpers import uid
 
         try:
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -193,11 +193,15 @@ async def federated_notify_update(
             raise HTTPException(status_code=401, detail="Unauthorized token hash")
         local_user_id = rel.owner_id
 
-    threading.Thread(
-        target=sharing_svc.resolve_and_fetch,
-        args=(local_user_id, owner_handle, source_data_type, date_str, True),
-        daemon=True,
-    ).start()
+    run_background(
+        sharing_svc.resolve_and_fetch,
+        local_user_id,
+        owner_handle,
+        source_data_type,
+        date_str,
+        True,
+        name="federation-refresh",
+    )
 
     return JSONResponse({"status": "ok", "message": "Update queued"})
 
@@ -280,9 +284,7 @@ async def federated_access_log(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     with sharing_svc.uow:
-        logs = sharing_svc.uow.federated_access_logs.find_by_owner(
-            current_user.id  # type: ignore[reportArgumentType]
-        )
+        logs = sharing_svc.uow.federated_access_logs.find_by_owner(uid(current_user))
 
     return JSONResponse(
         {

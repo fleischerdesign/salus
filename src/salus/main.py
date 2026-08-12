@@ -12,7 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from salus.config import settings
+from salus.config import DEFAULT_API_TOKEN, DEFAULT_JWT_SECRET_KEY, settings
 from salus.database import Session, engine
 from salus.dependencies import limiter
 from salus.exceptions import (
@@ -64,17 +64,17 @@ from salus.services.mood import MoodService
 
 def _check_secrets() -> None:
     if settings.is_production:
-        if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+        if settings.jwt_secret_key == DEFAULT_JWT_SECRET_KEY:
             raise RuntimeError("SALUS_JWT_SECRET_KEY is set to the default value — set a strong random key for production.")
-        if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+        if settings.api_token == DEFAULT_API_TOKEN:
             raise RuntimeError("SALUS_API_TOKEN is set to the default value — set a unique token for production.")
         return
 
     warned = False
-    if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+    if settings.jwt_secret_key == DEFAULT_JWT_SECRET_KEY:
         logging.warning("SALUS_JWT_SECRET_KEY is set to the default value — generate a strong random key for production.")
         warned = True
-    if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+    if settings.api_token == DEFAULT_API_TOKEN:
         logging.warning("SALUS_API_TOKEN is set to the default value — generate a unique token for production.")
         warned = True
     if warned:

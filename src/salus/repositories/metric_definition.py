@@ -8,7 +8,7 @@ from salus.repositories.protocols import IMetricDefinitionRepository
 class MetricDefinitionRepository(Repository[MetricDefinition], IMetricDefinitionRepository):
     model = MetricDefinition
 
-    def find_all(self, user_id: str | None = None) -> list[MetricDefinition]:
+    def find_all(self) -> list[MetricDefinition]:
         return list(self.session.exec(
             select(MetricDefinition).order_by(MetricDefinition.sort_order)  # pyright: ignore[reportArgumentType]
         ).all())

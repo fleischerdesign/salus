@@ -45,7 +45,7 @@ class PluginContext:
 
     def get_metric_definitions(self, user_id: str | None = None) -> list[MetricDefinition]:
         self._check_permission("metric_types:read")
-        return self._uow.metric_definitions.find_all(user_id=user_id)
+        return self._uow.metric_definitions.find_all()
 
     def get_user(self, user_id: str) -> User | None:
         self._check_permission("users:read")

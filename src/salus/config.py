@@ -1,14 +1,17 @@
 from pydantic_settings import BaseSettings
 
+DEFAULT_API_TOKEN = "s3ns0r-h34lth-t0k3n-2026"
+DEFAULT_JWT_SECRET_KEY = "change-me-in-production-salus-2026"
+
 
 class Settings(BaseSettings):
     environment: str = "dev"
     app_name: str = "salus"
     database_url: str = "sqlite:///salus.db"
 
-    api_token: str = "s3ns0r-h34lth-t0k3n-2026"
+    api_token: str = DEFAULT_API_TOKEN
 
-    jwt_secret_key: str = "change-me-in-production-salus-2026"
+    jwt_secret_key: str = DEFAULT_JWT_SECRET_KEY
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
 

@@ -1,7 +1,7 @@
 import logging
 import secrets
 import hashlib
-import threading
+
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
@@ -10,6 +10,7 @@ from salus.models.sharing import ConnectionStatus, SharingRelationship
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sharing import PeerConnection, PeerMetricInfo
 from salus.services._helpers import DEFAULT_METRIC_COLOR, make_handle
+from salus.services.sharing._tasks import run_background
 
 logger = logging.getLogger("salus.services.sharing.relationship")
 
@@ -135,9 +136,7 @@ class RelationshipService:
             self.uow.sharing_relationships.update(rel)
 
             if notify_callback:
-                threading.Thread(
-                    target=notify_callback, args=(rel,), daemon=True
-                ).start()
+                run_background(notify_callback, rel, name="relationship-notify")
             return rel
 
     def decline_relationship(

@@ -7,6 +7,7 @@ from salus.models.goal import Goal
 from salus.models.metric_definition import MetricDefinition
 from salus.exceptions import NotFoundError
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services._helpers import DEFAULT_METRIC_COLOR
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.nutrition import NutritionAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
@@ -189,7 +190,7 @@ class DashboardWidgetService:
             )
 
         pref = self.uow.metric_preferences.find_by_user_and_code(user_id, widget.metric_code) if widget.metric_code else None
-        metric_color = pref.color if pref else "#64748b"
+        metric_color = pref.color if pref else DEFAULT_METRIC_COLOR
         metric_icon = pref.icon if pref else "monitoring"
 
         sd = metric.source_data_type

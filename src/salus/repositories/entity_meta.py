@@ -171,7 +171,7 @@ def _validate_api_token_update(
 
 
 def _validate_exercise_create(
-    session: Session, current_user: User, data: dict, op: "SyncOperation",
+    session: Session, _current_user: User, data: dict, op: "SyncOperation",
 ) -> str | None:
     if op.type != "create":
         return None
@@ -210,7 +210,7 @@ def _validate_metric_preference_create(
 
 
 def _validate_measurement_create(
-    session: Session, current_user: User, data: dict, op: "SyncOperation",
+    session: Session, _current_user: User, data: dict, op: "SyncOperation",
 ) -> str | None:
     if op.type != "create":
         return None

@@ -17,6 +17,9 @@ from salus.services._helpers import uid, make_handle, summarize_daily_values
 
 logger = logging.getLogger("salus.services.leaderboard")
 
+WEEKLY_WINDOW_DAYS = 7
+MONTHLY_WINDOW_DAYS = 30
+
 
 class LeaderboardService:
     def __init__(
@@ -194,14 +197,14 @@ class LeaderboardService:
     def _timeframe(self, group: LeaderboardGroup) -> tuple[date, date]:
         now = datetime.now(timezone.utc)
         if group.time_frame == "weekly":
-            start_date = (now - timedelta(days=7)).date()
+            start_date = (now - timedelta(days=WEEKLY_WINDOW_DAYS)).date()
         elif group.time_frame == "monthly":
-            start_date = (now - timedelta(days=30)).date()
+            start_date = (now - timedelta(days=MONTHLY_WINDOW_DAYS)).date()
         else:
             start_date = (
                 group.start_date.date()
                 if group.start_date
-                else (now - timedelta(days=7)).date()
+                else (now - timedelta(days=WEEKLY_WINDOW_DAYS)).date()
             )
         end_date = group.end_date.date() if group.end_date else now.date()
         return start_date, end_date

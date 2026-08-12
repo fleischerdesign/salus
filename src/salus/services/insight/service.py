@@ -40,8 +40,6 @@ class InsightService:
     def _build_analytics_context(
         self,
         daily_logs: dict[str, dict[str, list[float]]],
-        goals,
-        metric_map: dict,
     ) -> str:
         lines: list[str] = []
         all_days = sorted(daily_logs.keys())
@@ -133,7 +131,7 @@ class InsightService:
             date_str = query_date.strftime("%Y-%m-%d")
 
         # 3. Retrieve metric types, goals, and measurements
-        metric_definitions = self._uow.metric_definitions.find_all(user_id=user_id)
+        metric_definitions = self._uow.metric_definitions.find_all()
         metric_map = {mt.code: mt for mt in metric_definitions if mt.code is not None}
 
         # Fetch last 7 days of history for context
@@ -189,9 +187,7 @@ class InsightService:
             else "No measurements logged in the last 7 days."
         )
 
-        analytics_context = self._build_analytics_context(
-            daily_logs, goals, metric_map
-        )
+        analytics_context = self._build_analytics_context(daily_logs)
 
         # Format goals summary
         goals_lines = []
@@ -274,7 +270,7 @@ class InsightService:
             else:
                 content = (
                     "### ⚠️ Connection to Health Coach Failed\n"
-                    "We were unable to connect to the KI service. Please verify your LLM settings in the admin panel."
+                    "We were unable to connect to the AI service. Please verify your LLM settings in the admin panel."
                 )
 
         # 7. Persist and return the insight

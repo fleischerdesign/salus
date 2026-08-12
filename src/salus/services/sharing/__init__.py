@@ -190,17 +190,3 @@ class SharingService:
         self, user_id: str, source_data_type: str, date_str: str
     ) -> None:
         self._notify.notify_peers_of_update(user_id, source_data_type, date_str)
-
-    # ── Internal method pass-throughs (for backward compat in tests) ──
-
-    def _fetch_remote(
-        self, owner_handle: str, source_data_type: str, date_str: str
-    ) -> list[dict]:
-        return self._resolver._fetch_remote(owner_handle, source_data_type, date_str)
-
-    def _resolve_local(
-        self, owner_handle: str, requester_handle: str, source_data_type: str, date_str: str
-    ) -> list[dict]:
-        return self._resolver._resolve_local(
-            owner_handle, requester_handle, source_data_type, date_str,
-        )
