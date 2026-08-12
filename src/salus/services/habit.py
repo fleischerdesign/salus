@@ -5,35 +5,7 @@ from salus.exceptions import NotFoundError
 from salus.models.habit import Habit, HabitLog
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.habit import HabitCreate, HabitUpdate
-
-
-def _compute_streak_dates(dates: list[date], today: date) -> tuple[int, int]:
-    if not dates:
-        return 0, 0
-    unique = sorted(set(dates), reverse=True)
-    current = 0
-    expected = today
-    for d in unique:
-        if d == expected:
-            current += 1
-            expected = _prev_day(expected)
-        elif d < expected:
-            break
-    longest = 1
-    run = 1
-    for i in range(1, len(unique)):
-        if _prev_day(unique[i - 1]) == unique[i]:
-            run += 1
-        else:
-            run = 1
-        if run > longest:
-            longest = run
-    return current, longest
-
-
-def _prev_day(d: date) -> date:
-    from datetime import timedelta
-    return d - timedelta(days=1)
+from salus.services.achievement.streak import compute_streak
 
 
 class HabitService:
@@ -110,7 +82,7 @@ class HabitService:
 
         all_logs = self.uow.habit_logs.find_by_habit_and_user(habit_id, user_id)
         completed_dates = [log.log_date for log in all_logs if log.completed]
-        current_streak, longest_streak = _compute_streak_dates(completed_dates, today)
+        current_streak, longest_streak = compute_streak(completed_dates, today)
 
         total_days = (today - min(completed_dates or [today])).days + 1
         rate = len(completed_dates) / max(total_days, 1)
@@ -131,7 +103,7 @@ class HabitService:
         all_logs = self.uow.habit_logs.find_by_habit_and_user(habit_id, user_id)
         completed_dates = [log.log_date for log in all_logs if log.completed]
         today = date.today()
-        current_streak, longest_streak = _compute_streak_dates(completed_dates, today)
+        current_streak, longest_streak = compute_streak(completed_dates, today)
         total_days = (today - min(completed_dates or [today])).days + 1
         rate = len(completed_dates) / max(total_days, 1)
         return {
@@ -149,7 +121,7 @@ class HabitService:
         for h in habits:
             logs = self.uow.habit_logs.find_by_habit_and_user(h.id or "", user_id)
             completed_dates = [log.log_date for log in logs if log.completed]
-            current_streak, longest_streak = _compute_streak_dates(completed_dates, today)
+            current_streak, longest_streak = compute_streak(completed_dates, today)
             result[h.id or ""] = {
                 "current_streak": current_streak,
                 "longest_streak": longest_streak,
