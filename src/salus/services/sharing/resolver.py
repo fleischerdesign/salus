@@ -145,12 +145,16 @@ class FederationDataResolver:
                     f"Access denied: no active sharing relationship from {owner_handle}"
                 )
 
+            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
+            since_dt = datetime.combine(
+                target_date, datetime.min.time(), tzinfo=timezone.utc
+            )
             raw_measurements = self.uow.measurements.find_all(
                 user_id=uid(owner_user),
                 data_types=[data_type],
+                since=since_dt,
+                until=since_dt + timedelta(days=1),
             )
-
-            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
 
             day_measurements = [
                 m for m in raw_measurements if m.start_time.date() == target_date

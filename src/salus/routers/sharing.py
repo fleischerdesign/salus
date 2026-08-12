@@ -2,7 +2,7 @@ import hashlib
 import io
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
@@ -121,16 +121,22 @@ async def federated_shared_data(
         )
         sharing_svc.uow.session.add(access_log)
 
-        raw_measurements = sharing_svc.uow.measurements.find_all(
-            user_id=owner.id, data_types=[data_type]
-        )
-
         try:
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(
                 status_code=400, detail="Invalid date format. Expected YYYY-MM-DD."
             )
+
+        since_dt = datetime.combine(
+            target_date, datetime.min.time(), tzinfo=timezone.utc
+        )
+        raw_measurements = sharing_svc.uow.measurements.find_all(
+            user_id=owner.id,
+            data_types=[data_type],
+            since=since_dt,
+            until=since_dt + timedelta(days=1),
+        )
 
         day_measurements = [
             m for m in raw_measurements if m.start_time.date() == target_date
