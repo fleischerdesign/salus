@@ -234,6 +234,12 @@ class LeaderboardService:
         measurements = self.uow.measurements.find_all(
             user_id=uid(local_user),
             data_types=[group.metric_type_code],
+            since=datetime.combine(
+                start_date, datetime.min.time(), tzinfo=timezone.utc
+            ),
+            until=datetime.combine(
+                end_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
+            ),
         )
         day_values = [
             ms.value_numeric
