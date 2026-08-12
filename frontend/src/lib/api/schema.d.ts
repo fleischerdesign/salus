@@ -6251,7 +6251,10 @@ export interface operations {
     };
     list_all_api_v1_asymmetric_shares_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -6701,7 +6704,10 @@ export interface operations {
     };
     list_all_api_v1_circadian_profiles_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -6932,7 +6938,10 @@ export interface operations {
     };
     list_all_api_v1_dashboard_widgets_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -7278,7 +7287,10 @@ export interface operations {
     };
     list_all_api_v1_exercises_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -7600,7 +7612,10 @@ export interface operations {
     };
     list_all_api_v1_food_items_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -7892,7 +7907,10 @@ export interface operations {
     };
     list_all_api_v1_goals_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -8090,7 +8108,10 @@ export interface operations {
     };
     list_all_api_v1_habits_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -8350,7 +8371,10 @@ export interface operations {
     };
     list_all_api_v1_insights_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -8579,7 +8603,10 @@ export interface operations {
     };
     list_all_api_v1_journal_entries_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -8841,7 +8868,10 @@ export interface operations {
     };
     list_all_api_v1_leaderboard_groups_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -8907,7 +8937,10 @@ export interface operations {
     };
     list_all_api_v1_leaderboard_members_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -9185,7 +9218,10 @@ export interface operations {
     };
     list_all_api_v1_measurements_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -9383,7 +9419,10 @@ export interface operations {
     };
     list_all_api_v1_medications_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -9830,7 +9869,10 @@ export interface operations {
     };
     list_all_api_v1_metric_definitions_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -9896,7 +9938,10 @@ export interface operations {
     };
     list_all_api_v1_metric_groups_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -10125,7 +10170,10 @@ export interface operations {
     };
     list_all_api_v1_mood_entries_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -10323,7 +10371,10 @@ export interface operations {
     };
     list_all_api_v1_mood_tags_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -10471,7 +10522,10 @@ export interface operations {
     };
     list_all_api_v1_notifications_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -11346,7 +11400,10 @@ export interface operations {
     };
     list_all_api_v1_share_recipients_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -11739,7 +11796,10 @@ export interface operations {
     };
     list_all_api_v1_sharing_relationships_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -12427,7 +12487,10 @@ export interface operations {
     };
     list_all_api_v1_user_metric_preferences_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -12625,7 +12688,10 @@ export interface operations {
     };
     list_all_api_v1_user_source_preferences_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -12823,7 +12889,10 @@ export interface operations {
     };
     list_all_api_v1_workout_plans_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;
@@ -13021,7 +13090,10 @@ export interface operations {
     };
     list_all_api_v1_workout_sessions_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
             header?: {
                 authorization?: string | null;
                 "X-API-Key"?: string | null;

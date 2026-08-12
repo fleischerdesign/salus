@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, FastAPI, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, Query, Request, Response
 from sqlmodel import select
 
 from salus.dependencies import (
@@ -135,6 +135,8 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         request: Request,
         user: User = Depends(get_current_user_or_api),
         uow: IUnitOfWork = Depends(get_unit_of_work),
+        limit: int | None = Query(default=None, ge=1),
+        offset: int = Query(default=0, ge=0),
     ):
         query = select(model_cls)
         strategy = meta.strategy
@@ -148,10 +150,14 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
                 | (getattr(model_cls, owner_field).is_(None))
             )
         for key, value in request.query_params.items():
+            if key in ("limit", "offset"):
+                continue
             if hasattr(model_cls, key) and value != "":
                 query = query.where(getattr(model_cls, key) == value)
         if hasattr(model_cls, "deleted_at"):
             query = query.where(getattr(model_cls, "deleted_at").is_(None))
+        if limit is not None:
+            query = query.offset(offset).limit(limit)
         rows = list(uow.session.exec(query).all())
         if meta.name in RESPONSE_MODELS:
             enriched = (

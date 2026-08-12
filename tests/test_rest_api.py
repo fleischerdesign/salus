@@ -7,6 +7,24 @@ class TestAutoCRUD:
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
 
+    def test_list_exercises_pagination(self, authenticated_client: TestClient):
+        for i in range(3):
+            authenticated_client.post(
+                "/api/v1/exercises",
+                json={
+                    "name": f"Paginated Exercise {i}",
+                    "equipment": "barbell",
+                    "primary_muscles": "biceps",
+                },
+            )
+
+        page = authenticated_client.get("/api/v1/exercises?limit=2&offset=0")
+        assert page.status_code == 200
+        assert len(page.json()) == 2
+
+        all_rows = authenticated_client.get("/api/v1/exercises")
+        assert len(all_rows.json()) >= 3
+
     def test_get_exercise_not_found(self, authenticated_client: TestClient):
         resp = authenticated_client.get("/api/v1/exercises/nonexistent")
         assert resp.status_code == 404

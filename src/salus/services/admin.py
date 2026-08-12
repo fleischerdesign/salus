@@ -5,6 +5,7 @@ from salus.exceptions import ConflictError, NotFoundError
 from salus.models.api_token import ApiToken
 from salus.models.goal import Goal
 from salus.models.measurement import Measurement
+from salus.models.metric_definition import MetricDefinition
 from salus.models.user import User
 from salus.repositories.unit_of_work import IUnitOfWork
 from sqlmodel import func, select
@@ -65,8 +66,6 @@ def admin_user_list(s, exclude_user_id: str | None = None) -> list[dict]:
 
 
 def admin_system_stats(s) -> dict:
-    from salus.models.metric_definition import MetricDefinition
-
     total_users = s.scalar(select(func.count()).select_from(User)) or 0
     total_measurements = s.scalar(select(func.count()).select_from(Measurement)) or 0
     total_metric_types = s.scalar(select(func.count()).select_from(MetricDefinition)) or 0
@@ -102,30 +101,45 @@ class AdminService:
         else:
             db_size_str = f"{db_size_bytes} B"
 
+        s = self.uow.session
         return {
             "db_size": db_size_str,
             "db_path": db_path,
             "row_counts": {
-                "Users": len(self.uow.users.list_all()),
-                "Measurements": len(self.uow.measurements.find_all()),
-                "Metric Types": len(self.uow.metric_definitions.find_all()),
-                "Goals": len(self.uow.goals.find_all_goals()),
-                "API Tokens": len(self.uow.api_tokens.list_all_active()),
+                "Users": s.scalar(select(func.count()).select_from(User)) or 0,
+                "Measurements": s.scalar(
+                    select(func.count())
+                    .select_from(Measurement)
+                    .where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+                )
+                or 0,
+                "Metric Types": s.scalar(
+                    select(func.count()).select_from(MetricDefinition)
+                )
+                or 0,
+                "Goals": s.scalar(select(func.count()).select_from(Goal)) or 0,
+                "API Tokens": s.scalar(
+                    select(func.count()).select_from(ApiToken).where(ApiToken.is_active)
+                )
+                or 0,
             },
         }
 
     def get_system_stats(self) -> dict:
-        users = self.uow.users.list_all()
-        total_users = len(users)
-        total_measurements = len(self.uow.measurements.find_all())
-        total_metric_types = len(self.uow.metric_definitions.find_all())
-        goals = self.uow.goals.find_all_goals()
-        total_goals = len(goals)
+        s = self.uow.session
         return {
-            "total_users": total_users,
-            "total_measurements": total_measurements,
-            "total_metric_types": total_metric_types,
-            "total_goals": total_goals,
+            "total_users": s.scalar(select(func.count()).select_from(User)) or 0,
+            "total_measurements": s.scalar(
+                select(func.count())
+                .select_from(Measurement)
+                .where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+            )
+            or 0,
+            "total_metric_types": s.scalar(
+                select(func.count()).select_from(MetricDefinition)
+            )
+            or 0,
+            "total_goals": s.scalar(select(func.count()).select_from(Goal)) or 0,
         }
 
     def list_users_with_stats(self) -> list[dict]:
