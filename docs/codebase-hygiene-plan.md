@@ -63,14 +63,14 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
 - auto-CRUD akzeptiert JWT + API-Token (`get_current_user_or_api`).
 - Tote Measurement-Query-Methoden entfernt.
 
-### P4 — Action-Router verschlanken (in Arbeit)
-- Erkenntnis aus mood/food: diese Domains sind bereits Action-zentrisch (Upsert, Stats,
-  Date-Lookup, Search) — kein flaches PUT/DELETE-Boilerplate. Für sie reicht: Entities in
-  auto-CRUD aufnehmen (generische Fläche) + Domain-Actions behalten.
-- Domains mit echtem CRUD-Boilerplate (journal, medication, food/meal/recipe): CRUD → auto-CRUD,
-  Router auf Actions reduzieren.
-- Response-Models mit String-Date-Feldern (z. B. `JournalEntryResponse`) erfordern
-  Dict-Serialisierung in auto-CRUD (bereits über `_row_to_dict` umgesetzt).
+### ✅ P4 — Action-Router verschlanken (committed: b6c9833)
+- journal, medication, food_item, mood_entry, mood_tag → auto-CRUD (journal/medication/food
+  mit registrierten Response-Models, mood_tag read-only).
+- Router auf Actions reduziert: journal (date/search), medication (today/schedule/log/inventory),
+  food (search/barcode/frequent).
+- meal/recipe/achievement bleiben dediziert: komponierte Aggregate (items/ingredients/progress)
+  sind nicht als flache auto-CRUD-Zeilen darstellbar.
+- `JournalEntry.entry_date` mit `default_factory=date.today`; Pipeline serialisiert `date`-Felder.
 
 ### P5 — Streaks aus Router (offen)
 ### P6 — DIP reparieren (offen)
