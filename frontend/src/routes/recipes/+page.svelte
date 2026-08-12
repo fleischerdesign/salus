@@ -1,73 +1,40 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { Recipe, RecipeIngredient, FoodItem } from '$lib/db/types';
+  import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import RecipeGrid from '$components/food/RecipeGrid.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
-  import { createRecipe, deleteRecipe } from '$lib/mutations/recipe';
+  import { createRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let recipes = $state<Recipe[]>([]);
-  let ingredients = $state<RecipeIngredient[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let formOpen = $state(false);
 
-  $effect(() => {
-    const sub1 = liveQuery(() =>
-      db.recipe
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      recipes = v;
-    });
-    const sub2 = liveQuery(() =>
-      db.recipe_ingredient
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      ingredients = v;
-    });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      foodItems = v;
-      loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+  const recipesQuery = useQuery(() => db.notDeleted(db.recipe).toArray());
+  const recipes = $derived(recipesQuery.value);
+  const ingredientsQuery = useQuery(() => db.notDeleted(db.recipe_ingredient).toArray());
+  const ingredients = $derived(ingredientsQuery.value);
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
   });
 
   const recipeData = $derived.by(() => {
-    return recipes
+    return (recipes ?? [])
       .filter((r) => !r.deleted_at)
       .map((r) => {
-        const recipeIngredients = ingredients.filter((i) => i.recipe_id === r.id && !i.deleted_at);
+        const recipeIngredients = (ingredients ?? []).filter(
+          (i) => i.recipe_id === r.id && !i.deleted_at
+        );
         let calories = 0;
         for (const ing of recipeIngredients) {
           const food = foodMap[ing.food_item_id];
@@ -88,15 +55,17 @@
       });
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createRecipe>[0]) {
     await createRecipe(data);
     formOpen = false;
   }
 
   async function handleCook(recipeId: string) {
-    const r = recipes.find((r) => r.id === recipeId);
+    const r = (recipes ?? []).find((r) => r.id === recipeId);
     if (!r) return;
-    const recipeIngredients = ingredients.filter((i) => i.recipe_id === recipeId && !i.deleted_at);
+    const recipeIngredients = (ingredients ?? []).filter(
+      (i) => i.recipe_id === recipeId && !i.deleted_at
+    );
     await createMeal({
       name: r.name ? `Recipe: ${r.name}` : undefined,
       meal_type: 'other',
@@ -106,10 +75,6 @@
         amount_g: i.amount_g
       }))
     });
-  }
-
-  async function handleDelete(recipeId: string) {
-    await deleteRecipe(recipeId);
   }
 </script>
 
@@ -144,7 +109,7 @@
   <RecipeForm
     open={formOpen}
     recipe={null}
-    {foodItems}
+    foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (formOpen = false)}
   />

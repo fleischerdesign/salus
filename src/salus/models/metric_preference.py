@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
-from salus.services._helpers import DEFAULT_METRIC_COLOR, uuid7_str
+from salus.services._helpers import DEFAULT_METRIC_COLOR
+from salus.utils import uuid7_str
 
 if TYPE_CHECKING:
     from salus.models.metric_definition import MetricDefinition  # noqa: F401

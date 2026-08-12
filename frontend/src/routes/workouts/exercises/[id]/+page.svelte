@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { db } from '$lib/db/database';
   import { epley1Rm } from '$lib/analytics/calculations';
@@ -15,22 +14,25 @@
 
   const exerciseId = $derived(page.params.id as string);
 
-  let exercise = liveQuery(() =>
+  const exerciseQuery = useQuery(() =>
     db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null))
   );
+  const exercise = $derived(exerciseQuery.value);
 
-  let logs = liveQuery(() =>
+  const logsQuery = useQuery(() =>
     db.workout_log_entry
       .toArray()
       .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at))
   );
+  const logs = $derived(logsQuery.value);
 
-  let sessions = liveQuery(() =>
+  const sessionsQuery = useQuery(() =>
     db.workout_session.toArray().then((arr) => {
       const map = new Map(arr.filter((s) => !s.deleted_at).map((s) => [s.id, s]));
       return map;
     })
   );
+  const sessions = $derived(sessionsQuery.value);
 
   interface HistoryRow {
     date: string;
@@ -42,24 +44,20 @@
   }
 
   let historyRows = $derived.by<HistoryRow[]>(() => {
-    return ($logs ?? [])
+    return (logs ?? [])
       .filter((l) => l.weight != null && l.reps != null)
       .sort((a, b) => {
         const da = new Date(
-          $sessions?.get(a.session_id)?.completed_at ??
-            $sessions?.get(a.session_id)?.started_at ??
-            ''
+          sessions?.get(a.session_id)?.completed_at ?? sessions?.get(a.session_id)?.started_at ?? ''
         ).getTime();
         const db = new Date(
-          $sessions?.get(b.session_id)?.completed_at ??
-            $sessions?.get(b.session_id)?.started_at ??
-            ''
+          sessions?.get(b.session_id)?.completed_at ?? sessions?.get(b.session_id)?.started_at ?? ''
         ).getTime();
         return db - da;
       })
       .slice(0, 200)
       .map((l) => {
-        const sess = $sessions?.get(l.session_id);
+        const sess = sessions?.get(l.session_id);
         const date = sess
           ? new Date(sess.completed_at ?? sess.started_at).toLocaleDateString()
           : '—';
@@ -73,31 +71,32 @@
       });
   });
 
-  let prMaxWeight = $derived(Math.max(0, ...($logs ?? []).map((l) => l.weight ?? 0)));
+  let prMaxWeight = $derived(Math.max(0, ...(logs ?? []).map((l) => l.weight ?? 0)));
 
   let prEstOneRm = $derived(
     Math.max(
       0,
-      ...($logs ?? []).map((l) =>
+      ...(logs ?? []).map((l) =>
         l.weight != null && l.reps != null ? epley1Rm(l.weight, l.reps) : 0
       )
     )
   );
 
-  let totalSets = $derived(($logs ?? []).length);
-  let totalReps = $derived(($logs ?? []).reduce((sum, l) => sum + (l.reps ?? 0), 0));
+  let totalSets = $derived((logs ?? []).length);
+  let totalReps = $derived((logs ?? []).reduce((sum, l) => sum + (l.reps ?? 0), 0));
 
   let instructions = $derived(
-    $exercise?.instructions ? $exercise.instructions.split('\n').filter((l) => l.trim()) : []
+    exercise?.instructions ? exercise.instructions.split('\n').filter((l) => l.trim()) : []
   );
 
   import LineChart from '$components/dashboard/LineChart.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
   let chartTab = $state<'1rm' | 'tonnage'>('1rm');
 
   let sessionAggregates = $derived.by(() => {
-    if (!$logs || !$sessions) return [];
+    if (!logs || !sessions) return [];
     const grouped = new Map<string, Array<{ weight: number; reps: number }>>();
-    for (const log of $logs) {
+    for (const log of logs) {
       if (log.weight != null && log.reps != null && !log.deleted_at) {
         if (!grouped.has(log.session_id)) {
           grouped.set(log.session_id, []);
@@ -108,7 +107,7 @@
 
     const result = [];
     for (const [sessId, sets] of grouped) {
-      const sess = $sessions.get(sessId);
+      const sess = sessions.get(sessId);
       if (!sess) continue;
       const dateStr = sess.completed_at ?? sess.started_at;
       if (!dateStr) continue;
@@ -144,15 +143,15 @@
   ]);
 </script>
 
-<svelte:head><title>Salus — {$exercise?.name ?? 'Exercise'}</title></svelte:head>
+<svelte:head><title>Salus — {exercise?.name ?? 'Exercise'}</title></svelte:head>
 
-{#if !$exercise}
+{#if !exercise}
   <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-{:else if $exercise}
+{:else if exercise}
   <div class="space-y-6">
     <PageHeader
-      title={$exercise.name}
-      subtitle={$exercise.description ||
+      title={exercise.name}
+      subtitle={exercise.description ||
         'View execution instructions and historical training volume.'}
       icon="fitness-center"
       iconColor="#4f46e5"
@@ -161,9 +160,9 @@
       {#snippet actions()}
         <div class="flex h-full items-center gap-1.5 px-6">
           <Badge variant="default" class="capitalize">
-            {$exercise.equipment}
+            {exercise.equipment}
           </Badge>
-          {#each ($exercise.primary_muscles ?? '').split(',') as muscle (muscle.trim())}
+          {#each (exercise.primary_muscles ?? '').split(',') as muscle (muscle.trim())}
             {#if muscle.trim()}
               <Badge variant="primary" class="capitalize">{muscle.trim()}</Badge>
             {/if}
@@ -209,9 +208,9 @@
             </div>
           {/snippet}
           <div class="p-6">
-            {#if $exercise.description}
+            {#if exercise.description}
               <p class="mb-4 text-sm leading-relaxed text-surface-600">
-                {$exercise.description}
+                {exercise.description}
               </p>
             {/if}
             {#if instructions.length > 0}
@@ -220,12 +219,12 @@
                   <li>{instr}</li>
                 {/each}
               </ol>
-            {:else if !$exercise.description}
+            {:else if !exercise.description}
               <p class="text-sm text-surface-400">No detailed instructions recorded.</p>
             {/if}
-            {#if $exercise.video_url}
+            {#if exercise.video_url}
               <div class="mt-4">
-                <Btn variant="secondary" size="sm" href={$exercise.video_url}>
+                <Btn variant="secondary" size="sm" href={exercise.video_url}>
                   <Icon name="smart-display" size="sm" />Watch Video
                 </Btn>
               </div>

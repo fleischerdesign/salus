@@ -5,13 +5,13 @@ from datetime import date
 
 class TestJournalRoutes:
     def test_list_empty(self, authenticated_client):
-        resp = authenticated_client.get("/api/v1/journal")
+        resp = authenticated_client.get("/api/v1/journal-entries")
         assert resp.status_code == 200
         assert resp.json() == []
 
     def test_create_and_list(self, authenticated_client):
         today = date.today().isoformat()
-        resp = authenticated_client.post("/api/v1/journal", json={
+        resp = authenticated_client.post("/api/v1/journal-entries", json={
             "title": "Monday",
             "content": "Started a new habit today.",
             "mood_score": 8,
@@ -22,19 +22,28 @@ class TestJournalRoutes:
         assert data["entry_date"] == today
         entry_id = data["id"]
 
-        resp = authenticated_client.get("/api/v1/journal")
+        resp = authenticated_client.get("/api/v1/journal-entries")
         assert resp.status_code == 200
         entries = resp.json()
         assert len(entries) == 1
         assert entries[0]["id"] == entry_id
 
+    def test_get_by_date_action(self, authenticated_client):
+        today = date.today().isoformat()
+        authenticated_client.post("/api/v1/journal-entries", json={
+            "content": "Today entry",
+        })
+        resp = authenticated_client.get(f"/api/v1/journal/date/{today}")
+        assert resp.status_code == 200
+        assert resp.json()["content"] == "Today entry"
+
     def test_update_entry(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/journal", json={
+        resp = authenticated_client.post("/api/v1/journal-entries", json={
             "content": "Original content",
         })
         entry_id = resp.json()["id"]
 
-        resp = authenticated_client.put(f"/api/v1/journal/{entry_id}", json={
+        resp = authenticated_client.put(f"/api/v1/journal-entries/{entry_id}", json={
             "content": "Updated content",
             "title": "New Title",
         })
@@ -43,19 +52,19 @@ class TestJournalRoutes:
         assert resp.json()["title"] == "New Title"
 
     def test_delete_entry(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/journal", json={
+        resp = authenticated_client.post("/api/v1/journal-entries", json={
             "content": "Delete me",
         })
         entry_id = resp.json()["id"]
 
-        resp = authenticated_client.delete(f"/api/v1/journal/{entry_id}")
+        resp = authenticated_client.delete(f"/api/v1/journal-entries/{entry_id}")
         assert resp.status_code == 204
 
-        resp = authenticated_client.get("/api/v1/journal")
+        resp = authenticated_client.get("/api/v1/journal-entries")
         assert resp.json() == []
 
     def test_private_entry(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/journal", json={
+        resp = authenticated_client.post("/api/v1/journal-entries", json={
             "content": "Secret",
             "is_private": True,
         })
@@ -63,5 +72,5 @@ class TestJournalRoutes:
         assert resp.json()["is_private"] is True
 
     def test_requires_auth(self, client):
-        resp = client.get("/api/v1/journal", follow_redirects=False)
+        resp = client.get("/api/v1/journal-entries", follow_redirects=False)
         assert resp.status_code in (401, 403)

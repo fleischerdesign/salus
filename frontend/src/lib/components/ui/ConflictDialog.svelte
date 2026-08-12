@@ -3,7 +3,6 @@
   import AlertBanner from './AlertBanner.svelte';
   import Btn from './Btn.svelte';
   import { computeDiff, formatValue, entityLabel } from '$lib/utils/diff';
-  import type { DiffRow } from '$lib/utils/diff';
 
   interface Props {
     open?: boolean;

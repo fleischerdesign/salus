@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import type { WorkoutPlan } from '$lib/db/types';
@@ -20,19 +19,23 @@
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let plans = liveQuery(() =>
+  const plansQuery = useQuery(() =>
     db.workout_plan
       .toArray()
       .then((arr) => arr.filter((p) => !p.deleted_at).sort((a, b) => a.position - b.position))
   );
+  const plans = $derived(plansQuery.value);
 
-  let exercises = liveQuery(() =>
+  const exercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
-  let planExercises = liveQuery(() =>
+  const exercises = $derived(exercisesQuery.value);
+  const planExercisesQuery = useQuery(() =>
     db.workout_plan_exercise.toArray().then((arr) => arr.filter((pe) => !pe.deleted_at))
   );
+  const planExercises = $derived(planExercisesQuery.value);
 
   let showForm = $state(false);
   let planName = $state('');
@@ -59,7 +62,7 @@
   }
 
   function exerciseCount(planId: string): number {
-    return ($planExercises ?? []).filter((pe) => pe.plan_id === planId).length;
+    return (planExercises ?? []).filter((pe) => pe.plan_id === planId).length;
   }
 
   function exerciseNames(planId: string): {
@@ -68,8 +71,8 @@
     target_reps: number | null;
     target_rpe: number | null;
   }[] {
-    const exById = new Map(($exercises ?? []).map((e) => [e.id, e]));
-    return ($planExercises ?? [])
+    const exById = new Map((exercises ?? []).map((e) => [e.id, e]));
+    return (planExercises ?? [])
       .filter((pe) => pe.plan_id === planId)
       .sort((a, b) => a.sequence - b.sequence)
       .map((pe) => ({
@@ -106,7 +109,7 @@
   }
 
   async function startSession(planId: string) {
-    const plan = ($plans ?? []).find((p) => p.id === planId);
+    const plan = (plans ?? []).find((p) => p.id === planId);
     await startWorkout(planId, plan?.autoreg_mode || 'advisory');
     await goto('/workouts/active');
   }
@@ -134,9 +137,9 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$plans}
+  {#if !plans}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
-  {:else if $plans.length === 0}
+  {:else if (plans ?? []).length === 0}
     <EmptyState
       title="No workout plans"
       description="Create your first training plan to get started."
@@ -146,7 +149,7 @@
     </EmptyState>
   {:else}
     <div class="grid [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))] gap-4">
-      {#each $plans as plan, i (plan.id)}
+      {#each plans ?? [] as plan, i (plan.id)}
         <div in:fade={{ ...staggerFade(i) }}>
           <Card padding={false} hoverable>
             {#snippet header()}

@@ -1,4 +1,3 @@
-import Dexie from 'dexie';
 import { db } from '$lib/db/database';
 import type {
   DashboardWidget,

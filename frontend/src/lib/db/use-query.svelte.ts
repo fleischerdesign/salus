@@ -1,21 +1,22 @@
 import { liveQuery } from 'dexie';
-import { onDestroy } from 'svelte';
 
 export function useQuery<T>(querier: () => Promise<T>): { value: T | undefined; loading: boolean } {
   let value = $state<T | undefined>(undefined);
   let loading = $state(true);
 
-  const sub = liveQuery(querier).subscribe({
-    next(v) {
-      value = v;
-      loading = false;
-    },
-    error() {
-      loading = false;
-    }
+  $effect(() => {
+    querier();
+    const sub = liveQuery(querier).subscribe({
+      next: (v) => {
+        value = v;
+        loading = false;
+      },
+      error: () => {
+        loading = false;
+      }
+    });
+    return () => sub.unsubscribe();
   });
-
-  onDestroy(() => sub.unsubscribe());
 
   return {
     get value() {

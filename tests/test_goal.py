@@ -101,8 +101,8 @@ class TestGoalRoutes:
     def test_create_goal_with_entry_does_not_error(self, authenticated_client):
         weight_code = _get_metric_code(authenticated_client, "Weight")
         authenticated_client.post(
-            f"/api/v1/entries?metric_code={weight_code}",
-            json={"value": "80.5"},
+            "/api/v1/measurements",
+            json={"metric_code": weight_code, "value_text": "80.5"},
         )
         response = authenticated_client.post(
             "/api/v1/goals",
@@ -118,8 +118,8 @@ class TestGoalRoutes:
     def test_goal_user_scoped(self, authenticated_client, client):
         weight_code = _get_metric_code(authenticated_client, "Weight")
         authenticated_client.post(
-            f"/api/v1/entries?metric_code={weight_code}",
-            json={"value": "70"},
+            "/api/v1/measurements",
+            json={"metric_code": weight_code, "value_text": "70"},
         )
         authenticated_client.post(
             "/api/v1/goals",
@@ -141,8 +141,8 @@ class TestGoalRoutes:
 
         bob_weight_code = _get_metric_code(client, "Weight")
         client.post(
-            f"/api/v1/entries?metric_code={bob_weight_code}",
-            json={"value": "90"},
+            "/api/v1/measurements",
+            json={"metric_code": bob_weight_code, "value_text": "90"},
             headers=bob_headers,
         )
 

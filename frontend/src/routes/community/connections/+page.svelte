@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import {
     createConnection,
     acceptConnection,
@@ -19,9 +18,9 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
-  import ListItem from '$components/ui/ListItem.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   interface PeerMetric {
     metric_name: string;
@@ -44,7 +43,7 @@
     last_sync: string | null;
   }
 
-  let peers = liveQuery(async () => {
+  const peersQuery = useQuery(async () => {
     const uid = auth.user?.id;
     const username = auth.user?.username;
     if (!uid || !username) return [];
@@ -115,6 +114,7 @@
 
     return [...peerMap.values()];
   });
+  const peers = $derived(peersQuery.value);
 
   let error = $state('');
   let granteeHandle = $state('');
@@ -196,9 +196,9 @@
     {#snippet header()}
       <span class="text-sm font-semibold text-surface-900">Active Connections</span>
     {/snippet}
-    {#if !$peers}
+    {#if !peers}
       <div class="flex justify-center py-12"><Spinner /></div>
-    {:else if $peers.length === 0}
+    {:else if (peers ?? []).length === 0}
       <div class="py-12">
         <EmptyState
           icon="groups"
@@ -208,7 +208,7 @@
       </div>
     {:else}
       <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#each $peers as peer, i (peer.handle)}
+        {#each peers ?? [] as peer, i (peer.handle)}
           <div in:fade={{ ...staggerFade(i) }}>
             <a href="/community/connections/{peer.handle}" class="group/card block h-full">
               <div

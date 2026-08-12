@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
 
-from salus.dependencies import get_current_user, get_workout_service
+from salus.dependencies import get_current_user, get_event_bus, get_workout_service
 from salus.exceptions import ApiError
 from salus.models.user import User
 from salus.schemas.workout import (
@@ -17,6 +17,7 @@ from salus.schemas.workout import (
 )
 from salus.services.workout.planner import WorkoutService
 from salus.services._helpers import uid
+from salus.services.event_bus import EventBus, schedule_publish
 
 router = APIRouter(tags=["Workouts"])
 
@@ -41,8 +42,10 @@ async def create_exercise(
     data: ExerciseCreate,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     try:
+        schedule_publish(event_bus, uid(current_user))
         return service.create_exercise(user_id=uid(current_user), data=data)
     except ValueError as e:
         raise ApiError(code="validation_error", message=str(e), status_code=400)
@@ -79,8 +82,10 @@ async def delete_exercise(
     exercise_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     service.delete_exercise(user_id=uid(current_user), exercise_id=exercise_id)
+    schedule_publish(event_bus, uid(current_user))
 
 
 @router.get("/api/v1/workouts/plans", response_model=list[WorkoutPlanResponse])
@@ -114,8 +119,11 @@ async def create_plan(
     data: WorkoutPlanCreate,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
-    return service.create_plan(user_id=uid(current_user), data=data)
+    result = service.create_plan(user_id=uid(current_user), data=data)
+    schedule_publish(event_bus, uid(current_user))
+    return result
 
 
 @router.delete(
@@ -125,8 +133,10 @@ async def delete_plan(
     plan_id: str,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     service.delete_plan(user_id=uid(current_user), plan_id=plan_id)
+    schedule_publish(event_bus, uid(current_user))
 
 
 @router.get(
@@ -149,8 +159,11 @@ async def start_session(
     plan_id: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
-    return service.start_session(user_id=uid(current_user), plan_id=plan_id)
+    result = service.start_session(user_id=uid(current_user), plan_id=plan_id)
+    schedule_publish(event_bus, uid(current_user))
+    return result
 
 
 @router.post("/api/v1/workouts/sessions/complete", response_model=WorkoutSessionResponse)
@@ -159,10 +172,13 @@ async def complete_session(
     notes: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
-    return service.complete_session(
+    result = service.complete_session(
         user_id=uid(current_user), session_id=session_id, notes=notes
     )
+    schedule_publish(event_bus, uid(current_user))
+    return result
 
 
 @router.delete("/api/v1/workouts/sessions/log", status_code=status.HTTP_204_NO_CONTENT)
@@ -172,6 +188,7 @@ async def delete_logged_set(
     set_number: int,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     service.delete_logged_set(
         user_id=uid(current_user),
@@ -179,6 +196,7 @@ async def delete_logged_set(
         exercise_id=exercise_id,
         set_number=set_number,
     )
+    schedule_publish(event_bus, uid(current_user))
 
 
 @router.post("/api/v1/workouts/sessions/log", response_model=WorkoutLogEntryResponse)
@@ -187,10 +205,13 @@ async def log_set(
     entry: WorkoutLogEntryCreate,
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
-    return service.log_set(
+    result = service.log_set(
         user_id=uid(current_user), session_id=session_id, entry=entry
     )
+    schedule_publish(event_bus, uid(current_user))
+    return result
 
 
 @router.get(

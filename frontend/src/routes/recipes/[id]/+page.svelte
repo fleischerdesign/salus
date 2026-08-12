@@ -1,67 +1,43 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import type { Recipe, RecipeIngredient, FoodItem } from '$lib/db/types';
+  import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
   import { updateRecipe, deleteRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
-  let loading = $state(true);
-  let recipe = $state<Recipe | null>(null);
-  let ingredients = $state<RecipeIngredient[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let editOpen = $state(false);
   let deleteOpen = $state(false);
   let saving = $state(false);
 
-  $effect(() => {
-    if (!id) return;
-    const sub1 = liveQuery(() =>
-      db.recipe.get(id).then((r) => (r && !r.deleted_at ? r : null))
-    ).subscribe((v) => {
-      recipe = v;
-    });
-    const sub2 = liveQuery(() =>
-      db.recipe_ingredient
-        .where({ recipe_id: id })
-        .filter((i) => !i.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
-      ingredients = v;
-    });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      foodItems = v;
-      loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+  const recipeQuery = useQuery(() =>
+    id ? db.recipe.get(id).then((r) => (r && !r.deleted_at ? r : null)) : Promise.resolve(null)
+  );
+  const recipe = $derived(recipeQuery.value);
+  const ingredientsQuery = useQuery(() =>
+    db.recipe_ingredient
+      .where({ recipe_id: id })
+      .filter((i) => !i.deleted_at)
+      .toArray()
+  );
+  const ingredients = $derived(ingredientsQuery.value);
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -72,7 +48,7 @@
       protein = 0,
       carbs = 0,
       fat = 0;
-    for (const ing of ingredients) {
+    for (const ing of ingredients ?? []) {
       const food = foodMap[ing.food_item_id];
       if (!food) continue;
       const factor = ing.amount_g / food.serving_size;
@@ -84,7 +60,7 @@
     return { calories, protein, carbs, fat };
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof updateRecipe>[1]) {
     if (!id) return;
     saving = true;
     try {
@@ -103,7 +79,7 @@
 
   async function handleCook() {
     if (!recipe) return;
-    const recipeIngredients = ingredients.filter((i) => !i.deleted_at);
+    const recipeIngredients = (ingredients ?? []).filter((i) => !i.deleted_at);
     await createMeal({
       name: `Recipe: ${recipe.name}`,
       meal_type: 'other',
@@ -269,7 +245,7 @@
       prep_time_min: recipe.prep_time_min,
       cook_time_min: recipe.cook_time_min
     }}
-    {foodItems}
+    foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (editOpen = false)}
     {saving}

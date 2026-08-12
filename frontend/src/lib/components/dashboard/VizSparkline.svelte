@@ -14,13 +14,11 @@
     unit,
     points,
     color = 'var(--color-primary-500)',
-    fillColor,
     width = 200,
     height = 60
   }: Props = $props();
 
   const gradientId = `sparkline-fill-${Math.random().toString(36).slice(2, 9)}`;
-  let resolvedFill = $derived(fillColor ?? 'var(--color-primary-100)');
 </script>
 
 <div class="flex items-center gap-3">

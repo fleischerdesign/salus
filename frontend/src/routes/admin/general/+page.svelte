@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { pullFull } from '$lib/db/sync-pull';
   import type { SystemConfigItem } from '$lib/db/types';
@@ -10,8 +9,10 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let configItems = liveQuery(() => db.system_config.toArray());
+  const configItemsQuery = useQuery(() => db.system_config.toArray());
+  const configItems = $derived(configItemsQuery.value);
 
   let error = $state('');
   let success = $state('');
@@ -50,18 +51,18 @@
 {/if}
 
 <div class="space-y-6">
-  {#if !$configItems}
+  {#if !configItems}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else}
     <Card padding={false}>
       {#snippet header()}
         <span class="text-sm font-semibold text-surface-900">System Configuration</span>
       {/snippet}
-      {#if ($configItems ?? []).length === 0}
+      {#if (configItems ?? []).length === 0}
         <div class="px-5 py-8 text-center text-sm text-surface-400">No configuration items.</div>
       {:else}
         <div class="divide-y divide-surface-100">
-          {#each $configItems as item (item.key)}
+          {#each configItems ?? [] as item (item.key)}
             <div class="flex items-center justify-between px-5 py-4">
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-medium text-surface-900">

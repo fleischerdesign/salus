@@ -1,20 +1,18 @@
 from fastapi import APIRouter, Depends, Response
 
-from salus.dependencies import get_current_user, get_medication_service
+from salus.dependencies import get_current_user, get_event_bus, get_medication_service
 from salus.models.user import User
 from salus.schemas.medication import (
-    MedicationCreate,
     MedicationInventoryResponse,
     MedicationInventoryUpdate,
     MedicationLogCreate,
     MedicationLogResponse,
-    MedicationResponse,
     MedicationScheduleCreate,
     MedicationScheduleResponse,
     MedicationTodayResponse,
-    MedicationUpdate,
 )
 from salus.services._helpers import uid
+from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.medication import MedicationService
 
 router = APIRouter(prefix="/api/v1/medications")
@@ -60,26 +58,7 @@ def _log_to_response(log) -> dict:
     }
 
 
-# ── Medication CRUD ──
-
-
-@router.get("", response_model=list[MedicationResponse])
-async def list_medications(
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-):
-    medications = medication_svc.find_all(uid(current_user))
-    return [_medication_to_response(m) for m in medications]
-
-
-@router.post("", response_model=MedicationResponse, status_code=201)
-async def create_medication(
-    data: MedicationCreate,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-):
-    m = medication_svc.create(data, uid(current_user))
-    return _medication_to_response(m)
+# ── Today view ──
 
 
 @router.get("/today", response_model=MedicationTodayResponse)
@@ -92,37 +71,6 @@ async def get_today(
         "items": result["items"],
         "as_needed": [_medication_to_response(m) for m in result["as_needed"]],
     }
-
-
-@router.get("/{medication_id}", response_model=MedicationResponse)
-async def get_medication(
-    medication_id: str,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-):
-    m = medication_svc.get(medication_id, uid(current_user))
-    return _medication_to_response(m)
-
-
-@router.put("/{medication_id}", response_model=MedicationResponse)
-async def update_medication(
-    medication_id: str,
-    data: MedicationUpdate,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-):
-    m = medication_svc.update(medication_id, uid(current_user), data)
-    return _medication_to_response(m)
-
-
-@router.delete("/{medication_id}", status_code=204)
-async def delete_medication(
-    medication_id: str,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-):
-    medication_svc.delete(medication_id, uid(current_user))
-    return Response(status_code=204)
 
 
 # ── Schedule ──
@@ -148,8 +96,10 @@ async def create_schedule(
     data: MedicationScheduleCreate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     s = medication_svc.add_schedule(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return _schedule_to_response(s)
 
 
@@ -158,8 +108,10 @@ async def delete_schedule(
     schedule_id: str,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     medication_svc.delete_schedule(schedule_id, uid(current_user))
+    schedule_publish(event_bus, uid(current_user))
     return Response(status_code=204)
 
 
@@ -172,8 +124,10 @@ async def log_intake(
     data: MedicationLogCreate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     log = medication_svc.log_intake(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return _log_to_response(log)
 
 
@@ -223,8 +177,10 @@ async def update_inventory(
     data: MedicationInventoryUpdate,
     current_user: User = Depends(get_current_user),
     medication_svc: MedicationService = Depends(get_medication_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     inv = medication_svc.update_inventory(medication_id, uid(current_user), data)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": inv.id,
         "medication_id": inv.medication_id,

@@ -45,25 +45,27 @@ class TestApiMetrics:
         assert response.status_code == 404
 
     def test_update_preference(self, authenticated_client):
-        response = authenticated_client.put(
-            "/api/v1/metrics/water",
-            json={"name": "water", "color": "#ff0000", "icon": "water_drop"},
+        list_resp = authenticated_client.get("/api/v1/user-metric-preferences?metric_code=water")
+        pref_id = list_resp.json()[0]["id"]
+        response = authenticated_client.patch(
+            f"/api/v1/user-metric-preferences/{pref_id}",
+            json={"color": "#ff0000", "icon": "water_drop"},
         )
         assert response.status_code == 200
         assert response.json()["color"] == "#ff0000"
 
 
-class TestApiEntries:
-    def test_list_entries_by_metric(self, authenticated_client):
+class TestApiMeasurements:
+    def test_list_measurements_by_metric(self, authenticated_client):
         authenticated_client.post(
-            "/api/v1/entries?metric_code=weight",
-            json={"value": "80.5"},
+            "/api/v1/measurements",
+            json={"metric_code": "weight", "value_text": "80.5"},
         )
-        response = authenticated_client.get("/api/v1/entries?metric_code=weight")
+        response = authenticated_client.get("/api/v1/measurements?metric_code=weight")
         assert response.status_code == 200
         data = response.json()
-        assert data["total"] == 1
-        assert data["entries"][0]["value"] == "80.5"
+        assert len(data) == 1
+        assert data[0]["value_text"] == "80.5"
 
 
 

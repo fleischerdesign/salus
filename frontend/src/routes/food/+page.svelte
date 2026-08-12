@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { FoodItem } from '$lib/db/types';
+
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -12,9 +11,8 @@
   import Btn from '$components/ui/Btn.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import { createFoodItem } from '$lib/mutations/food-item';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let foodItems = $state<FoodItem[]>([]);
   let search = $state('');
   let createOpen = $state(false);
   let saving = $state(false);
@@ -28,28 +26,19 @@
   let newServingSize = $state(100);
   let newServingUnit = $state('g');
 
-  $effect(() => {
-    const sub = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      foodItems = v;
-      loading = false;
-    });
-    return () => sub.unsubscribe();
-  });
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const results = $derived(
     search.trim()
-      ? foodItems.filter((f) => f.name.toLowerCase().includes(search.toLowerCase())).slice(0, 20)
+      ? (foodItems ?? [])
+          .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
+          .slice(0, 20)
       : []
   );
 
-  const frequentItems = $derived(foodItems.slice(0, 10));
+  const frequentItems = $derived((foodItems ?? []).slice(0, 10));
 
   const canCreate = $derived(newName.trim().length > 0);
 

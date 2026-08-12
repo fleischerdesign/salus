@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.habit import Habit, HabitLog
 from salus.repositories.base import Repository
@@ -76,6 +76,17 @@ class HabitLogRepository(Repository[HabitLog]):
             HabitLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
         return self.session.exec(stmt).first()
+
+    def find_completed_dates_by_user(self, user_id: str) -> dict[str, list[date]]:
+        stmt = select(HabitLog.habit_id, col(HabitLog.log_date)).where(
+            HabitLog.user_id == user_id,
+            col(HabitLog.completed).is_(True),
+            HabitLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        result: dict[str, list[date]] = {}
+        for habit_id, log_date in self.session.exec(stmt).all():
+            result.setdefault(habit_id, []).append(log_date)
+        return result
 
     def find_all_by_user(self, user_id: str) -> list[HabitLog]:
         return list(

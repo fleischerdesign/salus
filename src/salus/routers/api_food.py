@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 
 from salus.dependencies import get_current_user, get_food_item_service
 from salus.models.user import User
-from salus.schemas.food import FoodItemCreate, FoodItemResponse, FoodItemSearchResponse
+from salus.schemas.food import FoodItemSearchResponse
 from salus.services._helpers import uid
 from salus.services.food_item import FoodItemService
 
@@ -50,25 +50,6 @@ async def lookup_barcode(
     item = food_svc.find_by_barcode(barcode)
     if item is None:
         return None
-    return _food_item_to_response(item)
-
-
-@router.post("/items", response_model=FoodItemResponse, status_code=201)
-async def create_food_item(
-    data: FoodItemCreate,
-    current_user: User = Depends(get_current_user),
-    food_svc: FoodItemService = Depends(get_food_item_service),
-):
-    item = food_svc.create(data, uid(current_user))
-    return _food_item_to_response(item)
-
-
-@router.get("/items/{item_id}", response_model=FoodItemResponse)
-async def get_food_item(
-    item_id: str,
-    food_svc: FoodItemService = Depends(get_food_item_service),
-):
-    item = food_svc.get(item_id)
     return _food_item_to_response(item)
 
 

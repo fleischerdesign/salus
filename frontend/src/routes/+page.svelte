@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
   import { slide } from 'svelte/transition';
@@ -8,11 +8,7 @@
     updateWidget as updateWidgetMut,
     deleteWidget as deleteWidgetMut
   } from '$lib/mutations/dashboard';
-  import {
-    fetchDashboard,
-    type DashboardWidgetView,
-    type DashboardData
-  } from '$lib/analytics/views/dashboard';
+  import { fetchDashboard, type DashboardWidgetView } from '$lib/analytics/views/dashboard';
   import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -26,7 +22,7 @@
   import VizBar from '$components/dashboard/VizBar.svelte';
   import VizCandlestick from '$components/dashboard/VizCandlestick.svelte';
   import VizNumber from '$components/dashboard/VizNumber.svelte';
-  import VizPills from '$components/dashboard/VizPills.svelte';
+  import VizPills, { type PillBucket } from '$components/dashboard/VizPills.svelte';
   import VizProgress from '$components/dashboard/VizProgress.svelte';
   import VizSparkline from '$components/dashboard/VizSparkline.svelte';
   import VizWorkoutLauncher from '$components/dashboard/VizWorkoutLauncher.svelte';
@@ -58,38 +54,17 @@
 
   const isToday = $derived(displayDate === getTodayString());
 
-  let dashboardData = $state<DashboardData | null>(null);
+  const dashboardDataQuery = useQuery(() => fetchDashboard(displayDate));
+  const dashboardData = $derived(dashboardDataQuery.value);
   let isTransitioning = $state(false);
 
   $effect(() => {
-    const targetDate = displayDate;
+    void displayDate;
     isTransitioning = true;
-    let active = true;
+  });
 
-    // Direct immediate async load
-    fetchDashboard(targetDate)
-      .then((v) => {
-        if (active && displayDate === targetDate) {
-          dashboardData = v;
-          isTransitioning = false;
-        }
-      })
-      .catch(() => {
-        if (active) isTransitioning = false;
-      });
-
-    // Reactive liveQuery subscription for background database updates
-    const sub = liveQuery(() => fetchDashboard(targetDate)).subscribe((v) => {
-      if (active && displayDate === targetDate) {
-        dashboardData = v;
-        isTransitioning = false;
-      }
-    });
-
-    return () => {
-      active = false;
-      sub.unsubscribe();
-    };
+  $effect(() => {
+    if (dashboardData) isTransitioning = false;
   });
 
   let editing = $state(false);
@@ -480,7 +455,7 @@
               unit={viz.unit}
               subtitle={viz.subtitle}
               color={viz.color ?? '#f43f5e'}
-              buckets={viz.segments as any}
+              buckets={viz.segments as PillBucket[]}
             />
           {:else if viz.type === 'bar'}
             <VizBar

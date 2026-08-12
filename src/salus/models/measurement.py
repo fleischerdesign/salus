@@ -6,7 +6,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 import logging
 
-from salus.services._helpers import uuid7_str
+from salus.utils import uuid7_str
 
 logger = logging.getLogger(__name__)
 

@@ -188,8 +188,30 @@ def _validate_exercise_create(
     return None
 
 
+def _validate_metric_preference_create(
+    session: Session, current_user: User, data: dict, op: "SyncOperation",
+) -> str | None:
+    if op.type != "create":
+        return None
+    metric_code = data.get("metric_code")
+    if metric_code is None:
+        return None
+    if session.get(MetricDefinition, metric_code) is None:
+        return f"Unknown metric_code: {metric_code}"
+    existing = session.exec(
+        select(UserMetricPreference).where(
+            UserMetricPreference.user_id == current_user.id,
+            UserMetricPreference.metric_code == metric_code,
+        )
+    ).first()
+    if existing:
+        return f"Metric preference for '{metric_code}' already exists"
+    return None
+
+
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "user": _validate_user_update,
     "api_token": _validate_api_token_update,
     "exercise": _validate_exercise_create,
+    "user_metric_preference": _validate_metric_preference_create,
 }

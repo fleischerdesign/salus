@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { FoodItem, Meal, MealItem } from '$lib/db/types';
+  import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -10,67 +9,51 @@
   import MealGrid from '$components/food/MealGrid.svelte';
   import MealForm from '$components/food/MealForm.svelte';
   import { createMeal, deleteMeal } from '$lib/mutations/meal';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let meals = $state<Meal[]>([]);
-  let mealItems = $state<MealItem[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let formOpen = $state(false);
 
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
 
-  $effect(() => {
-    const date = selectedDate;
-    const sub1 = liveQuery(() =>
-      db.meal
-        .where('log_date')
-        .equals(date)
-        .filter((m) => !m.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
-      meals = v;
-    });
-    const sub2 = liveQuery(async () => {
-      const dayMeals = await db.meal
-        .where('log_date')
-        .equals(date)
-        .filter((m) => !m.deleted_at)
-        .toArray();
-      const mealIds = dayMeals.map((m) => m.id);
-      if (mealIds.length === 0) return [] as MealItem[];
-      return db.meal_item
-        .where('meal_id')
-        .anyOf(mealIds)
-        .filter((mi) => !mi.deleted_at)
-        .toArray();
-    }).subscribe((v) => {
-      mealItems = v;
-    });
-    const sub3 = liveQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray()).subscribe(
-      (v) => {
-        foodItems = v;
-        loading = false;
-      }
-    );
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
+  const mealsQuery = useQuery(() =>
+    db.meal
+      .where('log_date')
+      .equals(selectedDate)
+      .filter((m) => !m.deleted_at)
+      .toArray()
+  );
+  const meals = $derived(mealsQuery.value);
+  const mealItemsQuery = useQuery(async () => {
+    const dayMeals = await db.meal
+      .where('log_date')
+      .equals(selectedDate)
+      .filter((m) => !m.deleted_at)
+      .toArray();
+    const mealIds = dayMeals.map((m) => m.id);
+    if (mealIds.length === 0) return [] as MealItem[];
+    return db.meal_item
+      .where('meal_id')
+      .anyOf(mealIds)
+      .filter((mi) => !mi.deleted_at)
+      .toArray();
   });
+  const mealItems = $derived(mealItemsQuery.value);
+  const foodItemsQuery = useQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const isToday = $derived(selectedDate === today);
 
   const mealsForDate = $derived(
-    meals
+    (meals ?? [])
       .filter((m) => m.log_date === selectedDate && !m.deleted_at)
       .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
   );
 
   const mealItemsMap = $derived.by(() => {
     const map: Record<string, MealItem[]> = {};
-    for (const mi of mealItems) {
+    for (const mi of mealItems ?? []) {
       if (mi.deleted_at) continue;
       if (!map[mi.meal_id]) map[mi.meal_id] = [];
       map[mi.meal_id].push(mi);
@@ -80,7 +63,7 @@
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -218,5 +201,10 @@
     />
   {/if}
 
-  <MealForm open={formOpen} {foodItems} onSave={handleSave} onClose={() => (formOpen = false)} />
+  <MealForm
+    open={formOpen}
+    foodItems={foodItems ?? []}
+    onSave={handleSave}
+    onClose={() => (formOpen = false)}
+  />
 </div>

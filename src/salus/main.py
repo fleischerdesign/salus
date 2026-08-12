@@ -54,6 +54,9 @@ from salus.routers import (
 from salus.services.config import ConfigService
 from salus.services.event_bus import InMemoryEventBus
 from salus.services.background_ingestion import BackgroundIngestionService
+from salus.services.parser import FlexiblePayloadParser
+from salus.services.sharing import SharingService
+from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.services.achievement.service import AchievementService
 from salus.services.metric_definition import MetricDefinitionService
 from salus.services.mood import MoodService
@@ -118,7 +121,27 @@ async def lifespan(app: FastAPI):
 
     app.state.plugin_manager = plugin_manager
     app.state.event_bus = InMemoryEventBus()
-    app.state.background_ingestion = BackgroundIngestionService(lambda: Session(lifespan_engine))
+
+    def _build_webhook_service(session: Session) -> WebhookIngestionService:
+        from salus.repositories.measurement import MeasurementRepository
+        from salus.repositories.metric_definition import MetricDefinitionRepository
+        from salus.services.metric_type_mapping import MetricDefinitionMappingService
+
+        return WebhookIngestionService(
+            FlexiblePayloadParser(),
+            MeasurementRepository(session),
+            MetricDefinitionMappingService(MetricDefinitionRepository(session)),
+        )
+
+    def _build_sharing_service(uow) -> SharingService:
+        return SharingService.create(uow)
+
+    app.state.background_ingestion = BackgroundIngestionService(
+        lambda: Session(lifespan_engine),
+        lambda: FlexiblePayloadParser(),
+        _build_webhook_service,
+        _build_sharing_service,
+    )
 
     for trans_hook in plugin_manager.registry.translations:
         try:

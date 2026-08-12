@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { CommunityActivity } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -11,14 +9,16 @@
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let activities = liveQuery(() =>
+  const activitiesQuery = useQuery(() =>
     db.community_activity
       .toArray()
       .then((arr) =>
         arr.sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
       )
   );
+  const activities = $derived(activitiesQuery.value);
 
   const activityIcon: Record<string, string> = {
     workout: 'fitness-center',
@@ -44,11 +44,11 @@
     backUrl="/community"
   />
 
-  {#if $activities === undefined}
+  {#if activities === undefined}
     <div class="flex justify-center py-20">
       <Spinner size="lg" />
     </div>
-  {:else if $activities.length === 0}
+  {:else if activities.length === 0}
     <EmptyState
       icon="rss-feed"
       title="Your Feed is Quiet"
@@ -58,7 +58,7 @@
     </EmptyState>
   {:else}
     <div class="space-y-4">
-      {#each $activities ?? [] as act, i (act.id)}
+      {#each activities ?? [] as act, i (act.id)}
         <div in:fade={{ ...staggerFade(i) }}>
           <Card padding={false}>
             <div class="flex items-center gap-3 px-5 pt-4">

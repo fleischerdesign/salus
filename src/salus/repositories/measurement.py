@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import desc, func
-from sqlmodel import select
+from sqlmodel import col, select
 
 from salus.models.measurement import Measurement
 from salus.repositories.base import Repository
@@ -21,44 +21,6 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
     def __init__(self, session, registry: Optional["HookRegistry"] = None) -> None:
         super().__init__(session)
         self.registry = registry
-
-    def find_by_metric_type_paginated(
-        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
-    ) -> tuple[list[Measurement], int]:
-        stmt = select(Measurement).where(
-            Measurement.metric_code == metric_code,
-            Measurement.user_id == user_id,
-            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        )
-        count_stmt = (
-            select(func.count())
-            .select_from(Measurement)
-            .where(
-                Measurement.metric_code == metric_code,
-                Measurement.user_id == user_id,
-                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            )
-        )
-        total = self.session.exec(count_stmt).one()
-
-        stmt = stmt.order_by(desc(Measurement.start_time)).offset(offset).limit(limit)  # pyright: ignore[reportArgumentType]
-        results = list(self.session.exec(stmt).all())
-
-        if self.registry:
-            for synth in self.registry.metric_synthesizers:
-                try:
-                    synth_records = synth.synthesize(user_id, results)
-                    if synth_records:
-                        results.extend(
-                            [
-                                r
-                                for r in synth_records
-                                if r.metric_code == metric_code
-                            ]
-                        )
-                except Exception as e:
-                    logger.error(f"Error in metric synthesizer: {e}")
-        return results, total
 
     def count_by_metric_type(self, metric_code: str, user_id: str) -> int:
         count_stmt = (
@@ -86,6 +48,13 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
             .limit(1)
         )
         return self.session.exec(stmt).first()
+
+    def find_start_dates(self, user_id: str) -> list[date]:
+        stmt = select(col(Measurement.start_time)).where(
+            Measurement.user_id == user_id,
+            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        return [row.date() for row in self.session.exec(stmt).all()]
 
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None
@@ -125,6 +94,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         stmt = select(Measurement)
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
+        stmt = stmt.where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         if data_types:
             stmt = stmt.where(Measurement.data_type.in_(data_types))  # pyright: ignore[reportAttributeAccessIssue]
         if sources:
@@ -214,7 +184,11 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
     def find_recent_entries(self, user_id: str, limit: int = 20) -> list[Measurement]:
         stmt = (
             select(Measurement)
-            .where(Measurement.user_id == user_id, Measurement.source == "manual")
+            .where(
+                Measurement.user_id == user_id,
+                Measurement.source == "manual",
+                Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+            )
             .order_by(desc(Measurement.start_time))  # pyright: ignore[reportArgumentType]
             .limit(limit)
         )

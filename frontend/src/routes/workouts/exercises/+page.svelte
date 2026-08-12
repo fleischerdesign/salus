@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Exercise } from '$lib/db/types';
   import {
@@ -21,10 +20,12 @@
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let allExercises = liveQuery(() =>
+  const allExercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
+  const allExercises = $derived(allExercisesQuery.value);
 
   let searchQuery = $state('');
   let muscleFilter = $state('');
@@ -55,7 +56,7 @@
 
   let muscleOptions = $derived.by(() => {
     const muscles = new Set<string>();
-    for (const ex of $allExercises ?? []) {
+    for (const ex of allExercises ?? []) {
       for (const m of ex.primary_muscles?.split(',') ?? []) {
         const trimmed = m.trim();
         if (trimmed) muscles.add(trimmed.toLowerCase());
@@ -76,7 +77,7 @@
     const q = searchQuery.toLowerCase().trim();
     const m = muscleFilter.toLowerCase();
     const e = equipFilter.toLowerCase();
-    return ($allExercises ?? []).filter((ex) => {
+    return (allExercises ?? []).filter((ex) => {
       const matchesQuery = !q || ex.name.toLowerCase().includes(q);
       const matchesMuscle = !m || (ex.primary_muscles ?? '').toLowerCase().includes(m);
       const matchesEquip = !e || (ex.equipment ?? '').toLowerCase() === e;
@@ -211,17 +212,17 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$allExercises}
+  {#if !allExercises}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if filteredExercises.length === 0}
     <EmptyState
       title="No exercises found"
-      description={$allExercises.length === 0
+      description={(allExercises ?? []).length === 0
         ? 'Add exercises to your catalog.'
         : 'No exercises match your filters.'}
       icon="exercise"
     >
-      {#if $allExercises.length === 0}
+      {#if (allExercises ?? []).length === 0}
         <Btn variant="primary" onclick={openForm}>+ New Exercise</Btn>
       {/if}
     </EmptyState>

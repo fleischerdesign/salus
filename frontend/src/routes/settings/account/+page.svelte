@@ -3,7 +3,6 @@
   import { auth } from '$stores/auth.svelte';
   import { authConfig } from '$stores/authConfig.svelte';
   import { setLocaleState } from '$lib/api/headers';
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import {
     changePassword as doChangePassword,
@@ -15,9 +14,9 @@
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import RadioGroup from '$components/ui/RadioGroup.svelte';
   import Avatar from '$components/ui/Avatar.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
     google: {
@@ -47,10 +46,12 @@
     authConfig.load();
   });
 
-  let userProfiles = liveQuery(() => db.user_profile.toArray());
-  let apiTokens = liveQuery(() =>
+  const userProfilesQuery = useQuery(() => db.user_profile.toArray());
+  const userProfiles = $derived(userProfilesQuery.value);
+  const apiTokensQuery = useQuery(() =>
     db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false))
   );
+  const apiTokens = $derived(apiTokensQuery.value);
 
   let currentPassword = $state('');
   let newPassword = $state('');
@@ -62,14 +63,7 @@
   let newToken = $state('');
   let tokenCreating = $state(false);
 
-  let theme = $state(localStorage.getItem('salus_theme') || 'system');
   let locale = $state(localStorage.getItem('salus_locale') || 'en');
-
-  const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'system', label: 'System' }
-  ];
 
   const localeOptions = [
     { value: 'en', label: 'English' },
@@ -77,20 +71,6 @@
     { value: 'es', label: 'Español' },
     { value: 'fr', label: 'Français' }
   ];
-
-  function setTheme(val: string) {
-    theme = val;
-    localStorage.setItem('salus_theme', val);
-    if (val === 'dark') document.documentElement.classList.add('dark');
-    else if (val === 'light') document.documentElement.classList.remove('dark');
-    else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-  }
 
   function setLocale(val: string) {
     locale = val;
@@ -143,8 +123,8 @@
 </script>
 
 <div class="space-y-6">
-  {#if $userProfiles && $userProfiles.length > 0}
-    {@const profile = $userProfiles[0]}
+  {#if userProfiles && (userProfiles ?? []).length > 0}
+    {@const profile = userProfiles[0]}
     <!-- User Profile Header -->
     <div class="flex items-center gap-4 rounded-xl border border-surface-200 bg-surface-0 p-5">
       <Avatar name={profile.display_name || auth.user?.username} size="lg" />
@@ -222,13 +202,13 @@
           </div>
         {/if}
 
-        {#if $apiTokens && $apiTokens.filter((t) => t.is_active).length > 0}
+        {#if apiTokens && (apiTokens ?? []).filter((t) => t.is_active).length > 0}
           <div class="border-t border-surface-100 pt-3">
             <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
               Active Tokens
             </p>
             <div class="space-y-2">
-              {#each $apiTokens.filter((t) => t.is_active) as t}
+              {#each (apiTokens ?? []).filter((t) => t.is_active) as t}
                 <div
                   class="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2"
                 >

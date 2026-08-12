@@ -1,5 +1,6 @@
 <script lang="ts">
-  import Dexie, { liveQuery } from 'dexie';
+  import Dexie from 'dexie';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
   import type { Measurement as Entry, MetricGroup } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
@@ -34,114 +35,107 @@
 
   const metricId = $derived(page.params.id);
 
-  let loading = $state(true);
   let isGroup = $state(false);
   let group = $state<MetricGroup | null>(null);
   let groupMetrics = $state<MetricWithPreference[]>([]);
   let metricDetail = $state<MetricWithPreference | null>(null);
 
-  $effect(() => {
+  const detailDataQuery = useQuery(async () => {
     const id = metricId;
-    loading = true;
-    (async () => {
-      try {
-        if (!id) return;
-        const g = await db.metric_group.get(id);
-        if (g) {
-          isGroup = true;
-          group = g;
-          const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === g.key);
-          defs.sort((a, b) => a.sort_order - b.sort_order);
-          const prefs = await db.user_metric_preference.toArray();
-          groupMetrics = mergeMetricPrefs(defs, prefs);
-          metricDetail = null;
-        } else {
-          isGroup = false;
-          group = null;
-          groupMetrics = [];
-          const defs = await db.metric_definition.toArray();
-          const prefs = await db.user_metric_preference.toArray();
-          const merged = mergeMetricPrefs(defs, prefs);
-          metricDetail = merged.find((m) => m.code === id) || null;
-        }
-      } finally {
-        loading = false;
-      }
-    })();
+    if (!id) return null;
+    const g = await db.metric_group.get(id);
+    if (g) {
+      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === g.key);
+      defs.sort((a, b) => a.sort_order - b.sort_order);
+      const prefs = await db.user_metric_preference.toArray();
+      return {
+        isGroup: true,
+        group: g,
+        groupMetrics: mergeMetricPrefs(defs, prefs),
+        metricDetail: null
+      };
+    }
+    const defs = await db.metric_definition.toArray();
+    const prefs = await db.user_metric_preference.toArray();
+    const merged = mergeMetricPrefs(defs, prefs);
+    return {
+      isGroup: false,
+      group: null,
+      groupMetrics: [],
+      metricDetail: merged.find((m) => m.code === id) || null
+    };
+  });
+  const detailData = $derived(detailDataQuery.value);
+  const loading = $derived(detailDataQuery.loading);
+
+  $effect(() => {
+    const d = detailData;
+    if (d) {
+      isGroup = d.isGroup;
+      group = d.group;
+      groupMetrics = d.groupMetrics;
+      metricDetail = d.metricDetail;
+    }
   });
 
-  let overviews = liveQuery(() => fetchMetricOverview());
+  const overviewsQuery = useQuery(() => fetchMetricOverview());
+  const overviews = $derived(overviewsQuery.value);
 
-  let entriesLoading = $state(true);
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
-  $effect(() => {
-    const id = metricId;
-    const isGrp = isGroup;
-    const page = pageNum;
-    if (!id || isGrp) {
-      pagedEntries = [];
-      totalEntriesCount = 0;
-      entriesLoading = false;
-      return;
-    }
-    entriesLoading = true;
-    const sub = liveQuery(async () => {
-      const stat = await getMetricStat(id);
-      const rawItems = await db.measurement
-        .where('[metric_code+start_time]')
-        .between([id, Dexie.minKey], [id, Dexie.maxKey])
-        .reverse()
-        .offset((page - 1) * perPage)
-        .limit(perPage)
-        .toArray();
+  const pagedDataQuery = useQuery(async () => {
+    if (!metricId || isGroup) return { count: 0, items: [] };
+    const stat = await getMetricStat(metricId);
+    const rawItems = await db.measurement
+      .where('[metric_code+start_time]')
+      .between([metricId, Dexie.minKey], [metricId, Dexie.maxKey])
+      .reverse()
+      .offset((pageNum - 1) * perPage)
+      .limit(perPage)
+      .toArray();
 
-      const items = rawItems.filter((e) => !e.deleted_at);
-      return { count: stat?.entry_count ?? 0, items };
-    }).subscribe((res) => {
-      totalEntriesCount = res.count;
-      pagedEntries = res.items;
-      entriesLoading = false;
-    });
-    return () => sub.unsubscribe();
+    return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
+  });
+  const pagedData = $derived(pagedDataQuery.value);
+  const entriesLoading = $derived(pagedDataQuery.loading);
+
+  $effect(() => {
+    if (pagedData) {
+      totalEntriesCount = pagedData.count;
+      pagedEntries = pagedData.items;
+    }
   });
 
   let entriesForGroup = $state<Entry[]>([]);
   let entriesForGroupLoading = $state(true);
 
-  $effect(() => {
+  const groupEntriesDataQuery = useQuery(async () => {
     const gKey = group?.key;
-    const mode = group?.input_mode;
-    if (!isGroup || !gKey || mode !== 'combined') {
-      entriesForGroup = [];
+    if (!isGroup || !gKey || group?.input_mode !== 'combined') return [] as Entry[];
+    const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
+    const codes = defs.map((d) => d.code);
+    if (codes.length === 0) return [] as Entry[];
+    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+    const results = await Promise.all(
+      codes.map((code) =>
+        db.measurement
+          .where('[metric_code+start_time]')
+          .between([code, cutoff], [code, Dexie.maxKey])
+          .filter((e) => !e.deleted_at)
+          .toArray()
+      )
+    );
+    const all = results.flat();
+    return all.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+  });
+  const groupEntriesData = $derived(groupEntriesDataQuery.value);
+
+  $effect(() => {
+    if (groupEntriesData) {
+      entriesForGroup = groupEntriesData;
       entriesForGroupLoading = false;
-      return;
     }
-    entriesForGroupLoading = true;
-    const subscription = liveQuery(async () => {
-      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-      const codes = defs.map((d) => d.code);
-      if (codes.length === 0) return [] as Entry[];
-      const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-      const results = await Promise.all(
-        codes.map((code) =>
-          db.measurement
-            .where('[metric_code+start_time]')
-            .between([code, cutoff], [code, Dexie.maxKey])
-            .filter((e) => !e.deleted_at)
-            .toArray()
-        )
-      );
-      const all = results.flat();
-      return all.sort(
-        (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
-      );
-    }).subscribe((v) => {
-      entriesForGroup = v;
-      entriesForGroupLoading = false;
-    });
-    return () => subscription.unsubscribe();
   });
 
   let pairedEntries = $derived(
@@ -175,45 +169,42 @@
     { code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[]
   >([]);
 
-  $effect(() => {
+  const chartDataQuery = useQuery(async () => {
     const gKey = group?.key;
-    if (!isGroup || !gKey || group?.input_mode !== 'combined') {
-      chartDataForGroup = [];
-      return;
-    }
-    const subscription = liveQuery(async () => {
-      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-      const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-      const result: {
-        code: string;
-        name: string;
-        color: string;
-        data: (number | null)[];
-        labels: string[];
-      }[] = [];
-      for (const d of defs) {
-        const clean = await db.measurement
-          .where('[metric_code+start_time]')
-          .between([d.code, cutoff], [d.code, Dexie.maxKey])
-          .filter((e) => !e.deleted_at)
-          .toArray();
-        if (clean.length > 0) {
-          result.push({
-            code: d.code,
-            name: d.name,
-            color: '#4f46e5',
-            labels: clean.map((e) => new Date(e.start_time).toLocaleDateString()),
-            data: clean.map(
-              (e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null)
-            )
-          });
-        }
+    if (!isGroup || !gKey || group?.input_mode !== 'combined') return [];
+    const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
+    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+    const result: {
+      code: string;
+      name: string;
+      color: string;
+      data: (number | null)[];
+      labels: string[];
+    }[] = [];
+    for (const d of defs) {
+      const clean = await db.measurement
+        .where('[metric_code+start_time]')
+        .between([d.code, cutoff], [d.code, Dexie.maxKey])
+        .filter((e) => !e.deleted_at)
+        .toArray();
+      if (clean.length > 0) {
+        result.push({
+          code: d.code,
+          name: d.name,
+          color: '#4f46e5',
+          labels: clean.map((e) => new Date(e.start_time).toLocaleDateString()),
+          data: clean.map(
+            (e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null)
+          )
+        });
       }
-      return result;
-    }).subscribe((v) => {
-      chartDataForGroup = v;
-    });
-    return () => subscription.unsubscribe();
+    }
+    return result;
+  });
+  const chartData = $derived(chartDataQuery.value);
+
+  $effect(() => {
+    if (chartData) chartDataForGroup = chartData;
   });
 
   let pageNum = $state(1);
@@ -222,7 +213,7 @@
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
   let trend = $derived(useTrend(metricDetail?.data_type ?? '', range));
-  let overview = $derived($overviews ? overviewForMetric($overviews, metricId!) : null);
+  let overview = $derived(overviews ? overviewForMetric(overviews, metricId!) : null);
 
   let allGroupMetrics = $derived(isGroup ? groupMetrics : []);
 
@@ -430,7 +421,7 @@
     {#if groupMetrics.length > 0}
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {#each groupMetrics as m, i (m.code)}
-          {@const ov = overviewForMetric($overviews ?? [], m.code)}
+          {@const ov = overviewForMetric(overviews ?? [], m.code)}
           <a href="/entries/{g.key}/{m.code}" class="no-underline" in:fade={{ ...staggerFade(i) }}>
             <Card padding={false} hoverable>
               {#snippet header()}

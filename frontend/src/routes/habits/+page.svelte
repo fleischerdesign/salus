@@ -1,24 +1,27 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { Habit, HabitLog } from '$lib/db/types';
+  import type { Habit } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import HabitGrid from '$components/habits/HabitGrid.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
-  import { toggleHabit, createHabit as createHabitMut, deleteHabit } from '$lib/mutations/wellness';
+  import { toggleHabit, createHabit as createHabitMut } from '$lib/mutations/wellness';
   import Icon from '$components/ui/Icon.svelte';
   import Card from '$components/ui/Card.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let habits = $state<Habit[]>([]);
-  let logs = $state<HabitLog[]>([]);
+  const habitsQuery = useQuery(() => db.habit.toArray());
+  const habits = $derived(habitsQuery.value);
+  const logsQuery = useQuery(() => db.habit_log.toArray());
+  const logs = $derived(logsQuery.value);
+  const loading = $derived(logsQuery.loading);
+
   let formOpen = $state(false);
   let editTarget = $state<Habit | null>(null);
 
   let stats = $derived(
     Object.fromEntries(
-      habits.map((h) => {
-        const hLogs = logs.filter((l) => l.habit_id === h.id && l.completed);
+      (habits ?? []).map((h) => {
+        const hLogs = (logs ?? []).filter((l) => l.habit_id === h.id && l.completed);
         const dates = [...new Set(hLogs.map((l) => l.log_date))].sort().reverse();
         const today = new Date().toISOString().split('T')[0];
         let currentStreak = 0;
@@ -40,32 +43,18 @@
     return dt.toISOString().split('T')[0];
   }
 
-  $effect(() => {
-    const sub1 = liveQuery(() => db.habit.toArray()).subscribe((v) => {
-      habits = v;
-    });
-    const sub2 = liveQuery(() => db.habit_log.toArray()).subscribe((v) => {
-      logs = v;
-      loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-    };
-  });
-
   async function handleToggle(habitId: string) {
     await toggleHabit(habitId);
   }
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createHabitMut>[0]) {
     await createHabitMut(data);
     formOpen = false;
     editTarget = null;
   }
 
-  const activeHabits = $derived(habits.filter((h) => !h.is_archived));
-  const archivedHabits = $derived(habits.filter((h) => h.is_archived));
+  const activeHabits = $derived((habits ?? []).filter((h) => !h.is_archived));
+  const archivedHabits = $derived((habits ?? []).filter((h) => h.is_archived));
 </script>
 
 <svelte:head><title>Salus — Habits</title></svelte:head>

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import {
     toggleAdmin as toggleAdminMutation,
     toggleActive as toggleActiveMutation,
@@ -11,8 +10,10 @@
   import Card from '$components/ui/Card.svelte';
   import Table from '$components/ui/Table.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let users = liveQuery(() => db.admin_user.toArray());
+  const usersQuery = useQuery(() => db.admin_user.toArray());
+  const users = $derived(usersQuery.value);
 
   async function toggleAdmin(user: AdminUser) {
     await toggleAdminMutation(user.id);
@@ -41,7 +42,7 @@
   ];
 
   const userRows = $derived(
-    ($users ?? []).map((u) => ({
+    (users ?? []).map((u) => ({
       username: u.username,
       email: u.email ?? '—',
       is_admin: u.is_admin ? 'Yes' : 'No',
@@ -55,14 +56,14 @@
 </script>
 
 <div class="space-y-6">
-  {#if !$users}
+  {#if !users}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else}
     <Card padding={false}>
       {#snippet header()}
         <span class="text-sm font-semibold text-surface-900">Users</span>
       {/snippet}
-      {#if ($users ?? []).length > 0}
+      {#if (users ?? []).length > 0}
         <Table columns={userColumns} rows={userRows} {actions} />
       {:else}
         <div class="px-5 py-8 text-center text-sm text-surface-400">No users found.</div>

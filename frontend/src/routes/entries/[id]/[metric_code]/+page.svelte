@@ -1,10 +1,12 @@
 <script lang="ts">
-  import Dexie, { liveQuery } from 'dexie';
+  import Dexie from 'dexie';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
   import type { Measurement as Entry } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import { useTrend } from '$lib/analytics/views/analytics';
+  import { getMetricStat } from '$lib/db/metric-stats';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import {
@@ -34,71 +36,60 @@
   const parentGroupKey = $derived(page.params.id);
   const childMetricCode = $derived(page.params.metric_code);
 
-  let loading = $state(true);
   let metric = $state<MetricWithPreference | null>(null);
   let settingsModalOpen = $state(false);
 
-  $effect(() => {
+  const metricDataQuery = useQuery(async () => {
     const code = childMetricCode;
-    loading = true;
-    (async () => {
-      try {
-        if (!code) return;
-        const def = await db.metric_definition.get(code);
-        if (def) {
-          const prefs = await db.user_metric_preference.where('metric_code').equals(code).first();
-          metric = {
-            ...def,
-            color: prefs?.color ?? '#4f46e5',
-            icon: prefs?.icon ?? 'monitoring',
-            widget_size: prefs?.widget_size ?? 'medium',
-            widget_enabled: prefs?.widget_enabled ?? false,
-            enabled: prefs?.enabled ?? true,
-            position: prefs?.position ?? 0
-          };
-        }
-      } finally {
-        loading = false;
-      }
-    })();
+    if (!code) return null;
+    const def = await db.metric_definition.get(code);
+    if (!def) return null;
+    const prefs = await db.user_metric_preference.where('metric_code').equals(code).first();
+    return {
+      ...def,
+      color: prefs?.color ?? '#4f46e5',
+      icon: prefs?.icon ?? 'monitoring',
+      widget_size: prefs?.widget_size ?? 'medium',
+      widget_enabled: prefs?.widget_enabled ?? false,
+      enabled: prefs?.enabled ?? true,
+      position: prefs?.position ?? 0
+    };
+  });
+  const metricData = $derived(metricDataQuery.value);
+  const loading = $derived(metricDataQuery.loading);
+
+  $effect(() => {
+    if (metricData) metric = metricData;
   });
 
-  let overviews = liveQuery(() => fetchMetricOverview());
+  const overviewsQuery = useQuery(() => fetchMetricOverview());
+  const overviews = $derived(overviewsQuery.value);
 
-  let entriesLoading = $state(true);
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
-  import { getMetricStat } from '$lib/db/metric-stats';
+  const pagedDataQuery = useQuery(async () => {
+    const code = childMetricCode;
+    if (!code) return { count: 0, items: [] };
+    const stat = await getMetricStat(code);
+    const rawItems = await db.measurement
+      .where('[metric_code+start_time]')
+      .between([code, Dexie.minKey], [code, Dexie.maxKey])
+      .reverse()
+      .offset((pageNum - 1) * perPage)
+      .limit(perPage)
+      .toArray();
+
+    return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
+  });
+  const pagedData = $derived(pagedDataQuery.value);
+  const entriesLoading = $derived(pagedDataQuery.loading);
 
   $effect(() => {
-    const code = childMetricCode;
-    const page = pageNum;
-    if (!code) {
-      pagedEntries = [];
-      totalEntriesCount = 0;
-      entriesLoading = false;
-      return;
+    if (pagedData) {
+      totalEntriesCount = pagedData.count;
+      pagedEntries = pagedData.items;
     }
-    entriesLoading = true;
-    const sub = liveQuery(async () => {
-      const stat = await getMetricStat(code);
-      const rawItems = await db.measurement
-        .where('[metric_code+start_time]')
-        .between([code, Dexie.minKey], [code, Dexie.maxKey])
-        .reverse()
-        .offset((page - 1) * perPage)
-        .limit(perPage)
-        .toArray();
-
-      const items = rawItems.filter((e) => !e.deleted_at);
-      return { count: stat?.entry_count ?? 0, items };
-    }).subscribe((res) => {
-      totalEntriesCount = res.count;
-      pagedEntries = res.items;
-      entriesLoading = false;
-    });
-    return () => sub.unsubscribe();
   });
 
   let pageNum = $state(1);
@@ -107,7 +98,7 @@
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
   let trend = $derived(useTrend(metric?.data_type ?? '', range));
-  let overview = $derived($overviews ? overviewForMetric($overviews, childMetricCode!) : null);
+  let overview = $derived(overviews ? overviewForMetric(overviews, childMetricCode!) : null);
 
   let showEntryModal = $state(false);
   let editingEntry = $state<Entry | null>(null);

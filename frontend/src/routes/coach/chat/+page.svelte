@@ -1,28 +1,26 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { generateInsight } from '$lib/mutations/misc';
-  import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-  import type { Insight } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Spinner from '$components/ui/Spinner.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let date = $state(new Date().toISOString().slice(0, 10));
   let generating = $state(false);
 
-  let insight = liveQuery(() =>
+  const insightQuery = useQuery(() =>
     db.insight
       .where('query_date')
       .equals(date)
       .first()
       .then((i) => (i && !i.deleted_at ? i : null))
   );
+  const insight = $derived(insightQuery.value);
 
-  let history = liveQuery(() =>
+  const historyQuery = useQuery(() =>
     db.insight
       .toArray()
       .then((arr) =>
@@ -31,6 +29,7 @@
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       )
   );
+  const history = $derived(historyQuery.value);
 
   async function generate() {
     generating = true;
@@ -136,7 +135,7 @@
             </div>
           </div>
         </Card>
-      {:else if $insight}
+      {:else if insight}
         <Card padding={false}>
           <div class="h-1 bg-gradient-to-r from-primary-500 to-primary-600"></div>
           <div class="px-6 pt-5">
@@ -155,20 +154,22 @@
               <span
                 class="rounded-full bg-surface-100 px-2.5 py-0.5 text-xs font-medium text-surface-500"
               >
-                {$insight.query_date}
+                {insight.query_date}
               </span>
             </div>
           </div>
           <div class="px-6 py-4">
             <div class="text-sm leading-relaxed text-surface-700">
-              {@html renderMarkdown($insight.content)}
+              <!-- renderMarkdown escapes the content before wrapping it in static tags -->
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+              {@html renderMarkdown(insight.content)}
             </div>
           </div>
           <div class="flex items-center justify-between border-t border-surface-100 px-6 py-3">
             <span class="text-xs text-surface-400">
               Model:
               <code class="rounded bg-surface-50 px-1 py-0.5 text-[11px] text-surface-500">
-                {$insight.model_used}
+                {insight.model_used}
               </code>
             </span>
             <Btn variant="ghost" size="sm" loading={generating} onclick={generate}>
@@ -207,13 +208,13 @@
           </div>
         {/snippet}
 
-        {#if !$history}
+        {#if !history}
           <div class="px-4 py-8 text-center">
             <p class="text-sm text-surface-400">Loading...</p>
           </div>
-        {:else if $history.length > 0}
+        {:else if (history ?? []).length > 0}
           <div class="divide-y divide-surface-100">
-            {#each $history as item (item.id)}
+            {#each history ?? [] as item (item.id)}
               {@const preview = item.content.slice(0, 80)}
               <ListItem
                 hoverable

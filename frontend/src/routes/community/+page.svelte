@@ -1,18 +1,19 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import Card from '$components/ui/Card.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let counts = liveQuery(async () => {
+  const countsQuery = useQuery(async () => {
     const [connections, challenges] = await Promise.all([
       db.sharing_relationship.filter((r) => !r.deleted_at).count(),
       db.leaderboard_group.filter((g) => !g.deleted_at).count()
     ]);
     return { connections, challenges };
   });
+  const counts = $derived(countsQuery.value);
 
   const cards = [
     {
@@ -26,7 +27,7 @@
       icon: 'emoji-events',
       title: 'Leaderboard',
       description: 'Compete with connections and track your health rankings.',
-      count: () => $counts?.challenges ?? null,
+      count: () => counts?.challenges ?? null,
       countLabel: 'active challenges'
     },
     {
@@ -34,7 +35,7 @@
       icon: 'groups',
       title: 'Connections',
       description: 'Manage your peer-to-peer health data sharing relationships.',
-      count: () => $counts?.connections ?? null,
+      count: () => counts?.connections ?? null,
       countLabel: 'connections'
     }
   ] as const;
@@ -50,7 +51,7 @@
     iconColor="#4f46e5"
   />
 
-  {#if !$counts}
+  {#if !counts}
     <div class="flex justify-center py-16">
       <Spinner size="lg" />
     </div>

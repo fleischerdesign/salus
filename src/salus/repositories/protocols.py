@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Protocol, TypeVar, runtime_checkable
 
+from salus.services.constants import DEDUP_TTL_HOURS
 from salus.models.api_token import ApiToken
 from salus.models.dashboard import DashboardWidget
 from salus.models.goal import Goal
@@ -88,6 +89,8 @@ class IUserIdentityRepository(IRepository[UserIdentity], Protocol):
 
 @runtime_checkable
 class IMeasurementRepository(IRepository[Measurement], Protocol):
+    def find_start_dates(self, user_id: str) -> list[date]: ...
+
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None
     ) -> list[Measurement]: ...
@@ -116,15 +119,9 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
         self, user_id: str, limit: int = 20
     ) -> list[Measurement]: ...
 
-    def find_by_metric_type_paginated(
-        self, metric_code: str, user_id: str, offset: int = 0, limit: int = 25
-    ) -> tuple[list[Measurement], int]: ...
-
     def find_by_external_id(
         self, external_id: str, source: str | None = None
     ) -> Measurement | None: ...
-
-    def count_by_metric_type(self, metric_code: str, user_id: str) -> int: ...
 
     def get_latest_by_metric_type(
         self, metric_code: str, user_id: str
@@ -290,6 +287,8 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
 
     def find_all_by_user(self, user_id: str) -> list[WorkoutSession]: ...
 
+    def find_completed_dates(self, user_id: str) -> list[date]: ...
+
     def count_completed_in_range(
         self, user_id: str, since: "datetime", until: "datetime"
     ) -> int: ...
@@ -382,7 +381,7 @@ class INotificationRepository(IRepository[Notification], Protocol):
 
 @runtime_checkable
 class ISyncPushLogRepository(IRepository[SyncPushLog], Protocol):
-    def cleanup_expired(self, ttl_hours: int = 24) -> int: ...
+    def cleanup_expired(self, ttl_hours: int = DEDUP_TTL_HOURS) -> int: ...
 
     def find_by_client_ids(self, client_ids: list[str]) -> list[SyncPushLog]: ...
 
@@ -423,6 +422,8 @@ class IHabitLogRepository(IRepository[HabitLog], Protocol):
 
     def find_all_by_user(self, user_id: str) -> list[HabitLog]: ...
 
+    def find_completed_dates_by_user(self, user_id: str) -> dict[str, list[date]]: ...
+
 
 @runtime_checkable
 class IMoodTagRepository(IRepository[MoodTag], Protocol):
@@ -431,6 +432,8 @@ class IMoodTagRepository(IRepository[MoodTag], Protocol):
 
 @runtime_checkable
 class IMoodEntryRepository(IRepository[MoodEntry], Protocol):
+    def find_dates(self, user_id: str) -> list[date]: ...
+
     def find_by_user(self, user_id: str) -> list[MoodEntry]: ...
 
     def find_by_user_range(self, user_id: str, since: date, until: date) -> list[MoodEntry]: ...

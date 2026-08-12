@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 
 from salus.models import DataType
@@ -38,40 +36,3 @@ class MetricGroupResponse(BaseModel):
     description: str | None = None
     input_mode: str
     metrics: list[GroupMetricResponse]
-
-
-class EntryResponse(BaseModel):
-    id: str
-    metric_code: str
-    value: str
-    timestamp: datetime
-    notes: str | None
-
-
-class EntryUpdate(BaseModel):
-    value: str | None = None
-    timestamp: datetime | None = None
-    notes: str | None = None
-
-
-class MetricOverviewResponse(BaseModel):
-    metric_id: str
-    latest_value: str | None
-    latest_date: str | None
-    entry_count: int
-
-
-class EntryListResponse(BaseModel):
-    entries: list[EntryResponse]
-    total: int
-    page: int
-    per_page: int
-    total_pages: int
-
-
-class HealthRecordResponse(BaseModel):
-    id: str
-    data_type: str
-    start_time: str
-    end_time: str
-    value: str

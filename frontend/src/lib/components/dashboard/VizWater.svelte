@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { createMeasurement } from '$lib/mutations/measurement';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   // Query water metric and today's measurements
-  const waterData = liveQuery(async () => {
+  const waterDataQuery = useQuery(async () => {
     const metric = await db.metric_definition.where('source_data_type').equals('water').first();
     if (!metric) return { total: 0, goal: 2500, metricCode: '' };
 
@@ -31,10 +31,11 @@
       metricCode: metric.code
     };
   });
+  const waterData = $derived(waterDataQuery.value);
 
-  let total = $derived($waterData?.total ?? 0);
-  let goal = $derived($waterData?.goal ?? 2500);
-  let metricCode = $derived($waterData?.metricCode ?? '');
+  let total = $derived(waterData?.total ?? 0);
+  let goal = $derived(waterData?.goal ?? 2500);
+  let metricCode = $derived(waterData?.metricCode ?? '');
 
   let percent = $derived(Math.min(100, Math.round((total / goal) * 100)));
 

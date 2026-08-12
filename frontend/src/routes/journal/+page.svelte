@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -7,29 +6,17 @@
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import type { JournalEntry } from '$lib/db/types';
-  import { createJournalEntry } from '$lib/mutations/wellness';
 
-  let loading = $state(true);
-  let entries = $state<JournalEntry[]>([]);
+  import { createJournalEntry } from '$lib/mutations/wellness';
+  import { useQuery } from '$lib/db/use-query.svelte';
+
   let title = $state('');
   let content = $state('');
   let saving = $state(false);
 
-  $effect(() => {
-    const sub = liveQuery(() =>
-      db.journal_entry.orderBy('entry_date').reverse().toArray()
-    ).subscribe({
-      next: (v) => {
-        entries = v;
-        loading = false;
-      },
-      error: () => {
-        loading = false;
-      }
-    });
-    return () => sub.unsubscribe();
-  });
+  const entriesQuery = useQuery(() => db.journal_entry.orderBy('entry_date').reverse().toArray());
+  const entries = $derived(entriesQuery.value);
+  const loading = $derived(entriesQuery.loading);
 
   async function handleSubmit() {
     if (!content.trim()) return;
@@ -86,9 +73,9 @@
         <div class="h-20 animate-pulse rounded-xl bg-surface-100"></div>
       {/each}
     </div>
-  {:else if entries.length > 0}
+  {:else if (entries ?? []).length > 0}
     <div class="space-y-3">
-      {#each entries.slice(0, 20) as entry (entry.id)}
+      {#each (entries ?? []).slice(0, 20) as entry (entry.id)}
         <Card padding={false}>
           <div class="p-4">
             {#if entry.title}

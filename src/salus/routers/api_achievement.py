@@ -6,14 +6,10 @@ from salus.schemas.achievement import (
     AchievementDefinitionResponse,
     AchievementWithProgress,
     AllStreaksResponse,
-    StreakResponse,
     UserAchievementResponse,
 )
 from salus.services._helpers import uid
 from salus.services.achievement.service import AchievementService
-from salus.services.achievement.streak import compute_streak
-from salus.repositories.unit_of_work import IUnitOfWork
-from salus.dependencies import get_unit_of_work
 
 router = APIRouter(prefix="/api/v1")
 
@@ -86,67 +82,6 @@ async def list_unlocked(
 @router.get("/streaks", response_model=AllStreaksResponse)
 async def get_all_streaks(
     current_user: User = Depends(get_current_user),
-    uow: IUnitOfWork = Depends(get_unit_of_work),
     ach_svc: AchievementService = Depends(get_achievement_service),
 ):
-    user_id = uid(current_user)
-    from datetime import date
-    today = date.today()
-
-    from sqlmodel import col, select
-    from salus.models.measurement import Measurement
-    from salus.models.mood import MoodEntry
-    from salus.models.workout import WorkoutSession
-
-    session = uow.session
-
-    meas_rows = session.exec(
-        select(col(Measurement.start_time)).where(
-            Measurement.user_id == user_id,
-            Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        )
-    ).all()
-    tracking_dates = [r.date() for r in meas_rows if hasattr(r, "date")]
-    tr_current, tr_longest = compute_streak(tracking_dates, today)
-
-    mood_rows = session.exec(
-        select(col(MoodEntry.entry_date)).where(
-            MoodEntry.user_id == user_id,
-            MoodEntry.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        )
-    ).all()
-    mood_dates = list(mood_rows)
-    mo_current, mo_longest = compute_streak(mood_dates, today)
-
-    workout_rows = session.exec(
-        select(col(WorkoutSession.completed_at)).where(
-            WorkoutSession.user_id == user_id,
-            col(WorkoutSession.completed_at).isnot(None),
-            WorkoutSession.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        )
-    ).all()
-    workout_dates = [r.date() for r in workout_rows if r is not None and hasattr(r, "date")]
-    wo_current, wo_longest = compute_streak(workout_dates, today)
-
-    from salus.models.habit import Habit, HabitLog
-    habits = session.exec(
-        select(Habit).where(Habit.user_id == user_id, Habit.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-    ).all()
-    habit_streaks: dict[str, StreakResponse] = {}
-    for h in habits:
-        logs = session.exec(
-            select(col(HabitLog.log_date)).where(
-                HabitLog.habit_id == h.id,
-                HabitLog.completed == True,  # noqa: E712
-                HabitLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            )
-        ).all()
-        hc, hl = compute_streak(list(logs), today)
-        habit_streaks[h.id or ""] = StreakResponse(current=hc, longest=hl, total_entries=len(list(logs)))
-
-    return AllStreaksResponse(
-        tracking=StreakResponse(current=tr_current, longest=tr_longest, total_entries=len(tracking_dates)),
-        mood=StreakResponse(current=mo_current, longest=mo_longest, total_entries=len(mood_dates)),
-        habits=habit_streaks,
-        workout=StreakResponse(current=wo_current, longest=wo_longest, total_entries=len(workout_dates)),
-    )
+    return AllStreaksResponse(**ach_svc.get_streaks(uid(current_user)))

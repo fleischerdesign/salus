@@ -4,12 +4,11 @@
   import { markAllNotificationsRead } from '$lib/mutations/notification';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
-  import type { Notification } from '$lib/db/types';
 
   let open = $state(false);
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  const { value: notifications = [] } = useQuery(() =>
+  const notificationsQuery = useQuery(() =>
     db.notification
       .filter((n) => !n.deleted_at)
       .toArray()
@@ -17,6 +16,7 @@
         arr.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       )
   );
+  const notifications = $derived(notificationsQuery.value ?? []);
 
   let unreadList = $derived(notifications.filter((n) => !n.is_read));
   let unreadCount = $derived(unreadList.length);

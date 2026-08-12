@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
-from salus.exceptions import ForbiddenError, NotFoundError
+from salus.exceptions import ConflictError, ForbiddenError, NotFoundError
+from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
 from salus.models.workout import (
     Exercise,
     WorkoutPlan,
@@ -31,7 +32,7 @@ class WorkoutService:
             # Check if name is taken
             existing = self.uow.exercises.find_by_name(data.name)
             if existing:
-                raise ValueError(f"Exercise with name '{data.name}' already exists.")
+                raise ConflictError(f"Exercise with name '{data.name}' already exists.")
 
             ex = Exercise(
                 name=data.name,
@@ -58,7 +59,7 @@ class WorkoutService:
             # Check if name is taken by another exercise
             existing = self.uow.exercises.find_by_name(data.name)
             if existing and existing.id != exercise_id:
-                raise ValueError(f"Exercise with name '{data.name}' already exists.")
+                raise ConflictError(f"Exercise with name '{data.name}' already exists.")
 
             ex.name = data.name
             ex.equipment = data.equipment
@@ -106,7 +107,7 @@ class WorkoutService:
             # Add plan exercises
             plan_id = plan.id
             if plan_id is None:
-                raise ValueError("Plan was not persisted correctly.")
+                raise RuntimeError("Plan was not persisted correctly.")
 
             for item in data.exercises:
                 ex = self.uow.exercises.get_by_id(item.exercise_id)
@@ -171,7 +172,7 @@ class WorkoutService:
             # Replace plan exercises
             plan_pk = plan.id
             if plan_pk is None:
-                raise ValueError("Plan was not persisted correctly.")
+                raise RuntimeError("Plan was not persisted correctly.")
 
             new_exercises = []
             for item in data.exercises:
@@ -250,7 +251,7 @@ class WorkoutService:
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
                 if session.id is None:
-                    raise ValueError("Workout session has no persisted ID")
+                    raise RuntimeError("Workout session has no persisted ID")
                 session_id = session.id
             else:
                 session = self.uow.workout_sessions.get_by_id(session_id)
@@ -277,7 +278,7 @@ class WorkoutService:
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
                 if session.id is None:
-                    raise ValueError("Workout session has no persisted ID")
+                    raise RuntimeError("Workout session has no persisted ID")
                 session_id = session.id
             else:
                 session = self.uow.workout_sessions.get_by_id(session_id)
@@ -299,7 +300,7 @@ class WorkoutService:
                 if not session:
                     raise NotFoundError("No active workout session found for this user.")
                 if session.id is None:
-                    raise ValueError("Workout session has no persisted ID")
+                    raise RuntimeError("Workout session has no persisted ID")
                 session_id = session.id
             else:
                 session = self.uow.workout_sessions.get_by_id(session_id)
@@ -355,7 +356,7 @@ class WorkoutService:
                         "name": ex.name,
                         "suggested_sets": plan_ex.target_sets,
                         "suggested_reps": plan_ex.target_reps,
-                        "suggested_rpe": plan_ex.target_rpe or 8.0,
+                        "suggested_rpe": plan_ex.target_rpe or DEFAULT_RPE,
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
                         "reason": "Autoregulation disabled for this plan.",
@@ -386,7 +387,7 @@ class WorkoutService:
                 rest_val = pe.rest_seconds if pe else None
                 if rest_val is None and e:
                     rest_val = e.suggested_rest_seconds
-                t["rest_seconds"] = rest_val if rest_val is not None else 90
+                t["rest_seconds"] = rest_val if rest_val is not None else DEFAULT_REST_SECONDS
 
             return targets
 

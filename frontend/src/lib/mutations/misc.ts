@@ -1,6 +1,7 @@
 import { mutate } from '$lib/mutate';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
+import type { UserSourcePreference } from '$lib/db/types';
 
 export const saveCircadianProfile = (
   latitude: number,
@@ -95,17 +96,20 @@ export const updateSourcePreferences = async (
   for (const item of items) {
     const prefId =
       item.id && !item.id.startsWith('temp-') ? item.id : `${metricCode}:${item.source}`;
-    const record = {
+    const existing = await db.user_source_preference.get(prefId);
+    const record: UserSourcePreference = {
       id: prefId,
+      user_id: existing?.user_id ?? '',
       metric_code: metricCode,
       source: item.source,
       priority_rank: item.priority_rank,
       is_enabled: item.is_enabled,
+      created_at: existing?.created_at ?? now,
       updated_at: now
     };
 
     // 1. Optimistic local Dexie update (works 100% offline)
-    await db.user_source_preference.put(record as any);
+    await db.user_source_preference.put(record);
 
     // 2. Enqueue into Dexie outbox for background sync push
     await mutate({
@@ -113,7 +117,7 @@ export const updateSourcePreferences = async (
       op: 'update',
       entity: 'user_source_preference',
       id: prefId,
-      optimistic: record
+      optimistic: { ...record }
     });
   }
 };

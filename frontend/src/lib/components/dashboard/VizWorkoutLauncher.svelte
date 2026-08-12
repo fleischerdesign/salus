@@ -1,18 +1,20 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { startWorkout } from '$lib/mutations/workout';
   import { goto } from '$app/navigation';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  const activeSession = liveQuery(() =>
+  const activeSessionQuery = useQuery(() =>
     db.workout_session.filter((s) => !s.completed_at && !s.deleted_at).first()
   );
+  const activeSession = $derived(activeSessionQuery.value);
 
-  const plans = liveQuery(() => db.workout_plan.filter((p) => !p.deleted_at).toArray());
+  const plansQuery = useQuery(() => db.workout_plan.filter((p) => !p.deleted_at).toArray());
+  const plans = $derived(plansQuery.value);
 
-  const lastSessionData = liveQuery(async () => {
+  const lastSessionDataQuery = useQuery(async () => {
     const list = await db.workout_session
       .filter((s) => !!s.completed_at && !s.deleted_at)
       .toArray();
@@ -22,12 +24,13 @@
     const plan = latest.plan_id ? await db.workout_plan.get(latest.plan_id) : null;
     return { session: latest, plan };
   });
+  const lastSessionData = $derived(lastSessionDataQuery.value);
 
   let selectedPlanId = $state('');
 
   // Default select first plan if available
   $effect(() => {
-    const p = $plans;
+    const p = plans;
     if (p && p.length > 0 && !selectedPlanId) {
       selectedPlanId = p[0].id;
     }
@@ -38,7 +41,7 @@
   async function start() {
     if (!selectedPlanId) return;
     starting = true;
-    const plan = ($plans ?? []).find((p) => p.id === selectedPlanId);
+    const plan = (plans ?? []).find((p) => p.id === selectedPlanId);
     const { ok } = await startWorkout(selectedPlanId, plan?.autoreg_mode || 'advisory');
     if (ok) {
       await goto('/workouts/active');
@@ -56,7 +59,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  {#if $activeSession}
+  {#if activeSession}
     <div class="flex flex-col gap-3 rounded-lg border border-primary-100 bg-primary-50 p-4">
       <div class="flex items-center gap-2 text-primary-700">
         <Icon name="exercise" size="lg" class="animate-pulse text-primary-700" />
@@ -69,7 +72,7 @@
     </div>
   {:else}
     <div class="flex flex-col gap-3">
-      {#if $plans && $plans.length > 0}
+      {#if plans && (plans ?? []).length > 0}
         <div class="flex flex-col gap-1.5">
           <label for="workout-launcher-select" class="text-xs font-semibold text-surface-500">
             Select Training Plan
@@ -80,7 +83,7 @@
               class="w-full rounded-lg border border-surface-200 bg-surface-50 py-2.5 pr-10 pl-3 text-sm font-medium text-surface-700 transition-all outline-none focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-500/20"
               bind:value={selectedPlanId}
             >
-              {#each $plans as plan (plan.id)}
+              {#each plans ?? [] as plan (plan.id)}
                 <option value={plan.id}>{plan.name}</option>
               {/each}
             </select>
@@ -112,7 +115,7 @@
         </div>
       {/if}
 
-      {#if $lastSessionData}
+      {#if lastSessionData}
         <div
           class="flex items-center gap-1.5 border-t border-surface-100 pt-3 text-[11px] text-surface-400"
         >
@@ -120,9 +123,9 @@
           <span>
             Last completed:
             <strong class="text-surface-600">
-              {$lastSessionData.plan?.name || 'Quick Workout'}
+              {lastSessionData.plan?.name || 'Quick Workout'}
             </strong>
-            ({formatRelativeTime($lastSessionData.session.completed_at!)})
+            ({formatRelativeTime(lastSessionData.session.completed_at!)})
           </span>
         </div>
       {/if}

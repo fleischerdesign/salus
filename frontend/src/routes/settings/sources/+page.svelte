@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { getSourceStats } from '$lib/db/metric-stats';
   import type { MetricDefinition, UserSourcePreference } from '$lib/db/types';
@@ -12,8 +11,8 @@
   import SourcePriorityCard from '$components/forms/SourcePriorityCard.svelte';
   import SourceDetailsModal from '$components/forms/SourceDetailsModal.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
   let sourceSearchQuery = $state('');
   let matrixSearchQuery = $state('');
   let selectedCategory = $state('all');
@@ -46,63 +45,62 @@
     { id: 'seed', name: 'Dev Seed Data', icon: 'database', color: '#8b5cf6' }
   ];
 
-  $effect(() => {
-    loading = true;
-    const sub = liveQuery(async () => {
-      const allMetrics = await db.metric_definition.toArray();
-      const allPrefs = await db.user_source_preference.toArray();
-      const srcStats = await getSourceStats();
+  const sourceDataQuery = useQuery(async () => {
+    const allMetrics = await db.metric_definition.toArray();
+    const allPrefs = await db.user_source_preference.toArray();
+    const srcStats = await getSourceStats();
 
-      const counts: Record<string, number> = {};
-      const knownPerMetric: Record<string, Set<string>> = {};
+    const counts: Record<string, number> = {};
+    const knownPerMetric: Record<string, Set<string>> = {};
 
-      for (const src of KNOWN_SOURCES) {
-        counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
-      }
+    for (const src of KNOWN_SOURCES) {
+      counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
+    }
 
-      allPrefs.forEach((p) => {
-        if (p.metric_code && p.source) {
-          if (!knownPerMetric[p.metric_code]) {
-            knownPerMetric[p.metric_code] = new Set();
-          }
-          knownPerMetric[p.metric_code].add(p.source);
+    allPrefs.forEach((p) => {
+      if (p.metric_code && p.source) {
+        if (!knownPerMetric[p.metric_code]) {
+          knownPerMetric[p.metric_code] = new Set();
         }
-      });
-
-      const prefGrouped: Record<string, UserSourcePreference[]> = {};
-      allPrefs.forEach((p) => {
-        if (!prefGrouped[p.metric_code]) {
-          prefGrouped[p.metric_code] = [];
-        }
-        prefGrouped[p.metric_code].push(p);
-      });
-
-      Object.keys(prefGrouped).forEach((code) => {
-        prefGrouped[code].sort((a, b) => a.priority_rank - b.priority_rank);
-      });
-
-      const knownConverted: Record<string, string[]> = {};
-      Object.keys(knownPerMetric).forEach((code) => {
-        knownConverted[code] = Array.from(knownPerMetric[code]);
-      });
-
-      return {
-        allMetrics: allMetrics.sort((a, b) => a.name.localeCompare(b.name)),
-        prefGrouped,
-        counts,
-        knownConverted
-      };
-    }).subscribe((val) => {
-      if (val) {
-        metrics = val.allMetrics;
-        preferencesMap = val.prefGrouped;
-        sourceCounts = val.counts;
-        metricKnownSources = val.knownConverted;
+        knownPerMetric[p.metric_code].add(p.source);
       }
-      loading = false;
     });
 
-    return () => sub.unsubscribe();
+    const prefGrouped: Record<string, UserSourcePreference[]> = {};
+    allPrefs.forEach((p) => {
+      if (!prefGrouped[p.metric_code]) {
+        prefGrouped[p.metric_code] = [];
+      }
+      prefGrouped[p.metric_code].push(p);
+    });
+
+    Object.keys(prefGrouped).forEach((code) => {
+      prefGrouped[code].sort((a, b) => a.priority_rank - b.priority_rank);
+    });
+
+    const knownConverted: Record<string, string[]> = {};
+    Object.keys(knownPerMetric).forEach((code) => {
+      knownConverted[code] = Array.from(knownPerMetric[code]);
+    });
+
+    return {
+      allMetrics: allMetrics.sort((a, b) => a.name.localeCompare(b.name)),
+      prefGrouped,
+      counts,
+      knownConverted
+    };
+  });
+  const sourceData = $derived(sourceDataQuery.value);
+  const loading = $derived(sourceDataQuery.loading);
+
+  $effect(() => {
+    const val = sourceData;
+    if (val) {
+      metrics = val.allMetrics;
+      preferencesMap = val.prefGrouped;
+      sourceCounts = val.counts;
+      metricKnownSources = val.knownConverted;
+    }
   });
 
   let sortedAndFilteredSources = $derived.by(() => {
@@ -279,8 +277,15 @@
           {#each sortedAndFilteredSources as src (src.id)}
             {@const count = sourceCounts[src.id] ?? 0}
             {@const isActive = count > 0}
-            <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-            <div onclick={() => openSourceModal(src)} class="cursor-pointer">
+            <div
+              role="button"
+              tabindex="0"
+              onclick={() => openSourceModal(src)}
+              onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') openSourceModal(src);
+              }}
+              class="cursor-pointer"
+            >
               <Card padding={false} hoverable disabled={!isActive}>
                 <div class="p-3.5">
                   <div class="flex items-start justify-between">

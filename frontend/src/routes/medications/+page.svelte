@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { Medication, MedicationLog, MedicationSchedule } from '$lib/db/types';
+
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -9,45 +8,27 @@
   import MedicationGrid from '$components/medications/MedicationGrid.svelte';
   import MedicationForm from '$components/medications/MedicationForm.svelte';
   import { createMedication, toggleMedicationLog } from '$lib/mutations/medication';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let medications = $state<Medication[]>([]);
-  let schedules = $state<MedicationSchedule[]>([]);
-  let logs = $state<MedicationLog[]>([]);
   let formOpen = $state(false);
 
-  $effect(() => {
-    const sub1 = liveQuery(() =>
-      db.medication
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      medications = v;
-    });
-    const sub2 = liveQuery(() => db.medication_schedule.toArray()).subscribe((v) => {
-      schedules = v;
-    });
-    const sub3 = liveQuery(() => db.medication_log.toArray()).subscribe((v) => {
-      logs = v;
-      loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+  const medicationsQuery = useQuery(() => db.notDeleted(db.medication).toArray());
+  const medications = $derived(medicationsQuery.value);
+  const schedulesQuery = useQuery(() => db.medication_schedule.toArray());
+  const schedules = $derived(schedulesQuery.value);
+  const logsQuery = useQuery(() => db.medication_log.toArray());
+  const logs = $derived(logsQuery.value);
+  const loading = $derived(logsQuery.loading);
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const todayWeekday = $derived(new Date().getDay() || 7);
 
   const nextDoses = $derived.by(() => {
     const result: Record<string, string | null> = {};
-    for (const med of medications) {
-      const medSchedules = schedules.filter((s) => s.medication_id === med.id && !s.deleted_at);
+    for (const med of medications ?? []) {
+      const medSchedules = (schedules ?? []).filter(
+        (s) => s.medication_id === med.id && !s.deleted_at
+      );
       if (medSchedules.length === 0) {
         result[med.id] = null;
         continue;
@@ -68,7 +49,7 @@
           const [h, m] = t.split(':').map(Number);
           const tMinutes = h * 60 + m;
 
-          const alreadyTaken = logs.some(
+          const alreadyTaken = (logs ?? []).some(
             (l) =>
               l.medication_id === med.id &&
               l.schedule_id === sched.id &&
@@ -88,7 +69,7 @@
       if (nextTime) {
         result[med.id] = `Today ${nextTime}`;
       } else {
-        const tomorrowSchedules = schedules.filter(
+        const tomorrowSchedules = (schedules ?? []).filter(
           (s) => s.medication_id === med.id && !s.deleted_at && s.times.length > 0
         );
         if (tomorrowSchedules.length > 0) {
@@ -103,8 +84,8 @@
 
   const adherenceRates = $derived.by(() => {
     const result: Record<string, number> = {};
-    for (const med of medications) {
-      const medLogs = logs.filter((l) => l.medication_id === med.id && !l.deleted_at);
+    for (const med of medications ?? []) {
+      const medLogs = (logs ?? []).filter((l) => l.medication_id === med.id && !l.deleted_at);
       if (medLogs.length === 0) {
         result[med.id] = 0;
       } else {
@@ -126,15 +107,17 @@
       taken: boolean;
     }[] = [];
 
-    for (const med of medications) {
-      const medSchedules = schedules.filter((s) => s.medication_id === med.id && !s.deleted_at);
+    for (const med of medications ?? []) {
+      const medSchedules = (schedules ?? []).filter(
+        (s) => s.medication_id === med.id && !s.deleted_at
+      );
       for (const sched of medSchedules) {
         if (sched.days_of_week && !sched.days_of_week.includes(todayWeekday)) continue;
         if (sched.start_date && today < sched.start_date) continue;
         if (sched.end_date && today > sched.end_date) continue;
 
         for (const t of sched.times) {
-          const taken = logs.some(
+          const taken = (logs ?? []).some(
             (l) =>
               l.medication_id === med.id &&
               l.schedule_id === sched.id &&
@@ -160,13 +143,15 @@
     return items;
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createMedication>[0]) {
     await createMedication(data);
     formOpen = false;
   }
 
   async function handleToggle(medicationId: string) {
-    const medSchedules = schedules.filter((s) => s.medication_id === medicationId && !s.deleted_at);
+    const medSchedules = (schedules ?? []).filter(
+      (s) => s.medication_id === medicationId && !s.deleted_at
+    );
     if (medSchedules.length > 0) {
       const now = new Date();
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -265,7 +250,7 @@
     My Medications
   </h2>
   <MedicationGrid
-    {medications}
+    medications={medications ?? []}
     {nextDoses}
     {adherenceRates}
     onToggle={handleToggle}

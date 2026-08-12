@@ -26,8 +26,7 @@
     totalProtein,
     totalCarbs,
     totalFat,
-    onEdit,
-    onDelete
+    onEdit
   }: Props = $props();
 
   let expanded = $state(false);

@@ -1,28 +1,25 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { MoodEntry } from '$lib/db/types';
+
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import MoodPicker from '$components/mood/MoodPicker.svelte';
   import MoodCalendar from '$components/mood/MoodCalendar.svelte';
   import { createMoodEntry } from '$lib/mutations/wellness';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
-  let loading = $state(true);
-  let entries = $state<MoodEntry[]>([]);
   let saving = $state(false);
 
   let todayStr = new Date().toISOString().split('T')[0];
   let score = $state(0);
 
+  const entriesQuery = useQuery(() => db.mood_entry.toArray());
+  const entries = $derived(entriesQuery.value);
+  const loading = $derived(entriesQuery.loading);
+
   $effect(() => {
-    const sub = liveQuery(() => db.mood_entry.toArray()).subscribe((v) => {
-      entries = v;
-      const te = v.find((e) => e.entry_date === todayStr);
-      score = te?.mood_score ?? 0;
-      loading = false;
-    });
-    return () => sub.unsubscribe();
+    const te = (entries ?? []).find((e) => e.entry_date === todayStr);
+    score = te?.mood_score ?? 0;
   });
 
   async function handleSelect(newScore: number) {
@@ -58,7 +55,7 @@
     </Card>
 
     <Card>
-      <MoodCalendar {entries} onSelectDate={(d) => {}} />
+      <MoodCalendar entries={entries ?? []} onSelectDate={() => {}} />
     </Card>
   {/if}
 </div>

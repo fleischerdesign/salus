@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from sqlmodel import Field, SQLModel
 
-from salus.services._helpers import uuid7_str
+from salus.utils import uuid7_str
 
 
 class SyncPushLog(SQLModel, table=True):

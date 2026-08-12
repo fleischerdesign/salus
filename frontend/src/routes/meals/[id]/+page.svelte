@@ -1,64 +1,41 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import type { Meal, MealItem, FoodItem } from '$lib/db/types';
+  import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import MealItemRow from '$components/food/MealItemRow.svelte';
   import { deleteMeal } from '$lib/mutations/meal';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
-  let loading = $state(true);
-  let meal = $state<Meal | null>(null);
-  let mealItems = $state<MealItem[]>([]);
-  let foodItems = $state<FoodItem[]>([]);
   let deleteOpen = $state(false);
 
-  $effect(() => {
-    if (!id) return;
-    const sub1 = liveQuery(() =>
-      db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null))
-    ).subscribe((v) => {
-      meal = v;
-    });
-    const sub2 = liveQuery(() =>
-      db.meal_item
-        .where({ meal_id: id })
-        .filter((mi) => !mi.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
-      mealItems = v;
-    });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
-      foodItems = v;
-      loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+  const mealQuery = useQuery(() =>
+    id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
+  );
+  const meal = $derived(mealQuery.value);
+  const mealItemsQuery = useQuery(() =>
+    db.meal_item
+      .where({ meal_id: id })
+      .filter((mi) => !mi.deleted_at)
+      .toArray()
+  );
+  const mealItems = $derived(mealItemsQuery.value);
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};
-    for (const f of foodItems) {
+    for (const f of foodItems ?? []) {
       if (!f.deleted_at) map[f.id] = f;
     }
     return map;
@@ -69,7 +46,7 @@
       protein = 0,
       carbs = 0,
       fat = 0;
-    for (const mi of mealItems) {
+    for (const mi of mealItems ?? []) {
       const food = foodMap[mi.food_item_id];
       if (!food) continue;
       calories += food.calories_per_serving * mi.servings;
@@ -130,7 +107,7 @@
           )}C · {Math.round(macros.fat)}F
         </h3>
         <div class="flex flex-col gap-2">
-          {#each mealItems as mi (mi.id)}
+          {#each mealItems ?? [] as mi (mi.id)}
             {@const food = foodMap[mi.food_item_id]}
             <MealItemRow
               name={food?.name ?? 'Unknown'}

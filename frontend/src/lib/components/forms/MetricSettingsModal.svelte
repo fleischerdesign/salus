@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { UserSourcePreference } from '$lib/db/types';
   import Modal from '$components/ui/Modal.svelte';
@@ -8,6 +7,7 @@
   import Btn from '$components/ui/Btn.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   interface Props {
     open?: boolean;
@@ -18,58 +18,55 @@
 
   let { open = $bindable(false), metricCode, metricName, onClose }: Props = $props();
 
-  let loading = $state(true);
   let preferences = $state<UserSourcePreference[]>([]);
   let saving = $state(false);
 
-  $effect(() => {
-    if (!open || !metricCode) return;
-    loading = true;
-    const sub = liveQuery(async () => {
-      // Fetch user preferences for this metric
-      const userPrefs = await db.user_source_preference
-        .where('metric_code')
-        .equals(metricCode)
-        .sortBy('priority_rank');
+  const loadedPrefsQuery = useQuery(async () => {
+    if (!open || !metricCode) return [] as UserSourcePreference[];
+    // Fetch user preferences for this metric
+    const userPrefs = await db.user_source_preference
+      .where('metric_code')
+      .equals(metricCode)
+      .sortBy('priority_rank');
 
-      // Fetch distinct sources present in measurement table for this metric (sample recent)
-      const measurements = await db.measurement
-        .where('metric_code')
-        .equals(metricCode)
-        .limit(100)
-        .toArray();
+    // Fetch distinct sources present in measurement table for this metric (sample recent)
+    const measurements = await db.measurement
+      .where('metric_code')
+      .equals(metricCode)
+      .limit(100)
+      .toArray();
 
-      const knownSources = new Set<string>();
-      measurements.forEach((m) => {
-        if (m.source) knownSources.add(m.source);
-      });
-
-      // Combine known sources with existing preferences
-      const existingSources = new Set(userPrefs.map((p) => p.source));
-      const combined: UserSourcePreference[] = [...userPrefs];
-
-      let nextRank = userPrefs.length + 1;
-      for (const s of knownSources) {
-        if (!existingSources.has(s)) {
-          combined.push({
-            id: `temp-${s}`,
-            user_id: '',
-            metric_code: metricCode,
-            source: s,
-            priority_rank: nextRank++,
-            is_enabled: true,
-            created_at: new Date().toISOString()
-          });
-        }
-      }
-
-      return combined.sort((a, b) => a.priority_rank - b.priority_rank);
-    }).subscribe((v) => {
-      preferences = v ?? [];
-      loading = false;
+    const knownSources = new Set<string>();
+    measurements.forEach((m) => {
+      if (m.source) knownSources.add(m.source);
     });
 
-    return () => sub.unsubscribe();
+    // Combine known sources with existing preferences
+    const existingSources = new Set(userPrefs.map((p) => p.source));
+    const combined: UserSourcePreference[] = [...userPrefs];
+
+    let nextRank = userPrefs.length + 1;
+    for (const s of knownSources) {
+      if (!existingSources.has(s)) {
+        combined.push({
+          id: `temp-${s}`,
+          user_id: '',
+          metric_code: metricCode,
+          source: s,
+          priority_rank: nextRank++,
+          is_enabled: true,
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+
+    return combined.sort((a, b) => a.priority_rank - b.priority_rank);
+  });
+  const loadedPrefs = $derived(loadedPrefsQuery.value);
+  const loading = $derived(loadedPrefsQuery.loading);
+
+  $effect(() => {
+    preferences = loadedPrefs ?? [];
   });
 
   function moveUp(index: number) {

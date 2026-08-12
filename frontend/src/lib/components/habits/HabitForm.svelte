@@ -38,7 +38,6 @@
   let icon = $state('check-circle');
   let frequency = $state('daily');
   let targetCount = $state(1);
-  let targetCountStr = $state('1');
   let stackHint = $state('');
   let daysMask = $state(0);
   let saving = $state(false);
@@ -51,7 +50,6 @@
       icon = habit.icon ?? 'check-circle';
       frequency = habit.frequency ?? 'daily';
       targetCount = habit.target_count ?? 1;
-      targetCountStr = String(habit.target_count ?? 1);
       stackHint = habit.stack_hint ?? '';
       daysMask = habit.days_bitmask ?? 0;
     }
@@ -123,8 +121,8 @@
     </FormField>
 
     <div>
-      <label class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
-        >Color</label
+      <span class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
+        >Color</span
       >
       <div class="flex gap-2">
         {#each colors as c}
@@ -136,6 +134,7 @@
             class:ring-2={color === c}
             class:ring-primary-300={color === c}
             style="background-color: {c}"
+            aria-label={c}
             onclick={() => (color = c)}
           ></button>
         {/each}
@@ -143,8 +142,8 @@
     </div>
 
     <div>
-      <label class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
-        >Icon</label
+      <span class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
+        >Icon</span
       >
       <div class="flex flex-wrap gap-2">
         {#each icons as ico}
@@ -168,7 +167,7 @@
 
     <FormField label="Frequency">
       <select
-        bind:value={frequency as any}
+        bind:value={frequency}
         class="w-full rounded-lg border border-surface-200 bg-surface-0 px-3 py-2 text-sm text-surface-900"
       >
         <option value="daily">Every day</option>
@@ -195,8 +194,8 @@
 
     {#if frequency === 'custom_days'}
       <div>
-        <label class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
-          >Active Days</label
+        <span class="mb-1.5 block text-xs font-bold tracking-wider text-surface-500 uppercase"
+          >Active Days</span
         >
         <div class="flex gap-1.5">
           {#each dayLabels as label, i}

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import {
     createShareRecipient,
@@ -16,6 +15,7 @@
   import FormField from '$components/forms/FormField.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { useQuery } from '$lib/db/use-query.svelte';
 
   /* ── Crypto utilities ── */
   function formatAsPem(binary: ArrayBuffer, label: string): string {
@@ -37,16 +37,18 @@
     return btoa(String.fromCharCode(...bytes));
   }
 
-  let recipientsRaw = liveQuery(() =>
+  const recipientsRawQuery = useQuery(() =>
     db.share_recipient.toArray().then((arr) => arr.filter((r) => !r.deleted_at))
   );
-  let shareRows = liveQuery(() =>
+  const recipientsRaw = $derived(recipientsRawQuery.value);
+  const shareRowsQuery = useQuery(() =>
     db.asymmetric_share.toArray().then((arr) => arr.filter((s) => !s.deleted_at))
   );
+  const shareRows = $derived(shareRowsQuery.value);
 
-  let recipients = $derived($recipientsRaw ?? []);
+  let recipients = $derived(recipientsRaw ?? []);
   let shares = $derived(
-    ($shareRows ?? []).map((s) => {
+    (shareRows ?? []).map((s) => {
       const rec = recipients.find((r) => r.id === s.recipient_id);
       return {
         id: s.id,

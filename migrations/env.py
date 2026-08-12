@@ -1,9 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlmodel import SQLModel
+
+import salus.models  # noqa: F401  (registers all table models in SQLModel.metadata)
+from salus.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,49 +14,6 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# add your model's MetaData object here
-# for 'autogenerate' support
-from sqlmodel import SQLModel
-from salus.config import settings
-from salus.models.metric_definition import MetricDefinition, MetricGroup
-from salus.models.metric_preference import UserMetricPreference
-from salus.models.user import User
-from salus.models.user_identity import UserIdentity
-from salus.models.measurement import Measurement
-from salus.models.goal import Goal
-from salus.models.dashboard import DashboardWidget
-from salus.models.api_token import ApiToken
-from salus.models.system_config import SystemConfig
-from salus.models.insight import Insight
-from salus.models.sharing import SharingRelationship, LeaderboardGroup, LeaderboardMember, FederatedAccessLog, FederatedMeasurementCache
-from salus.models.notification import Notification
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise, WorkoutSession, WorkoutLogEntry
-from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
-from salus.models.circadian import CircadianProfile
-from salus.models.sync_push_log import SyncPushLog
-from salus.models.achievement import AchievementDefinition, UserAchievement
-from salus.models.mood import MoodTag, MoodEntry
-from salus.models.habit import Habit, HabitLog
-from salus.models.journal import JournalEntry
-
-
-# Dynamically load plugins to register custom tables/models in SQLModel.metadata
-try:
-    from salus.services.plugin.manager import PluginManager
-    from salus.repositories.unit_of_work import SqlUnitOfWork
-    from sqlalchemy import create_engine
-    from sqlmodel import Session
-    
-    dummy_engine = create_engine("sqlite://")
-    SQLModel.metadata.create_all(dummy_engine)
-    dummy_session = Session(dummy_engine)
-    dummy_uow = SqlUnitOfWork(dummy_session)
-    pm = PluginManager(plugins_dir="src/salus/plugins", uow=dummy_uow)
-    pm.discover_and_load_all()
-except Exception as e:
-    import logging
-    logging.warning(f"Could not load plugins during migrations environment setup: {e}")
 
 target_metadata = SQLModel.metadata
 

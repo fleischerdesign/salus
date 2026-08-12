@@ -47,10 +47,6 @@
     return 'bg-red-400';
   }
 
-  function moodOpacity(score: number): string {
-    return `opacity-${Math.min(Math.ceil(score * 10), 100)}`;
-  }
-
   const todayStr = $derived(new Date().toISOString().split('T')[0]);
 </script>
 

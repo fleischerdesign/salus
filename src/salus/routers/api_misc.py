@@ -8,17 +8,19 @@ from salus.dependencies import (
     get_current_user,
     get_goal_service,
     get_insight_service,
+    get_event_bus,
     get_measurement_service,
     get_notification_service,
     get_user_service,
 )
-from salus.models.goal import GoalDirection, GoalFrequency
+from salus.models.goal import Goal, GoalDirection, GoalFrequency
 from salus.models.user import User
 from salus.schemas.analytics import InsightResponse
 from salus.schemas.circadian import CircadianProfileCreate
 from salus.schemas.goal import GoalCreate
 from salus.schemas.measurement import MeasurementCreate
 from salus.services._helpers import uid
+from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.api_token import ApiTokenService
 from salus.services.circadian import CircadianService
 from salus.services.goal import GoalService
@@ -42,15 +44,6 @@ class _OnboardingGoalBody(BaseModel):
     direction: str = "increase"
 
 
-class GoalCreateResponse(BaseModel):
-    id: str
-    metric_code: str
-    target_value: float
-    direction: str
-    frequency: str
-    deadline: str | None = None
-
-
 class _CircadianProfileResponse(BaseModel):
     id: str
     user_id: str
@@ -72,54 +65,6 @@ class _OnboardingEntryResponse(BaseModel):
     timestamp: str | None = None
 
 
-# ── Goals ──
-
-@router.get("/goals", response_model=list[GoalCreateResponse])
-async def api_list_goals(
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goals = goal_service.find_all(uid(current_user))
-    return [
-        {
-            "id": g.id,
-            "metric_code": g.metric_code,
-            "target_value": g.target_value,
-            "direction": g.direction.value,
-            "frequency": g.frequency.value,
-            "deadline": g.deadline.isoformat() if g.deadline else None,
-        }
-        for g in goals
-    ]
-
-
-@router.post("/goals", response_model=GoalCreateResponse, status_code=201)
-async def api_create_goal(
-    data: GoalCreate,
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goal = goal_service.create(data, uid(current_user))
-    return {
-        "id": goal.id,
-        "metric_code": goal.metric_code,
-        "target_value": goal.target_value,
-        "direction": goal.direction.value,
-        "frequency": goal.frequency.value,
-        "deadline": goal.deadline.isoformat() if goal.deadline else None,
-    }
-
-
-@router.delete("/goals/{goal_id}", status_code=204)
-async def api_delete_goal(
-    goal_id: str,
-    current_user: User = Depends(get_current_user),
-    goal_service: GoalService = Depends(get_goal_service),
-):
-    goal_service.delete(goal_id, uid(current_user))
-    return Response(status_code=204)
-
-
 # ── Insights ──
 
 @router.post("/insights/generate", response_model=InsightResponse, status_code=201)
@@ -127,8 +72,10 @@ async def api_generate_insight(
     date: str = Query(...),
     current_user: User = Depends(get_current_user),
     service: InsightService = Depends(get_insight_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     insight = service.generate_daily_insight(uid(current_user), date)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": insight.id,
         "date": insight.query_date,
@@ -144,8 +91,10 @@ async def api_circadian_profile(
     data: CircadianProfileCreate,
     current_user: User = Depends(get_current_user),
     service: CircadianService = Depends(get_circadian_service),
+    event_bus: EventBus = Depends(get_event_bus),
 ):
     profile = service.save_profile(user_id=uid(current_user), data=data)
+    schedule_publish(event_bus, uid(current_user))
     return {
         "id": profile.id,
         "user_id": profile.user_id,
@@ -220,7 +169,7 @@ async def api_onboarding_entry(
     }
 
 
-@router.post("/onboarding/goal", response_model=GoalCreateResponse, status_code=201)
+@router.post("/onboarding/goal", response_model=Goal, status_code=201)
 async def api_onboarding_goal(
     body: _OnboardingGoalBody,
     current_user: User = Depends(get_current_user),
@@ -232,12 +181,4 @@ async def api_onboarding_goal(
         direction=GoalDirection(body.direction),
         frequency=GoalFrequency.DAILY,
     )
-    goal = goal_service.create(data, uid(current_user))
-    return {
-        "id": goal.id,
-        "metric_code": goal.metric_code,
-        "target_value": goal.target_value,
-        "direction": goal.direction.value,
-        "frequency": goal.frequency.value,
-        "deadline": goal.deadline.isoformat() if goal.deadline else None,
-    }
+    return goal_service.create(data, uid(current_user))
