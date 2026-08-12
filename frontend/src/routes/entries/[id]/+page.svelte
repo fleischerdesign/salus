@@ -212,7 +212,7 @@
   let entries = $derived(pagedEntries);
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
-  let trend = $derived(useTrend(metricDetail?.data_type ?? '', range));
+  let trend = $derived(useTrend(metricDetail?.code ?? '', range));
   let overview = $derived(overviews ? overviewForMetric(overviews, metricId!) : null);
 
   let allGroupMetrics = $derived(isGroup ? groupMetrics : []);

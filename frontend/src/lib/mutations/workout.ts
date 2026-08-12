@@ -5,15 +5,16 @@ function now(): string {
   return new Date().toISOString();
 }
 
-export const startWorkout = (planId: string | null, autoregMode = 'advisory') =>
-  mutate({
+export const startWorkout = (planId: string | null, autoregMode = 'advisory') => {
+  const id = uuid7();
+  return mutate({
     kind: 'command',
     command: 'start_workout',
     queueable: true,
-    payload: { id: uuid7(), plan_id: planId },
+    payload: { id, plan_id: planId },
     optimisticTable: 'workout_session',
     optimisticData: {
-      id: uuid7(),
+      id,
       user_id: 'self',
       plan_id: planId,
       started_at: now(),
@@ -27,6 +28,7 @@ export const startWorkout = (planId: string | null, autoregMode = 'advisory') =>
     },
     responseTable: 'workout_session'
   });
+};
 
 export const completeWorkout = (sessionId: string, notes?: string) =>
   mutate({

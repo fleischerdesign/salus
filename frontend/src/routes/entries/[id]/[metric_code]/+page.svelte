@@ -97,7 +97,7 @@
   let entries = $derived(pagedEntries);
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
-  let trend = $derived(useTrend(metric?.data_type ?? '', range));
+  let trend = $derived(useTrend(metric?.code ?? '', range));
   let overview = $derived(overviews ? overviewForMetric(overviews, childMetricCode!) : null);
 
   let showEntryModal = $state(false);
