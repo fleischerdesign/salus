@@ -20,6 +20,7 @@ from salus.models.sharing import (
 from salus.models.user import User
 from salus.services.sharing import SharingService
 from salus.exceptions import NotFoundError
+from salus.services._helpers import summarize_daily_values
 
 logger = logging.getLogger("salus.routers.sharing")
 router = APIRouter()
@@ -141,11 +142,7 @@ async def federated_shared_data(
             values = [
                 m.value_numeric for m in day_measurements if m.value_numeric is not None
             ]
-            val = (
-                sum(values)
-                if data_type in ("steps", "water")
-                else (sum(values) / len(values) if values else None)
-            )
+            val = summarize_daily_values(data_type, values)
             result = [
                 {
                     "data_type": data_type,

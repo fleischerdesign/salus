@@ -12,7 +12,7 @@ from salus.models.sharing import (
     LeaderboardMember,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid, make_handle
+from salus.services._helpers import uid, make_handle, summarize_daily_values
 
 
 class LeaderboardService:
@@ -209,10 +209,12 @@ class LeaderboardService:
                                 and ms.value_numeric is not None
                             ]
                             if day_values:
-                                if group.metric_type_code in ("steps", "water"):
-                                    score = float(sum(day_values))
-                                else:
-                                    score = float(sum(day_values) / len(day_values))
+                                score = (
+                                    summarize_daily_values(
+                                        group.metric_type_code, day_values
+                                    )
+                                    or 0.0
+                                )
                 else:
                     # Remote User query
                     score = 0.0
@@ -238,10 +240,12 @@ class LeaderboardService:
                                 curr_date += timedelta(days=1)
 
                             if day_values:
-                                if group.metric_type_code in ("steps", "water"):
-                                    score = float(sum(day_values))
-                                else:
-                                    score = float(sum(day_values) / len(day_values))
+                                score = (
+                                    summarize_daily_values(
+                                        group.metric_type_code, day_values
+                                    )
+                                    or 0.0
+                                )
                         except Exception:
                             score = 0.0
 

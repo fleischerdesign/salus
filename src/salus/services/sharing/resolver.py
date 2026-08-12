@@ -9,7 +9,7 @@ import httpx
 from salus.config import settings
 from salus.exceptions import ForbiddenError, NotFoundError
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid, parse_date
+from salus.services._helpers import uid, parse_date, summarize_daily_values
 from salus.services.sharing._http import retry_http_request
 
 if TYPE_CHECKING:
@@ -127,11 +127,7 @@ class FederationDataResolver:
                     for m in day_measurements
                     if m.value_numeric is not None
                 ]
-                val = (
-                    sum(values)
-                    if data_type in ("steps", "water")
-                    else (sum(values) / len(values) if values else None)
-                )
+                val = summarize_daily_values(data_type, values)
                 return [
                     {
                         "data_type": data_type,
