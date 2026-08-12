@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 
@@ -125,7 +126,7 @@ export async function toggleMedicationLog(
     optimistic: {
       id,
       medication_id: medicationId,
-      user_id: '',
+      user_id: SELF_USER_ID,
       schedule_id: scheduleId,
       taken_at: now,
       dosage_taken: null,
@@ -157,7 +158,7 @@ export async function skipDose(medicationId: string, scheduleId: string, time: s
     optimistic: {
       id,
       medication_id: medicationId,
-      user_id: '',
+      user_id: SELF_USER_ID,
       schedule_id: scheduleId,
       taken_at: takenAt,
       dosage_taken: null,

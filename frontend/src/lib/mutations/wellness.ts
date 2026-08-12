@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 
@@ -54,7 +55,7 @@ export async function toggleHabit(habitId: string) {
     optimistic: {
       id,
       habit_id: habitId,
-      user_id: '',
+      user_id: SELF_USER_ID,
       log_date: today,
       completed: true,
       completed_at: now,

@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 
 export const addWidget = (
@@ -24,7 +25,7 @@ export const addWidget = (
     },
     optimistic: {
       id,
-      user_id: 'self',
+      user_id: SELF_USER_ID,
       widget_type: widgetType,
       metric_code: metricCode,
       size,

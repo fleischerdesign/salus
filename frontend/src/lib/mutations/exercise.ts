@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 
 function now(): string {
@@ -15,7 +16,7 @@ export const createExercise = (data: Record<string, unknown>) => {
     optimisticTable: 'exercise',
     optimisticData: {
       id,
-      user_id: 'self',
+      user_id: SELF_USER_ID,
       ...data,
       created_at: now(),
       updated_at: null,

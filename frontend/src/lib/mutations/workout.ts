@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { nowIso } from '$lib/utils/datetime';
 
@@ -12,7 +13,7 @@ export const startWorkout = (planId: string | null, autoregMode = 'advisory') =>
     optimisticTable: 'workout_session',
     optimisticData: {
       id,
-      user_id: 'self',
+      user_id: SELF_USER_ID,
       plan_id: planId,
       started_at: nowIso(),
       completed_at: null,

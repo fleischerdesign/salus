@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { nowIso } from '$lib/utils/datetime';
 
@@ -6,7 +7,7 @@ export const createMeasurement = (metricCode: string, data: Record<string, unkno
   const id = uuid7();
   const record = {
     id,
-    user_id: 'self',
+    user_id: SELF_USER_ID,
     metric_code: metricCode,
     ...data,
     created_at: nowIso(),

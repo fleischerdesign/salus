@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 
 export async function createMeal(data: {
@@ -25,7 +26,7 @@ export async function createMeal(data: {
     },
     optimistic: {
       id,
-      user_id: '',
+      user_id: SELF_USER_ID,
       log_date: data.log_date ?? today,
       meal_type: data.meal_type ?? 'snack',
       name: data.name ?? null,

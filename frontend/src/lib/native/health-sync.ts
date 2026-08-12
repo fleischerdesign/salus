@@ -1,4 +1,5 @@
 import { nativeBridge } from './bridge';
+import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 import type { Measurement, OutboxOp } from '$lib/db/types';
@@ -84,7 +85,7 @@ export const healthSyncService = {
         const id = uuid7();
         const measurementData: Measurement = {
           id,
-          user_id: '',
+          user_id: SELF_USER_ID,
           metric_code: item.metric_code,
           data_type: 'number',
           value_numeric: item.value,
