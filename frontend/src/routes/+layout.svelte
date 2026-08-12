@@ -7,6 +7,7 @@
   import '@fontsource/manrope/800.css';
   import { addCollection } from '@iconify/svelte/dist/offline-functions.js';
   import icons from '$lib/icons.json';
+  import { AUTH_USER_KEY } from '$lib/constants';
   addCollection(icons);
   import { auth } from '$stores/auth.svelte';
   import { db } from '$lib/db/database';
@@ -121,7 +122,7 @@
   $effect(() => {
     if (userProfile) {
       setLocaleState(userProfile.locale ?? 'en');
-      localStorage.setItem('salus_user', JSON.stringify(userProfile));
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userProfile));
       localStorage.setItem('salus_user_is_admin', String(userProfile.is_admin ?? false));
     }
   });

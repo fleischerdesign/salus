@@ -1,5 +1,6 @@
 import type { components } from '$lib/api/schema.d';
 import { setLocaleState } from '$lib/api/headers';
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
 
 type User = components['schemas']['UserResponse'];
 
@@ -12,7 +13,7 @@ interface AuthState {
 function loadUser(): User | null {
   if (typeof localStorage === 'undefined') return null;
   try {
-    const raw = localStorage.getItem('salus_user');
+    const raw = localStorage.getItem(AUTH_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -20,9 +21,9 @@ function loadUser(): User | null {
 }
 
 const state = $state<AuthState>({
-  token: typeof localStorage !== 'undefined' ? localStorage.getItem('salus_token') : null,
+  token: typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null,
   user: loadUser(),
-  loading: typeof localStorage !== 'undefined' && !!localStorage.getItem('salus_token')
+  loading: typeof localStorage !== 'undefined' && !!localStorage.getItem(AUTH_TOKEN_KEY)
 });
 
 export const auth = {
@@ -46,8 +47,8 @@ export const auth = {
     state.token = token;
     state.user = user;
     state.loading = false;
-    localStorage.setItem('salus_token', token);
-    localStorage.setItem('salus_user', JSON.stringify(user));
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     setLocaleState(user.locale ?? 'en');
   },
 
@@ -55,8 +56,8 @@ export const auth = {
     state.token = null;
     state.user = null;
     state.loading = false;
-    localStorage.removeItem('salus_token');
-    localStorage.removeItem('salus_user');
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
   },
 
   setLoading(loading: boolean) {

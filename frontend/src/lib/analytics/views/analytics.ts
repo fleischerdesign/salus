@@ -1,6 +1,7 @@
 import Dexie, { liveQuery } from 'dexie';
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
+import { AUTH_USER_KEY } from '$lib/constants';
 import { MS_PER_DAY } from '$lib/utils/datetime';
 import {
   benjaminiHochberg,
@@ -557,7 +558,7 @@ export function useSleepDebt(age: number = 30) {
 
 function getUserHeight(): number {
   try {
-    const stored = localStorage.getItem('salus_user');
+    const stored = localStorage.getItem(AUTH_USER_KEY);
     if (stored) {
       const user = JSON.parse(stored);
       if (user.height_cm && user.height_cm > 0) return user.height_cm;
