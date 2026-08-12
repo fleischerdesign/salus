@@ -43,7 +43,7 @@
     last_sync: string | null;
   }
 
-  const { value: peers } = useQuery(async () => {
+  const peersQuery = useQuery(async () => {
     const uid = auth.user?.id;
     const username = auth.user?.username;
     if (!uid || !username) return [];
@@ -114,6 +114,7 @@
 
     return [...peerMap.values()];
   });
+  const peers = $derived(peersQuery.value);
 
   let error = $state('');
   let granteeHandle = $state('');

@@ -24,7 +24,8 @@
   let success = $state('');
   let passwordConfigured = $state(true);
 
-  const { value: configQuery } = useQuery(() => db.system_config.toArray());
+  const configQueryResult = useQuery(() => db.system_config.toArray());
+  const configQuery = $derived(configQueryResult.value);
 
   $effect(() => {
     const config = configQuery ?? [];

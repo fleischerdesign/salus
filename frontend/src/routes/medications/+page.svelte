@@ -12,9 +12,13 @@
 
   let formOpen = $state(false);
 
-  const { value: medications } = useQuery(() => db.notDeleted(db.medication).toArray());
-  const { value: schedules } = useQuery(() => db.medication_schedule.toArray());
-  const { value: logs, loading } = useQuery(() => db.medication_log.toArray());
+  const medicationsQuery = useQuery(() => db.notDeleted(db.medication).toArray());
+  const medications = $derived(medicationsQuery.value);
+  const schedulesQuery = useQuery(() => db.medication_schedule.toArray());
+  const schedules = $derived(schedulesQuery.value);
+  const logsQuery = useQuery(() => db.medication_log.toArray());
+  const logs = $derived(logsQuery.value);
+  const loading = $derived(logsQuery.loading);
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const todayWeekday = $derived(new Date().getDay() || 7);

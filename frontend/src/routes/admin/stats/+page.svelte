@@ -5,7 +5,8 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: stats } = useQuery(() => db.admin_stats.get('global'));
+  const statsQuery = useQuery(() => db.admin_stats.get('global'));
+  const stats = $derived(statsQuery.value);
 </script>
 
 {#if !stats}

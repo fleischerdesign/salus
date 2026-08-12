@@ -30,7 +30,7 @@
     is_creator: boolean;
   }
 
-  const { value: challenges } = useQuery(async () => {
+  const challengesQuery = useQuery(async () => {
     const groups = await db.leaderboard_group.toArray();
     const members = await db.leaderboard_member.toArray();
 
@@ -62,6 +62,7 @@
         } satisfies Challenge;
       });
   });
+  const challenges = $derived(challengesQuery.value);
 
   let inviteCode = $state('');
   let joining = $state(false);

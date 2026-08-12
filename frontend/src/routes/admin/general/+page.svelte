@@ -11,7 +11,8 @@
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: configItems } = useQuery(() => db.system_config.toArray());
+  const configItemsQuery = useQuery(() => db.system_config.toArray());
+  const configItems = $derived(configItemsQuery.value);
 
   let error = $state('');
   let success = $state('');

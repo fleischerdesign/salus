@@ -21,18 +21,21 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: plans } = useQuery(() =>
+  const plansQuery = useQuery(() =>
     db.workout_plan
       .toArray()
       .then((arr) => arr.filter((p) => !p.deleted_at).sort((a, b) => a.position - b.position))
   );
+  const plans = $derived(plansQuery.value);
 
-  const { value: exercises } = useQuery(() =>
+  const exercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
-  const { value: planExercises } = useQuery(() =>
+  const exercises = $derived(exercisesQuery.value);
+  const planExercisesQuery = useQuery(() =>
     db.workout_plan_exercise.toArray().then((arr) => arr.filter((pe) => !pe.deleted_at))
   );
+  const planExercises = $derived(planExercisesQuery.value);
 
   let showForm = $state(false);
   let planName = $state('');

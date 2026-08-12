@@ -7,13 +7,14 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: logs } = useQuery(() =>
+  const logsQuery = useQuery(() =>
     db.federated_access_log
       .toArray()
       .then((arr) =>
         arr.sort((a, b) => new Date(b.accessed_at).getTime() - new Date(a.accessed_at).getTime())
       )
   );
+  const logs = $derived(logsQuery.value);
 
   const columns = [
     { key: 'requester', label: 'Requester' },

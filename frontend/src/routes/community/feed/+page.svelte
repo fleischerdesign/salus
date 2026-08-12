@@ -11,13 +11,14 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: activities } = useQuery(() =>
+  const activitiesQuery = useQuery(() =>
     db.community_activity
       .toArray()
       .then((arr) =>
         arr.sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
       )
   );
+  const activities = $derived(activitiesQuery.value);
 
   const activityIcon: Record<string, string> = {
     workout: 'fitness-center',

@@ -12,22 +12,25 @@
 
   const sessionId = $derived(page.params.id as string);
 
-  const { value: session } = useQuery(() =>
+  const sessionQuery = useQuery(() =>
     db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null))
   );
+  const session = $derived(sessionQuery.value);
 
-  const { value: logs } = useQuery(() =>
+  const logsQuery = useQuery(() =>
     db.workout_log_entry
       .toArray()
       .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at))
   );
+  const logs = $derived(logsQuery.value);
 
-  const { value: exercises } = useQuery(() =>
+  const exercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => {
       const map = new Map(arr.map((e) => [e.id, e]));
       return map;
     })
   );
+  const exercises = $derived(exercisesQuery.value);
 
   let groupedLogs = $derived.by(() => {
     const map = new Map<string, NonNullable<typeof logs>>();

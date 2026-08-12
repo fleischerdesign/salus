@@ -24,7 +24,7 @@
     overviews: MetricOverview[];
   }
 
-  const { value: logbookData } = useQuery<LogbookData>(async () => {
+  const logbookDataQuery = useQuery<LogbookData>(async () => {
     const [allDefs, allPrefs, groups, overviews] = await Promise.all([
       db.metric_definition.toArray(),
       db.user_metric_preference.toArray(),
@@ -34,6 +34,7 @@
     const metrics = mergeMetricPrefs(allDefs, allPrefs);
     return { metrics, groups, overviews };
   });
+  const logbookData = $derived(logbookDataQuery.value);
 
   let metrics = $derived(logbookData?.metrics);
   let groups = $derived(logbookData?.groups ?? []);

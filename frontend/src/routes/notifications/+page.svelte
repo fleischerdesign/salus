@@ -9,7 +9,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: notifications } = useQuery(() =>
+  const notificationsQuery = useQuery(() =>
     db.notification
       .toArray()
       .then((arr) =>
@@ -18,6 +18,7 @@
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       )
   );
+  const notifications = $derived(notificationsQuery.value);
 
   let unreadCount = $derived(notifications?.filter((n) => !n.is_read).length ?? 0);
 

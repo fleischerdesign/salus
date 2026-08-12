@@ -14,22 +14,25 @@
 
   const exerciseId = $derived(page.params.id as string);
 
-  const { value: exercise } = useQuery(() =>
+  const exerciseQuery = useQuery(() =>
     db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null))
   );
+  const exercise = $derived(exerciseQuery.value);
 
-  const { value: logs } = useQuery(() =>
+  const logsQuery = useQuery(() =>
     db.workout_log_entry
       .toArray()
       .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at))
   );
+  const logs = $derived(logsQuery.value);
 
-  const { value: sessions } = useQuery(() =>
+  const sessionsQuery = useQuery(() =>
     db.workout_session.toArray().then((arr) => {
       const map = new Map(arr.filter((s) => !s.deleted_at).map((s) => [s.id, s]));
       return map;
     })
   );
+  const sessions = $derived(sessionsQuery.value);
 
   interface HistoryRow {
     date: string;

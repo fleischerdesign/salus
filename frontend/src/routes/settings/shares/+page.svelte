@@ -37,12 +37,14 @@
     return btoa(String.fromCharCode(...bytes));
   }
 
-  const { value: recipientsRaw } = useQuery(() =>
+  const recipientsRawQuery = useQuery(() =>
     db.share_recipient.toArray().then((arr) => arr.filter((r) => !r.deleted_at))
   );
-  const { value: shareRows } = useQuery(() =>
+  const recipientsRaw = $derived(recipientsRawQuery.value);
+  const shareRowsQuery = useQuery(() =>
     db.asymmetric_share.toArray().then((arr) => arr.filter((s) => !s.deleted_at))
   );
+  const shareRows = $derived(shareRowsQuery.value);
 
   let recipients = $derived(recipientsRaw ?? []);
   let shares = $derived(

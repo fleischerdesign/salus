@@ -45,7 +45,7 @@
     { id: 'seed', name: 'Dev Seed Data', icon: 'database', color: '#8b5cf6' }
   ];
 
-  const { value: sourceData, loading } = useQuery(async () => {
+  const sourceDataQuery = useQuery(async () => {
     const allMetrics = await db.metric_definition.toArray();
     const allPrefs = await db.user_source_preference.toArray();
     const srcStats = await getSourceStats();
@@ -90,6 +90,8 @@
       knownConverted
     };
   });
+  const sourceData = $derived(sourceDataQuery.value);
+  const loading = $derived(sourceDataQuery.loading);
 
   $effect(() => {
     const val = sourceData;

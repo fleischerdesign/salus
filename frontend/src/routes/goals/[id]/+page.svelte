@@ -13,10 +13,11 @@
 
   const goalId = $derived(page.params.id as string);
 
-  const { value: goalView } = useQuery(() => fetchGoalView(goalId));
+  const goalViewQuery = useQuery(() => fetchGoalView(goalId));
+  const goalView = $derived(goalViewQuery.value);
 
   // Load measurements for this goal's metric type to render trend chart
-  const { value: measurements } = useQuery(async () => {
+  const measurementsQuery = useQuery(async () => {
     const g = await db.goal.get(goalId);
     if (!g) return [];
     return db.measurement
@@ -29,6 +30,7 @@
           .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
       );
   });
+  const measurements = $derived(measurementsQuery.value);
 
   let chartData = $derived.by(() => {
     if (!measurements || (measurements ?? []).length === 0 || !goalView) return null;

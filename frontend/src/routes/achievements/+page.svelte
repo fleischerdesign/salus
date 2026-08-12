@@ -6,8 +6,11 @@
 
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: definitions } = useQuery(() => db.achievement_definition.toArray());
-  const { value: unlocked, loading } = useQuery(() => db.user_achievement.toArray());
+  const definitionsQuery = useQuery(() => db.achievement_definition.toArray());
+  const definitions = $derived(definitionsQuery.value);
+  const unlockedQuery = useQuery(() => db.user_achievement.toArray());
+  const unlocked = $derived(unlockedQuery.value);
+  const loading = $derived(unlockedQuery.loading);
 
   const unlockedCodes = $derived(new Set((unlocked ?? []).map((u) => u.achievement_code)));
 

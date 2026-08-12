@@ -32,9 +32,10 @@
     { href: '/workouts/sessions', icon: 'history', label: 'Sessions' }
   ];
 
-  const { value: activeSession } = useQuery(() =>
+  const activeSessionQuery = useQuery(() =>
     db.workout_session.filter((s) => !s.deleted_at && !s.completed_at).first()
   );
+  const activeSession = $derived(activeSessionQuery.value);
   let hasActiveSession = $derived(activeSession != null);
 
   let workoutItems = $derived(

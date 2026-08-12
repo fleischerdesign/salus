@@ -18,16 +18,20 @@
 
   let deleteOpen = $state(false);
 
-  const { value: meal } = useQuery(() =>
+  const mealQuery = useQuery(() =>
     id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
   );
-  const { value: mealItems } = useQuery(() =>
+  const meal = $derived(mealQuery.value);
+  const mealItemsQuery = useQuery(() =>
     db.meal_item
       .where({ meal_id: id })
       .filter((mi) => !mi.deleted_at)
       .toArray()
   );
-  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const mealItems = $derived(mealItemsQuery.value);
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};

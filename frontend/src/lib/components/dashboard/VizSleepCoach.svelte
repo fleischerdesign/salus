@@ -5,7 +5,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: sleepDebtData } = useQuery(async () => {
+  const sleepDebtDataQuery = useQuery(async () => {
     const recent = await db.measurement
       .where('[metric_code+start_time]')
       .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
@@ -38,6 +38,7 @@
       baselineH: debt.baseline_h
     };
   });
+  const sleepDebtData = $derived(sleepDebtDataQuery.value);
 
   // Calculate target sleep and wind-down tonight
   const coaching = $derived.by(() => {

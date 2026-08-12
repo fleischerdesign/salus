@@ -46,10 +46,12 @@
     authConfig.load();
   });
 
-  const { value: userProfiles } = useQuery(() => db.user_profile.toArray());
-  const { value: apiTokens } = useQuery(() =>
+  const userProfilesQuery = useQuery(() => db.user_profile.toArray());
+  const userProfiles = $derived(userProfilesQuery.value);
+  const apiTokensQuery = useQuery(() =>
     db.api_token.toArray().then((arr) => arr.filter((t) => t.is_active !== false))
   );
+  const apiTokens = $derived(apiTokensQuery.value);
 
   let currentPassword = $state('');
   let newPassword = $state('');

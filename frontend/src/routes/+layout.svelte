@@ -32,18 +32,20 @@
   const publicPaths = ['/auth/login', '/auth/register'];
   let isPublic = $derived(publicPaths.includes(page.url.pathname));
 
-  const { value: userProfiles } = useQuery(() => db.user_profile.toArray());
+  const userProfilesQuery = useQuery(() => db.user_profile.toArray());
+  const userProfiles = $derived(userProfilesQuery.value);
   let userProfile = $derived(
     userProfiles && (userProfiles ?? []).length > 0 ? userProfiles[0] : null
   );
 
   // ── Reactive Guards Integration for PWA Auto-Reload ──
 
-  const { value: activeSessions } = useQuery(() =>
+  const activeSessionsQuery = useQuery(() =>
     db.workout_session
       .filter((s) => Boolean(s.started_at && !s.completed_at && !s.deleted_at))
       .toArray()
   );
+  const activeSessions = $derived(activeSessionsQuery.value);
   $effect(() => {
     updateService.setActiveWorkout(Boolean(activeSessions && (activeSessions ?? []).length > 0));
   });

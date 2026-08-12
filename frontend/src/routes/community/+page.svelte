@@ -6,13 +6,14 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: counts } = useQuery(async () => {
+  const countsQuery = useQuery(async () => {
     const [connections, challenges] = await Promise.all([
       db.sharing_relationship.filter((r) => !r.deleted_at).count(),
       db.leaderboard_group.filter((g) => !g.deleted_at).count()
     ]);
     return { connections, challenges };
   });
+  const counts = $derived(countsQuery.value);
 
   const cards = [
     {

@@ -39,7 +39,7 @@
 
   const challengeId = $derived(page.params.id);
 
-  const { value: detail } = useQuery(async () => {
+  const detailQuery = useQuery(async () => {
     const group = await db.leaderboard_group.get(challengeId!);
     if (!group || group.deleted_at) return null;
 
@@ -70,6 +70,7 @@
       rankings
     } satisfies ChallengeDetail;
   });
+  const detail = $derived(detailQuery.value);
 
   const metricIcon: Record<string, string> = {
     steps: 'directions-walk',

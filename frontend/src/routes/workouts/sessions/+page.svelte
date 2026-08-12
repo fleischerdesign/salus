@@ -12,7 +12,7 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: sessions } = useQuery(() =>
+  const sessionsQuery = useQuery(() =>
     db.workout_session.toArray().then((arr) =>
       arr
         .filter((s) => !s.deleted_at && s.completed_at != null)
@@ -20,8 +20,9 @@
         .slice(0, 50)
     )
   );
+  const sessions = $derived(sessionsQuery.value);
 
-  const { value: logs } = useQuery(async () => {
+  const logsQuery = useQuery(async () => {
     const recent = await db.workout_session
       .filter((s) => !s.deleted_at && s.completed_at != null)
       .reverse()
@@ -35,6 +36,7 @@
       .filter((l) => !l.deleted_at)
       .toArray();
   });
+  const logs = $derived(logsQuery.value);
 
   function formatDate(dt: string | null | undefined): string {
     if (!dt) return '—';

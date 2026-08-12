@@ -4,7 +4,7 @@
   import { useQuery } from '$lib/db/use-query.svelte';
 
   // Query water metric and today's measurements
-  const { value: waterData } = useQuery(async () => {
+  const waterDataQuery = useQuery(async () => {
     const metric = await db.metric_definition.where('source_data_type').equals('water').first();
     if (!metric) return { total: 0, goal: 2500, metricCode: '' };
 
@@ -31,6 +31,7 @@
       metricCode: metric.code
     };
   });
+  const waterData = $derived(waterDataQuery.value);
 
   let total = $derived(waterData?.total ?? 0);
   let goal = $derived(waterData?.goal ?? 2500);

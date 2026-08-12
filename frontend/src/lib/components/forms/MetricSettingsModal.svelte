@@ -21,7 +21,7 @@
   let preferences = $state<UserSourcePreference[]>([]);
   let saving = $state(false);
 
-  const { value: loadedPrefs, loading } = useQuery(async () => {
+  const loadedPrefsQuery = useQuery(async () => {
     if (!open || !metricCode) return [] as UserSourcePreference[];
     // Fetch user preferences for this metric
     const userPrefs = await db.user_source_preference
@@ -62,6 +62,8 @@
 
     return combined.sort((a, b) => a.priority_rank - b.priority_rank);
   });
+  const loadedPrefs = $derived(loadedPrefsQuery.value);
+  const loading = $derived(loadedPrefsQuery.loading);
 
   $effect(() => {
     preferences = loadedPrefs ?? [];

@@ -13,7 +13,9 @@
   let todayStr = new Date().toISOString().split('T')[0];
   let score = $state(0);
 
-  const { value: entries, loading } = useQuery(() => db.mood_entry.toArray());
+  const entriesQuery = useQuery(() => db.mood_entry.toArray());
+  const entries = $derived(entriesQuery.value);
+  const loading = $derived(entriesQuery.loading);
 
   $effect(() => {
     const te = (entries ?? []).find((e) => e.entry_date === todayStr);

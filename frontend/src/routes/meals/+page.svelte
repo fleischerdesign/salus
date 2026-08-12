@@ -15,14 +15,15 @@
 
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
 
-  const { value: meals } = useQuery(() =>
+  const mealsQuery = useQuery(() =>
     db.meal
       .where('log_date')
       .equals(selectedDate)
       .filter((m) => !m.deleted_at)
       .toArray()
   );
-  const { value: mealItems } = useQuery(async () => {
+  const meals = $derived(mealsQuery.value);
+  const mealItemsQuery = useQuery(async () => {
     const dayMeals = await db.meal
       .where('log_date')
       .equals(selectedDate)
@@ -36,9 +37,10 @@
       .filter((mi) => !mi.deleted_at)
       .toArray();
   });
-  const { value: foodItems, loading } = useQuery(() =>
-    db.food_item.filter((f) => !f.deleted_at).toArray()
-  );
+  const mealItems = $derived(mealItemsQuery.value);
+  const foodItemsQuery = useQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const isToday = $derived(selectedDate === today);

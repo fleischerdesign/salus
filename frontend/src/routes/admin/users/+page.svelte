@@ -12,7 +12,8 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: users } = useQuery(() => db.admin_user.toArray());
+  const usersQuery = useQuery(() => db.admin_user.toArray());
+  const users = $derived(usersQuery.value);
 
   async function toggleAdmin(user: AdminUser) {
     await toggleAdminMutation(user.id);

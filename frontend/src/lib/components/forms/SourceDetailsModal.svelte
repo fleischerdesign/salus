@@ -35,7 +35,7 @@
   let healthConnectGranted = $state(false);
   let syncFeedback = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const { value: sourceData, loading } = useQuery(async () => {
+  const sourceDataQuery = useQuery(async () => {
     if (!open || !source) return { supplied: [], lastTime: null };
     const srcId = source.id;
     const allDefs = await db.metric_definition.toArray();
@@ -58,6 +58,8 @@
 
     return { supplied, lastTime: srcStat?.latest_time ?? null };
   });
+  const sourceData = $derived(sourceDataQuery.value);
+  const loading = $derived(sourceDataQuery.loading);
 
   $effect(() => {
     syncFeedback = null;

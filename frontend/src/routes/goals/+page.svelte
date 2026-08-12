@@ -20,8 +20,10 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: goals } = useQuery(() => fetchGoalViews());
-  const { value: metrics } = useQuery(() => db.metric_definition.toArray());
+  const goalsQuery = useQuery(() => fetchGoalViews());
+  const goals = $derived(goalsQuery.value);
+  const metricsQuery = useQuery(() => db.metric_definition.toArray());
+  const metrics = $derived(metricsQuery.value);
 
   // Form state
   let showForm = $state(false);

@@ -9,8 +9,11 @@
   import Card from '$components/ui/Card.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: habits } = useQuery(() => db.habit.toArray());
-  const { value: logs, loading } = useQuery(() => db.habit_log.toArray());
+  const habitsQuery = useQuery(() => db.habit.toArray());
+  const habits = $derived(habitsQuery.value);
+  const logsQuery = useQuery(() => db.habit_log.toArray());
+  const logs = $derived(logsQuery.value);
+  const loading = $derived(logsQuery.loading);
 
   let formOpen = $state(false);
   let editTarget = $state<Habit | null>(null);

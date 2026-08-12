@@ -26,7 +26,9 @@
   let newServingSize = $state(100);
   let newServingUnit = $state('g');
 
-  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const results = $derived(
     search.trim()

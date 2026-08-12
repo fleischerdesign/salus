@@ -14,11 +14,12 @@
 
   const planId = $derived(page.params.id as string);
 
-  const { value: plan } = useQuery(() =>
+  const planQuery = useQuery(() =>
     db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null))
   );
+  const plan = $derived(planQuery.value);
 
-  const { value: planExercises } = useQuery(() =>
+  const planExercisesQuery = useQuery(() =>
     db.workout_plan_exercise
       .toArray()
       .then((arr) =>
@@ -27,15 +28,17 @@
           .sort((a, b) => a.sequence - b.sequence)
       )
   );
+  const planExercises = $derived(planExercisesQuery.value);
 
-  const { value: exercises } = useQuery(() =>
+  const exercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => {
       const map = new Map(arr.map((e) => [e.id, e]));
       return map;
     })
   );
+  const exercises = $derived(exercisesQuery.value);
 
-  const { value: sessions } = useQuery(() =>
+  const sessionsQuery = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) =>
@@ -44,8 +47,9 @@
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );
+  const sessions = $derived(sessionsQuery.value);
 
-  const { value: logs } = useQuery(async () => {
+  const logsQuery = useQuery(async () => {
     const sessionIds = (sessions ?? []).slice(0, 10).map((s) => s.id);
     if (sessionIds.length === 0) return [];
     return db.workout_log_entry
@@ -54,6 +58,7 @@
       .filter((l) => !l.deleted_at)
       .toArray();
   });
+  const logs = $derived(logsQuery.value);
 
   let starting = $state(false);
 

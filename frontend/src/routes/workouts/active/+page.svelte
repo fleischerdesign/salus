@@ -18,13 +18,14 @@
 
   type LogState = 'pending' | 'logging' | 'logged' | 'failed';
 
-  const { value: session } = useQuery(() =>
+  const sessionQuery = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null)
   );
+  const session = $derived(sessionQuery.value);
 
-  const { value: planExercises } = useQuery(async () => {
+  const planExercisesQuery = useQuery(async () => {
     const activeSession = await db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
@@ -35,8 +36,9 @@
       .toArray();
     return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
   });
+  const planExercises = $derived(planExercisesQuery.value);
 
-  const { value: allLogs } = useQuery(async () => {
+  const allLogsQuery = useQuery(async () => {
     const activeSession = await db.workout_session
       .toArray()
       .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
@@ -47,6 +49,7 @@
       .toArray()
       .then((arr) => arr.filter((l) => !l.deleted_at));
   });
+  const allLogs = $derived(allLogsQuery.value);
 
   let logStates = $state<Record<string, LogState>>({});
   let rpePrompts = $state(new Map<string, number>());
@@ -78,10 +81,11 @@
 
   let loading = $derived(session == null || planExercises == null || allLogs == null);
 
-  const { value: exercises } = useQuery(async () => {
+  const exercisesQuery = useQuery(async () => {
     const map = new Map((await db.exercise.toArray()).map((e) => [e.id, e]));
     return map;
   });
+  const exercises = $derived(exercisesQuery.value);
 
   interface Target {
     exercise_id: string;

@@ -40,7 +40,7 @@
   let groupMetrics = $state<MetricWithPreference[]>([]);
   let metricDetail = $state<MetricWithPreference | null>(null);
 
-  const { value: detailData, loading } = useQuery(async () => {
+  const detailDataQuery = useQuery(async () => {
     const id = metricId;
     if (!id) return null;
     const g = await db.metric_group.get(id);
@@ -65,6 +65,8 @@
       metricDetail: merged.find((m) => m.code === id) || null
     };
   });
+  const detailData = $derived(detailDataQuery.value);
+  const loading = $derived(detailDataQuery.loading);
 
   $effect(() => {
     const d = detailData;
@@ -76,12 +78,13 @@
     }
   });
 
-  const { value: overviews } = useQuery(() => fetchMetricOverview());
+  const overviewsQuery = useQuery(() => fetchMetricOverview());
+  const overviews = $derived(overviewsQuery.value);
 
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
-  const { value: pagedData, loading: entriesLoading } = useQuery(async () => {
+  const pagedDataQuery = useQuery(async () => {
     if (!metricId || isGroup) return { count: 0, items: [] };
     const stat = await getMetricStat(metricId);
     const rawItems = await db.measurement
@@ -94,6 +97,8 @@
 
     return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
   });
+  const pagedData = $derived(pagedDataQuery.value);
+  const entriesLoading = $derived(pagedDataQuery.loading);
 
   $effect(() => {
     if (pagedData) {
@@ -105,7 +110,7 @@
   let entriesForGroup = $state<Entry[]>([]);
   let entriesForGroupLoading = $state(true);
 
-  const { value: groupEntriesData } = useQuery(async () => {
+  const groupEntriesDataQuery = useQuery(async () => {
     const gKey = group?.key;
     if (!isGroup || !gKey || group?.input_mode !== 'combined') return [] as Entry[];
     const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
@@ -124,6 +129,7 @@
     const all = results.flat();
     return all.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
   });
+  const groupEntriesData = $derived(groupEntriesDataQuery.value);
 
   $effect(() => {
     if (groupEntriesData) {
@@ -163,7 +169,7 @@
     { code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[]
   >([]);
 
-  const { value: chartData } = useQuery(async () => {
+  const chartDataQuery = useQuery(async () => {
     const gKey = group?.key;
     if (!isGroup || !gKey || group?.input_mode !== 'combined') return [];
     const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
@@ -195,6 +201,7 @@
     }
     return result;
   });
+  const chartData = $derived(chartDataQuery.value);
 
   $effect(() => {
     if (chartData) chartDataForGroup = chartData;

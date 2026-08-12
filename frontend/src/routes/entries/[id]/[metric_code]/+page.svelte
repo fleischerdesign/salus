@@ -39,7 +39,7 @@
   let metric = $state<MetricWithPreference | null>(null);
   let settingsModalOpen = $state(false);
 
-  const { value: metricData, loading } = useQuery(async () => {
+  const metricDataQuery = useQuery(async () => {
     const code = childMetricCode;
     if (!code) return null;
     const def = await db.metric_definition.get(code);
@@ -55,17 +55,20 @@
       position: prefs?.position ?? 0
     };
   });
+  const metricData = $derived(metricDataQuery.value);
+  const loading = $derived(metricDataQuery.loading);
 
   $effect(() => {
     if (metricData) metric = metricData;
   });
 
-  const { value: overviews } = useQuery(() => fetchMetricOverview());
+  const overviewsQuery = useQuery(() => fetchMetricOverview());
+  const overviews = $derived(overviewsQuery.value);
 
   let totalEntriesCount = $state(0);
   let pagedEntries = $state<Entry[]>([]);
 
-  const { value: pagedData, loading: entriesLoading } = useQuery(async () => {
+  const pagedDataQuery = useQuery(async () => {
     const code = childMetricCode;
     if (!code) return { count: 0, items: [] };
     const stat = await getMetricStat(code);
@@ -79,6 +82,8 @@
 
     return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
   });
+  const pagedData = $derived(pagedDataQuery.value);
+  const entriesLoading = $derived(pagedDataQuery.loading);
 
   $effect(() => {
     if (pagedData) {

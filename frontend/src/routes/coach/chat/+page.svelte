@@ -11,15 +11,16 @@
   let date = $state(new Date().toISOString().slice(0, 10));
   let generating = $state(false);
 
-  const { value: insight } = useQuery(() =>
+  const insightQuery = useQuery(() =>
     db.insight
       .where('query_date')
       .equals(date)
       .first()
       .then((i) => (i && !i.deleted_at ? i : null))
   );
+  const insight = $derived(insightQuery.value);
 
-  const { value: history } = useQuery(() =>
+  const historyQuery = useQuery(() =>
     db.insight
       .toArray()
       .then((arr) =>
@@ -28,6 +29,7 @@
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       )
   );
+  const history = $derived(historyQuery.value);
 
   async function generate() {
     generating = true;

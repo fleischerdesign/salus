@@ -19,15 +19,18 @@
 
   let id = $derived(page.params.id);
 
-  const { value: habit } = useQuery(() =>
+  const habitQuery = useQuery(() =>
     id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null)
   );
-  const { value: logs, loading } = useQuery(() =>
+  const habit = $derived(habitQuery.value);
+  const logsQuery = useQuery(() =>
     db.habit_log
       .where({ habit_id: id })
       .filter((l) => !l.deleted_at)
       .toArray()
   );
+  const logs = $derived(logsQuery.value);
+  const loading = $derived(logsQuery.loading);
   let editOpen = $state(false);
   let deleteOpen = $state(false);
 

@@ -40,7 +40,7 @@
   }
 
   // Load single peer connection details
-  const { value: peer } = useQuery(async () => {
+  const peerQuery = useQuery(async () => {
     const uid = auth.user?.id;
     const username = auth.user?.username;
     if (!uid || !username || !handle) return null;
@@ -117,9 +117,10 @@
 
     return resolvedPeer;
   });
+  const peer = $derived(peerQuery.value);
 
   // Filter activities belonging only to this connection
-  const { value: activities } = useQuery(async () => {
+  const activitiesQuery = useQuery(async () => {
     if (!handle) return [];
     const p = await db.user_profile.where('username').equals(handle).first();
     const displayName = p?.display_name ?? '';
@@ -134,6 +135,7 @@
           .sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
       );
   });
+  const activities = $derived(activitiesQuery.value);
 
   async function revoke(id: string) {
     if (!confirm('Revoke this connection?')) return;

@@ -12,9 +12,10 @@
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: profile } = useQuery(() =>
+  const profileQuery = useQuery(() =>
     db.circadian_profile.toArray().then((arr) => arr.find((p) => !p.deleted_at) ?? null)
   );
+  const profile = $derived(profileQuery.value);
 
   let advice = $state<CircadianAdvice | null>(null);
   let adviceLoading = $state(false);

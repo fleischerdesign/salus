@@ -9,13 +9,15 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: plans } = useQuery(() =>
+  const plansQuery = useQuery(() =>
     db.workout_plan.toArray().then((arr) => arr.filter((p) => !p.deleted_at))
   );
-  const { value: exercises } = useQuery(() =>
+  const plans = $derived(plansQuery.value);
+  const exercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
-  const { value: sessions } = useQuery(() =>
+  const exercises = $derived(exercisesQuery.value);
+  const sessionsQuery = useQuery(() =>
     db.workout_session
       .toArray()
       .then((arr) =>
@@ -24,7 +26,8 @@
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );
-  const { value: logs } = useQuery(async () => {
+  const sessions = $derived(sessionsQuery.value);
+  const logsQuery = useQuery(async () => {
     const active = await db.workout_session
       .filter((s) => !s.deleted_at)
       .reverse()
@@ -38,6 +41,7 @@
       .filter((l) => !l.deleted_at)
       .toArray();
   });
+  const logs = $derived(logsQuery.value);
 
   let recentSessions = $derived((sessions ?? []).slice(0, 5));
   let activeSession = $derived(sessions?.find((s) => s.completed_at == null) ?? null);

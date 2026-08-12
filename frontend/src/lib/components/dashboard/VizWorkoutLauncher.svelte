@@ -6,13 +6,15 @@
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: activeSession } = useQuery(() =>
+  const activeSessionQuery = useQuery(() =>
     db.workout_session.filter((s) => !s.completed_at && !s.deleted_at).first()
   );
+  const activeSession = $derived(activeSessionQuery.value);
 
-  const { value: plans } = useQuery(() => db.workout_plan.filter((p) => !p.deleted_at).toArray());
+  const plansQuery = useQuery(() => db.workout_plan.filter((p) => !p.deleted_at).toArray());
+  const plans = $derived(plansQuery.value);
 
-  const { value: lastSessionData } = useQuery(async () => {
+  const lastSessionDataQuery = useQuery(async () => {
     const list = await db.workout_session
       .filter((s) => !!s.completed_at && !s.deleted_at)
       .toArray();
@@ -22,6 +24,7 @@
     const plan = latest.plan_id ? await db.workout_plan.get(latest.plan_id) : null;
     return { session: latest, plan };
   });
+  const lastSessionData = $derived(lastSessionDataQuery.value);
 
   let selectedPlanId = $state('');
 

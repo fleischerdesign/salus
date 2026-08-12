@@ -54,7 +54,8 @@
 
   const isToday = $derived(displayDate === getTodayString());
 
-  const { value: dashboardData } = useQuery(() => fetchDashboard(displayDate));
+  const dashboardDataQuery = useQuery(() => fetchDashboard(displayDate));
+  const dashboardData = $derived(dashboardDataQuery.value);
   let isTransitioning = $state(false);
 
   $effect(() => {

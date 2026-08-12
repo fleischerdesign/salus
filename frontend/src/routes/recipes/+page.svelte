@@ -12,9 +12,13 @@
 
   let formOpen = $state(false);
 
-  const { value: recipes } = useQuery(() => db.notDeleted(db.recipe).toArray());
-  const { value: ingredients } = useQuery(() => db.notDeleted(db.recipe_ingredient).toArray());
-  const { value: foodItems, loading } = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const recipesQuery = useQuery(() => db.notDeleted(db.recipe).toArray());
+  const recipes = $derived(recipesQuery.value);
+  const ingredientsQuery = useQuery(() => db.notDeleted(db.recipe_ingredient).toArray());
+  const ingredients = $derived(ingredientsQuery.value);
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
+  const foodItems = $derived(foodItemsQuery.value);
+  const loading = $derived(foodItemsQuery.loading);
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};

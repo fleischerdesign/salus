@@ -22,9 +22,10 @@
   import { staggerFade } from '$lib/utils/motion';
   import { useQuery } from '$lib/db/use-query.svelte';
 
-  const { value: allExercises } = useQuery(() =>
+  const allExercisesQuery = useQuery(() =>
     db.exercise.toArray().then((arr) => arr.filter((e) => !e.deleted_at))
   );
+  const allExercises = $derived(allExercisesQuery.value);
 
   let searchQuery = $state('');
   let muscleFilter = $state('');
