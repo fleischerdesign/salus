@@ -45,7 +45,6 @@ from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
-from salus.repositories.insight import InsightRepository
 from salus.services.sharing import (
     SharingService,
     RelationshipService,
@@ -56,7 +55,6 @@ from salus.services.sharing import (
 )
 from salus.services.leaderboard import LeaderboardService
 from salus.services.notification import NotificationService
-from salus.repositories.protocols import IInsightRepository
 from salus.services.insight.factory import LLMProviderFactory
 from salus.services.insight.service import InsightService
 from salus.services.workout.autoregulation import AutoregulationService
@@ -455,10 +453,6 @@ async def get_current_user_or_api(
     if user is None:
         raise AuthenticationError("Invalid or expired token")
     return user
-
-
-def get_insight_repo(session: Session = Depends(get_session)) -> IInsightRepository:
-    return InsightRepository(session)
 
 
 def get_insight_service(

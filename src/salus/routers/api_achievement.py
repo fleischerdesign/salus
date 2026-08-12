@@ -14,19 +14,6 @@ from salus.services.achievement.service import AchievementService
 router = APIRouter(prefix="/api/v1")
 
 
-def _defn_to_response(ad) -> dict:
-    return {
-        "code": ad.code,
-        "title": ad.title,
-        "description": ad.description,
-        "icon": ad.icon,
-        "tier": ad.tier.value if hasattr(ad.tier, "value") else str(ad.tier),
-        "category": ad.category.value if hasattr(ad.category, "value") else str(ad.category),
-        "is_hidden": ad.is_hidden,
-        "sort_order": ad.sort_order,
-    }
-
-
 def _unlocked_to_response(ua) -> dict:
     return {
         "id": ua.id,

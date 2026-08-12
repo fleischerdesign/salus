@@ -3,18 +3,8 @@
 # Sync push deduplication window (hours)
 DEDUP_TTL_HOURS = 24
 
-# Time-series query windows (days)
-DAY_WINDOWS: dict[str, int] = {
-    "7d": 7,
-    "30d": 30,
-    "90d": 90,
-    "1y": 365,
-}
-
-# Batch/chunk sizes for SQLite parameter limits and sync batches
+# Batch size for sync batches
 SYNC_BATCH_SIZE = 500
-SYNC_BATCH_SIZE_HIGH_VOLUME = 2000
-INGEST_CHUNK_SIZE = 900
 
 # Workout autoregulation defaults
 DEFAULT_RPE = 8.0
