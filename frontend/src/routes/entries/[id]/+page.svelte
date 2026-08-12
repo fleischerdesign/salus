@@ -219,7 +219,7 @@
     const ts = entryTimestamp ? new Date(entryTimestamp).toISOString() : undefined;
     const notesVal = entryNotes || undefined;
     const combined = allGroupMetrics;
-    const values: { code: string; value: number }[] = [];
+    const values: { code: string; value: number; source_data_type: string | null }[] = [];
     for (const m of combined) {
       const raw = combinedValues[m.code].trim();
       if (!raw) {
@@ -236,19 +236,19 @@
         saving = false;
         return;
       }
-      values.push({ code: m.code, value: v });
+      values.push({ code: m.code, value: v, source_data_type: m.source_data_type });
     }
     if (values.length === 0) {
       entryError = 'Enter at least one value';
       saving = false;
       return;
     }
-    for (const { code, value } of values) {
+    for (const { code, value, source_data_type } of values) {
       const { ok, error } = await createMeasurement(code, {
         value_numeric: value,
         start_time: ts || new Date().toISOString(),
         notes: notesVal,
-        data_type: 'number',
+        source_data_type: source_data_type ?? '',
         source: 'manual'
       });
       if (!ok) {

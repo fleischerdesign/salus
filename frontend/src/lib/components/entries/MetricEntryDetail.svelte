@@ -151,7 +151,7 @@
       start_time: ts || new Date().toISOString(),
       notes: notesVal,
       metric_code: metricCode,
-      data_type: 'number',
+      source_data_type: metric.source_data_type ?? '',
       source: 'manual'
     };
     if (editingEntry) {

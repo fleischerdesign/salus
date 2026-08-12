@@ -34,7 +34,7 @@ vi.mock('$stores/conflict.svelte', () => ({
 
 const optimisticUpdate = {
   id: 'uid-test-1',
-  data_type: 'weight',
+  source_data_type: 'weight',
   value_numeric: 75,
   updated_at: '2026-07-13T12:00:00Z'
 };
@@ -57,7 +57,7 @@ describe('mutate', () => {
         op: 'create',
         entity: 'measurement',
         optimistic: optimisticUpdate,
-        data: { data_type: 'weight', value_numeric: 75 }
+        data: { source_data_type: 'weight', value_numeric: 75 }
       });
 
       expect(result.ok).toBe(true);
@@ -88,14 +88,14 @@ describe('mutate', () => {
         op: 'create',
         entity: 'measurement',
         optimistic: optimisticUpdate,
-        data: { data_type: 'weight', value_numeric: 75 }
+        data: { source_data_type: 'weight', value_numeric: 75 }
       });
 
       expect(result.ok).toBe(true);
       expect(mockSyncEngine.enqueueOutbox).toHaveBeenCalledOnce();
       const measurements = await db.measurement.toArray();
       expect(measurements).toHaveLength(1);
-      expect(measurements[0].data_type).toBe('weight');
+      expect(measurements[0].source_data_type).toBe('weight');
     });
   });
 
@@ -108,7 +108,7 @@ describe('mutate', () => {
         op: 'create',
         entity: 'measurement',
         optimistic: optimisticUpdate,
-        data: { data_type: 'weight', value_numeric: 75 }
+        data: { source_data_type: 'weight', value_numeric: 75 }
       });
 
       expect(result).toEqual({ ok: true, queued: true });

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/v1")
 
 class _CreateLeaderboardBody(BaseModel):
     name: str
-    metric_type_code: str = "steps"
+    source_data_type: str = "steps"
     time_frame: str = "weekly"
 
 
@@ -59,7 +59,7 @@ async def api_leaderboard_list(
             "id": g.id,
             "name": g.name,
             "creator_id": g.creator_id,
-            "metric_type_code": g.metric_type_code,
+            "source_data_type": g.source_data_type,
             "time_frame": g.time_frame,
             "invite_code": g.invite_code,
             "start_date": g.start_date.isoformat() if g.start_date else None,
@@ -79,14 +79,14 @@ async def api_leaderboard_create(
     group = leaderboard_svc.create_group(
         creator_id=uid(current_user),
         name=body.name,
-        metric_type_code=body.metric_type_code,
+        source_data_type=body.source_data_type,
         time_frame=body.time_frame,
     )
     return {
         "id": group.id,
         "name": group.name,
         "creator_id": group.creator_id,
-        "metric_type_code": group.metric_type_code,
+        "source_data_type": group.source_data_type,
         "time_frame": group.time_frame,
         "invite_code": group.invite_code,
         "start_date": group.start_date.isoformat() if group.start_date else None,
@@ -110,7 +110,7 @@ async def api_leaderboard_get(
             "id": group.id,
             "name": group.name,
             "creator_id": group.creator_id,
-            "metric_type_code": group.metric_type_code,
+            "source_data_type": group.source_data_type,
             "time_frame": group.time_frame,
             "invite_code": group.invite_code,
             "start_date": group.start_date.isoformat() if group.start_date else None,
@@ -136,7 +136,7 @@ async def api_leaderboard_join(
         "id": group.id,
         "name": group.name,
         "creator_id": group.creator_id,
-        "metric_type_code": group.metric_type_code,
+        "source_data_type": group.source_data_type,
         "time_frame": group.time_frame,
         "invite_code": group.invite_code,
         "start_date": group.start_date.isoformat() if group.start_date else None,

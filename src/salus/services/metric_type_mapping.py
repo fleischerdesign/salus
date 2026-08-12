@@ -133,13 +133,13 @@ class MetricDefinitionMappingService:
         self._repo = metric_definition_repo
         self._cache: dict[str, str | None] = {}
 
-    def resolve(self, data_type: str, user_id: str | None = None) -> str | None:
-        if data_type in self._cache:
-            return self._cache[data_type]
+    def resolve(self, source_data_type: str, user_id: str | None = None) -> str | None:
+        if source_data_type in self._cache:
+            return self._cache[source_data_type]
 
-        code = DATA_TYPE_KEYWORD_TO_METRIC.get(data_type)
+        code = DATA_TYPE_KEYWORD_TO_METRIC.get(source_data_type)
         if code is None:
-            lower = data_type.lower()
+            lower = source_data_type.lower()
             for keyword, mc in DATA_TYPE_KEYWORD_TO_METRIC.items():
                 if keyword.lower() in lower:
                     code = mc
@@ -148,8 +148,8 @@ class MetricDefinitionMappingService:
         if code is not None:
             md = self._repo.find_by_code(code)
             if md is not None:
-                self._cache[data_type] = code
+                self._cache[source_data_type] = code
                 return code
 
-        self._cache[data_type] = None
+        self._cache[source_data_type] = None
         return None

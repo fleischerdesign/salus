@@ -32,7 +32,7 @@ class CorrelationsStrategy:
         for m in records:
             if m.value_numeric is None:
                 continue
-            name = type_map.get(m.metric_code or "", m.data_type)
+            name = type_map.get(m.metric_code or "", m.source_data_type)
             if name not in pivot:
                 pivot[name] = []
             pivot[name].append(m.value_numeric)

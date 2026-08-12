@@ -39,7 +39,7 @@ class MeasurementService:
         obj = Measurement(
             user_id=user_id,
             metric_code=metric_code,
-            data_type="",
+            source_data_type="",
             source="manual",
             value_text=data.value,
             start_time=data.timestamp or datetime.now(timezone.utc),

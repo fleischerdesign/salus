@@ -22,7 +22,7 @@ describe('pullFull', () => {
           cursors: { measurement: 100, goal: 50 },
           has_more: false,
           synced_at: '2026-07-13T12:00:00Z',
-          measurement: [{ id: 1, data_type: 'weight', value_numeric: 75 }],
+          measurement: [{ id: 1, source_data_type: 'weight', value_numeric: 75 }],
           goal: [{ id: 1, target_value: 100, metric_type_id: 1 }]
         }
       }
@@ -34,7 +34,7 @@ describe('pullFull', () => {
     expect(result).toBe(true);
     const measurements = await db.measurement.toArray();
     expect(measurements).toHaveLength(1);
-    expect(measurements[0].data_type).toBe('weight');
+    expect(measurements[0].source_data_type).toBe('weight');
 
     const goals = await db.goal.toArray();
     expect(goals).toHaveLength(1);
@@ -52,7 +52,7 @@ describe('pullFull', () => {
           cursors: { measurement: 50 },
           has_more: true,
           synced_at: '2026-07-13T12:00:00Z',
-          measurement: [{ id: 1, data_type: 'weight' }]
+          measurement: [{ id: 1, source_data_type: 'weight' }]
         }
       },
       {
@@ -60,7 +60,7 @@ describe('pullFull', () => {
           cursors: { measurement: 100 },
           has_more: false,
           synced_at: '2026-07-13T12:00:00Z',
-          measurement: [{ id: 2, data_type: 'steps' }]
+          measurement: [{ id: 2, source_data_type: 'steps' }]
         }
       }
     ]);
@@ -81,7 +81,7 @@ describe('pullFull', () => {
           cursors: { measurement: 100 },
           has_more: false,
           synced_at: '2026-07-13T12:00:00Z',
-          measurement: [{ id: 1, data_type: 'weight' }]
+          measurement: [{ id: 1, source_data_type: 'weight' }]
         }
       }
     ]);
@@ -102,7 +102,7 @@ describe('pullFull', () => {
           cursors: {},
           has_more: false,
           synced_at: '2026-07-13T12:00:00Z',
-          measurement: [{ id: 1, data_type: 'weight' }],
+          measurement: [{ id: 1, source_data_type: 'weight' }],
           unknown_table: [{ id: 99 }]
         }
       }
@@ -144,7 +144,7 @@ describe('pullDelta', () => {
     const fetchMock = createFetchMock([
       {
         body: {
-          changed: { measurement: [{ id: 10, data_type: 'weight' }] },
+          changed: { measurement: [{ id: 10, source_data_type: 'weight' }] },
           deleted: {},
           synced_at: '2026-07-13T12:00:00Z'
         }
@@ -163,7 +163,7 @@ describe('pullDelta', () => {
   it('applies deleted rows', async () => {
     await db.table('measurement').put({
       id: 5,
-      data_type: 'heart_rate',
+      source_data_type: 'heart_rate',
       user_id: 1,
       metric_type_id: 1,
       source: 'test',

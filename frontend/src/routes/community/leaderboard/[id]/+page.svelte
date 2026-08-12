@@ -25,7 +25,7 @@
   interface ChallengeDetail {
     id: string;
     name: string;
-    metric_type_code: string;
+    source_data_type: string;
     time_frame: string;
     start_date: string;
     end_date: string;
@@ -60,7 +60,7 @@
     return {
       id: group.id,
       name: group.name,
-      metric_type_code: group.metric_type_code,
+      source_data_type: group.source_data_type,
       time_frame: group.time_frame,
       start_date: group.start_date ?? '',
       end_date: group.end_date ?? '',
@@ -128,8 +128,8 @@
   <div class="max-w-4xl space-y-6">
     <PageHeader
       title={detail.name}
-      subtitle={`${detail.time_frame} • ${detail.metric_type_code} • ${new Date(detail.start_date).toLocaleDateString()} — ${new Date(detail.end_date).toLocaleDateString()}`}
-      icon={metricIcon[detail.metric_type_code] ?? 'emoji-events'}
+      subtitle={`${detail.time_frame} • ${detail.source_data_type} • ${new Date(detail.start_date).toLocaleDateString()} — ${new Date(detail.end_date).toLocaleDateString()}`}
+      icon={metricIcon[detail.source_data_type] ?? 'emoji-events'}
       iconColor="#4f46e5"
       backUrl="/community/leaderboard"
     >
@@ -158,7 +158,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm font-semibold text-surface-900">Standings</span>
             <span class="text-xs font-semibold tracking-wider text-primary-500 uppercase"
-              >{detail.metric_type_code}</span
+              >{detail.source_data_type}</span
             >
           </div>
         {/if}
@@ -197,7 +197,7 @@
               <span class="text-sm font-semibold text-surface-700">
                 {r.score}
                 <span class="ml-1 text-xs font-medium text-surface-500"
-                  >{scoreUnit[detail.metric_type_code] ?? ''}</span
+                  >{scoreUnit[detail.source_data_type] ?? ''}</span
                 >
               </span>
             </div>

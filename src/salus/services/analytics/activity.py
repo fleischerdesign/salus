@@ -29,7 +29,7 @@ class ActivityAnalysisService:
         since = datetime.fromisoformat(start_date_str + "T00:00:00")
         until = datetime.fromisoformat(anchor.strftime("%Y-%m-%d") + "T23:59:59")
         records = self._repo.find_all(
-            data_types=["steps"], user_id=user_id, since=since, until=until
+            source_data_types=["steps"], user_id=user_id, since=since, until=until
         )
 
         # Group records by date in memory
@@ -60,7 +60,7 @@ class ActivityAnalysisService:
         since = datetime.fromisoformat(date_str + "T00:00:00")
         until = datetime.fromisoformat(date_str + "T23:59:59")
         records = self._repo.find_all(
-            data_types=["heart_rate"], user_id=user_id, since=since, until=until
+            source_data_types=["heart_rate"], user_id=user_id, since=since, until=until
         )
         bpms: list[float] = []
         for rec in records:
@@ -88,7 +88,7 @@ class ActivityAnalysisService:
         since = datetime.fromisoformat(date_str + "T00:00:00")
         until = datetime.fromisoformat(date_str + "T23:59:59")
         records = self._repo.find_all(
-            data_types=["heart_rate"], user_id=user_id, since=since, until=until
+            source_data_types=["heart_rate"], user_id=user_id, since=since, until=until
         )
         points: list[HRTimelinePoint] = []
         for rec in reversed(records):
@@ -115,7 +115,7 @@ class ActivityAnalysisService:
         since = datetime.fromisoformat(start_date_str + "T00:00:00")
         until = datetime.fromisoformat(anchor.strftime("%Y-%m-%d") + "T23:59:59")
         records = self._repo.find_all(
-            data_types=["heart_rate"], user_id=user_id, since=since, until=until
+            source_data_types=["heart_rate"], user_id=user_id, since=since, until=until
         )
 
         # Group records by date in memory
@@ -165,7 +165,7 @@ class ActivityAnalysisService:
     ) -> list[ExerciseSession]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
-            data_types=["exercise"], user_id=user_id, since=since, limit=limit
+            source_data_types=["exercise"], user_id=user_id, since=since, limit=limit
         )
         sessions: list[ExerciseSession] = []
         for rec in records:

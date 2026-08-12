@@ -31,7 +31,7 @@ def test_plugin_context_permissions(session: Session):
     context_restricted = PluginContext(uow, manifest_restricted)
     
     with pytest.raises(ForbiddenError) as exc_info:
-        context_restricted.get_measurements(user_id=1, data_type="steps")
+        context_restricted.get_measurements(user_id=1, source_data_type="steps")
     assert "Permission denied: Plugin 'restricted' lacks required permission 'measurements:read'" in str(exc_info.value)
 
     # 2. Manifest with measurements:read permission
@@ -41,7 +41,7 @@ def test_plugin_context_permissions(session: Session):
     }
     context_allowed = PluginContext(uow, manifest_allowed)
     # This should not raise ForbiddenError (even if empty results return)
-    res = context_allowed.get_measurements(user_id=1, data_type="steps")
+    res = context_allowed.get_measurements(user_id=1, source_data_type="steps")
     assert isinstance(res, list)
 
 
@@ -87,7 +87,7 @@ def test_flexible_payload_parser_with_plugin_parser(session: Session):
     records = fpp.parse(payload)
     assert len(records) == 1
     assert records[0].source == "demo"
-    assert records[0].data_type == "demo_metric"
+    assert records[0].source_data_type == "demo_metric"
     assert records[0].value_numeric == 120.0
 
 
@@ -164,7 +164,7 @@ def test_ingestion_interceptor_hook(session: Session):
     ingest_svc.ingest(payload, user_id=user.id)
     
     # Check database records
-    db_records = m_repo.find_all(user_id=user.id, data_types=["steps"])
+    db_records = m_repo.find_all(user_id=user.id, source_data_types=["steps"])
     assert len(db_records) == 1
     assert db_records[0].value_numeric == 10000.0  # Doubled from 5000.0
 
@@ -181,7 +181,7 @@ def test_metric_synthesizer_hook(session: Session):
             from datetime import datetime, timezone
             return [Measurement(
                 user_id=user_id,
-                data_type="hr_avg_synth",
+                source_data_type="hr_avg_synth",
                 source="synthesizer",
                 value_numeric=72.5,
                 start_time=datetime.now(timezone.utc),
@@ -193,9 +193,9 @@ def test_metric_synthesizer_hook(session: Session):
     m_repo = MeasurementRepository(session, registry=registry)
     
     # Querying should trigger synthesizer and return the synthetic record
-    res = m_repo.find_all(user_id=1, data_types=["hr_avg_synth"])
+    res = m_repo.find_all(user_id=1, source_data_types=["hr_avg_synth"])
     assert len(res) == 1
-    assert res[0].data_type == "hr_avg_synth"
+    assert res[0].source_data_type == "hr_avg_synth"
     assert res[0].value_numeric == 72.5
 
 

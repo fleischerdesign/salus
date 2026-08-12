@@ -51,8 +51,8 @@ class RecordParser(Protocol):
     def can_handle(self, payload: dict | list) -> bool: ...
 
 
-def make_external_id(source: str, data_type: str, start_time: str) -> str:
-    raw = f"{source}|{data_type}|{start_time}"
+def make_external_id(source: str, source_data_type: str, start_time: str) -> str:
+    raw = f"{source}|{source_data_type}|{start_time}"
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
@@ -150,7 +150,7 @@ class HealthConnectWebhookParser:
 
                 records.append(
                     Measurement(
-                        data_type=dtype,
+                        source_data_type=dtype,
                         source="health_connect",
                         value_numeric=value_numeric,
                         value_json=value_json,
@@ -192,7 +192,7 @@ class FlatArrayParser:
                 or item.get("date")
                 or ""
             )
-            data_type = (
+            source_data_type = (
                 item.get("type") or item.get("dataType") or item.get("name") or ""
             )
             end_time = item.get("endTime") or item.get("end_time") or ""
@@ -211,7 +211,7 @@ class FlatArrayParser:
             external_id = (
                 rec_id
                 if rec_id
-                else make_external_id("flat_array", data_type, start_time)
+                else make_external_id("flat_array", source_data_type, start_time)
             )
 
             value_numeric = _extract_value_numeric(item)
@@ -220,7 +220,7 @@ class FlatArrayParser:
 
             records.append(
                 Measurement(
-                    data_type=data_type,
+                    source_data_type=source_data_type,
                     source="flat_array",
                     value_numeric=value_numeric,
                     value_json=value_json,

@@ -16,7 +16,7 @@ describe('syncEngine', () => {
   describe('enqueueOutbox', () => {
     it('adds a crud item to the outbox and updates queueLength', async () => {
       await syncEngine.enqueueOutbox(
-        { kind: 'crud', op: 'create', entity: 'measurement', data: { data_type: 'weight' } },
+        { kind: 'crud', op: 'create', entity: 'measurement', data: { source_data_type: 'weight' } },
         'client-1'
       );
 
@@ -52,7 +52,7 @@ describe('syncEngine', () => {
   describe('flush', () => {
     it('sends queued operations and removes succeeded items', async () => {
       await syncEngine.enqueueOutbox(
-        { kind: 'crud', op: 'create', entity: 'measurement', data: { data_type: 'weight' } },
+        { kind: 'crud', op: 'create', entity: 'measurement', data: { source_data_type: 'weight' } },
         'client-a'
       );
 
@@ -64,7 +64,7 @@ describe('syncEngine', () => {
                 client_id: 'client-a',
                 entity: 'measurement',
                 status: 'created',
-                record: { id: 'uid-1', data_type: 'weight' }
+                record: { id: 'uid-1', source_data_type: 'weight' }
               }
             ]
           }
@@ -86,7 +86,7 @@ describe('syncEngine', () => {
 
     it('handles conflicts by saving server records', async () => {
       await syncEngine.enqueueOutbox(
-        { kind: 'crud', op: 'update', entity: 'measurement', data: { data_type: 'weight' }, id: '1' },
+        { kind: 'crud', op: 'update', entity: 'measurement', data: { source_data_type: 'weight' }, id: '1' },
         'client-b'
       );
 
@@ -98,7 +98,7 @@ describe('syncEngine', () => {
                 client_id: 'client-b',
                 entity: 'measurement',
                 status: 'conflict',
-                conflict: { id: 'uid-1', data_type: 'weight', value_numeric: 100 }
+                conflict: { id: 'uid-1', source_data_type: 'weight', value_numeric: 100 }
               }
             ]
           }
@@ -156,7 +156,7 @@ describe('syncEngine', () => {
         opType: 'create',
         entity: 'measurement',
         client_id: 'client-e',
-        data: { data_type: 'weight' },
+        data: { source_data_type: 'weight' },
         createdAt: new Date().toISOString(),
         retries: 0
       } as OutboxCrudOp);
@@ -178,7 +178,7 @@ describe('syncEngine', () => {
         opType: 'create',
         entity: 'measurement',
         client_id: 'client-f',
-        data: { data_type: 'weight' },
+        data: { source_data_type: 'weight' },
         createdAt: new Date().toISOString(),
         retries: 4
       } as OutboxCrudOp);

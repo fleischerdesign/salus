@@ -19,7 +19,7 @@ class SleepAnalysisService:
         since = today.replace(hour=0, minute=0, second=0, microsecond=0)
         until = today.replace(hour=23, minute=59, second=59, microsecond=0)
         records = self._repo.find_all(
-            data_types=["sleep"], user_id=user_id, since=since, until=until, limit=1
+            source_data_types=["sleep"], user_id=user_id, since=since, until=until, limit=1
         )
         if not records:
             return None
@@ -28,7 +28,7 @@ class SleepAnalysisService:
     def trend(self, days: int = 7, user_id: str | None = None) -> list[SleepSummary]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
-            data_types=["sleep"], user_id=user_id, since=since
+            source_data_types=["sleep"], user_id=user_id, since=since
         )
         summaries: list[SleepSummary] = []
         seen_dates: set[str] = set()

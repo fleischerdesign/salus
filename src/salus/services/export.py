@@ -24,7 +24,7 @@ class ExportService:
         if format == "json":
             data = [
                 {
-                    "data_type": r.data_type,
+                    "source_data_type": r.source_data_type,
                     "source": r.source,
                     "metric_code": r.metric_code,
                     "value_numeric": r.value_numeric,
@@ -48,7 +48,7 @@ class ExportService:
         writer.writerow(
             [
                 "source",
-                "data_type",
+                "source_data_type",
                 "metric_code",
                 "value_numeric",
                 "value_text",
@@ -62,7 +62,7 @@ class ExportService:
             writer.writerow(
                 [
                     r.source,
-                    r.data_type,
+                    r.source_data_type,
                     r.metric_code,
                     r.value_numeric,
                     r.value_text or "",

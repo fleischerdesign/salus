@@ -13,7 +13,7 @@ class HeatmapStrategy:
         end = datetime(year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
         repo = ctx.uow.measurements
         records = repo.find_all(
-            user_id=user_id, data_types=[metric], since=start, until=end
+            user_id=user_id, source_data_types=[metric], since=start, until=end
         )
         daily: dict[str, float] = {}
         for m in records:

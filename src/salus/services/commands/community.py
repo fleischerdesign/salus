@@ -123,7 +123,7 @@ class CreateLeaderboardHandler:
             id=payload.get("id"),
             name=name,
             creator_id=user.id,  # pyright: ignore[reportArgumentType]
-            metric_type_code=payload.get("metric_type_code", "steps"),
+            source_data_type=payload.get("source_data_type", "steps"),
             time_frame=payload.get("time_frame", "weekly"),
             invite_code=invite_code,
         )
@@ -141,7 +141,7 @@ class CreateLeaderboardHandler:
 
         record: dict[str, Any] = {
             "id": group.id, "name": group.name, "creator_id": group.creator_id,
-            "metric_type_code": group.metric_type_code, "time_frame": group.time_frame,
+            "source_data_type": group.source_data_type, "time_frame": group.time_frame,
             "invite_code": group.invite_code,
         }
         return CommandResult(status="created", record=record, id=group.id)  # pyright: ignore[reportAttributeAccessIssue]

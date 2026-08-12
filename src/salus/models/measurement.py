@@ -26,7 +26,7 @@ class Measurement(SQLModel, table=True):
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str | None = Field(default=None, foreign_key="user.id", index=True)
     metric_code: str | None = Field(default=None, foreign_key="metric_definition.code")
-    data_type: str = Field(default="", index=True)
+    source_data_type: str = Field(default="", index=True)
     source: str = Field(default="manual")
     value_numeric: float | None = Field(default=None)
     value_text: str | None = Field(default=None)

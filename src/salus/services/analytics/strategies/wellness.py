@@ -20,10 +20,10 @@ class WellnessScoreStrategy:
         )
         repo = ctx.uow.measurements
         hr_records = repo.find_all(
-            user_id=user_id, data_types=["heart_rate"], since=since_dt, until=until_dt
+            user_id=user_id, source_data_types=["heart_rate"], since=since_dt, until=until_dt
         )
         step_records = repo.find_all(
-            user_id=user_id, data_types=["steps"], since=since_dt, until=until_dt
+            user_id=user_id, source_data_types=["steps"], since=since_dt, until=until_dt
         )
         hr_values = [m.value_numeric for m in hr_records if m.value_numeric is not None]
         step_values = [

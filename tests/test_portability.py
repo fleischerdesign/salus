@@ -77,7 +77,7 @@ def test_data_portability_export_import():
         csv_buffer = io.StringIO()
         csv_writer = csv.writer(csv_buffer)
         csv_writer.writerow([
-            "source", "data_type", "metric_code", "value_numeric",
+            "source", "source_data_type", "metric_code", "value_numeric",
             "value_text", "value_json", "start_time", "end_time", "notes", "external_id",
         ])
         csv_writer.writerow([

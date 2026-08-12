@@ -21,7 +21,7 @@ class TimeseriesStrategy:
         since = datetime.now(timezone.utc) - timedelta(days=days)
         repo = ctx.uow.measurements
         records = repo.find_all(
-            user_id=user_id, data_types=[metric], since=since
+            user_id=user_id, source_data_types=[metric], since=since
         )
         records.sort(key=lambda m: m.start_time)
         bucket_values: dict[str, list[float]] = {}

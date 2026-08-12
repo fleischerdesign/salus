@@ -15,7 +15,7 @@ class WeightAnalysisService:
         if date_str is not None:
             until = datetime.strptime(date_str + "T23:59:59", "%Y-%m-%dT%H:%M:%S")
             records = self._repo.find_all(
-                data_types=["weight"], user_id=user_id, until=until, limit=1
+                source_data_types=["weight"], user_id=user_id, until=until, limit=1
             )
             rec = records[0] if records else None
         else:
@@ -31,7 +31,7 @@ class WeightAnalysisService:
     def trend(self, days: int = 30, user_id: str | None = None) -> WeightTrend:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
-            data_types=["weight"], user_id=user_id, since=since
+            source_data_types=["weight"], user_id=user_id, since=since
         )
         seen: dict[str, float] = {}
         for rec in records:

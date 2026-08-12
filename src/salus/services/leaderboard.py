@@ -29,7 +29,7 @@ class LeaderboardService:
         self,
         creator_id: str,
         name: str,
-        metric_type_code: str = "steps",
+        source_data_type: str = "steps",
         time_frame: str = "weekly",
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
@@ -46,7 +46,7 @@ class LeaderboardService:
             group = LeaderboardGroup(
                 name=name.strip(),
                 creator_id=creator_id,
-                metric_type_code=metric_type_code,
+                source_data_type=source_data_type,
                 time_frame=time_frame,
                 start_date=start_date,
                 end_date=end_date,
@@ -218,7 +218,7 @@ class LeaderboardService:
         if not local_user:
             return 0.0
 
-        if group.metric_type_code == "workouts":
+        if group.source_data_type == "workouts":
             since_dt = datetime.combine(
                 start_date, datetime.min.time(), tzinfo=timezone.utc
             )
@@ -233,7 +233,7 @@ class LeaderboardService:
 
         measurements = self.uow.measurements.find_all(
             user_id=uid(local_user),
-            data_types=[group.metric_type_code],
+            source_data_types=[group.source_data_type],
             since=datetime.combine(
                 start_date, datetime.min.time(), tzinfo=timezone.utc
             ),
@@ -250,7 +250,7 @@ class LeaderboardService:
         ]
         if not day_values:
             return 0.0
-        return summarize_daily_values(group.metric_type_code, day_values) or 0.0
+        return summarize_daily_values(group.source_data_type, day_values) or 0.0
 
     def _score_remote_member(
         self,
@@ -271,7 +271,7 @@ class LeaderboardService:
                     data = self.sharing_svc.resolve_and_fetch(
                         requester_id=requester_id,
                         owner_handle=handle,
-                        data_type=group.metric_type_code,
+                        source_data_type=group.source_data_type,
                         date_str=date_str,
                     )
                     for item in data:
@@ -280,14 +280,14 @@ class LeaderboardService:
                             day_values.append(val)
                 except Exception as exc:
                     logger.debug(
-                        f"Failed to fetch {group.metric_type_code} for "
+                        f"Failed to fetch {group.source_data_type} for "
                         f"{handle} on {date_str}: {exc}"
                     )
                 curr_date += timedelta(days=1)
 
             if not day_values:
                 return 0.0
-            return summarize_daily_values(group.metric_type_code, day_values) or 0.0
+            return summarize_daily_values(group.source_data_type, day_values) or 0.0
         except Exception:
             return 0.0
 

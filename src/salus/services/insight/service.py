@@ -157,7 +157,7 @@ class InsightService:
                 if m.metric_code is not None
                 else None
             )
-            metric_name = metric_type.name if metric_type else m.data_type
+            metric_name = metric_type.name if metric_type else m.source_data_type
 
             if day_key not in daily_logs:
                 daily_logs[day_key] = {}

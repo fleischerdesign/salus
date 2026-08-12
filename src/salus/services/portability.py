@@ -37,12 +37,12 @@ class DataPortabilityService:
             csv_buffer = io.StringIO()
             csv_writer = csv.writer(csv_buffer)
             csv_writer.writerow([
-                "source", "data_type", "metric_code", "value_numeric",
+                "source", "source_data_type", "metric_code", "value_numeric",
                 "value_text", "value_json", "start_time", "end_time", "notes", "external_id"
             ])
             for m in measurements:
                 csv_writer.writerow([
-                    m.source, m.data_type, m.metric_code, m.value_numeric,
+                    m.source, m.source_data_type, m.metric_code, m.value_numeric,
                     m.value_text or "", m.value_json or "",
                     m.start_time.isoformat(),
                     m.end_time.isoformat() if m.end_time else "",
@@ -172,7 +172,7 @@ class DataPortabilityService:
                             m = Measurement(
                                 user_id=user_id,
                                 source=row["source"],
-                                data_type=row["data_type"],
+                                source_data_type=row["source_data_type"],
                                 metric_code=metric_code,
                                 value_numeric=value_numeric,
                                 value_text=row.get("value_text") or None,

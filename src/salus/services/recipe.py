@@ -209,7 +209,7 @@ class RecipeService:
         measurement = Measurement(
             user_id=user_id,
             metric_code="nutrition",
-            data_type="nutrition",
+            source_data_type="nutrition",
             source="meal",
             external_id=meal.id,
             value_json=json.dumps(macros),

@@ -28,13 +28,13 @@ class WebhookIngestionService:
 
         for rec in records:
             rec.user_id = user_id
-            rec.metric_code = self._mapping.resolve(rec.data_type, user_id)
+            rec.metric_code = self._mapping.resolve(rec.source_data_type, user_id)
             parsed_val = json.loads(rec.value_json) if rec.value_json else None
             vj_keys = list(parsed_val.keys()) if isinstance(parsed_val, dict) else []
             logger.debug(
-                "Record | data_type=%s | source=%s | metric_code=%s | "
+                "Record | source_data_type=%s | source=%s | metric_code=%s | "
                 "value_numeric=%s | value_json_keys=%s | start_time=%s | external_id=%s",
-                rec.data_type,
+                rec.source_data_type,
                 rec.source,
                 rec.metric_code,
                 rec.value_numeric,

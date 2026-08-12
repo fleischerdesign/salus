@@ -47,7 +47,7 @@ class TestSleepAnalysisService:
         svc = SleepAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
         _insert(repo,
-            data_type="sleep", source="test", start_time=f"{today}T23:00:00",
+            source_data_type="sleep", source="test", start_time=f"{today}T23:00:00",
             value_json=json.dumps({
                 "duration_seconds": 27000,
                 "stages": [
@@ -80,7 +80,7 @@ class TestWeightAnalysisService:
         svc = WeightAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
         _insert(repo,
-            data_type="weight", source="test", start_time=f"{today}T08:00:00",
+            source_data_type="weight", source="test", start_time=f"{today}T08:00:00",
             value_json=json.dumps({"kilograms": 80.5}),
         )
         result = svc.current()
@@ -101,8 +101,8 @@ class TestActivityAnalysisService:
     def test_heart_rate_summary_computes_stats(self, repo):
         svc = ActivityAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
-        _insert(repo, data_type="heart_rate", source="test", start_time=f"{today}T08:00:00", value_numeric=72)
-        _insert(repo, data_type="heart_rate", source="test", start_time=f"{today}T08:01:00", value_numeric=68)
+        _insert(repo, source_data_type="heart_rate", source="test", start_time=f"{today}T08:00:00", value_numeric=72)
+        _insert(repo, source_data_type="heart_rate", source="test", start_time=f"{today}T08:01:00", value_numeric=68)
         summary = svc.heart_rate_summary(date_str=today)
         assert summary is not None
         assert summary.measurement_count == 2
@@ -118,7 +118,7 @@ class TestActivityAnalysisService:
         svc = ActivityAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
         _insert(repo,
-            data_type="exercise", source="test", start_time=f"{today}T08:00:00",
+            source_data_type="exercise", source="test", start_time=f"{today}T08:00:00",
             value_json=json.dumps({
                 "exercise_type": 56, "duration_seconds": 2700,
                 "distance_meters": 5000, "calories": 320,
@@ -139,7 +139,7 @@ class TestNutritionAnalysisService:
         svc = NutritionAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
         _insert(repo,
-            data_type="nutrition", source="test", start_time=f"{today}T08:00:00",
+            source_data_type="nutrition", source="test", start_time=f"{today}T08:00:00",
             value_json=json.dumps({
                 "calories": 500, "protein_grams": 30,
                 "carbs_grams": 50, "fat_grams": 20, "name": "breakfast",
@@ -156,7 +156,7 @@ class TestSleepAnalysisServiceTrend:
         today = datetime.today()
         yesterday = today - timedelta(days=1)
         _insert(repo,
-            data_type="sleep", source="test",
+            source_data_type="sleep", source="test",
             start_time=f"{yesterday.strftime('%Y-%m-%d')}T23:00:00",
             value_json=json.dumps({
                 "duration_seconds": 28800,
@@ -171,7 +171,7 @@ class TestWeightAnalysisServiceTrend:
     def test_trend_with_data(self, repo):
         svc = WeightAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
-        _insert(repo, data_type="weight", source="test", start_time=f"{today}T08:00:00",
+        _insert(repo, source_data_type="weight", source="test", start_time=f"{today}T08:00:00",
             value_json=json.dumps({"kilograms": 80.5}))
         trend = svc.trend(days=30)
         assert len(trend.points) >= 1
@@ -188,7 +188,7 @@ class TestActivityStepsTrend:
     def test_steps_trend_with_data(self, repo):
         svc = ActivityAnalysisService(repo)
         today = datetime.today().strftime("%Y-%m-%d")
-        _insert(repo, data_type="steps", source="test", start_time=f"{today}T08:00:00",
+        _insert(repo, source_data_type="steps", source="test", start_time=f"{today}T08:00:00",
             end_time=f"{today}T22:00:00", value_numeric=8500)
         result = svc.steps_trend(days=7)
         today_point = [s for s in result if s.date == today]
