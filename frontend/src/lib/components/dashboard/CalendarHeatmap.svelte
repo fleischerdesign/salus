@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { quantileRank } from '$lib/analytics/stats';
-  import { liveQuery } from 'dexie';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
 
   interface Props {
@@ -20,34 +20,33 @@
     y: number;
   } | null = $state(null);
 
-  let data = $derived.by(() => {
+  const dataQuery = useQuery(async () => {
     const m = metric;
     const y = year;
-    return liveQuery(async () => {
-      const start = new Date(+y, 0, 1).toISOString();
-      const end = new Date(+y + 1, 0, 1).toISOString();
-      const daily = new Map<string, number>();
+    const start = new Date(+y, 0, 1).toISOString();
+    const end = new Date(+y + 1, 0, 1).toISOString();
+    const daily = new Map<string, number>();
 
-      await db.measurement
-        .where('[metric_code+start_time]')
-        .between([m, start], [m, end])
-        .each((item) => {
-          if (!item.deleted_at && item.value_numeric != null) {
-            const d = item.start_time.slice(0, 10);
-            const cur = daily.get(d) ?? -Infinity;
-            daily.set(d, Math.max(cur, item.value_numeric));
-          }
-        });
+    await db.measurement
+      .where('[metric_code+start_time]')
+      .between([m, start], [m, end])
+      .each((item) => {
+        if (!item.deleted_at && item.value_numeric != null) {
+          const d = item.start_time.slice(0, 10);
+          const cur = daily.get(d) ?? -Infinity;
+          daily.set(d, Math.max(cur, item.value_numeric));
+        }
+      });
 
-      return daily;
-    });
+    return daily;
   });
+  const data = $derived(dataQuery.value);
 
-  let values = $derived([...($data?.values() ?? [])]);
+  let values = $derived([...(data?.values() ?? [])]);
 
   function getValue(d: Date): number | null {
     const k = d.toISOString().slice(0, 10);
-    return $data?.get(k) ?? null;
+    return data?.get(k) ?? null;
   }
 
   function percentile(value: number): number {
