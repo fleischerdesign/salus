@@ -42,7 +42,7 @@ export const createLeaderboard = (name: string, metricTypeCode = 'steps', timeFr
     kind: 'command',
     command: 'create_leaderboard',
     queueable: false,
-    payload: { id, name, metric_type_code: metricTypeCode, time_frame: timeFrame },
+    payload: { id, name, source_data_type: metricTypeCode, time_frame: timeFrame },
     responseTable: 'leaderboard_group'
   });
 };

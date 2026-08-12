@@ -19,7 +19,7 @@ class DemoPlugin(BasePlugin):
             return []
         return [
             Measurement(
-                data_type="demo_metric",
+                source_data_type="demo_metric",
                 source="demo",
                 value_numeric=float(payload.get("value", 42.0)),
                 value_json=json.dumps(payload),
@@ -37,7 +37,7 @@ class DemoPlugin(BasePlugin):
     # HookEventSubscriber
     def on_measurement_created(self, measurement: Measurement) -> None:
         self.context.log_info(
-            f"DEMO PLUGIN | Captured created measurement of type: {measurement.data_type}"
+            f"DEMO PLUGIN | Captured created measurement of type: {measurement.source_data_type}"
         )
 
     def on_goal_achieved(self, goal: Goal) -> None:

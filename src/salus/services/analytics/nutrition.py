@@ -14,7 +14,7 @@ class NutritionAnalysisService:
     ) -> list[NutritionDay]:
         since = datetime.today() - timedelta(days=days)
         records = self._repo.find_all(
-            data_types=["nutrition"], user_id=user_id, since=since
+            source_data_types=["nutrition"], user_id=user_id, since=since
         )
         daily: dict[str, dict[str, float]] = {}
         for rec in records:
@@ -47,7 +47,7 @@ class NutritionAnalysisService:
         since = datetime.strptime(target, "%Y-%m-%d")
         until = datetime.strptime(target + "T23:59:59", "%Y-%m-%dT%H:%M:%S")
         records = self._repo.find_all(
-            data_types=["nutrition"], user_id=user_id, since=since, until=until
+            source_data_types=["nutrition"], user_id=user_id, since=since, until=until
         )
         if not records:
             return None

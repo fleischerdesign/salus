@@ -35,7 +35,7 @@ function measurement(id: string, metric_code: string, value: number) {
     id,
     user_id: 'u1',
     metric_code,
-    data_type: 'number',
+    source_data_type: 'number',
     source: 'manual',
     value_numeric: value,
     value_text: null,

@@ -103,12 +103,12 @@ class SharingService:
         self,
         requester_id: str,
         owner_handle: str,
-        data_type: str,
+        source_data_type: str,
         date_str: str,
         force_refresh: bool = False,
     ) -> list[dict]:
         return self._resolver.resolve_and_fetch(
-            requester_id, owner_handle, data_type, date_str, force_refresh,
+            requester_id, owner_handle, source_data_type, date_str, force_refresh,
         )
 
     def get_feed_activities(self, user_id: str) -> list[dict]:
@@ -147,20 +147,20 @@ class SharingService:
     # ── Notifications ──
 
     def notify_peers_of_update(
-        self, user_id: str, data_type: str, date_str: str
+        self, user_id: str, source_data_type: str, date_str: str
     ) -> None:
-        self._notify.notify_peers_of_update(user_id, data_type, date_str)
+        self._notify.notify_peers_of_update(user_id, source_data_type, date_str)
 
     # ── Internal method pass-throughs (for backward compat in tests) ──
 
     def _fetch_remote(
-        self, owner_handle: str, data_type: str, date_str: str
+        self, owner_handle: str, source_data_type: str, date_str: str
     ) -> list[dict]:
-        return self._resolver._fetch_remote(owner_handle, data_type, date_str)
+        return self._resolver._fetch_remote(owner_handle, source_data_type, date_str)
 
     def _resolve_local(
-        self, owner_handle: str, requester_handle: str, data_type: str, date_str: str
+        self, owner_handle: str, requester_handle: str, source_data_type: str, date_str: str
     ) -> list[dict]:
         return self._resolver._resolve_local(
-            owner_handle, requester_handle, data_type, date_str,
+            owner_handle, requester_handle, source_data_type, date_str,
         )

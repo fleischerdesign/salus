@@ -65,7 +65,7 @@ class MealService:
         return Measurement(
             user_id=meal.user_id,
             metric_code="nutrition",
-            data_type="nutrition",
+            source_data_type="nutrition",
             source="meal",
             external_id=meal.id,
             value_json=json.dumps(macros),

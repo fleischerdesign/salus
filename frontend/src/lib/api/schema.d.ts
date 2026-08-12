@@ -3035,13 +3035,13 @@ export interface components {
         };
         /** _CreateLeaderboardBody */
         _CreateLeaderboardBody: {
-            /**
-             * Metric Type Code
-             * @default steps
-             */
-            metric_type_code: string;
             /** Name */
             name: string;
+            /**
+             * Source Data Type
+             * @default steps
+             */
+            source_data_type: string;
             /**
              * Time Frame
              * @default weekly
@@ -3885,13 +3885,13 @@ export interface components {
             id?: string | null;
             /** Invite Code */
             invite_code: string;
-            /**
-             * Metric Type Code
-             * @default steps
-             */
-            metric_type_code: string;
             /** Name */
             name: string;
+            /**
+             * Source Data Type
+             * @default steps
+             */
+            source_data_type: string;
             /** Start Date */
             start_date?: string | null;
             /**
@@ -4066,11 +4066,6 @@ export interface components {
              * Format: date-time
              */
             created_at?: string;
-            /**
-             * Data Type
-             * @default
-             */
-            data_type: string;
             /** Deleted At */
             deleted_at?: string | null;
             /** End Time */
@@ -4088,6 +4083,11 @@ export interface components {
              * @default manual
              */
             source: string;
+            /**
+             * Source Data Type
+             * @default
+             */
+            source_data_type: string;
             /**
              * Start Time
              * Format: date-time
@@ -7580,9 +7580,9 @@ export interface operations {
     federated_shared_data_api_v1_federation_sharing_get: {
         parameters: {
             query: {
-                data_type: string;
                 date: string;
                 owner_username: string;
+                source_data_type: string;
             };
             header?: never;
             path?: never;

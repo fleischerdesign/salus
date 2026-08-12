@@ -238,7 +238,7 @@ def test_resolution_requires_acceptance(seeded_users):
     t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_code=metric_code, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, source_data_type="steps",
             value_numeric=5000.0, start_time=t_utc, source="manual", external_id="m1",
         )
         uow.measurements.add(m)
@@ -252,7 +252,7 @@ def test_resolution_requires_acceptance(seeded_users):
     with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
-            data_type="steps", date_str="2026-07-02",
+            source_data_type="steps", date_str="2026-07-02",
         )
 
     with uow:
@@ -262,7 +262,7 @@ def test_resolution_requires_acceptance(seeded_users):
 
     data = svc.resolve_and_fetch(
         requester_id=grantee_id, owner_handle="@owner",
-        data_type="steps", date_str="2026-07-02",
+        source_data_type="steps", date_str="2026-07-02",
     )
     assert len(data) == 1
     assert data[0]["value_numeric"] == 5000.0
@@ -278,7 +278,7 @@ def test_resolution_after_revoke_denies(seeded_users):
     t_utc = datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_code=metric_code, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, source_data_type="steps",
             value_numeric=8000.0, start_time=t_utc, source="manual", external_id="m1",
         )
         uow.measurements.add(m)
@@ -293,7 +293,7 @@ def test_resolution_after_revoke_denies(seeded_users):
     with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
-            data_type="steps", date_str="2026-07-02",
+            source_data_type="steps", date_str="2026-07-02",
         )
 
 
@@ -428,7 +428,7 @@ def test_federated_api_endpoint(session: Session):
         metric_code = metric_def.code
 
         m = Measurement(
-            user_id=owner_id, metric_code=metric_code, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, source_data_type="steps",
             value_numeric=9500.0,
             start_time=datetime(2026, 7, 2, 10, 0, tzinfo=timezone.utc),
             source="manual", external_id="m-api",
@@ -446,7 +446,7 @@ def test_federated_api_endpoint(session: Session):
     with TestClient(app) as client:
         response = client.get(
             "/api/v1/federation/sharing",
-            params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
+            params={"owner_username": "owner", "source_data_type": "steps", "date": "2026-07-02"},
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 401
@@ -461,7 +461,7 @@ def test_federated_api_endpoint(session: Session):
     with TestClient(app) as client:
         response = client.get(
             "/api/v1/federation/sharing",
-            params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
+            params={"owner_username": "owner", "source_data_type": "steps", "date": "2026-07-02"},
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
@@ -472,7 +472,7 @@ def test_federated_api_endpoint(session: Session):
 
         response = client.get(
             "/api/v1/federation/sharing",
-            params={"owner_username": "owner", "data_type": "steps", "date": "2026-07-02"},
+            params={"owner_username": "owner", "source_data_type": "steps", "date": "2026-07-02"},
             headers={"Authorization": "Bearer invalid"},
         )
         assert response.status_code == 401
@@ -617,7 +617,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
     t_utc = datetime.now(timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_code=metric_code, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, source_data_type="steps",
             value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-exp",
         )
         uow.measurements.add(m)
@@ -632,7 +632,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
     with pytest.raises(ForbiddenError):
         svc.resolve_and_fetch(
             requester_id=grantee_id, owner_handle="@owner",
-            data_type="steps",
+            source_data_type="steps",
             date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         )
 
@@ -645,7 +645,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
 
     res = svc.resolve_and_fetch(
         requester_id=grantee_id, owner_handle="@owner",
-        data_type="steps",
+        source_data_type="steps",
         date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     )
     assert len(res) == 1
@@ -662,7 +662,7 @@ def test_resolution_invalid_date_fallback(seeded_users):
     t_utc = datetime.now(timezone.utc)
     with uow:
         m = Measurement(
-            user_id=owner_id, metric_code=metric_code, data_type="steps",
+            user_id=owner_id, metric_code=metric_code, source_data_type="steps",
             value_numeric=12000.0, start_time=t_utc, source="manual", external_id="m-fallback",
         )
         uow.measurements.add(m)
@@ -675,7 +675,7 @@ def test_resolution_invalid_date_fallback(seeded_users):
 
     res = svc.resolve_and_fetch(
         requester_id=grantee_id, owner_handle="@owner",
-        data_type="steps", date_str="invalid-date-string",
+        source_data_type="steps", date_str="invalid-date-string",
     )
     assert len(res) == 1
     assert res[0]["value_numeric"] == 12000.0
@@ -700,7 +700,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
 
     group = leaderboard_svc.create_group(
         creator_id=owner_id, name="Step Challenge",
-        metric_type_code="steps", time_frame="weekly",
+        source_data_type="steps", time_frame="weekly",
     )
     assert group.id is not None
 
@@ -734,7 +734,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
     
         group = leaderboard_svc.create_group(
             creator_id=owner_id, name="Step Challenge",
-            metric_type_code="steps", time_frame="weekly",
+            source_data_type="steps", time_frame="weekly",
         )
         assert group.id is not None
     
@@ -748,11 +748,11 @@ def test_leaderboard_connection_prerequisite(seeded_users):
         t_utc = datetime.now(timezone.utc)
         with uow:
             m_creator = Measurement(
-                user_id=owner_id, metric_code=metric_code, data_type="steps",
+                user_id=owner_id, metric_code=metric_code, source_data_type="steps",
                 value_numeric=10000.0, start_time=t_utc, source="manual", external_id="m_c",
             )
             m_invitee = Measurement(
-                user_id=grantee_id, metric_code=grantee_metric_code, data_type="steps",
+                user_id=grantee_id, metric_code=grantee_metric_code, source_data_type="steps",
                 value_numeric=15000.0, start_time=t_utc, source="manual", external_id="m_i",
             )
             uow.measurements.add(m_creator)
@@ -809,7 +809,7 @@ def test_leaderboard_api_routes():
             "/api/v1/sharing/leaderboard",
             json={
                 "name": "Step Challenge 2026",
-                "metric_type_code": "steps",
+                "source_data_type": "steps",
                 "time_frame": "weekly",
             },
         )
@@ -884,9 +884,9 @@ def test_federated_measurement_cache_and_ttl():
     with uow:
         cache_entry = FederatedMeasurementCache(
             owner_handle="@alice:remote.com",
-            data_type="steps",
+            source_data_type="steps",
             date_str="2026-07-03",
-            value_json='[{"value_numeric": 8200.0, "data_type": "steps"}]',
+            value_json='[{"value_numeric": 8200.0, "source_data_type": "steps"}]',
             fetched_at=datetime.now(timezone.utc),
         )
         uow.session.add(cache_entry)
@@ -894,7 +894,7 @@ def test_federated_measurement_cache_and_ttl():
 
     called_remote = False
 
-    def mock_fetch_remote(handle, data_type, date_str):
+    def mock_fetch_remote(handle, source_data_type, date_str):
         nonlocal called_remote
         called_remote = True
         return []
@@ -959,7 +959,7 @@ def test_federated_notify_update_route():
 
     token_hash = rel.api_token_hash
 
-    def mock_fetch_remote(handle, data_type, date_str):
+    def mock_fetch_remote(handle, source_data_type, date_str):
         return [{"value_numeric": 12000.0}]
 
     svc._resolver._fetch_remote = mock_fetch_remote
@@ -967,14 +967,14 @@ def test_federated_notify_update_route():
     with TestClient(app) as client:
         resp = client.post(
             "/api/v1/federation/notify-update",
-            json={"owner_handle": "@alice:remote.com", "data_type": "steps", "date": "2026-07-03"},
+            json={"owner_handle": "@alice:remote.com", "source_data_type": "steps", "date": "2026-07-03"},
             headers={"Authorization": "Bearer invalid_hash"},
         )
         assert resp.status_code == 401
 
         resp = client.post(
             "/api/v1/federation/notify-update",
-            json={"owner_handle": "@alice:remote.com", "data_type": "steps", "date": "2026-07-03"},
+            json={"owner_handle": "@alice:remote.com", "source_data_type": "steps", "date": "2026-07-03"},
             headers={"Authorization": f"Bearer {token_hash}"},
         )
         assert resp.status_code == 200
@@ -1141,7 +1141,7 @@ def test_federated_access_log():
 
         resp = client.get(
             "/api/v1/federation/sharing",
-            params={"owner_username": "bob", "data_type": "steps", "date": "2026-07-03"},
+            params={"owner_username": "bob", "source_data_type": "steps", "date": "2026-07-03"},
             headers={"Authorization": f"Bearer {raw_token}"},
         )
         assert resp.status_code == 200
@@ -1151,7 +1151,7 @@ def test_federated_access_log():
         logs = resp.json()["logs"]
         assert len(logs) == 1
         assert logs[0]["requester_handle"] == "@alice:remote.com"
-        assert logs[0]["data_type"] == "steps"
+        assert logs[0]["source_data_type"] == "steps"
         assert logs[0]["target_date"] == "2026-07-03"
 
     app.dependency_overrides.clear()
@@ -1200,7 +1200,7 @@ def test_federated_http_message_signatures():
 
     svc._keys.resolve_actor_public_key = mock_resolve_actor_public_key
 
-    url = "http://testserver/api/v1/federation/sharing?owner_username=bob&data_type=steps&date=2026-07-03"
+    url = "http://testserver/api/v1/federation/sharing?owner_username=bob&source_data_type=steps&date=2026-07-03"
     sig_headers = svc.sign_request(
         sender_handle="@alice:remote.com",
         method="GET",
@@ -1218,7 +1218,7 @@ def test_federated_http_message_signatures():
     with TestClient(app) as client:
         resp = client.get(
             "/api/v1/federation/sharing",
-            params={"owner_username": "bob", "data_type": "steps", "date": "2026-07-03"},
+            params={"owner_username": "bob", "source_data_type": "steps", "date": "2026-07-03"},
             headers=sig_headers,
         )
         assert resp.status_code == 200

@@ -1,6 +1,8 @@
 import uuid
 from starlette.testclient import TestClient
 
+from salus.services.sync import SYNC_PROTOCOL_VERSION
+
 
 class TestSyncPush:
     """Test the POST /api/v1/sync/push endpoint and WritePipeline."""
@@ -738,10 +740,10 @@ class TestSyncProtocolVersion:
         resp = authenticated_client.post(
             "/api/v1/sync/push",
             json={"operations": []},
-            headers={"X-Salus-Sync-Version": "1"},
+            headers={"X-Salus-Sync-Version": str(SYNC_PROTOCOL_VERSION)},
         )
         assert resp.status_code == 200
-        assert resp.json()["sync_version"] == 1
+        assert resp.json()["sync_version"] == SYNC_PROTOCOL_VERSION
 
     def test_missing_version_defaults_to_ok(self, authenticated_client: TestClient):
         resp = authenticated_client.post(
@@ -749,7 +751,7 @@ class TestSyncProtocolVersion:
             json={"operations": []},
         )
         assert resp.status_code == 200
-        assert resp.json()["sync_version"] == 1
+        assert resp.json()["sync_version"] == SYNC_PROTOCOL_VERSION
 
 
 class TestOptimisticLocking:

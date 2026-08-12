@@ -75,7 +75,7 @@ class SourceResolutionService:
 
         resolved: list[Measurement] = []
         for rec in records:
-            metric_code = rec.metric_code or rec.data_type
+            metric_code = rec.metric_code or rec.source_data_type
             prefs = user_prefs.get(metric_code, [])
             pref_map = {p.source: p for p in prefs}
 

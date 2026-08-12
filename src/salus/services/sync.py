@@ -17,7 +17,7 @@ from salus.services.admin import admin_system_stats, admin_user_list
 from salus.services.community import community_activity_feed
 from salus.services.config import system_config_enriched
 
-SYNC_PROTOCOL_VERSION = 1
+SYNC_PROTOCOL_VERSION = 2
 
 
 def _delta_timestamp_filter(model: type, since: datetime):

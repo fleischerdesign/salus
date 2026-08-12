@@ -51,7 +51,7 @@ class LeaderboardGroup(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str = Field(index=True)
     creator_id: str = Field(foreign_key="user.id")
-    metric_type_code: str = Field(
+    source_data_type: str = Field(
         default="steps"
     )  # "steps", "workouts", "sleep", "water"
     time_frame: str = Field(default="weekly")  # "weekly", "monthly", "custom"
@@ -95,7 +95,7 @@ class FederatedMeasurementCache(SQLModel, table=True):
 
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     owner_handle: str = Field(index=True)  # e.g. @alice:domain
-    data_type: str = Field(index=True)  # e.g. steps, weight
+    source_data_type: str = Field(index=True)  # e.g. steps, weight
     date_str: str = Field(index=True)  # e.g. 2026-07-03
     value_numeric: Optional[float] = Field(default=None)
     value_json: Optional[str] = Field(default=None)
@@ -108,7 +108,7 @@ class FederatedAccessLog(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     owner_id: str = Field(foreign_key="user.id")
     requester_handle: str
-    data_type: str
+    source_data_type: str
     target_date: str
     accessed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

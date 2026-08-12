@@ -20,7 +20,7 @@ class OuraParser(BaseParser):
                 continue
             records.append(
                 Measurement(
-                    data_type="sleep",
+                    source_data_type="sleep",
                     source="oura",
                     value_json=json.dumps(
                         {
@@ -45,7 +45,7 @@ class OuraParser(BaseParser):
                 continue
             records.append(
                 Measurement(
-                    data_type="readiness",
+                    source_data_type="readiness",
                     source="oura",
                     value_json=json.dumps(
                         {

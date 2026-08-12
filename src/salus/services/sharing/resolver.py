@@ -23,7 +23,7 @@ logger = logging.getLogger("salus.services.sharing.resolver")
 
 def build_day_result(
     owner_username: str,
-    data_type: str,
+    source_data_type: str,
     date_str: str,
     day_measurements: list[Measurement],
     aggregation_level: str,
@@ -34,19 +34,19 @@ def build_day_result(
         values = [
             m.value_numeric for m in day_measurements if m.value_numeric is not None
         ]
-        val = summarize_daily_values(data_type, values)
+        val = summarize_daily_values(source_data_type, values)
         return [
             {
-                "data_type": data_type,
+                "source_data_type": source_data_type,
                 "value_numeric": val,
                 "start_time": date_str,
                 "source": "summary",
-                "external_id": f"summary-{owner_username}-{data_type}-{date_str}",
+                "external_id": f"summary-{owner_username}-{source_data_type}-{date_str}",
             }
         ]
     return [
         {
-            "data_type": m.data_type,
+            "source_data_type": m.source_data_type,
             "value_numeric": m.value_numeric,
             "value_json": m.value_json,
             "start_time": m.start_time.isoformat(),
@@ -74,7 +74,7 @@ class FederationDataResolver:
         self,
         requester_id: str,
         owner_handle: str,
-        data_type: str,
+        source_data_type: str,
         date_str: str,
         force_refresh: bool = False,
     ) -> list[dict]:
@@ -87,13 +87,13 @@ class FederationDataResolver:
 
         if not self.relationship_svc.is_remote(owner_handle):
             return self._resolve_local(
-                owner_handle, make_handle(req_user), data_type, date_str
+                owner_handle, make_handle(req_user), source_data_type, date_str
             )
         else:
             if not force_refresh:
                 with self.uow:
                     cached = self.uow.federated_measurement_cache.get_cache(
-                        owner_handle, data_type, date_str, max_age_seconds=900
+                        owner_handle, source_data_type, date_str, max_age_seconds=900
                     )
                     if cached:
                         try:
@@ -105,12 +105,12 @@ class FederationDataResolver:
                         except Exception:
                             logger.debug("Failed to parse cached measurement JSON", exc_info=True)
 
-            data = self._fetch_remote(owner_handle, data_type, date_str)
+            data = self._fetch_remote(owner_handle, source_data_type, date_str)
 
             with self.uow:
                 self.uow.federated_measurement_cache.upsert_cache(
                     owner_handle=owner_handle,
-                    data_type=data_type,
+                    source_data_type=source_data_type,
                     date_str=date_str,
                     value_numeric=None,
                     value_json=_json.dumps(data),
@@ -119,7 +119,7 @@ class FederationDataResolver:
             return data
 
     def _resolve_local(
-        self, owner_handle: str, requester_handle: str, data_type: str, date_str: str
+        self, owner_handle: str, requester_handle: str, source_data_type: str, date_str: str
     ) -> list[dict]:
         owner_username = owner_handle[1:]
         with self.uow:
@@ -129,7 +129,7 @@ class FederationDataResolver:
 
             metric_defs = self.uow.metric_definitions.find_all()
             metric = next(
-                (m for m in metric_defs if m.source_data_type == data_type), None
+                (m for m in metric_defs if m.source_data_type == source_data_type), None
             )
             if not metric:
                 return []
@@ -151,7 +151,7 @@ class FederationDataResolver:
             )
             raw_measurements = self.uow.measurements.find_all(
                 user_id=uid(owner_user),
-                data_types=[data_type],
+                source_data_types=[source_data_type],
                 since=since_dt,
                 until=since_dt + timedelta(days=1),
             )
@@ -162,14 +162,14 @@ class FederationDataResolver:
 
             return build_day_result(
                 owner_username=owner_username,
-                data_type=data_type,
+                source_data_type=source_data_type,
                 date_str=date_str,
                 day_measurements=day_measurements,
                 aggregation_level=rel.aggregation_level,
             )
 
     def _fetch_remote(
-        self, owner_handle: str, data_type: str, date_str: str
+        self, owner_handle: str, source_data_type: str, date_str: str
     ) -> list[dict]:
         parts = owner_handle[1:].split(":", 1)
         if len(parts) != 2:
@@ -182,7 +182,7 @@ class FederationDataResolver:
 
         with self.uow:
             active_rel = self.uow.sharing_relationships.find_active_for_remote_owner(
-                owner_handle, data_type
+                owner_handle, source_data_type
             )
             local_user = active_rel.owner if active_rel else None
             local_username = local_user.username if local_user else None
@@ -196,7 +196,7 @@ class FederationDataResolver:
 
         query_params = {
             "owner_username": username,
-            "data_type": data_type,
+            "source_data_type": source_data_type,
             "date": date_str,
         }
         req_url = httpx.URL(remote_url, params=query_params)
@@ -276,12 +276,12 @@ class FederationDataResolver:
                         }
                     )
 
-                for data_type in shared_types:
-                    if data_type not in ("steps", "weight"):
+                for source_data_type in shared_types:
+                    if source_data_type not in ("steps", "weight"):
                         continue
                     raw_measurements = self.uow.measurements.find_all(
                         user_id=friend_id,
-                        data_types=[data_type],
+                        source_data_types=[source_data_type],
                     )
                     for offset in range(3):
                         day = today - timedelta(days=offset)
@@ -292,7 +292,7 @@ class FederationDataResolver:
                             and m.value_numeric is not None
                         ]
                         if day_measurements:
-                            if data_type == "steps":
+                            if source_data_type == "steps":
                                 val = sum(
                                     m.value_numeric
                                     for m in day_measurements
@@ -312,7 +312,7 @@ class FederationDataResolver:
                                             "id": f"steps-{friend_id}-{day.isoformat()}",
                                         }
                                     )
-                            elif data_type == "weight":
+                            elif source_data_type == "weight":
                                 val = day_measurements[-1].value_numeric
                                 if val is not None and val > 0:
                                     activities.append(
@@ -339,8 +339,8 @@ class FederationDataResolver:
                     )
 
         for remote_handle, shared_types in remote_peers.items():
-            for data_type in shared_types:
-                if data_type not in ("steps", "weight"):
+            for source_data_type in shared_types:
+                if source_data_type not in ("steps", "weight"):
                     continue
                 for offset in range(3):
                     day = today - timedelta(days=offset)
@@ -349,7 +349,7 @@ class FederationDataResolver:
                         data = self.resolve_and_fetch(
                             requester_id=user_id,
                             owner_handle=remote_handle,
-                            data_type=data_type,
+                            source_data_type=source_data_type,
                             date_str=day_str,
                         )
                         for item in data:
@@ -357,7 +357,7 @@ class FederationDataResolver:
                             if val is not None and val > 0:
                                 activities.append(
                                     {
-                                        "type": data_type,
+                                        "type": source_data_type,
                                         "friend_name": remote_handle,
                                         "time": datetime.combine(
                                             day,
@@ -365,9 +365,9 @@ class FederationDataResolver:
                                             tzinfo=timezone.utc,
                                         ),
                                         "value": int(val)
-                                        if data_type == "steps"
+                                        if source_data_type == "steps"
                                         else val,
-                                        "id": f"{data_type}-{remote_handle}-{day_str}",
+                                        "id": f"{source_data_type}-{remote_handle}-{day_str}",
                                     }
                                 )
                     except Exception as exc:

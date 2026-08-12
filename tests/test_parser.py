@@ -17,7 +17,7 @@ class TestHealthConnectWebhookParser:
         parser = HealthConnectWebhookParser()
         records = parser.parse(payload)
         assert len(records) == 1
-        assert records[0].data_type == "steps"
+        assert records[0].source_data_type == "steps"
         assert records[0].source == "health_connect"
         assert "8500" in records[0].value_json
 
@@ -74,7 +74,7 @@ class TestFlatArrayParser:
         parser = FlatArrayParser()
         records = parser.parse(payload)
         assert len(records) == 1
-        assert records[0].data_type == "steps"
+        assert records[0].source_data_type == "steps"
         assert records[0].external_id == "1"
         assert "5000" in records[0].value_json
 

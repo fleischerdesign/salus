@@ -134,7 +134,7 @@ interface StepDay {
 
 function computeSteps(measurements: Measurement[]): StepDay[] {
   const stepM = measurements.filter(
-    (m) => (m.data_type === 'steps' || m.metric_code === 'steps') && m.value_numeric != null
+    (m) => (m.source_data_type === 'steps' || m.metric_code === 'steps') && m.value_numeric != null
   );
   const byDate = new Map<string, number[]>();
   for (const m of stepM) {
@@ -158,7 +158,8 @@ interface WeightPoint {
 
 function computeWeight(measurements: Measurement[]): WeightPoint[] {
   const weightM = measurements.filter(
-    (m) => (m.data_type === 'weight' || m.metric_code === 'weight') && m.value_numeric != null
+    (m) =>
+      (m.source_data_type === 'weight' || m.metric_code === 'weight') && m.value_numeric != null
   );
   const seen = new Set<string>();
   const points: WeightPoint[] = [];
@@ -181,7 +182,9 @@ function computeSleep(measurements: Measurement[]): Array<{
   deep_pct: number;
   rem_pct: number;
 }> {
-  const sleepM = measurements.filter((m) => m.data_type === 'sleep' || m.metric_code === 'sleep');
+  const sleepM = measurements.filter(
+    (m) => m.source_data_type === 'sleep' || m.metric_code === 'sleep'
+  );
   const results: Array<{
     date: string;
     duration_hours: number;
@@ -227,7 +230,7 @@ function computeTdee(
     bmr = bmrMifflinStJeor(current, getUserHeight(), 30, null);
   }
   const hrM = measurements.filter(
-    (m) => m.data_type === 'heart_rate' && m.value_numeric != null && m.value_numeric > 0
+    (m) => m.source_data_type === 'heart_rate' && m.value_numeric != null && m.value_numeric > 0
   );
   const hrValues = hrM.map((m) => m.value_numeric!);
   const hrResting = hrValues.length > 0 ? Math.min(...hrValues) : 60;
@@ -252,7 +255,7 @@ function computeExercise(measurements: Measurement[]): Array<{
   distance_meters: number;
   calories: number;
 }> {
-  const exM = measurements.filter((m) => m.data_type === 'exercise' && m.value_json);
+  const exM = measurements.filter((m) => m.source_data_type === 'exercise' && m.value_json);
   const sessions: Array<{
     type_name: string;
     date: string;
@@ -334,7 +337,7 @@ export function useCorrelations(
       .above(cutoff.toISOString())
       .each((m) => {
         if (!m.deleted_at && m.value_numeric != null) {
-          const dt = m.metric_code || m.data_type;
+          const dt = m.metric_code || m.source_data_type;
           let list = pivot.get(dt);
           if (!list) {
             list = [];
@@ -478,17 +481,18 @@ export function useWellness(dateStr?: string) {
     const hrVals = measurements
       .filter(
         (m) =>
-          m.data_type === 'heart_rate' ||
+          m.source_data_type === 'heart_rate' ||
           m.metric_code === 'heart_rate' ||
           m.metric_code === 'resting_heart_rate'
       )
       .map((m) => m.value_numeric!);
     const stepVals = measurements
-      .filter((m) => m.data_type === 'steps' || m.metric_code === 'steps')
+      .filter((m) => m.source_data_type === 'steps' || m.metric_code === 'steps')
       .map((m) => m.value_numeric!);
     const sleepVals = measurements
       .filter(
-        (m) => (m.data_type === 'sleep' || m.metric_code === 'sleep') && m.value_numeric != null
+        (m) =>
+          (m.source_data_type === 'sleep' || m.metric_code === 'sleep') && m.value_numeric != null
       )
       .map((m) => m.value_numeric!);
 

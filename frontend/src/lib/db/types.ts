@@ -110,7 +110,7 @@ export interface Measurement {
   id: string;
   user_id: string;
   metric_code: string | null;
-  data_type: string;
+  source_data_type: string;
   source: string;
   value_numeric: number | null;
   value_text: string | null;
@@ -277,7 +277,7 @@ export interface LeaderboardGroup {
   id: string;
   name: string;
   creator_id: string;
-  metric_type_code: string;
+  source_data_type: string;
   time_frame: string;
   start_date: string | null;
   end_date: string | null;
@@ -377,7 +377,7 @@ export interface FederatedAccessLog {
   id: string;
   owner_id: string;
   requester_handle: string;
-  data_type: string;
+  source_data_type: string;
   target_date: string;
   accessed_at: string;
 }

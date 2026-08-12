@@ -77,7 +77,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return self.session.exec(stmt).first()
 
     def find_active_for_remote_owner(
-        self, owner_handle: str, data_type: str
+        self, owner_handle: str, source_data_type: str
     ) -> SharingRelationship | None:
         stmt = (
             select(SharingRelationship)
@@ -85,7 +85,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
             .where(
                 SharingRelationship.grantee_handle == owner_handle,
                 SharingRelationship.status == ConnectionStatus.ACTIVE,
-                MetricDefinition.source_data_type == data_type,
+                MetricDefinition.source_data_type == source_data_type,
             )
         )
         return self.session.exec(stmt).first()
@@ -112,7 +112,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
         return list(self.session.exec(stmt).all())
 
     def find_active_by_owner_and_data_type(
-        self, owner_id: str, data_type: str
+        self, owner_id: str, source_data_type: str
     ) -> list[SharingRelationship]:
         stmt = (
             select(SharingRelationship)
@@ -120,7 +120,7 @@ class SharingRepository(Repository[SharingRelationship], ISharingRepository):
             .where(
                 SharingRelationship.owner_id == owner_id,
                 SharingRelationship.status == ConnectionStatus.ACTIVE,
-                MetricDefinition.source_data_type == data_type,
+                MetricDefinition.source_data_type == source_data_type,
             )
         )
         return list(self.session.exec(stmt).all())

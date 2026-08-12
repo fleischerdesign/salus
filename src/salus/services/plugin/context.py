@@ -25,12 +25,12 @@ class PluginContext:
             )
 
     def get_measurements(
-        self, user_id: str, data_type: str | None = None, limit: int = 100
+        self, user_id: str, source_data_type: str | None = None, limit: int = 100
     ) -> list[Measurement]:
         self._check_permission("measurements:read")
-        data_types = [data_type] if data_type else None
+        source_data_types = [source_data_type] if source_data_type else None
         return self._uow.measurements.find_all(
-            user_id=user_id, data_types=data_types, limit=limit
+            user_id=user_id, source_data_types=source_data_types, limit=limit
         )
 
     def create_measurement(self, measurement: Measurement) -> Measurement:

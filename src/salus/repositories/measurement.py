@@ -85,7 +85,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
     def find_all(
         self,
         user_id: str | None = None,
-        data_types: list[str] | None = None,
+        source_data_types: list[str] | None = None,
         sources: list[str] | None = None,
         since: datetime | None = None,
         until: datetime | None = None,
@@ -95,8 +95,8 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         if user_id is not None:
             stmt = stmt.where(Measurement.user_id == user_id)
         stmt = stmt.where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        if data_types:
-            stmt = stmt.where(Measurement.data_type.in_(data_types))  # pyright: ignore[reportAttributeAccessIssue]
+        if source_data_types:
+            stmt = stmt.where(Measurement.source_data_type.in_(source_data_types))  # pyright: ignore[reportAttributeAccessIssue]
         if sources:
             stmt = stmt.where(Measurement.source.in_(sources))  # pyright: ignore[reportAttributeAccessIssue]
         if since is not None:
@@ -114,9 +114,9 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                     synth_records = synth.synthesize(user_id, results)
                     if synth_records:
                         filtered = synth_records
-                        if data_types:
+                        if source_data_types:
                             filtered = [
-                                r for r in filtered if r.data_type in data_types
+                                r for r in filtered if r.source_data_type in source_data_types
                             ]
                         results.extend(filtered)
                 except Exception as e:
@@ -124,9 +124,9 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return results
 
     def find_latest(
-        self, data_type: str, user_id: str | None = None
+        self, source_data_type: str, user_id: str | None = None
     ) -> Measurement | None:
-        results = self.find_all(user_id=user_id, data_types=[data_type], limit=1)
+        results = self.find_all(user_id=user_id, source_data_types=[source_data_type], limit=1)
         return results[0] if results else None
 
     def upsert_all(self, records: list[Measurement]) -> tuple[int, int]:
@@ -175,10 +175,10 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         return inserted, duplicates
 
     def find_by_date_range(
-        self, user_id: str, data_types: list[str], since: datetime, until: datetime
+        self, user_id: str, source_data_types: list[str], since: datetime, until: datetime
     ) -> list[Measurement]:
         return self.find_all(
-            user_id=user_id, data_types=data_types, since=since, until=until
+            user_id=user_id, source_data_types=source_data_types, since=since, until=until
         )
 
     def find_recent_entries(self, user_id: str, limit: int = 20) -> list[Measurement]:

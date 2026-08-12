@@ -51,7 +51,7 @@ async def invite_qr(
 async def federated_shared_data(
     request: Request,
     owner_username: Annotated[str, Query()],
-    data_type: Annotated[str, Query()],
+    source_data_type: Annotated[str, Query()],
     date: Annotated[str, Query()],
     sharing_svc: SharingService = Depends(get_sharing_service),
     credentials: Annotated[
@@ -68,7 +68,7 @@ async def federated_shared_data(
 
         metric_defs = sharing_svc.uow.metric_definitions.find_all()
         metric = next(
-            (m for m in metric_defs if m.source_data_type == data_type), None
+            (m for m in metric_defs if m.source_data_type == source_data_type), None
         )
         if not metric:
             return JSONResponse({"status": "ok", "data": []})
@@ -116,7 +116,7 @@ async def federated_shared_data(
         access_log = FederatedAccessLog(
             owner_id=uid(owner),
             requester_handle=rel.grantee_handle,
-            data_type=data_type,
+            source_data_type=source_data_type,
             target_date=date,
         )
         sharing_svc.uow.session.add(access_log)
@@ -133,7 +133,7 @@ async def federated_shared_data(
         )
         raw_measurements = sharing_svc.uow.measurements.find_all(
             user_id=owner.id,
-            data_types=[data_type],
+            source_data_types=[source_data_type],
             since=since_dt,
             until=since_dt + timedelta(days=1),
         )
@@ -144,7 +144,7 @@ async def federated_shared_data(
 
         result = build_day_result(
             owner_username=owner_username,
-            data_type=data_type,
+            source_data_type=source_data_type,
             date_str=date,
             day_measurements=day_measurements,
             aggregation_level=rel.aggregation_level,
@@ -200,13 +200,13 @@ async def federated_notify_update(
     token_hash = auth_header.split(" ", 1)[1]
 
     owner_handle = body.get("owner_handle")
-    data_type = body.get("data_type")
+    source_data_type = body.get("source_data_type")
     date_str = body.get("date")
 
-    if not owner_handle or not data_type or not date_str:
+    if not owner_handle or not source_data_type or not date_str:
         raise HTTPException(
             status_code=400,
-            detail="Missing required fields: owner_handle, data_type, date",
+            detail="Missing required fields: owner_handle, source_data_type, date",
         )
 
     with sharing_svc.uow:
@@ -219,7 +219,7 @@ async def federated_notify_update(
 
     threading.Thread(
         target=sharing_svc.resolve_and_fetch,
-        args=(local_user_id, owner_handle, data_type, date_str, True),
+        args=(local_user_id, owner_handle, source_data_type, date_str, True),
         daemon=True,
     ).start()
 
@@ -315,7 +315,7 @@ async def federated_access_log(
                 {
                     "id": log.id,
                     "requester_handle": log.requester_handle,
-                    "data_type": log.data_type,
+                    "source_data_type": log.source_data_type,
                     "target_date": log.target_date,
                     "accessed_at": log.accessed_at.isoformat(),
                 }

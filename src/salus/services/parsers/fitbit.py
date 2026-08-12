@@ -21,7 +21,7 @@ class FitbitParser(BaseParser):
             ext_id = make_external_id("fitbit", "heart_rate", date_time)
             records.append(
                 Measurement(
-                    data_type="heart_rate",
+                    source_data_type="heart_rate",
                     source="fitbit",
                     value_json=json.dumps(
                         {

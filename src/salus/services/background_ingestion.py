@@ -43,14 +43,14 @@ class BackgroundIngestionService:
 
                 unique_updates: set[tuple[str, str]] = set()
                 for rec in records:
-                    if rec.data_type and rec.start_time:
+                    if rec.source_data_type and rec.start_time:
                         date_str = rec.start_time.date().strftime("%Y-%m-%d")
-                        unique_updates.add((rec.data_type, date_str))
+                        unique_updates.add((rec.source_data_type, date_str))
 
-                for data_type, date_str in unique_updates:
+                for source_data_type, date_str in unique_updates:
                     try:
                         sharing_svc.notify_peers_of_update(
-                            user_id, data_type, date_str
+                            user_id, source_data_type, date_str
                         )
                     except Exception as exc:
                         logger.warning(

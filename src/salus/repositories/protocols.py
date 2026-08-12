@@ -98,7 +98,7 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
     def find_all(
         self,
         user_id: str | None = None,
-        data_types: list[str] | None = None,
+        source_data_types: list[str] | None = None,
         sources: list[str] | None = None,
         since: datetime | None = None,
         until: datetime | None = None,
@@ -106,13 +106,13 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
     ) -> list[Measurement]: ...
 
     def find_latest(
-        self, data_type: str, user_id: str | None = None
+        self, source_data_type: str, user_id: str | None = None
     ) -> Measurement | None: ...
 
     def upsert_all(self, records: list[Measurement]) -> tuple[int, int]: ...
 
     def find_by_date_range(
-        self, user_id: str, data_types: list[str], since: datetime, until: datetime
+        self, user_id: str, source_data_types: list[str], since: datetime, until: datetime
     ) -> list[Measurement]: ...
 
     def find_recent_entries(
@@ -233,7 +233,7 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     ) -> SharingRelationship | None: ...
 
     def find_active_for_remote_owner(
-        self, owner_handle: str, data_type: str
+        self, owner_handle: str, source_data_type: str
     ) -> SharingRelationship | None: ...
 
     def find_pending_by_token_hash(
@@ -245,7 +245,7 @@ class ISharingRepository(IRepository[SharingRelationship], Protocol):
     ) -> list[SharingRelationship]: ...
 
     def find_active_by_owner_and_data_type(
-        self, owner_id: str, data_type: str
+        self, owner_id: str, source_data_type: str
     ) -> list[SharingRelationship]: ...
 
     def find_active_by_token_hash(
@@ -389,11 +389,11 @@ class ISyncPushLogRepository(IRepository[SyncPushLog], Protocol):
 @runtime_checkable
 class IFederatedMeasurementCacheRepository(IRepository[FederatedMeasurementCache], Protocol):
     def get_cache(
-        self, owner_handle: str, data_type: str, date_str: str, max_age_seconds: int = 60
+        self, owner_handle: str, source_data_type: str, date_str: str, max_age_seconds: int = 60
     ) -> FederatedMeasurementCache | None: ...
 
     def upsert_cache(
-        self, owner_handle: str, data_type: str, date_str: str,
+        self, owner_handle: str, source_data_type: str, date_str: str,
         value_numeric: float | None, value_json: str | None,
     ) -> FederatedMeasurementCache: ...
 

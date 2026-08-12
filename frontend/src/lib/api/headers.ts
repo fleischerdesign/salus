@@ -79,7 +79,7 @@ export async function testServerConnection(
 export function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Accept-Language': _locale,
-    'X-Salus-Sync-Version': '1'
+    'X-Salus-Sync-Version': '2'
   };
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (token) headers['Authorization'] = `Bearer ${token}`;

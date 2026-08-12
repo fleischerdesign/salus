@@ -30,7 +30,7 @@ class TestAppleHealthParser:
         }
         records = parser.parse(payload)
         assert len(records) == 1
-        assert "StepCount" in records[0].data_type
+        assert "StepCount" in records[0].source_data_type
 
 
 class TestGoogleFitParser:
@@ -60,7 +60,7 @@ class TestGoogleFitParser:
         }
         records = parser.parse(payload)
         assert len(records) == 1
-        assert records[0].data_type == "steps"
+        assert records[0].source_data_type == "steps"
 
 
 class TestFitbitParser:
@@ -81,7 +81,7 @@ class TestFitbitParser:
         }
         records = parser.parse(payload)
         assert len(records) == 1
-        assert records[0].data_type == "heart_rate"
+        assert records[0].source_data_type == "heart_rate"
 
 
 class TestOuraParser:

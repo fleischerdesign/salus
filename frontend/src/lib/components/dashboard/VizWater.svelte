@@ -49,7 +49,7 @@
     try {
       await createMeasurement(metricCode, {
         value_numeric: amount,
-        data_type: 'water',
+        source_data_type: 'water',
         start_time: new Date().toISOString()
       });
     } catch (err) {

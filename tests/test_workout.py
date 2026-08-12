@@ -129,7 +129,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
         for i in range(1, 7):
             m = Measurement(
                 user_id=user_id,
-                data_type="sleep",
+                source_data_type="sleep",
                 value_numeric=8.0 * 3600,
                 value_json='{"duration_seconds": 28800, "stages": []}',
                 start_time=now - timedelta(days=i),
@@ -139,7 +139,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
             uow.measurements.add(m)
         m_last = Measurement(
             user_id=user_id,
-            data_type="sleep",
+            source_data_type="sleep",
             value_numeric=4.0 * 3600,
             value_json='{"duration_seconds": 14400, "stages": []}',
             start_time=now,

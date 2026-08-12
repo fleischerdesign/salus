@@ -87,7 +87,7 @@ export const healthSyncService = {
           id,
           user_id: SELF_USER_ID,
           metric_code: item.metric_code,
-          data_type: 'number',
+          source_data_type: '',
           value_numeric: item.value,
           value_text: null,
           value_json: null,

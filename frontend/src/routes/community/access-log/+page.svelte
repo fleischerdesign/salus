@@ -18,7 +18,7 @@
 
   const columns = [
     { key: 'requester', label: 'Requester' },
-    { key: 'data_type', label: 'Data Type' },
+    { key: 'source_data_type', label: 'Data Type' },
     { key: 'target_date', label: 'Date Requested' },
     { key: 'accessed_at', label: 'Accessed At' }
   ];
@@ -52,7 +52,7 @@
           {columns}
           rows={(logs ?? []).map((l) => ({
             requester: l.requester_handle,
-            data_type: l.data_type,
+            source_data_type: l.source_data_type,
             target_date: new Date(l.target_date).toLocaleDateString(),
             accessed_at: new Date(l.accessed_at).toLocaleString()
           }))}

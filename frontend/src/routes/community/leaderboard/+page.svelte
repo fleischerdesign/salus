@@ -20,7 +20,7 @@
   interface Challenge {
     id: string;
     name: string;
-    metric_type_code: string;
+    source_data_type: string;
     time_frame: string;
     start_date: string;
     end_date: string;
@@ -51,7 +51,7 @@
         return {
           id: g.id,
           name: g.name,
-          metric_type_code: g.metric_type_code,
+          source_data_type: g.source_data_type,
           time_frame: g.time_frame,
           start_date: g.start_date ?? '',
           end_date: g.end_date ?? '',
@@ -185,12 +185,12 @@
                   <div
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-600"
                   >
-                    <Icon name={metricIcon[c.metric_type_code] ?? 'emoji-events'} size="sm" />
+                    <Icon name={metricIcon[c.source_data_type] ?? 'emoji-events'} size="sm" />
                   </div>
                   <div class="min-w-0 flex-1">
                     <h3 class="text-sm font-semibold text-surface-900">{c.name}</h3>
                     <p class="mt-0.5 text-xs text-surface-500">
-                      {c.time_frame} · {c.metric_type_code}
+                      {c.time_frame} · {c.source_data_type}
                     </p>
                   </div>
                   <Badge variant="default">{c.participant_count} participants</Badge>
@@ -225,7 +225,7 @@
                     <p class="mt-0.5 text-base font-extrabold text-surface-900">
                       {c.score}
                       <span class="ml-1 text-xs font-semibold text-surface-500"
-                        >{scoreUnit[c.metric_type_code] ?? ''}</span
+                        >{scoreUnit[c.source_data_type] ?? ''}</span
                       >
                     </p>
                   </div>

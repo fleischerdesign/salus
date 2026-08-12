@@ -45,6 +45,8 @@ Adopt two unambiguous names and migrate the colliding fields.
 2. `source_data_type` — the source channel. Rename:
    - `Measurement.data_type` → `Measurement.source_data_type`
    - `LeaderboardGroup.metric_type_code` → `LeaderboardGroup.source_data_type`
+   - `FederatedMeasurementCache.data_type` → `FederatedMeasurementCache.source_data_type`
+   - `FederatedAccessLog.data_type` → `FederatedAccessLog.source_data_type`
    - `MeasurementRepository.find_all(data_types=…)` → `source_data_types=…`
 3. `data_type` — retained *only* on `MetricDefinition` as the value storage type
    (`DataType` enum); unambiguous once `Measurement.data_type` is renamed.

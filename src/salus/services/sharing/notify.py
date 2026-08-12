@@ -48,7 +48,7 @@ class PeerNotificationService:
         )
 
     def notify_peers_of_update(
-        self, user_id: str, data_type: str, date_str: str
+        self, user_id: str, source_data_type: str, date_str: str
     ) -> None:
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
@@ -57,7 +57,7 @@ class PeerNotificationService:
             owner_handle = make_handle(user)
 
             relationships = self.uow.sharing_relationships.find_active_by_owner_and_data_type(
-                user_id, data_type
+                user_id, source_data_type
             )
 
             now = datetime.now(timezone.utc)
@@ -73,7 +73,7 @@ class PeerNotificationService:
             if token_hash:
                 threading.Thread(
                     target=self._send_push_notification,
-                    args=(handle, token_hash, owner_handle, data_type, date_str),
+                    args=(handle, token_hash, owner_handle, source_data_type, date_str),
                     daemon=True,
                 ).start()
 
@@ -82,7 +82,7 @@ class PeerNotificationService:
         grantee_handle: str,
         token_hash: str,
         owner_handle: str,
-        data_type: str,
+        source_data_type: str,
         date_str: str,
     ) -> None:
         endpoints = self.discovery_svc.resolve_remote_endpoints(grantee_handle)
@@ -92,7 +92,7 @@ class PeerNotificationService:
                 url,
                 json={
                     "owner_handle": owner_handle,
-                    "data_type": data_type,
+                    "source_data_type": source_data_type,
                     "date": date_str,
                 },
                 headers={"Authorization": f"Bearer {token_hash}"},
