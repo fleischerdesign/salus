@@ -22,12 +22,10 @@
 
   const planExercisesQuery = useQuery(() =>
     db.workout_plan_exercise
+      .where('plan_id')
+      .equals(planId!)
       .toArray()
-      .then((arr) =>
-        arr
-          .filter((pe) => pe.plan_id === planId && !pe.deleted_at)
-          .sort((a, b) => a.sequence - b.sequence)
-      )
+      .then((arr) => arr.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence))
   );
   const planExercises = $derived(planExercisesQuery.value);
 
@@ -41,10 +39,12 @@
 
   const sessionsQuery = useQuery(() =>
     db.workout_session
+      .where('plan_id')
+      .equals(planId!)
       .toArray()
       .then((arr) =>
         arr
-          .filter((s) => !s.deleted_at && s.plan_id === planId && s.completed_at != null)
+          .filter((s) => !s.deleted_at && s.completed_at != null)
           .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
       )
   );

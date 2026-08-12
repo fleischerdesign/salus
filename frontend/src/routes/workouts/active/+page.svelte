@@ -26,9 +26,7 @@
   const session = $derived(sessionQuery.value);
 
   const planExercisesQuery = useQuery(async () => {
-    const activeSession = await db.workout_session
-      .toArray()
-      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
+    const activeSession = session;
     if (!activeSession?.plan_id) return [];
     const pes = await db.workout_plan_exercise
       .where('plan_id')
@@ -39,9 +37,7 @@
   const planExercises = $derived(planExercisesQuery.value);
 
   const allLogsQuery = useQuery(async () => {
-    const activeSession = await db.workout_session
-      .toArray()
-      .then((arr) => arr.find((s) => s.completed_at == null && !s.deleted_at) ?? null);
+    const activeSession = session;
     if (!activeSession) return [];
     return db.workout_log_entry
       .where('session_id')
