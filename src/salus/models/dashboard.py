@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from salus.services._helpers import uuid7_str
+from salus.utils import uuid7_str
 
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401

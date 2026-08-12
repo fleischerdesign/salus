@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
 from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
-from salus.services._helpers import uuid7_str
+from salus.utils import uuid7_str
 from salus.services.command_registry import CommandResult, register
 from salus.services.serialization import serialize_record
 

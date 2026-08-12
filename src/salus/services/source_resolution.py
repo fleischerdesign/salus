@@ -7,7 +7,7 @@ from salus.schemas.user_source_preference import (
     BulkSourcePriorityUpdate,
     MetricSourcePriorityItem,
 )
-from salus.services._helpers import uuid7_str
+from salus.utils import uuid7_str
 
 if TYPE_CHECKING:
     from salus.repositories.unit_of_work import IUnitOfWork
