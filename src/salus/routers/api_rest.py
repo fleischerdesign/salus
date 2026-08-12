@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
@@ -39,6 +38,11 @@ _PLURAL_MAP: dict[str, str] = {
     "share_recipient": "share-recipients",
     "asymmetric_share": "asymmetric-shares",
     "habit": "habits",
+    "mood_entry": "mood-entries",
+    "mood_tag": "mood-tags",
+    "journal_entry": "journal-entries",
+    "medication": "medications",
+    "food_item": "food-items",
 }
 
 # Entities whose CRUD is owned by a dedicated typed router, an auth/admin flow,
@@ -53,16 +57,13 @@ _SKIP_AUTO_CRUD: set[str] = {
     # auth/credential resources, never a generic resource (password/token hashes)
     "user",
     "api_token",
-    # dedicated typed routers own these domains
+    # dedicated typed routers own these domains (actions only; CRUD via auto-CRUD)
     "habit_log",
-    "mood_tag",
-    "mood_entry",
-    "journal_entry",
-    "medication",
     "medication_schedule",
     "medication_log",
     "medication_inventory",
-    "food_item",
+    # composed-aggregate domains: meal/recipe responses carry items/ingredients
+    # and achievement exposes computed progress — not expressible as flat CRUD
     "meal",
     "meal_item",
     "recipe",
@@ -107,10 +108,14 @@ def register_auto_crud(app: FastAPI) -> None:
 
 
 def _row_to_dict(obj: Any, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    from datetime import date, datetime
+
     result = obj.model_dump() if hasattr(obj, "model_dump") else {}
     for k, v in result.items():
         if isinstance(v, datetime):
             result[k] = v.replace(tzinfo=None).isoformat()
+        elif isinstance(v, date):
+            result[k] = v.isoformat()
     if extra:
         result.update(extra)
     return result
@@ -144,8 +149,12 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         if hasattr(model_cls, "deleted_at"):
             query = query.where(getattr(model_cls, "deleted_at").is_(None))
         rows = list(uow.session.exec(query).all())
-        if meta.name in ENRICHERS:
-            enriched = ENRICHERS[meta.name](uow, uid_user, rows)
+        if meta.name in RESPONSE_MODELS:
+            enriched = (
+                ENRICHERS[meta.name](uow, uid_user, rows)
+                if meta.name in ENRICHERS
+                else {}
+            )
             return [_row_to_dict(r, enriched.get(getattr(r, "id", "") or "", {})) for r in rows]
         return rows
 
@@ -161,8 +170,12 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
         if hasattr(obj, "deleted_at") and getattr(obj, "deleted_at") is not None:
             raise ApiError(code="not_found", message="Resource not found", status_code=404)
         _check_ownership(obj, user, meta, uow.session)
-        if meta.name in ENRICHERS:
-            enriched = ENRICHERS[meta.name](uow, uid(user), [obj])
+        if meta.name in RESPONSE_MODELS:
+            enriched = (
+                ENRICHERS[meta.name](uow, uid(user), [obj])
+                if meta.name in ENRICHERS
+                else {}
+            )
             return _row_to_dict(obj, enriched.get(getattr(obj, "id", "") or "", {}))
         return obj
 

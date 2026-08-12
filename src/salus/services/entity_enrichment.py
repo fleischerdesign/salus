@@ -12,7 +12,10 @@ fields into the serialized row before response-model validation.
 from typing import Any, Callable
 
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.schemas.food import FoodItemResponse
 from salus.schemas.habit import HabitResponse
+from salus.schemas.journal import JournalEntryResponse
+from salus.schemas.medication import MedicationResponse
 from salus.services.habit import HabitService
 
 Enricher = Callable[[IUnitOfWork, str, list[Any]], dict[str, dict[str, Any]]]
@@ -41,3 +44,6 @@ def _habit_enricher(
 
 
 register_response_model("habit", HabitResponse)
+register_response_model("journal_entry", JournalEntryResponse)
+register_response_model("medication", MedicationResponse)
+register_response_model("food_item", FoodItemResponse)

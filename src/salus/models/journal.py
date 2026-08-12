@@ -14,7 +14,7 @@ class JournalEntry(SQLModel, table=True):
 
     id: str | None = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
-    entry_date: date
+    entry_date: date = Field(default_factory=date.today)
     title: str | None = Field(default=None)
     content: str
     mood_score: int | None = Field(default=None, ge=1, le=10)

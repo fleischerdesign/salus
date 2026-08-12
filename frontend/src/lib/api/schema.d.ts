@@ -942,6 +942,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/food-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_food_items_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_food_items_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/food-items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_food_items__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_food_items__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_food_items__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_food_items__item_id__patch"];
+        trace?: never;
+    };
     "/api/v1/food/frequent": {
         parameters: {
             query?: never;
@@ -951,40 +989,6 @@ export interface paths {
         };
         /** Get Frequent */
         get: operations["get_frequent_api_v1_food_frequent_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/food/items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Food Item */
-        post: operations["create_food_item_api_v1_food_items_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/food/items/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Food Item */
-        get: operations["get_food_item_api_v1_food_items__item_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1192,41 +1196,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/journal": {
+    "/api/v1/journal-entries": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Entries */
-        get: operations["list_entries_api_v1_journal_get"];
+        /** List All */
+        get: operations["list_all_api_v1_journal_entries_get"];
         put?: never;
-        /** Create Entry */
-        post: operations["create_entry_api_v1_journal_post"];
+        /** Create One */
+        post: operations["create_one_api_v1_journal_entries_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/journal/{entry_id}": {
+    "/api/v1/journal-entries/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Entry */
-        get: operations["get_entry_api_v1_journal__entry_id__get"];
-        /** Update Entry */
-        put: operations["update_entry_api_v1_journal__entry_id__put"];
+        /** Get One */
+        get: operations["get_one_api_v1_journal_entries__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_journal_entries__item_id__put"];
         post?: never;
-        /** Delete Entry */
-        delete: operations["delete_entry_api_v1_journal__entry_id__delete"];
+        /** Delete One */
+        delete: operations["delete_one_api_v1_journal_entries__item_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_journal_entries__item_id__patch"];
         trace?: never;
     };
     "/api/v1/journal/date/{entry_date}": {
@@ -1447,34 +1452,35 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Medications */
-        get: operations["list_medications_api_v1_medications_get"];
+        /** List All */
+        get: operations["list_all_api_v1_medications_get"];
         put?: never;
-        /** Create Medication */
-        post: operations["create_medication_api_v1_medications_post"];
+        /** Create One */
+        post: operations["create_one_api_v1_medications_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medications/{medication_id}": {
+    "/api/v1/medications/{item_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Medication */
-        get: operations["get_medication_api_v1_medications__medication_id__get"];
-        /** Update Medication */
-        put: operations["update_medication_api_v1_medications__medication_id__put"];
+        /** Get One */
+        get: operations["get_one_api_v1_medications__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_medications__item_id__put"];
         post?: never;
-        /** Delete Medication */
-        delete: operations["delete_medication_api_v1_medications__medication_id__delete"];
+        /** Delete One */
+        delete: operations["delete_one_api_v1_medications__item_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_medications__item_id__patch"];
         trace?: never;
     };
     "/api/v1/medications/{medication_id}/inventory": {
@@ -1696,6 +1702,78 @@ export interface paths {
         put?: never;
         /** Log Mood */
         post: operations["log_mood_api_v1_mood_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mood-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_mood_entries_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_mood_entries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mood-entries/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_mood_entries__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_mood_entries__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_mood_entries__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_mood_entries__item_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/mood-tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_mood_tags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mood-tags/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_mood_tags__item_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3492,53 +3570,6 @@ export interface components {
             /** Video Url */
             video_url?: string | null;
         };
-        /** FoodItemCreate */
-        FoodItemCreate: {
-            /** Barcode */
-            barcode?: string | null;
-            /** Brand */
-            brand?: string | null;
-            /**
-             * Calories Per Serving
-             * @default 0
-             */
-            calories_per_serving: number;
-            /**
-             * Carbs G
-             * @default 0
-             */
-            carbs_g: number;
-            /**
-             * Fat G
-             * @default 0
-             */
-            fat_g: number;
-            /** Fiber G */
-            fiber_g?: number | null;
-            /** Name */
-            name: string;
-            /**
-             * Protein G
-             * @default 0
-             */
-            protein_g: number;
-            /** Saturated Fat G */
-            saturated_fat_g?: number | null;
-            /**
-             * Serving Size
-             * @default 100
-             */
-            serving_size: number;
-            /**
-             * Serving Unit
-             * @default g
-             */
-            serving_unit: string;
-            /** Sodium Mg */
-            sodium_mg?: number | null;
-            /** Sugar G */
-            sugar_g?: number | null;
-        };
         /** FoodItemResponse */
         FoodItemResponse: {
             /** Barcode */
@@ -3811,22 +3842,6 @@ export interface components {
             /** Model Used */
             model_used: string;
         };
-        /** JournalEntryCreate */
-        JournalEntryCreate: {
-            /** Content */
-            content: string;
-            /** Entry Date */
-            entry_date?: string | null;
-            /**
-             * Is Private
-             * @default true
-             */
-            is_private: boolean;
-            /** Mood Score */
-            mood_score?: number | null;
-            /** Title */
-            title?: string | null;
-        };
         /** JournalEntryResponse */
         JournalEntryResponse: {
             /** Content */
@@ -3845,17 +3860,6 @@ export interface components {
             title?: string | null;
             /** Updated At */
             updated_at?: string | null;
-        };
-        /** JournalEntryUpdate */
-        JournalEntryUpdate: {
-            /** Content */
-            content?: string | null;
-            /** Is Private */
-            is_private?: boolean | null;
-            /** Mood Score */
-            mood_score?: number | null;
-            /** Title */
-            title?: string | null;
         };
         /** JournalSearchResponse */
         JournalSearchResponse: {
@@ -4100,34 +4104,6 @@ export interface components {
             /** Value Text */
             value_text?: string | null;
         };
-        /** MedicationCreate */
-        MedicationCreate: {
-            /** Active Ingredient */
-            active_ingredient?: string | null;
-            /**
-             * Color Hex
-             * @default #4f46e5
-             */
-            color_hex: string;
-            /** @default tablet */
-            form: components["schemas"]["MedicationForm"];
-            /**
-             * Icon
-             * @default medication
-             */
-            icon: string;
-            /** Instructions */
-            instructions?: string | null;
-            /** Name */
-            name: string;
-            /** Strength */
-            strength?: string | null;
-        };
-        /**
-         * MedicationForm
-         * @enum {string}
-         */
-        MedicationForm: "tablet" | "capsule" | "liquid" | "injection" | "patch" | "cream" | "drops";
         /** MedicationInventoryResponse */
         MedicationInventoryResponse: {
             /** Id */
@@ -4289,24 +4265,6 @@ export interface components {
             /** Items */
             items: components["schemas"]["MedicationTodayItem"][];
         };
-        /** MedicationUpdate */
-        MedicationUpdate: {
-            /** Active Ingredient */
-            active_ingredient?: string | null;
-            /** Color Hex */
-            color_hex?: string | null;
-            form?: components["schemas"]["MedicationForm"] | null;
-            /** Icon */
-            icon?: string | null;
-            /** Instructions */
-            instructions?: string | null;
-            /** Is Active */
-            is_active?: boolean | null;
-            /** Name */
-            name?: string | null;
-            /** Strength */
-            strength?: string | null;
-        };
         /** MethodologyEntry */
         MethodologyEntry: {
             /** Citation */
@@ -4415,6 +4373,37 @@ export interface components {
             /** Unit */
             unit: string;
         };
+        /** MoodEntry */
+        MoodEntry: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Energy Level */
+            energy_level?: number | null;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Id */
+            id?: string | null;
+            /** Mood Score */
+            mood_score: number;
+            /** Notes */
+            notes?: string | null;
+            /** Stress Level */
+            stress_level?: number | null;
+            /** Tag Codes */
+            tag_codes?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** MoodEntryCreate */
         MoodEntryCreate: {
             /** Energy Level */
@@ -4472,6 +4461,27 @@ export interface components {
             /** Trend Slope */
             trend_slope?: number | null;
         };
+        /** MoodTag */
+        MoodTag: {
+            /** @default neutral */
+            category: components["schemas"]["MoodTagCategory"];
+            /** Code */
+            code: string;
+            /** Emoji */
+            emoji?: string | null;
+            /**
+             * Is System
+             * @default true
+             */
+            is_system: boolean;
+            /** Label */
+            label: string;
+        };
+        /**
+         * MoodTagCategory
+         * @enum {string}
+         */
+        MoodTagCategory: "positive" | "neutral" | "negative";
         /** MoodTagResponse */
         MoodTagResponse: {
             /** Category */
@@ -7588,12 +7598,13 @@ export interface operations {
             };
         };
     };
-    get_frequent_api_v1_food_frequent_get: {
+    list_all_api_v1_food_items_get: {
         parameters: {
-            query?: {
-                limit?: number;
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
             };
-            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -7605,7 +7616,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FoodItemSearchResponse"];
+                    "application/json": components["schemas"]["FoodItemResponse"][];
                 };
             };
             /** @description Validation Error */
@@ -7619,18 +7630,17 @@ export interface operations {
             };
         };
     };
-    create_food_item_api_v1_food_items_post: {
+    create_one_api_v1_food_items_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FoodItemCreate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             201: {
@@ -7652,10 +7662,13 @@ export interface operations {
             };
         };
     };
-    get_food_item_api_v1_food_items__item_id__get: {
+    get_one_api_v1_food_items__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 item_id: string;
             };
@@ -7670,6 +7683,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FoodItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_food_items__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoodItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_food_items__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_food_items__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoodItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_frequent_api_v1_food_frequent_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoodItemSearchResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8433,13 +8577,13 @@ export interface operations {
             };
         };
     };
-    list_entries_api_v1_journal_get: {
+    list_all_api_v1_journal_entries_get: {
         parameters: {
-            query?: {
-                limit?: number;
-                page?: number;
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
             };
-            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -8465,18 +8609,17 @@ export interface operations {
             };
         };
     };
-    create_entry_api_v1_journal_post: {
+    create_one_api_v1_journal_entries_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["JournalEntryCreate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             201: {
@@ -8498,12 +8641,15 @@ export interface operations {
             };
         };
     };
-    get_entry_api_v1_journal__entry_id__get: {
+    get_one_api_v1_journal_entries__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                entry_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -8529,20 +8675,19 @@ export interface operations {
             };
         };
     };
-    update_entry_api_v1_journal__entry_id__put: {
+    patch_one_api_v1_journal_entries__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                entry_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["JournalEntryUpdate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -8564,12 +8709,15 @@ export interface operations {
             };
         };
     };
-    delete_entry_api_v1_journal__entry_id__delete: {
+    delete_one_api_v1_journal_entries__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                entry_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -8581,6 +8729,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_journal_entries__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntryResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -9199,10 +9381,13 @@ export interface operations {
             };
         };
     };
-    list_medications_api_v1_medications_get: {
+    list_all_api_v1_medications_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9217,20 +9402,28 @@ export interface operations {
                     "application/json": components["schemas"]["MedicationResponse"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
-    create_medication_api_v1_medications_post: {
+    create_one_api_v1_medications_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MedicationCreate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             201: {
@@ -9252,12 +9445,15 @@ export interface operations {
             };
         };
     };
-    get_medication_api_v1_medications__medication_id__get: {
+    get_one_api_v1_medications__item_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                medication_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -9283,20 +9479,19 @@ export interface operations {
             };
         };
     };
-    update_medication_api_v1_medications__medication_id__put: {
+    patch_one_api_v1_medications__item_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                medication_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MedicationUpdate"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -9318,12 +9513,15 @@ export interface operations {
             };
         };
     };
-    delete_medication_api_v1_medications__medication_id__delete: {
+    delete_one_api_v1_medications__item_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
-                medication_id: string;
+                item_id: string;
             };
             cookie?: never;
         };
@@ -9335,6 +9533,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_medications__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -9878,6 +10110,270 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MoodEntryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_v1_mood_entries_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_one_api_v1_mood_entries_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_mood_entries__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_mood_entries__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_mood_entries__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_mood_entries__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_v1_mood_tags_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodTag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_mood_tags__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodTag"];
                 };
             };
             /** @description Validation Error */

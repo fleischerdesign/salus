@@ -5,7 +5,7 @@ class TestFoodItemRoutes:
         assert resp.json()["items"] == []
 
     def test_create_and_search(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/food/items", json={
+        resp = authenticated_client.post("/api/v1/food-items", json={
             "name": "Haferflocken",
             "brand": "Alnatura",
             "calories_per_serving": 370,
@@ -25,7 +25,7 @@ class TestFoodItemRoutes:
         assert len(resp.json()["items"]) >= 1
 
     def test_get_food_item(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/food/items", json={
+        resp = authenticated_client.post("/api/v1/food-items", json={
             "name": "Bananen",
             "calories_per_serving": 89,
             "protein_g": 1.1,
@@ -34,12 +34,12 @@ class TestFoodItemRoutes:
         })
         item_id = resp.json()["id"]
 
-        resp = authenticated_client.get(f"/api/v1/food/items/{item_id}")
+        resp = authenticated_client.get(f"/api/v1/food-items/{item_id}")
         assert resp.status_code == 200
         assert resp.json()["name"] == "Bananen"
 
     def test_barcode(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/food/items", json={
+        resp = authenticated_client.post("/api/v1/food-items", json={
             "name": "Item With Barcode",
             "barcode": "1234567890123",
             "calories_per_serving": 100,
@@ -59,7 +59,7 @@ class TestFoodItemRoutes:
 
 class TestMealRoutes:
     def test_create_and_get_meal(self, authenticated_client):
-        resp = authenticated_client.post("/api/v1/food/items", json={
+        resp = authenticated_client.post("/api/v1/food-items", json={
             "name": "Test Food",
             "calories_per_serving": 100,
             "protein_g": 10.0,
@@ -96,7 +96,7 @@ class TestMealRoutes:
         assert isinstance(resp.json(), list)
 
     def test_delete_meal(self, authenticated_client):
-        food = authenticated_client.post("/api/v1/food/items", json={
+        food = authenticated_client.post("/api/v1/food-items", json={
             "name": "Delete Test",
             "calories_per_serving": 50,
             "protein_g": 3.0,
@@ -124,7 +124,7 @@ class TestMealRoutes:
         assert resp.status_code == 401
 
     def test_cannot_access_other_user_meal(self, authenticated_client):
-        food = authenticated_client.post("/api/v1/food/items", json={
+        food = authenticated_client.post("/api/v1/food-items", json={
             "name": "Shared Food",
             "calories_per_serving": 100,
             "protein_g": 5.0,
@@ -157,7 +157,7 @@ class TestMealRoutes:
 
 class TestRecipeRoutes:
     def test_create_and_get_recipe(self, authenticated_client):
-        food = authenticated_client.post("/api/v1/food/items", json={
+        food = authenticated_client.post("/api/v1/food-items", json={
             "name": "Recipe Ingredient",
             "calories_per_serving": 100,
             "protein_g": 10.0,
@@ -189,7 +189,7 @@ class TestRecipeRoutes:
         assert resp.status_code == 200
 
     def test_delete_recipe(self, authenticated_client):
-        food = authenticated_client.post("/api/v1/food/items", json={
+        food = authenticated_client.post("/api/v1/food-items", json={
             "name": "Del Recipe Ing",
             "calories_per_serving": 50,
             "protein_g": 2.0,
@@ -209,7 +209,7 @@ class TestRecipeRoutes:
         assert resp.status_code == 204
 
     def test_cook_recipe(self, authenticated_client):
-        food = authenticated_client.post("/api/v1/food/items", json={
+        food = authenticated_client.post("/api/v1/food-items", json={
             "name": "Cook Ingredient",
             "calories_per_serving": 100,
             "protein_g": 10.0,

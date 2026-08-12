@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
 from sqlmodel import Session
@@ -171,6 +171,8 @@ class WritePipeline:
             for k, v in dumped.items():
                 if isinstance(v, datetime):
                     dumped[k] = v.replace(tzinfo=None).isoformat()
+                elif isinstance(v, date):
+                    dumped[k] = v.isoformat()
             return dumped
         if hasattr(obj, "__dict__"):
             result = {}
@@ -179,6 +181,8 @@ class WritePipeline:
                     continue
                 if isinstance(v, datetime):
                     result[k] = v.replace(tzinfo=None).isoformat()
+                elif isinstance(v, date):
+                    result[k] = v.isoformat()
                 elif v is None or isinstance(v, (str, int, float, bool, list, dict)):
                     result[k] = v
             return result
