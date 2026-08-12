@@ -67,6 +67,8 @@ from salus.services.open_science import OpenScienceService
 from salus.services.circadian import CircadianService
 from salus.services.source_resolution import SourceResolutionService
 from salus.services.event_bus import EventBus
+from salus.services.sync import SYNC_PROTOCOL_VERSION, SyncService
+from salus.services.write_pipeline import WritePipeline
 from salus.services.habit import HabitService
 from salus.services.mood import MoodService
 from salus.services.journal import JournalService
@@ -584,6 +586,31 @@ def get_data_portability_service(
 
 def get_event_bus(request: Request) -> EventBus:
     return request.app.state.event_bus
+
+
+def get_write_pipeline(
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_user_or_api),
+    event_bus: EventBus = Depends(get_event_bus),
+) -> WritePipeline:
+    return WritePipeline(uow, current_user, event_bus)
+
+
+def get_sync_service(uow: IUnitOfWork = Depends(get_unit_of_work)) -> SyncService:
+    return SyncService(uow)
+
+
+def check_sync_version(
+    x_salus_sync_version: int = Header(
+        default=SYNC_PROTOCOL_VERSION, alias="X-Salus-Sync-Version"
+    ),
+) -> int:
+    if x_salus_sync_version != SYNC_PROTOCOL_VERSION:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported sync protocol version. Expected {SYNC_PROTOCOL_VERSION}, got {x_salus_sync_version}",
+        )
+    return x_salus_sync_version
 
 
 def get_habit_service(

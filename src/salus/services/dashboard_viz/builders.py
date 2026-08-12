@@ -278,13 +278,16 @@ class GenericVizBuilder:
     Shows the latest measurement value as a simple number widget.
     """
 
-    def __init__(self, title: str, unit: str) -> None:
+    def __init__(self, title: str, unit: str, metric_code: str | None) -> None:
         self._title = title
         self._unit = unit
+        self._metric_code = metric_code
 
     def build(self, ctx, user_id, target, color):
+        if self._metric_code is None:
+            return None
         latest = ctx.uow.measurements.get_latest_by_metric_type(
-            metric_code=ctx._current_metric_id,
+            metric_code=self._metric_code,
             user_id=user_id,
         )
         if latest is None:

@@ -75,9 +75,6 @@ class DashboardWidgetService:
         self._goals_cache: list[Goal] | None = None
         self._metrics_cache: dict[str, MetricDefinition] = {}
 
-        # Set per-widget during widget_data() for GenericVizBuilder access
-        self._current_metric_id: str | None = None
-
     def ensure_defaults(self, user_id: str) -> list[DashboardWidget]:
         existing = self.uow.dashboard_widgets.find_by_user(user_id)
         if existing:
@@ -207,16 +204,15 @@ class DashboardWidgetService:
 
         builder = VIZ_BUILDERS.get(sd or "")
         if builder is None:
-            builder = GenericVizBuilder(title=metric.name, unit=metric.unit)
-            self._current_metric_id = widget.metric_code
+            builder = GenericVizBuilder(
+                title=metric.name, unit=metric.unit, metric_code=widget.metric_code
+            )
 
         try:
             viz = builder.build(self, user_id=user_id, target=target, color=metric_color)
         except Exception:
             logger.exception("Error building viz for widget %s (sd=%s)", widget.id, sd)
             viz = None
-
-        self._current_metric_id = None
 
         if viz is None:
             return WidgetViz(

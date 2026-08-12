@@ -36,15 +36,6 @@ class WritePipeline:
         self.user = current_user
         self.session: Session = uow.session
         self._event_bus = event_bus
-        self._valid_metric_codes: set[str] | None = None
-
-    def _get_valid_metric_codes(self) -> set[str]:
-        if self._valid_metric_codes is None:
-            from sqlmodel import select
-            from salus.models.metric_definition import MetricDefinition
-
-            self._valid_metric_codes = set(self.session.exec(select(MetricDefinition.code)).all())
-        return self._valid_metric_codes
 
     def process(self, operations: list[SyncOperation]) -> list[SyncResult]:
         results: list[SyncResult] = []
@@ -221,14 +212,6 @@ class WritePipeline:
             data["created_at"] = now
         if hasattr(entity_class, "updated_at") and "updated_at" not in data:
             data["updated_at"] = now
-
-        if op.entity == "measurement":
-            metric_code = data.get("metric_code")
-            if metric_code and metric_code not in self._get_valid_metric_codes():
-                return SyncResult(
-                    type=op.type, entity=op.entity or "", client_id=op.client_id,
-                    status="error", message=f"Unknown metric_code: {metric_code}",
-                )
 
         try:
             instance = entity_class.model_validate(data)
