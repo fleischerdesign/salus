@@ -2,14 +2,9 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import inspect as sa_inspect
-from sqlmodel import func, or_, select
+from sqlmodel import or_, select
 
-from salus.models.goal import Goal
-from salus.models.measurement import Measurement
-from salus.models.sharing import SharingRelationship
-from salus.models.system_config import SystemConfig
 from salus.models.user import User
-from salus.models.workout import WorkoutSession
 from salus.repositories.entity_meta import (
     EntityMeta,
     SYNC_ENTITY_SPECS,
@@ -18,6 +13,9 @@ from salus.repositories.entity_meta import (
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
+from salus.services.admin import admin_system_stats, admin_user_list
+from salus.services.community import community_activity_feed
+from salus.services.config import system_config_enriched
 
 
 def _delta_timestamp_filter(model: type, since: datetime):
@@ -98,157 +96,6 @@ def _build_full_query(sess, spec: EntityMeta, user_id: str, cursor: str):
     return stmt
 
 
-def _admin_user_list(s, exclude_user_id: str) -> list[dict]:
-    measurement_subq = (
-        select(func.count())
-        .select_from(Measurement)
-        .where(Measurement.user_id == User.id)
-        .correlate(User)
-        .scalar_subquery()
-        .label("measurement_count")
-    )
-    goal_subq = (
-        select(func.count())
-        .select_from(Goal)
-        .where(Goal.user_id == User.id, Goal.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        .correlate(User)
-        .scalar_subquery()
-        .label("goal_count")
-    )
-
-    rows = s.exec(
-        select(  # pyright: ignore[reportCallIssue]
-            User.id,
-            User.username,
-            User.email,
-            User.display_name,
-            User.is_admin,
-            User.is_active,
-            User.created_at,
-            measurement_subq,
-            goal_subq,
-        ).where(User.id != exclude_user_id)
-    ).all()
-
-    return [
-        {
-            "id": r[0],
-            "username": r[1],
-            "email": r[2],
-            "display_name": r[3],
-            "is_admin": r[4],
-            "is_active": r[5],
-            "created_at": r[6].isoformat() if r[6] else None,
-            "measurement_count": r[7] or 0,
-            "goal_count": r[8] or 0,
-        }
-        for r in rows
-        if r[0] is not None
-    ]
-
-
-def _admin_system_stats(s) -> dict:
-    import os
-
-    from salus.config import settings as app_settings
-    from salus.models.metric_definition import MetricDefinition
-
-    total_users = s.scalar(select(func.count()).select_from(User)) or 0
-    total_measurements = s.scalar(select(func.count()).select_from(Measurement)) or 0
-    total_metric_types = s.scalar(select(func.count()).select_from(MetricDefinition)) or 0
-    total_goals = s.scalar(select(func.count()).select_from(Goal)) or 0
-    db_path = app_settings.database_url.replace("sqlite:///", "")
-    db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
-    db_size = (
-        f"{db_size_bytes / (1024 * 1024):.1f} MB"
-        if db_size_bytes >= 1024 * 1024
-        else (f"{db_size_bytes / 1024:.1f} KB" if db_size_bytes >= 1024 else f"{db_size_bytes} B")
-    )
-    return {
-        "key": "global",
-        "total_users": total_users,
-        "total_measurements": total_measurements,
-        "total_metric_types": total_metric_types,
-        "total_goals": total_goals,
-        "db_size": db_size,
-    }
-
-
-def _community_activity_feed(s, user_id: str, username: str) -> list[dict]:
-    user_handle = f"@{username}"
-    activities: list[dict] = []
-
-    incoming = s.exec(
-        select(SharingRelationship).where(
-            SharingRelationship.grantee_handle == user_handle,
-            SharingRelationship.status == "active",
-        )
-    ).all()
-
-    for rel in incoming:
-        owner = s.get(User, rel.owner_id)
-        activities.append({
-            "id": rel.id,
-            "friend_name": owner.username if owner else f"user_{rel.owner_id}",
-            "activity_type": "steps",
-            "activity_description": "shared health data with you",
-            "time": rel.created_at.isoformat() if rel.created_at else None,
-        })
-
-    outgoing = s.exec(
-        select(SharingRelationship).where(
-            SharingRelationship.owner_id == user_id,
-            SharingRelationship.status == "active",
-        )
-    ).all()
-
-    for rel in outgoing:
-        activities.append({
-            "id": rel.id,
-            "friend_name": rel.grantee_handle,
-            "activity_type": "steps",
-            "activity_description": "started sharing health data",
-            "time": rel.created_at.isoformat() if rel.created_at else None,
-        })
-
-    sessions = s.exec(
-        select(WorkoutSession).where(
-            WorkoutSession.user_id == user_id,
-            WorkoutSession.completed_at.is_not(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-        ).order_by(WorkoutSession.completed_at.desc()).limit(20)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-    ).all()
-
-    for se in sessions:
-        activities.append({
-            "id": se.id,
-            "friend_name": username,
-            "activity_type": "workout",
-            "activity_description": "completed a workout",
-            "time": se.completed_at.isoformat() if se.completed_at else None,
-        })
-
-    activities.sort(key=lambda a: a.get("time") or "", reverse=True)
-    return activities[:50]
-
-
-def _system_config_enriched(s) -> list[dict]:
-    import os
-
-    rows = s.exec(select(SystemConfig)).all()
-    result: list[dict] = []
-    for r in rows:
-        result.append({
-            "key": r.key,
-            "value": r.value,
-            "description": r.description,
-            "category": r.category,
-            "is_secret": r.is_secret,
-            "is_env_override": r.key.upper() in os.environ or f"SALUS_{r.key.upper()}" in os.environ,
-            "db_has_value": r.value is not None,
-        })
-    return result
-
-
 def _user_profile_dict(user: User) -> dict[str, Any]:
     user_id = uid(user)
     return {
@@ -271,12 +118,12 @@ def _special_entities(s, user: User) -> dict[str, Any]:
     result: dict[str, Any] = {
         "user_profile": profile,
         "user": dict(profile),
-        "community_activity": _community_activity_feed(s, user_id, user.username),
+        "community_activity": community_activity_feed(s, user_id, user.username),
     }
     if user.is_admin:
-        result["admin_user"] = _admin_user_list(s, user_id)
-        result["admin_stats"] = _admin_system_stats(s)
-        result["system_config"] = _system_config_enriched(s)
+        result["admin_user"] = admin_user_list(s, user_id)
+        result["admin_stats"] = admin_system_stats(s)
+        result["system_config"] = system_config_enriched(s)
     else:
         result["admin_user"] = None
         result["admin_stats"] = None
@@ -316,8 +163,6 @@ class SyncService:
             if rows:
                 last_id = _pk_value(rows[-1])
                 next_cursors[spec.name] = str(last_id) if last_id is not None else cursor
-                if len(rows) == spec.batch_size:
-                    pass
             else:
                 next_cursors[spec.name] = cursor
 

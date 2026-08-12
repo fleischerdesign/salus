@@ -3,9 +3,85 @@ import os
 from salus.config import settings as app_settings
 from salus.exceptions import ConflictError, NotFoundError
 from salus.models.api_token import ApiToken
+from salus.models.goal import Goal
+from salus.models.measurement import Measurement
 from salus.models.user import User
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid
+from sqlmodel import func, select
+
+
+def admin_user_list(s, exclude_user_id: str) -> list[dict]:
+    measurement_subq = (
+        select(func.count())
+        .select_from(Measurement)
+        .where(Measurement.user_id == User.id)
+        .correlate(User)
+        .scalar_subquery()
+        .label("measurement_count")
+    )
+    goal_subq = (
+        select(func.count())
+        .select_from(Goal)
+        .where(Goal.user_id == User.id, Goal.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        .correlate(User)
+        .scalar_subquery()
+        .label("goal_count")
+    )
+
+    rows = s.exec(
+        select(  # pyright: ignore[reportCallIssue]
+            User.id,
+            User.username,
+            User.email,
+            User.display_name,
+            User.is_admin,
+            User.is_active,
+            User.created_at,
+            measurement_subq,
+            goal_subq,
+        ).where(User.id != exclude_user_id)
+    ).all()
+
+    return [
+        {
+            "id": r[0],
+            "username": r[1],
+            "email": r[2],
+            "display_name": r[3],
+            "is_admin": r[4],
+            "is_active": r[5],
+            "created_at": r[6].isoformat() if r[6] else None,
+            "measurement_count": r[7] or 0,
+            "goal_count": r[8] or 0,
+        }
+        for r in rows
+        if r[0] is not None
+    ]
+
+
+def admin_system_stats(s) -> dict:
+    from salus.models.metric_definition import MetricDefinition
+
+    total_users = s.scalar(select(func.count()).select_from(User)) or 0
+    total_measurements = s.scalar(select(func.count()).select_from(Measurement)) or 0
+    total_metric_types = s.scalar(select(func.count()).select_from(MetricDefinition)) or 0
+    total_goals = s.scalar(select(func.count()).select_from(Goal)) or 0
+    db_path = app_settings.database_url.replace("sqlite:///", "")
+    db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
+    db_size = (
+        f"{db_size_bytes / (1024 * 1024):.1f} MB"
+        if db_size_bytes >= 1024 * 1024
+        else (f"{db_size_bytes / 1024:.1f} KB" if db_size_bytes >= 1024 else f"{db_size_bytes} B")
+    )
+    return {
+        "key": "global",
+        "total_users": total_users,
+        "total_measurements": total_measurements,
+        "total_metric_types": total_metric_types,
+        "total_goals": total_goals,
+        "db_size": db_size,
+    }
 
 
 class AdminService:

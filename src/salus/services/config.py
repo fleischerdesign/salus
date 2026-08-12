@@ -4,13 +4,13 @@ from salus.config import settings as app_settings
 from salus.exceptions import ConflictError
 from salus.models.system_config import SystemConfig
 from salus.repositories.protocols import ISystemConfigRepository
+from sqlmodel import select
 
 CONFIG_DEFINITIONS = [
     ("app_name", "Application name", "general", False),
     ("jwt_secret_key", "JWT signing key", "security", True),
     ("jwt_algorithm", "JWT algorithm", "security", False),
-    ("jwt_expire_minutes", "JWT expiry (minutes)", "security", False),
-    ("api_token", "Global API token (webhook fallback)", "security", True),
+    ("jwt_expire_minutes", "JWT expiry (minutes)", "security", False),    ("api_token", "Global API token (webhook fallback)", "security", True),
     ("google_client_id", "Google OAuth client ID", "oidc", True),
     ("google_client_secret", "Google OAuth client secret", "oidc", True),
     ("github_client_id", "GitHub OAuth client ID", "oidc", True),
@@ -34,6 +34,22 @@ CONFIG_DEFINITIONS = [
 ]
 
 CATEGORY_ORDER = ["general", "security", "oidc", "ldap", "llm"]
+
+
+def system_config_enriched(s) -> list[dict]:
+    rows = s.exec(select(SystemConfig)).all()
+    result: list[dict] = []
+    for r in rows:
+        result.append({
+            "key": r.key,
+            "value": r.value,
+            "description": r.description,
+            "category": r.category,
+            "is_secret": r.is_secret,
+            "is_env_override": r.key.upper() in os.environ or f"SALUS_{r.key.upper()}" in os.environ,
+            "db_has_value": r.value is not None,
+        })
+    return result
 
 
 class ConfigService:
