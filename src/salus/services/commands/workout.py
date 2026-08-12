@@ -6,6 +6,7 @@ from typing import Any, TYPE_CHECKING
 from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
 from salus.services._helpers import uuid7_str
 from salus.services.command_registry import CommandResult, register
+from salus.services.serialization import serialize_record
 
 if TYPE_CHECKING:
     from salus.repositories.unit_of_work import IUnitOfWork
@@ -16,36 +17,23 @@ def _new_uuid() -> str:
     return uuid7_str()
 
 
+_SESSION_FIELDS = (
+    "id", "user_id", "plan_id", "started_at", "completed_at",
+    "autoreg_mode", "recovery_score", "notes", "created_at", "updated_at", "deleted_at",
+)
+
+_LOG_ENTRY_FIELDS = (
+    "id", "session_id", "exercise_id", "set_number", "weight", "reps",
+    "rpe", "created_at", "updated_at", "deleted_at",
+)
+
+
 def _serialize_session(session: WorkoutSession) -> dict[str, Any]:
-    from datetime import datetime as dt
-
-    def _fmt(v: Any) -> Any:
-        if isinstance(v, dt):
-            return v.replace(tzinfo=None).isoformat() if v.tzinfo else v.isoformat()
-        return v
-
-    result: dict[str, Any] = {}
-    for k in ("id", "user_id", "plan_id", "started_at", "completed_at",
-              "autoreg_mode", "recovery_score", "notes", "created_at", "updated_at", "deleted_at"):
-        if hasattr(session, k):
-            result[k] = _fmt(getattr(session, k))
-    return result
+    return serialize_record(session, list(_SESSION_FIELDS))
 
 
 def _serialize_log_entry(entry: WorkoutLogEntry) -> dict[str, Any]:
-    from datetime import datetime as dt
-
-    def _fmt(v: Any) -> Any:
-        if isinstance(v, dt):
-            return v.replace(tzinfo=None).isoformat() if v.tzinfo else v.isoformat()
-        return v
-
-    result: dict[str, Any] = {}
-    for k in ("id", "session_id", "exercise_id", "set_number", "weight", "reps",
-              "rpe", "created_at", "updated_at", "deleted_at"):
-        if hasattr(entry, k):
-            result[k] = _fmt(getattr(entry, k))
-    return result
+    return serialize_record(entry, list(_LOG_ENTRY_FIELDS))
 
 
 @register("start_workout")
@@ -86,14 +74,10 @@ class StartWorkoutHandler:
     @staticmethod
     def _calculate_recovery(uow: IUnitOfWork, user: User) -> float:
         from salus.services._helpers import uid
-        from salus.services.analytics.sleep import SleepAnalysisService
-        from salus.services.analytics.activity import ActivityAnalysisService
-        from salus.services.workout.autoregulation import AutoregulationService
+        from salus.services.workout.autoregulation import build_autoregulation_service
 
         user_id = uid(user)
-        sleep_svc = SleepAnalysisService(uow.measurements)
-        activity_svc = ActivityAnalysisService(uow.measurements)
-        autoreg_svc = AutoregulationService(sleep_svc, activity_svc)
+        autoreg_svc = build_autoregulation_service(uow)
         overall, _, _, _ = autoreg_svc.calculate_recovery_score(user_id)
         return overall
 

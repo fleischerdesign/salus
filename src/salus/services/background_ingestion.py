@@ -3,30 +3,31 @@ from typing import Callable
 
 from sqlmodel import Session
 
-from salus.repositories.measurement import MeasurementRepository
-from salus.repositories.metric_definition import MetricDefinitionRepository
-from salus.services.metric_type_mapping import MetricDefinitionMappingService
+from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.parser import FlexiblePayloadParser
+from salus.services.sharing import SharingService
 from salus.services.webhook_ingestion import WebhookIngestionService
 
 logger = logging.getLogger("salus.services.background_ingestion")
 
 
 class BackgroundIngestionService:
-    def __init__(self, session_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        parser_factory: Callable[[], FlexiblePayloadParser],
+        webhook_service_factory: Callable[[Session], WebhookIngestionService],
+        sharing_service_factory: Callable[[IUnitOfWork], SharingService],
+    ) -> None:
         self._session_factory = session_factory
+        self._parser_factory = parser_factory
+        self._webhook_factory = webhook_service_factory
+        self._sharing_factory = sharing_service_factory
 
     def ingest(self, payload: dict | list, user_id: str) -> None:
         with self._session_factory() as session:
-            parser = FlexiblePayloadParser()
-            measurement_repo = MeasurementRepository(session)
-            metric_type_repo = MetricDefinitionRepository(session)
-            mapping_service = MetricDefinitionMappingService(metric_type_repo)
-
-            service = WebhookIngestionService(
-                parser, measurement_repo, mapping_service
-            )
-            records = parser.parse(payload)
+            service = self._webhook_factory(session)
+            records = self._parser_factory().parse(payload)
             inserted, duplicates = service.ingest(payload, user_id)
             logger.info(
                 "Background ingestion complete | user_id=%s | inserted=%d | duplicates=%d",
@@ -37,10 +38,8 @@ class BackgroundIngestionService:
 
             if inserted > 0:
                 from salus.repositories.unit_of_work import SqlUnitOfWork
-                from salus.services.sharing import SharingService
 
-                uow = SqlUnitOfWork(session)
-                sharing_svc = SharingService.create(uow)
+                sharing_svc = self._sharing_factory(SqlUnitOfWork(session))
 
                 unique_updates: set[tuple[str, str]] = set()
                 for rec in records:

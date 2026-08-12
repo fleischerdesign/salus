@@ -6,6 +6,13 @@ from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.stats import recovery_composite
 
 
+def build_autoregulation_service(uow) -> "AutoregulationService":
+    """Construct an AutoregulationService from a unit of work's repos."""
+    sleep_svc = SleepAnalysisService(uow.measurements)
+    activity_svc = ActivityAnalysisService(uow.measurements)
+    return AutoregulationService(sleep_svc, activity_svc)
+
+
 class AutoregulationService:
     def __init__(
         self,

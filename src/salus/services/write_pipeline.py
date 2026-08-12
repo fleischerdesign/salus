@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlmodel import Session
@@ -14,6 +14,7 @@ from salus.repositories.entity_meta import (
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation, SyncResult
 from salus.services.command_registry import get_handler
+from salus.services.serialization import serialize_record
 import salus.services.commands  # noqa: F401 — triggers @register decorators
 
 _PK_FIELDS = {"id", "created_at"}
@@ -166,27 +167,7 @@ class WritePipeline:
         return resolved
 
     def _serialize(self, obj: Any) -> dict[str, Any]:
-        if hasattr(obj, "model_dump"):
-            dumped = obj.model_dump()
-            for k, v in dumped.items():
-                if isinstance(v, datetime):
-                    dumped[k] = v.replace(tzinfo=None).isoformat()
-                elif isinstance(v, date):
-                    dumped[k] = v.isoformat()
-            return dumped
-        if hasattr(obj, "__dict__"):
-            result = {}
-            for k, v in obj.__dict__.items():
-                if k.startswith("_"):
-                    continue
-                if isinstance(v, datetime):
-                    result[k] = v.replace(tzinfo=None).isoformat()
-                elif isinstance(v, date):
-                    result[k] = v.isoformat()
-                elif v is None or isinstance(v, (str, int, float, bool, list, dict)):
-                    result[k] = v
-            return result
-        return {}
+        return serialize_record(obj)
 
     def _log_dedup(self, client_id: str, entity: str, record_id: str, status: str) -> None:
         self.session.add(SyncPushLog(
