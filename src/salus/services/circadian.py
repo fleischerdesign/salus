@@ -167,21 +167,23 @@ class CircadianService:
             "solar_noon_mins": solar_noon_mins,
         }
 
-    def _recent_sleep_times(self, user_id: str) -> tuple[str, str]:
-        actual_onset = "23:00"
-        actual_offset = "07:00"
+    def _recent_sleeps(self, user_id: str) -> list:
         with self.uow:
             if self.uow.metric_definitions.find_by_code("sleep") is None:
-                return actual_onset, actual_offset
-            sleeps = self.uow.measurements.find_by_metric_type(
+                return []
+            return self.uow.measurements.find_by_metric_type(
                 metric_code="sleep", user_id=user_id
             )
-            valid_sleeps = [s for s in sleeps if s.end_time is not None]
-            if valid_sleeps:
-                last_sleep = valid_sleeps[0]
-                actual_onset = last_sleep.start_time.strftime("%H:%M")
-                if last_sleep.end_time:
-                    actual_offset = last_sleep.end_time.strftime("%H:%M")
+
+    def _recent_sleep_times(self, sleeps: list) -> tuple[str, str]:
+        actual_onset = "23:00"
+        actual_offset = "07:00"
+        valid_sleeps = [s for s in sleeps if s.end_time is not None]
+        if valid_sleeps:
+            last_sleep = valid_sleeps[0]
+            actual_onset = last_sleep.start_time.strftime("%H:%M")
+            if last_sleep.end_time:
+                actual_offset = last_sleep.end_time.strftime("%H:%M")
         return actual_onset, actual_offset
 
     def _alignment_score(self, actual_onset: str, target_onset: str) -> int:
@@ -228,7 +230,8 @@ class CircadianService:
             today, profile.latitude, profile.longitude, profile.timezone_offset_hours
         )
 
-        actual_onset, actual_offset = self._recent_sleep_times(user_id)
+        sleeps = self._recent_sleeps(user_id)
+        actual_onset, actual_offset = self._recent_sleep_times(sleeps)
 
         # Circadian rule engine: melatonin onset is ~4 hours after sunset
         sunset_mins = solar["sunset_mins"]
@@ -248,7 +251,7 @@ class CircadianService:
 
         # Chronotype — data-driven detection
         chronotype = profile.configured_chronotype
-        detected = self._detect_chronotype(user_id)
+        detected = self._detect_chronotype(sleeps)
         if detected is not None:
             chronotype = (
                 f"{profile.configured_chronotype} (detected: {detected})"
@@ -277,49 +280,42 @@ class CircadianService:
             eating_window=self._eating_window(actual_onset, actual_offset),
         )
 
-    def _detect_chronotype(self, user_id: str) -> str | None:
+    def _detect_chronotype(self, sleeps: list) -> str | None:
         try:
-            with self.uow:
-                sleep_md = self.uow.metric_definitions.find_by_code("sleep")
-                if sleep_md is None:
-                    return None
-                sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_code="sleep", user_id=user_id
+            onset_times: list[float] = []
+            daylight_hours: list[float] = []
+            for s in sleeps[:14]:
+                if s.start_time is None:
+                    continue
+                onset_hour = s.start_time.hour + s.start_time.minute / 60.0
+                onset_times.append(onset_hour)
+                doy = s.start_time.timetuple().tm_yday
+                lat = 52.52
+                decl = 23.45 * math.sin(
+                    math.radians((360 / 365) * (284 + doy))
                 )
-                onset_times: list[float] = []
-                daylight_hours: list[float] = []
-                for s in sleeps[:14]:
-                    if s.start_time is None:
-                        continue
-                    onset_hour = s.start_time.hour + s.start_time.minute / 60.0
-                    onset_times.append(onset_hour)
-                    doy = s.start_time.timetuple().tm_yday
-                    lat = 52.52
-                    decl = 23.45 * math.sin(
-                        math.radians((360 / 365) * (284 + doy))
-                    )
-                    day_len = (
-                        24.0
-                        - (24.0 / 180.0)
-                        * math.degrees(
-                            math.acos(
-                                -math.tan(math.radians(lat))
-                                * math.tan(math.radians(decl))
-                            )
+                day_len = (
+                    24.0
+                    - (24.0 / 180.0)
+                    * math.degrees(
+                        math.acos(
+                            -math.tan(math.radians(lat))
+                            * math.tan(math.radians(decl))
                         )
-                        if abs(math.tan(math.radians(lat)) * math.tan(math.radians(decl))) < 1
-                        else (24.0 if math.tan(math.radians(lat)) * math.tan(math.radians(decl)) < 0 else 0.0)
                     )
-                    daylight_hours.append(day_len)
-                if len(onset_times) < 7:
-                    return None
-                n = min(len(onset_times), len(daylight_hours))
-                corr = pearson(daylight_hours[:n], onset_times[:n])
-                if corr and abs(corr.r) > 0.3:
-                    if corr.r > 0:
-                        return "owl"
-                    return "lark"
+                    if abs(math.tan(math.radians(lat)) * math.tan(math.radians(decl))) < 1
+                    else (24.0 if math.tan(math.radians(lat)) * math.tan(math.radians(decl)) < 0 else 0.0)
+                )
+                daylight_hours.append(day_len)
+            if len(onset_times) < 7:
                 return None
+            n = min(len(onset_times), len(daylight_hours))
+            corr = pearson(daylight_hours[:n], onset_times[:n])
+            if corr and abs(corr.r) > 0.3:
+                if corr.r > 0:
+                    return "owl"
+                return "lark"
+            return None
         except Exception:
             logger.exception("Chronotype detection failed")
             return None

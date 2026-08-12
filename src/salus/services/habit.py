@@ -119,13 +119,14 @@ class HabitService:
 
     def get_all_habits_stats(self, user_id: str) -> dict[str, dict]:
         habits = self.uow.habits.find_by_user(user_id)
-        result: dict[str, dict] = {}
         today = date.today()
+        completed_by_habit = self.uow.habit_logs.find_completed_dates_by_user(user_id)
+        result: dict[str, dict] = {}
         for h in habits:
-            logs = self.uow.habit_logs.find_by_habit_and_user(h.id or "", user_id)
-            completed_dates = [log.log_date for log in logs if log.completed]
+            habit_id = h.id or ""
+            completed_dates = completed_by_habit.get(habit_id, [])
             current_streak, longest_streak = compute_streak(completed_dates, today)
-            result[h.id or ""] = {
+            result[habit_id] = {
                 "current_streak": current_streak,
                 "longest_streak": longest_streak,
                 "today_completed": today in completed_dates,
