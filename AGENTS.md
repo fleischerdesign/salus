@@ -341,21 +341,23 @@ Not every domain belongs in the metric system. Use this framework:
 
 ### Frontend data loading (Dexie-first)
 
-**NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB, loaded via `liveQuery()` + `$effect()`. The sync engine handles server communication transparently.
+**NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB. The single reactive-read idiom is the **`useQuery`** hook from `$lib/db/use-query.svelte` — it re-subscribes both on Dexie changes and when the querier's reactive dependencies (route params, dates) change. Do **not** hand-write `$effect(() => { liveQuery(...).subscribe(...) })` blocks and do **not** assign a `liveQuery` store (`let x = liveQuery(...)` + `$x`) — those miss state-parameter changes and leave stale data on navigation.
 
 ```typescript
-// ✅ CORRECT — reactive Dexie subscription
-$effect(() => {
-  const sub = liveQuery(() => db.medication.where('deleted_at').equals('').toArray())
-    .subscribe(v => { items = v; });
-  return () => sub.unsubscribe();
-});
+// ✅ CORRECT — the only reactive-read idiom
+const { value: medications, loading } = useQuery(
+  () => db.medication.notDeleted(db.medication).toArray()
+);
+// template: {#each medications ?? [] as med} · {#if loading}skeleton{/if}
 
 // ❌ WRONG — direct API call
 onMount(async () => {
   const res = await api.GET('/api/v1/medications');
   items = res.data;
 });
+
+// ❌ WRONG — liveQuery store (not reactive to state params, stale on navigation)
+let medications = liveQuery(() => db.medication.toArray());
 ```
 
 **All writes go through `mutate()`**, never `api.POST()` or `fetch()`:

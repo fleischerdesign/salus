@@ -118,9 +118,12 @@ Commits), `just check` davor, `gen-schema` bei API-Vertragswechsel (sonst schlä
   auto-CRUD); `schedule_publish()`-Helper; Action-Routen (habit, medication, workout,
   mood, circadian, insight) publizieren. `test_event_bus.py` deckt den Mechanismus ab.
 
-### ✅ P9-Rest — useLive-Ausrollen (committed: 93ca949)
-- `use-query.svelte.ts`: `useLive(querier, setValue)` reaktiv (Resubscribe bei
-  Parameterwechsel), `useQuery` als Sugar darauf.
-- 14 Seiten/Komponenten von Hand-Subscription-Boilerplate auf useLive migriert
-  (Templates unverändert). Komplexe Domain-Datenladung (entries, dashboard,
-  SourceDetailsModal) bleibt bewusst als explizite Logik.
+### ✅ P9-Rest — Ein-Muster-Vereinheitlichung auf useQuery (committed: 5fb2b9d, 0186b4d)
+- `use-query.svelte.ts` exportiert nur noch `useQuery` (value + loading).
+- 14 useLive-Dateien + 65 liveQuery-Store-Zuweisungen (`let x = liveQuery` + `$x`)
+  + verbleibende Hand-Subscriptions in ~35 Dateien auf `useQuery` migriert.
+- Fixes dabei: Stale-Daten bei Navigation (param-abhängige Stores), Dashboard-Doppelfetch
+  (manueller fetch + liveQuery → ein useQuery).
+- AGENTS.md: `useQuery` als einziges reaktives Lese-Idiom dokumentiert.
+- Komplexe Datenladung (Dashboard, entries group/metric dispatch, SourceDetailsModal)
+  behält ihre Orchestrierung in `$effect`, geseedet aus Query-Werten.
