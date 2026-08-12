@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
@@ -13,6 +12,7 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import MealItemRow from '$components/food/MealItemRow.svelte';
   import { deleteMeal } from '$lib/mutations/meal';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
@@ -22,31 +22,30 @@
   let foodItems = $state<FoodItem[]>([]);
   let deleteOpen = $state(false);
 
-  $effect(() => {
-    if (!id) return;
-    const sub1 = liveQuery(() =>
-      db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null))
-    ).subscribe((v) => {
+  useLive(
+    () =>
+      id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null),
+    (v) => {
       meal = v;
-    });
-    const sub2 = liveQuery(() =>
+    }
+  );
+  useLive(
+    () =>
       db.meal_item
         .where({ meal_id: id })
         .filter((mi) => !mi.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
+        .toArray(),
+    (v) => {
       mealItems = v;
-    });
-    const sub3 = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.notDeleted(db.food_item).toArray(),
+    (v) => {
       foodItems = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+    }
+  );
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};

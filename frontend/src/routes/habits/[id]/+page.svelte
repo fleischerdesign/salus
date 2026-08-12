@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
@@ -16,6 +15,7 @@
   import CheckCircle from '$components/ui/CheckCircle.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
   import { updateHabit, deleteHabit, toggleHabit } from '$lib/mutations/wellness';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
   let loading = $state(true);
@@ -99,27 +99,24 @@
     return Math.round((completedInRange / totalDays) * 100);
   });
 
-  $effect(() => {
-    if (!id) return;
-    const sub1 = liveQuery(() =>
-      db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null))
-    ).subscribe((v) => {
+  useLive(
+    () =>
+      id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null),
+    (v) => {
       habit = v;
-    });
-    const sub2 = liveQuery(() =>
+    }
+  );
+  useLive(
+    () =>
       db.habit_log
         .where({ habit_id: id })
         .filter((l) => !l.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
+        .toArray(),
+    (v) => {
       logs = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-    };
-  });
+    }
+  );
 
   async function handleToggle() {
     if (!id) return;

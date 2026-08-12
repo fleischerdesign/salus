@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { UserSourcePreference } from '$lib/db/types';
   import Modal from '$components/ui/Modal.svelte';
@@ -8,6 +7,7 @@
   import Btn from '$components/ui/Btn.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   interface Props {
     open?: boolean;
@@ -22,10 +22,9 @@
   let preferences = $state<UserSourcePreference[]>([]);
   let saving = $state(false);
 
-  $effect(() => {
-    if (!open || !metricCode) return;
-    loading = true;
-    const sub = liveQuery(async () => {
+  useLive(
+    async () => {
+      if (!open || !metricCode) return [] as UserSourcePreference[];
       // Fetch user preferences for this metric
       const userPrefs = await db.user_source_preference
         .where('metric_code')
@@ -64,13 +63,12 @@
       }
 
       return combined.sort((a, b) => a.priority_rank - b.priority_rank);
-    }).subscribe((v) => {
+    },
+    (v) => {
       preferences = v ?? [];
       loading = false;
-    });
-
-    return () => sub.unsubscribe();
-  });
+    }
+  );
 
   function moveUp(index: number) {
     if (index <= 0) return;

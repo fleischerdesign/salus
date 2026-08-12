@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -9,6 +8,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import type { JournalEntry } from '$lib/db/types';
   import { createJournalEntry } from '$lib/mutations/wellness';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let entries = $state<JournalEntry[]>([]);
@@ -16,20 +16,13 @@
   let content = $state('');
   let saving = $state(false);
 
-  $effect(() => {
-    const sub = liveQuery(() =>
-      db.journal_entry.orderBy('entry_date').reverse().toArray()
-    ).subscribe({
-      next: (v) => {
-        entries = v;
-        loading = false;
-      },
-      error: () => {
-        loading = false;
-      }
-    });
-    return () => sub.unsubscribe();
-  });
+  useLive(
+    () => db.journal_entry.orderBy('entry_date').reverse().toArray(),
+    (v) => {
+      entries = v;
+      loading = false;
+    }
+  );
 
   async function handleSubmit() {
     if (!content.trim()) return;

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import type { AchievementDefinition, UserAchievement } from '$lib/db/types';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let definitions = $state<AchievementDefinition[]>([]);
@@ -19,19 +19,19 @@
     platinum: 'from-cyan-400 to-blue-500'
   };
 
-  $effect(() => {
-    const sub1 = liveQuery(() => db.achievement_definition.toArray()).subscribe((v) => {
+  useLive(
+    () => db.achievement_definition.toArray(),
+    (v) => {
       definitions = v;
-    });
-    const sub2 = liveQuery(() => db.user_achievement.toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.user_achievement.toArray(),
+    (v) => {
       unlocked = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-    };
-  });
+    }
+  );
 
   const visibleDefs = $derived(
     definitions.filter((d) => !d.is_hidden || unlockedCodes.has(d.code))

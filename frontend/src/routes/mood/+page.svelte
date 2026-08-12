@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { MoodEntry } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -7,6 +6,7 @@
   import MoodPicker from '$components/mood/MoodPicker.svelte';
   import MoodCalendar from '$components/mood/MoodCalendar.svelte';
   import { createMoodEntry } from '$lib/mutations/wellness';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let entries = $state<MoodEntry[]>([]);
@@ -15,15 +15,15 @@
   let todayStr = new Date().toISOString().split('T')[0];
   let score = $state(0);
 
-  $effect(() => {
-    const sub = liveQuery(() => db.mood_entry.toArray()).subscribe((v) => {
+  useLive(
+    () => db.mood_entry.toArray(),
+    (v) => {
       entries = v;
       const te = v.find((e) => e.entry_date === todayStr);
       score = te?.mood_score ?? 0;
       loading = false;
-    });
-    return () => sub.unsubscribe();
-  });
+    }
+  );
 
   async function handleSelect(newScore: number) {
     score = newScore;

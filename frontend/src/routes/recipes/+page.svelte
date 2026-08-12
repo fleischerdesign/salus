@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Recipe, RecipeIngredient, FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -9,6 +8,7 @@
   import RecipeForm from '$components/food/RecipeForm.svelte';
   import { createRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let recipes = $state<Recipe[]>([]);
@@ -16,23 +16,25 @@
   let foodItems = $state<FoodItem[]>([]);
   let formOpen = $state(false);
 
-  $effect(() => {
-    const sub1 = liveQuery(() => db.notDeleted(db.recipe).toArray()).subscribe((v) => {
+  useLive(
+    () => db.notDeleted(db.recipe).toArray(),
+    (v) => {
       recipes = v;
-    });
-    const sub2 = liveQuery(() => db.notDeleted(db.recipe_ingredient).toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.notDeleted(db.recipe_ingredient).toArray(),
+    (v) => {
       ingredients = v;
-    });
-    const sub3 = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.notDeleted(db.food_item).toArray(),
+    (v) => {
       foodItems = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+    }
+  );
 
   const foodMap = $derived.by(() => {
     const map: Record<string, FoodItem> = {};

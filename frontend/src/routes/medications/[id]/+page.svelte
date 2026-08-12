@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
@@ -21,6 +20,7 @@
   import MedicationForm from '$components/medications/MedicationForm.svelte';
   import ScheduleEditor from '$components/medications/ScheduleEditor.svelte';
   import InventoryTracker from '$components/medications/InventoryTracker.svelte';
+  import { useLive } from '$lib/db/use-query.svelte';
   import {
     updateMedication,
     deleteMedication,
@@ -42,45 +42,46 @@
   let deleteOpen = $state(false);
   let saving = $state(false);
 
-  $effect(() => {
-    if (!id) return;
-    const sub1 = liveQuery(() =>
-      db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null))
-    ).subscribe((v) => {
+  useLive(
+    () =>
+      id
+        ? db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null))
+        : Promise.resolve(null),
+    (v) => {
       medication = v;
-    });
-    const sub2 = liveQuery(() =>
+    }
+  );
+  useLive(
+    () =>
       db.medication_schedule
         .where({ medication_id: id })
         .filter((s) => !s.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
+        .toArray(),
+    (v) => {
       schedules = v;
-    });
-    const sub3 = liveQuery(() =>
+    }
+  );
+  useLive(
+    () =>
       db.medication_log
         .where({ medication_id: id })
         .filter((l) => !l.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
+        .toArray(),
+    (v) => {
       logs = v;
-    });
-    const sub4 = liveQuery(() =>
+    }
+  );
+  useLive(
+    () =>
       db.medication_inventory
         .where({ medication_id: id })
         .filter((i) => !i.deleted_at)
-        .first()
-    ).subscribe((v) => {
+        .first(),
+    (v) => {
       inventory = v ?? null;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-      sub4.unsubscribe();
-    };
-  });
+    }
+  );
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const todayWeekday = $derived(new Date().getDay() || 7);

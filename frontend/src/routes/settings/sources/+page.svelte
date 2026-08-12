@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import { getSourceStats } from '$lib/db/metric-stats';
   import type { MetricDefinition, UserSourcePreference } from '$lib/db/types';
@@ -12,6 +11,7 @@
   import SourcePriorityCard from '$components/forms/SourcePriorityCard.svelte';
   import SourceDetailsModal from '$components/forms/SourceDetailsModal.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let sourceSearchQuery = $state('');
@@ -46,9 +46,9 @@
     { id: 'seed', name: 'Dev Seed Data', icon: 'database', color: '#8b5cf6' }
   ];
 
-  $effect(() => {
-    loading = true;
-    const sub = liveQuery(async () => {
+  loading = true;
+  useLive(
+    async () => {
       const allMetrics = await db.metric_definition.toArray();
       const allPrefs = await db.user_source_preference.toArray();
       const srcStats = await getSourceStats();
@@ -92,7 +92,8 @@
         counts,
         knownConverted
       };
-    }).subscribe((val) => {
+    },
+    (val) => {
       if (val) {
         metrics = val.allMetrics;
         preferencesMap = val.prefGrouped;
@@ -100,10 +101,8 @@
         metricKnownSources = val.knownConverted;
       }
       loading = false;
-    });
-
-    return () => sub.unsubscribe();
-  });
+    }
+  );
 
   let sortedAndFilteredSources = $derived.by(() => {
     const query = sourceSearchQuery.trim().toLowerCase();

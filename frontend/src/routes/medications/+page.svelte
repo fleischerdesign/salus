@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Medication, MedicationLog, MedicationSchedule } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -9,6 +8,7 @@
   import MedicationGrid from '$components/medications/MedicationGrid.svelte';
   import MedicationForm from '$components/medications/MedicationForm.svelte';
   import { createMedication, toggleMedicationLog } from '$lib/mutations/medication';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let medications = $state<Medication[]>([]);
@@ -16,23 +16,25 @@
   let logs = $state<MedicationLog[]>([]);
   let formOpen = $state(false);
 
-  $effect(() => {
-    const sub1 = liveQuery(() => db.notDeleted(db.medication).toArray()).subscribe((v) => {
+  useLive(
+    () => db.notDeleted(db.medication).toArray(),
+    (v) => {
       medications = v;
-    });
-    const sub2 = liveQuery(() => db.medication_schedule.toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.medication_schedule.toArray(),
+    (v) => {
       schedules = v;
-    });
-    const sub3 = liveQuery(() => db.medication_log.toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.medication_log.toArray(),
+    (v) => {
       logs = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+    }
+  );
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const todayWeekday = $derived(new Date().getDay() || 7);

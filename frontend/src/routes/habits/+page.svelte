@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { Habit, HabitLog } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -8,6 +7,7 @@
   import { toggleHabit, createHabit as createHabitMut } from '$lib/mutations/wellness';
   import Icon from '$components/ui/Icon.svelte';
   import Card from '$components/ui/Card.svelte';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let habits = $state<Habit[]>([]);
@@ -40,19 +40,19 @@
     return dt.toISOString().split('T')[0];
   }
 
-  $effect(() => {
-    const sub1 = liveQuery(() => db.habit.toArray()).subscribe((v) => {
+  useLive(
+    () => db.habit.toArray(),
+    (v) => {
       habits = v;
-    });
-    const sub2 = liveQuery(() => db.habit_log.toArray()).subscribe((v) => {
+    }
+  );
+  useLive(
+    () => db.habit_log.toArray(),
+    (v) => {
       logs = v;
       loading = false;
-    });
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-    };
-  });
+    }
+  );
 
   async function handleToggle(habitId: string) {
     await toggleHabit(habitId);

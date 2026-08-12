@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -12,6 +11,7 @@
   import Btn from '$components/ui/Btn.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import { createFoodItem } from '$lib/mutations/food-item';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let foodItems = $state<FoodItem[]>([]);
@@ -28,13 +28,13 @@
   let newServingSize = $state(100);
   let newServingUnit = $state('g');
 
-  $effect(() => {
-    const sub = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
+  useLive(
+    () => db.notDeleted(db.food_item).toArray(),
+    (v) => {
       foodItems = v;
       loading = false;
-    });
-    return () => sub.unsubscribe();
-  });
+    }
+  );
 
   const results = $derived(
     search.trim()

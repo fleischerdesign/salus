@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
   import type { FoodItem, Meal, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -10,6 +9,7 @@
   import MealGrid from '$components/food/MealGrid.svelte';
   import MealForm from '$components/food/MealForm.svelte';
   import { createMeal, deleteMeal } from '$lib/mutations/meal';
+  import { useLive } from '$lib/db/use-query.svelte';
 
   let loading = $state(true);
   let meals = $state<Meal[]>([]);
@@ -19,21 +19,22 @@
 
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
 
-  $effect(() => {
-    const date = selectedDate;
-    const sub1 = liveQuery(() =>
+  useLive(
+    () =>
       db.meal
         .where('log_date')
-        .equals(date)
+        .equals(selectedDate)
         .filter((m) => !m.deleted_at)
-        .toArray()
-    ).subscribe((v) => {
+        .toArray(),
+    (v) => {
       meals = v;
-    });
-    const sub2 = liveQuery(async () => {
+    }
+  );
+  useLive(
+    async () => {
       const dayMeals = await db.meal
         .where('log_date')
-        .equals(date)
+        .equals(selectedDate)
         .filter((m) => !m.deleted_at)
         .toArray();
       const mealIds = dayMeals.map((m) => m.id);
@@ -43,21 +44,18 @@
         .anyOf(mealIds)
         .filter((mi) => !mi.deleted_at)
         .toArray();
-    }).subscribe((v) => {
+    },
+    (v) => {
       mealItems = v;
-    });
-    const sub3 = liveQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray()).subscribe(
-      (v) => {
-        foodItems = v;
-        loading = false;
-      }
-    );
-    return () => {
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  });
+    }
+  );
+  useLive(
+    () => db.food_item.filter((f) => !f.deleted_at).toArray(),
+    (v) => {
+      foodItems = v;
+      loading = false;
+    }
+  );
 
   const today = $derived(new Date().toISOString().split('T')[0]);
   const isToday = $derived(selectedDate === today);
