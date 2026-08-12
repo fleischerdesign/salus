@@ -1,11 +1,12 @@
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import FederatedAccessLog, SharingRelationship
 from salus.schemas.sharing import PeerConnection
 from salus.services.sharing.relationship import RelationshipService
 from salus.services.sharing.keys import FederationKeyService
 from salus.services.sharing.discovery import FederationDiscoveryService
-from salus.services.sharing.resolver import FederationDataResolver
+from salus.services.sharing.resolver import FederationDataResolver, build_day_result
 from salus.services.sharing.notify import PeerNotificationService
 
 __all__ = [
@@ -113,6 +114,45 @@ class SharingService:
 
     def get_feed_activities(self, user_id: str) -> list[dict]:
         return self._resolver.get_feed_activities(user_id)
+
+    def serve_shared_day(
+        self,
+        owner_username: str,
+        owner_id: str,
+        requester_handle: str,
+        source_data_type: str,
+        date_str: str,
+        target_date: date,
+        aggregation_level: str,
+    ) -> list[dict]:
+        with self.uow:
+            self.uow.session.add(
+                FederatedAccessLog(
+                    owner_id=owner_id,
+                    requester_handle=requester_handle,
+                    source_data_type=source_data_type,
+                    target_date=date_str,
+                )
+            )
+            since_dt = datetime.combine(
+                target_date, datetime.min.time(), tzinfo=timezone.utc
+            )
+            raw_measurements = self.uow.measurements.find_all(
+                user_id=owner_id,
+                source_data_types=[source_data_type],
+                since=since_dt,
+                until=since_dt + timedelta(days=1),
+            )
+            day_measurements = [
+                m for m in raw_measurements if m.start_time.date() == target_date
+            ]
+            return build_day_result(
+                owner_username=owner_username,
+                source_data_type=source_data_type,
+                date_str=date_str,
+                day_measurements=day_measurements,
+                aggregation_level=aggregation_level,
+            )
 
     # ── Federation keys ──
 

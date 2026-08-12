@@ -17,11 +17,21 @@ logger = logging.getLogger("salus.services.circadian")
 MINUTES_PER_DAY = 1440
 MELATONIN_DELAY_MINUTES = 240
 SLEEP_DURATION_MINUTES = 480
+MORNING_LIGHT_ANCHOR_MINUTES = 120
+EATING_WINDOW_START_DELAY_MINUTES = 60
+EATING_WINDOW_END_OFFSET_MINUTES = 180
+ALIGNMENT_DEDUCTION_MINUTES = 10
+ALIGNMENT_EXCELLENT_THRESHOLD = 85
 
 
 def _mins_to_str(mins: float) -> str:
     m = int(mins % MINUTES_PER_DAY)
     return f"{m // 60:02d}:{m % 60:02d}"
+
+
+def _time_to_mins(t_str: str) -> int:
+    hours, minutes = t_str.split(":")
+    return int(hours) * 60 + int(minutes)
 
 
 class CircadianService:
@@ -157,70 +167,33 @@ class CircadianService:
             "solar_noon_mins": solar_noon_mins,
         }
 
-    def calculate_advice(self, user_id: str) -> CircadianAdviceResponse:
-        profile = self.get_or_create_profile(user_id)
-
-        # Calculate solar times for today
-        today = datetime.now()
-        solar = self.calculate_solar_times(
-            today, profile.latitude, profile.longitude, profile.timezone_offset_hours
-        )
-
-        # Retrieve recent sleep measurements
+    def _recent_sleep_times(self, user_id: str) -> tuple[str, str]:
         actual_onset = "23:00"
         actual_offset = "07:00"
-
         with self.uow:
-            sleep_md = self.uow.metric_definitions.find_by_code("sleep")
-            if sleep_md is not None:
-                sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_code="sleep", user_id=user_id
-                )
-                # Take the most recent sleep log to get actual onset/offset times
-                valid_sleeps = [s for s in sleeps if s.end_time is not None]
-                if valid_sleeps:
-                    last_sleep = valid_sleeps[0]
-                    # Format as HH:MM
-                    actual_onset = last_sleep.start_time.strftime("%H:%M")
-                    if last_sleep.end_time:
-                        actual_offset = last_sleep.end_time.strftime("%H:%M")
+            if self.uow.metric_definitions.find_by_code("sleep") is None:
+                return actual_onset, actual_offset
+            sleeps = self.uow.measurements.find_by_metric_type(
+                metric_code="sleep", user_id=user_id
+            )
+            valid_sleeps = [s for s in sleeps if s.end_time is not None]
+            if valid_sleeps:
+                last_sleep = valid_sleeps[0]
+                actual_onset = last_sleep.start_time.strftime("%H:%M")
+                if last_sleep.end_time:
+                    actual_offset = last_sleep.end_time.strftime("%H:%M")
+        return actual_onset, actual_offset
 
-        # Circadian rule engine calculations
-        # Melatonin onset is typically ~4 hours after sunset
-        sunset_mins = solar["sunset_mins"]
-        target_onset_mins = (sunset_mins + MELATONIN_DELAY_MINUTES) % MINUTES_PER_DAY
-        target_offset_mins = (
-            target_onset_mins + SLEEP_DURATION_MINUTES
-        ) % MINUTES_PER_DAY  # 8 hours sleep target
+    def _alignment_score(self, actual_onset: str, target_onset: str) -> int:
+        diff = abs(_time_to_mins(actual_onset) - _time_to_mins(target_onset))
+        if diff > MINUTES_PER_DAY // 2:
+            diff = MINUTES_PER_DAY - diff
+        return max(0, 100 - int(diff / ALIGNMENT_DEDUCTION_MINUTES))
 
-        target_onset = _mins_to_str(target_onset_mins)
-        target_offset = _mins_to_str(target_offset_mins)
-
-        # Calculate alignment score
-        # Compare actual sleep onset with target sleep onset
-        def time_to_mins(t_str: str) -> int:
-            parts = t_str.split(":")
-            return int(parts[0]) * 60 + int(parts[1])
-
-        actual_onset_mins = time_to_mins(actual_onset)
-        diff = abs(actual_onset_mins - target_onset_mins)
-        if diff > 720:
-            diff = 1440 - diff
-
-        score_deduction = int(diff / 10)  # Deduct 1 point for every 10 minutes offset
-        alignment_score = max(0, 100 - score_deduction)
-
-        # Generate sleep advice
-        sleep_advice = ""
-        if alignment_score >= 85:
-            sleep_advice = "Excellent! Your sleep onset aligns perfectly with your local biological melatonin rise."
-        else:
-            sleep_advice = f"Try moving your sleep window closer to {target_onset} to align sleep pressure with melatonin release."
-
-        # Generate light advice
-        light_advice = [
+    def _light_advice(self, solar: dict) -> list[dict]:
+        return [
             {
-                "time_window": f"{solar['sunrise']} - {_mins_to_str(solar['sunrise_mins'] + 120)}",
+                "time_window": f"{solar['sunrise']} - {_mins_to_str(solar['sunrise_mins'] + MORNING_LIGHT_ANCHOR_MINUTES)}",
                 "action": "Morning Daylight Anchor",
                 "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.",
             },
@@ -231,16 +204,47 @@ class CircadianService:
             },
         ]
 
-        # Generate eating advice (Time-restricted eating window: wake + 1h to sleep - 3h)
-        actual_offset_mins = time_to_mins(actual_offset)
-        eating_start_mins = (actual_offset_mins + 60) % 1440
-        eating_end_mins = (actual_onset_mins - 180) % 1440
-
-        eating_window = {
+    def _eating_window(self, actual_onset: str, actual_offset: str) -> dict:
+        actual_offset_mins = _time_to_mins(actual_offset)
+        actual_onset_mins = _time_to_mins(actual_onset)
+        eating_start_mins = (
+            actual_offset_mins + EATING_WINDOW_START_DELAY_MINUTES
+        ) % MINUTES_PER_DAY
+        eating_end_mins = (
+            actual_onset_mins - EATING_WINDOW_END_OFFSET_MINUTES
+        ) % MINUTES_PER_DAY
+        return {
             "start": _mins_to_str(eating_start_mins),
             "end": _mins_to_str(eating_end_mins),
             "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
         }
+
+    def calculate_advice(self, user_id: str) -> CircadianAdviceResponse:
+        profile = self.get_or_create_profile(user_id)
+
+        # Calculate solar times for today
+        today = datetime.now()
+        solar = self.calculate_solar_times(
+            today, profile.latitude, profile.longitude, profile.timezone_offset_hours
+        )
+
+        actual_onset, actual_offset = self._recent_sleep_times(user_id)
+
+        # Circadian rule engine: melatonin onset is ~4 hours after sunset
+        sunset_mins = solar["sunset_mins"]
+        target_onset_mins = (sunset_mins + MELATONIN_DELAY_MINUTES) % MINUTES_PER_DAY
+        target_offset_mins = (
+            target_onset_mins + SLEEP_DURATION_MINUTES
+        ) % MINUTES_PER_DAY
+
+        target_onset = _mins_to_str(target_onset_mins)
+        target_offset = _mins_to_str(target_offset_mins)
+
+        alignment_score = self._alignment_score(actual_onset, target_onset)
+        if alignment_score >= ALIGNMENT_EXCELLENT_THRESHOLD:
+            sleep_advice = "Excellent! Your sleep onset aligns perfectly with your local biological melatonin rise."
+        else:
+            sleep_advice = f"Try moving your sleep window closer to {target_onset} to align sleep pressure with melatonin release."
 
         # Chronotype — data-driven detection
         chronotype = profile.configured_chronotype
@@ -269,8 +273,8 @@ class CircadianService:
                 "actual_offset": actual_offset,
                 "advice": sleep_advice,
             },
-            light_advice=light_advice,
-            eating_window=eating_window,
+            light_advice=self._light_advice(solar),
+            eating_window=self._eating_window(actual_onset, actual_offset),
         )
 
     def _detect_chronotype(self, user_id: str) -> str | None:
