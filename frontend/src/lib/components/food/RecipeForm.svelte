@@ -102,14 +102,6 @@
     search = '';
   }
 
-  function updateAmount(foodItemId: string, amount: number) {
-    const ing = ingredients.find((i) => i.foodItemId === foodItemId);
-    if (ing) {
-      ing.amountG = Math.max(1, amount);
-      ingredients = [...ingredients];
-    }
-  }
-
   function removeIngredient(foodItemId: string) {
     ingredients = ingredients.filter((i) => i.foodItemId !== foodItemId);
   }

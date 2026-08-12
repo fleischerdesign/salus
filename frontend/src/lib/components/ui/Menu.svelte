@@ -91,7 +91,7 @@
       {#if children}
         {@render children()}
       {:else}
-        {#each items as item, i}
+        {#each items as item, _i}
           <button
             type="button"
             class="duration-micro flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-50 {item.variant ===

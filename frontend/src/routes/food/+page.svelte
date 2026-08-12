@@ -29,14 +29,7 @@
   let newServingUnit = $state('g');
 
   $effect(() => {
-    const sub = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
       foodItems = v;
       loading = false;
     });

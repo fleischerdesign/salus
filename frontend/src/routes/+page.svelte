@@ -26,7 +26,7 @@
   import VizBar from '$components/dashboard/VizBar.svelte';
   import VizCandlestick from '$components/dashboard/VizCandlestick.svelte';
   import VizNumber from '$components/dashboard/VizNumber.svelte';
-  import VizPills from '$components/dashboard/VizPills.svelte';
+  import VizPills, { type PillBucket } from '$components/dashboard/VizPills.svelte';
   import VizProgress from '$components/dashboard/VizProgress.svelte';
   import VizSparkline from '$components/dashboard/VizSparkline.svelte';
   import VizWorkoutLauncher from '$components/dashboard/VizWorkoutLauncher.svelte';
@@ -480,7 +480,7 @@
               unit={viz.unit}
               subtitle={viz.subtitle}
               color={viz.color ?? '#f43f5e'}
-              buckets={viz.segments as any}
+              buckets={viz.segments as PillBucket[]}
             />
           {:else if viz.type === 'bar'}
             <VizBar

@@ -58,7 +58,7 @@
     </Card>
 
     <Card>
-      <MoodCalendar {entries} onSelectDate={(d) => {}} />
+      <MoodCalendar {entries} onSelectDate={() => {}} />
     </Card>
   {/if}
 </div>

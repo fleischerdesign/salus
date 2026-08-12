@@ -4,7 +4,6 @@
   import { markAllNotificationsRead } from '$lib/mutations/notification';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
-  import type { Notification } from '$lib/db/types';
 
   let open = $state(false);
   let timeoutId: ReturnType<typeof setTimeout> | null = null;

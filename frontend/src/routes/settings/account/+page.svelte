@@ -15,7 +15,6 @@
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import RadioGroup from '$components/ui/RadioGroup.svelte';
   import Avatar from '$components/ui/Avatar.svelte';
 
@@ -62,14 +61,7 @@
   let newToken = $state('');
   let tokenCreating = $state(false);
 
-  let theme = $state(localStorage.getItem('salus_theme') || 'system');
   let locale = $state(localStorage.getItem('salus_locale') || 'en');
-
-  const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'system', label: 'System' }
-  ];
 
   const localeOptions = [
     { value: 'en', label: 'English' },
@@ -77,20 +69,6 @@
     { value: 'es', label: 'Español' },
     { value: 'fr', label: 'Français' }
   ];
-
-  function setTheme(val: string) {
-    theme = val;
-    localStorage.setItem('salus_theme', val);
-    if (val === 'dark') document.documentElement.classList.add('dark');
-    else if (val === 'light') document.documentElement.classList.remove('dark');
-    else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-  }
 
   function setLocale(val: string) {
     locale = val;

@@ -17,14 +17,7 @@
   let formOpen = $state(false);
 
   $effect(() => {
-    const sub1 = liveQuery(() =>
-      db.medication
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub1 = liveQuery(() => db.notDeleted(db.medication).toArray()).subscribe((v) => {
       medications = v;
     });
     const sub2 = liveQuery(() => db.medication_schedule.toArray()).subscribe((v) => {
@@ -160,7 +153,7 @@
     return items;
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createMedication>[0]) {
     await createMedication(data);
     formOpen = false;
   }

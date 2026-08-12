@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable, type IndexableType } from 'dexie';
 import type {
   OutboxOp,
   SyncMeta,
@@ -277,6 +277,18 @@ export class SalusDB extends Dexie {
       measurement:
         'id, user_id, metric_code, start_time, source, external_id, deleted_at, [metric_code+start_time]'
     });
+  }
+
+  /**
+   * Resolves "not soft-deleted" records. Rows are either deleted
+   * (deleted_at set) or not (deleted_at is '' or null after sync).
+   */
+  notDeleted<T extends { id: string; deleted_at?: string | null }>(table: EntityTable<T, 'id'>) {
+    return table
+      .where('deleted_at')
+      .equals('')
+      .or('deleted_at')
+      .equals(null as unknown as IndexableType);
   }
 }
 

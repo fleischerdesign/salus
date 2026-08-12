@@ -7,9 +7,7 @@
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
@@ -41,14 +39,7 @@
     ).subscribe((v) => {
       ingredients = v;
     });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub3 = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
       foodItems = v;
       loading = false;
     });
@@ -84,7 +75,7 @@
     return { calories, protein, carbs, fat };
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof updateRecipe>[1]) {
     if (!id) return;
     saving = true;
     try {

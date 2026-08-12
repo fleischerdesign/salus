@@ -7,7 +7,7 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import RecipeGrid from '$components/food/RecipeGrid.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
-  import { createRecipe, deleteRecipe } from '$lib/mutations/recipe';
+  import { createRecipe } from '$lib/mutations/recipe';
   import { createMeal } from '$lib/mutations/meal';
 
   let loading = $state(true);
@@ -17,34 +17,13 @@
   let formOpen = $state(false);
 
   $effect(() => {
-    const sub1 = liveQuery(() =>
-      db.recipe
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub1 = liveQuery(() => db.notDeleted(db.recipe).toArray()).subscribe((v) => {
       recipes = v;
     });
-    const sub2 = liveQuery(() =>
-      db.recipe_ingredient
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub2 = liveQuery(() => db.notDeleted(db.recipe_ingredient).toArray()).subscribe((v) => {
       ingredients = v;
     });
-    const sub3 = liveQuery(() =>
-      db.food_item
-        .where('deleted_at')
-        .equals('')
-        .or('deleted_at')
-        .equals(null as any)
-        .toArray()
-    ).subscribe((v) => {
+    const sub3 = liveQuery(() => db.notDeleted(db.food_item).toArray()).subscribe((v) => {
       foodItems = v;
       loading = false;
     });
@@ -88,7 +67,7 @@
       });
   });
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createRecipe>[0]) {
     await createRecipe(data);
     formOpen = false;
   }
@@ -106,10 +85,6 @@
         amount_g: i.amount_g
       }))
     });
-  }
-
-  async function handleDelete(recipeId: string) {
-    await deleteRecipe(recipeId);
   }
 </script>
 

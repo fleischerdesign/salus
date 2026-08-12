@@ -5,7 +5,7 @@
   import PageHeader from '$components/ui/PageHeader.svelte';
   import HabitGrid from '$components/habits/HabitGrid.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
-  import { toggleHabit, createHabit as createHabitMut, deleteHabit } from '$lib/mutations/wellness';
+  import { toggleHabit, createHabit as createHabitMut } from '$lib/mutations/wellness';
   import Icon from '$components/ui/Icon.svelte';
   import Card from '$components/ui/Card.svelte';
 
@@ -58,7 +58,7 @@
     await toggleHabit(habitId);
   }
 
-  async function handleSave(data: any) {
+  async function handleSave(data: Parameters<typeof createHabitMut>[0]) {
     await createHabitMut(data);
     formOpen = false;
     editTarget = null;

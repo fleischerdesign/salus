@@ -1,14 +1,11 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { generateInsight } from '$lib/mutations/misc';
-  import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
-  import type { Insight } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Spinner from '$components/ui/Spinner.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
 
   let date = $state(new Date().toISOString().slice(0, 10));
@@ -161,6 +158,8 @@
           </div>
           <div class="px-6 py-4">
             <div class="text-sm leading-relaxed text-surface-700">
+              <!-- renderMarkdown escapes the content before wrapping it in static tags -->
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -->
               {@html renderMarkdown($insight.content)}
             </div>
           </div>

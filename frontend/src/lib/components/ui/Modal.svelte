@@ -18,14 +18,7 @@
     class?: string;
   }
 
-  let {
-    open = $bindable(false),
-    title,
-    size = 'md',
-    children,
-    onclose,
-    class: extraClass = ''
-  }: Props = $props();
+  let { open = $bindable(false), title, size = 'md', children, onclose }: Props = $props();
 
   function close() {
     open = false;
@@ -42,7 +35,6 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if open}
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 z-500 flex items-center justify-center bg-black/50"
     in:fade={motionParams(DURATIONS.normal, EASINGS.standard)}

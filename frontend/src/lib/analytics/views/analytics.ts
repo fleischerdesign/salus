@@ -76,17 +76,6 @@ interface AnalyticsResult {
 
 const RANGE_DAYS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
 
-function hashInput(measurements: Measurement[]): number {
-  let h = 0;
-  for (const m of measurements) {
-    const s = m.id + (m.updated_at ?? '');
-    for (let i = 0; i < s.length; i++) {
-      h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-    }
-  }
-  return Math.abs(h);
-}
-
 function computeAnalytics(measurements: Measurement[], rangeKey: string): AnalyticsResult {
   const days = RANGE_DAYS[rangeKey] ?? 30;
   const cutoff = new Date();
@@ -288,8 +277,6 @@ function computeExercise(measurements: Measurement[]): Array<{
   }
   return sessions.slice(0, 5);
 }
-
-const _analyticsMemo = new Map<string, { payload: unknown; inputHash: number }>();
 
 export function useAnalytics(rangeKey: string = '30d') {
   const data = liveQuery(async () => {

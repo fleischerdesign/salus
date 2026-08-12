@@ -14,7 +14,7 @@
     onToggle: () => void;
   }
 
-  let { habit, streak, todayCompleted, completionRate, onToggle }: Props = $props();
+  let { habit, streak, todayCompleted, onToggle }: Props = $props();
 
   let toggling = $state(false);
   let feedback = $state<'idle' | 'done' | 'undone'>('idle');
@@ -37,7 +37,7 @@
     }
   });
 
-  async function handleToggle(checked: boolean) {
+  async function handleToggle(_checked: boolean) {
     toggling = true;
     const wasCompleted = todayCompleted;
     try {
@@ -53,7 +53,6 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="group block cursor-pointer"
   onclick={navigateToDetail}

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { db } from '$lib/db/database';
-  import type { CommunityActivity } from '$lib/db/types';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';

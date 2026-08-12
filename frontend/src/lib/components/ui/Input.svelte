@@ -16,6 +16,7 @@
     error?: string;
     hint?: string;
     placeholder?: string;
+    autocomplete?: HTMLInputElement['autocomplete'];
     disabled?: boolean;
     min?: number;
     max?: number;
@@ -24,7 +25,6 @@
     class?: string;
     style?: string;
     pattern?: string;
-    [key: string]: unknown;
   }
 
   let {
@@ -44,7 +44,7 @@
     class: extraClass = '',
     style,
     pattern,
-    ...restProps
+    autocomplete
   }: Props = $props();
 </script>
 
@@ -60,7 +60,7 @@
       id={name}
       {name}
       {type}
-      {...restProps}
+      {autocomplete}
       {minlength}
       {min}
       {max}

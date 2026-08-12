@@ -1,6 +1,4 @@
 <script lang="ts">
-  import Icon from './Icon.svelte';
-
   interface Props {
     value: string | number;
     unit?: string;

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
-  import { auth } from '$stores/auth.svelte';
   import { createToken as issueOnboardingToken } from '$lib/mutations/account';
   import { dismissOnboarding } from '$lib/mutations/account';
   import { createMeasurement } from '$lib/mutations/measurement';

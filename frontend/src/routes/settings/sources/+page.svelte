@@ -279,8 +279,15 @@
           {#each sortedAndFilteredSources as src (src.id)}
             {@const count = sourceCounts[src.id] ?? 0}
             {@const isActive = count > 0}
-            <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-            <div onclick={() => openSourceModal(src)} class="cursor-pointer">
+            <div
+              role="button"
+              tabindex="0"
+              onclick={() => openSourceModal(src)}
+              onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') openSourceModal(src);
+              }}
+              class="cursor-pointer"
+            >
               <Card padding={false} hoverable disabled={!isActive}>
                 <div class="p-3.5">
                   <div class="flex items-start justify-between">

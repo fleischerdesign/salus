@@ -19,7 +19,6 @@
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
-  import ListItem from '$components/ui/ListItem.svelte';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
 

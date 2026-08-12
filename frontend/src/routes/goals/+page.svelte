@@ -1,6 +1,5 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import type { components } from '$lib/api/schema';
   import { db } from '$lib/db/database';
 
   import { createGoal, deleteGoal } from '$lib/mutations/goal';
@@ -16,7 +15,6 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import ProgressBar from '$components/ui/ProgressBar.svelte';
   import Icon from '$components/ui/Icon.svelte';
-  import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import { fade } from 'svelte/transition';

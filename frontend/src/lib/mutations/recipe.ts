@@ -5,8 +5,8 @@ export async function createRecipe(data: {
   description?: string;
   instructions?: string;
   servings?: number;
-  prep_time_min?: number;
-  cook_time_min?: number;
+  prep_time_min?: number | null;
+  cook_time_min?: number | null;
   ingredients: { food_item_id: string; amount_g: number; notes?: string }[];
 }) {
   return mutate({
@@ -25,8 +25,8 @@ export async function updateRecipe(
     description?: string;
     instructions?: string;
     servings?: number;
-    prep_time_min?: number;
-    cook_time_min?: number;
+    prep_time_min?: number | null;
+    cook_time_min?: number | null;
     is_favorite?: boolean;
     ingredients?: { food_item_id: string; amount_g: number; notes?: string }[];
   }
