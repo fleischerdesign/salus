@@ -180,6 +180,59 @@ function zCritical(confidence: number): number {
   return map[confidence] ?? 1.96;
 }
 
+export interface TrendRegression {
+  slope: number;
+  intercept: number;
+  r_squared: number;
+  points: Array<{ x: number; y: number }>;
+  ci: Array<{ x: number; lower: number; upper: number }>;
+  n: number;
+}
+
+export function regressionSeries(
+  values: number[],
+  confidence: number = 0.95
+): TrendRegression | null {
+  if (values.length < 3) return null;
+  const xs = values.map((_, i) => i);
+  const reg = linearRegression(xs, values);
+  if (!reg) return null;
+  const points = xs.map((x) => ({ x, y: reg.intercept + reg.slope * x }));
+  const ci = xs.map((x) => {
+    const pi = predictionInterval(reg, x, confidence);
+    const fallback = reg.intercept + reg.slope * x;
+    return { x, lower: pi?.lower ?? fallback, upper: pi?.upper ?? fallback };
+  });
+  return {
+    slope: reg.slope,
+    intercept: reg.intercept,
+    r_squared: reg.r_squared,
+    points,
+    ci,
+    n: reg.n
+  };
+}
+
+export function extractSleepDurations(
+  rows: Array<{ value_numeric: number | null; value_json: string | null }>
+): number[] {
+  const durations: number[] = [];
+  for (const row of rows) {
+    if (row.value_numeric != null) {
+      durations.push(row.value_numeric);
+    } else if (row.value_json) {
+      try {
+        const parsed = JSON.parse(row.value_json);
+        const hours = (parsed.duration_seconds ?? 0) / 3600;
+        if (hours > 0) durations.push(hours);
+      } catch {
+        /* skip malformed JSON */
+      }
+    }
+  }
+  return durations;
+}
+
 export function pearson(xs: number[], ys: number[]): T.Correlation | null {
   const n = xs.length;
   if (n !== ys.length || n < 3) return null;

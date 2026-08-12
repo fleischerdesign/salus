@@ -5,14 +5,14 @@ import {
   benjaminiHochberg,
   bmrCunningham,
   bmrMifflinStJeor,
+  extractSleepDurations,
   hrrPct,
   hrMaxTanaka,
-  linearRegression,
   palFromHrr,
   pearson,
   spearman,
-  predictionInterval,
   recoveryComposite,
+  regressionSeries,
   sleepDebtCumulative,
   tdee
 } from '$lib/analytics/stats';
@@ -445,35 +445,10 @@ export function useTrend(metric: string, rangeKey: string = '90d') {
 
     if (values.length < 3) return { values, labels, regression: null };
 
-    const xs = values.map((_, i) => i);
-    const reg = linearRegression(xs, values);
-    if (!reg) return { values, labels, regression: null };
+    const regression = regressionSeries(values);
+    if (!regression) return { values, labels, regression: null };
 
-    const regPoints = xs.map((x) => ({
-      x,
-      y: reg.intercept + reg.slope * x
-    }));
-    const ci = xs.map((x) => {
-      const pi = predictionInterval(reg, x);
-      return {
-        x,
-        lower: pi?.lower ?? reg.intercept + reg.slope * x,
-        upper: pi?.upper ?? reg.intercept + reg.slope * x
-      };
-    });
-
-    return {
-      values,
-      labels,
-      regression: {
-        slope: reg.slope,
-        intercept: reg.intercept,
-        r_squared: reg.r_squared,
-        points: regPoints,
-        ci,
-        n: reg.n
-      }
-    };
+    return { values, labels, regression };
   });
   return data;
 }
@@ -556,51 +531,6 @@ export function useWellness(dateStr?: string) {
   return data;
 }
 
-export function useGoalForecast(goalId: string) {
-  const data = liveQuery(async () => {
-    const goal = await db.goal.get(goalId);
-    if (!goal || !goal.metric_code) return null;
-    const measurements = await db.measurement
-      .where('metric_code')
-      .equals(goal.metric_code)
-      .filter((m) => !m.deleted_at && m.value_numeric != null)
-      .toArray();
-
-    measurements.sort(
-      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
-
-    const values = measurements.map((m) => m.value_numeric!);
-    if (values.length < 3 || !goal.deadline) return null;
-
-    const startDate = new Date(goal.created_at || measurements[0].start_time);
-    const deadlineDate = new Date(goal.deadline);
-    const daysTotal = Math.round((deadlineDate.getTime() - startDate.getTime()) / 86400000);
-    if (daysTotal <= 0) return null;
-
-    const xs = measurements.map((m) =>
-      Math.round((new Date(m.start_time).getTime() - startDate.getTime()) / 86400000)
-    );
-    const reg = linearRegression(xs, values);
-    if (!reg) return null;
-
-    const pi = predictionInterval(reg, daysTotal, 0.8);
-
-    return {
-      goal_id: goalId,
-      target: goal.target_value,
-      direction: goal.direction,
-      deadline: goal.deadline,
-      predicted: pi ? Math.round(pi.point_estimate * 100) / 100 : null,
-      ci_lower: pi ? Math.round(pi.lower * 100) / 100 : null,
-      ci_upper: pi ? Math.round(pi.upper * 100) / 100 : null,
-      r_squared: Math.round(reg.r_squared * 10000) / 10000,
-      n: reg.n
-    };
-  });
-  return data;
-}
-
 export function useSleepDebt(age: number = 30) {
   const data = liveQuery(async () => {
     const rawRecent = await db.measurement
@@ -611,21 +541,7 @@ export function useSleepDebt(age: number = 30) {
       .toArray();
 
     const recent = rawRecent.filter((m) => !m.deleted_at);
-
-    const durations: number[] = [];
-    for (const m of recent.slice(0, 28)) {
-      if (m.value_numeric != null) {
-        durations.push(m.value_numeric);
-      } else if (m.value_json) {
-        try {
-          const d = JSON.parse(m.value_json);
-          const dur = (d.duration_seconds ?? 0) / 3600;
-          if (dur > 0) durations.push(dur);
-        } catch {
-          /* skip */
-        }
-      }
-    }
+    const durations = extractSleepDurations(recent.slice(0, 28));
 
     if (durations.length < 3) return null;
     const debt = sleepDebtCumulative(durations, age);
