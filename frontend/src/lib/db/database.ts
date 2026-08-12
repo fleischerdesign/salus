@@ -277,6 +277,9 @@ export class SalusDB extends Dexie {
       measurement:
         'id, user_id, metric_code, start_time, source, external_id, deleted_at, [metric_code+start_time]'
     });
+    this.version(23).stores({
+      outbox: '++id, createdAt, kind, client_id'
+    });
   }
 
   /**

@@ -40,7 +40,9 @@
   // ── Reactive Guards Integration for PWA Auto-Reload ──
 
   const { value: activeSessions } = useQuery(() =>
-    db.workout_session.where('status').equals('active').toArray()
+    db.workout_session
+      .filter((s) => Boolean(s.started_at && !s.completed_at && !s.deleted_at))
+      .toArray()
   );
   $effect(() => {
     updateService.setActiveWorkout(Boolean(activeSessions && (activeSessions ?? []).length > 0));
