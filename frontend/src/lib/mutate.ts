@@ -2,10 +2,7 @@ import { db } from './db/database';
 import { syncEngine } from './db/sync-engine.svelte';
 import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import { uuid7 } from './db/uuid';
-
-function isOnline(): boolean {
-  return typeof navigator !== 'undefined' ? navigator.onLine : true;
-}
+import { network } from '$lib/native/network';
 
 export type Mutation =
   | {
@@ -46,7 +43,7 @@ export async function mutate(m: Mutation): Promise<MutationResult> {
   await applyOptimistic(m);
   await syncEngine.enqueueOutbox(m, clientId);
 
-  if (isOnline()) {
+  if (network.isOnline) {
     const result = await syncEngine.flushSingle(clientId);
     return result;
   }
@@ -83,7 +80,7 @@ async function sendCommandNow(
   m: Mutation & { kind: 'command' },
   clientId: string
 ): Promise<MutationResult> {
-  if (!isOnline()) {
+  if (!network.isOnline) {
     return { ok: false, error: 'This action requires an internet connection' };
   }
 
