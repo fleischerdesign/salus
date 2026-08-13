@@ -1,6 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
-  import { mergeMetricPrefs } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
   import { auth } from '$lib/stores/auth.svelte';
   import { deleteConnection } from '$lib/mutations/community';
   import { page } from '$app/state';

@@ -7,7 +7,7 @@ import type {
   Goal,
   Measurement
 } from '$lib/db/types';
-import { mergeMetricPrefs } from '$lib/db/types';
+import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
 import { buildViz, type WidgetViz } from '../viz/builders';
 
 export interface DashboardWidgetView {

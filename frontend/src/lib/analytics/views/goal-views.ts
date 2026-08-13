@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 import { db } from '$lib/db/database';
 import type { Goal, Measurement, MetricWithPreference } from '$lib/db/types';
 import { MS_PER_DAY } from '$lib/utils/datetime';
-import { mergeMetricPrefs } from '$lib/db/types';
+import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
 import { computeGoalProgress } from '$lib/analytics/calculations';
 import type { GoalStatus } from '$lib/analytics/calculations';
 import { linearRegression, predictionInterval } from '$lib/analytics/stats';

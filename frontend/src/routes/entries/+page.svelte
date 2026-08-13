@@ -1,7 +1,7 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
   import type { MetricGroup, MetricWithPreference } from '$lib/db/types';
-  import { mergeMetricPrefs } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
   import {
     fetchMetricOverview,
     overviewForMetric,

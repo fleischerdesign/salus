@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
-  import { mergeMetricPrefs } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
   import { fetchMetricOverview } from '$lib/analytics/views/metric-overview';
   import MetricEntryDetail from '$components/entries/MetricEntryDetail.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
