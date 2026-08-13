@@ -132,6 +132,13 @@ Sync: `metric_group` and `metric_definition` use `strategy="global"`. `user_metr
 
 API: `GET /api/v1/metrics/groups` returns groups with sub-definitions pre-merged with user preferences.
 
+**Three distinct terms (see `docs/adr/001-metric-terminology.md`) — never conflate them:**
+- `metric_code` — canonical metric identity (`MetricDefinition.code`, `Measurement.metric_code`). Use for metric-based filtering and display.
+- `source_data_type` — the raw source channel (`MetricDefinition.source_data_type`, `Measurement.source_data_type`, `LeaderboardGroup.source_data_type`). Use for federation/sharing.
+- `data_type` — the value storage type (`MetricDefinition.data_type`, a `DataType` enum: `"number"`/`"text"`). Retained only on `MetricDefinition`.
+
+The historical collision of `data_type` (enum) vs `data_type` (source channel) caused the empty entries trend chart. Do not pass `MetricDefinition.data_type` where a `metric_code` is required.
+
 
 ### 1. Service constructor injection (DIP)
 Services MUST receive their dependencies via constructor. NEVER instantiate a repo inside a service.
@@ -193,6 +200,8 @@ Always use absolute imports starting from `salus.`. Never use relative imports.
 
 ### 11. Frontend component rules
 - All components use Svelte 5 runes: `$props()`, `$state()`, `$derived()`, `$effect()`
+- Prefer `$effect` for side effects; `onMount` is allowed only for one-time bootstrap logic
+  (e.g. the auth bootstrap in `+layout.svelte` that must run exactly once and reacts on auth state otherwise)
 - Props with default values use `let { prop = default } = $props()`
 - Children slots use `Snippet` type from `import('svelte')`
 - Use Tailwind utility classes, not BEM
@@ -381,6 +390,11 @@ await api.POST('/api/v1/medications', { body: data });
 ### High-Performance Time-Series & Frontend Data Architecture (Strict Rules)
 
 Continuous health tracking (e.g. Android Health Connect, Apple Health, wearable smartwatches) ingests **tens of thousands of data points per week** into `db.measurement`. To guarantee deterministic **sub-10ms UI rendering (60–120 FPS)** without frame drops:
+
+> **Scope:** these rules target *rendering* of continuous, high-frequency metrics on the dashboard and
+> entry/trend views. One-off batch analyses (insight generation, leaderboard scoring, export) may
+> legitimately read broader windows (e.g. 7 days of context for an LLM coaching prompt) — they are not
+> per-frame and their cost is amortized over a single request.
 
 1. **Cursor Streaming over Array Allocation (`.each()` vs `.toArray()`)**:
    - **NEVER** call `.toArray()` on unbounded time-series tables (`db.measurement`).
