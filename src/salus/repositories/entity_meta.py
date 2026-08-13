@@ -139,7 +139,14 @@ APPEND_ONLY_DELTA_SPECS: list[EntityMeta] = [
 
 ValidatorFn = Callable[..., str | None]
 
-_SAFE_USER_UPDATE_FIELDS = {"theme", "locale", "display_name", "onboarding_dismissed"}
+_SAFE_USER_UPDATE_FIELDS = {
+    "theme",
+    "locale",
+    "display_name",
+    "onboarding_dismissed",
+    "colorblind",
+    "accent_hue",
+}
 
 
 def _validate_user_update(

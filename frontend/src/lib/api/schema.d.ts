@@ -4959,6 +4959,10 @@ export interface components {
         };
         /** UserResponse */
         UserResponse: {
+            /** Accent Hue */
+            accent_hue: number | null;
+            /** Colorblind */
+            colorblind: boolean;
             /**
              * Created At
              * Format: date-time
