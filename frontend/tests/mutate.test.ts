@@ -3,6 +3,7 @@ import { db } from '$lib/db/database';
 import { resetDb } from './helpers/db';
 import { createFetchMock } from './helpers/fetch';
 import { mutate } from '$lib/mutate';
+import { localMode } from '$lib/db/local-mode.svelte';
 
 const { mockSyncEngine, mockConflictStore } = vi.hoisted(() => ({
   mockSyncEngine: {
@@ -45,6 +46,7 @@ describe('mutate', () => {
     vi.clearAllMocks();
     vi.stubGlobal('navigator', { onLine: true });
     localStorage.setItem('salus_token', 'test-token');
+    localMode.disable();
   });
 
   describe('online', () => {
@@ -180,6 +182,22 @@ describe('mutate', () => {
       const measurements = await db.measurement.toArray();
       expect(measurements).toHaveLength(1);
       expect(measurements[0].id).toBe('uid-test-1');
+    });
+
+    it('queues without flushing in local mode', async () => {
+      localMode.enable();
+
+      const result = await mutate({
+        kind: 'crud',
+        op: 'create',
+        entity: 'measurement',
+        optimistic: optimisticUpdate,
+        data: { source_data_type: 'weight', value_numeric: 75 }
+      });
+
+      expect(result).toEqual({ ok: true, queued: true });
+      expect(mockSyncEngine.enqueueOutbox).toHaveBeenCalledOnce();
+      expect(mockSyncEngine.flushSingle).not.toHaveBeenCalled();
     });
   });
 });

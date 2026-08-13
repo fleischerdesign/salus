@@ -4,6 +4,7 @@ import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
 import { db } from './database';
 import { network } from '$lib/native/network';
+import { localMode } from './local-mode.svelte';
 import { toast, dismissToast, updateToastProgress } from '$components/ui/toast-state.svelte';
 import { toastSettings } from '$stores/toast-settings.svelte';
 import { Capacitor } from '@capacitor/core';
@@ -53,6 +54,8 @@ export const useOffline = {
   stopLiveSync: () => disconnectLiveSync(),
 
   async syncAll(opts: SyncAllOptions = {}): Promise<void> {
+    if (localMode.active) return;
+
     if (_syncToastId !== null) {
       dismissToast(_syncToastId);
       _syncToastId = null;
