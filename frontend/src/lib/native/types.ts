@@ -47,3 +47,8 @@ export interface NativeDeviceInfo {
 export interface IDeviceInfoService {
   getDeviceInfo(): Promise<NativeDeviceInfo>;
 }
+
+export interface IBiometricProvider {
+  isAvailable(): Promise<boolean>;
+  verifyIdentity(reason: string): Promise<boolean>;
+}
