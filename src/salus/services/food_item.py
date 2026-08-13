@@ -2,6 +2,7 @@ from salus.exceptions import NotFoundError
 from salus.models.food import FoodItem
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.food import FoodItemCreate
+from salus.services.constants import SOURCE_MANUAL
 
 
 class FoodItemService:
@@ -36,7 +37,7 @@ class FoodItemService:
             sugar_g=data.sugar_g,
             saturated_fat_g=data.saturated_fat_g,
             sodium_mg=data.sodium_mg,
-            source="manual",
+            source=SOURCE_MANUAL,
         )
         return self.uow.food_items.create(item)
 

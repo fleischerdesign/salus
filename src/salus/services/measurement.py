@@ -5,6 +5,7 @@ from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.measurement import MeasurementCreate
+from salus.services.constants import SOURCE_MANUAL
 from salus.services.plugin.hooks import HookRegistry
 
 logger = logging.getLogger("salus.services.measurement")
@@ -40,7 +41,7 @@ class MeasurementService:
             user_id=user_id,
             metric_code=metric_code,
             source_data_type="",
-            source="manual",
+            source=SOURCE_MANUAL,
             value_text=data.value,
             start_time=data.timestamp or datetime.now(timezone.utc),
             notes=data.notes,

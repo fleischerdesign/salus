@@ -205,7 +205,7 @@ async def api_connections_create(
     current_user: User = Depends(get_current_user),
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
-    rel = sharing_svc.create_relationship(
+    rel, _ = sharing_svc.create_relationship(
         owner_id=uid(current_user),
             grantee_handle=body.grantee_handle,
             metric_code=body.metric_code,

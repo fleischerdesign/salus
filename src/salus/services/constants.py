@@ -6,6 +6,9 @@ DEDUP_TTL_HOURS = 24
 # Batch size for sync batches
 SYNC_BATCH_SIZE = 500
 
+# Measurement source channel for manually entered data
+SOURCE_MANUAL = "manual"
+
 # Workout autoregulation defaults
 DEFAULT_RPE = 8.0
 DEFAULT_REST_SECONDS = 90

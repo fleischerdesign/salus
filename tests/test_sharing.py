@@ -73,7 +73,7 @@ def test_create_relationship_creates_pending(session: Session):
         uow.commit()
         metric_code = metric_def.code
 
-    rel = service.create_relationship(
+    rel, _ = service.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.id is not None
@@ -122,7 +122,7 @@ def test_create_relationship_remote_no_local_check(session: Session):
         uow.commit()
         metric_code = metric_def.code
 
-    rel = service.create_relationship(
+    rel, _ = service.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:remote-server.com",
         metric_code=metric_code,
     )
@@ -142,7 +142,7 @@ def test_accept_relationship(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
@@ -158,7 +158,7 @@ def test_decline_relationship(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
@@ -178,7 +178,7 @@ def test_accept_wrong_grantee_raises(seeded_users):
         uow.users.add(third_user)
         uow.commit()
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee",
         metric_code=metric_code,
     )
@@ -193,7 +193,7 @@ def test_accept_twice_raises(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -212,7 +212,7 @@ def test_deactivate_relationship(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -284,7 +284,7 @@ def test_resolution_after_revoke_denies(seeded_users):
         uow.measurements.add(m)
         uow.commit()
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -307,7 +307,7 @@ def test_get_peer_connections_outgoing(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -332,12 +332,12 @@ def test_get_peer_connections_mutual(seeded_users):
         uow.commit()
         grantee_metric_code = grantee_metric.code
 
-    rel1 = svc.create_relationship(
+    rel1, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel1.id)
 
-    rel2 = svc.create_relationship(
+    rel2, _ = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
         metric_code=grantee_metric_code,
     )
@@ -359,7 +359,7 @@ def test_get_peer_connections_incoming(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -392,7 +392,7 @@ def test_get_pending_invitations_empty_after_accept(seeded_users):
     grantee_id = seeded_users["grantee_id"]
     metric_code = seeded_users["metric_code"]
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -437,11 +437,10 @@ def test_federated_api_endpoint(session: Session):
         uow.commit()
 
     svc = SharingService.create(uow)
-    rel = svc.create_relationship(
+    rel, token = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
         metric_code=metric_code, aggregation_level="raw",
     )
-    token = rel.raw_token
 
     with TestClient(app) as client:
         response = client.get(
@@ -502,12 +501,11 @@ def test_federation_accept_endpoint(session: Session):
         metric_code = metric_def.code
 
     svc = SharingService.create(uow)
-    rel = svc.create_relationship(
+    rel, token = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@alice:external-server.com",
         metric_code=metric_code,
     )
     assert rel.status == ConnectionStatus.PENDING
-    token = rel.raw_token
 
     app.dependency_overrides[get_session] = lambda: Session(engine)
     app.dependency_overrides[get_sharing_service] = lambda: SharingService.create(uow)
@@ -623,7 +621,7 @@ def test_sharing_expiration_after_acceptance(seeded_users):
         uow.measurements.add(m)
         uow.commit()
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
         expiration_days=-1,
     )
@@ -668,7 +666,7 @@ def test_resolution_invalid_date_fallback(seeded_users):
         uow.measurements.add(m)
         uow.commit()
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=owner_id, grantee_handle="@grantee", metric_code=metric_code,
     )
     svc.accept_relationship(grantee_id, rel.id)
@@ -708,7 +706,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
         leaderboard_svc.join_by_code(grantee_id, group.invite_code)
     assert "connected" in str(exc_info.value)
 
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=grantee_id, grantee_handle="@owner",
         metric_code=grantee_metric_code,
     )
@@ -738,7 +736,7 @@ def test_leaderboard_connection_prerequisite(seeded_users):
         )
         assert group.id is not None
     
-        rel = svc.create_relationship(
+        rel, _ = svc.create_relationship(
             owner_id=grantee_id, grantee_handle="@owner",
             metric_code=grantee_metric_code,
         )
@@ -820,7 +818,7 @@ def test_leaderboard_api_routes():
 
         app.dependency_overrides[get_current_user] = lambda: invitee
         svc = SharingService.create(uow)
-        rel = svc.create_relationship(
+        rel, _ = svc.create_relationship(
             owner_id=invitee_id, grantee_handle="@creator",
             metric_code=metric_i_code,
         )
@@ -942,7 +940,7 @@ def test_federated_notify_update_route():
         metric_code = metric.code
 
     svc = SharingService.create(uow)
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_code=metric_code,
     )
@@ -1112,7 +1110,7 @@ def test_federated_access_log():
         metric_code = metric.code
 
     svc = SharingService.create(uow)
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_code=metric_code,
     )
@@ -1179,7 +1177,7 @@ def test_federated_http_message_signatures():
         metric_code = metric.code
 
     svc = SharingService.create(uow)
-    rel = svc.create_relationship(
+    rel, _ = svc.create_relationship(
         owner_id=bob_id, grantee_handle="@alice:remote.com",
         metric_code=metric_code,
     )

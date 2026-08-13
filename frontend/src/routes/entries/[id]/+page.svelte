@@ -7,7 +7,6 @@
   import type { MetricWithPreference } from '$lib/db/types';
   import { mergeMetricPrefs } from '$lib/db/types';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { RANGE_KEYS } from '$lib/analytics/views/analytics';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import { createMeasurement } from '$lib/mutations/measurement';
@@ -174,7 +173,6 @@
     if (chartData) chartDataForGroup = chartData;
   });
 
-  let range = $state('90d');
   let allGroupMetrics = $derived(isGroup ? groupMetrics : []);
 
   let showEntryModal = $state(false);
@@ -339,16 +337,6 @@
               <Icon name="monitoring" size="sm" class="text-surface-400" /><span
                 class="text-sm font-semibold text-surface-900">Trend</span
               >
-            </div>
-            <div class="flex gap-1">
-              {#each RANGE_KEYS as r}
-                <Btn
-                  variant={range === r ? 'primary' : 'secondary'}
-                  size="sm"
-                  onclick={() => (range = r)}
-                  >{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn
-                >
-              {/each}
             </div>
           </div>
         {/snippet}
