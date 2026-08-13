@@ -14,6 +14,7 @@ from salus.models.sharing import (
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, make_handle, summarize_daily_values
+from salus.services.sharing.relationship import RelationshipService
 
 logger = logging.getLogger("salus.services.leaderboard")
 
@@ -168,7 +169,7 @@ class LeaderboardService:
             rankings = []
             for m in active_members:
                 handle = m.user_handle
-                if ":" not in handle:
+                if not RelationshipService.is_remote(handle):
                     score = self._score_local_member(group, handle, start_date, end_date)
                 else:
                     score = self._score_remote_member(

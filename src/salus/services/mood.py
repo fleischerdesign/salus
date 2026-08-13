@@ -1,7 +1,8 @@
 import json
+from collections import Counter
 from datetime import date, timedelta
 
-from salus.models.mood import MoodEntry, MoodTag
+from salus.models.mood import MoodEntry, MoodTag, MoodTagCategory
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.mood import MoodEntryCreate
 from salus.services.achievement.streak import compute_streak
@@ -29,7 +30,6 @@ class MoodService:
             {"code": "sick", "label": "Sick", "emoji": "🤒", "category": "negative"},
         ]
         count = 0
-        from salus.models.mood import MoodTag, MoodTagCategory
         for d in defaults:
             if session.get(MoodTag, d["code"]) is None:
                 session.add(MoodTag(
@@ -100,7 +100,6 @@ class MoodService:
 
         scores = [e.mood_score for e in entries]
 
-        from collections import Counter
         freq = Counter(scores)
         mode = freq.most_common(1)[0][0] if freq else None
 

@@ -5,6 +5,7 @@ from typing import Any, TYPE_CHECKING
 
 from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
 from salus.utils import uuid7_str
+from salus.services._helpers import uid
 from salus.services.command_registry import CommandResult, register
 from salus.services.constants import DEFAULT_TARGET_REPS, DEFAULT_TARGET_RPE, DEFAULT_TARGET_SETS
 from salus.services.serialization import serialize_record
@@ -74,7 +75,6 @@ class StartWorkoutHandler:
 
     @staticmethod
     def _calculate_recovery(uow: IUnitOfWork, user: User) -> float:
-        from salus.services._helpers import uid
         from salus.services.workout.autoregulation import build_autoregulation_service
 
         user_id = uid(user)

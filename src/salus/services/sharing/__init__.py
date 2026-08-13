@@ -64,7 +64,7 @@ class SharingService:
         metric_code: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
-    ) -> SharingRelationship:
+    ) -> tuple[SharingRelationship, str]:
         return self._relationship.create_relationship(
             owner_id, grantee_handle, metric_code,
             aggregation_level, expiration_days,

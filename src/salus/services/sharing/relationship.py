@@ -53,7 +53,7 @@ class RelationshipService:
         metric_code: str,
         aggregation_level: str = "daily_summary",
         expiration_days: Optional[int] = None,
-    ) -> SharingRelationship:
+    ) -> tuple[SharingRelationship, str]:
         grantee_handle = self.normalize_handle(grantee_handle)
 
         with self.uow:
@@ -104,8 +104,7 @@ class RelationshipService:
                 api_token_hash=token_hash,
             )
         self.uow.sharing_relationships.create(rel)
-        object.__setattr__(rel, "raw_token", raw_token)
-        return rel
+        return rel, raw_token
 
     def _pending_relationship_for_grantee(
         self, grantee_user_id: str, relationship_id: str
