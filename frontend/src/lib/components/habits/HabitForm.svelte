@@ -134,7 +134,7 @@
             class:border-surface-900={color === c}
             class:ring-2={color === c}
             class:ring-primary-300={color === c}
-            style="background-color: {resolveColor('habit:' + c, c)}"
+            style="background-color: {resolveColor(c)}"
             aria-label={c}
             onclick={() => (color = c)}
           ></button>

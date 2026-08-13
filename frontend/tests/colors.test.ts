@@ -9,27 +9,28 @@ describe('resolveColor', () => {
   });
 
   it('returns the original color when colorblind mode is off', () => {
-    expect(resolveColor('steps', '#f59e0b')).toBe('#f59e0b');
+    expect(resolveColor('#f59e0b')).toBe('#f59e0b');
   });
 
   it('maps to an Okabe-Ito color when colorblind mode is on', () => {
     theme.setColorblind(true);
 
-    const resolved = resolveColor('steps', '#f59e0b');
+    const resolved = resolveColor('#f59e0b');
 
     expect(OKABE_ITO).toContain(resolved);
   });
 
-  it('is deterministic per seed', () => {
+  it('preserves hue intent (warm maps to orange)', () => {
     theme.setColorblind(true);
 
-    expect(resolveColor('steps', '#f59e0b')).toBe(resolveColor('steps', '#f59e0b'));
+    expect(resolveColor('#f59e0b')).toBe('#E69F00');
+    expect(resolveColor('#10b981')).toBe('#009E73');
   });
 
   it('never remaps achromatic colors', () => {
     theme.setColorblind(true);
 
-    expect(resolveColor('white', '#ffffff')).toBe('#ffffff');
-    expect(resolveColor('gray', '#9ca3af')).toBe('#9ca3af');
+    expect(resolveColor('#ffffff')).toBe('#ffffff');
+    expect(resolveColor('#9ca3af')).toBe('#9ca3af');
   });
 });

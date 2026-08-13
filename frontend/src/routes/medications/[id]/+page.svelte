@@ -166,7 +166,7 @@
     title={medication.name}
     subtitle={medication.strength ? `${medication.strength} · ${medication.form}` : medication.form}
     icon={medication.icon}
-    iconColor={resolveColor('medication:' + medication.id, medication.color_hex)}
+    iconColor={resolveColor(medication.color_hex)}
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch gap-2">

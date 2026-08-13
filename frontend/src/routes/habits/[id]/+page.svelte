@@ -156,7 +156,7 @@
       backUrl="/habits"
       icon={habit.icon}
       iconColor="#fff"
-      iconBgColor={resolveColor('habit:' + habit.id, habit.color)}
+      iconBgColor={resolveColor(habit.color)}
     >
       {#snippet stats()}
         <div
