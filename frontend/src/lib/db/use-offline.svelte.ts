@@ -3,29 +3,29 @@ import { offlineService } from './offline-service';
 import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
 import { db } from './database';
+import { network } from '$lib/native/network';
 import { toast, dismissToast, updateToastProgress } from '$components/ui/toast-state.svelte';
 import { toastSettings } from '$stores/toast-settings.svelte';
 import { Capacitor } from '@capacitor/core';
 
 let _sessionExpired = $state(false);
 let _syncToastId: number | null = null;
-let _wasOffline = typeof navigator === 'undefined' ? false : !navigator.onLine;
+let _wasOffline = !network.isOnline;
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
+network.subscribe((online) => {
+  if (online) {
     if (_wasOffline && toastSettings.networkStatus) {
       toast('Connection restored.', 'success', { duration: 4000 });
     }
     _wasOffline = false;
     syncEngine.flush();
-  });
-  window.addEventListener('offline', () => {
+  } else {
     _wasOffline = true;
     if (toastSettings.networkStatus) {
       toast('You are offline. Changes sync when reconnected.', 'warning', { duration: 4000 });
     }
-  });
-}
+  }
+});
 
 async function _liveSyncCallback() {
   const last = await db.meta.get('lastSyncAt');

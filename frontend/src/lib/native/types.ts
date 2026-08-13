@@ -58,3 +58,8 @@ export interface ISecureStorageProvider {
   setServerUrl(url: string): Promise<void>;
   clear(): Promise<void>;
 }
+
+export interface INetworkProvider {
+  isOnline(): Promise<boolean>;
+  onChange(callback: (online: boolean) => void): () => void;
+}

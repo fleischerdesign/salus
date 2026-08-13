@@ -1,6 +1,7 @@
 import { db } from './database';
 import { pullFull, pullDelta } from './sync-pull';
 import { fetchEntityNames } from './entity-info';
+import { network } from '$lib/native/network';
 
 const DELTA_MAX_AGE_MS = 7 * 24 * 3600 * 1000;
 
@@ -8,7 +9,7 @@ export const offlineService = {
   async syncAll(
     onProgress?: (message: string, progress?: number) => void
   ): Promise<boolean | 'unauthorized'> {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+    if (!network.isOnline) return false;
 
     await fetchEntityNames();
 
