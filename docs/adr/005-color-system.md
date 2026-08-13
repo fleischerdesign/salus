@@ -89,3 +89,29 @@ more fields is premature. Local mode persists device-locally as a fallback.
 - **Dedicated `user_preference` entity** — deferred: `User` already carries
   cross-device settings; revisit when language/unit/week-start also migrate off
   ad-hoc storage.
+
+## Follow-ups
+
+Open items tracked against this ADR (not implemented, do not get lost):
+
+1. **Cloud-synced storage.** Theme mode, colorblind, and accent currently
+   persist in `localStorage` (device-local). Migrate them to synced `User`
+   fields (`theme` already exists; add `colorblind: bool` and
+   `accent_color: str`) so they follow the user across devices:
+   - Backend: extend the `User` model + Alembic migration, add the new fields to
+     `_SAFE_USER_UPDATE_FIELDS`, regenerate the OpenAPI schema.
+   - Frontend: the theme controller reads/writes the synced fields (with a
+     device-local fallback in Local Mode), via the existing sync path.
+
+2. **Layering.** `mergeMetricPrefs` (`db/types.ts`) now imports
+   `$lib/theme/colors` → `$stores/theme.svelte`, so a data module depends on a
+   UI store. Consider moving color resolution out of `mergeMetricPrefs` into the
+   display layer (or pass the active mode explicitly) to keep `db/` store-free.
+
+3. **Named palette instead of heuristics.** `resolveColor` uses a string-hash
+   seed (Okabe-Ito index) and `isNeutral` uses an RGB-distance threshold. Both
+   are deterministic and documented but not a curated, named color system. If
+   the categorical set stabilizes, replace the hash with an explicit
+   name → `{ normal, colorblind }` map per entity (metric code, habit, source),
+   and drop `isNeutral` for an explicit neutral denylist.
+
