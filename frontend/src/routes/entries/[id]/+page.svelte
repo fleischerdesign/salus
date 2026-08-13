@@ -5,7 +5,7 @@
   import { MS_PER_DAY } from '$lib/utils/datetime';
   import type { Measurement as Entry, MetricGroup } from '$lib/db/types';
   import type { MetricWithPreference } from '$lib/db/types';
-  import { mergeMetricPrefs } from '$lib/db/types';
+  import { mergeMetricPrefs } from '$lib/theme/metric-prefs';
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';

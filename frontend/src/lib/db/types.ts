@@ -1,5 +1,3 @@
-import { resolveColor } from '$lib/theme/colors';
-
 export type OutboxKind = 'crud' | 'command';
 
 export interface OutboxCrudOp {
@@ -87,26 +85,6 @@ export interface UserSourcePreference {
   created_at: string;
   updated_at?: string | null;
   deleted_at?: string | null;
-}
-
-export function mergeMetricPrefs(
-  definitions: MetricDefinition[],
-  preferences: UserMetricPreference[],
-  defaultIcon: string = 'monitoring'
-): MetricWithPreference[] {
-  const prefMap = new Map(preferences.map((p) => [p.metric_code, p]));
-  return definitions.map((def) => {
-    const pref = prefMap.get(def.code);
-    return {
-      ...def,
-      color: resolveColor(def.code, pref?.color ?? '#4f46e5'),
-      icon: pref?.icon ?? defaultIcon,
-      widget_size: pref?.widget_size ?? 'medium',
-      widget_enabled: pref?.widget_enabled ?? false,
-      enabled: pref?.enabled ?? true,
-      position: pref?.position ?? 0
-    };
-  });
 }
 
 export interface Measurement {
