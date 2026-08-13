@@ -42,6 +42,7 @@ export async function mutate(m: Mutation): Promise<MutationResult> {
     return sendCommandNow(m, clientId);
   }
 
+  await resolveExpectedUpdatedAt(m);
   await applyOptimistic(m);
   await syncEngine.enqueueOutbox(m, clientId);
 
@@ -51,6 +52,18 @@ export async function mutate(m: Mutation): Promise<MutationResult> {
   }
 
   return { ok: true, queued: true };
+}
+
+async function resolveExpectedUpdatedAt(m: Mutation): Promise<void> {
+  if (m.kind !== 'crud' || m.op !== 'update' || m.id === undefined || m.expected_updated_at) {
+    return;
+  }
+
+  const existing = await db.table(m.entity).get(m.id);
+  const updatedAt = (existing as Record<string, unknown> | undefined)?.updated_at;
+  if (typeof updatedAt === 'string' && updatedAt) {
+    m.expected_updated_at = updatedAt;
+  }
 }
 
 async function applyOptimistic(m: Mutation): Promise<void> {

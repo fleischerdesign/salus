@@ -97,6 +97,70 @@ describe('mutate', () => {
       expect(measurements).toHaveLength(1);
       expect(measurements[0].source_data_type).toBe('weight');
     });
+
+    it('extracts expected_updated_at from the local record on update', async () => {
+      await db.measurement.put({
+        id: 'uid-1',
+        user_id: 'self',
+        metric_code: 'weight',
+        source_data_type: 'weight',
+        source: 'manual',
+        value_numeric: 75,
+        value_text: null,
+        value_json: null,
+        start_time: '2026-07-13T12:00:00Z',
+        end_time: null,
+        notes: null,
+        external_id: null,
+        created_at: '2026-07-13T12:00:00Z',
+        updated_at: '2026-07-13T12:00:00Z',
+        deleted_at: null
+      });
+
+      await mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'measurement',
+        id: 'uid-1',
+        optimistic: { id: 'uid-1', value_numeric: 80 },
+        data: { value_numeric: 80 }
+      });
+
+      const enqueued = mockSyncEngine.enqueueOutbox.mock.calls[0][0];
+      expect(enqueued.expected_updated_at).toBe('2026-07-13T12:00:00Z');
+    });
+
+    it('does not set expected_updated_at when the record has none', async () => {
+      await db.measurement.put({
+        id: 'uid-2',
+        user_id: 'self',
+        metric_code: 'weight',
+        source_data_type: 'weight',
+        source: 'manual',
+        value_numeric: 75,
+        value_text: null,
+        value_json: null,
+        start_time: '2026-07-13T12:00:00Z',
+        end_time: null,
+        notes: null,
+        external_id: null,
+        created_at: '2026-07-13T12:00:00Z',
+        updated_at: null,
+        deleted_at: null
+      });
+
+      await mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'measurement',
+        id: 'uid-2',
+        optimistic: { id: 'uid-2', value_numeric: 80 },
+        data: { value_numeric: 80 }
+      });
+
+      const enqueued = mockSyncEngine.enqueueOutbox.mock.calls[0][0];
+      expect(enqueued.expected_updated_at).toBeUndefined();
+    });
   });
 
   describe('offline', () => {
