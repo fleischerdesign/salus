@@ -1,6 +1,7 @@
 import type { components } from '$lib/api/schema.d';
-import { setLocaleState } from '$lib/api/headers';
+import { setLocaleState, getApiBaseUrl } from '$lib/api/headers';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
+import { nativeBridge } from '$lib/native/bridge';
 
 type User = components['schemas']['UserResponse'];
 
@@ -50,6 +51,8 @@ export const auth = {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     setLocaleState(user.locale ?? 'en');
+    nativeBridge.secureStorage.setToken(token).catch(() => {});
+    nativeBridge.secureStorage.setServerUrl(getApiBaseUrl()).catch(() => {});
   },
 
   clear() {
@@ -58,6 +61,7 @@ export const auth = {
     state.loading = false;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
+    nativeBridge.secureStorage.clear().catch(() => {});
   },
 
   setLoading(loading: boolean) {
