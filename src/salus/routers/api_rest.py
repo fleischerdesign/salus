@@ -15,6 +15,7 @@ from salus.repositories.entity_meta import (
     ENTITY_META_BY_NAME,
     ENTITY_REGISTRY,
     EntityMeta,
+    WRITABLE_STRATEGIES,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.sync import SyncOperation
@@ -80,9 +81,6 @@ _SKIP_AUTO_CRUD: set[str] = {
 # Global reference data (metric_definition, leaderboard_group, ...) and
 # append-only records are immutable via the generic API — they mirror the
 # sync strategy (EntityMeta.strategy) and stay read-only.
-_WRITABLE_STRATEGIES: frozenset[str] = frozenset(
-    {"user_scoped", "shared_nullable", "relational"}
-)
 
 
 def _validate_entity_map() -> None:
@@ -189,7 +187,7 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             return _row_to_dict(obj, enriched.get(getattr(obj, "id", "") or "", {}))
         return obj
 
-    if meta.strategy in _WRITABLE_STRATEGIES:
+    if meta.strategy in WRITABLE_STRATEGIES:
         @router.post("", status_code=201, response_model=response_model)
         async def create_one(
             request: Request,

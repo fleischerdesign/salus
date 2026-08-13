@@ -226,75 +226,77 @@ class TestUserEntityValidator:
         assert result["status"] == "error"
 
 
-class TestApiTokenValidator:
-    """Test whitelist validation for 'api_token' entity via sync push."""
+class TestStrategyWriteGuard:
+    """Test that global and append-only entities are read-only via sync push."""
 
-    def test_create_blocked(self, authenticated_client: TestClient):
-        op = {
-            "type": "create",
-            "entity": "api_token",
-            "data": {"label": "fake", "token_hash": "xxx", "token_prefix": "fake"},
-        }
+    def _push(self, authenticated_client: TestClient, op: dict) -> dict:
         resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
-        result = resp.json()["results"][0]
-        assert result["status"] == "error"
-        assert "not allowed" in result["message"].lower()
+        assert resp.status_code == 200
+        return resp.json()["results"][0]
 
-    def test_update_blocked_fields(self, authenticated_client: TestClient):
-        resp = authenticated_client.post(
-            "/api/v1/settings/tokens",
-            json={"label": "test-token", "scopes": "entries:read"},
+    def test_global_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "metric_definition",
+                "client_id": "md-fake-1",
+                "data": {"code": "fake", "name": "Fake", "unit": "", "source_data_type": "fake"},
+            },
         )
-        data = resp.json()
-        prefix = data["prefix"]
-
-        created = authenticated_client.get("/api/v1/sync").json()
-        api_tokens = created.get("api_token", [])
-        token_id = None
-        for t in api_tokens:
-            if t.get("token_prefix") == prefix:
-                token_id = t["id"]
-                break
-        assert token_id is not None, "token should appear in sync response"
-
-        op = {
-            "type": "update",
-            "entity": "api_token",
-            "id": token_id,
-            "data": {"label": "hacked"},
-        }
-        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
-        result = resp.json()["results"][0]
         assert result["status"] == "error"
-        assert "label" in result["message"]
+        assert "read-only" in result["message"]
 
-    def test_revoke_allowed(self, authenticated_client: TestClient):
+    def test_global_update_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {"type": "update", "entity": "mood_tag", "id": "happy", "data": {"label": "hacked"}},
+        )
+        assert result["status"] == "error"
+        assert "read-only" in result["message"]
+
+    def test_append_only_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "api_token",
+                "client_id": "tok-fake-1",
+                "data": {"label": "fake", "token_hash": "xxx", "token_prefix": "fake"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "read-only" in result["message"]
+
+    def test_append_only_update_rejected(self, authenticated_client: TestClient):
         resp = authenticated_client.post(
             "/api/v1/settings/tokens",
             json={"label": "revoke-token", "scopes": "entries:read"},
         )
-        data = resp.json()
-        prefix = data["prefix"]
+        prefix = resp.json()["prefix"]
 
         created = authenticated_client.get("/api/v1/sync").json()
-        api_tokens = created.get("api_token", [])
-        token_id = None
-        for t in api_tokens:
-            if t.get("token_prefix") == prefix:
-                token_id = t["id"]
-                break
-        assert token_id is not None
+        token_id = next(t["id"] for t in created.get("api_token", []) if t.get("token_prefix") == prefix)
 
-        op = {
-            "type": "update",
-            "entity": "api_token",
-            "id": token_id,
-            "data": {"is_active": False},
-        }
-        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
-        result = resp.json()["results"][0]
-        assert result["status"] == "updated"
-        assert result["record"]["is_active"] is False
+        result = self._push(
+            authenticated_client,
+            {"type": "update", "entity": "api_token", "id": token_id, "data": {"is_active": False}},
+        )
+        assert result["status"] == "error"
+        assert "read-only" in result["message"]
+
+    def test_federated_access_log_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "federated_access_log",
+                "client_id": "fal-fake-1",
+                "data": {"owner_id": "self", "accessed_at": "2026-08-13T00:00:00Z"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "read-only" in result["message"]
 
 
 class TestWritePipelineCommit:
