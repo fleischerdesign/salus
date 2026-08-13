@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
 import { db } from '$lib/db/database';
-import type { Goal, Measurement } from '$lib/db/types';
+import type { Goal, Measurement, MetricWithPreference } from '$lib/db/types';
 import { MS_PER_DAY } from '$lib/utils/datetime';
 import { mergeMetricPrefs } from '$lib/db/types';
 import { computeGoalProgress } from '$lib/analytics/calculations';
@@ -92,6 +92,49 @@ function computeDeadlineForecast(
   };
 }
 
+function buildGoalView(
+  g: Goal,
+  metric: MetricWithPreference | undefined,
+  measurements: Measurement[]
+): GoalView {
+  const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
+  const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
+  const progress = computeGoalProgress(
+    currentValue,
+    g.target_value,
+    g.direction as 'INCREASE' | 'DECREASE',
+    g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
+    deadlinePassed
+  );
+
+  let forecast = null;
+  if (g.frequency === 'once' && g.deadline && !deadlinePassed) {
+    forecast = computeDeadlineForecast(g, measurements, g.created_at);
+  }
+
+  return {
+    id: g.id,
+    metric_code: g.metric_code,
+    metric_name: metric?.name ?? 'Unknown',
+    metric_color: metric?.color ?? '#4f46e5',
+    metric_icon: metric?.icon ?? 'track-changes',
+    metric_unit: metric?.unit ?? '',
+    target_value: g.target_value,
+    direction: g.direction,
+    frequency: g.frequency,
+    deadline: g.deadline,
+    is_active: g.is_active,
+    progress: {
+      current_value: currentValue,
+      target_value: g.target_value,
+      percent: progress.percent,
+      status: progress.status,
+      is_fulfilled: progress.isFulfilled
+    },
+    forecast
+  };
+}
+
 export async function fetchGoalViews(): Promise<GoalView[]> {
   const goals = (await db.goal.toArray()).filter((g) => !g.deleted_at);
   if (goals.length === 0) return [];
@@ -120,46 +163,7 @@ export async function fetchGoalViews(): Promise<GoalView[]> {
   const metrics = mergeMetricPrefs(metricDefs, prefs);
   const metricById = new Map(metrics.map((m) => [m.code, m]));
 
-  return goals.map((g) => {
-    const metric = metricById.get(g.metric_code);
-    const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
-
-    const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
-    const progress = computeGoalProgress(
-      currentValue,
-      g.target_value,
-      g.direction as 'INCREASE' | 'DECREASE',
-      g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
-      deadlinePassed
-    );
-
-    let forecastVal = null;
-    if (g.frequency === 'once' && g.deadline && !deadlinePassed) {
-      forecastVal = computeDeadlineForecast(g, measurements, g.created_at);
-    }
-
-    return {
-      id: g.id,
-      metric_code: g.metric_code,
-      metric_name: metric?.name ?? 'Unknown',
-      metric_color: metric?.color ?? '#4f46e5',
-      metric_icon: metric?.icon ?? 'track-changes',
-      metric_unit: metric?.unit ?? '',
-      target_value: g.target_value,
-      direction: g.direction,
-      frequency: g.frequency,
-      deadline: g.deadline,
-      is_active: g.is_active,
-      progress: {
-        current_value: currentValue,
-        target_value: g.target_value,
-        percent: progress.percent,
-        status: progress.status,
-        is_fulfilled: progress.isFulfilled
-      },
-      forecast: forecastVal
-    };
-  });
+  return goals.map((g) => buildGoalView(g, metricById.get(g.metric_code), measurements));
 }
 
 export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
@@ -168,15 +172,7 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
   const metricDef = await db.metric_definition.get(g.metric_code);
   const pref = await db.user_metric_preference.where('metric_code').equals(g.metric_code).first();
   const metric = metricDef
-    ? {
-        ...metricDef,
-        color: pref?.color ?? '#4f46e5',
-        icon: pref?.icon ?? 'track-changes',
-        widget_size: pref?.widget_size ?? 'medium',
-        widget_enabled: pref?.widget_enabled ?? false,
-        enabled: pref?.enabled ?? true,
-        position: pref?.position ?? 0
-      }
+    ? mergeMetricPrefs([metricDef], pref ? [pref] : [], 'track-changes')[0]
     : undefined;
   const cutoff = new Date(Date.now() - 30 * MS_PER_DAY).toISOString();
   const measurements: Measurement[] = [];
@@ -188,43 +184,7 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
       if (!m.deleted_at) measurements.push(m);
     });
 
-  const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
-
-  const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
-  const progress = computeGoalProgress(
-    currentValue,
-    g.target_value,
-    g.direction as 'INCREASE' | 'DECREASE',
-    g.frequency as 'DAILY' | 'WEEKLY' | 'ONCE',
-    deadlinePassed
-  );
-
-  let forecastVal = null;
-  if (g.frequency === 'once' && g.deadline && !deadlinePassed) {
-    forecastVal = computeDeadlineForecast(g, measurements, g.created_at);
-  }
-
-  return {
-    id: g.id,
-    metric_code: g.metric_code,
-    metric_name: metric?.name ?? 'Unknown',
-    metric_color: metric?.color ?? '#4f46e5',
-    metric_icon: metric?.icon ?? 'track-changes',
-    metric_unit: metric?.unit ?? '',
-    target_value: g.target_value,
-    direction: g.direction,
-    frequency: g.frequency,
-    deadline: g.deadline,
-    is_active: g.is_active,
-    progress: {
-      current_value: currentValue,
-      target_value: g.target_value,
-      percent: progress.percent,
-      status: progress.status,
-      is_fulfilled: progress.isFulfilled
-    },
-    forecast: forecastVal
-  };
+  return buildGoalView(g, metric, measurements);
 }
 
 function computeGoalCurrent(

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
   import { fetchGoalView } from '$lib/analytics/views/goal-views';
+  import { formatValue, progressVariant, statusColor } from '$lib/analytics/goal-ui';
   import { page } from '$app/state';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -69,25 +70,6 @@
 
     return { labels, series, regressionLine, regressionCI };
   });
-
-  function progressVariant(status: string): 'success' | 'error' | 'info' {
-    if (status === 'fulfilled') return 'success';
-    if (status === 'missed') return 'error';
-    return 'info';
-  }
-
-  function statusColor(status: string): string {
-    if (status === 'fulfilled') return 'text-success-600';
-    if (status === 'missed') return 'text-error-500';
-    return 'text-primary-600';
-  }
-
-  function formatValue(v: number | null | undefined): string {
-    if (v === null || v === undefined) return '—';
-    return v >= 1000
-      ? v.toLocaleString(undefined, { maximumFractionDigits: 1 })
-      : v.toFixed(1).replace(/\.0$/, '');
-  }
 
   function calculateRequiredRate(): string | null {
     if (!goalView || !goalView.deadline || goalView.progress.current_value === null) return null;

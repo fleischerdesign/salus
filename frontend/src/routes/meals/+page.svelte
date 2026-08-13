@@ -24,12 +24,7 @@
   );
   const meals = $derived(mealsQuery.value);
   const mealItemsQuery = useQuery(async () => {
-    const dayMeals = await db.meal
-      .where('log_date')
-      .equals(selectedDate)
-      .filter((m) => !m.deleted_at)
-      .toArray();
-    const mealIds = dayMeals.map((m) => m.id);
+    const mealIds = (meals ?? []).map((m) => m.id);
     if (mealIds.length === 0) return [] as MealItem[];
     return db.meal_item
       .where('meal_id')

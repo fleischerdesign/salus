@@ -3,6 +3,7 @@
 
   import { createGoal, deleteGoal } from '$lib/mutations/goal';
   import { fetchGoalViews } from '$lib/analytics/views/goal-views';
+  import { formatValue, progressVariant, statusColor } from '$lib/analytics/goal-ui';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -90,18 +91,6 @@
     await deleteGoal(target.id);
   }
 
-  function progressVariant(status: string): 'success' | 'error' | 'info' {
-    if (status === 'fulfilled') return 'success';
-    if (status === 'missed') return 'error';
-    return 'info';
-  }
-
-  function statusColor(status: string): string {
-    if (status === 'fulfilled') return 'text-success-600';
-    if (status === 'missed') return 'text-error-500';
-    return 'text-primary-600';
-  }
-
   function resetLabel(g: { frequency: string; deadline?: string | null }): string {
     if (g.frequency === 'once' && g.deadline) {
       return `due ${new Date(g.deadline).toLocaleDateString()}`;
@@ -109,13 +98,6 @@
     if (g.frequency === 'daily') return 'daily reset';
     if (g.frequency === 'weekly') return 'weekly reset';
     return '';
-  }
-
-  function formatValue(v: number | null | undefined): string {
-    if (v === null || v === undefined) return '—';
-    return v >= 1000
-      ? v.toLocaleString(undefined, { maximumFractionDigits: 1 })
-      : v.toFixed(1).replace(/\.0$/, '');
   }
 
   const metricOptions = $derived(

@@ -89,7 +89,8 @@ export interface UserSourcePreference {
 
 export function mergeMetricPrefs(
   definitions: MetricDefinition[],
-  preferences: UserMetricPreference[]
+  preferences: UserMetricPreference[],
+  defaultIcon: string = 'monitoring'
 ): MetricWithPreference[] {
   const prefMap = new Map(preferences.map((p) => [p.metric_code, p]));
   return definitions.map((def) => {
@@ -97,7 +98,7 @@ export function mergeMetricPrefs(
     return {
       ...def,
       color: pref?.color ?? '#4f46e5',
-      icon: pref?.icon ?? 'monitoring',
+      icon: pref?.icon ?? defaultIcon,
       widget_size: pref?.widget_size ?? 'medium',
       widget_enabled: pref?.widget_enabled ?? false,
       enabled: pref?.enabled ?? true,
