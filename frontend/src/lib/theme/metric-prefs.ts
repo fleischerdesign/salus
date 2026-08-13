@@ -15,7 +15,7 @@ export function mergeMetricPrefs(
     const pref = prefMap.get(def.code);
     return {
       ...def,
-      color: resolveColor(def.code, pref?.color ?? '#4f46e5'),
+      color: resolveColor(pref?.color ?? '#4f46e5'),
       icon: pref?.icon ?? defaultIcon,
       widget_size: pref?.widget_size ?? 'medium',
       widget_enabled: pref?.widget_enabled ?? false,

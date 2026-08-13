@@ -295,9 +295,7 @@
                         class="flex h-9 w-9 items-center justify-center rounded-lg text-white shadow-2xs transition-all {isActive
                           ? ''
                           : 'opacity-75 grayscale'}"
-                        style="background-color: {isActive
-                          ? resolveColor('source:' + src.id, src.color)
-                          : '#9ca3af'}"
+                        style="background-color: {isActive ? resolveColor(src.color) : '#9ca3af'}"
                       >
                         <Icon name={src.icon} size="sm" />
                       </div>

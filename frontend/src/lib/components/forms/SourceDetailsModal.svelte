@@ -153,9 +153,7 @@
           <div class="flex items-center gap-3">
             <div
               class="flex h-11 w-11 items-center justify-center rounded-lg text-white shadow-2xs"
-              style="background-color: {count > 0
-                ? resolveColor('source:' + source.id, source.color)
-                : '#9ca3af'}"
+              style="background-color: {count > 0 ? resolveColor(source.color) : '#9ca3af'}"
             >
               <Icon name={source.icon} size="md" />
             </div>

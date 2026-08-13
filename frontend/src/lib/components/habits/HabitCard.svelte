@@ -68,7 +68,7 @@
       <div class="flex items-start gap-3">
         <div
           class="duration-micro flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white transition-all"
-          style="background-color: {resolveColor('habit:' + habit.id, habit.color)}"
+          style="background-color: {resolveColor(habit.color)}"
           class:scale-90={toggling}
           class:bg-success-500={feedback === 'done'}
           class:bg-error-500={feedback === 'undone'}
