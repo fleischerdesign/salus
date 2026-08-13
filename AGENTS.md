@@ -19,7 +19,7 @@ This file is written for LLM agents. Follow these rules exactly.
 |---|---|
 | Web framework | FastAPI (backend JSON API) |
 | Frontend | SvelteKit (SPA mode, `adapter-static`) + TypeScript + Tailwind CSS |
-| PWA / Offline | `@vite-pwa/sveltekit` (Workbox), Dexie.js (IndexedDB) |
+| PWA / Offline | SvelteKit-native service worker (`src/service-worker.js`), Dexie.js (IndexedDB) |
 | ORM layer | SQLModel for all tables (`metric_definition`, `metric_group`, `user_metric_preference`, `measurement`, `user`, `user_identity`, `goal`) |
 | Database | `salus.db` (SQLite default) or PostgreSQL via `SALUS_DATABASE_URL` |
 | Package manager (Python) | uv via `pyproject.toml` |
@@ -231,7 +231,7 @@ Auth token is automatically added via interceptor.
 - `adapter-static` with `fallback: 'index.html'`
 - `ssr = false` in `+layout.ts`
 - Routes are purely client-side (no server-side rendering)
-- Service worker via `@vite-pwa/sveltekit`
+- Service worker via SvelteKit's native `$service-worker` module (`src/service-worker.js`, auto-registered by SvelteKit)
 
 ### 14. Sync architecture (Local-First)
 
