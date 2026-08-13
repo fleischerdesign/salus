@@ -64,7 +64,7 @@ the token architecture naturally supports custom themes. Scope them to:
 
 **Storage:** theme mode uses the existing `User.theme` field (already synced and
 in `_SAFE_USER_UPDATE_FIELDS`). Colorblind and accent follow the same pattern as
-new `User` fields (`colorblind`, `accent_color`). A dedicated `user_preference`
+new `User` fields (`colorblind`, `accent_hue`). A dedicated `user_preference`
 entity is considered but rejected for now — `User` already carries cross-device
 settings (theme, locale, display_name) and adding a new synced entity for two
 more fields is premature. Local mode persists device-locally as a fallback.
@@ -90,28 +90,23 @@ more fields is premature. Local mode persists device-locally as a fallback.
   cross-device settings; revisit when language/unit/week-start also migrate off
   ad-hoc storage.
 
-## Follow-ups
+## Follow-ups (resolved)
 
-Open items tracked against this ADR (not implemented, do not get lost):
+All three open items below were subsequently implemented:
 
-1. **Cloud-synced storage.** Theme mode, colorblind, and accent currently
-   persist in `localStorage` (device-local). Migrate them to synced `User`
-   fields (`theme` already exists; add `colorblind: bool` and
-   `accent_color: str`) so they follow the user across devices:
-   - Backend: extend the `User` model + Alembic migration, add the new fields to
-     `_SAFE_USER_UPDATE_FIELDS`, regenerate the OpenAPI schema.
-   - Frontend: the theme controller reads/writes the synced fields (with a
-     device-local fallback in Local Mode), via the existing sync path.
+1. **Cloud-synced storage** — `User` gained `colorblind: bool` and
+   `accent_hue: int` (model + Alembic migration, `_SAFE_USER_UPDATE_FIELDS`,
+   `UserResponse`, sync `user_profile`). The theme controller pushes
+   `update_profile` in server mode and applies the synced profile on arrival,
+   with the device-local cache as the offline/local fallback.
+2. **Layering** — `mergeMetricPrefs` moved from `db/types.ts` to
+   `$lib/theme/metric-prefs.ts`; `db/` is store-free again.
+3. **Named palette** — `resolveColor(original)` maps by hue to the nearest
+   Okabe-Ito chromatic color, with an explicit neutral denylist (no hash, no
+   RGB-distance heuristic).
 
-2. **Layering.** `mergeMetricPrefs` (`db/types.ts`) now imports
-   `$lib/theme/colors` → `$stores/theme.svelte`, so a data module depends on a
-   UI store. Consider moving color resolution out of `mergeMetricPrefs` into the
-   display layer (or pass the active mode explicitly) to keep `db/` store-free.
+Also completed beyond the original scope: a free accent-hue slider (the accent
+ramp is hue-driven via `--accent-hue`, so any hue is customizable) and a named
+mood scale (`$lib/theme/scales.ts`) with a colorblind variant.
 
-3. **Named palette instead of heuristics.** `resolveColor` uses a string-hash
-   seed (Okabe-Ito index) and `isNeutral` uses an RGB-distance threshold. Both
-   are deterministic and documented but not a curated, named color system. If
-   the categorical set stabilizes, replace the hash with an explicit
-   name → `{ normal, colorblind }` map per entity (metric code, habit, source),
-   and drop `isNeutral` for an explicit neutral denylist.
 
