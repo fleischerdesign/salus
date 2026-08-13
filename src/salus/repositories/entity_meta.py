@@ -210,10 +210,13 @@ def _validate_measurement_create(
     return None
 
 
-def _validate_user_achievement(
-    _session: Session, _current_user: User, _data: dict, _op: "SyncOperation",
-) -> str | None:
-    return "Achievements are server-computed and cannot be written via sync push"
+def _readonly_validator(label: str) -> ValidatorFn:
+    def _reject(
+        _session: Session, _current_user: User, _data: dict, _op: "SyncOperation",
+    ) -> str:
+        return f"{label} are server-managed and cannot be written via sync push"
+
+    return _reject
 
 
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
@@ -221,5 +224,10 @@ ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "exercise": _validate_exercise_create,
     "user_metric_preference": _validate_metric_preference_create,
     "measurement": _validate_measurement_create,
-    "user_achievement": _validate_user_achievement,
+    "user_achievement": _readonly_validator("Achievements"),
+    "insight": _readonly_validator("Insights"),
+    "notification": _readonly_validator("Notifications"),
+    "sharing_relationship": _readonly_validator("Sharing relationships"),
+    "share_recipient": _readonly_validator("Share recipients"),
+    "asymmetric_share": _readonly_validator("Asymmetric shares"),
 }

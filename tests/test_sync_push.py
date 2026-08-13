@@ -819,4 +819,66 @@ class TestOptimisticLocking:
         assert resp.status_code == 200
         result = resp.json()["results"][0]
         assert result["status"] == "error"
-        assert "server-computed" in result["message"]
+        assert "server-managed" in result["message"]
+
+
+class TestDerivedWriteGuard:
+    """Test that server-managed (derived/E2EE) entities are read-only via sync push."""
+
+    def _push(self, authenticated_client: TestClient, op: dict) -> dict:
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
+        assert resp.status_code == 200
+        return resp.json()["results"][0]
+
+    def test_insight_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "insight",
+                "client_id": "ins-fake-1",
+                "data": {"query_date": "2026-08-13", "content": "fake insight"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "server-managed" in result["message"]
+
+    def test_notification_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "notification",
+                "client_id": "ntf-fake-1",
+                "data": {"title": "fake", "body": "fake"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "server-managed" in result["message"]
+
+    def test_asymmetric_share_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "asymmetric_share",
+                "client_id": "ash-fake-1",
+                "data": {"recipient_id": "self"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "server-managed" in result["message"]
+
+    def test_sharing_relationship_create_rejected(self, authenticated_client: TestClient):
+        result = self._push(
+            authenticated_client,
+            {
+                "type": "create",
+                "entity": "sharing_relationship",
+                "client_id": "sr-fake-1",
+                "data": {"status": "accepted"},
+            },
+        )
+        assert result["status"] == "error"
+        assert "server-managed" in result["message"]
+
