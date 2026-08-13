@@ -1,5 +1,7 @@
 const KEY = 'salus_local_mode';
 
+export const SERVER_ONLY_PATH_PREFIXES = ['/community', '/admin', '/coach/chat'];
+
 class LocalModeService {
   active = $state(typeof localStorage !== 'undefined' && localStorage.getItem(KEY) === 'true');
 

@@ -30,7 +30,7 @@
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
   import { seedReferenceData } from '$lib/db/seed';
-  import { localMode } from '$lib/db/local-mode.svelte';
+  import { localMode, SERVER_ONLY_PATH_PREFIXES } from '$lib/db/local-mode.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
@@ -141,6 +141,15 @@
 
   let lastSyncKey = '';
   const sessionExpired = $derived(useOffline.sessionExpired);
+
+  $effect(() => {
+    if (
+      localMode.active &&
+      SERVER_ONLY_PATH_PREFIXES.some((p) => page.url.pathname.startsWith(p))
+    ) {
+      goto('/');
+    }
+  });
 
   $effect(() => {
     if (!auth.isAuthenticated) {

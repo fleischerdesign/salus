@@ -12,6 +12,7 @@
   import { useOnline } from '$stores/online.svelte';
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { localMode, SERVER_ONLY_PATH_PREFIXES } from '$lib/db/local-mode.svelte';
 
   const online = useOnline();
   const dotStatus = $derived.by(() => {
@@ -52,10 +53,16 @@
       : workoutItemsBase
   );
 
-  const coachItems = [
+  const coachItemsBase = [
     { href: '/coach/circadian', icon: 'routine', label: 'Circadian' },
     { href: '/coach/chat', icon: 'psychology', label: 'Chat' }
   ];
+
+  const coachItems = $derived(
+    coachItemsBase.filter(
+      (i) => !localMode.active || !SERVER_ONLY_PATH_PREFIXES.some((p) => i.href.startsWith(p))
+    )
+  );
 
   const communityItems = [
     { href: '/community/feed', icon: 'rss-feed', label: 'Feed' },
@@ -151,6 +158,21 @@
 
   let mobileNav = $derived.by(() => {
     const nav = [...baseMobileNav];
+    if (localMode.active) {
+      const filtered = nav.filter((e) => !(e.type === 'group' && e.label === 'Community'));
+      const coachIdx = filtered.findIndex((e) => e.type === 'group' && e.label === 'Coach');
+      if (coachIdx >= 0) {
+        const coach = filtered[coachIdx] as NavGroup;
+        filtered[coachIdx] = {
+          ...coach,
+          items: coach.items.filter(
+            (i) => !SERVER_ONLY_PATH_PREFIXES.some((p) => i.href.startsWith(p))
+          )
+        };
+      }
+      nav.length = 0;
+      nav.push(...filtered);
+    }
     if (hasActiveSession) {
       const idx = nav.findIndex((e) => e.type === 'group' && e.label === 'Workouts');
       if (idx >= 0) {
@@ -257,7 +279,9 @@
 
       <NavDropdown label="Workouts" items={workoutItems} />
       <NavDropdown label="Coach" items={coachItems} />
-      <NavDropdown label="Community" items={communityItems} />
+      {#if !localMode.active}
+        <NavDropdown label="Community" items={communityItems} />
+      {/if}
       <NavDropdown label="Wellness" items={wellnessItems} />
     </nav>
 
