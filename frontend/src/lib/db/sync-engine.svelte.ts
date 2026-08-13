@@ -2,6 +2,7 @@ import { db } from './database';
 import type { OutboxOp, SyncStatus } from './types';
 import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import type { Mutation } from '$lib/mutate';
+import { localMode } from './local-mode.svelte';
 
 let _status = $state<SyncStatus>('idle');
 let _queueLength = $state(0);
@@ -57,6 +58,8 @@ export const syncEngine = {
   },
 
   async flush(): Promise<void> {
+    if (localMode.active) return;
+
     _status = 'syncing';
     _error = null;
 
@@ -185,6 +188,8 @@ export const syncEngine = {
   async flushSingle(
     clientId: string
   ): Promise<{ ok: boolean; error?: string; conflict?: boolean; queued?: boolean }> {
+    if (localMode.active) return { ok: true, queued: true };
+
     _status = 'syncing';
     _error = null;
 

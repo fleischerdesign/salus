@@ -3,6 +3,7 @@ import { syncEngine } from './db/sync-engine.svelte';
 import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import { uuid7 } from './db/uuid';
 import { network } from '$lib/native/network';
+import { localMode } from './db/local-mode.svelte';
 
 export type Mutation =
   | {
@@ -43,12 +44,12 @@ export async function mutate(m: Mutation): Promise<MutationResult> {
   await applyOptimistic(m);
   await syncEngine.enqueueOutbox(m, clientId);
 
-  if (network.isOnline) {
-    const result = await syncEngine.flushSingle(clientId);
-    return result;
+  if (localMode.active || !network.isOnline) {
+    return { ok: true, queued: true };
   }
 
-  return { ok: true, queued: true };
+  const result = await syncEngine.flushSingle(clientId);
+  return result;
 }
 
 async function resolveExpectedUpdatedAt(m: Mutation): Promise<void> {
