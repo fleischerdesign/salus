@@ -15,6 +15,7 @@
   import { onMount } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import AlertBanner from '$components/ui/AlertBanner.svelte';
   import { page } from '$app/state';
   import { beforeNavigate, goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
@@ -135,12 +136,16 @@
   // ── Sync trigger — lazy token validation via sync pull ──
 
   let synced = false;
-  let sessionExpired = $state(false);
+  const sessionExpired = $derived(useOffline.sessionExpired);
 
   $effect(() => {
-    if (auth.isAuthenticated && !synced) {
-      synced = true;
-      runSync();
+    if (auth.isAuthenticated) {
+      if (!synced) {
+        synced = true;
+        runSync();
+      }
+    } else {
+      synced = false;
     }
   });
 
@@ -148,12 +153,15 @@
     await useOffline.syncAll();
     if (useOffline.sessionExpired) {
       useOffline.stopLiveSync();
-      sessionExpired = true;
-      setTimeout(async () => {
-        auth.clear();
-        await goto('/auth/login');
-      }, 2000);
+      return;
     }
+    syncEngine.flush().catch(() => {});
+  }
+
+  async function handleReauth() {
+    useOffline.stopLiveSync();
+    auth.clear();
+    await goto('/auth/login');
   }
 </script>
 
@@ -162,50 +170,40 @@
     <PageTransition>{@render children()}</PageTransition>
   </div>
 {:else if auth.isAuthenticated}
-  {#if sessionExpired}
-    <!-- Session expired overlay -->
+  <div class="flex min-h-screen flex-col bg-surface-50">
+    <TopAppBar />
+    {#if sessionExpired}
+      <div class="mx-auto w-full max-w-[1440px] px-6 pt-4 md:px-10">
+        <AlertBanner variant="warning" class="justify-between">
+          <span class="flex flex-1 items-center justify-between gap-3">
+            <span>Sitzung abgelaufen – melde dich erneut an, um zu synchronisieren.</span>
+            <Btn variant="secondary" size="sm" onclick={handleReauth}>Neu anmelden</Btn>
+          </span>
+        </AlertBanner>
+      </div>
+    {/if}
+    <main class="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 md:px-10">
+      <PageTransition>{@render children()}</PageTransition>
+    </main>
+    <Toast />
+    <ConflictResolver />
+  </div>
+  {#if biometricLock.locked}
+    <!-- Biometric lock overlay -->
     <div
       class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
     >
       <div class="flex flex-col items-center gap-4 text-center">
         <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
-          <Icon name="vpn-key-off" size="2xl" class="text-surface-400" />
+          <Icon name="lock" size="2xl" class="text-surface-400" />
         </div>
         <div>
-          <p class="text-sm font-semibold text-surface-900">Session expired</p>
-          <p class="mt-0.5 text-xs text-surface-500">Redirecting to login…</p>
+          <p class="text-sm font-semibold text-surface-900">App entsperren</p>
+          <p class="mt-0.5 text-xs text-surface-500">Bestätige deine Identität per Biometrie.</p>
         </div>
-        <div class="h-1 w-32 overflow-hidden rounded-full bg-surface-100">
-          <div class="animate-shrink h-full origin-left rounded-full bg-surface-300"></div>
-        </div>
+        <Btn variant="primary" onclick={() => biometricLock.unlock()}>Entsperren</Btn>
       </div>
     </div>
-  {:else}
-    <div class="flex min-h-screen flex-col bg-surface-50">
-      <TopAppBar />
-      <main class="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 md:px-10">
-        <PageTransition>{@render children()}</PageTransition>
-      </main>
-      <Toast />
-      <ConflictResolver />
-    </div>
-    {#if biometricLock.locked}
-      <!-- Biometric lock overlay -->
-      <div
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
-      >
-        <div class="flex flex-col items-center gap-4 text-center">
-          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
-            <Icon name="lock" size="2xl" class="text-surface-400" />
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-surface-900">App entsperren</p>
-            <p class="mt-0.5 text-xs text-surface-500">Bestätige deine Identität per Biometrie.</p>
-          </div>
-          <Btn variant="primary" onclick={() => biometricLock.unlock()}>Entsperren</Btn>
-        </div>
-      </div>
-    {/if}
   {/if}
 {:else if auth.loading}
   <div class="flex min-h-screen items-center justify-center">
