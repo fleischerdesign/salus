@@ -82,7 +82,14 @@ class RevokeTokenHandler:
 
 @register("update_profile")
 class UpdateProfileHandler:
-    _SAFE_FIELDS = {"theme", "locale", "display_name", "onboarding_dismissed"}
+    _SAFE_FIELDS = {
+        "theme",
+        "locale",
+        "display_name",
+        "onboarding_dismissed",
+        "colorblind",
+        "accent_hue",
+    }
 
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         for key, value in payload.items():
@@ -95,6 +102,7 @@ class UpdateProfileHandler:
             "id": user.id, "username": user.username,
             "email": user.email, "display_name": user.display_name,
             "theme": user.theme, "locale": user.locale,
+            "colorblind": user.colorblind, "accent_hue": user.accent_hue,
             "onboarding_dismissed": user.onboarding_dismissed,
         }
         return CommandResult(status="updated", record=record, id=user.id)  # pyright: ignore[reportArgumentType]

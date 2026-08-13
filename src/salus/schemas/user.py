@@ -34,6 +34,8 @@ class UserResponse(BaseModel):
     is_active: bool
     theme: str
     locale: str
+    colorblind: bool
+    accent_hue: int | None
     onboarding_dismissed: bool
     created_at: datetime
     updated_at: datetime

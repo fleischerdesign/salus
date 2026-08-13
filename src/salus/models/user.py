@@ -31,6 +31,8 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     theme: str = Field(default="system")
     locale: str = Field(default="en")
+    colorblind: bool = Field(default=False)
+    accent_hue: int | None = Field(default=None)
     onboarding_dismissed: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
