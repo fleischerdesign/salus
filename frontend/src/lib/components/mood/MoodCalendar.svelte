@@ -3,6 +3,7 @@
   import { todayString } from '$lib/utils/datetime';
   import Icon from '$components/ui/Icon.svelte';
   import { theme } from '$stores/theme.svelte';
+  import { moodColorClass } from '$lib/theme/scales';
 
   interface Props {
     entries: MoodEntry[];
@@ -42,18 +43,7 @@
   }
 
   function moodColor(score: number): string {
-    if (theme.colorblind) {
-      if (score >= 8) return 'bg-blue-500';
-      if (score >= 6) return 'bg-sky-400';
-      if (score >= 4) return 'bg-gray-400';
-      if (score >= 2) return 'bg-orange-400';
-      return 'bg-red-500';
-    }
-    if (score >= 8) return 'bg-emerald-500';
-    if (score >= 6) return 'bg-lime-400';
-    if (score >= 4) return 'bg-amber-400';
-    if (score >= 2) return 'bg-orange-400';
-    return 'bg-red-400';
+    return moodColorClass(score, theme.colorblind);
   }
 
   const todayStr = $derived(todayString());

@@ -345,6 +345,20 @@
               ></button>
             {/each}
           </div>
+          <div class="mt-3 flex items-center gap-3">
+            <input
+              type="range"
+              min="0"
+              max="359"
+              value={theme.accentHue}
+              oninput={(e) =>
+                theme.setAccentHue(Number((e.currentTarget as HTMLInputElement).value))}
+              class="w-full accent-primary-500"
+            />
+            <span class="w-8 text-right text-xs text-surface-500 tabular-nums">
+              {theme.accentHue}°
+            </span>
+          </div>
         </div>
       </div>
     </Card>
