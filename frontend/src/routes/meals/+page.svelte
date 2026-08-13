@@ -34,7 +34,7 @@
       .toArray();
   });
   const mealItems = $derived(mealItemsQuery.value);
-  const foodItemsQuery = useQuery(() => db.food_item.filter((f) => !f.deleted_at).toArray());
+  const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
   const foodItems = $derived(foodItemsQuery.value);
   const loading = $derived(foodItemsQuery.loading);
 

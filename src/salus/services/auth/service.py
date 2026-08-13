@@ -65,6 +65,5 @@ class AuthService:
         return self._user_svc.get_by_id(str(user_id))
 
     def create_token_for_user(self, user: User) -> str:
-        from salus.services._helpers import uid
 
         return self._jwt.create_token(uid(user), user.username)

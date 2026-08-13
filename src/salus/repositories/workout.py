@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from sqlmodel import select, or_, desc, col
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
@@ -81,7 +82,6 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
     def count_completed_in_range(
         self, user_id: str, since: datetime, until: datetime
     ) -> int:
-        from sqlalchemy import func
 
         stmt = (
             select(func.count(WorkoutSession.id))  # type: ignore[arg-type]

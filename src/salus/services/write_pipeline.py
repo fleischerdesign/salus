@@ -146,7 +146,6 @@ class WritePipeline:
         )
 
     def _inject_user_id(self, meta: EntityMeta, data: dict[str, Any]) -> dict[str, Any]:
-        from salus.services._helpers import uid
 
         strategy = meta.strategy
         owner_field = meta.owner_field or "user_id"
@@ -182,7 +181,6 @@ class WritePipeline:
         ))
 
     def _check_ownership(self, instance: Any, meta: EntityMeta | None = None) -> bool:
-        from salus.services._helpers import uid
 
         uid_self = uid(self.user)
         if hasattr(instance, "user_id") and instance.user_id == uid_self:

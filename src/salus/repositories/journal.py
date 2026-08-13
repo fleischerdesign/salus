@@ -1,5 +1,6 @@
 from datetime import date
 
+from sqlalchemy import func
 from sqlmodel import col, select
 
 from salus.models.journal import JournalEntry
@@ -24,7 +25,6 @@ class JournalEntryRepository(Repository[JournalEntry]):
         )
 
     def count_by_user(self, user_id: str) -> int:
-        from sqlalchemy import func
         stmt = (
             select(func.count())
             .select_from(JournalEntry)
