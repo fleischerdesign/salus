@@ -35,7 +35,7 @@
         {/if}
       {/if}
       {#if ciLower != null && ciUpper != null}
-        <span class="font-mono text-[11px] text-surface-400"
+        <span class="font-mono text-[10px] text-surface-400"
           >[{ciLower.toFixed(2)}, {ciUpper.toFixed(2)}]</span
         >
       {/if}

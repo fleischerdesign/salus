@@ -37,7 +37,7 @@
 
 <label class="{labelClass} {extraClass}">
   {#if label}
-    <span class="text-[13px] font-semibold tracking-[0.05em] text-surface-700">{label}</span>
+    <span class="text-xs font-semibold tracking-label text-surface-700">{label}</span>
   {/if}
   <span class={trackClass}>
     <span class={thumbClass}></span>

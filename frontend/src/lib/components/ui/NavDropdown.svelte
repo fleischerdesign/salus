@@ -46,7 +46,7 @@
   let hasHighlight = $derived(items.some((item) => item.highlight));
 
   let triggerClass = $derived(
-    'flex h-16 items-center gap-1 border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] transition-colors duration-micro ' +
+    'flex h-16 items-center gap-1 border-b-2 px-4 text-xs font-semibold tracking-label transition-colors duration-micro ' +
       (isActive
         ? 'border-primary-500 text-primary-600'
         : open
@@ -88,7 +88,7 @@
           $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + '/')}
         <a
           href={item.href}
-          class="duration-micro flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {item.highlight
+          class="duration-micro flex items-center gap-3 px-4 py-2.5 text-xs font-semibold tracking-label no-underline transition-colors hover:bg-surface-50 {item.highlight
             ? 'text-success-600'
             : active
               ? 'text-primary-600'

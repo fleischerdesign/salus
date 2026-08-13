@@ -155,7 +155,7 @@
           <div class="flex items-center justify-between border-t border-surface-100 px-6 py-3">
             <span class="text-xs text-surface-400">
               Model:
-              <code class="rounded bg-surface-50 px-1 py-0.5 text-[11px] text-surface-500">
+              <code class="rounded bg-surface-50 px-1 py-0.5 text-[10px] text-surface-500">
                 {insight.model_used}
               </code>
             </span>

@@ -163,7 +163,7 @@
     <!-- Progressive Disclosure Action Footer -->
     {#if items.length > 1 && onApplyToCategory}
       <div
-        class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[11px]"
+        class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[10px]"
       >
         <span class="text-surface-400">{items.length} Configured Sources</span>
         <button

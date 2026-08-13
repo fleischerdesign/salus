@@ -118,7 +118,7 @@
 
       {#if lastSessionData}
         <div
-          class="flex items-center gap-1.5 border-t border-surface-100 pt-3 text-[11px] text-surface-400"
+          class="flex items-center gap-1.5 border-t border-surface-100 pt-3 text-[10px] text-surface-400"
         >
           <Icon name="history" size="sm" />
           <span>

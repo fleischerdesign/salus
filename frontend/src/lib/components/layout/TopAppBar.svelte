@@ -83,7 +83,7 @@
   function navLinkClass(link: { href: string }) {
     const active = page.url.pathname === link.href;
     return (
-      'flex h-full items-center border-b-2 px-4 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors duration-micro ' +
+      'flex h-full items-center border-b-2 px-4 text-xs font-semibold tracking-label no-underline transition-colors duration-micro ' +
       (active
         ? 'border-primary-500 text-primary-600'
         : 'border-transparent text-surface-600 hover:text-primary-600')
@@ -330,7 +330,7 @@
           {@const active = isLinkActive(entry.href)}
           <a
             href={entry.href}
-            class="duration-micro flex items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {entry.highlight
+            class="duration-micro flex items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold tracking-label no-underline transition-colors hover:bg-surface-50 {entry.highlight
               ? 'text-success-600'
               : active
                 ? 'bg-primary-50 text-primary-600'
@@ -350,7 +350,7 @@
           {@const groupHasActive = isGroupActive(entry)}
           <button
             type="button"
-            class="duration-micro flex w-full items-center gap-3 rounded-md px-4 py-3 text-[13px] font-semibold tracking-[0.05em] text-surface-600 transition-colors hover:bg-surface-50"
+            class="duration-micro flex w-full items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold tracking-label text-surface-600 transition-colors hover:bg-surface-50"
             onclick={() => toggleGroup(entry.label)}
             aria-expanded={expanded}
           >
@@ -371,7 +371,7 @@
                 {@const active = isLinkActive(subItem.href)}
                 <a
                   href={subItem.href}
-                  class="duration-micro flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-[13px] font-medium tracking-[0.05em] no-underline transition-colors hover:bg-surface-50 {subItem.highlight
+                  class="duration-micro flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-xs font-medium tracking-label no-underline transition-colors hover:bg-surface-50 {subItem.highlight
                     ? 'text-success-600'
                     : active
                       ? 'bg-primary-50 text-primary-600'

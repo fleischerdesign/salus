@@ -30,7 +30,7 @@
 </script>
 
 <button
-  class="group relative inline-flex items-center gap-1 rounded-full border border-surface-200 bg-surface-50 px-2 py-0.5 text-[11px] text-surface-500 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600"
+  class="group relative inline-flex items-center gap-1 rounded-full border border-surface-200 bg-surface-50 px-2 py-0.5 text-[10px] text-surface-500 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600"
   onclick={() => (expanded = !expanded)}
   aria-expanded={expanded}
 >
@@ -80,7 +80,7 @@
         </div>
       {/if}
     </div>
-    <div class="mt-3 border-t border-surface-100 pt-2 text-[11px] leading-relaxed text-surface-400">
+    <div class="mt-3 border-t border-surface-100 pt-2 text-[10px] leading-relaxed text-surface-400">
       {citation.text}
       {#if citation.doi}
         <a

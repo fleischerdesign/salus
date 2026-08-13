@@ -289,7 +289,7 @@
                     {updateResult.latestVersion}
                   </span>
                   {#if updateResult.publishedAt}
-                    <span class="text-[11px] text-primary-600">({updateResult.publishedAt})</span>
+                    <span class="text-[10px] text-primary-600">({updateResult.publishedAt})</span>
                   {/if}
                 </div>
                 <p class="text-primary-950 mt-2 text-xs leading-relaxed whitespace-pre-line">

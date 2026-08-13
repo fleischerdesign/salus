@@ -139,7 +139,7 @@
   <div class="rounded-lg border border-primary-500/10 bg-primary-50/50 p-2">
     <div class="flex items-start gap-1.5">
       <Icon name="psychology" size="sm" class="mt-0.5 shrink-0 text-primary-500" />
-      <p class="text-[11px] leading-snug font-medium text-primary-700">
+      <p class="text-[10px] leading-snug font-medium text-primary-700">
         {activeAdvice}
       </p>
     </div>

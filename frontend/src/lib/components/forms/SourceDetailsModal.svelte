@@ -198,7 +198,7 @@
             <div class="flex items-center justify-between">
               <div>
                 <h4 class="text-xs font-bold text-primary-900">Android Health Connect Bridge</h4>
-                <p class="mt-0.5 text-[11px] text-primary-700">
+                <p class="mt-0.5 text-[10px] text-primary-700">
                   Direct native link to Google Health Connect & Samsung Health
                 </p>
               </div>
@@ -228,13 +228,13 @@
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
               <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
-                <span class="text-[11px] text-surface-500">Total Measurements</span>
+                <span class="text-[10px] text-surface-500">Total Measurements</span>
                 <div class="mt-0.5 text-base font-bold text-surface-900">
                   {count.toLocaleString()}
                 </div>
               </div>
               <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
-                <span class="text-[11px] text-surface-500">Last Data Ingest</span>
+                <span class="text-[10px] text-surface-500">Last Data Ingest</span>
                 <div class="mt-1 truncate text-xs font-semibold text-surface-900">
                   {lastSyncTime ?? 'Recent'}
                 </div>

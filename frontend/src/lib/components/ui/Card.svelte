@@ -51,7 +51,7 @@
     </div>
   {:else if title}
     <div class="flex items-center gap-3 border-b border-surface-200 px-6 py-3">
-      <h3 class="text-[13px] font-semibold {disabled ? 'text-surface-600' : 'text-surface-900'}">
+      <h3 class="text-xs font-semibold {disabled ? 'text-surface-600' : 'text-surface-900'}">
         {title}
       </h3>
     </div>

@@ -327,7 +327,7 @@
                   </div>
 
                   <div
-                    class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[11px]"
+                    class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[10px]"
                   >
                     <span class="text-surface-500">Measurements</span>
                     <span

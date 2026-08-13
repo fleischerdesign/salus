@@ -146,7 +146,7 @@
         <text
           x={LEFT - 8}
           y={TOP + i * STEP + CELL / 2 + 4}
-          class="fill-surface-400 text-[9px]"
+          class="fill-surface-400 text-[10px]"
           text-anchor="end">{label}</text
         >
       {/if}
@@ -185,7 +185,7 @@
       <div class="mt-0.5 text-surface-600 tabular-nums">
         {metric}: {hovered.value.toLocaleString()}
       </div>
-      <div class="text-[11px] text-surface-400 tabular-nums">
+      <div class="text-[10px] text-surface-400 tabular-nums">
         percentile: {(hovered.percentile! * 100).toFixed(0)}%
       </div>
     {:else}

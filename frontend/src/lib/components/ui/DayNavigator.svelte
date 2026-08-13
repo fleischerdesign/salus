@@ -45,7 +45,7 @@
   </button>
 
   <span
-    class="duration-micro cursor-pointer text-[13px] font-semibold tracking-[0.05em] text-surface-900 transition-colors hover:text-primary-600"
+    class="duration-micro cursor-pointer text-xs font-semibold tracking-label text-surface-900 transition-colors hover:text-primary-600"
     role="button"
     tabindex="0"
     onclick={() => {

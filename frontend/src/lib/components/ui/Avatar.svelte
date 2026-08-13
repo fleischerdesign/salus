@@ -16,7 +16,7 @@
   }: Props = $props();
 
   const sizeClasses: Record<string, string> = {
-    sm: 'h-9 w-9 text-[13px]',
+    sm: 'h-9 w-9 text-xs',
     md: 'h-10 w-10 text-base',
     lg: 'h-12 w-12 text-xl'
   };

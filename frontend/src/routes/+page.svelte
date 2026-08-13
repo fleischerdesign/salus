@@ -291,7 +291,7 @@
           </button>
 
           <label
-            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-[0.05em] text-surface-700 transition-colors hover:text-primary-600"
+            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-label text-surface-700 transition-colors hover:text-primary-600"
           >
             <span>{displayDateFormatted}</span>
             <input
@@ -555,7 +555,7 @@
                     >
                       <Icon name="vital-signs" size="lg" class="text-error-500" />
                       <span class="text-xs font-bold text-error-600">120 / 80</span>
-                      <span class="text-[9px] text-surface-400">mmHg</span>
+                      <span class="text-[10px] text-surface-400">mmHg</span>
                     </div>
                   {:else if opt.source_data_type === 'exercise'}
                     <div
@@ -563,7 +563,7 @@
                     >
                       <Icon name="fitness-center" size="lg" class="text-violet-500" />
                       <span class="text-xs font-bold text-violet-600">45 mins</span>
-                      <span class="text-[9px] text-surface-400">320 kcal</span>
+                      <span class="text-[10px] text-surface-400">320 kcal</span>
                     </div>
                   {:else if opt.source_data_type === 'nutrition'}
                     <div class="flex w-full flex-col justify-center gap-1 px-2 opacity-80">
@@ -637,7 +637,7 @@
                     <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
                     <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
                   </div>
-                  <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-surface-500">
+                  <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
                     {opt.description}
                   </p>
                 </div>
@@ -718,12 +718,12 @@
                   <div class="flex w-full items-center justify-center gap-3 opacity-80">
                     <div class="flex flex-col items-center">
                       <span class="text-xs font-bold text-error-500">+4.5h</span>
-                      <span class="text-[8px] text-surface-400">Debt</span>
+                      <span class="text-[10px] text-surface-400">Debt</span>
                     </div>
                     <div class="h-8 w-px bg-surface-200"></div>
                     <div class="flex flex-col items-center">
                       <span class="text-xs font-bold text-primary-500">09:30</span>
-                      <span class="text-[8px] text-surface-400">Wind Down</span>
+                      <span class="text-[10px] text-surface-400">Wind Down</span>
                     </div>
                   </div>
                 {/if}
@@ -735,7 +735,7 @@
                   <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
                   <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
                 </div>
-                <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-surface-500">
+                <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
                   {opt.description}
                 </p>
               </div>

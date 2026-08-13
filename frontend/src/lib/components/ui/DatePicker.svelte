@@ -40,7 +40,7 @@
   {#if label}
     <label
       for="{name ?? 'datepicker'}-input"
-      class="mb-1 block text-[13px] font-semibold tracking-[0.05em] text-surface-900"
+      class="mb-1 block text-xs font-semibold tracking-label text-surface-900"
     >
       {label}{#if required}<span class="text-error-500"> *</span>{/if}
     </label>

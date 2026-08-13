@@ -68,7 +68,7 @@
 
 <div class="flex flex-col gap-1 {extraClass}">
   {#if label}
-    <label for={name} class="text-[13px] font-semibold text-surface-900">
+    <label for={name} class="text-xs font-semibold text-surface-900">
       {label}
       {#if required}<span class="ml-0.5 text-error-500">*</span>{/if}
     </label>
