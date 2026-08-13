@@ -44,7 +44,8 @@
   }
 
   async function handleToggle(habitId: string) {
-    await toggleHabit(habitId);
+    const { ok, error } = await toggleHabit(habitId);
+    if (!ok) console.error('Failed to toggle habit:', error);
   }
 
   async function handleSave(data: Parameters<typeof createHabitMut>[0]) {

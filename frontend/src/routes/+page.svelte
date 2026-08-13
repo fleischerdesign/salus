@@ -120,7 +120,8 @@
   }
 
   async function removeWidget(id: string) {
-    await deleteWidgetMut(id);
+    const { ok, error } = await deleteWidgetMut(id);
+    if (!ok) console.error('Failed to remove widget:', error);
   }
 
   async function updateWidgetSize() {
@@ -138,7 +139,11 @@
 
   async function reorderWidgets(newOrder: string[]) {
     const updates = newOrder.map((id, idx) => updateWidgetMut(id, { position: idx }));
-    await Promise.all(updates);
+    try {
+      await Promise.all(updates);
+    } catch {
+      /* reordering is best-effort; the next sync reconciles positions */
+    }
   }
 
   function toggleEdit() {

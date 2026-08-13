@@ -111,7 +111,8 @@
   }
 
   async function handleDelete(mealId: string) {
-    await deleteMeal(mealId);
+    const { ok, error } = await deleteMeal(mealId);
+    if (!ok) console.error('Failed to delete meal:', error);
   }
 
   function goToEdit(mealId: string) {

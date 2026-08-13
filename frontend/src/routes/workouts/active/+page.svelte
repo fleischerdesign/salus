@@ -277,8 +277,12 @@
     if (!session) return;
     canceling = true;
     const sessionId = session.id;
-    await cancelWorkout(sessionId);
+    const { ok, error } = await cancelWorkout(sessionId);
     canceling = false;
+    if (!ok) {
+      console.error('Failed to cancel workout:', error);
+      return;
+    }
     await goto('/workouts');
   }
 </script>
