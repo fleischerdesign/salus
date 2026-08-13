@@ -67,6 +67,11 @@ class ThemeService {
     this.persist();
   }
 
+  previewAccentHue(hue: number): void {
+    this.accentHue = hue;
+    this.apply();
+  }
+
   applyUserProfile(profile: {
     theme?: string;
     colorblind?: boolean;
