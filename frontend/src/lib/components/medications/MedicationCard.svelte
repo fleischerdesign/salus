@@ -5,6 +5,7 @@
   import CheckCircle from '$components/ui/CheckCircle.svelte';
   import { goto } from '$app/navigation';
   import type { Medication } from '$lib/db/types';
+  import { resolveColor } from '$lib/theme/colors';
 
   interface Props {
     medication: Medication;
@@ -51,7 +52,10 @@
       <div class="flex items-start gap-3">
         <div
           class="duration-micro flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white transition-all"
-          style="background-color: {medication.color_hex}"
+          style="background-color: {resolveColor(
+            'medication:' + medication.id,
+            medication.color_hex
+          )}"
         >
           <Icon name={medication.icon} size="md" />
         </div>
@@ -97,7 +101,10 @@
           }}
           disabled={toggling}
           class="rounded-full px-3 py-1 text-xs font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-50"
-          style="background-color: {medication.color_hex}"
+          style="background-color: {resolveColor(
+            'medication:' + medication.id,
+            medication.color_hex
+          )}"
         >
           Take now
         </button>

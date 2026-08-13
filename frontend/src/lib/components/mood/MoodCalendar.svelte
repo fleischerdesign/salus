@@ -2,6 +2,7 @@
   import type { MoodEntry } from '$lib/db/types';
   import { todayString } from '$lib/utils/datetime';
   import Icon from '$components/ui/Icon.svelte';
+  import { theme } from '$stores/theme.svelte';
 
   interface Props {
     entries: MoodEntry[];
@@ -41,6 +42,13 @@
   }
 
   function moodColor(score: number): string {
+    if (theme.colorblind) {
+      if (score >= 8) return 'bg-blue-500';
+      if (score >= 6) return 'bg-sky-400';
+      if (score >= 4) return 'bg-gray-400';
+      if (score >= 2) return 'bg-orange-400';
+      return 'bg-red-500';
+    }
     if (score >= 8) return 'bg-emerald-500';
     if (score >= 6) return 'bg-lime-400';
     if (score >= 4) return 'bg-amber-400';
