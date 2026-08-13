@@ -31,6 +31,7 @@
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
   import { seedReferenceData } from '$lib/db/seed';
   import { localMode, SERVER_ONLY_PATH_PREFIXES } from '$lib/db/local-mode.svelte';
+  import { theme } from '$stores/theme.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
@@ -83,6 +84,7 @@
   // ── Auth bootstrap & SW Update Listener ──
 
   onMount(() => {
+    theme.init();
     seedReferenceData().catch(() => {});
 
     if (!auth.token) {
