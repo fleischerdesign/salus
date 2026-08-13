@@ -37,8 +37,10 @@
         <div
           class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg font-bold"
           style="
-            background-color: {iconBgColor ? iconBgColor : `${iconColor || '#4f46e5'}20`};
-            color: {iconColor || '#4f46e5'};
+            background-color: {iconBgColor
+            ? iconBgColor
+            : `color-mix(in oklch, ${iconColor || 'var(--color-primary-500)'} 12%, transparent)`};
+            color: {iconColor || 'var(--color-primary-500)'};
           "
         >
           <Icon name={icon} />

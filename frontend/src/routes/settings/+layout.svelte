@@ -31,7 +31,6 @@
     title="Settings"
     subtitle="Configure account options, privacy limits, and active sharing keys."
     icon="settings"
-    iconColor="#4f46e5"
   />
 
   <div class="flex gap-6">

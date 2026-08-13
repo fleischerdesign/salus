@@ -176,7 +176,7 @@ export async function fetchDashboard(date: string): Promise<DashboardData> {
       dayMeasurements,
       allMeasurements: measurements,
       goals,
-      color: '#4f46e5'
+      color: 'var(--color-primary-500)'
     });
 
     return {

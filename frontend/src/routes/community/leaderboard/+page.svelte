@@ -153,7 +153,6 @@
     title="Leaderboard"
     subtitle="Compete with connections and track your health rankings."
     icon="emoji-events"
-    iconColor="#4f46e5"
     backUrl="/community"
   />
 

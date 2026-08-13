@@ -130,7 +130,6 @@
       title={detail.name}
       subtitle={`${detail.time_frame} • ${detail.source_data_type} • ${new Date(detail.start_date).toLocaleDateString()} — ${new Date(detail.end_date).toLocaleDateString()}`}
       icon={metricIcon[detail.source_data_type] ?? 'emoji-events'}
-      iconColor="#4f46e5"
       backUrl="/community/leaderboard"
     >
       {#snippet actions()}

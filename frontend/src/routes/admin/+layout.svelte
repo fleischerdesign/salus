@@ -31,7 +31,6 @@
     title="Admin Panel"
     subtitle="Manage database backups, system metrics, general settings, and loaded plugins."
     icon="admin_panel_settings"
-    iconColor="#4f46e5"
   />
 
   <div class="flex gap-6">

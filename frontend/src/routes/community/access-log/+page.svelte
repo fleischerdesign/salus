@@ -31,7 +31,6 @@
     title="Access Log"
     subtitle="Track who accessed your shared health data and when."
     icon="security"
-    iconColor="#4f46e5"
     backUrl="/community/connections"
   />
 

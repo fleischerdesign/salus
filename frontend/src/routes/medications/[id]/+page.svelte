@@ -10,6 +10,7 @@
   import Spinner from '$components/ui/Spinner.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import { resolveColor } from '$lib/theme/colors';
   import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -165,7 +166,7 @@
     title={medication.name}
     subtitle={medication.strength ? `${medication.strength} · ${medication.form}` : medication.form}
     icon={medication.icon}
-    iconColor={medication.color_hex}
+    iconColor={resolveColor('medication:' + medication.id, medication.color_hex)}
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch gap-2">

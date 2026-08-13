@@ -85,7 +85,6 @@
     title="Recipes"
     subtitle="Save and reuse your favorite meal combinations"
     icon="menu-book"
-    iconColor="#f59e0b"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">

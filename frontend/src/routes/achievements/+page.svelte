@@ -43,7 +43,6 @@
     title="Achievements"
     subtitle="Badges and milestones earned through consistency"
     icon="emoji-events"
-    iconColor="#f59e0b"
   />
 
   {#if loading}

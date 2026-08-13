@@ -122,7 +122,6 @@
     title="Training Plans"
     subtitle="Design structured routine templates, arrange exercise orders, and log progression."
     icon="event_note"
-    iconColor="#4f46e5"
     backUrl="/workouts"
   >
     {#snippet actions()}

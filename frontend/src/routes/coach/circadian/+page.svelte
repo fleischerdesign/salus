@@ -90,7 +90,6 @@
     title="Circadian & Light Advisor"
     subtitle="Sync your biometrics, sleep patterns, and daily habits with the natural solar cycle."
     icon="light_mode"
-    iconColor="#4f46e5"
   />
 
   {#if adviceLoading && !advice}

@@ -74,12 +74,7 @@
 <svelte:head><title>Salus — Food Database</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Food Database"
-    subtitle="Search and manage food items"
-    icon="search"
-    iconColor="#f59e0b"
-  >
+  <PageHeader title="Food Database" subtitle="Search and manage food items" icon="search">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
         <button

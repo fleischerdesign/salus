@@ -86,7 +86,6 @@
       title={plan.name}
       subtitle={plan.description || 'Training routine details and completed history.'}
       icon="event_note"
-      iconColor="#4f46e5"
       backUrl="/workouts/plans"
     >
       {#snippet actions()}

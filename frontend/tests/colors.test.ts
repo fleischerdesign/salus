@@ -25,4 +25,11 @@ describe('resolveColor', () => {
 
     expect(resolveColor('steps', '#f59e0b')).toBe(resolveColor('steps', '#f59e0b'));
   });
+
+  it('never remaps achromatic colors', () => {
+    theme.setColorblind(true);
+
+    expect(resolveColor('white', '#ffffff')).toBe('#ffffff');
+    expect(resolveColor('gray', '#9ca3af')).toBe('#9ca3af');
+  });
 });

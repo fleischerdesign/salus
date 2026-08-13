@@ -39,7 +39,6 @@
     title={`Notifications (${unreadCount} unread)`}
     subtitle="Stay updated on updates, sync alerts, and sharing triggers."
     icon="notifications"
-    iconColor="#4f46e5"
   >
     {#snippet actions()}
       {#if unreadCount > 0}

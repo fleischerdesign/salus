@@ -111,12 +111,7 @@
 <svelte:head><title>Salus — Goals</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Goals"
-    subtitle="Set and track your health targets."
-    icon="track-changes"
-    iconColor="#4f46e5"
-  >
+  <PageHeader title="Goals" subtitle="Set and track your health targets." icon="track-changes">
     {#snippet actions()}
       <button
         type="button"

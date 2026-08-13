@@ -36,12 +36,7 @@
 <svelte:head><title>Salus — Journal</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Journal"
-    subtitle="Capture your thoughts and reflections"
-    icon="edit-note"
-    iconColor="#8b5cf6"
-  />
+  <PageHeader title="Journal" subtitle="Capture your thoughts and reflections" icon="edit-note" />
 
   <Card>
     <form

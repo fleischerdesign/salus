@@ -48,7 +48,6 @@
     title="Community"
     subtitle="Connect, compete, and share your health journey with peers."
     icon="groups"
-    iconColor="#4f46e5"
   />
 
   {#if !counts}

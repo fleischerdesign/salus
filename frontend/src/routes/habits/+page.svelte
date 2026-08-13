@@ -62,12 +62,7 @@
 <svelte:head><title>Salus — Habits</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Habits"
-    subtitle="Track daily habits and build streaks"
-    icon="check-circle"
-    iconColor="#4f46e5"
-  >
+  <PageHeader title="Habits" subtitle="Track daily habits and build streaks" icon="check-circle">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
         <button

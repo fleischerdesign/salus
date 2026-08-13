@@ -73,7 +73,6 @@
     title="Session History"
     subtitle="View your past workout sessions and performance logs."
     icon="history"
-    iconColor="#4f46e5"
     backUrl="/workouts"
   />
 
