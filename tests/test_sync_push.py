@@ -805,3 +805,16 @@ class TestOptimisticLocking:
         result = resp.json()["results"][0]
         assert result["status"] == "conflict"
         assert "conflict" in result
+
+    def test_user_achievement_write_is_rejected(self, authenticated_client: TestClient):
+        op = {
+            "type": "create",
+            "entity": "user_achievement",
+            "client_id": "ua-cheat-1",
+            "data": {"achievement_code": "first_entry", "unlocked_at": "2026-08-13T00:00:00Z"},
+        }
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [op]})
+        assert resp.status_code == 200
+        result = resp.json()["results"][0]
+        assert result["status"] == "error"
+        assert "server-computed" in result["message"]

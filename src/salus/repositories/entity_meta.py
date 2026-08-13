@@ -222,10 +222,17 @@ def _validate_measurement_create(
     return None
 
 
+def _validate_user_achievement(
+    _session: Session, _current_user: User, _data: dict, _op: "SyncOperation",
+) -> str | None:
+    return "Achievements are server-computed and cannot be written via sync push"
+
+
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "user": _validate_user_update,
     "api_token": _validate_api_token_update,
     "exercise": _validate_exercise_create,
     "user_metric_preference": _validate_metric_preference_create,
     "measurement": _validate_measurement_create,
+    "user_achievement": _validate_user_achievement,
 }
