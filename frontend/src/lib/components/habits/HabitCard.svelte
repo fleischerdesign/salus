@@ -5,6 +5,7 @@
   import CheckCircle from '$components/ui/CheckCircle.svelte';
   import { goto } from '$app/navigation';
   import type { Habit } from '$lib/db/types';
+  import { resolveColor } from '$lib/theme/colors';
 
   interface Props {
     habit: Habit;
@@ -67,7 +68,7 @@
       <div class="flex items-start gap-3">
         <div
           class="duration-micro flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white transition-all"
-          style="background-color: {habit.color}"
+          style="background-color: {resolveColor('habit:' + habit.id, habit.color)}"
           class:scale-90={toggling}
           class:bg-success-500={feedback === 'done'}
           class:bg-error-500={feedback === 'undone'}

@@ -4,6 +4,7 @@
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import FormField from '$components/forms/FormField.svelte';
+  import { resolveColor } from '$lib/theme/colors';
 
   interface Props {
     open: boolean;
@@ -133,7 +134,7 @@
             class:border-surface-900={color === c}
             class:ring-2={color === c}
             class:ring-primary-300={color === c}
-            style="background-color: {c}"
+            style="background-color: {resolveColor('habit:' + c, c)}"
             aria-label={c}
             onclick={() => (color = c)}
           ></button>

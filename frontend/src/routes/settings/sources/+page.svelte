@@ -8,6 +8,7 @@
   import SearchInput from '$components/ui/SearchInput.svelte';
   import Select from '$components/ui/Select.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import { resolveColor } from '$lib/theme/colors';
   import SourcePriorityCard from '$components/forms/SourcePriorityCard.svelte';
   import SourceDetailsModal from '$components/forms/SourceDetailsModal.svelte';
   import { updateSourcePreferences } from '$lib/mutations/misc';
@@ -294,7 +295,9 @@
                         class="flex h-9 w-9 items-center justify-center rounded-lg text-white shadow-2xs transition-all {isActive
                           ? ''
                           : 'opacity-75 grayscale'}"
-                        style="background-color: {isActive ? src.color : '#9ca3af'}"
+                        style="background-color: {isActive
+                          ? resolveColor('source:' + src.id, src.color)
+                          : '#9ca3af'}"
                       >
                         <Icon name={src.icon} size="sm" />
                       </div>
