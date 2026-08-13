@@ -286,6 +286,12 @@ export class SalusDB extends Dexie {
   /**
    * Resolves "not soft-deleted" records. Rows are either deleted
    * (deleted_at set) or not (deleted_at is '' or null after sync).
+   *
+   * Returns a Dexie `Collection`, so it only supports full-table reads
+   * (`.toArray()`/`.each()`); it does NOT compose with a further
+   * `.where()`/`.equals()` chain. For field-filtered queries, keep the
+   * `.where(...).filter((x) => !x.deleted_at)` form. Requires a
+   * `deleted_at` index on the target table.
    */
   notDeleted<T extends { id: string; deleted_at?: string | null }>(table: EntityTable<T, 'id'>) {
     return table
