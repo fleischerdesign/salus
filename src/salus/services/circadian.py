@@ -14,6 +14,25 @@ from salus.services.analytics.stats import pearson
 
 logger = logging.getLogger("salus.services.circadian")
 
+MINUTES_PER_DAY = 1440
+MELATONIN_DELAY_MINUTES = 240
+SLEEP_DURATION_MINUTES = 480
+MORNING_LIGHT_ANCHOR_MINUTES = 120
+EATING_WINDOW_START_DELAY_MINUTES = 60
+EATING_WINDOW_END_OFFSET_MINUTES = 180
+ALIGNMENT_DEDUCTION_MINUTES = 10
+ALIGNMENT_EXCELLENT_THRESHOLD = 85
+
+
+def _mins_to_str(mins: float) -> str:
+    m = int(mins % MINUTES_PER_DAY)
+    return f"{m // 60:02d}:{m % 60:02d}"
+
+
+def _time_to_mins(t_str: str) -> int:
+    hours, minutes = t_str.split(":")
+    return int(hours) * 60 + int(minutes)
+
 
 class CircadianService:
     def __init__(self, uow: IUnitOfWork) -> None:
@@ -137,19 +156,69 @@ class CircadianService:
             dawn_mins = solar_noon_mins - ha_civil * 4.0
             dusk_mins = solar_noon_mins + ha_civil * 4.0
 
-        def min_to_str(m: float) -> str:
-            m = int(m % 1440)
-            return f"{m // 60:02d}:{m % 60:02d}"
-
         return {
-            "sunrise": min_to_str(sunrise_mins),
-            "sunset": min_to_str(sunset_mins),
-            "solar_noon": min_to_str(solar_noon_mins),
-            "dawn": min_to_str(dawn_mins),
-            "dusk": min_to_str(dusk_mins),
+            "sunrise": _mins_to_str(sunrise_mins),
+            "sunset": _mins_to_str(sunset_mins),
+            "solar_noon": _mins_to_str(solar_noon_mins),
+            "dawn": _mins_to_str(dawn_mins),
+            "dusk": _mins_to_str(dusk_mins),
             "sunrise_mins": sunrise_mins,
             "sunset_mins": sunset_mins,
             "solar_noon_mins": solar_noon_mins,
+        }
+
+    def _recent_sleeps(self, user_id: str) -> list:
+        with self.uow:
+            if self.uow.metric_definitions.find_by_code("sleep") is None:
+                return []
+            return self.uow.measurements.find_by_metric_type(
+                metric_code="sleep", user_id=user_id
+            )
+
+    def _recent_sleep_times(self, sleeps: list) -> tuple[str, str]:
+        actual_onset = "23:00"
+        actual_offset = "07:00"
+        valid_sleeps = [s for s in sleeps if s.end_time is not None]
+        if valid_sleeps:
+            last_sleep = valid_sleeps[0]
+            actual_onset = last_sleep.start_time.strftime("%H:%M")
+            if last_sleep.end_time:
+                actual_offset = last_sleep.end_time.strftime("%H:%M")
+        return actual_onset, actual_offset
+
+    def _alignment_score(self, actual_onset: str, target_onset: str) -> int:
+        diff = abs(_time_to_mins(actual_onset) - _time_to_mins(target_onset))
+        if diff > MINUTES_PER_DAY // 2:
+            diff = MINUTES_PER_DAY - diff
+        return max(0, 100 - int(diff / ALIGNMENT_DEDUCTION_MINUTES))
+
+    def _light_advice(self, solar: dict) -> list[dict]:
+        return [
+            {
+                "time_window": f"{solar['sunrise']} - {_mins_to_str(solar['sunrise_mins'] + MORNING_LIGHT_ANCHOR_MINUTES)}",
+                "action": "Morning Daylight Anchor",
+                "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.",
+            },
+            {
+                "time_window": f"After {solar['sunset']}",
+                "action": "Minimize Blue Light",
+                "description": "Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset.",
+            },
+        ]
+
+    def _eating_window(self, actual_onset: str, actual_offset: str) -> dict:
+        actual_offset_mins = _time_to_mins(actual_offset)
+        actual_onset_mins = _time_to_mins(actual_onset)
+        eating_start_mins = (
+            actual_offset_mins + EATING_WINDOW_START_DELAY_MINUTES
+        ) % MINUTES_PER_DAY
+        eating_end_mins = (
+            actual_onset_mins - EATING_WINDOW_END_OFFSET_MINUTES
+        ) % MINUTES_PER_DAY
+        return {
+            "start": _mins_to_str(eating_start_mins),
+            "end": _mins_to_str(eating_end_mins),
+            "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
         }
 
     def calculate_advice(self, user_id: str) -> CircadianAdviceResponse:
@@ -161,87 +230,28 @@ class CircadianService:
             today, profile.latitude, profile.longitude, profile.timezone_offset_hours
         )
 
-        # Retrieve recent sleep measurements
-        actual_onset = "23:00"
-        actual_offset = "07:00"
+        sleeps = self._recent_sleeps(user_id)
+        actual_onset, actual_offset = self._recent_sleep_times(sleeps)
 
-        with self.uow:
-            sleep_md = self.uow.metric_definitions.find_by_code("sleep")
-            if sleep_md is not None:
-                sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_code="sleep", user_id=user_id
-                )
-                # Take the most recent sleep log to get actual onset/offset times
-                valid_sleeps = [s for s in sleeps if s.end_time is not None]
-                if valid_sleeps:
-                    last_sleep = valid_sleeps[0]
-                    # Format as HH:MM
-                    actual_onset = last_sleep.start_time.strftime("%H:%M")
-                    if last_sleep.end_time:
-                        actual_offset = last_sleep.end_time.strftime("%H:%M")
-
-        # Circadian rule engine calculations
-        # Melatonin onset is typically ~4 hours after sunset
+        # Circadian rule engine: melatonin onset is ~4 hours after sunset
         sunset_mins = solar["sunset_mins"]
-        target_onset_mins = (sunset_mins + 240) % 1440
-        target_offset_mins = (target_onset_mins + 480) % 1440  # 8 hours sleep target
+        target_onset_mins = (sunset_mins + MELATONIN_DELAY_MINUTES) % MINUTES_PER_DAY
+        target_offset_mins = (
+            target_onset_mins + SLEEP_DURATION_MINUTES
+        ) % MINUTES_PER_DAY
 
-        def mins_to_str(mins: float) -> str:
-            m = int(mins)
-            return f"{m // 60:02d}:{m % 60:02d}"
+        target_onset = _mins_to_str(target_onset_mins)
+        target_offset = _mins_to_str(target_offset_mins)
 
-        target_onset = mins_to_str(target_onset_mins)
-        target_offset = mins_to_str(target_offset_mins)
-
-        # Calculate alignment score
-        # Compare actual sleep onset with target sleep onset
-        def time_to_mins(t_str: str) -> int:
-            parts = t_str.split(":")
-            return int(parts[0]) * 60 + int(parts[1])
-
-        actual_onset_mins = time_to_mins(actual_onset)
-        diff = abs(actual_onset_mins - target_onset_mins)
-        if diff > 720:
-            diff = 1440 - diff
-
-        score_deduction = int(diff / 10)  # Deduct 1 point for every 10 minutes offset
-        alignment_score = max(0, 100 - score_deduction)
-
-        # Generate sleep advice
-        sleep_advice = ""
-        if alignment_score >= 85:
+        alignment_score = self._alignment_score(actual_onset, target_onset)
+        if alignment_score >= ALIGNMENT_EXCELLENT_THRESHOLD:
             sleep_advice = "Excellent! Your sleep onset aligns perfectly with your local biological melatonin rise."
         else:
             sleep_advice = f"Try moving your sleep window closer to {target_onset} to align sleep pressure with melatonin release."
 
-        # Generate light advice
-        light_advice = [
-            {
-                "time_window": f"{solar['sunrise']} - {mins_to_str(solar['sunrise_mins'] + 120)}",
-                "action": "Morning Daylight Anchor",
-                "description": "Expose eyes to bright outdoor daylight (10,000+ Lux) for 15-30 minutes. Suppresses remaining melatonin and sets the 16-hour wake timer.",
-            },
-            {
-                "time_window": f"After {solar['sunset']}",
-                "action": "Minimize Blue Light",
-                "description": "Dim indoor lighting and use red/warm light sources to avoid suppressing evening melatonin onset.",
-            },
-        ]
-
-        # Generate eating advice (Time-restricted eating window: wake + 1h to sleep - 3h)
-        actual_offset_mins = time_to_mins(actual_offset)
-        eating_start_mins = (actual_offset_mins + 60) % 1440
-        eating_end_mins = (actual_onset_mins - 180) % 1440
-
-        eating_window = {
-            "start": mins_to_str(eating_start_mins),
-            "end": mins_to_str(eating_end_mins),
-            "advice": "Keep your daily eating window within these times. Digesting food close to bedtime disrupts cellular melatonin repairs and sleep quality.",
-        }
-
         # Chronotype — data-driven detection
         chronotype = profile.configured_chronotype
-        detected = self._detect_chronotype(user_id)
+        detected = self._detect_chronotype(sleeps)
         if detected is not None:
             chronotype = (
                 f"{profile.configured_chronotype} (detected: {detected})"
@@ -266,53 +276,46 @@ class CircadianService:
                 "actual_offset": actual_offset,
                 "advice": sleep_advice,
             },
-            light_advice=light_advice,
-            eating_window=eating_window,
+            light_advice=self._light_advice(solar),
+            eating_window=self._eating_window(actual_onset, actual_offset),
         )
 
-    def _detect_chronotype(self, user_id: str) -> str | None:
+    def _detect_chronotype(self, sleeps: list) -> str | None:
         try:
-            with self.uow:
-                sleep_md = self.uow.metric_definitions.find_by_code("sleep")
-                if sleep_md is None:
-                    return None
-                sleeps = self.uow.measurements.find_by_metric_type(
-                    metric_code="sleep", user_id=user_id
+            onset_times: list[float] = []
+            daylight_hours: list[float] = []
+            for s in sleeps[:14]:
+                if s.start_time is None:
+                    continue
+                onset_hour = s.start_time.hour + s.start_time.minute / 60.0
+                onset_times.append(onset_hour)
+                doy = s.start_time.timetuple().tm_yday
+                lat = 52.52
+                decl = 23.45 * math.sin(
+                    math.radians((360 / 365) * (284 + doy))
                 )
-                onset_times: list[float] = []
-                daylight_hours: list[float] = []
-                for s in sleeps[:14]:
-                    if s.start_time is None:
-                        continue
-                    onset_hour = s.start_time.hour + s.start_time.minute / 60.0
-                    onset_times.append(onset_hour)
-                    doy = s.start_time.timetuple().tm_yday
-                    lat = 52.52
-                    decl = 23.45 * math.sin(
-                        math.radians((360 / 365) * (284 + doy))
-                    )
-                    day_len = (
-                        24.0
-                        - (24.0 / 180.0)
-                        * math.degrees(
-                            math.acos(
-                                -math.tan(math.radians(lat))
-                                * math.tan(math.radians(decl))
-                            )
+                day_len = (
+                    24.0
+                    - (24.0 / 180.0)
+                    * math.degrees(
+                        math.acos(
+                            -math.tan(math.radians(lat))
+                            * math.tan(math.radians(decl))
                         )
-                        if abs(math.tan(math.radians(lat)) * math.tan(math.radians(decl))) < 1
-                        else (24.0 if math.tan(math.radians(lat)) * math.tan(math.radians(decl)) < 0 else 0.0)
                     )
-                    daylight_hours.append(day_len)
-                if len(onset_times) < 7:
-                    return None
-                n = min(len(onset_times), len(daylight_hours))
-                corr = pearson(daylight_hours[:n], onset_times[:n])
-                if corr and abs(corr.r) > 0.3:
-                    if corr.r > 0:
-                        return "owl"
-                    return "lark"
+                    if abs(math.tan(math.radians(lat)) * math.tan(math.radians(decl))) < 1
+                    else (24.0 if math.tan(math.radians(lat)) * math.tan(math.radians(decl)) < 0 else 0.0)
+                )
+                daylight_hours.append(day_len)
+            if len(onset_times) < 7:
                 return None
+            n = min(len(onset_times), len(daylight_hours))
+            corr = pearson(daylight_hours[:n], onset_times[:n])
+            if corr and abs(corr.r) > 0.3:
+                if corr.r > 0:
+                    return "owl"
+                return "lark"
+            return None
         except Exception:
             logger.exception("Chronotype detection failed")
             return None

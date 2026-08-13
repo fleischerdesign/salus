@@ -114,29 +114,29 @@ def _user_profile_dict(user: User) -> dict[str, Any]:
     }
 
 
-def _special_entities(s, user: User) -> dict[str, Any]:
-    user_id = uid(user)
-    profile = _user_profile_dict(user)
-    result: dict[str, Any] = {
-        "user_profile": profile,
-        "user": dict(profile),
-        "community_activity": community_activity_feed(s, user_id, user.username),
-    }
-    if user.is_admin:
-        result["admin_user"] = admin_user_list(s, user_id)
-        result["admin_stats"] = admin_system_stats(s)
-        result["system_config"] = system_config_enriched(s)
-    else:
-        result["admin_user"] = None
-        result["admin_stats"] = None
-        result["system_config"] = None
-    return result
-
-
 class SyncService:
 
     def __init__(self, uow: IUnitOfWork) -> None:
         self.uow = uow
+
+    def _special_entities(self, user: User) -> dict[str, Any]:
+        s = self.uow.session
+        user_id = uid(user)
+        profile = _user_profile_dict(user)
+        result: dict[str, Any] = {
+            "user_profile": profile,
+            "user": dict(profile),
+            "community_activity": community_activity_feed(s, user_id, user.username),
+        }
+        if user.is_admin:
+            result["admin_user"] = admin_user_list(s, user_id)
+            result["admin_stats"] = admin_system_stats(s)
+            result["system_config"] = system_config_enriched(s)
+        else:
+            result["admin_user"] = None
+            result["admin_stats"] = None
+            result["system_config"] = None
+        return result
 
     def full_sync(self, user: User, cursors: dict[str, str] | None = None) -> dict[str, Any]:
         user_id = uid(user)
@@ -172,7 +172,7 @@ class SyncService:
 
         is_first_page = not cursors or len(cursors) == 0
         if is_first_page:
-            result.update(_special_entities(s, user))
+            result.update(self._special_entities(user))
 
         result["cursors"] = next_cursors
         result["has_more"] = has_more
@@ -284,7 +284,7 @@ class SyncService:
                 )
             ).all())  # type: ignore[reportArgumentType]
 
-        special = _special_entities(s, user)
+        special = self._special_entities(user)
         for key, value in special.items():
             if key in ("admin_user", "admin_stats", "system_config") and value is None:
                 continue

@@ -9,7 +9,7 @@ from salus.dependencies import (
 from salus.models import DataType
 from salus.models.user import User
 from salus.schemas.api import MetricGroupResponse, MetricTypeResponse
-from salus.services._helpers import uid
+from salus.services._helpers import DEFAULT_METRIC_COLOR, uid
 from salus.services.metric_definition import MetricDefinitionService
 from salus.services.metric_group import MetricGroupService
 
@@ -34,7 +34,7 @@ def _metric_response(m) -> MetricTypeResponse:
         name=m.name,
         unit=m.unit,
         data_type=m.data_type,
-        color="#4f46e5",
+        color=DEFAULT_METRIC_COLOR,
         icon="monitoring",
         is_system=True,
     )

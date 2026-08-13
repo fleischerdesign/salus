@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { todayString } from '$lib/utils/datetime';
 import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
@@ -88,7 +89,7 @@ export async function toggleMedicationLog(
   time: string | null
 ) {
   if (scheduleId && time) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayString();
     const existing = await db.medication_log
       .where({ schedule_id: scheduleId })
       .filter((l) => {
@@ -139,7 +140,7 @@ export async function toggleMedicationLog(
 }
 
 export async function skipDose(medicationId: string, scheduleId: string, time: string) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayString();
   const takenAt = `${today}T${time}:00`;
   const id = uuid7();
   const now = new Date().toISOString();

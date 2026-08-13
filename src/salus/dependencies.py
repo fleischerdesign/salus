@@ -47,11 +47,6 @@ from salus.services.user import UserService
 from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.services.sharing import (
     SharingService,
-    RelationshipService,
-    FederationKeyService,
-    FederationDiscoveryService,
-    FederationDataResolver,
-    PeerNotificationService,
 )
 from salus.services.leaderboard import LeaderboardService
 from salus.services.notification import NotificationService
@@ -119,18 +114,29 @@ def get_api_token_service(
     return ApiTokenService(uow)
 
 
+def _extract_token_from_headers(
+    x_token: str | None, authorization: str | None
+) -> str | None:
+    if x_token:
+        return x_token
+    if authorization and authorization.lower().startswith("bearer "):
+        return authorization[7:].strip()
+    return None
+
+
+def _admin_from_static_token(token: str, user_repo: UserRepository) -> User | None:
+    if token != settings.api_token:
+        return None
+    return user_repo.find_first_admin()
+
+
 async def verify_webhook_token(
     x_api_token: str | None = Header(None, alias="X-API-Token"),
     authorization: str | None = Header(None),
     api_token_svc: ApiTokenService = Depends(get_api_token_service),
     user_repo: UserRepository = Depends(get_user_repo),
 ) -> User:
-    token: str | None = None
-
-    if x_api_token:
-        token = x_api_token
-    elif authorization and authorization.lower().startswith("bearer "):
-        token = authorization[7:].strip()
+    token = _extract_token_from_headers(x_api_token, authorization)
 
     if token is None:
         raise HTTPException(status_code=401, detail="Missing webhook token")
@@ -144,11 +150,9 @@ async def verify_webhook_token(
             )
         return user
 
-    if token == settings.api_token:
-        admin = user_repo.find_first_admin()
-        if admin is not None:
-            return admin
-        raise HTTPException(status_code=401, detail="No admin user configured")
+    admin = _admin_from_static_token(token, user_repo)
+    if admin is not None:
+        return admin
 
     raise HTTPException(status_code=401, detail="Invalid webhook token")
 
@@ -429,18 +433,12 @@ async def get_current_user_or_api(
     authorization: str | None = Header(None),
     user_repo: UserRepository = Depends(get_user_repo),
 ) -> User:
-    token: str | None = None
-
-    if x_api_key:
-        token = x_api_key
-    elif authorization and authorization.lower().startswith("bearer "):
-        token = authorization[7:].strip()
+    token = _extract_token_from_headers(x_api_key, authorization)
 
     if token:
-        if token == settings.api_token:
-            admin = user_repo.find_first_admin()
-            if admin is not None:
-                return admin
+        admin = _admin_from_static_token(token, user_repo)
+        if admin is not None:
+            return admin
 
         user = auth_svc.get_user_from_token(token)
         if user is not None:
@@ -474,16 +472,7 @@ def get_insight_service(
 def get_sharing_service(
     uow: SqlUnitOfWork = Depends(get_unit_of_work),
 ) -> SharingService:
-    relationship_svc = RelationshipService(uow)
-    key_svc = FederationKeyService(uow)
-    discovery_svc = FederationDiscoveryService()
-    resolver_svc = FederationDataResolver(
-        uow, key_svc, discovery_svc, relationship_svc,
-    )
-    notify_svc = PeerNotificationService(uow, discovery_svc)
-    return SharingService(
-        relationship_svc, key_svc, discovery_svc, resolver_svc, notify_svc,
-    )
+    return SharingService.create(uow)
 
 
 def get_autoregulation_service(

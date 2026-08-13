@@ -166,9 +166,9 @@ export function computeGoalProgress(
   return { percent, status: 'pending', isFulfilled: false };
 }
 
-/* ── Epley formula for estimated 1RM ── */
+/* ── Brzycki formula for estimated 1RM ── */
 
-export function epley1Rm(weight: number, reps: number): number {
+export function brzycki1Rm(weight: number, reps: number): number {
   if (reps <= 0) return weight;
   return Math.round((weight / (1.0278 - 0.0278 * reps)) * 100) / 100;
 }

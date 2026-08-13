@@ -12,7 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from salus.config import settings
+from salus.config import DEFAULT_API_TOKEN, DEFAULT_JWT_SECRET_KEY, settings
 from salus.database import Session, engine
 from salus.dependencies import limiter
 from salus.exceptions import (
@@ -64,17 +64,17 @@ from salus.services.mood import MoodService
 
 def _check_secrets() -> None:
     if settings.is_production:
-        if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+        if settings.jwt_secret_key == DEFAULT_JWT_SECRET_KEY:
             raise RuntimeError("SALUS_JWT_SECRET_KEY is set to the default value — set a strong random key for production.")
-        if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+        if settings.api_token == DEFAULT_API_TOKEN:
             raise RuntimeError("SALUS_API_TOKEN is set to the default value — set a unique token for production.")
         return
 
     warned = False
-    if settings.jwt_secret_key == "change-me-in-production-salus-2026":
+    if settings.jwt_secret_key == DEFAULT_JWT_SECRET_KEY:
         logging.warning("SALUS_JWT_SECRET_KEY is set to the default value — generate a strong random key for production.")
         warned = True
-    if settings.api_token == "s3ns0r-h34lth-t0k3n-2026":
+    if settings.api_token == DEFAULT_API_TOKEN:
         logging.warning("SALUS_API_TOKEN is set to the default value — generate a unique token for production.")
         warned = True
     if warned:
@@ -90,6 +90,15 @@ class SPAStaticFiles(StaticFiles):
         except StarletteHTTPException as exc:
             if exc.status_code == 404 and not path.startswith(("api/", "webhook/", ".well-known/")) and not path.endswith((".js", ".css", ".png", ".svg", ".woff2", ".ico", ".json")):
                 return await super().get_response("index.html", scope)
+            raise
+
+
+def _run_seeder(label: str, seed_fn, *, fatal: bool = False) -> None:
+    try:
+        seed_fn()
+    except Exception:
+        logging.error(f"Failed to seed {label}", exc_info=True)
+        if fatal:
             raise
 
 
@@ -195,26 +204,20 @@ async def lifespan(app: FastAPI):
 
     session = Session(lifespan_engine)
     try:
-        try:
-            ConfigService(SystemConfigRepository(session)).seed_defaults()
-        except Exception:
-            logging.error("Failed to seed default config", exc_info=True)
-            raise
-
-        try:
-            MetricDefinitionService(uow).seed_definitions()
-        except Exception:
-            logging.error("Failed to seed metric definitions", exc_info=True)
-
-        try:
-            AchievementService(uow).seed_definitions()
-        except Exception:
-            logging.error("Failed to seed achievement definitions", exc_info=True)
-
-        try:
-            MoodService(uow).seed_tags()
-        except Exception:
-            logging.error("Failed to seed mood tags", exc_info=True)
+        _run_seeder(
+            "default config",
+            lambda: ConfigService(SystemConfigRepository(session)).seed_defaults(),
+            fatal=True,
+        )
+        _run_seeder(
+            "metric definitions",
+            lambda: MetricDefinitionService(uow).seed_definitions(),
+        )
+        _run_seeder(
+            "achievement definitions",
+            lambda: AchievementService(uow).seed_definitions(),
+        )
+        _run_seeder("mood tags", lambda: MoodService(uow).seed_tags())
     finally:
         session.close()
         startup_session.close()

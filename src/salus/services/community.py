@@ -1,6 +1,7 @@
 """Community activity feed aggregation for the sync payload."""
+from sqlalchemy.orm import selectinload
+
 from salus.models.sharing import SharingRelationship
-from salus.models.user import User
 from salus.models.workout import WorkoutSession
 from sqlmodel import select
 
@@ -10,14 +11,16 @@ def community_activity_feed(s, user_id: str, username: str) -> list[dict]:
     activities: list[dict] = []
 
     incoming = s.exec(
-        select(SharingRelationship).where(
+        select(SharingRelationship)
+        .options(selectinload(SharingRelationship.owner))  # type: ignore[arg-type]
+        .where(
             SharingRelationship.grantee_handle == user_handle,
             SharingRelationship.status == "active",
         )
     ).all()
 
     for rel in incoming:
-        owner = s.get(User, rel.owner_id)
+        owner = rel.owner
         activities.append({
             "id": rel.id,
             "friend_name": owner.username if owner else f"user_{rel.owner_id}",

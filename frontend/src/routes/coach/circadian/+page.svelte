@@ -44,10 +44,14 @@
 
   $effect(() => {
     adviceLoading = true;
-    fetchCircadianAdvice(db).then((a) => {
-      advice = a;
-      adviceLoading = false;
-    });
+    fetchCircadianAdvice(db)
+      .then((a) => {
+        advice = a;
+        adviceLoading = false;
+      })
+      .catch(() => {
+        adviceLoading = false;
+      });
   });
 
   function timeToHours(t: string): number {

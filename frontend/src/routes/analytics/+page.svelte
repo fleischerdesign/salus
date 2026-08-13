@@ -1,11 +1,13 @@
 <script lang="ts">
   import {
-    useAnalytics,
-    useCorrelations,
-    useSleepDebt,
-    useTrend,
-    useWellness
+    fetchAnalytics,
+    fetchCorrelations,
+    fetchSleepDebt,
+    fetchTrend,
+    fetchWellness
   } from '$lib/analytics/views/analytics';
+  import { useQuery } from '$lib/db/use-query.svelte';
+  import { KCAL_PER_KG_FAT } from '$lib/constants';
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -44,21 +46,34 @@
     { value: '1y', label: '1Y' }
   ];
 
-  let data = $derived(useAnalytics(range));
+  const analyticsQuery = useQuery(() => fetchAnalytics(range));
+  const data = $derived(analyticsQuery.value);
   let correlationMethod = $state<'pearson' | 'spearman'>('pearson');
-  let correlations = $derived(useCorrelations('90d', correlationMethod));
+  const correlationsQuery = useQuery(() =>
+    fetchCorrelations(tab === 'deep' ? '90d' : null, correlationMethod)
+  );
+  const correlations = $derived(correlationsQuery.value);
+  const weightTrendQuery = useQuery(() => fetchTrend('weight', range));
+  const weightTrend = $derived(weightTrendQuery.value);
+  const hrTrendQuery = useQuery(() => fetchTrend('heart_rate', range));
+  const hrTrend = $derived(hrTrendQuery.value);
+  const sleepDebtQuery = useQuery(() => fetchSleepDebt(30));
+  const sleepDebt = $derived(sleepDebtQuery.value);
+  const wellnessQuery = useQuery(() => fetchWellness());
+  const wellness = $derived(wellnessQuery.value);
+
   let dailyDeficit = $state(0);
   let projectedWeightSeries = $derived.by(() => {
-    if (!weightTrend || !$weightTrend || $weightTrend.values.length === 0) return [];
-    const startWeight = $weightTrend.values[0];
-    const changePerDay = -dailyDeficit / 7700;
-    const projected = $weightTrend.values.map((_, i) => {
+    if (!weightTrend || weightTrend.values.length === 0) return [];
+    const startWeight = weightTrend.values[0];
+    const changePerDay = -dailyDeficit / KCAL_PER_KG_FAT;
+    const projected = weightTrend.values.map((_, i) => {
       return startWeight + i * changePerDay;
     });
     return [
       {
         label: 'Weight (kg)',
-        data: $weightTrend.values,
+        data: weightTrend.values,
         color: 'var(--color-primary-500)',
         yAxis: 'left' as const
       },
@@ -70,10 +85,6 @@
       }
     ];
   });
-  let weightTrend = $derived(useTrend('weight', range));
-  let hrTrend = $derived(useTrend('heart_rate', range));
-  let sleepDebt = $derived(useSleepDebt(30));
-  let wellness = $derived(useWellness());
 
   function formatDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
@@ -81,8 +92,8 @@
     return h > 0 ? `${h}h ${m}min` : `${m}min`;
   }
 
-  let hasWeightData = $derived(($data?.weight_data?.length ?? 0) > 0);
-  let hasStepsData = $derived(($data?.steps_data ?? []).some((v: number) => v > 0));
+  let hasWeightData = $derived((data?.weight_data?.length ?? 0) > 0);
+  let hasStepsData = $derived((data?.steps_data ?? []).some((v: number) => v > 0));
 
   let chartSeries = $derived.by(() => {
     if (!data) return [];
@@ -90,7 +101,7 @@
     if (hasWeightData) {
       s.push({
         label: 'Weight (kg)',
-        data: $data!.weight_data,
+        data: data!.weight_data,
         color: 'var(--color-primary-500)',
         yAxis: 'left'
       });
@@ -98,7 +109,7 @@
     if (hasStepsData) {
       s.push({
         label: 'Steps',
-        data: $data!.steps_data,
+        data: data!.steps_data,
         color: 'var(--color-success-500)',
         yAxis: 'right'
       });
@@ -157,7 +168,7 @@
     {/snippet}
   </PageHeader>
 
-  {#if !$data}
+  {#if !data}
     <div class="flex justify-center py-20"><Spinner size="lg" /></div>
   {:else if tab === 'trends'}
     <div class="grid gap-4 lg:grid-cols-12">
@@ -169,23 +180,23 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $weightTrend && (hasWeightData || hasStepsData)}
-            {#if $weightTrend.regression}
+          {#if weightTrend && (hasWeightData || hasStepsData)}
+            {#if weightTrend.regression}
               <div class="mb-2">
                 <MethodologyBadge
-                  n={$weightTrend.regression.n}
+                  n={weightTrend.regression.n}
                   method="OLS Regression"
                   citation={{ text: 'Kutner et al., Ch. 1' }}
                 />
               </div>
             {/if}
             <LineChart
-              labels={$data.weight_labels.length > 0 ? $data.weight_labels : $data.steps_labels}
+              labels={data.weight_labels.length > 0 ? data.weight_labels : data.steps_labels}
               series={chartSeries}
               leftUnit="kg"
               rightUnit="steps"
-              regressionLine={$weightTrend.regression?.points ?? null}
-              regressionCI={$weightTrend.regression?.ci ?? null}
+              regressionLine={weightTrend.regression?.points ?? null}
+              regressionCI={weightTrend.regression?.ci ?? null}
             />
           {:else}
             <div class="flex h-[280px] items-center justify-center">
@@ -203,38 +214,38 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $data.tdee}
+          {#if data.tdee}
             <div class="mb-3">
               <MethodologyBadge
-                n={$data.weight_trend.points.length}
+                n={data.weight_trend.points.length}
                 method="Cunningham BMR + HRR PAL"
                 citation={{ text: 'Cunningham 1991; Tanaka 2001; Brage 2005' }}
               />
             </div>
-            <Stat value={$data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
+            <Stat value={data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
             <div class="mt-4 space-y-1.5 text-sm text-surface-500">
               <div class="flex justify-between">
                 <span>BMR (Cunningham)</span><span class="font-medium text-surface-700"
-                  >{$data.tdee.bmr_kcal.toFixed(0)} kcal</span
+                  >{data.tdee.bmr_kcal.toFixed(0)} kcal</span
                 >
               </div>
               <div class="flex justify-between">
                 <span>Activity Factor</span><span class="font-medium text-surface-700"
-                  >{$data.tdee.pal_factor.toFixed(2)}x</span
+                  >{data.tdee.pal_factor.toFixed(2)}x</span
                 >
               </div>
               <div class="flex justify-between">
                 <span>HRR Utilisation</span><span class="font-medium text-surface-700"
-                  >{($data.tdee.hrr_pct * 100).toFixed(0)}%</span
+                  >{(data.tdee.hrr_pct * 100).toFixed(0)}%</span
                 >
               </div>
             </div>
-            {#if $data.weight_trend.current}
+            {#if data.weight_trend.current}
               <div
                 class="mt-3 flex justify-between border-t border-surface-100 pt-3 text-sm text-surface-500"
               >
                 <span>Current Weight</span><span class="font-medium text-surface-700"
-                  >{$data.weight_trend.current.toFixed(1)} kg</span
+                  >{data.weight_trend.current.toFixed(1)} kg</span
                 >
               </div>
             {/if}
@@ -252,28 +263,28 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $hrTrend && $hrTrend.regression}
+          {#if hrTrend && hrTrend.regression}
             <div class="mb-2">
               <MethodologyBadge
-                n={$hrTrend.regression.n}
+                n={hrTrend.regression.n}
                 p={0.05}
                 method="OLS Regression + Mann-Kendall"
                 citation={{ text: 'Mann 1945; Kendall 1975' }}
               />
             </div>
             <LineChart
-              labels={$hrTrend.labels}
+              labels={hrTrend.labels}
               series={[
                 {
                   label: 'Resting HR (bpm)',
-                  data: $hrTrend.values,
+                  data: hrTrend.values,
                   color: 'var(--color-error-500)',
                   yAxis: 'left'
                 }
               ]}
               leftUnit="bpm"
-              regressionLine={$hrTrend.regression.points}
-              regressionCI={$hrTrend.regression.ci}
+              regressionLine={hrTrend.regression.points}
+              regressionCI={hrTrend.regression.ci}
             />
           {:else}
             <div class="flex h-[220px] items-center justify-center">
@@ -293,13 +304,13 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $data.sleep_list.length >= 3}
+          {#if data.sleep_list.length >= 3}
             <LineChart
-              labels={$data.sleep_list.map((s: { date: string }) => s.date)}
+              labels={data.sleep_list.map((s: { date: string }) => s.date)}
               series={[
                 {
                   label: 'Sleep (hours)',
-                  data: $data.sleep_list.map((s: { duration_hours: number }) => s.duration_hours),
+                  data: data.sleep_list.map((s: { duration_hours: number }) => s.duration_hours),
                   color: 'var(--color-primary-500)',
                   yAxis: 'left'
                 }
@@ -322,9 +333,9 @@
           </div>
         {/snippet}
         <div class="p-2">
-          {#if $data.exercise_sessions.length > 0}
+          {#if data.exercise_sessions.length > 0}
             <div class="divide-y divide-surface-100">
-              {#each $data.exercise_sessions as session, i}
+              {#each data.exercise_sessions as session, i}
                 <div in:fade={{ ...staggerFade(i) }}>
                   <ListItem
                     primary={session.type_name}
@@ -372,23 +383,23 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $weightTrend && $weightTrend.regression}
+          {#if weightTrend && weightTrend.regression}
             <div class="mb-2">
               <MethodologyBadge
-                n={$weightTrend.regression.n}
+                n={weightTrend.regression.n}
                 method="OLS + 95% PI"
                 citation={{ text: 'Kutner et al., §2.4' }}
               />
             </div>
             <LineChart
-              labels={$weightTrend.labels}
+              labels={weightTrend.labels}
               series={projectedWeightSeries}
               leftUnit="kg"
-              regressionLine={$weightTrend.regression.points}
-              regressionCI={$weightTrend.regression.ci}
+              regressionLine={weightTrend.regression.points}
+              regressionCI={weightTrend.regression.ci}
             />
             <div class="mt-2 text-center text-xs text-surface-400">
-              r² = {$weightTrend.regression.r_squared.toFixed(3)} · n = {$weightTrend.regression.n}
+              r² = {weightTrend.regression.r_squared.toFixed(3)} · n = {weightTrend.regression.n}
             </div>
 
             <div class="mt-6 border-t border-surface-100 pt-4">
@@ -435,22 +446,22 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $data.tdee}
-            <Stat value={$data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
+          {#if data.tdee}
+            <Stat value={data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
             <div class="mt-4 space-y-1.5 text-sm text-surface-500">
               <div class="flex justify-between">
                 <span>BMR</span><span class="font-medium text-surface-700"
-                  >{$data.tdee.bmr_kcal.toFixed(0)} kcal</span
+                  >{data.tdee.bmr_kcal.toFixed(0)} kcal</span
                 >
               </div>
               <div class="flex justify-between">
                 <span>Activity Factor</span><span class="font-medium text-surface-700"
-                  >{$data.tdee.pal_factor.toFixed(2)}x</span
+                  >{data.tdee.pal_factor.toFixed(2)}x</span
                 >
               </div>
               <div class="flex justify-between">
                 <span>HRR</span><span class="font-medium text-surface-700"
-                  >{($data.tdee.hrr_pct * 100).toFixed(0)}%</span
+                  >{(data.tdee.hrr_pct * 100).toFixed(0)}%</span
                 >
               </div>
             </div>
@@ -468,10 +479,10 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $sleepDebt}
+          {#if sleepDebt}
             <div class="mb-3">
               <MethodologyBadge
-                n={$sleepDebt.debt.length}
+                n={sleepDebt.debt.length}
                 method="Cumulative Sleep Debt"
                 citation={{
                   text: 'Hirshkowitz et al. 2015, NSF recommendations',
@@ -480,20 +491,20 @@
               />
             </div>
             <Stat
-              value="{$sleepDebt.cumulative_last > 0 ? '+' : ''}{$sleepDebt.cumulative_last.toFixed(
+              value="{sleepDebt.cumulative_last > 0 ? '+' : ''}{sleepDebt.cumulative_last.toFixed(
                 1
               )}h"
               label="28-Day Cumulative"
-              unit={$sleepDebt.cumulative_last > 0 ? 'deficit' : 'surplus'}
+              unit={sleepDebt.cumulative_last > 0 ? 'deficit' : 'surplus'}
             />
             <div class="mt-4">
               <VizBar
-                segments={$sleepDebt.debt.slice(-7).map((v: number) => ({
+                segments={sleepDebt.debt.slice(-7).map((v: number) => ({
                   label: '',
                   value: Math.abs(v),
                   color: v > 0 ? 'var(--color-error-400)' : 'var(--color-success-400)'
                 }))}
-                total={Math.max(...$sleepDebt.debt.map((v: number) => Math.abs(v)), 1)}
+                total={Math.max(...sleepDebt.debt.map((v: number) => Math.abs(v)), 1)}
                 showLegend={false}
               />
             </div>
@@ -511,7 +522,7 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $wellness}
+          {#if wellness}
             <div class="mb-3">
               <MethodologyBadge
                 n={28}
@@ -526,35 +537,35 @@
               <div class="text-center">
                 <div
                   class="flex h-24 w-24 items-center justify-center rounded-full border-4"
-                  style="border-color:{$wellness.score >= 75
+                  style="border-color:{wellness.score >= 75
                     ? 'var(--color-success-400)'
-                    : $wellness.score >= 50
+                    : wellness.score >= 50
                       ? 'var(--color-warning-400)'
                       : 'var(--color-error-400)'}"
                 >
                   <span class="text-2xl font-bold text-surface-900"
-                    >{$wellness.score.toFixed(0)}</span
+                    >{wellness.score.toFixed(0)}</span
                   >
                 </div>
                 <p class="mt-1 text-xs font-medium text-surface-600 capitalize">
-                  {$wellness.interpretation}
+                  {wellness.interpretation}
                 </p>
               </div>
               <div class="grid flex-1 grid-cols-4 gap-3 text-center text-xs">
                 <div>
-                  <div class="font-mono text-surface-800">{$wellness.sleep_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.sleep_z.toFixed(1)}</div>
                   <div class="text-surface-400">Sleep z</div>
                 </div>
                 <div>
-                  <div class="font-mono text-surface-800">{$wellness.hrv_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.hrv_z.toFixed(1)}</div>
                   <div class="text-surface-400">HRV z</div>
                 </div>
                 <div>
-                  <div class="font-mono text-surface-800">{$wellness.hr_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.hr_z.toFixed(1)}</div>
                   <div class="text-surface-400">HR z</div>
                 </div>
                 <div>
-                  <div class="font-mono text-surface-800">{$wellness.steps_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.steps_z.toFixed(1)}</div>
                   <div class="text-surface-400">Steps z</div>
                 </div>
               </div>
@@ -575,23 +586,23 @@
           </div>
         {/snippet}
         <div class="p-6">
-          {#if $hrTrend && $hrTrend.regression}
+          {#if hrTrend && hrTrend.regression}
             <LineChart
-              labels={$hrTrend.labels}
+              labels={hrTrend.labels}
               series={[
                 {
                   label: 'Resting HR (bpm)',
-                  data: $hrTrend.values,
+                  data: hrTrend.values,
                   color: 'var(--color-error-500)',
                   yAxis: 'left'
                 }
               ]}
               leftUnit="bpm"
-              regressionLine={$hrTrend.regression.points}
-              regressionCI={$hrTrend.regression.ci}
+              regressionLine={hrTrend.regression.points}
+              regressionCI={hrTrend.regression.ci}
             />
             <div class="mt-2 text-center text-xs text-surface-400">
-              r² = {$hrTrend.regression.r_squared.toFixed(3)} · n = {$hrTrend.regression.n}
+              r² = {hrTrend.regression.r_squared.toFixed(3)} · n = {hrTrend.regression.n}
             </div>
           {:else}
             <div class="flex h-[220px] items-center justify-center">
@@ -623,7 +634,7 @@
         <div class="p-4"><CalendarHeatmap metric={heatmapMetric} /></div>
       </Card>
 
-      {#if $correlations && $correlations.pairs.length > 0}
+      {#if correlations && correlations.pairs.length > 0}
         <Card padding={false} class="lg:col-span-full">
           {#snippet header()}
             <div class="flex w-full items-center justify-between pr-2">
@@ -652,9 +663,9 @@
           {/snippet}
           <div class="p-4">
             <CorrelationMatrix
-              pairs={$correlations.pairs}
-              nComparisons={$correlations.n_comparisons}
-              correction={$correlations.correction}
+              pairs={correlations.pairs}
+              nComparisons={correlations.n_comparisons}
+              correction={correlations.correction}
               method={correlationMethod}
             />
           </div>

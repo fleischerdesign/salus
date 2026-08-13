@@ -1,8 +1,8 @@
 import hashlib
 import io
 import logging
-import threading
-from datetime import datetime, timedelta, timezone
+
+from datetime import datetime
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
@@ -14,13 +14,11 @@ from salus.dependencies import (
     get_sharing_service,
     limiter,
 )
-from salus.models.sharing import (
-    FederatedAccessLog,
-)
 from salus.models.user import User
 from salus.services.sharing import SharingService
-from salus.services.sharing.resolver import build_day_result
+from salus.services.sharing._tasks import run_background
 from salus.exceptions import NotFoundError
+from salus.services._helpers import uid
 
 logger = logging.getLogger("salus.routers.sharing")
 router = APIRouter()
@@ -53,6 +51,7 @@ async def federated_shared_data(
     owner_username: Annotated[str, Query()],
     source_data_type: Annotated[str, Query()],
     date: Annotated[str, Query()],
+    end_date: Annotated[Optional[str], Query()] = None,
     sharing_svc: SharingService = Depends(get_sharing_service),
     credentials: Annotated[
         Optional[HTTPAuthorizationCredentials], Security(security)
@@ -86,7 +85,7 @@ async def federated_shared_data(
                     body=None,
                 )
                 rel = sharing_svc.uow.sharing_relationships.find_active_with_owner_metric_and_grantee(
-                    owner.id, requester_handle, metric.code  # type: ignore[reportArgumentType]
+                    uid(owner), requester_handle, metric.code
                 )
                 if not rel:
                     raise HTTPException(
@@ -111,16 +110,6 @@ async def federated_shared_data(
             if not rel or rel.owner_id != owner.id or rel.metric_code != metric.code:
                 raise HTTPException(status_code=401, detail="Invalid or inactive token")
 
-        from salus.services._helpers import uid
-
-        access_log = FederatedAccessLog(
-            owner_id=uid(owner),
-            requester_handle=rel.grantee_handle,
-            source_data_type=source_data_type,
-            target_date=date,
-        )
-        sharing_svc.uow.session.add(access_log)
-
         try:
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
@@ -128,27 +117,33 @@ async def federated_shared_data(
                 status_code=400, detail="Invalid date format. Expected YYYY-MM-DD."
             )
 
-        since_dt = datetime.combine(
-            target_date, datetime.min.time(), tzinfo=timezone.utc
-        )
-        raw_measurements = sharing_svc.uow.measurements.find_all(
-            user_id=owner.id,
-            source_data_types=[source_data_type],
-            since=since_dt,
-            until=since_dt + timedelta(days=1),
-        )
-
-        day_measurements = [
-            m for m in raw_measurements if m.start_time.date() == target_date
-        ]
-
-        result = build_day_result(
-            owner_username=owner_username,
-            source_data_type=source_data_type,
-            date_str=date,
-            day_measurements=day_measurements,
-            aggregation_level=rel.aggregation_level,
-        )
+        if end_date:
+            try:
+                parsed_end = datetime.strptime(end_date, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid end_date format. Expected YYYY-MM-DD.",
+                )
+            result = sharing_svc.serve_shared_range(
+                owner_username=owner_username,
+                owner_id=uid(owner),
+                requester_handle=rel.grantee_handle,
+                source_data_type=source_data_type,
+                start_date=target_date,
+                end_date=parsed_end,
+                aggregation_level=rel.aggregation_level,
+            )
+        else:
+            result = sharing_svc.serve_shared_day(
+                owner_username=owner_username,
+                owner_id=uid(owner),
+                requester_handle=rel.grantee_handle,
+                source_data_type=source_data_type,
+                date_str=date,
+                target_date=target_date,
+                aggregation_level=rel.aggregation_level,
+            )
 
         return JSONResponse({"status": "ok", "data": result})
 
@@ -217,11 +212,15 @@ async def federated_notify_update(
             raise HTTPException(status_code=401, detail="Unauthorized token hash")
         local_user_id = rel.owner_id
 
-    threading.Thread(
-        target=sharing_svc.resolve_and_fetch,
-        args=(local_user_id, owner_handle, source_data_type, date_str, True),
-        daemon=True,
-    ).start()
+    run_background(
+        sharing_svc.resolve_and_fetch,
+        local_user_id,
+        owner_handle,
+        source_data_type,
+        date_str,
+        True,
+        name="federation-refresh",
+    )
 
     return JSONResponse({"status": "ok", "message": "Update queued"})
 
@@ -304,9 +303,7 @@ async def federated_access_log(
     sharing_svc: SharingService = Depends(get_sharing_service),
 ):
     with sharing_svc.uow:
-        logs = sharing_svc.uow.federated_access_logs.find_by_owner(
-            current_user.id  # type: ignore[reportArgumentType]
-        )
+        logs = sharing_svc.uow.federated_access_logs.find_by_owner(uid(current_user))
 
     return JSONResponse(
         {

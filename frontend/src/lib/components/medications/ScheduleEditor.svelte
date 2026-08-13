@@ -1,5 +1,6 @@
 <script lang="ts">
   import FormField from '$components/forms/FormField.svelte';
+  import { todayString } from '$lib/utils/datetime';
   import Input from '$components/ui/Input.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -35,14 +36,14 @@
   let dosage = $state('');
   let times = $state<string[]>(['08:00']);
   let daysOfWeek = $state<number[]>([1, 2, 3, 4, 5, 6, 7]);
-  let startDate = $state(new Date().toISOString().split('T')[0]);
+  let startDate = $state(todayString());
   let endDate = $state<string | undefined>(undefined);
 
   $effect(() => {
     dosage = initialDosage;
     times = initialTimes.length > 0 ? [...initialTimes] : ['08:00'];
     daysOfWeek = initialDays ?? [1, 2, 3, 4, 5, 6, 7];
-    startDate = initialStartDate || new Date().toISOString().split('T')[0];
+    startDate = initialStartDate || todayString();
     endDate = initialEndDate;
   });
 
@@ -76,7 +77,7 @@
     dosage = '';
     times = ['08:00'];
     daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
-    startDate = new Date().toISOString().split('T')[0];
+    startDate = todayString();
     endDate = '';
   }
 </script>

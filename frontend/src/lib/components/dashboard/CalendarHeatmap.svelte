@@ -164,9 +164,9 @@
         tabindex={0}
         onmouseenter={(e) => handleMouseEnter(d, e)}
         onmouseleave={() => (hovered = null)}
-        onclick={() => goto(`/entries?date=${d.date.toISOString().slice(0, 10)}`)}
+        onclick={() => goto(`/entries`)}
         onkeydown={(e) => {
-          if (e.key === 'Enter') goto(`/entries?date=${d.date.toISOString().slice(0, 10)}`);
+          if (e.key === 'Enter') goto(`/entries`);
         }}
       >
         <title>{d.date.toISOString().slice(0, 10)}: {getValue(d.date) ?? 'No data'}</title>

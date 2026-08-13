@@ -17,6 +17,10 @@ from salus.schemas.medication import (
 )
 
 
+END_OF_DAY_HOUR = 23
+END_OF_DAY_MINUTE = 59
+
+
 def _make_dt(d: date, hour: int, minute: int) -> datetime:
     return datetime(d.year, d.month, d.day, hour, minute, 0)
 
@@ -126,7 +130,7 @@ class MedicationService:
         if schedule_id and scheduled_time:
             hour, minute = map(int, scheduled_time.split(":"))
             window_start = _make_dt(today, hour, minute)
-            window_end = _make_dt(today, 23, 59)
+            window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE)
             existing = self.uow.medication_logs.find_by_schedule_and_time(
                 schedule_id, window_start, window_end
             )
@@ -205,7 +209,7 @@ class MedicationService:
                 for t in sched.times:
                     hour, minute = map(int, t.split(":"))
                     window_start = _make_dt(today, hour, minute)
-                    window_end = _make_dt(today, 23, 59)
+                    window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE)
                     existing = next(
                         (
                             log

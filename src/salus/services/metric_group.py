@@ -1,6 +1,7 @@
 from salus.exceptions import NotFoundError
 from salus.models.metric_definition import MetricGroup
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services._helpers import DEFAULT_METRIC_COLOR
 
 
 class MetricGroupService:
@@ -24,7 +25,7 @@ class MetricGroupService:
                     "source_data_type": d.source_data_type,
                     "description": d.description,
                     "sort_order": d.sort_order,
-                    "color": pref.color if pref else "#4f46e5",
+                    "color": pref.color if pref else DEFAULT_METRIC_COLOR,
                     "icon": pref.icon if pref else "monitoring",
                     "widget_size": pref.widget_size if pref else "medium",
                     "widget_enabled": pref.widget_enabled if pref else False,

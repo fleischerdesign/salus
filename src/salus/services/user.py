@@ -4,7 +4,7 @@ from salus.models.metric_preference import UserMetricPreference
 from salus.models.user import User
 from salus.models.user_identity import UserIdentity
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.services._helpers import uid
+from salus.services._helpers import DEFAULT_METRIC_COLOR, uid
 from salus.services.metric_type_mapping import METRIC_DEFINITIONS, METRIC_GROUPS, DEFAULT_METRIC_PREFERENCES
 from salus.services.password import hash_password, verify_password
 
@@ -54,7 +54,7 @@ class UserService:
                         user_id=user_id,
                         metric_code=p["code"],
                         enabled=p.get("enabled", True),
-                        color=p.get("color", "#4f46e5"),
+                        color=p.get("color", DEFAULT_METRIC_COLOR),
                         icon=p.get("icon", "monitoring"),
                         widget_size=p.get("widget_size", "medium"),
                         widget_enabled=p.get("widget_enabled", False),

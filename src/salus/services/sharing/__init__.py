@@ -1,11 +1,12 @@
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from salus.models.sharing import SharingRelationship
+from salus.models.sharing import FederatedAccessLog, SharingRelationship
 from salus.schemas.sharing import PeerConnection
 from salus.services.sharing.relationship import RelationshipService
 from salus.services.sharing.keys import FederationKeyService
 from salus.services.sharing.discovery import FederationDiscoveryService
-from salus.services.sharing.resolver import FederationDataResolver
+from salus.services.sharing.resolver import FederationDataResolver, build_day_result
 from salus.services.sharing.notify import PeerNotificationService
 
 __all__ = [
@@ -111,8 +112,86 @@ class SharingService:
             requester_id, owner_handle, source_data_type, date_str, force_refresh,
         )
 
+    def resolve_and_fetch_range(
+        self,
+        requester_id: str,
+        owner_handle: str,
+        source_data_type: str,
+        start_date: date,
+        end_date: date,
+    ) -> list[dict]:
+        return self._resolver.resolve_and_fetch_range(
+            requester_id, owner_handle, source_data_type, start_date, end_date,
+        )
+
     def get_feed_activities(self, user_id: str) -> list[dict]:
         return self._resolver.get_feed_activities(user_id)
+
+    def serve_shared_day(
+        self,
+        owner_username: str,
+        owner_id: str,
+        requester_handle: str,
+        source_data_type: str,
+        date_str: str,
+        target_date: date,
+        aggregation_level: str,
+    ) -> list[dict]:
+        with self.uow:
+            self.uow.session.add(
+                FederatedAccessLog(
+                    owner_id=owner_id,
+                    requester_handle=requester_handle,
+                    source_data_type=source_data_type,
+                    target_date=date_str,
+                )
+            )
+            since_dt = datetime.combine(
+                target_date, datetime.min.time(), tzinfo=timezone.utc
+            )
+            raw_measurements = self.uow.measurements.find_all(
+                user_id=owner_id,
+                source_data_types=[source_data_type],
+                since=since_dt,
+                until=since_dt + timedelta(days=1),
+            )
+            day_measurements = [
+                m for m in raw_measurements if m.start_time.date() == target_date
+            ]
+            return build_day_result(
+                owner_username=owner_username,
+                source_data_type=source_data_type,
+                date_str=date_str,
+                day_measurements=day_measurements,
+                aggregation_level=aggregation_level,
+            )
+
+    def serve_shared_range(
+        self,
+        owner_username: str,
+        owner_id: str,
+        requester_handle: str,
+        source_data_type: str,
+        start_date: date,
+        end_date: date,
+        aggregation_level: str,
+    ) -> list[dict]:
+        results: list[dict] = []
+        curr = start_date
+        while curr <= end_date:
+            results.extend(
+                self.serve_shared_day(
+                    owner_username=owner_username,
+                    owner_id=owner_id,
+                    requester_handle=requester_handle,
+                    source_data_type=source_data_type,
+                    date_str=curr.isoformat(),
+                    target_date=curr,
+                    aggregation_level=aggregation_level,
+                )
+            )
+            curr += timedelta(days=1)
+        return results
 
     # ── Federation keys ──
 
@@ -150,17 +229,3 @@ class SharingService:
         self, user_id: str, source_data_type: str, date_str: str
     ) -> None:
         self._notify.notify_peers_of_update(user_id, source_data_type, date_str)
-
-    # ── Internal method pass-throughs (for backward compat in tests) ──
-
-    def _fetch_remote(
-        self, owner_handle: str, source_data_type: str, date_str: str
-    ) -> list[dict]:
-        return self._resolver._fetch_remote(owner_handle, source_data_type, date_str)
-
-    def _resolve_local(
-        self, owner_handle: str, requester_handle: str, source_data_type: str, date_str: str
-    ) -> list[dict]:
-        return self._resolver._resolve_local(
-            owner_handle, requester_handle, source_data_type, date_str,
-        )

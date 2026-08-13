@@ -5,10 +5,7 @@
 
   interface Props {
     habits: Habit[];
-    stats: Record<
-      string,
-      { currentStreak: number; longestStreak: number; todayCompleted: boolean }
-    >;
+    stats: Record<string, { currentStreak: number; todayCompleted: boolean }>;
     onToggle: (habitId: string) => Promise<void>;
     onCreate: () => void;
   }
@@ -36,7 +33,7 @@
 {:else}
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {#each habits as habit (habit.id)}
-      {@const s = stats[habit.id] ?? { currentStreak: 0, longestStreak: 0, todayCompleted: false }}
+      {@const s = stats[habit.id] ?? { currentStreak: 0, todayCompleted: false }}
       <HabitCard
         {habit}
         streak={s.currentStreak}

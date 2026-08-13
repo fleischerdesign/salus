@@ -1,5 +1,6 @@
 <script lang="ts">
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { todayString } from '$lib/utils/datetime';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
   import { slide } from 'svelte/transition';
@@ -31,15 +32,7 @@
   import VizCircadian from '$components/dashboard/VizCircadian.svelte';
   import VizLineChart from '$components/dashboard/VizLineChart.svelte';
 
-  function getTodayString(): string {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
-
-  let displayDate = $state(getTodayString());
+  let displayDate = $state(todayString());
 
   let displayDateFormatted = $derived.by(() => {
     const [y, m, d] = displayDate.split('-').map(Number);
@@ -52,7 +45,7 @@
     });
   });
 
-  const isToday = $derived(displayDate === getTodayString());
+  const isToday = $derived(displayDate === todayString());
 
   const dashboardDataQuery = useQuery(() => fetchDashboard(displayDate));
   const dashboardData = $derived(dashboardDataQuery.value);
@@ -120,7 +113,8 @@
   }
 
   async function removeWidget(id: string) {
-    await deleteWidgetMut(id);
+    const { ok, error } = await deleteWidgetMut(id);
+    if (!ok) console.error('Failed to remove widget:', error);
   }
 
   async function updateWidgetSize() {
@@ -138,7 +132,11 @@
 
   async function reorderWidgets(newOrder: string[]) {
     const updates = newOrder.map((id, idx) => updateWidgetMut(id, { position: idx }));
-    await Promise.all(updates);
+    try {
+      await Promise.all(updates);
+    } catch {
+      /* reordering is best-effort; the next sync reconciles positions */
+    }
   }
 
   function toggleEdit() {
@@ -319,7 +317,7 @@
             <button
               type="button"
               class="ml-1 rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600 transition-colors hover:text-primary-700"
-              onclick={() => handleDateChange(getTodayString())}
+              onclick={() => handleDateChange(todayString())}
             >
               Today
             </button>

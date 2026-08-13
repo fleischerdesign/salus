@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
+  import { todayString } from '$lib/utils/datetime';
   import Icon from './Icon.svelte';
   import Btn from './Btn.svelte';
 
@@ -73,11 +74,7 @@
   </button>
 
   {#if !isToday}
-    <Btn
-      variant="secondary"
-      size="sm"
-      onclick={() => onDateChange?.(new Date().toISOString().split('T')[0])}>Today</Btn
-    >
+    <Btn variant="secondary" size="sm" onclick={() => onDateChange?.(todayString())}>Today</Btn>
   {/if}
 
   {@render children?.()}

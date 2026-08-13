@@ -14,7 +14,9 @@
   let content = $state('');
   let saving = $state(false);
 
-  const entriesQuery = useQuery(() => db.journal_entry.orderBy('entry_date').reverse().toArray());
+  const entriesQuery = useQuery(() =>
+    db.journal_entry.orderBy('entry_date').reverse().limit(20).toArray()
+  );
   const entries = $derived(entriesQuery.value);
   const loading = $derived(entriesQuery.loading);
 

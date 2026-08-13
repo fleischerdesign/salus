@@ -5,7 +5,7 @@
   import type { Measurement as Entry, MetricWithPreference } from '$lib/db/types';
   import type { MetricOverview } from '$lib/analytics/views/metric-overview';
   import { overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { useTrend } from '$lib/analytics/views/analytics';
+  import { fetchTrend, RANGE_KEYS } from '$lib/analytics/views/analytics';
   import { getMetricStat } from '$lib/db/metric-stats';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -83,7 +83,8 @@
   let entries = $derived(pagedEntries);
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
-  let trend = $derived(useTrend(metricCode, range));
+  let trendQuery = useQuery(() => fetchTrend(metricCode, range));
+  let trend = $derived(trendQuery.value);
 
   let showEntryModal = $state(false);
   let editingEntry = $state<Entry | null>(null);
@@ -268,7 +269,7 @@
     {/snippet}
   </PageHeader>
 
-  {#if $trend && $trend.values.length >= 2}
+  {#if trend && trend.values.length >= 2}
     <Card padding={false}>
       {#snippet header()}
         <div class="flex w-full items-center justify-between pr-2">
@@ -278,7 +279,7 @@
             >
           </div>
           <div class="flex gap-1">
-            {#each ['7d', '30d', '90d', '1y'] as r}
+            {#each RANGE_KEYS as r}
               <Btn
                 variant={range === r ? 'primary' : 'secondary'}
                 size="sm"
@@ -291,27 +292,26 @@
       {/snippet}
       <div class="p-6">
         <LineChart
-          labels={$trend.labels}
+          labels={trend.labels}
           series={[
             {
               label: metric.name ?? 'Value',
-              data: $trend.values,
+              data: trend.values,
               color: metric.color ?? 'var(--color-primary-500)',
               yAxis: 'left'
             }
           ]}
           leftUnit={metric.unit}
-          regressionLine={$trend.regression?.points}
-          regressionCI={$trend.regression?.ci}
+          regressionLine={trend.regression?.points}
+          regressionCI={trend.regression?.ci}
         />
-        {#if $trend.regression}
+        {#if trend.regression}
           <div class="mt-2 text-center text-xs text-surface-400">
-            OLS Trend: {$trend.regression.slope > 0
+            OLS Trend: {trend.regression.slope > 0
               ? 'Increasing'
-              : $trend.regression.slope < 0
+              : trend.regression.slope < 0
                 ? 'Decreasing'
-                : 'Flat'} (r² = {$trend.regression.r_squared.toFixed(3)} · n = {$trend.regression
-              .n})
+                : 'Flat'} (r² = {trend.regression.r_squared.toFixed(3)} · n = {trend.regression.n})
           </div>
         {/if}
       </div>

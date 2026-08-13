@@ -8,7 +8,7 @@ from salus.repositories.protocols import IMetricGroupRepository
 class MetricGroupRepository(Repository[MetricGroup], IMetricGroupRepository):
     model = MetricGroup
 
-    def find_all(self, user_id: str | None = None) -> list[MetricGroup]:
+    def find_all(self) -> list[MetricGroup]:
         return list(self.session.exec(
             select(MetricGroup)
         ).all())

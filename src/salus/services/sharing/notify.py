@@ -1,5 +1,4 @@
 import logging
-import threading
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -10,6 +9,7 @@ from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import make_handle
 from salus.services.sharing.relationship import RelationshipService
 from salus.services.sharing._http import retry_http_request
+from salus.services.sharing._tasks import run_background
 
 if TYPE_CHECKING:
     from salus.services.sharing.discovery import FederationDiscoveryService
@@ -71,11 +71,15 @@ class PeerNotificationService:
 
         for handle, token_hash in remote_grantees:
             if token_hash:
-                threading.Thread(
-                    target=self._send_push_notification,
-                    args=(handle, token_hash, owner_handle, source_data_type, date_str),
-                    daemon=True,
-                ).start()
+                run_background(
+                    self._send_push_notification,
+                    handle,
+                    token_hash,
+                    owner_handle,
+                    source_data_type,
+                    date_str,
+                    name="peer-notify",
+                )
 
     def _send_push_notification(
         self,

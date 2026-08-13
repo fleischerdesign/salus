@@ -65,25 +65,38 @@ def admin_user_list(s, exclude_user_id: str | None = None) -> list[dict]:
     ]
 
 
+def _format_bytes(num_bytes: int) -> str:
+    if num_bytes >= 1024 * 1024:
+        return f"{num_bytes / (1024 * 1024):.1f} MB"
+    if num_bytes >= 1024:
+        return f"{num_bytes / 1024:.1f} KB"
+    return f"{num_bytes} B"
+
+
+def _system_counts(s) -> dict:
+    return {
+        "total_users": s.scalar(select(func.count()).select_from(User)) or 0,
+        "total_measurements": s.scalar(
+            select(func.count())
+            .select_from(Measurement)
+            .where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        )
+        or 0,
+        "total_metric_types": s.scalar(
+            select(func.count()).select_from(MetricDefinition)
+        )
+        or 0,
+        "total_goals": s.scalar(select(func.count()).select_from(Goal)) or 0,
+    }
+
+
 def admin_system_stats(s) -> dict:
-    total_users = s.scalar(select(func.count()).select_from(User)) or 0
-    total_measurements = s.scalar(select(func.count()).select_from(Measurement)) or 0
-    total_metric_types = s.scalar(select(func.count()).select_from(MetricDefinition)) or 0
-    total_goals = s.scalar(select(func.count()).select_from(Goal)) or 0
     db_path = app_settings.database_url.replace("sqlite:///", "")
     db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
-    db_size = (
-        f"{db_size_bytes / (1024 * 1024):.1f} MB"
-        if db_size_bytes >= 1024 * 1024
-        else (f"{db_size_bytes / 1024:.1f} KB" if db_size_bytes >= 1024 else f"{db_size_bytes} B")
-    )
     return {
         "key": "global",
-        "total_users": total_users,
-        "total_measurements": total_measurements,
-        "total_metric_types": total_metric_types,
-        "total_goals": total_goals,
-        "db_size": db_size,
+        **_system_counts(s),
+        "db_size": _format_bytes(db_size_bytes),
     }
 
 
@@ -94,30 +107,17 @@ class AdminService:
     def get_storage_stats(self) -> dict:
         db_path = app_settings.database_url.replace("sqlite:///", "")
         db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
-        if db_size_bytes >= 1024 * 1024:
-            db_size_str = f"{db_size_bytes / (1024 * 1024):.1f} MB"
-        elif db_size_bytes >= 1024:
-            db_size_str = f"{db_size_bytes / 1024:.1f} KB"
-        else:
-            db_size_str = f"{db_size_bytes} B"
 
         s = self.uow.session
+        counts = _system_counts(s)
         return {
-            "db_size": db_size_str,
+            "db_size": _format_bytes(db_size_bytes),
             "db_path": db_path,
             "row_counts": {
-                "Users": s.scalar(select(func.count()).select_from(User)) or 0,
-                "Measurements": s.scalar(
-                    select(func.count())
-                    .select_from(Measurement)
-                    .where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-                )
-                or 0,
-                "Metric Types": s.scalar(
-                    select(func.count()).select_from(MetricDefinition)
-                )
-                or 0,
-                "Goals": s.scalar(select(func.count()).select_from(Goal)) or 0,
+                "Users": counts["total_users"],
+                "Measurements": counts["total_measurements"],
+                "Metric Types": counts["total_metric_types"],
+                "Goals": counts["total_goals"],
                 "API Tokens": s.scalar(
                     select(func.count()).select_from(ApiToken).where(ApiToken.is_active)
                 )
@@ -126,21 +126,7 @@ class AdminService:
         }
 
     def get_system_stats(self) -> dict:
-        s = self.uow.session
-        return {
-            "total_users": s.scalar(select(func.count()).select_from(User)) or 0,
-            "total_measurements": s.scalar(
-                select(func.count())
-                .select_from(Measurement)
-                .where(Measurement.deleted_at.is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
-            )
-            or 0,
-            "total_metric_types": s.scalar(
-                select(func.count()).select_from(MetricDefinition)
-            )
-            or 0,
-            "total_goals": s.scalar(select(func.count()).select_from(Goal)) or 0,
-        }
+        return _system_counts(self.uow.session)
 
     def list_users_with_stats(self) -> list[dict]:
         return admin_user_list(self.uow.session)

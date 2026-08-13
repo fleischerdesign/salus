@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
+  import { todayString, dateString } from '$lib/utils/datetime';
   import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -13,7 +14,7 @@
 
   let formOpen = $state(false);
 
-  let selectedDate = $state(new Date().toISOString().split('T')[0]);
+  let selectedDate = $state(todayString());
 
   const mealsQuery = useQuery(() =>
     db.meal
@@ -24,12 +25,7 @@
   );
   const meals = $derived(mealsQuery.value);
   const mealItemsQuery = useQuery(async () => {
-    const dayMeals = await db.meal
-      .where('log_date')
-      .equals(selectedDate)
-      .filter((m) => !m.deleted_at)
-      .toArray();
-    const mealIds = dayMeals.map((m) => m.id);
+    const mealIds = (meals ?? []).map((m) => m.id);
     if (mealIds.length === 0) return [] as MealItem[];
     return db.meal_item
       .where('meal_id')
@@ -42,7 +38,7 @@
   const foodItems = $derived(foodItemsQuery.value);
   const loading = $derived(foodItemsQuery.loading);
 
-  const today = $derived(new Date().toISOString().split('T')[0]);
+  const today = $derived(todayString());
   const isToday = $derived(selectedDate === today);
 
   const mealsForDate = $derived(
@@ -116,7 +112,8 @@
   }
 
   async function handleDelete(mealId: string) {
-    await deleteMeal(mealId);
+    const { ok, error } = await deleteMeal(mealId);
+    if (!ok) console.error('Failed to delete meal:', error);
   }
 
   function goToEdit(mealId: string) {
@@ -161,12 +158,12 @@
       onPrev={() => {
         const d = new Date(selectedDate + 'T12:00');
         d.setDate(d.getDate() - 1);
-        selectedDate = d.toISOString().split('T')[0];
+        selectedDate = dateString(d);
       }}
       onNext={() => {
         const d = new Date(selectedDate + 'T12:00');
         d.setDate(d.getDate() + 1);
-        selectedDate = d.toISOString().split('T')[0];
+        selectedDate = dateString(d);
       }}
       {isToday}
     >

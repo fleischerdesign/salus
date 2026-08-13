@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { todayString } from '$lib/utils/datetime';
 import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 
@@ -11,7 +12,7 @@ export async function createMeal(data: {
 }) {
   const id = uuid7();
   const now = new Date().toISOString();
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayString();
 
   return mutate({
     kind: 'crud',
