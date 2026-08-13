@@ -1,5 +1,8 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+import { updateProfile } from '$lib/mutations/account';
+import { localMode } from '$lib/db/local-mode.svelte';
+
 const THEME_KEY = 'salus_theme';
 const COLORBLIND_KEY = 'salus_colorblind';
 const ACCENT_KEY = 'salus_accent_hue';
@@ -51,22 +54,62 @@ class ThemeService {
 
   setMode(mode: ThemeMode): void {
     this.mode = mode;
-    if (typeof localStorage !== 'undefined') localStorage.setItem(THEME_KEY, mode);
-    this.apply();
+    this.persist();
   }
 
   setColorblind(value: boolean): void {
     this.colorblind = value;
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(COLORBLIND_KEY, String(value));
-    }
-    this.apply();
+    this.persist();
   }
 
   setAccentHue(hue: number): void {
     this.accentHue = hue;
-    if (typeof localStorage !== 'undefined') localStorage.setItem(ACCENT_KEY, String(hue));
+    this.persist();
+  }
+
+  applyUserProfile(profile: {
+    theme?: string;
+    colorblind?: boolean;
+    accent_hue?: number | null;
+  }): void {
+    if (profile.theme === 'light' || profile.theme === 'dark' || profile.theme === 'system') {
+      this.mode = profile.theme;
+    }
+    if (typeof profile.colorblind === 'boolean') {
+      this.colorblind = profile.colorblind;
+    }
+    if (
+      typeof profile.accent_hue === 'number' &&
+      Number.isInteger(profile.accent_hue) &&
+      profile.accent_hue >= 0 &&
+      profile.accent_hue < 360
+    ) {
+      this.accentHue = profile.accent_hue;
+    }
+    this.persistLocal();
     this.apply();
+  }
+
+  private persist(): void {
+    this.persistLocal();
+    this.apply();
+    this.pushToServer();
+  }
+
+  private persistLocal(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(THEME_KEY, this.mode);
+    localStorage.setItem(COLORBLIND_KEY, String(this.colorblind));
+    localStorage.setItem(ACCENT_KEY, String(this.accentHue));
+  }
+
+  private pushToServer(): void {
+    if (localMode.active) return;
+    updateProfile({
+      theme: this.mode,
+      colorblind: this.colorblind,
+      accent_hue: this.accentHue
+    });
   }
 
   apply(): void {

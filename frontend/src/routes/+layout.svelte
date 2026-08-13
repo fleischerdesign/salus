@@ -136,6 +136,7 @@
       setLocaleState(userProfile.locale ?? 'en');
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userProfile));
       localStorage.setItem('salus_user_is_admin', String(userProfile.is_admin ?? false));
+      theme.applyUserProfile(userProfile);
     }
   });
 

@@ -19,6 +19,8 @@ function buildLocalUser(displayName: string): User {
     is_active: true,
     is_admin: false,
     locale: 'en',
+    colorblind: false,
+    accent_hue: null,
     onboarding_dismissed: false,
     theme: 'system',
     created_at: now,
