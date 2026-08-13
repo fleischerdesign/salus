@@ -31,4 +31,14 @@ describe('theme', () => {
     expect(theme.colorblind).toBe(true);
     expect(localStorage.getItem('salus_colorblind')).toBe('true');
   });
+
+  it('defaults to the indigo accent hue', () => {
+    expect(theme.accentHue).toBe(290);
+  });
+
+  it('persists the accent hue', () => {
+    theme.setAccentHue(160);
+    expect(theme.accentHue).toBe(160);
+    expect(localStorage.getItem('salus_accent_hue')).toBe('160');
+  });
 });
