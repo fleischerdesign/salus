@@ -198,7 +198,10 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             results = pipeline.process([op])
             result = results[0]
             raise_from_command_result(result.status, result.message)
-            return result.record or {}
+            if meta.name in RESPONSE_MODELS:
+                return result.record or {}
+            instance = pipeline.session.get(model_cls, result.id)
+            return instance if instance is not None else (result.record or {})
 
         @router.put("/{item_id}", response_model=response_model)
         @router.patch("/{item_id}", response_model=response_model)
@@ -212,7 +215,10 @@ def _register_entity_routes(app: FastAPI, meta: EntityMeta, plural: str) -> None
             results = pipeline.process([op])
             result = results[0]
             raise_from_command_result(result.status, result.message)
-            return result.record or {}
+            if meta.name in RESPONSE_MODELS:
+                return result.record or {}
+            instance = pipeline.session.get(model_cls, item_id)
+            return instance if instance is not None else (result.record or {})
 
         @router.delete("/{item_id}", status_code=204)
         async def delete_one(
