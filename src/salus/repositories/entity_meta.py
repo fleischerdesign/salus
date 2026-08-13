@@ -56,6 +56,13 @@ class EntityMeta:
     batch_size: int = 500
 
 
+# Strategies the client may write via sync push and auto-CRUD. Everything else
+# (global reference data, append-only server records) is read-only.
+WRITABLE_STRATEGIES: frozenset[str] = frozenset(
+    {"user_scoped", "shared_nullable", "relational"}
+)
+
+
 ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="metric_group", model=MetricGroup, strategy="global", batch_size=500),
     EntityMeta(name="metric_definition", model=MetricDefinition, strategy="global", batch_size=500),
@@ -151,25 +158,6 @@ def _validate_user_update(
     return None
 
 
-_SAFE_API_TOKEN_UPDATE_FIELDS = {"is_active"}
-
-
-def _validate_api_token_update(
-    session: Session, current_user: User, data: dict, op: "SyncOperation",
-) -> str | None:
-    if op.type == "create":
-        return "API token creation via sync push is not allowed. Use POST /api/v1/settings/tokens."
-    blocked = [k for k in data if k not in _SAFE_API_TOKEN_UPDATE_FIELDS]
-    if blocked:
-        return f"Cannot update API token fields via sync push: {', '.join(blocked)}"
-    instance = session.get(ApiToken, op.id)
-    if not instance:
-        return f"API token not found: {op.id}"
-    if instance.user_id != current_user.id:
-        return "Cannot modify another user's API token"
-    return None
-
-
 def _validate_exercise_create(
     session: Session, _current_user: User, data: dict, op: "SyncOperation",
 ) -> str | None:
@@ -230,7 +218,6 @@ def _validate_user_achievement(
 
 ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "user": _validate_user_update,
-    "api_token": _validate_api_token_update,
     "exercise": _validate_exercise_create,
     "user_metric_preference": _validate_metric_preference_create,
     "measurement": _validate_measurement_create,

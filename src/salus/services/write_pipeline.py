@@ -9,6 +9,7 @@ from salus.repositories.entity_meta import (
     ENTITY_META_BY_NAME,
     ENTITY_REGISTRY,
     ENTITY_VALIDATORS,
+    WRITABLE_STRATEGIES,
     EntityMeta,
 )
 from salus.repositories.unit_of_work import IUnitOfWork
@@ -94,6 +95,15 @@ class WritePipeline:
                 type=op.type, entity=op.entity or "", status="error",
                 message=f"Unknown entity: {op.entity}",
             )
+
+        if op.type in ("create", "update", "delete"):
+            meta = ENTITY_META_BY_NAME.get(op.entity or "")
+            if meta and meta.strategy not in WRITABLE_STRATEGIES:
+                return SyncResult(
+                    type=op.type, entity=op.entity or "", client_id=op.client_id,
+                    status="error",
+                    message=f"Entity '{op.entity}' is read-only (strategy '{meta.strategy}')",
+                )
 
         data = op.data or {}
         data = self._resolve_client_ids(data, client_id_map)
