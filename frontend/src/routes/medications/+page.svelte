@@ -183,12 +183,7 @@
   }
 </script>
 
-<PageHeader
-  title="Medications"
-  subtitle="Track your medications, doses, and inventory"
-  icon="pill"
-  iconColor="#4f46e5"
->
+<PageHeader title="Medications" subtitle="Track your medications, doses, and inventory" icon="pill">
   {#snippet actions()}
     <div class="flex h-full items-stretch">
       <button

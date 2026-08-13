@@ -297,7 +297,6 @@
       title="Active Workout Session"
       subtitle={`Started ${formatTime(session.started_at)}`}
       icon="fitness-center"
-      iconColor="#4f46e5"
       backUrl="/workouts"
     >
       {#snippet actions()}

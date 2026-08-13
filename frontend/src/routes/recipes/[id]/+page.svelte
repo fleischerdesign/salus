@@ -108,7 +108,6 @@
     title={recipe.name}
     subtitle={`${recipe.servings} servings · ${Math.round(macros.calories / recipe.servings)} kcal/serving`}
     icon="menu-book"
-    iconColor="#f59e0b"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch gap-2">

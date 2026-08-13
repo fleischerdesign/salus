@@ -64,7 +64,6 @@
     title="Workout Planner"
     subtitle="Create plans, track sets, and get dynamic intensity suggestions."
     icon="fitness-center"
-    iconColor="#4f46e5"
   />
 
   {#if !loaded}

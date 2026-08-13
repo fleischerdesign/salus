@@ -154,7 +154,6 @@
       subtitle={exercise.description ||
         'View execution instructions and historical training volume.'}
       icon="fitness-center"
-      iconColor="#4f46e5"
       backUrl="/workouts/exercises"
     >
       {#snippet actions()}

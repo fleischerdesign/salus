@@ -136,7 +136,6 @@
     title="Exercise Library"
     subtitle="Explore default templates, search movements, and configure target muscles."
     icon="fitness-center"
-    iconColor="#4f46e5"
     backUrl="/workouts"
   >
     {#snippet actions()}

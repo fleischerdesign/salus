@@ -37,12 +37,7 @@
 <svelte:head><title>Salus — Mood</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Mood"
-    subtitle="Log how you're feeling each day"
-    icon="sentiment-satisfied"
-    iconColor="#f59e0b"
-  />
+  <PageHeader title="Mood" subtitle="Log how you're feeling each day" icon="sentiment-satisfied" />
 
   {#if loading}
     <div class="h-32 animate-pulse rounded-xl bg-surface-100"></div>

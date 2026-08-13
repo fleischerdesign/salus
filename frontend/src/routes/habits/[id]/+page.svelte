@@ -8,6 +8,7 @@
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import ProgressBar from '$components/ui/ProgressBar.svelte';
+  import { resolveColor } from '$lib/theme/colors';
   import Spinner from '$components/ui/Spinner.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -155,7 +156,7 @@
       backUrl="/habits"
       icon={habit.icon}
       iconColor="#fff"
-      iconBgColor={habit.color}
+      iconBgColor={resolveColor('habit:' + habit.id, habit.color)}
     >
       {#snippet stats()}
         <div

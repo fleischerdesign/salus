@@ -276,7 +276,6 @@
     title="Dashboard"
     subtitle="Personal health overview and activity tracker"
     icon="dashboard"
-    iconColor="#4f46e5"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">

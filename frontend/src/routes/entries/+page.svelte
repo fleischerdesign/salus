@@ -80,7 +80,6 @@
     title="Logbook"
     subtitle="Select a metric to view and manage its entries."
     icon="library-books"
-    iconColor="#4f46e5"
   />
 
   {#if logbookData === undefined}

@@ -129,7 +129,6 @@
         ? 'Predictions, projections & sleep debt'
         : 'Cross-metric correlations & historical calendar'}
     icon="analytics"
-    iconColor="#4f46e5"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">

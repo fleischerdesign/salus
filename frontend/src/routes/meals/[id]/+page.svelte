@@ -83,7 +83,6 @@
       day: 'numeric'
     })}
     icon="restaurant"
-    iconColor="#f59e0b"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">

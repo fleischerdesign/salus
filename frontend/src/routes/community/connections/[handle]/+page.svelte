@@ -167,7 +167,6 @@
     subtitle={handle}
     backUrl="/community/connections"
     icon="person"
-    iconColor="#4f46e5"
   >
     {#snippet actions()}
       {#if peer}

@@ -40,7 +40,6 @@
     title="Activity Feed"
     subtitle="Stay updated on your connections' health and fitness progress."
     icon="rss-feed"
-    iconColor="#4f46e5"
     backUrl="/community"
   />
 

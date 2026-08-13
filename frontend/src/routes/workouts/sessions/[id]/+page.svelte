@@ -79,7 +79,6 @@
       title="Workout Session"
       subtitle={`${new Date(session.completed_at ?? session.started_at).toLocaleDateString()} • ${durationMin} min`}
       icon="fitness-center"
-      iconColor="#4f46e5"
       backUrl="/workouts/sessions"
     >
       {#snippet actions()}

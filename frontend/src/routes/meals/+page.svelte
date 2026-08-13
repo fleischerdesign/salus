@@ -124,12 +124,7 @@
 <svelte:head><title>Salus — Meals</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Meals"
-    subtitle="Track your nutrition, one meal at a time"
-    icon="restaurant"
-    iconColor="#f59e0b"
-  >
+  <PageHeader title="Meals" subtitle="Track your nutrition, one meal at a time" icon="restaurant">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
         <button

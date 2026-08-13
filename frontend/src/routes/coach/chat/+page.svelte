@@ -71,7 +71,6 @@
     title="AI Coach"
     subtitle="Physician-grade daily health recommendations powered by LLMs"
     icon="psychology"
-    iconColor="#4f46e5"
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">

@@ -162,7 +162,6 @@
     title="Connections"
     subtitle="Manage your peer-to-peer health data sharing relationships."
     icon="groups"
-    iconColor="#4f46e5"
     backUrl="/community"
   />
 

@@ -275,7 +275,7 @@
       subtitle={g.description || ''}
       backUrl="/entries"
       icon={g.icon || 'monitoring'}
-      iconColor={groupMetrics[0]?.color || '#4f46e5'}
+      iconColor={groupMetrics[0]?.color}
     >
       {#snippet actions()}
         <button
