@@ -5,7 +5,6 @@ export function useQuery<T>(querier: () => Promise<T>): { value: T | undefined; 
   let loading = $state(true);
 
   $effect(() => {
-    querier();
     const sub = liveQuery(querier).subscribe({
       next: (v) => {
         value = v;

@@ -1,4 +1,4 @@
-import Dexie, { liveQuery } from 'dexie';
+import Dexie from 'dexie';
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import { AUTH_USER_KEY } from '$lib/constants';
@@ -283,35 +283,24 @@ function computeExercise(measurements: Measurement[]): Array<{
   return sessions.slice(0, 5);
 }
 
-export function useAnalytics(rangeKey: string = '30d') {
-  const data = liveQuery(async () => {
-    const days = RANGE_DAYS[rangeKey] ?? 30;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffISO = cutoff.toISOString();
+export async function fetchAnalytics(rangeKey: string = '30d') {
+  const days = RANGE_DAYS[rangeKey] ?? 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffISO = cutoff.toISOString();
 
-    const targetCodes = [
-      'steps',
-      'weight',
-      'body_weight',
-      'sleep',
-      'exercise',
-      'resting_heart_rate'
-    ];
-    const arrays = await Promise.all(
-      targetCodes.map((code) =>
-        db.measurement
-          .where('[metric_code+start_time]')
-          .between([code, cutoffISO], [code, Dexie.maxKey])
-          .toArray()
-      )
-    );
+  const targetCodes = ['steps', 'weight', 'body_weight', 'sleep', 'exercise', 'resting_heart_rate'];
+  const arrays = await Promise.all(
+    targetCodes.map((code) =>
+      db.measurement
+        .where('[metric_code+start_time]')
+        .between([code, cutoffISO], [code, Dexie.maxKey])
+        .toArray()
+    )
+  );
 
-    const measurements = arrays.flat().filter((m) => !m.deleted_at);
-    return computeAnalytics(measurements, rangeKey);
-  });
-
-  return data;
+  const measurements = arrays.flat().filter((m) => !m.deleted_at);
+  return computeAnalytics(measurements, rangeKey);
 }
 
 function interpretCohens(d: number): string {
@@ -322,74 +311,73 @@ function interpretCohens(d: number): string {
   return 'negligible';
 }
 
-export function useCorrelations(
-  rangeKey: string = '90d',
+export async function fetchCorrelations(
+  rangeKey: string | null = '90d',
   method: 'pearson' | 'spearman' = 'pearson'
 ) {
-  const data = liveQuery(async () => {
-    const days = RANGE_DAYS[rangeKey] ?? 90;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const pivot = new Map<string, number[]>();
+  if (rangeKey === null) {
+    return { pairs: [], n_comparisons: 0, correction: 'Benjamini-Hochberg FDR' };
+  }
+  const days = RANGE_DAYS[rangeKey] ?? 90;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const pivot = new Map<string, number[]>();
 
-    await db.measurement
-      .where('start_time')
-      .above(cutoff.toISOString())
-      .each((m) => {
-        if (!m.deleted_at && m.value_numeric != null) {
-          const dt = m.metric_code || m.source_data_type;
-          let list = pivot.get(dt);
-          if (!list) {
-            list = [];
-            pivot.set(dt, list);
-          }
-          list.push(m.value_numeric);
+  await db.measurement
+    .where('start_time')
+    .above(cutoff.toISOString())
+    .each((m) => {
+      if (!m.deleted_at && m.value_numeric != null) {
+        const dt = m.metric_code || m.source_data_type;
+        let list = pivot.get(dt);
+        if (!list) {
+          list = [];
+          pivot.set(dt, list);
         }
+        list.push(m.value_numeric);
+      }
+    });
+
+  const metrics = [...pivot.keys()].filter((k) => pivot.get(k)!.length >= 14);
+  const pairs: Correlation[] = [];
+  const pValues: number[] = [];
+  const corrFunc = method === 'pearson' ? pearson : spearman;
+
+  for (let i = 0; i < metrics.length; i++) {
+    for (let j = i + 1; j < metrics.length; j++) {
+      const xs = pivot.get(metrics[i])!;
+      const ys = pivot.get(metrics[j])!;
+      const n = Math.min(xs.length, ys.length);
+      const pr = corrFunc(xs.slice(0, n), ys.slice(0, n));
+      if (!pr || pr.n < 3) continue;
+      pairs.push({
+        metric_a: metrics[i],
+        metric_b: metrics[j],
+        pearson_r: pr.r,
+        pearson_p: pr.p_value,
+        p_adjusted_bh: 1.0,
+        effect_size_d: Math.abs(pr.r),
+        ci_lower: pr.ci_lower,
+        ci_upper: pr.ci_upper,
+        n: pr.n,
+        interpretation: interpretCohens(Math.abs(pr.r))
       });
-
-    const metrics = [...pivot.keys()].filter((k) => pivot.get(k)!.length >= 14);
-    const pairs: Correlation[] = [];
-    const pValues: number[] = [];
-    const corrFunc = method === 'pearson' ? pearson : spearman;
-
-    for (let i = 0; i < metrics.length; i++) {
-      for (let j = i + 1; j < metrics.length; j++) {
-        const xs = pivot.get(metrics[i])!;
-        const ys = pivot.get(metrics[j])!;
-        const n = Math.min(xs.length, ys.length);
-        const pr = corrFunc(xs.slice(0, n), ys.slice(0, n));
-        if (!pr || pr.n < 3) continue;
-        pairs.push({
-          metric_a: metrics[i],
-          metric_b: metrics[j],
-          pearson_r: pr.r,
-          pearson_p: pr.p_value,
-          p_adjusted_bh: 1.0,
-          effect_size_d: Math.abs(pr.r),
-          ci_lower: pr.ci_lower,
-          ci_upper: pr.ci_upper,
-          n: pr.n,
-          interpretation: interpretCohens(Math.abs(pr.r))
-        });
-        pValues.push(pr.p_value);
-      }
+      pValues.push(pr.p_value);
     }
+  }
 
-    if (pairs.length > 0) {
-      const fdr = benjaminiHochberg(pValues);
-      for (let i = 0; i < pairs.length; i++) {
-        pairs[i] = {
-          ...pairs[i],
-          p_adjusted_bh: fdr.adjusted[i],
-          interpretation: fdr.rejected[i] ? pairs[i].interpretation : 'negligible'
-        };
-      }
+  if (pairs.length > 0) {
+    const fdr = benjaminiHochberg(pValues);
+    for (let i = 0; i < pairs.length; i++) {
+      pairs[i] = {
+        ...pairs[i],
+        p_adjusted_bh: fdr.adjusted[i],
+        interpretation: fdr.rejected[i] ? pairs[i].interpretation : 'negligible'
+      };
     }
+  }
 
-    return { pairs, n_comparisons: pairs.length, correction: 'Benjamini-Hochberg FDR' };
-  });
-
-  return data;
+  return { pairs, n_comparisons: pairs.length, correction: 'Benjamini-Hochberg FDR' };
 }
 
 export interface TrendResult {
@@ -405,159 +393,150 @@ export interface TrendResult {
   } | null;
 }
 
-export function useTrend(metric: string, rangeKey: string = '90d') {
-  const data = liveQuery(async () => {
-    if (!metric) return { values: [], labels: [], regression: null };
-    const days = RANGE_DAYS[rangeKey] ?? 90;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffISO = cutoff.toISOString();
+export async function fetchTrend(metric: string, rangeKey: string = '90d') {
+  if (!metric) return { values: [], labels: [], regression: null };
+  const days = RANGE_DAYS[rangeKey] ?? 90;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffISO = cutoff.toISOString();
 
-    const dayMap = new Map<string, { sum: number; count: number }>();
-    const rawValues: number[] = [];
-    const rawLabels: string[] = [];
-    let count = 0;
+  const dayMap = new Map<string, { sum: number; count: number }>();
+  const rawValues: number[] = [];
+  const rawLabels: string[] = [];
+  let count = 0;
 
-    await db.measurement
-      .where('[metric_code+start_time]')
-      .between([metric, cutoffISO], [metric, Dexie.maxKey])
-      .each((m) => {
-        if (!m.deleted_at && m.value_numeric != null) {
-          count++;
-          const day = m.start_time.split('T')[0];
-          const existing = dayMap.get(day);
-          if (existing) {
-            existing.sum += m.value_numeric;
-            existing.count += 1;
-          } else {
-            dayMap.set(day, { sum: m.value_numeric, count: 1 });
-          }
-          rawValues.push(m.value_numeric);
-          rawLabels.push(m.start_time.slice(5));
+  await db.measurement
+    .where('[metric_code+start_time]')
+    .between([metric, cutoffISO], [metric, Dexie.maxKey])
+    .each((m) => {
+      if (!m.deleted_at && m.value_numeric != null) {
+        count++;
+        const day = m.start_time.split('T')[0];
+        const existing = dayMap.get(day);
+        if (existing) {
+          existing.sum += m.value_numeric;
+          existing.count += 1;
+        } else {
+          dayMap.set(day, { sum: m.value_numeric, count: 1 });
         }
-      });
-
-    let values: number[];
-    let labels: string[];
-
-    if (count > 150) {
-      labels = Array.from(dayMap.keys()).map((d) => d.slice(5));
-      values = Array.from(dayMap.values()).map((v) => Math.round((v.sum / v.count) * 10) / 10);
-    } else {
-      values = rawValues;
-      labels = rawLabels;
-    }
-
-    if (values.length < 3) return { values, labels, regression: null };
-
-    const regression = regressionSeries(values);
-    if (!regression) return { values, labels, regression: null };
-
-    return { values, labels, regression };
-  });
-  return data;
-}
-
-export function useWellness(dateStr?: string) {
-  const data = liveQuery(async () => {
-    const target = dateStr ? new Date(dateStr) : new Date();
-    const since = new Date(target);
-    since.setDate(since.getDate() - 28);
-    const sinceISO = since.toISOString();
-    const untilISO = new Date(target.getTime() + MS_PER_DAY).toISOString();
-
-    const targetCodes = ['resting_heart_rate', 'heart_rate', 'steps', 'sleep'];
-    const arrays = await Promise.all(
-      targetCodes.map((code) =>
-        db.measurement
-          .where('[metric_code+start_time]')
-          .between([code, sinceISO], [code, untilISO], true, false)
-          .toArray()
-      )
-    );
-
-    const measurements = arrays.flat().filter((m) => !m.deleted_at && m.value_numeric != null);
-
-    const hrVals = measurements
-      .filter(
-        (m) =>
-          m.source_data_type === 'heart_rate' ||
-          m.metric_code === 'heart_rate' ||
-          m.metric_code === 'resting_heart_rate'
-      )
-      .map((m) => m.value_numeric!);
-    const stepVals = measurements
-      .filter((m) => m.source_data_type === 'steps' || m.metric_code === 'steps')
-      .map((m) => m.value_numeric!);
-    const sleepVals = measurements
-      .filter(
-        (m) =>
-          (m.source_data_type === 'sleep' || m.metric_code === 'sleep') && m.value_numeric != null
-      )
-      .map((m) => m.value_numeric!);
-
-    const muHr = hrVals.length > 0 ? hrVals.reduce((a, b) => a + b, 0) / hrVals.length : 60;
-    const sigHr =
-      hrVals.length > 1
-        ? Math.sqrt(hrVals.reduce((a, v) => a + (v - muHr) ** 2, 0) / (hrVals.length - 1))
-        : 5;
-    const muSteps =
-      stepVals.length > 0 ? stepVals.reduce((a, b) => a + b, 0) / stepVals.length : 8000;
-    const sigSteps =
-      stepVals.length > 1
-        ? Math.sqrt(stepVals.reduce((a, v) => a + (v - muSteps) ** 2, 0) / (stepVals.length - 1))
-        : 2000;
-    const muSleep =
-      sleepVals.length > 0 ? sleepVals.reduce((a, b) => a + b, 0) / sleepVals.length : 7;
-    const sigSleep =
-      sleepVals.length > 1
-        ? Math.sqrt(sleepVals.reduce((a, v) => a + (v - muSleep) ** 2, 0) / (sleepVals.length - 1))
-        : 1;
-
-    const todayRhr = hrVals.length > 0 ? hrVals[hrVals.length - 1] : muHr;
-    const todaySteps = stepVals.length > 0 ? stepVals[stepVals.length - 1] : muSteps;
-    const todaySleep = sleepVals.length > 0 ? sleepVals[sleepVals.length - 1] : muSleep;
-
-    const score = recoveryComposite(todaySleep, 50.0, todayRhr, Math.round(todaySteps), {
-      sleep: [muSleep, Math.max(sigSleep, 0.01)],
-      hrv: [50.0, 10.0],
-      resting_hr: [muHr, Math.max(sigHr, 0.01)],
-      log_steps: [muSteps, Math.max(sigSteps, 0.01)]
+        rawValues.push(m.value_numeric);
+        rawLabels.push(m.start_time.slice(5));
+      }
     });
 
-    return {
-      score: Math.round(score.score * 10) / 10,
-      interpretation: score.interpretation,
-      sleep_z: Math.round(score.sleep_z * 100) / 100,
-      hrv_z: Math.round(score.hrv_z * 100) / 100,
-      hr_z: Math.round(score.hr_z * 100) / 100,
-      steps_z: Math.round(score.steps_z * 100) / 100
-    };
-  });
-  return data;
+  let values: number[];
+  let labels: string[];
+
+  if (count > 150) {
+    labels = Array.from(dayMap.keys()).map((d) => d.slice(5));
+    values = Array.from(dayMap.values()).map((v) => Math.round((v.sum / v.count) * 10) / 10);
+  } else {
+    values = rawValues;
+    labels = rawLabels;
+  }
+
+  if (values.length < 3) return { values, labels, regression: null };
+
+  const regression = regressionSeries(values);
+  if (!regression) return { values, labels, regression: null };
+
+  return { values, labels, regression };
 }
 
-export function useSleepDebt(age: number = 30) {
-  const data = liveQuery(async () => {
-    const rawRecent = await db.measurement
-      .where('[metric_code+start_time]')
-      .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
-      .reverse()
-      .limit(28)
-      .toArray();
+export async function fetchWellness(dateStr?: string) {
+  const target = dateStr ? new Date(dateStr) : new Date();
+  const since = new Date(target);
+  since.setDate(since.getDate() - 28);
+  const sinceISO = since.toISOString();
+  const untilISO = new Date(target.getTime() + MS_PER_DAY).toISOString();
 
-    const recent = rawRecent.filter((m) => !m.deleted_at);
-    const durations = extractSleepDurations(recent.slice(0, 28));
+  const targetCodes = ['resting_heart_rate', 'heart_rate', 'steps', 'sleep'];
+  const arrays = await Promise.all(
+    targetCodes.map((code) =>
+      db.measurement
+        .where('[metric_code+start_time]')
+        .between([code, sinceISO], [code, untilISO], true, false)
+        .toArray()
+    )
+  );
 
-    if (durations.length < 3) return null;
-    const debt = sleepDebtCumulative(durations, age);
-    return {
-      debt: debt.debt.map((v) => Math.round(v * 100) / 100),
-      baseline_h: debt.baseline_h,
-      cumulative_last: Math.round(debt.debt[debt.debt.length - 1] * 100) / 100
-    };
+  const measurements = arrays.flat().filter((m) => !m.deleted_at && m.value_numeric != null);
+
+  const hrVals = measurements
+    .filter(
+      (m) =>
+        m.source_data_type === 'heart_rate' ||
+        m.metric_code === 'heart_rate' ||
+        m.metric_code === 'resting_heart_rate'
+    )
+    .map((m) => m.value_numeric!);
+  const stepVals = measurements
+    .filter((m) => m.source_data_type === 'steps' || m.metric_code === 'steps')
+    .map((m) => m.value_numeric!);
+  const sleepVals = measurements
+    .filter(
+      (m) =>
+        (m.source_data_type === 'sleep' || m.metric_code === 'sleep') && m.value_numeric != null
+    )
+    .map((m) => m.value_numeric!);
+
+  const muHr = hrVals.length > 0 ? hrVals.reduce((a, b) => a + b, 0) / hrVals.length : 60;
+  const sigHr =
+    hrVals.length > 1
+      ? Math.sqrt(hrVals.reduce((a, v) => a + (v - muHr) ** 2, 0) / (hrVals.length - 1))
+      : 5;
+  const muSteps =
+    stepVals.length > 0 ? stepVals.reduce((a, b) => a + b, 0) / stepVals.length : 8000;
+  const sigSteps =
+    stepVals.length > 1
+      ? Math.sqrt(stepVals.reduce((a, v) => a + (v - muSteps) ** 2, 0) / (stepVals.length - 1))
+      : 2000;
+  const muSleep =
+    sleepVals.length > 0 ? sleepVals.reduce((a, b) => a + b, 0) / sleepVals.length : 7;
+  const sigSleep =
+    sleepVals.length > 1
+      ? Math.sqrt(sleepVals.reduce((a, v) => a + (v - muSleep) ** 2, 0) / (sleepVals.length - 1))
+      : 1;
+
+  const todayRhr = hrVals.length > 0 ? hrVals[hrVals.length - 1] : muHr;
+  const todaySteps = stepVals.length > 0 ? stepVals[stepVals.length - 1] : muSteps;
+  const todaySleep = sleepVals.length > 0 ? sleepVals[sleepVals.length - 1] : muSleep;
+
+  const score = recoveryComposite(todaySleep, 50.0, todayRhr, Math.round(todaySteps), {
+    sleep: [muSleep, Math.max(sigSleep, 0.01)],
+    hrv: [50.0, 10.0],
+    resting_hr: [muHr, Math.max(sigHr, 0.01)],
+    log_steps: [muSteps, Math.max(sigSteps, 0.01)]
   });
-  return data;
+
+  return {
+    score: Math.round(score.score * 10) / 10,
+    interpretation: score.interpretation,
+    sleep_z: Math.round(score.sleep_z * 100) / 100,
+    hrv_z: Math.round(score.hrv_z * 100) / 100,
+    hr_z: Math.round(score.hr_z * 100) / 100,
+    steps_z: Math.round(score.steps_z * 100) / 100
+  };
+}
+
+export async function fetchSleepDebt(age: number = 30) {
+  const rawRecent = await db.measurement
+    .where('[metric_code+start_time]')
+    .between(['sleep', Dexie.minKey], ['sleep', Dexie.maxKey])
+    .reverse()
+    .limit(28)
+    .toArray();
+
+  const recent = rawRecent.filter((m) => !m.deleted_at);
+  const durations = extractSleepDurations(recent.slice(0, 28));
+
+  if (durations.length < 3) return null;
+  const debt = sleepDebtCumulative(durations, age);
+  return {
+    debt: debt.debt.map((v) => Math.round(v * 100) / 100),
+    baseline_h: debt.baseline_h,
+    cumulative_last: Math.round(debt.debt[debt.debt.length - 1] * 100) / 100
+  };
 }
 
 function getUserHeight(): number {

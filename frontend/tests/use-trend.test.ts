@@ -1,33 +1,6 @@
 import { db } from '$lib/db/database';
-import { useTrend } from '$lib/analytics/views/analytics';
+import { fetchTrend } from '$lib/analytics/views/analytics';
 import { beforeEach, describe, expect, it } from 'vitest';
-
-interface TrendResult {
-  values: number[];
-  labels: string[];
-  regression: unknown;
-}
-
-interface Subscription<T> {
-  next: (value: T) => void;
-  error?: (error: unknown) => void;
-}
-
-interface Observable<T> {
-  subscribe(observer: Subscription<T>): { unsubscribe: () => void };
-}
-
-async function firstEmission<T>(obs: Observable<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const sub = obs.subscribe({
-      next: (value) => {
-        sub.unsubscribe();
-        resolve(value);
-      },
-      error: reject
-    });
-  });
-}
 
 function measurement(id: string, metric_code: string, value: number) {
   const now = new Date().toISOString();
@@ -55,7 +28,7 @@ beforeEach(async () => {
   await db.open();
 });
 
-describe('useTrend', () => {
+describe('fetchTrend', () => {
   it('queries by metric_code — not by the DataType enum value', async () => {
     await db.measurement.bulkAdd([
       measurement('m1', 'steps', 100),
@@ -63,10 +36,10 @@ describe('useTrend', () => {
       measurement('m3', 'steps', 140)
     ]);
 
-    const byCode = await firstEmission<TrendResult>(useTrend('steps', '7d'));
+    const byCode = await fetchTrend('steps', '7d');
     expect(byCode.values.length).toBeGreaterThan(0);
 
-    const byDataType = await firstEmission<TrendResult>(useTrend('number', '7d'));
+    const byDataType = await fetchTrend('number', '7d');
     expect(byDataType.values).toEqual([]);
   });
 });
