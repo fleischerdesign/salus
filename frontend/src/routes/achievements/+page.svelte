@@ -5,14 +5,24 @@
   import Icon from '$components/ui/Icon.svelte';
 
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { localMode } from '$lib/db/local-mode.svelte';
+  import { evaluateLocalAchievements } from '$lib/db/local-achievements';
 
   const definitionsQuery = useQuery(() => db.achievement_definition.toArray());
   const definitions = $derived(definitionsQuery.value);
   const unlockedQuery = useQuery(() => db.user_achievement.toArray());
   const unlocked = $derived(unlockedQuery.value);
-  const loading = $derived(unlockedQuery.loading);
+  const localUnlockedQuery = useQuery(() =>
+    localMode.active ? evaluateLocalAchievements() : Promise.resolve(new Set<string>())
+  );
+  const localUnlocked = $derived(localUnlockedQuery.value);
+  const loading = $derived(localMode.active ? localUnlockedQuery.loading : unlockedQuery.loading);
 
-  const unlockedCodes = $derived(new Set((unlocked ?? []).map((u) => u.achievement_code)));
+  const unlockedCodes = $derived(
+    localMode.active
+      ? (localUnlocked ?? new Set<string>())
+      : new Set((unlocked ?? []).map((u) => u.achievement_code))
+  );
 
   const tierColors: Record<string, string> = {
     bronze: 'from-amber-600 to-amber-700',
