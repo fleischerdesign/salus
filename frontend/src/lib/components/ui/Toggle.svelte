@@ -26,7 +26,7 @@
     'inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer')
   );
   let trackClass = $derived(
-    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro ' +
+    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 ' +
       (checked ? 'bg-primary-500' : '')
   );
   let thumbClass = $derived(
@@ -48,7 +48,7 @@
     {checked}
     {disabled}
     onchange={handleChange}
-    class="sr-only"
+    class="peer sr-only"
     role="switch"
     aria-checked={checked}
   />
