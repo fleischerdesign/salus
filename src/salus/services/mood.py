@@ -8,6 +8,21 @@ from salus.schemas.mood import MoodEntryCreate
 from salus.services.achievement.streak import compute_streak
 from salus.services.analytics.stats import linear_regression
 
+DEFAULT_MOOD_TAGS: list[dict[str, str]] = [
+    {"code": "energetic", "label": "Energetic", "emoji": "⚡", "category": "positive"},
+    {"code": "happy", "label": "Happy", "emoji": "😊", "category": "positive"},
+    {"code": "productive", "label": "Productive", "emoji": "✅", "category": "positive"},
+    {"code": "grateful", "label": "Grateful", "emoji": "🙏", "category": "positive"},
+    {"code": "calm", "label": "Calm", "emoji": "🧘", "category": "positive"},
+    {"code": "okay", "label": "Okay", "emoji": "😐", "category": "neutral"},
+    {"code": "tired", "label": "Tired", "emoji": "😴", "category": "negative"},
+    {"code": "stressed", "label": "Stressed", "emoji": "😰", "category": "negative"},
+    {"code": "anxious", "label": "Anxious", "emoji": "😟", "category": "negative"},
+    {"code": "sad", "label": "Sad", "emoji": "😢", "category": "negative"},
+    {"code": "frustrated", "label": "Frustrated", "emoji": "😤", "category": "negative"},
+    {"code": "sick", "label": "Sick", "emoji": "🤒", "category": "negative"},
+]
+
 
 class MoodService:
     def __init__(self, uow: IUnitOfWork) -> None:
@@ -15,22 +30,8 @@ class MoodService:
 
     def seed_tags(self) -> int:
         session = self.uow.session
-        defaults = [
-            {"code": "energetic", "label": "Energetic", "emoji": "⚡", "category": "positive"},
-            {"code": "happy", "label": "Happy", "emoji": "😊", "category": "positive"},
-            {"code": "productive", "label": "Productive", "emoji": "✅", "category": "positive"},
-            {"code": "grateful", "label": "Grateful", "emoji": "🙏", "category": "positive"},
-            {"code": "calm", "label": "Calm", "emoji": "🧘", "category": "positive"},
-            {"code": "okay", "label": "Okay", "emoji": "😐", "category": "neutral"},
-            {"code": "tired", "label": "Tired", "emoji": "😴", "category": "negative"},
-            {"code": "stressed", "label": "Stressed", "emoji": "😰", "category": "negative"},
-            {"code": "anxious", "label": "Anxious", "emoji": "😟", "category": "negative"},
-            {"code": "sad", "label": "Sad", "emoji": "😢", "category": "negative"},
-            {"code": "frustrated", "label": "Frustrated", "emoji": "😤", "category": "negative"},
-            {"code": "sick", "label": "Sick", "emoji": "🤒", "category": "negative"},
-        ]
         count = 0
-        for d in defaults:
+        for d in DEFAULT_MOOD_TAGS:
             if session.get(MoodTag, d["code"]) is None:
                 session.add(MoodTag(
                     code=d["code"],
