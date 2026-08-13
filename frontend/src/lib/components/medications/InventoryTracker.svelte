@@ -28,7 +28,7 @@
   const percentage = $derived(initial > 0 ? Math.round((remaining / initial) * 100) : 0);
   const needsRefill = $derived(remaining <= refillAt);
   const progressColor = $derived(
-    needsRefill ? 'bg-error-500' : percentage > 50 ? 'bg-success-500' : 'bg-amber-500'
+    needsRefill ? 'bg-error-500' : percentage > 50 ? 'bg-success-500' : 'bg-warning-500'
   );
 
   function handleDecrement() {

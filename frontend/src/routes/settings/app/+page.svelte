@@ -276,23 +276,23 @@
             {updateResult.error}
           </AlertBanner>
         {:else if updateResult.hasUpdate}
-          <div class="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4">
+          <div class="rounded-xl border border-primary-200 bg-primary-50/60 p-4">
             <div class="flex items-start justify-between gap-4">
               <div>
                 <div class="flex items-center gap-2">
                   <span
-                    class="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white uppercase"
+                    class="rounded-md bg-primary-600 px-2 py-0.5 text-xs font-bold text-white uppercase"
                   >
                     Neues Update verfügbar
                   </span>
-                  <span class="font-mono text-xs font-bold text-indigo-900">
+                  <span class="font-mono text-xs font-bold text-primary-900">
                     {updateResult.latestVersion}
                   </span>
                   {#if updateResult.publishedAt}
-                    <span class="text-[11px] text-indigo-600">({updateResult.publishedAt})</span>
+                    <span class="text-[11px] text-primary-600">({updateResult.publishedAt})</span>
                   {/if}
                 </div>
-                <p class="mt-2 text-xs leading-relaxed whitespace-pre-line text-indigo-950">
+                <p class="text-primary-950 mt-2 text-xs leading-relaxed whitespace-pre-line">
                   {updateResult.releaseNotes}
                 </p>
               </div>
@@ -382,9 +382,9 @@
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-surface-900">Synchronisation</span>
           <span
-            class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
+            class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-bold text-success-700"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktiv
+            <span class="h-1.5 w-1.5 rounded-full bg-success-500"></span> Aktiv
           </span>
         </div>
       {/snippet}

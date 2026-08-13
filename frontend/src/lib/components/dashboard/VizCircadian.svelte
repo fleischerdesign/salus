@@ -106,13 +106,13 @@
       >
         {#if isNight}
           <div
-            class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-amber-200 shadow-md"
+            class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-warning-200 shadow-md"
           >
             <Icon name="dark-mode" size="sm" />
           </div>
         {:else}
           <div
-            class="animate-spin-slow flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white shadow-md"
+            class="animate-spin-slow flex h-6 w-6 items-center justify-center rounded-full bg-warning-400 text-white shadow-md"
           >
             <Icon name="wb-sunny" size="sm" />
           </div>
@@ -125,7 +125,7 @@
       class="flex justify-between border-t border-surface-100 px-2 pt-1 text-[10px] text-surface-400"
     >
       <span class="flex items-center gap-0.5">
-        <Icon name="light-mode" size={10} class="text-amber-500" />
+        <Icon name="light-mode" size={10} class="text-warning-500" />
         Sunrise: {advice?.solar_times?.sunrise ?? '—'}
       </span>
       <span class="flex items-center gap-0.5">

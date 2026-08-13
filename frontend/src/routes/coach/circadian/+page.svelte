@@ -113,7 +113,7 @@
           class="relative h-8 overflow-hidden rounded-2xl bg-surface-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
         >
           <div
-            class="absolute inset-y-0 bg-indigo-900"
+            class="absolute inset-y-0 bg-primary-900"
             style="left: 0%; right: {100 - dawnPct}%"
           ></div>
           <div
@@ -128,7 +128,7 @@
             class="absolute inset-y-0 bg-gradient-to-r from-amber-200 to-orange-300"
             style="left: {sunsetPct}%; right: {100 - duskPct}%"
           ></div>
-          <div class="absolute inset-y-0 bg-indigo-900" style="left: {duskPct}%; right: 0%"></div>
+          <div class="absolute inset-y-0 bg-primary-900" style="left: {duskPct}%; right: 0%"></div>
         </div>
 
         <div class="flex justify-between px-2 text-xs font-semibold text-surface-500">

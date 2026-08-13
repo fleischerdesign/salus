@@ -197,13 +197,13 @@
             <div class="text-sm font-bold text-blue-700">{Math.round(macros.protein)}g</div>
             <div class="text-[10px] text-blue-500">Protein</div>
           </div>
-          <div class="rounded-lg bg-amber-50 p-2">
-            <div class="text-sm font-bold text-amber-700">{Math.round(macros.carbs)}g</div>
-            <div class="text-[10px] text-amber-500">Carbs</div>
+          <div class="rounded-lg bg-warning-50 p-2">
+            <div class="text-sm font-bold text-warning-700">{Math.round(macros.carbs)}g</div>
+            <div class="text-[10px] text-warning-500">Carbs</div>
           </div>
-          <div class="rounded-lg bg-red-50 p-2">
-            <div class="text-sm font-bold text-red-700">{Math.round(macros.fat)}g</div>
-            <div class="text-[10px] text-red-500">Fat</div>
+          <div class="rounded-lg bg-error-50 p-2">
+            <div class="text-sm font-bold text-error-700">{Math.round(macros.fat)}g</div>
+            <div class="text-[10px] text-error-500">Fat</div>
           </div>
         </div>
       </Card>

@@ -85,9 +85,9 @@
         <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
           {#if session.recovery_score}
             <div
-              class="flex h-full items-center justify-center gap-2 bg-emerald-50 px-6 text-xs font-semibold whitespace-nowrap text-emerald-800"
+              class="flex h-full items-center justify-center gap-2 bg-success-50 px-6 text-xs font-semibold whitespace-nowrap text-success-800"
             >
-              <Icon name="bolt" size="sm" class="text-emerald-600" />
+              <Icon name="bolt" size="sm" class="text-success-600" />
               <span>Recovery {Math.round(session.recovery_score)}%</span>
             </div>
           {/if}

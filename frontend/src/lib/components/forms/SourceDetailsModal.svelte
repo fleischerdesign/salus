@@ -148,7 +148,7 @@
       <div class="space-y-6">
         <!-- Header Info Card -->
         <div
-          class="flex items-center justify-between rounded-lg border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
+          class="flex items-center justify-between rounded-lg border border-surface-200 bg-surface-50 p-4"
         >
           <div class="flex items-center gap-3">
             <div
@@ -158,7 +158,7 @@
               <Icon name={source.icon} size="md" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-surface-900 dark:text-surface-100">
+              <h3 class="text-sm font-bold text-surface-900">
                 {source.name}
               </h3>
               <span class="font-mono text-xs text-surface-400">ID: {source.id}</span>
@@ -168,13 +168,13 @@
           <div>
             {#if count > 0}
               <span
-                class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                class="inline-flex items-center gap-1.5 rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-700"
               >
-                <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Active
+                <span class="h-2 w-2 rounded-full bg-success-500"></span> Active
               </span>
             {:else}
               <span
-                class="inline-flex items-center rounded-full bg-surface-200 px-2.5 py-1 text-xs font-medium text-surface-600 dark:bg-surface-700 dark:text-surface-300"
+                class="inline-flex items-center rounded-full bg-surface-200 px-2.5 py-1 text-xs font-medium text-surface-600"
               >
                 Inactive
               </span>
@@ -185,8 +185,8 @@
         {#if syncFeedback}
           <div
             class="rounded-lg p-3 text-xs font-medium {syncFeedback.type === 'success'
-              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
-              : 'border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200'}"
+              ? 'border border-success-200 bg-success-50 text-success-800'
+              : 'border border-error-200 bg-error-50 text-error-800'}"
           >
             {syncFeedback.text}
           </div>
@@ -194,15 +194,11 @@
 
         <!-- NATIVE HEALTH CONNECT QUICK ACTION CONTROLS -->
         {#if source.id === 'health_connect' && isNativeAndroid}
-          <div
-            class="dark:bg-primary-950/30 rounded-lg border border-primary-200 bg-primary-50/50 p-4 dark:border-primary-800"
-          >
+          <div class=" rounded-lg border border-primary-200 bg-primary-50/50 p-4">
             <div class="flex items-center justify-between">
               <div>
-                <h4 class="text-xs font-bold text-primary-900 dark:text-primary-100">
-                  Android Health Connect Bridge
-                </h4>
-                <p class="mt-0.5 text-[11px] text-primary-700 dark:text-primary-300">
+                <h4 class="text-xs font-bold text-primary-900">Android Health Connect Bridge</h4>
+                <p class="mt-0.5 text-[11px] text-primary-700">
                   Direct native link to Google Health Connect & Samsung Health
                 </p>
               </div>
@@ -231,48 +227,34 @@
           <!-- ACTIVE SOURCE DIAGNOSTICS -->
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
-              <div
-                class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900"
-              >
-                <span class="text-[11px] text-surface-500 dark:text-surface-400"
-                  >Total Measurements</span
-                >
-                <div class="mt-0.5 text-base font-bold text-surface-900 dark:text-surface-100">
+              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
+                <span class="text-[11px] text-surface-500">Total Measurements</span>
+                <div class="mt-0.5 text-base font-bold text-surface-900">
                   {count.toLocaleString()}
                 </div>
               </div>
-              <div
-                class="rounded-lg border border-surface-200 bg-surface-0 p-3 dark:border-surface-700 dark:bg-surface-900"
-              >
-                <span class="text-[11px] text-surface-500 dark:text-surface-400"
-                  >Last Data Ingest</span
-                >
-                <div
-                  class="mt-1 truncate text-xs font-semibold text-surface-900 dark:text-surface-100"
-                >
+              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
+                <span class="text-[11px] text-surface-500">Last Data Ingest</span>
+                <div class="mt-1 truncate text-xs font-semibold text-surface-900">
                   {lastSyncTime ?? 'Recent'}
                 </div>
               </div>
             </div>
 
             <div>
-              <h4
-                class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300"
-              >
+              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase">
                 Metrics Supplied ({metricsSupplied.length})
               </h4>
               <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                 {#each metricsSupplied as item (item.code)}
                   <div
-                    class="flex items-center justify-between rounded-md border border-surface-200/70 bg-surface-0 px-3 py-2 text-xs dark:border-surface-700 dark:bg-surface-900"
+                    class="flex items-center justify-between rounded-md border border-surface-200/70 bg-surface-0 px-3 py-2 text-xs"
                   >
                     <div class="flex items-center gap-2">
                       <Icon name="monitoring" size="sm" class="text-primary-600" />
-                      <span class="font-semibold text-surface-900 dark:text-surface-100"
-                        >{item.name}</span
-                      >
+                      <span class="font-semibold text-surface-900">{item.name}</span>
                     </div>
-                    <span class="font-mono text-surface-500 dark:text-surface-400"
+                    <span class="font-mono text-surface-500"
                       >{item.count.toLocaleString()} entries</span
                     >
                   </div>
@@ -283,29 +265,23 @@
         {:else}
           <!-- INACTIVE SOURCE DIAGNOSTICS & SETUP GUIDE -->
           <div class="space-y-4">
-            <div
-              class="rounded-lg border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
-            >
-              <div
-                class="mb-1 flex items-center gap-2 text-xs font-semibold text-surface-800 dark:text-surface-200"
-              >
+            <div class="rounded-lg border border-surface-200 bg-surface-50 p-4">
+              <div class="mb-1 flex items-center gap-2 text-xs font-semibold text-surface-800">
                 <Icon name="info" size="sm" class="text-surface-500" />
                 Connection Status
               </div>
-              <p class="text-xs leading-relaxed text-surface-600 dark:text-surface-400">
+              <p class="text-xs leading-relaxed text-surface-600">
                 No measurement data received from {source.name} yet. Tap Authorize / Sync Now above or
                 grant permissions in system settings to start syncing.
               </p>
             </div>
 
             <div>
-              <h4
-                class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase dark:text-surface-300"
-              >
+              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase">
                 Setup Instructions
               </h4>
               <div
-                class="rounded-lg border border-surface-200 bg-surface-0 p-4 text-xs leading-relaxed text-surface-700 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-300"
+                class="rounded-lg border border-surface-200 bg-surface-0 p-4 text-xs leading-relaxed text-surface-700"
               >
                 {INACTIVE_GUIDES[source.id] ??
                   'Connect this source in system integration settings.'}
@@ -314,9 +290,7 @@
           </div>
         {/if}
 
-        <div
-          class="flex items-center justify-end gap-3 border-t border-surface-200 pt-4 dark:border-surface-700"
-        >
+        <div class="flex items-center justify-end gap-3 border-t border-surface-200 pt-4">
           <Btn variant="secondary" onclick={() => (open = false)}>Close</Btn>
         </div>
       </div>

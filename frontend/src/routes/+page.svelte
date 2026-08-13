@@ -530,44 +530,44 @@
                   {#if opt.source_data_type === 'steps'}
                     <div class="flex w-full flex-col justify-center gap-2 px-2 opacity-80">
                       <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-amber-500">8,432</span>
+                        <span class="font-bold text-warning-500">8,432</span>
                         <span class="text-surface-400">/ 10k</span>
                       </div>
                       <div class="h-2 w-full overflow-hidden rounded-full bg-surface-200">
-                        <div class="h-full rounded-full bg-amber-500" style="width: 84%"></div>
+                        <div class="h-full rounded-full bg-warning-500" style="width: 84%"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'heart_rate'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
                     >
-                      <Icon name="monitor-heart" size="lg" class="text-rose-500" />
-                      <span class="text-xs font-bold text-rose-600">72 bpm</span>
+                      <Icon name="monitor-heart" size="lg" class="text-error-500" />
+                      <span class="text-xs font-bold text-error-600">72 bpm</span>
                     </div>
                   {:else if opt.source_data_type === 'sleep'}
                     <div class="flex h-12 w-full items-end justify-center gap-1.5 opacity-80">
-                      <div class="h-4 w-4 rounded-t bg-indigo-500/40"></div>
-                      <div class="h-8 w-4 rounded-t bg-indigo-500/70"></div>
-                      <div class="h-12 w-4 rounded-t bg-indigo-500"></div>
+                      <div class="h-4 w-4 rounded-t bg-primary-500/40"></div>
+                      <div class="h-8 w-4 rounded-t bg-primary-500/70"></div>
+                      <div class="h-12 w-4 rounded-t bg-primary-500"></div>
                     </div>
                   {:else if opt.source_data_type === 'weight'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
                     >
-                      <span class="text-xs font-bold text-emerald-600">78.5 kg</span>
+                      <span class="text-xs font-bold text-success-600">78.5 kg</span>
                       <div class="flex h-4 items-end justify-center gap-0.5">
-                        <div class="h-3 w-1 bg-emerald-500/30"></div>
-                        <div class="h-2.5 w-1 bg-emerald-500/50"></div>
-                        <div class="h-2 w-1 bg-emerald-500/70"></div>
-                        <div class="h-1.5 w-1 bg-emerald-500"></div>
+                        <div class="h-3 w-1 bg-success-500/30"></div>
+                        <div class="h-2.5 w-1 bg-success-500/50"></div>
+                        <div class="h-2 w-1 bg-success-500/70"></div>
+                        <div class="h-1.5 w-1 bg-success-500"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'blood_pressure'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="vital-signs" size="lg" class="text-red-500" />
-                      <span class="text-xs font-bold text-red-600">120 / 80</span>
+                      <Icon name="vital-signs" size="lg" class="text-error-500" />
+                      <span class="text-xs font-bold text-error-600">120 / 80</span>
                       <span class="text-[9px] text-surface-400">mmHg</span>
                     </div>
                   {:else if opt.source_data_type === 'exercise'}
@@ -581,15 +581,15 @@
                   {:else if opt.source_data_type === 'nutrition'}
                     <div class="flex w-full flex-col justify-center gap-1 px-2 opacity-80">
                       <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-emerald-600">2,100</span>
+                        <span class="font-bold text-success-600">2,100</span>
                         <span class="text-surface-400">kcal</span>
                       </div>
                       <div
                         class="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full bg-surface-200"
                       >
-                        <div class="h-full bg-amber-500" style="width: 40%"></div>
-                        <div class="h-full bg-red-500" style="width: 30%"></div>
-                        <div class="h-full bg-emerald-500" style="width: 30%"></div>
+                        <div class="h-full bg-warning-500" style="width: 40%"></div>
+                        <div class="h-full bg-error-500" style="width: 30%"></div>
+                        <div class="h-full bg-success-500" style="width: 30%"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'blood_glucose'}
@@ -617,8 +617,8 @@
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="psychology" size="lg" class="text-rose-500" />
-                      <span class="text-xs font-bold text-rose-600">Low (18)</span>
+                      <Icon name="psychology" size="lg" class="text-error-500" />
+                      <span class="text-xs font-bold text-error-600">Low (18)</span>
                     </div>
                   {:else if opt.source_data_type === 'hrv'}
                     <div

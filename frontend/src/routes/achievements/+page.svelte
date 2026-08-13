@@ -59,7 +59,7 @@
           padding={false}
           variant={isUnlocked ? 'elevated' : 'flat'}
           class="duration-micro flex flex-col items-center gap-2 p-4 transition-all {isUnlocked
-            ? 'border-amber-300'
+            ? 'border-warning-300'
             : 'opacity-50 grayscale'}"
         >
           {#if isUnlocked}

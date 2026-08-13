@@ -76,7 +76,7 @@
     </div>
 
     {#if hoveredBucket}
-      <span class="text-xs font-medium text-rose-500 transition-all">
+      <span class="text-xs font-medium text-error-500 transition-all">
         {hoveredBucket.label}: {hoveredBucket.min}–{hoveredBucket.max} bpm
       </span>
     {:else if subtitle}

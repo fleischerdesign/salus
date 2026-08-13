@@ -128,7 +128,7 @@
               {#if !n.is_read}
                 <span
                   class="mt-1.5 h-2 w-2 shrink-0 rounded-full {isCritical
-                    ? 'animate-pulse bg-rose-500'
+                    ? 'animate-pulse bg-error-500'
                     : 'bg-primary-500'}"
                 ></span>
               {/if}
@@ -137,7 +137,7 @@
                   <p class="text-sm font-semibold text-surface-900">{n.title}</p>
                   {#if isCritical}
                     <span
-                      class="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 uppercase"
+                      class="rounded-md bg-error-50 px-1.5 py-0.5 text-[10px] font-bold text-error-700 uppercase"
                     >
                       Update
                     </span>
