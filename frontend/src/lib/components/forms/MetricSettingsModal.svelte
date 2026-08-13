@@ -171,7 +171,7 @@
                     <div class="text-sm font-semibold text-surface-900">
                       {formatSourceLabel(item.source)}
                     </div>
-                    <div class="font-mono text-[11px] text-surface-500">
+                    <div class="font-mono text-[10px] text-surface-500">
                       {item.source}
                     </div>
                   </div>

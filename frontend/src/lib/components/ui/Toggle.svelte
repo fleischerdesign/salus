@@ -26,7 +26,7 @@
     'inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer')
   );
   let trackClass = $derived(
-    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro ' +
+    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 ' +
       (checked ? 'bg-primary-500' : '')
   );
   let thumbClass = $derived(
@@ -37,7 +37,7 @@
 
 <label class="{labelClass} {extraClass}">
   {#if label}
-    <span class="text-[13px] font-semibold tracking-[0.05em] text-surface-700">{label}</span>
+    <span class="text-xs font-semibold tracking-label text-surface-700">{label}</span>
   {/if}
   <span class={trackClass}>
     <span class={thumbClass}></span>
@@ -48,7 +48,7 @@
     {checked}
     {disabled}
     onchange={handleChange}
-    class="sr-only"
+    class="peer sr-only"
     role="switch"
     aria-checked={checked}
   />

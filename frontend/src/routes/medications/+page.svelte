@@ -3,6 +3,7 @@
   import { todayString } from '$lib/utils/datetime';
 
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -186,13 +187,9 @@
 <PageHeader title="Medications" subtitle="Track your medications, doses, and inventory" icon="pill">
   {#snippet actions()}
     <div class="flex h-full items-stretch">
-      <button
-        type="button"
-        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-primary-600"
-        onclick={() => (formOpen = true)}
+      <PageHeaderAction icon="add" onclick={() => (formOpen = true)}
+        >New Medication</PageHeaderAction
       >
-        <Icon name="add" class="text-base" /><span>New Medication</span>
-      </button>
     </div>
   {/snippet}
 </PageHeader>

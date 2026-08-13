@@ -16,7 +16,7 @@
   }: Props = $props();
 
   const sizeClasses: Record<string, string> = {
-    sm: 'h-9 w-9 text-[13px]',
+    sm: 'h-9 w-9 text-xs',
     md: 'h-10 w-10 text-base',
     lg: 'h-12 w-12 text-xl'
   };
@@ -36,7 +36,7 @@
   />
 {:else}
   <span
-    class="inline-flex shrink-0 items-center justify-center rounded-full bg-primary-500 font-semibold text-white uppercase {sizeClasses[
+    class="inline-flex shrink-0 items-center justify-center rounded-full bg-primary-500 font-semibold text-on-primary uppercase {sizeClasses[
       size
     ]} {interactiveClass} {extraClass}"
   >

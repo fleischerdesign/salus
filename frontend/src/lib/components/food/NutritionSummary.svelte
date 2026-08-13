@@ -20,7 +20,9 @@
 
 <Card>
   <div class="mb-4 flex items-center gap-3">
-    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+    <div
+      class="flex h-10 w-10 items-center justify-center rounded-xl bg-warning-100 text-warning-600"
+    >
       <Icon name="whatshot" size="lg" />
     </div>
     <div>
@@ -52,7 +54,7 @@
       <span class="w-8 text-xs font-medium text-surface-500">C</span>
       <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-100">
         <div
-          class="h-full rounded-full bg-amber-500"
+          class="h-full rounded-full bg-warning-500"
           style="width: {totalMacroCals > 0
             ? Math.min((carbsCals / totalMacroCals) * 100, 100)
             : 0}%"
@@ -66,7 +68,7 @@
       <span class="w-8 text-xs font-medium text-surface-500">F</span>
       <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-100">
         <div
-          class="h-full rounded-full bg-red-400"
+          class="h-full rounded-full bg-error-400"
           style="width: {totalMacroCals > 0 ? Math.min((fatCals / totalMacroCals) * 100, 100) : 0}%"
         ></div>
       </div>

@@ -80,7 +80,7 @@
             {/if}
             <p class="mt-1 text-sm whitespace-pre-line text-surface-600">{entry.content}</p>
             <div class="mt-2 flex items-center gap-2">
-              <span class="text-[11px] text-surface-400">{entry.entry_date}</span>
+              <span class="text-[10px] text-surface-400">{entry.entry_date}</span>
               {#if entry.mood_score != null}
                 <Icon
                   name={[

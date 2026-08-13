@@ -313,9 +313,9 @@
 
                     {#if isActive}
                       <span
-                        class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                        class="inline-flex items-center gap-1.5 rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700"
                       >
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Active
+                        <span class="h-1.5 w-1.5 rounded-full bg-success-500"></span> Active
                       </span>
                     {:else}
                       <span
@@ -327,7 +327,7 @@
                   </div>
 
                   <div
-                    class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[11px]"
+                    class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[10px]"
                   >
                     <span class="text-surface-500">Measurements</span>
                     <span

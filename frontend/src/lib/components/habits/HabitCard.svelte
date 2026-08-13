@@ -94,7 +94,7 @@
     <div class="flex items-center justify-between px-4 py-2.5">
       <div class="flex items-center gap-1.5 text-xs text-surface-500">
         {#if streak > 0}
-          <span class="text-amber-500">🔥</span>
+          <span class="text-warning-500">🔥</span>
           <span class="font-medium text-surface-600">{streak}-day streak</span>
         {:else}
           <span class="text-surface-400">No streak yet</span>

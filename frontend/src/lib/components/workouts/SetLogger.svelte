@@ -80,7 +80,7 @@
   const checkBtn = $derived(
     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-micro ' +
       (isOn
-        ? 'border-success-500 bg-success-500 text-white hover:border-error-500 hover:bg-error-500'
+        ? 'border-success-500 bg-success-500 text-on-success hover:border-error-500 hover:bg-error-500'
         : isBusy
           ? 'border-surface-300 bg-surface-50 cursor-wait text-primary-500'
           : logState === 'failed'

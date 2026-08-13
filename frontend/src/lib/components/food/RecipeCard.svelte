@@ -41,7 +41,7 @@
     <div class="p-4 pb-2">
       <div class="flex items-start gap-3">
         <div
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600"
+          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-warning-100 text-warning-600"
         >
           <Icon name="menu-book" size="md" />
         </div>
@@ -63,7 +63,7 @@
         </div>
 
         {#if isFavorite}
-          <Icon name="favorite" size="sm" class="mt-0.5 text-amber-500" />
+          <Icon name="favorite" size="sm" class="mt-0.5 text-warning-500" />
         {/if}
       </div>
     </div>
@@ -77,7 +77,7 @@
           e.stopPropagation();
           onCook();
         }}
-        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-600"
+        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-on-primary transition-colors hover:bg-primary-600"
       >
         Cook
       </button>

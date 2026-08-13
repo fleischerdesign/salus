@@ -4,6 +4,7 @@
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
@@ -84,22 +85,9 @@
         </div>
 
         <!-- Generate Segment -->
-        <button
-          type="button"
-          disabled={generating}
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
-          onclick={generate}
+        <PageHeaderAction icon="auto-awesome" disabled onclick={generate}
+          >Generating…</PageHeaderAction
         >
-          {#if generating}
-            <div
-              class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
-            ></div>
-            <span>Generating…</span>
-          {:else}
-            <Icon name="auto-awesome" size="sm" />
-            <span>Generate</span>
-          {/if}
-        </button>
       </div>
     {/snippet}
   </PageHeader>
@@ -167,7 +155,7 @@
           <div class="flex items-center justify-between border-t border-surface-100 px-6 py-3">
             <span class="text-xs text-surface-400">
               Model:
-              <code class="rounded bg-surface-50 px-1 py-0.5 text-[11px] text-surface-500">
+              <code class="rounded bg-surface-50 px-1 py-0.5 text-[10px] text-surface-500">
                 {insight.model_used}
               </code>
             </span>

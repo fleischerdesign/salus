@@ -29,7 +29,7 @@
 {#if visible}
   <button
     type="button"
-    class="duration-micro fixed right-6 bottom-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all hover:bg-primary-600 active:scale-95 {extraClass}"
+    class="duration-micro fixed right-6 bottom-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-lg transition-all hover:bg-primary-600 active:scale-95 {extraClass}"
     in:fly={{ y: 16, ...motionParams(DURATIONS.normal) }}
     out:fly={{ y: 16, ...motionParams(DURATIONS.normal) }}
     aria-label="Scroll to top"

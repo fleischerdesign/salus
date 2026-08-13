@@ -58,7 +58,7 @@
         ? { text: 'Fisher 1915; Benjamini & Hochberg 1995' }
         : { text: 'Spearman 1904; Benjamini & Hochberg 1995' }}
     />
-    <span class="text-[11px] text-surface-400">{nComparisons} comparisons · {correction}</span>
+    <span class="text-[10px] text-surface-400">{nComparisons} comparisons · {correction}</span>
   </div>
 
   <div class="overflow-x-auto">

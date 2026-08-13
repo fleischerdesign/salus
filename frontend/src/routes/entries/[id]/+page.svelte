@@ -9,6 +9,7 @@
   import { fetchMetricOverview, overviewForMetric } from '$lib/analytics/views/metric-overview';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import { createMeasurement } from '$lib/mutations/measurement';
   import Card from '$components/ui/Card.svelte';
   import ListItem from '$components/ui/ListItem.svelte';
@@ -278,13 +279,7 @@
       iconColor={groupMetrics[0]?.color}
     >
       {#snippet actions()}
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
-          onclick={openCreateModal}
-        >
-          <Icon name="add" size="sm" /><span>New Entry</span>
-        </button>
+        <PageHeaderAction icon="add" onclick={openCreateModal}>New Entry</PageHeaderAction>
       {/snippet}
     </PageHeader>
 

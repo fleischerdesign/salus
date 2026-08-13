@@ -3,7 +3,6 @@
   import { todayString } from '$lib/utils/datetime';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
-  import { slide } from 'svelte/transition';
   import {
     addWidget as addWidgetMut,
     updateWidget as updateWidgetMut,
@@ -13,6 +12,7 @@
   import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Select from '$components/ui/Select.svelte';
@@ -291,7 +291,7 @@
           </button>
 
           <label
-            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-[0.05em] text-surface-700 transition-colors hover:text-primary-600"
+            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-label text-surface-700 transition-colors hover:text-primary-600"
           >
             <span>{displayDateFormatted}</span>
             <input
@@ -324,32 +324,19 @@
         </div>
 
         <!-- Edit Layout Segment -->
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold text-surface-700 transition-colors hover:bg-surface-100"
-          class:bg-primary-50={editing}
-          class:text-primary-600={editing}
+        <PageHeaderAction
+          variant={editing ? 'secondary' : 'ghost'}
+          icon={editing ? 'check' : 'edit'}
           onclick={toggleEdit}
         >
-          <Icon
-            name={editing ? 'check' : 'edit'}
-            size="sm"
-            class={editing ? 'text-primary-600' : ''}
-          />
-          <span>{editing ? 'Done' : 'Edit Layout'}</span>
-        </button>
+          {editing ? 'Done' : 'Edit Layout'}
+        </PageHeaderAction>
 
         <!-- Add Widget Segment -->
         {#if editing}
-          <button
-            type="button"
-            transition:slide={{ axis: 'x', duration: 150 }}
-            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
-            onclick={() => (addModalOpen = true)}
-          >
-            <Icon name="add" size="sm" />
-            <span>Add Widget</span>
-          </button>
+          <PageHeaderAction icon="add" onclick={() => (addModalOpen = true)}>
+            Add Widget
+          </PageHeaderAction>
         {/if}
       </div>
     {/snippet}
@@ -530,108 +517,108 @@
                   {#if opt.source_data_type === 'steps'}
                     <div class="flex w-full flex-col justify-center gap-2 px-2 opacity-80">
                       <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-amber-500">8,432</span>
+                        <span class="font-bold text-warning-500">8,432</span>
                         <span class="text-surface-400">/ 10k</span>
                       </div>
                       <div class="h-2 w-full overflow-hidden rounded-full bg-surface-200">
-                        <div class="h-full rounded-full bg-amber-500" style="width: 84%"></div>
+                        <div class="h-full rounded-full bg-warning-500" style="width: 84%"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'heart_rate'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
                     >
-                      <Icon name="monitor-heart" size="lg" class="text-rose-500" />
-                      <span class="text-xs font-bold text-rose-600">72 bpm</span>
+                      <Icon name="monitor-heart" size="lg" style="color: {opt.color}" />
+                      <span class="text-xs font-bold text-error-600">72 bpm</span>
                     </div>
                   {:else if opt.source_data_type === 'sleep'}
                     <div class="flex h-12 w-full items-end justify-center gap-1.5 opacity-80">
-                      <div class="h-4 w-4 rounded-t bg-indigo-500/40"></div>
-                      <div class="h-8 w-4 rounded-t bg-indigo-500/70"></div>
-                      <div class="h-12 w-4 rounded-t bg-indigo-500"></div>
+                      <div class="h-4 w-4 rounded-t bg-primary-500/40"></div>
+                      <div class="h-8 w-4 rounded-t bg-primary-500/70"></div>
+                      <div class="h-12 w-4 rounded-t bg-primary-500"></div>
                     </div>
                   {:else if opt.source_data_type === 'weight'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
                     >
-                      <span class="text-xs font-bold text-emerald-600">78.5 kg</span>
+                      <span class="text-xs font-bold text-success-600">78.5 kg</span>
                       <div class="flex h-4 items-end justify-center gap-0.5">
-                        <div class="h-3 w-1 bg-emerald-500/30"></div>
-                        <div class="h-2.5 w-1 bg-emerald-500/50"></div>
-                        <div class="h-2 w-1 bg-emerald-500/70"></div>
-                        <div class="h-1.5 w-1 bg-emerald-500"></div>
+                        <div class="h-3 w-1 bg-success-500/30"></div>
+                        <div class="h-2.5 w-1 bg-success-500/50"></div>
+                        <div class="h-2 w-1 bg-success-500/70"></div>
+                        <div class="h-1.5 w-1 bg-success-500"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'blood_pressure'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="vital-signs" size="lg" class="text-red-500" />
-                      <span class="text-xs font-bold text-red-600">120 / 80</span>
-                      <span class="text-[9px] text-surface-400">mmHg</span>
+                      <Icon name="vital-signs" size="lg" style="color: {opt.color}" />
+                      <span class="text-xs font-bold text-error-600">120 / 80</span>
+                      <span class="text-[10px] text-surface-400">mmHg</span>
                     </div>
                   {:else if opt.source_data_type === 'exercise'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="fitness-center" size="lg" class="text-violet-500" />
+                      <Icon name="fitness-center" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-violet-600">45 mins</span>
-                      <span class="text-[9px] text-surface-400">320 kcal</span>
+                      <span class="text-[10px] text-surface-400">320 kcal</span>
                     </div>
                   {:else if opt.source_data_type === 'nutrition'}
                     <div class="flex w-full flex-col justify-center gap-1 px-2 opacity-80">
                       <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-emerald-600">2,100</span>
+                        <span class="font-bold text-success-600">2,100</span>
                         <span class="text-surface-400">kcal</span>
                       </div>
                       <div
                         class="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full bg-surface-200"
                       >
-                        <div class="h-full bg-amber-500" style="width: 40%"></div>
-                        <div class="h-full bg-red-500" style="width: 30%"></div>
-                        <div class="h-full bg-emerald-500" style="width: 30%"></div>
+                        <div class="h-full bg-warning-500" style="width: 40%"></div>
+                        <div class="h-full bg-error-500" style="width: 30%"></div>
+                        <div class="h-full bg-success-500" style="width: 30%"></div>
                       </div>
                     </div>
                   {:else if opt.source_data_type === 'blood_glucose'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="bloodtype" size="lg" class="text-orange-500" />
+                      <Icon name="bloodtype" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-orange-600">95 mg/dL</span>
                     </div>
                   {:else if opt.source_data_type === 'body_fat'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="body-fat" size="lg" class="text-pink-500" />
+                      <Icon name="body-fat" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-pink-600">14.5 %</span>
                     </div>
                   {:else if opt.source_data_type === 'water'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="water-drop" size="lg" class="text-cyan-500" />
+                      <Icon name="water-drop" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-cyan-600">850 ml</span>
                     </div>
                   {:else if opt.source_data_type === 'stress'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="psychology" size="lg" class="text-rose-500" />
-                      <span class="text-xs font-bold text-rose-600">Low (18)</span>
+                      <Icon name="psychology" size="lg" style="color: {opt.color}" />
+                      <span class="text-xs font-bold text-error-600">Low (18)</span>
                     </div>
                   {:else if opt.source_data_type === 'hrv'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="monitoring" size="lg" class="text-cyan-500" />
+                      <Icon name="monitoring" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-cyan-600">58 ms</span>
                     </div>
                   {:else if opt.source_data_type === 'readiness'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="checklist" size="lg" class="text-purple-500" />
+                      <Icon name="checklist" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-purple-600">85 / 100</span>
                     </div>
                   {:else}
@@ -650,7 +637,7 @@
                     <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
                     <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
                   </div>
-                  <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-surface-500">
+                  <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
                     {opt.description}
                   </p>
                 </div>
@@ -658,7 +645,7 @@
                 <!-- Active Checkmark Indicator -->
                 {#if selectedWidgetId === opt.id}
                   <div
-                    class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-white shadow-sm ring-2 ring-white"
+                    class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
                   >
                     <Icon name="check" size="sm" />
                   </div>
@@ -731,12 +718,12 @@
                   <div class="flex w-full items-center justify-center gap-3 opacity-80">
                     <div class="flex flex-col items-center">
                       <span class="text-xs font-bold text-error-500">+4.5h</span>
-                      <span class="text-[8px] text-surface-400">Debt</span>
+                      <span class="text-[10px] text-surface-400">Debt</span>
                     </div>
                     <div class="h-8 w-px bg-surface-200"></div>
                     <div class="flex flex-col items-center">
                       <span class="text-xs font-bold text-primary-500">09:30</span>
-                      <span class="text-[8px] text-surface-400">Wind Down</span>
+                      <span class="text-[10px] text-surface-400">Wind Down</span>
                     </div>
                   </div>
                 {/if}
@@ -748,7 +735,7 @@
                   <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
                   <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
                 </div>
-                <p class="mt-1 line-clamp-2 text-[11px] leading-snug text-surface-500">
+                <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
                   {opt.description}
                 </p>
               </div>
@@ -756,7 +743,7 @@
               <!-- Active Checkmark Indicator -->
               {#if selectedWidgetId === opt.id}
                 <div
-                  class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-white shadow-sm ring-2 ring-white"
+                  class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
                 >
                   <Icon name="check" size="sm" />
                 </div>

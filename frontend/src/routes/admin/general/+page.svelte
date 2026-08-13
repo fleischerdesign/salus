@@ -68,7 +68,7 @@
                 <div class="text-sm font-medium text-surface-900">
                   {item.key}
                   {#if item.is_secret}
-                    <Icon name="lock" size="sm" class="ml-1 inline-block text-amber-500" />
+                    <Icon name="lock" size="sm" class="ml-1 inline-block text-warning-500" />
                   {/if}
                 </div>
                 <div class="text-xs text-surface-400">

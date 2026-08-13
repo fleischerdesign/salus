@@ -38,7 +38,7 @@
       {#each tabs as tab}
         <a
           href="/admin/{tab.key}"
-          class="duration-micro flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-[13px] font-semibold tracking-[0.05em] no-underline transition-colors {activeTab ===
+          class="duration-micro flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-xs font-semibold tracking-label no-underline transition-colors {activeTab ===
           tab.key
             ? 'border-primary-500 bg-primary-50 text-primary-600'
             : 'border-transparent text-surface-600 hover:bg-surface-100'}"

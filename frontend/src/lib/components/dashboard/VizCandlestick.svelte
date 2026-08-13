@@ -68,7 +68,7 @@
         stroke-width="1"
       />
 
-      <text x={cx} y={height - 2} text-anchor="middle" class="fill-surface-400 text-[8px]">
+      <text x={cx} y={height - 2} text-anchor="middle" class="fill-surface-400 text-[10px]">
         {candle.label}
       </text>
     {/each}

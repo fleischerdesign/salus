@@ -76,7 +76,7 @@
     </div>
 
     {#if hoveredBucket}
-      <span class="text-xs font-medium text-rose-500 transition-all">
+      <span class="text-xs font-medium text-error-500 transition-all">
         {hoveredBucket.label}: {hoveredBucket.min}–{hoveredBucket.max} bpm
       </span>
     {:else if subtitle}
@@ -158,7 +158,7 @@
             rx={pillWidth / 2}
             fill={color}
             opacity={hoveredBucket && !isHovered ? 0.35 : 0.9}
-            class="transition-opacity duration-150"
+            class="duration-micro transition-opacity"
           />
 
           <!-- Single Point Dot when Min = Max -->
@@ -182,7 +182,7 @@
         x="0"
         y={height - 2}
         text-anchor="start"
-        class="fill-surface-400 text-[9px] font-medium"
+        class="fill-surface-400 text-[10px] font-medium"
       >
         00:00
       </text>
@@ -190,7 +190,7 @@
         x={getCenterX(6)}
         y={height - 2}
         text-anchor="middle"
-        class="fill-surface-400 text-[9px] font-medium"
+        class="fill-surface-400 text-[10px] font-medium"
       >
         06:00
       </text>
@@ -198,7 +198,7 @@
         x={getCenterX(12)}
         y={height - 2}
         text-anchor="middle"
-        class="fill-surface-400 text-[9px] font-medium"
+        class="fill-surface-400 text-[10px] font-medium"
       >
         12:00
       </text>
@@ -206,7 +206,7 @@
         x={getCenterX(18)}
         y={height - 2}
         text-anchor="middle"
-        class="fill-surface-400 text-[9px] font-medium"
+        class="fill-surface-400 text-[10px] font-medium"
       >
         18:00
       </text>
@@ -214,7 +214,7 @@
         x={totalWidth}
         y={height - 2}
         text-anchor="end"
-        class="fill-surface-400 text-[9px] font-medium"
+        class="fill-surface-400 text-[10px] font-medium"
       >
         23:00
       </text>

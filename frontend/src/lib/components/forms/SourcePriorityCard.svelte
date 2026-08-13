@@ -86,14 +86,14 @@
           <span
             class="inline-flex items-center gap-1.5 rounded-md bg-surface-100 px-2 py-0.5 text-[10px] font-semibold text-surface-700"
           >
-            <Icon name="star" size="sm" class="text-amber-500" />
+            <Icon name="star" size="sm" class="text-warning-500" />
             {formatSourceLabel(primarySource)}
           </span>
         {:else if allDisabled}
           <span
-            class="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+            class="inline-flex items-center gap-1 rounded-md border border-warning-200 bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700"
           >
-            <Icon name="warning" size="sm" class="text-amber-600" /> Muted
+            <Icon name="warning" size="sm" class="text-warning-600" /> Muted
           </span>
         {/if}
       </div>
@@ -163,7 +163,7 @@
     <!-- Progressive Disclosure Action Footer -->
     {#if items.length > 1 && onApplyToCategory}
       <div
-        class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[11px]"
+        class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[10px]"
       >
         <span class="text-surface-400">{items.length} Configured Sources</span>
         <button

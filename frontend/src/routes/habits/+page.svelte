@@ -3,6 +3,7 @@
   import { todayString, dateString } from '$lib/utils/datetime';
   import type { Habit } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import HabitGrid from '$components/habits/HabitGrid.svelte';
   import HabitForm from '$components/habits/HabitForm.svelte';
   import { toggleHabit, createHabit as createHabitMut } from '$lib/mutations/wellness';
@@ -65,16 +66,13 @@
   <PageHeader title="Habits" subtitle="Track daily habits and build streaks" icon="check-circle">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-primary-600"
+        <PageHeaderAction
+          icon="add"
           onclick={() => {
             editTarget = null;
             formOpen = true;
-          }}
+          }}>New Habit</PageHeaderAction
         >
-          <Icon name="add" class="text-base" /><span>New Habit</span>
-        </button>
       </div>
     {/snippet}
   </PageHeader>

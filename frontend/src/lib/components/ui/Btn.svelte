@@ -2,7 +2,7 @@
   import { type Snippet } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700',
+    primary: 'bg-primary-500 text-on-primary hover:bg-primary-600 active:bg-primary-700',
     secondary:
       'border border-primary-500 bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
     ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
@@ -40,7 +40,7 @@
   }: Props = $props();
 
   let classes = $derived(
-    'relative inline-flex items-center justify-center rounded-md font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] ' +
+    'relative inline-flex items-center justify-center rounded-md font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ' +
       (fullWidth ? 'w-full ' : '') +
       variantClasses[variant] +
       ' ' +

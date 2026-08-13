@@ -146,7 +146,12 @@
 
     {#each labels as label, i}
       {#if i % labelStep === 0 || i === labels.length - 1}
-        <text x={scaleX(i)} y={height - 4} text-anchor="middle" class="fill-surface-400 text-[9px]">
+        <text
+          x={scaleX(i)}
+          y={height - 4}
+          text-anchor="middle"
+          class="fill-surface-400 text-[10px]"
+        >
           {label}
         </text>
       {/if}
@@ -169,7 +174,7 @@
     {#each series as s}
       <div class="flex items-center gap-1.5">
         <span class="inline-block h-2 w-2 rounded-full" style="background-color: {s.color}"></span>
-        <span class="text-[11px] text-surface-500">{s.label}</span>
+        <span class="text-[10px] text-surface-500">{s.label}</span>
       </div>
     {/each}
   </div>
