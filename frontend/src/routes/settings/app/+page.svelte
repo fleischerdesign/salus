@@ -11,6 +11,7 @@
   import { db } from '$lib/db/database';
   import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
+  import { exportDatabase, importDatabase } from '$lib/db/export-import';
 
   const CURRENT_APP_VERSION = '0.1.0';
   let isNative = $state(Capacitor.isNativePlatform());
@@ -185,6 +186,55 @@
   // ── Gerätesicherheit (Native Android) ──
   let hapticsEnabled = $state(localStorage.getItem('salus_haptics') !== 'false');
   let biometricsEnabled = $state(localStorage.getItem('salus_biometrics') === 'true');
+
+  // ── Lokaler Speicher: Export/Import ──
+  let exporting = $state(false);
+  let importing = $state(false);
+  let storageMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+  let fileInput: HTMLInputElement | undefined;
+
+  function triggerImport() {
+    fileInput?.click();
+  }
+
+  async function handleExport() {
+    exporting = true;
+    storageMessage = null;
+    try {
+      const json = await exportDatabase();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `salus-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      storageMessage = { type: 'success', text: 'Backup exportiert.' };
+    } catch {
+      storageMessage = { type: 'error', text: 'Export fehlgeschlagen.' };
+    } finally {
+      exporting = false;
+    }
+  }
+
+  async function handleImport(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    importing = true;
+    storageMessage = null;
+    try {
+      const text = await file.text();
+      await importDatabase(text);
+      storageMessage = { type: 'success', text: 'Backup importiert.' };
+      await loadDbCounts();
+    } catch {
+      storageMessage = { type: 'error', text: 'Import fehlgeschlagen — ungültige Datei.' };
+    } finally {
+      importing = false;
+      input.value = '';
+    }
+  }
 
   function toggleHaptics(val: boolean) {
     hapticsEnabled = val;
@@ -439,6 +489,28 @@
             <span class="text-surface-600">Gewohnheiten</span>
             <span class="font-bold text-surface-900">{entityCounts.habits}</span>
           </div>
+        </div>
+
+        {#if storageMessage}
+          <div class="mt-3">
+            <AlertBanner variant={storageMessage.type}>{storageMessage.text}</AlertBanner>
+          </div>
+        {/if}
+
+        <div class="mt-4 flex gap-2">
+          <Btn variant="secondary" size="sm" loading={exporting} onclick={handleExport}>
+            Exportieren
+          </Btn>
+          <Btn variant="secondary" size="sm" loading={importing} onclick={triggerImport}>
+            Importieren
+          </Btn>
+          <input
+            type="file"
+            accept="application/json"
+            class="hidden"
+            bind:this={fileInput}
+            onchange={handleImport}
+          />
         </div>
       </div>
     </Card>

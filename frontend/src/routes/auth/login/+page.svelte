@@ -212,7 +212,8 @@
           Lokal starten
         </Btn>
         <p class="text-center text-xs text-surface-400">
-          Nur auf diesem Gerät — kein Server, keine Cloud.
+          Deine Daten bleiben auf diesem Gerät und können verloren gehen. Sichere sie regelmäßig per
+          Export (Einstellungen → Lokaler Speicher).
         </p>
       </div>
 
