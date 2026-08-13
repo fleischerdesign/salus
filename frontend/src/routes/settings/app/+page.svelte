@@ -12,6 +12,7 @@
   import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
   import { exportDatabase, importDatabase } from '$lib/db/export-import';
+  import { theme, type ThemeMode } from '$stores/theme.svelte';
 
   const CURRENT_APP_VERSION = '0.1.0';
   let isNative = $state(Capacitor.isNativePlatform());
@@ -72,38 +73,14 @@
   }
 
   // ── Erscheinungsbild ──
-  let theme = $state(localStorage.getItem('salus_theme') || 'system');
-  let chartPalette = $state(localStorage.getItem('salus_chart_palette') || 'standard');
-
   const themeOptions = [
     { value: 'light', label: 'Hell' },
     { value: 'dark', label: 'Dunkel' },
     { value: 'system', label: 'System' }
   ];
 
-  const paletteOptions = [
-    { value: 'standard', label: 'Standard' },
-    { value: 'colorblind', label: 'Farbenblind-optimiert' },
-    { value: 'high_contrast', label: 'Hoher Kontrast' }
-  ];
-
   function setTheme(val: string) {
-    theme = val;
-    localStorage.setItem('salus_theme', val);
-    if (val === 'dark') document.documentElement.classList.add('dark');
-    else if (val === 'light') document.documentElement.classList.remove('dark');
-    else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-  }
-
-  function setChartPalette(val: string) {
-    chartPalette = val;
-    localStorage.setItem('salus_chart_palette', val);
+    theme.setMode(val as ThemeMode);
   }
 
   import { toastSettings } from '$stores/toast-settings.svelte';
@@ -338,18 +315,16 @@
           <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
             Farbschema
           </p>
-          <RadioGroup name="theme" options={themeOptions} value={theme} onchange={setTheme} />
+          <RadioGroup name="theme" options={themeOptions} value={theme.mode} onchange={setTheme} />
         </div>
         <div class="border-t border-surface-100 pt-5">
-          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
-            Diagramm-Farben
-          </p>
-          <RadioGroup
-            name="chartPalette"
-            options={paletteOptions}
-            value={chartPalette}
-            onchange={setChartPalette}
-          />
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-surface-800">Farbenblind-Modus</p>
+              <p class="text-xs text-surface-400">Farbenblindsichere Farben in der gesamten App</p>
+            </div>
+            <Toggle checked={theme.colorblind} onchange={(v) => theme.setColorblind(v)} />
+          </div>
         </div>
       </div>
     </Card>
