@@ -30,6 +30,7 @@
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
   import { seedReferenceData } from '$lib/db/seed';
+  import { localMode } from '$lib/db/local-mode.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
@@ -138,17 +139,19 @@
 
   // ── Sync trigger — lazy token validation via sync pull ──
 
-  let synced = false;
+  let lastSyncKey = '';
   const sessionExpired = $derived(useOffline.sessionExpired);
 
   $effect(() => {
-    if (auth.isAuthenticated) {
-      if (!synced) {
-        synced = true;
-        runSync();
-      }
-    } else {
-      synced = false;
+    if (!auth.isAuthenticated) {
+      lastSyncKey = '';
+      return;
+    }
+
+    const key = `${localMode.active ? 'local' : 'server'}:${auth.token ?? ''}`;
+    if (key !== lastSyncKey) {
+      lastSyncKey = key;
+      runSync();
     }
   });
 
