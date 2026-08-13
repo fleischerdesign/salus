@@ -528,7 +528,7 @@
                     <div
                       class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
                     >
-                      <Icon name="monitor-heart" size="lg" class="text-error-500" />
+                      <Icon name="monitor-heart" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-error-600">72 bpm</span>
                     </div>
                   {:else if opt.source_data_type === 'sleep'}
@@ -553,7 +553,7 @@
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="vital-signs" size="lg" class="text-error-500" />
+                      <Icon name="vital-signs" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-error-600">120 / 80</span>
                       <span class="text-[10px] text-surface-400">mmHg</span>
                     </div>
@@ -561,7 +561,7 @@
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="fitness-center" size="lg" class="text-violet-500" />
+                      <Icon name="fitness-center" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-violet-600">45 mins</span>
                       <span class="text-[10px] text-surface-400">320 kcal</span>
                     </div>
@@ -583,42 +583,42 @@
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="bloodtype" size="lg" class="text-orange-500" />
+                      <Icon name="bloodtype" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-orange-600">95 mg/dL</span>
                     </div>
                   {:else if opt.source_data_type === 'body_fat'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="body-fat" size="lg" class="text-pink-500" />
+                      <Icon name="body-fat" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-pink-600">14.5 %</span>
                     </div>
                   {:else if opt.source_data_type === 'water'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="water-drop" size="lg" class="text-cyan-500" />
+                      <Icon name="water-drop" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-cyan-600">850 ml</span>
                     </div>
                   {:else if opt.source_data_type === 'stress'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="psychology" size="lg" class="text-error-500" />
+                      <Icon name="psychology" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-error-600">Low (18)</span>
                     </div>
                   {:else if opt.source_data_type === 'hrv'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="monitoring" size="lg" class="text-cyan-500" />
+                      <Icon name="monitoring" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-cyan-600">58 ms</span>
                     </div>
                   {:else if opt.source_data_type === 'readiness'}
                     <div
                       class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
                     >
-                      <Icon name="checklist" size="lg" class="text-purple-500" />
+                      <Icon name="checklist" size="lg" style="color: {opt.color}" />
                       <span class="text-xs font-bold text-purple-600">85 / 100</span>
                     </div>
                   {:else}
