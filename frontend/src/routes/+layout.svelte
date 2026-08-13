@@ -14,6 +14,7 @@
   import { setLocaleState } from '$lib/api/headers';
   import { onMount } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import Btn from '$components/ui/Btn.svelte';
   import { page } from '$app/state';
   import { beforeNavigate, goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
@@ -26,6 +27,7 @@
   import { getSystemStats } from '$lib/db/metric-stats';
   import { healthSyncService } from '$lib/native/health-sync';
   import { nativeBridge } from '$lib/native/bridge';
+  import { biometricLock } from '$lib/native/biometric-lock.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
@@ -86,6 +88,7 @@
       getSystemStats().catch(() => {});
       if (nativeBridge.isNative) {
         healthSyncService.syncNow().catch(() => {});
+        biometricLock.enforce().catch(() => {});
       }
     }
 
@@ -111,6 +114,8 @@
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         updateService.triggerSafeReload();
+      } else if (document.visibilityState === 'visible') {
+        biometricLock.enforce().catch(() => {});
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -184,6 +189,23 @@
       <Toast />
       <ConflictResolver />
     </div>
+    {#if biometricLock.locked}
+      <!-- Biometric lock overlay -->
+      <div
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
+      >
+        <div class="flex flex-col items-center gap-4 text-center">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
+            <Icon name="lock" size="2xl" class="text-surface-400" />
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-surface-900">App entsperren</p>
+            <p class="mt-0.5 text-xs text-surface-500">Bestätige deine Identität per Biometrie.</p>
+          </div>
+          <Btn variant="primary" onclick={() => biometricLock.unlock()}>Entsperren</Btn>
+        </div>
+      </div>
+    {/if}
   {/if}
 {:else if auth.loading}
   <div class="flex min-h-screen items-center justify-center">
