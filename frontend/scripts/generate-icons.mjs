@@ -19,6 +19,7 @@ const SKIP_NAMES = new Set([
   'direction', 'frequency', 'timeframe', 'equipment', 'muscles',
   'notes', 'size', 'handle', 'lat', 'lon', 'tz', 'viewport',
   'file', 'theme', 'icon', 'new', 'current', 'progress',
+  'current-password', 'new-password',
   'chronotype', 'multiselect', 'edit-size',
   'systolic', 'diastolic', 'deadline', 'instructions', 'locale', 'timestamp',
   'content', 'title',
