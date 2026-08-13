@@ -13,6 +13,9 @@
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
   import { exportDatabase, importDatabase } from '$lib/db/export-import';
   import { theme, type ThemeMode, ACCENT_HUES } from '$stores/theme.svelte';
+  import Modal from '$components/ui/Modal.svelte';
+  import HueRing from '$components/ui/HueRing.svelte';
+  import { hueGradient } from '$lib/theme/hue';
 
   const CURRENT_APP_VERSION = '0.1.0';
   let isNative = $state(Capacitor.isNativePlatform());
@@ -82,6 +85,9 @@
   function setTheme(val: string) {
     theme.setMode(val as ThemeMode);
   }
+
+  let accentPickerOpen = $state(false);
+  const isCustomAccent = $derived(!ACCENT_HUES.some((a) => a.hue === theme.accentHue));
 
   import { toastSettings } from '$stores/toast-settings.svelte';
   import { useOffline } from '$lib/db/use-offline.svelte';
@@ -344,24 +350,31 @@
                 onclick={() => theme.setAccentHue(accent.hue)}
               ></button>
             {/each}
-          </div>
-          <div class="mt-3 flex items-center gap-3">
-            <input
-              type="range"
-              min="0"
-              max="359"
-              value={theme.accentHue}
-              oninput={(e) =>
-                theme.setAccentHue(Number((e.currentTarget as HTMLInputElement).value))}
-              class="w-full accent-primary-500"
-            />
-            <span class="w-8 text-right text-xs text-surface-500 tabular-nums">
-              {theme.accentHue}°
-            </span>
+            <button
+              type="button"
+              class="h-8 w-8 rounded-full border-2 transition-all"
+              class:border-surface-300={!isCustomAccent}
+              class:border-surface-900={isCustomAccent}
+              class:ring-2={isCustomAccent}
+              class:ring-primary-300={isCustomAccent}
+              style="background: {hueGradient()}"
+              aria-label="Eigene Farbe wählen"
+              onclick={() => (accentPickerOpen = true)}
+            ></button>
           </div>
         </div>
       </div>
     </Card>
+
+    <Modal bind:open={accentPickerOpen} title="Akzentfarbe" size="sm">
+      <div class="flex justify-center p-6">
+        <HueRing
+          value={theme.accentHue}
+          onchange={(h) => theme.previewAccentHue(h)}
+          oncommit={(h) => theme.setAccentHue(h)}
+        />
+      </div>
+    </Modal>
 
     <!-- Synchronisation -->
     <Card padding={false}>
