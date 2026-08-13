@@ -424,12 +424,31 @@ Salus operates across two runtime environments with strict context-awareness:
 | **Web Browser / PWA** | Hosted instance origin (`window.location.origin`) | Fixed to current origin session (`window.location.origin`) | Service Worker offline cache, IndexedDB storage meter, WebAuthn |
 
 **Device-Local vs. Cloud-Synced Preferences Rule:**
-- **Cloud-Synced (`user_preference`)**: Cross-device user settings (Theme, Language, Unit system, Start of week). Syncs automatically via UoW/Sync pipeline.
-- **Device-Local (`localStorage` / Dexie device config)**: Hardware-specific options (Biometric app lock, Haptic vibration, Local cache quota, Server Host URL). **NEVER synced across devices.**
+- **Cloud-Synced (`User` fields)**: Cross-device user settings live on the `User` model — `theme`, `locale`, `display_name`, `onboarding_dismissed`, `colorblind`, `accent_hue`. Updated via the `update_profile` command / sync-push `user` update, synced down through the sync `user_profile`. There is **no** `user_preference` entity.
+- **Device-Local (`localStorage` / Dexie device config)**: Hardware-specific options (Biometric app lock, Haptic vibration, Local cache quota, Server Host URL). **NEVER synced across devices.** Theme/colorblind/accent also fall back to `localStorage` in Local Mode.
 
 **UI Context-Sensitivity (`/settings/app` & `/auth/login`):**
 - Features requiring native hardware (Server Host URL inputs, biometric sensors, haptic toggles) MUST be guarded with `{#if Capacitor.isNativePlatform()}`.
 - Web/PWA sessions display read-only origin info (`Active Origin: window.location.origin`) and browser storage gauges instead of redundant server host inputs.
+
+### Local Mode (server-optional)
+
+Salus supports an additive **Local Mode** (`localMode` flag, `SELF_USER_ID='self'`):
+a device profile (display name, no password) bypasses the auth gate and works
+fully offline; the outbox is retained and flushed once a server is connected
+("Connect server" promotes local data, and the server re-derives achievements).
+Server-only features (sharing/federation, community, coach-LLM, admin) are
+hidden via `SERVER_ONLY_PATH_PREFIXES`. See `docs/adr/004-local-mode.md`.
+
+### Color & theme system
+
+Colors fall into three kinds: semantic tokens (CSS `--color-*`), categorical
+entity colors (resolved via `resolveColor`), and data-viz scales
+(`$lib/theme/scales.ts`). A single theme controller (`$stores/theme.svelte`)
+orchestrates mode (light/dark/system), colorblind, and accent (hue-driven
+`--accent-hue`). Custom themes are scoped to accent + presets; arbitrary token
+editing is excluded to protect the colorblind/contrast guarantees. See
+`docs/adr/005-color-system.md`.
 
 ## Commands
 

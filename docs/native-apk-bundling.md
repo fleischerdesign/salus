@@ -160,7 +160,7 @@ resolver.read(request).setResultListener { result ->
 
 ### B. Security, Storage & Biometrics
 
-- **Biometric App Lock (`@capacitor/biometrics`)**: Fingerprint / Face Unlock prompt when opening Salus.
+- **Biometric App Lock (`@aparajita/capacitor-biometric-auth`)**: Fingerprint / Face Unlock prompt when opening Salus.
 - **Hardware-Backed KeyStore Security**: JWT tokens and asymmetric encryption keys stored in Android `EncryptedSharedPreferences` backed by the hardware TEE (Trusted Execution Environment) or StrongBox.
 
 ---
@@ -208,6 +208,11 @@ Before proceeding with implementation, the following architectural decisions mus
   - Periodic background sync every **15 minutes** (Android `WorkManager` minimum interval).
   - Immediate sync when app comes to foreground (`onResume`).
   - Battery optimization: Doze mode compliant using `ExistingPeriodicWorkPolicy.KEEP`.
+
+**Implemented** (see `docs/adr/002-background-sync.md`): the `HealthSyncWorker`
+harvests Health Connect and pushes to `/api/v1/sync/push` idempotently, scheduled
+as a 15-minute `PeriodicWorkRequest` (`CONNECTED` + battery-not-low, `KEEP`); the
+pull is deferred to foreground sync. Samsung Health is not wired (Decision 4).
 
 ### Decision 4: Samsung Health SDK Partner Approval
 - **Question**: Samsung Health SDK requires developer partner registration for commercial BIA/ECG sensor access.
