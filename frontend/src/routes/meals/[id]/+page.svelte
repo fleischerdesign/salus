@@ -4,9 +4,9 @@
   import { db } from '$lib/db/database';
   import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Card from '$components/ui/Card.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import Icon from '$components/ui/Icon.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
@@ -86,13 +86,9 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-on-error hover:bg-error-600"
-          onclick={() => (deleteOpen = true)}
+        <PageHeaderAction variant="danger" icon="delete" onclick={() => (deleteOpen = true)}
+          >Delete</PageHeaderAction
         >
-          <Icon name="delete" class="text-base" /><span>Delete</span>
-        </button>
       </div>
     {/snippet}
   </PageHeader>

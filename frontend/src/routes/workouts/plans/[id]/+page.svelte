@@ -5,6 +5,7 @@
   import { startWorkout } from '$lib/mutations/workout';
   import Card from '$components/ui/Card.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -102,15 +103,9 @@
           </div>
 
           <!-- Start Workout Segment -->
-          <button
-            type="button"
-            disabled={starting}
-            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
-            onclick={startSession}
+          <PageHeaderAction icon="play-arrow" disabled={starting} onclick={startSession}
+            >Start Workout</PageHeaderAction
           >
-            <Icon name="play-arrow" size="sm" />
-            <span>Start Workout</span>
-          </button>
         </div>
       {/snippet}
     </PageHeader>

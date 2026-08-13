@@ -8,6 +8,7 @@
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Textarea from '$components/ui/Textarea.svelte';
@@ -139,14 +140,7 @@
     backUrl="/workouts"
   >
     {#snippet actions()}
-      <button
-        type="button"
-        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700"
-        onclick={openForm}
-      >
-        <Icon name="add" size="sm" />
-        <span>New Exercise</span>
-      </button>
+      <PageHeaderAction icon="add" onclick={openForm}>New Exercise</PageHeaderAction>
     {/snippet}
 
     {#snippet stats()}

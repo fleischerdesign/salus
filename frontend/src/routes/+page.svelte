@@ -3,7 +3,6 @@
   import { todayString } from '$lib/utils/datetime';
   import Sortable from 'sortablejs';
   import { onDestroy } from 'svelte';
-  import { slide } from 'svelte/transition';
   import {
     addWidget as addWidgetMut,
     updateWidget as updateWidgetMut,
@@ -13,6 +12,7 @@
   import type { MetricWithPreference } from '$lib/db/types';
   import Btn from '$components/ui/Btn.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Select from '$components/ui/Select.svelte';
@@ -324,32 +324,19 @@
         </div>
 
         <!-- Edit Layout Segment -->
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold text-surface-700 transition-colors hover:bg-surface-100"
-          class:bg-primary-50={editing}
-          class:text-primary-600={editing}
+        <PageHeaderAction
+          variant={editing ? 'secondary' : 'ghost'}
+          icon={editing ? 'check' : 'edit'}
           onclick={toggleEdit}
         >
-          <Icon
-            name={editing ? 'check' : 'edit'}
-            size="sm"
-            class={editing ? 'text-primary-600' : ''}
-          />
-          <span>{editing ? 'Done' : 'Edit Layout'}</span>
-        </button>
+          {editing ? 'Done' : 'Edit Layout'}
+        </PageHeaderAction>
 
         <!-- Add Widget Segment -->
         {#if editing}
-          <button
-            type="button"
-            transition:slide={{ axis: 'x', duration: 150 }}
-            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700"
-            onclick={() => (addModalOpen = true)}
-          >
-            <Icon name="add" size="sm" />
-            <span>Add Widget</span>
-          </button>
+          <PageHeaderAction icon="add" onclick={() => (addModalOpen = true)}>
+            Add Widget
+          </PageHeaderAction>
         {/if}
       </div>
     {/snippet}

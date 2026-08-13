@@ -3,7 +3,7 @@
   import { todayString, dateString } from '$lib/utils/datetime';
   import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
-  import Icon from '$components/ui/Icon.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import DayNavigator from '$components/ui/DayNavigator.svelte';
   import NutritionSummary from '$components/food/NutritionSummary.svelte';
@@ -127,13 +127,7 @@
   <PageHeader title="Meals" subtitle="Track your nutrition, one meal at a time" icon="restaurant">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary hover:bg-primary-600"
-          onclick={() => (formOpen = true)}
-        >
-          <Icon name="add" class="text-base" /><span>Log Meal</span>
-        </button>
+        <PageHeaderAction icon="add" onclick={() => (formOpen = true)}>Log Meal</PageHeaderAction>
       </div>
     {/snippet}
   </PageHeader>

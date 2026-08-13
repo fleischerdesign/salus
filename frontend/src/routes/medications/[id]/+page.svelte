@@ -5,6 +5,7 @@
   import { db } from '$lib/db/database';
   import type { MedicationSchedule } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -170,20 +171,12 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch gap-2">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-surface-100 px-6 text-sm font-semibold whitespace-nowrap text-surface-700 hover:bg-surface-200"
-          onclick={() => (editOpen = true)}
+        <PageHeaderAction variant="secondary" icon="edit" onclick={() => (editOpen = true)}
+          >Edit</PageHeaderAction
         >
-          <Icon name="edit" class="text-base" /><span>Edit</span>
-        </button>
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-on-error hover:bg-error-600"
-          onclick={() => (deleteOpen = true)}
+        <PageHeaderAction variant="danger" icon="delete" onclick={() => (deleteOpen = true)}
+          >Delete</PageHeaderAction
         >
-          <Icon name="delete" class="text-base" /><span>Delete</span>
-        </button>
       </div>
     {/snippet}
   </PageHeader>

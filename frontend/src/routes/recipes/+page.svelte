@@ -2,7 +2,7 @@
   import { db } from '$lib/db/database';
   import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
-  import Icon from '$components/ui/Icon.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import RecipeGrid from '$components/food/RecipeGrid.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
@@ -88,13 +88,7 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary hover:bg-primary-600"
-          onclick={() => (formOpen = true)}
-        >
-          <Icon name="add" class="text-base" /><span>New Recipe</span>
-        </button>
+        <PageHeaderAction icon="add" onclick={() => (formOpen = true)}>New Recipe</PageHeaderAction>
       </div>
     {/snippet}
   </PageHeader>

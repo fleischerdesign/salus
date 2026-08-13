@@ -2,8 +2,8 @@
   import { db } from '$lib/db/database';
 
   import PageHeader from '$components/ui/PageHeader.svelte';
+  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Card from '$components/ui/Card.svelte';
-  import Icon from '$components/ui/Icon.svelte';
   import Input from '$components/ui/Input.svelte';
   import Chip from '$components/ui/Chip.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -77,13 +77,7 @@
   <PageHeader title="Food Database" subtitle="Search and manage food items" icon="search">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <button
-          type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary hover:bg-primary-600"
-          onclick={() => (createOpen = true)}
-        >
-          <Icon name="add" class="text-base" /><span>New Item</span>
-        </button>
+        <PageHeaderAction icon="add" onclick={() => (createOpen = true)}>New Item</PageHeaderAction>
       </div>
     {/snippet}
   </PageHeader>
