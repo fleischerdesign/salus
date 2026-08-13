@@ -52,3 +52,9 @@ export interface IBiometricProvider {
   isAvailable(): Promise<boolean>;
   verifyIdentity(reason: string): Promise<boolean>;
 }
+
+export interface ISecureStorageProvider {
+  setToken(token: string): Promise<void>;
+  setServerUrl(url: string): Promise<void>;
+  clear(): Promise<void>;
+}
