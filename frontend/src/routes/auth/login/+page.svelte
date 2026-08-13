@@ -19,6 +19,8 @@
   let error = $state('');
   let loading = $state(false);
 
+  let localName = $state('');
+
   let showServerConfig = $state(Capacitor.isNativePlatform() && !getApiBaseUrl());
   let serverUrl = $state(getApiBaseUrl() || '');
   let serverTesting = $state(false);
@@ -92,6 +94,12 @@
     const data = await res.json();
     auth.setSession(data.token, data.user as User);
     await goto('/');
+  }
+
+  function startLocal() {
+    const name = localName.trim() || 'Lokaler Nutzer';
+    auth.setLocalSession(name);
+    goto('/');
   }
 </script>
 
@@ -192,6 +200,21 @@
           {/each}
         </div>
       {/if}
+
+      <div class="my-6">
+        <Divider label="ohne Server" />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <Input name="localName" label="Dein Name" bind:value={localName} placeholder="Max" />
+        <Btn variant="secondary" fullWidth onclick={startLocal}>
+          <Icon name="devices" />
+          Lokal starten
+        </Btn>
+        <p class="text-center text-xs text-surface-400">
+          Nur auf diesem Gerät — kein Server, keine Cloud.
+        </p>
+      </div>
 
       <p class="mt-6 text-center text-sm text-surface-500">
         Don't have an account?

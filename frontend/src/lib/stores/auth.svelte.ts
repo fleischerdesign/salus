@@ -1,9 +1,30 @@
 import type { components } from '$lib/api/schema.d';
 import { setLocaleState, getApiBaseUrl } from '$lib/api/headers';
-import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY, SELF_USER_ID } from '$lib/constants';
 import { nativeBridge } from '$lib/native/bridge';
+import { localMode } from '$lib/db/local-mode.svelte';
 
 type User = components['schemas']['UserResponse'];
+
+const LOCAL_TOKEN = 'local';
+
+function buildLocalUser(displayName: string): User {
+  const now = new Date().toISOString();
+  return {
+    id: SELF_USER_ID,
+    username: displayName,
+    display_name: displayName,
+    email: null,
+    height_cm: null,
+    is_active: true,
+    is_admin: false,
+    locale: 'en',
+    onboarding_dismissed: false,
+    theme: 'system',
+    created_at: now,
+    updated_at: now
+  };
+}
 
 interface AuthState {
   token: string | null;
@@ -45,6 +66,7 @@ export const auth = {
   },
 
   setSession(token: string, user: User) {
+    localMode.disable();
     state.token = token;
     state.user = user;
     state.loading = false;
@@ -53,6 +75,17 @@ export const auth = {
     setLocaleState(user.locale ?? 'en');
     nativeBridge.secureStorage.setToken(token).catch(() => {});
     nativeBridge.secureStorage.setServerUrl(getApiBaseUrl()).catch(() => {});
+  },
+
+  setLocalSession(displayName: string) {
+    const user = buildLocalUser(displayName);
+    state.token = LOCAL_TOKEN;
+    state.user = user;
+    state.loading = false;
+    localStorage.setItem(AUTH_TOKEN_KEY, LOCAL_TOKEN);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    setLocaleState(user.locale ?? 'en');
+    localMode.enable();
   },
 
   clear() {
