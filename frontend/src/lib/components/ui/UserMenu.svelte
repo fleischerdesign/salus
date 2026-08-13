@@ -35,7 +35,7 @@
   }
 
   let menuClass = $derived(
-    'absolute right-0 top-full mt-2 min-w-[200px] rounded-xl border border-surface-200 bg-surface-0 py-1 shadow-lg z-dropdown transition-all duration-micro ' +
+    'absolute right-0 top-full mt-2 min-w-[200px] rounded-xl border border-surface-200 bg-surface-0 py-1 shadow-lg z-50 transition-all duration-micro ' +
       (open
         ? 'opacity-100 pointer-events-auto translate-y-0'
         : 'opacity-0 pointer-events-none -translate-y-1')
@@ -50,7 +50,7 @@
     type="button"
   >
     <span
-      class="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-[13px] font-semibold text-white uppercase"
+      class="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-[13px] font-semibold text-on-primary uppercase"
     >
       {(auth.user?.display_name || auth.user?.username || 'U')[0]}
       {#if dotStatus}
@@ -65,7 +65,7 @@
   <div class={menuClass}>
     <div class="border-b border-surface-200 px-4 py-3">
       <span
-        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-sm font-semibold text-white uppercase"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 text-sm font-semibold text-on-primary uppercase"
       >
         {(auth.user?.display_name || auth.user?.username || 'U')[0]}
       </span>

@@ -2,7 +2,7 @@
   import { type Snippet } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700',
+    primary: 'bg-primary-500 text-on-primary hover:bg-primary-600 active:bg-primary-700',
     secondary:
       'border border-primary-500 bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
     ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',

@@ -15,7 +15,7 @@
       <span
         class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors
           {state === 'completed'
-          ? 'bg-primary-500 text-white'
+          ? 'bg-primary-500 text-on-primary'
           : state === 'active'
             ? 'border-2 border-primary-500 bg-primary-50 text-primary-600'
             : 'bg-surface-100 text-surface-400'}"

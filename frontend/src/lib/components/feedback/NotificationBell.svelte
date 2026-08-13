@@ -65,7 +65,7 @@
   }
 
   let menuClass = $derived(
-    'absolute right-0 top-full mt-2 w-80 rounded-xl border border-surface-200 bg-surface-0 py-1 shadow-lg z-dropdown transition-all duration-micro ' +
+    'absolute right-0 top-full mt-2 w-80 rounded-xl border border-surface-200 bg-surface-0 py-1 shadow-lg z-50 transition-all duration-micro ' +
       (open
         ? 'opacity-100 pointer-events-auto translate-y-0'
         : 'opacity-0 pointer-events-none -translate-y-1')

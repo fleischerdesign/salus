@@ -62,13 +62,11 @@
   --color-success-800: oklch(0.39 0.05 160);
   --color-success-900: oklch(0.3 0.038 160);
 
-  /* Metric — symbolic chart/marker colors (no dark mode inversion) */
-  --color-metric-heart-rate: oklch(0.625 0.19 12);
-  --color-metric-steps: oklch(0.7 0.1 75);
-  --color-metric-sleep: oklch(0.75 0.08 280);
-  --color-metric-nutrition: oklch(0.56 0.08 160);
-  --color-metric-weight: oklch(0.58 0.14 275);
-  --color-metric-water: oklch(0.65 0.06 230);
+  /* On-color — foreground for semantic fills (guaranteed contrast) */
+  --color-on-primary: #ffffff;
+  --color-on-success: #ffffff;
+  --color-on-error: #ffffff;
+  --color-on-warning: oklch(0.2 0.012 260);
 
   /* Typography */
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
@@ -90,22 +88,12 @@
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.05);
   --shadow-lg: 0 8px 16px oklch(0.1 0.02 260 / 0.12);
 
-  /* Z-Index */
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-modal-backdrop: 300;
-  --z-modal: 400;
-  --z-tooltip: 500;
-
   /* Animation */
   --duration-micro: 150ms;
   --duration-fast: 200ms;
   --duration-normal: 250ms;
   --duration-slow: 350ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer base {
@@ -185,6 +173,11 @@
     --color-success-700: oklch(0.882 0.06 160);
     --color-success-800: oklch(0.935 0.04 160);
     --color-success-900: oklch(0.972 0.02 160);
+
+    --color-on-primary: oklch(0.155 0.01 260);
+    --color-on-success: oklch(0.155 0.01 260);
+    --color-on-error: oklch(0.155 0.01 260);
+    --color-on-warning: oklch(0.155 0.01 260);
   }
 
   /* Colorblind mode — shift the success ramp green → blue so status stays

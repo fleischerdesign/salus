@@ -77,7 +77,7 @@
           e.stopPropagation();
           onCook();
         }}
-        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-600"
+        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-on-primary transition-colors hover:bg-primary-600"
       >
         Cook
       </button>

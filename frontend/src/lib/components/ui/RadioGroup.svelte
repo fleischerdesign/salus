@@ -32,7 +32,7 @@
     <button
       class="duration-micro rounded-md border px-3 py-1.5 text-[13px] font-semibold tracking-[0.05em] transition-colors {value ===
       opt.value
-        ? 'border-primary-500 bg-primary-500 text-white'
+        ? 'border-primary-500 bg-primary-500 text-on-primary'
         : 'border-surface-200 bg-surface-100 text-surface-700 hover:bg-surface-200'}"
       onclick={() => select(opt.value)}
       type="button"

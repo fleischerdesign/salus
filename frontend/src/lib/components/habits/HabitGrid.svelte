@@ -24,7 +24,7 @@
     </p>
     <button
       type="button"
-      class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600"
+      class="rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-on-primary hover:bg-primary-600"
       onclick={onCreate}
     >
       Create Habit
