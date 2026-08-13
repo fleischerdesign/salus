@@ -141,7 +141,7 @@
     {#snippet actions()}
       <button
         type="button"
-        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+        class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700"
         onclick={openForm}
       >
         <Icon name="add" size="sm" />

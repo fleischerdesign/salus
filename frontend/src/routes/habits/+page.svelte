@@ -67,7 +67,7 @@
       <div class="flex h-full items-stretch">
         <button
           type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-primary-600"
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary hover:bg-primary-600"
           onclick={() => {
             editTarget = null;
             formOpen = true;

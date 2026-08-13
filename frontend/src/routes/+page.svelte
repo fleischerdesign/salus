@@ -344,7 +344,7 @@
           <button
             type="button"
             transition:slide={{ axis: 'x', duration: 150 }}
-            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700"
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700"
             onclick={() => (addModalOpen = true)}
           >
             <Icon name="add" size="sm" />
@@ -658,7 +658,7 @@
                 <!-- Active Checkmark Indicator -->
                 {#if selectedWidgetId === opt.id}
                   <div
-                    class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-white shadow-sm ring-2 ring-white"
+                    class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
                   >
                     <Icon name="check" size="sm" />
                   </div>
@@ -756,7 +756,7 @@
               <!-- Active Checkmark Indicator -->
               {#if selectedWidgetId === opt.id}
                 <div
-                  class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-white shadow-sm ring-2 ring-white"
+                  class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
                 >
                   <Icon name="check" size="sm" />
                 </div>

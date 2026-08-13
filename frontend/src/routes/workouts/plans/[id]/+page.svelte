@@ -105,7 +105,7 @@
           <button
             type="button"
             disabled={starting}
-            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
+            class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary transition-colors hover:bg-primary-600 active:bg-primary-700 disabled:opacity-50"
             onclick={startSession}
           >
             <Icon name="play-arrow" size="sm" />

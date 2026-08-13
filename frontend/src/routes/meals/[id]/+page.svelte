@@ -88,7 +88,7 @@
       <div class="flex h-full items-stretch">
         <button
           type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-error-600"
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-on-error hover:bg-error-600"
           onclick={() => (deleteOpen = true)}
         >
           <Icon name="delete" class="text-base" /><span>Delete</span>

@@ -113,7 +113,7 @@
       <div class="flex h-full items-stretch gap-2">
         <button
           type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-primary-600"
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-primary-500 px-6 text-sm font-semibold whitespace-nowrap text-on-primary hover:bg-primary-600"
           onclick={handleCook}
         >
           <Icon name="restaurant" class="text-base" /><span>Cook</span>
@@ -127,7 +127,7 @@
         </button>
         <button
           type="button"
-          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-white hover:bg-error-600"
+          class="duration-micro flex h-full items-center justify-center gap-2 bg-error-500 px-6 text-sm font-semibold whitespace-nowrap text-on-error hover:bg-error-600"
           onclick={() => (deleteOpen = true)}
         >
           <Icon name="delete" class="text-base" /><span>Delete</span>
