@@ -12,7 +12,7 @@
   import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
   import { exportDatabase, importDatabase } from '$lib/db/export-import';
-  import { theme, type ThemeMode } from '$stores/theme.svelte';
+  import { theme, type ThemeMode, ACCENT_HUES } from '$stores/theme.svelte';
 
   const CURRENT_APP_VERSION = '0.1.0';
   let isNative = $state(Capacitor.isNativePlatform());
@@ -324,6 +324,26 @@
               <p class="text-xs text-surface-400">Farbenblindsichere Farben in der gesamten App</p>
             </div>
             <Toggle checked={theme.colorblind} onchange={(v) => theme.setColorblind(v)} />
+          </div>
+        </div>
+        <div class="border-t border-surface-100 pt-5">
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+            Akzentfarbe
+          </p>
+          <div class="flex gap-2">
+            {#each ACCENT_HUES as accent (accent.hue)}
+              <button
+                type="button"
+                class="h-8 w-8 rounded-full border-2 transition-all"
+                class:border-surface-300={theme.accentHue !== accent.hue}
+                class:border-surface-900={theme.accentHue === accent.hue}
+                class:ring-2={theme.accentHue === accent.hue}
+                class:ring-primary-300={theme.accentHue === accent.hue}
+                style="background-color: {accent.color}"
+                aria-label={accent.label}
+                onclick={() => theme.setAccentHue(accent.hue)}
+              ></button>
+            {/each}
           </div>
         </div>
       </div>
