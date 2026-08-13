@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
+  import { todayString } from '$lib/utils/datetime';
 
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -20,7 +21,7 @@
   const logs = $derived(logsQuery.value);
   const loading = $derived(logsQuery.loading);
 
-  const today = $derived(new Date().toISOString().split('T')[0]);
+  const today = $derived(todayString());
   const todayWeekday = $derived(new Date().getDay() || 7);
 
   const nextDoses = $derived.by(() => {

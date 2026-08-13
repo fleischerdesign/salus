@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
+  import { todayString, dateString } from '$lib/utils/datetime';
   import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -13,7 +14,7 @@
 
   let formOpen = $state(false);
 
-  let selectedDate = $state(new Date().toISOString().split('T')[0]);
+  let selectedDate = $state(todayString());
 
   const mealsQuery = useQuery(() =>
     db.meal
@@ -37,7 +38,7 @@
   const foodItems = $derived(foodItemsQuery.value);
   const loading = $derived(foodItemsQuery.loading);
 
-  const today = $derived(new Date().toISOString().split('T')[0]);
+  const today = $derived(todayString());
   const isToday = $derived(selectedDate === today);
 
   const mealsForDate = $derived(
@@ -157,12 +158,12 @@
       onPrev={() => {
         const d = new Date(selectedDate + 'T12:00');
         d.setDate(d.getDate() - 1);
-        selectedDate = d.toISOString().split('T')[0];
+        selectedDate = dateString(d);
       }}
       onNext={() => {
         const d = new Date(selectedDate + 'T12:00');
         d.setDate(d.getDate() + 1);
-        selectedDate = d.toISOString().split('T')[0];
+        selectedDate = dateString(d);
       }}
       {isToday}
     >

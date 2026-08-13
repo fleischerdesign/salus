@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$components/ui/Icon.svelte';
   import { untrack } from 'svelte';
+  import { brzycki1Rm } from '$lib/analytics/calculations';
 
   type LogState = 'pending' | 'logging' | 'logged' | 'failed';
 
@@ -34,7 +35,7 @@
   let reps = $state(untrack(() => suggestedReps));
   let rpe = $state(untrack(() => suggestedRpe));
 
-  const est1rm = $derived(reps <= 0 ? 0 : reps === 1 ? weight : weight / (1.0278 - 0.0278 * reps));
+  const est1rm = $derived(reps <= 0 ? 0 : reps === 1 ? weight : brzycki1Rm(weight, reps));
 
   const isPR = $derived((prWeight > 0 && weight > prWeight) || (prEst1rm > 0 && est1rm > prEst1rm));
 

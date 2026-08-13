@@ -1,4 +1,5 @@
 import { mutate } from '$lib/mutate';
+import { todayString } from '$lib/utils/datetime';
 import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
@@ -23,7 +24,7 @@ export async function createHabit(data: {
 }
 
 export async function toggleHabit(habitId: string) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayString();
   const existing = await db.habit_log
     .where({ habit_id: habitId })
     .filter((l) => l.log_date === today && l.completed)

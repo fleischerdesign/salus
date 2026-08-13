@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { todayString } from '$lib/utils/datetime';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import type { MedicationSchedule } from '$lib/db/types';
@@ -59,7 +60,7 @@
   const inventory = $derived(inventoryQuery.value);
   const loading = $derived(inventoryQuery.loading);
 
-  const today = $derived(new Date().toISOString().split('T')[0]);
+  const today = $derived(todayString());
   const todayWeekday = $derived(new Date().getDay() || 7);
   const totalTaken = $derived((logs ?? []).filter((l) => !l.skipped).length);
   const totalSkipped = $derived((logs ?? []).filter((l) => l.skipped).length);

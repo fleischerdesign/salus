@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { MoodEntry } from '$lib/db/types';
+  import { todayString } from '$lib/utils/datetime';
   import Icon from '$components/ui/Icon.svelte';
 
   interface Props {
@@ -47,7 +48,7 @@
     return 'bg-red-400';
   }
 
-  const todayStr = $derived(new Date().toISOString().split('T')[0]);
+  const todayStr = $derived(todayString());
 </script>
 
 <div class="space-y-3">

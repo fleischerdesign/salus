@@ -2,6 +2,7 @@ import { syncEngine } from './sync-engine.svelte';
 import { offlineService } from './offline-service';
 import { pullDelta } from './sync-pull';
 import { connectLiveSync, disconnectLiveSync } from './live-events';
+import { db } from './database';
 import { toast, dismissToast, updateToastProgress } from '$components/ui/toast-state.svelte';
 import { toastSettings } from '$stores/toast-settings.svelte';
 import { Capacitor } from '@capacitor/core';
@@ -27,7 +28,7 @@ if (typeof window !== 'undefined') {
 }
 
 async function _liveSyncCallback() {
-  const last = await (await import('./database')).db.meta.get('lastSyncAt');
+  const last = await db.meta.get('lastSyncAt');
   const lastSync = (last?.value as number) ?? 0;
   if (lastSync > 0 && Date.now() - lastSync < 7 * 24 * 3600 * 1000) {
     await pullDelta();

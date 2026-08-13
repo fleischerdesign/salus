@@ -7,6 +7,7 @@
     fetchWellness
   } from '$lib/analytics/views/analytics';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { KCAL_PER_KG_FAT } from '$lib/constants';
   import Card from '$components/ui/Card.svelte';
   import Stat from '$components/ui/Stat.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -65,7 +66,7 @@
   let projectedWeightSeries = $derived.by(() => {
     if (!weightTrend || weightTrend.values.length === 0) return [];
     const startWeight = weightTrend.values[0];
-    const changePerDay = -dailyDeficit / 7700;
+    const changePerDay = -dailyDeficit / KCAL_PER_KG_FAT;
     const projected = weightTrend.values.map((_, i) => {
       return startWeight + i * changePerDay;
     });

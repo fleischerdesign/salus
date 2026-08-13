@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
+  import { todayString, dateString } from '$lib/utils/datetime';
   import type { Habit } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import HabitGrid from '$components/habits/HabitGrid.svelte';
@@ -23,7 +24,7 @@
       (habits ?? []).map((h) => {
         const hLogs = (logs ?? []).filter((l) => l.habit_id === h.id && l.completed);
         const dates = [...new Set(hLogs.map((l) => l.log_date))].sort().reverse();
-        const today = new Date().toISOString().split('T')[0];
+        const today = todayString();
         let currentStreak = 0;
         let expected = today;
         for (const d of dates) {
@@ -32,7 +33,7 @@
             expected = prevDay(expected);
           } else if (d < expected) break;
         }
-        return [h.id, { currentStreak, longestStreak: 0, todayCompleted: dates[0] === today }];
+        return [h.id, { currentStreak, todayCompleted: dates[0] === today }];
       })
     )
   );
@@ -40,7 +41,7 @@
   function prevDay(d: string): string {
     const dt = new Date(d);
     dt.setDate(dt.getDate() - 1);
-    return dt.toISOString().split('T')[0];
+    return dateString(dt);
   }
 
   async function handleToggle(habitId: string) {

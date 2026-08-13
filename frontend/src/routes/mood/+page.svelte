@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
+  import { todayString } from '$lib/utils/datetime';
 
   import PageHeader from '$components/ui/PageHeader.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -10,7 +11,7 @@
 
   let saving = $state(false);
 
-  let todayStr = new Date().toISOString().split('T')[0];
+  let todayStr = todayString();
   let score = $state(0);
 
   const entriesQuery = useQuery(() => db.mood_entry.toArray());

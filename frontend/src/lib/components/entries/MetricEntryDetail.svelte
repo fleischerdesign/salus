@@ -5,7 +5,7 @@
   import type { Measurement as Entry, MetricWithPreference } from '$lib/db/types';
   import type { MetricOverview } from '$lib/analytics/views/metric-overview';
   import { overviewForMetric } from '$lib/analytics/views/metric-overview';
-  import { fetchTrend } from '$lib/analytics/views/analytics';
+  import { fetchTrend, RANGE_KEYS } from '$lib/analytics/views/analytics';
   import { getMetricStat } from '$lib/db/metric-stats';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import PageHeader from '$components/ui/PageHeader.svelte';
@@ -279,7 +279,7 @@
             >
           </div>
           <div class="flex gap-1">
-            {#each ['7d', '30d', '90d', '1y'] as r}
+            {#each RANGE_KEYS as r}
               <Btn
                 variant={range === r ? 'primary' : 'secondary'}
                 size="sm"

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { todayString, dateString } from '$lib/utils/datetime';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import type { Habit } from '$lib/db/types';
@@ -54,7 +55,7 @@
 
   const freqLabel = $derived(habit ? computeFreqLabel(habit) : '');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayString();
   const todayCompleted = $derived((logs ?? []).some((l) => l.log_date === todayStr && l.completed));
 
   const completedLogs = $derived((logs ?? []).filter((l) => l.completed));
@@ -70,7 +71,7 @@
         streak++;
         const dt = new Date(d);
         dt.setDate(dt.getDate() - 1);
-        expected = dt.toISOString().split('T')[0];
+        expected = dateString(dt);
       } else if (d < expected) break;
     }
     return streak;
@@ -94,7 +95,7 @@
 
     const d = new Date(startDate);
     while (d <= endDate) {
-      const ds = d.toISOString().split('T')[0];
+      const ds = dateString(d);
       cells.push({ date: ds, completed: dateSet.has(ds), today: ds === todayStr });
       d.setDate(d.getDate() + 1);
     }

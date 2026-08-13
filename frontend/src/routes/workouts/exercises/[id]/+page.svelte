@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { db } from '$lib/db/database';
-  import { epley1Rm } from '$lib/analytics/calculations';
+  import { brzycki1Rm } from '$lib/analytics/calculations';
   import Card from '$components/ui/Card.svelte';
   import Badge from '$components/ui/Badge.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -66,7 +66,7 @@
           set: `#${l.set_number}`,
           result: `${l.weight} × ${l.reps}`,
           rpe: l.rpe != null ? String(l.rpe) : '—',
-          one_rm: `${epley1Rm(l.weight, l.reps).toFixed(1)}`
+          one_rm: `${brzycki1Rm(l.weight, l.reps).toFixed(1)}`
         };
       });
   });
@@ -77,7 +77,7 @@
     Math.max(
       0,
       ...(logs ?? []).map((l) =>
-        l.weight != null && l.reps != null ? epley1Rm(l.weight, l.reps) : 0
+        l.weight != null && l.reps != null ? brzycki1Rm(l.weight, l.reps) : 0
       )
     )
   );
@@ -113,7 +113,7 @@
       if (!dateStr) continue;
       const date = new Date(dateStr);
       const tonnage = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
-      const max1rm = Math.max(...sets.map((s) => epley1Rm(s.weight, s.reps)));
+      const max1rm = Math.max(...sets.map((s) => brzycki1Rm(s.weight, s.reps)));
       result.push({
         date,
         dateLabel: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
