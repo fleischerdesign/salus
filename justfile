@@ -70,6 +70,9 @@ default:
 @schema-frontend:
     cd frontend && npm run gen-schema
 
+@export-reference:
+    uv run python scripts/export_reference.py
+
 # --- Dev seed ---
 
 @seed *ARGS:

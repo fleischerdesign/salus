@@ -1,0 +1,1027 @@
+{
+  "version": 1,
+  "metric_group": [
+    {
+      "key": "blood_pressure",
+      "name": "Blood Pressure",
+      "icon": "monitor-heart",
+      "description": null,
+      "input_mode": "combined"
+    },
+    {
+      "key": "body_measurements",
+      "name": "Body Measurements",
+      "icon": "fitness-center",
+      "description": null,
+      "input_mode": "individual"
+    }
+  ],
+  "metric_definition": [
+    {
+      "code": "steps",
+      "name": "Steps",
+      "unit": "steps",
+      "data_type": "number",
+      "source_data_type": "steps",
+      "group_key": null,
+      "description": null,
+      "sort_order": 10
+    },
+    {
+      "code": "heart_rate",
+      "name": "Heart Rate",
+      "unit": "bpm",
+      "data_type": "number",
+      "source_data_type": "heart_rate",
+      "group_key": null,
+      "description": null,
+      "sort_order": 20
+    },
+    {
+      "code": "resting_heart_rate",
+      "name": "Resting Heart Rate",
+      "unit": "bpm",
+      "data_type": "number",
+      "source_data_type": "resting_heart_rate",
+      "group_key": null,
+      "description": null,
+      "sort_order": 25
+    },
+    {
+      "code": "spo2",
+      "name": "Blood Oxygen",
+      "unit": "%",
+      "data_type": "number",
+      "source_data_type": "spo2",
+      "group_key": null,
+      "description": null,
+      "sort_order": 26
+    },
+    {
+      "code": "respiratory_rate",
+      "name": "Respiratory Rate",
+      "unit": "rpm",
+      "data_type": "number",
+      "source_data_type": "respiratory_rate",
+      "group_key": null,
+      "description": null,
+      "sort_order": 27
+    },
+    {
+      "code": "vo2_max",
+      "name": "VO₂ Max",
+      "unit": "ml/kg/min",
+      "data_type": "number",
+      "source_data_type": "vo2_max",
+      "group_key": null,
+      "description": null,
+      "sort_order": 28
+    },
+    {
+      "code": "sleep",
+      "name": "Sleep",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "sleep",
+      "group_key": null,
+      "description": null,
+      "sort_order": 30
+    },
+    {
+      "code": "weight",
+      "name": "Weight",
+      "unit": "kg",
+      "data_type": "number",
+      "source_data_type": "weight",
+      "group_key": null,
+      "description": null,
+      "sort_order": 40
+    },
+    {
+      "code": "height",
+      "name": "Height",
+      "unit": "cm",
+      "data_type": "number",
+      "source_data_type": "height",
+      "group_key": null,
+      "description": null,
+      "sort_order": 41
+    },
+    {
+      "code": "body_temperature",
+      "name": "Body Temperature",
+      "unit": "°C",
+      "data_type": "number",
+      "source_data_type": "body_temperature",
+      "group_key": null,
+      "description": null,
+      "sort_order": 45
+    },
+    {
+      "code": "basal_body_temp",
+      "name": "Basal Body Temperature",
+      "unit": "°C",
+      "data_type": "number",
+      "source_data_type": "basal_body_temp",
+      "group_key": null,
+      "description": null,
+      "sort_order": 46
+    },
+    {
+      "code": "systolic_bp",
+      "name": "Systolic Blood Pressure",
+      "unit": "mmHg",
+      "data_type": "number",
+      "source_data_type": "blood_pressure",
+      "group_key": "blood_pressure",
+      "description": null,
+      "sort_order": 51
+    },
+    {
+      "code": "diastolic_bp",
+      "name": "Diastolic Blood Pressure",
+      "unit": "mmHg",
+      "data_type": "number",
+      "source_data_type": "blood_pressure",
+      "group_key": "blood_pressure",
+      "description": null,
+      "sort_order": 52
+    },
+    {
+      "code": "exercise",
+      "name": "Exercise",
+      "unit": "minutes",
+      "data_type": "text",
+      "source_data_type": "exercise",
+      "group_key": null,
+      "description": null,
+      "sort_order": 60
+    },
+    {
+      "code": "calories_burned",
+      "name": "Total Calories",
+      "unit": "kcal",
+      "data_type": "number",
+      "source_data_type": "calories_burned",
+      "group_key": null,
+      "description": null,
+      "sort_order": 61
+    },
+    {
+      "code": "active_calories",
+      "name": "Active Calories",
+      "unit": "kcal",
+      "data_type": "number",
+      "source_data_type": "active_calories",
+      "group_key": null,
+      "description": null,
+      "sort_order": 62
+    },
+    {
+      "code": "distance",
+      "name": "Distance",
+      "unit": "km",
+      "data_type": "number",
+      "source_data_type": "distance",
+      "group_key": null,
+      "description": null,
+      "sort_order": 63
+    },
+    {
+      "code": "elevation_gained",
+      "name": "Elevation Gained",
+      "unit": "m",
+      "data_type": "number",
+      "source_data_type": "elevation_gained",
+      "group_key": null,
+      "description": null,
+      "sort_order": 64
+    },
+    {
+      "code": "floors_climbed",
+      "name": "Floors Climbed",
+      "unit": "floors",
+      "data_type": "number",
+      "source_data_type": "floors_climbed",
+      "group_key": null,
+      "description": null,
+      "sort_order": 65
+    },
+    {
+      "code": "speed",
+      "name": "Speed",
+      "unit": "km/h",
+      "data_type": "number",
+      "source_data_type": "speed",
+      "group_key": null,
+      "description": null,
+      "sort_order": 66
+    },
+    {
+      "code": "power",
+      "name": "Power",
+      "unit": "W",
+      "data_type": "number",
+      "source_data_type": "power",
+      "group_key": null,
+      "description": null,
+      "sort_order": 67
+    },
+    {
+      "code": "cadence",
+      "name": "Cadence",
+      "unit": "rpm",
+      "data_type": "number",
+      "source_data_type": "cadence",
+      "group_key": null,
+      "description": null,
+      "sort_order": 68
+    },
+    {
+      "code": "wheelchair_pushes",
+      "name": "Wheelchair Pushes",
+      "unit": "pushes",
+      "data_type": "number",
+      "source_data_type": "wheelchair_pushes",
+      "group_key": null,
+      "description": null,
+      "sort_order": 69
+    },
+    {
+      "code": "nutrition",
+      "name": "Nutrition",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "nutrition",
+      "group_key": null,
+      "description": null,
+      "sort_order": 70
+    },
+    {
+      "code": "blood_glucose",
+      "name": "Blood Glucose",
+      "unit": "mg/dL",
+      "data_type": "number",
+      "source_data_type": "blood_glucose",
+      "group_key": null,
+      "description": null,
+      "sort_order": 80
+    },
+    {
+      "code": "body_fat",
+      "name": "Body Fat",
+      "unit": "%",
+      "data_type": "number",
+      "source_data_type": "body_fat",
+      "group_key": null,
+      "description": null,
+      "sort_order": 90
+    },
+    {
+      "code": "bone_mass",
+      "name": "Bone Mass",
+      "unit": "kg",
+      "data_type": "number",
+      "source_data_type": "bone_mass",
+      "group_key": null,
+      "description": null,
+      "sort_order": 91
+    },
+    {
+      "code": "lean_body_mass",
+      "name": "Lean Body Mass",
+      "unit": "kg",
+      "data_type": "number",
+      "source_data_type": "lean_body_mass",
+      "group_key": null,
+      "description": null,
+      "sort_order": 92
+    },
+    {
+      "code": "body_water_mass",
+      "name": "Body Water Mass",
+      "unit": "kg",
+      "data_type": "number",
+      "source_data_type": "body_water_mass",
+      "group_key": null,
+      "description": null,
+      "sort_order": 93
+    },
+    {
+      "code": "bmr",
+      "name": "Basal Metabolic Rate",
+      "unit": "kcal",
+      "data_type": "number",
+      "source_data_type": "bmr",
+      "group_key": null,
+      "description": null,
+      "sort_order": 94
+    },
+    {
+      "code": "water",
+      "name": "Water",
+      "unit": "ml",
+      "data_type": "number",
+      "source_data_type": "water",
+      "group_key": null,
+      "description": null,
+      "sort_order": 100
+    },
+    {
+      "code": "stress",
+      "name": "Stress",
+      "unit": "",
+      "data_type": "number",
+      "source_data_type": "stress",
+      "group_key": null,
+      "description": null,
+      "sort_order": 110
+    },
+    {
+      "code": "hrv",
+      "name": "HRV",
+      "unit": "ms",
+      "data_type": "number",
+      "source_data_type": "hrv",
+      "group_key": null,
+      "description": null,
+      "sort_order": 120
+    },
+    {
+      "code": "readiness",
+      "name": "Readiness",
+      "unit": "",
+      "data_type": "number",
+      "source_data_type": "readiness",
+      "group_key": null,
+      "description": null,
+      "sort_order": 130
+    },
+    {
+      "code": "waist",
+      "name": "Waist",
+      "unit": "cm",
+      "data_type": "number",
+      "source_data_type": "body_measurement",
+      "group_key": "body_measurements",
+      "description": null,
+      "sort_order": 140
+    },
+    {
+      "code": "hip",
+      "name": "Hip",
+      "unit": "cm",
+      "data_type": "number",
+      "source_data_type": "body_measurement",
+      "group_key": "body_measurements",
+      "description": null,
+      "sort_order": 150
+    },
+    {
+      "code": "chest",
+      "name": "Chest",
+      "unit": "cm",
+      "data_type": "number",
+      "source_data_type": "body_measurement",
+      "group_key": "body_measurements",
+      "description": null,
+      "sort_order": 160
+    },
+    {
+      "code": "menstruation_period",
+      "name": "Menstruation Period",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "menstruation_period",
+      "group_key": null,
+      "description": null,
+      "sort_order": 170
+    },
+    {
+      "code": "menstruation_flow",
+      "name": "Menstruation Flow",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "menstruation_flow",
+      "group_key": null,
+      "description": null,
+      "sort_order": 171
+    },
+    {
+      "code": "ovulation_test",
+      "name": "Ovulation Test",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "ovulation_test",
+      "group_key": null,
+      "description": null,
+      "sort_order": 172
+    },
+    {
+      "code": "cervical_mucus",
+      "name": "Cervical Mucus",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "cervical_mucus",
+      "group_key": null,
+      "description": null,
+      "sort_order": 173
+    },
+    {
+      "code": "spotting",
+      "name": "Intermenstrual Bleeding",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "spotting",
+      "group_key": null,
+      "description": null,
+      "sort_order": 174
+    },
+    {
+      "code": "sexual_activity",
+      "name": "Sexual Activity",
+      "unit": "",
+      "data_type": "text",
+      "source_data_type": "sexual_activity",
+      "group_key": null,
+      "description": null,
+      "sort_order": 175
+    }
+  ],
+  "achievement_definition": [
+    {
+      "code": "first_entry",
+      "title": "Der erste Schritt",
+      "description": "Deinen ersten Gesundheitswert eingetragen.",
+      "icon": "edit-note",
+      "tier": "bronze",
+      "category": "tracking",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 1
+    },
+    {
+      "code": "entries_10",
+      "title": "Regelmäßig",
+      "description": "10 Einträge geloggt.",
+      "icon": "sort",
+      "tier": "bronze",
+      "category": "milestone",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 10}",
+      "is_hidden": false,
+      "sort_order": 2
+    },
+    {
+      "code": "entries_100",
+      "title": "Datenliebhaber",
+      "description": "100 Einträge geloggt.",
+      "icon": "bar-chart",
+      "tier": "silver",
+      "category": "milestone",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 100}",
+      "is_hidden": false,
+      "sort_order": 3
+    },
+    {
+      "code": "entries_1000",
+      "title": "Daten-Veteran",
+      "description": "1.000 Einträge geloggt.",
+      "icon": "analytics",
+      "tier": "gold",
+      "category": "milestone",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 1000}",
+      "is_hidden": false,
+      "sort_order": 4
+    },
+    {
+      "code": "first_habit",
+      "title": "Gewohnheitstier",
+      "description": "Deinen ersten Habit erstellt.",
+      "icon": "check-circle",
+      "tier": "bronze",
+      "category": "habit",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"habit\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 10
+    },
+    {
+      "code": "tracking_7_day",
+      "title": "Eine Woche am Ball",
+      "description": "7 Tage in Folge mindestens einen Wert getrackt.",
+      "icon": "local-fire-department",
+      "tier": "bronze",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"measurement\", \"days\": 7}",
+      "is_hidden": false,
+      "sort_order": 20
+    },
+    {
+      "code": "tracking_30_day",
+      "title": "Monats-Marathon",
+      "description": "30 Tage in Folge getrackt.",
+      "icon": "local-fire-department",
+      "tier": "silver",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"measurement\", \"days\": 30}",
+      "is_hidden": false,
+      "sort_order": 21
+    },
+    {
+      "code": "tracking_90_day",
+      "title": "Quartals-König",
+      "description": "90 Tage in Folge getrackt.",
+      "icon": "local-fire-department",
+      "tier": "gold",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"measurement\", \"days\": 90}",
+      "is_hidden": false,
+      "sort_order": 22
+    },
+    {
+      "code": "tracking_365_day",
+      "title": "Jahresring",
+      "description": "365 Tage in Folge getrackt. Unglaublich!",
+      "icon": "whatshot",
+      "tier": "platinum",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"measurement\", \"days\": 365}",
+      "is_hidden": false,
+      "sort_order": 23
+    },
+    {
+      "code": "habit_7_day",
+      "title": "Habit-Woche",
+      "description": "Einen Habit 7 Tage in Folge abgeschlossen.",
+      "icon": "check-circle",
+      "tier": "bronze",
+      "category": "habit",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"habit_log\", \"days\": 7}",
+      "is_hidden": false,
+      "sort_order": 30
+    },
+    {
+      "code": "habit_30_day",
+      "title": "Habit-Monat",
+      "description": "Einen Habit 30 Tage in Folge abgeschlossen.",
+      "icon": "check-circle",
+      "tier": "silver",
+      "category": "habit",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"habit_log\", \"days\": 30}",
+      "is_hidden": false,
+      "sort_order": 31
+    },
+    {
+      "code": "habit_90_day",
+      "title": "Habit-Meister",
+      "description": "Einen Habit 90 Tage in Folge abgeschlossen.",
+      "icon": "check-circle",
+      "tier": "gold",
+      "category": "habit",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"habit_log\", \"days\": 90}",
+      "is_hidden": false,
+      "sort_order": 32
+    },
+    {
+      "code": "mood_7_day",
+      "title": "Gefühls-Tagebuch",
+      "description": "7 Tage in Folge deine Stimmung geloggt.",
+      "icon": "sentiment-satisfied",
+      "tier": "bronze",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"mood_entry\", \"days\": 7}",
+      "is_hidden": false,
+      "sort_order": 40
+    },
+    {
+      "code": "mood_30_day",
+      "title": "Emotionale Achtsamkeit",
+      "description": "30 Tage in Folge deine Stimmung geloggt.",
+      "icon": "psychology",
+      "tier": "silver",
+      "category": "streak",
+      "condition_type": "streak",
+      "condition_config": "{\"entity\": \"mood_entry\", \"days\": 30}",
+      "is_hidden": false,
+      "sort_order": 41
+    },
+    {
+      "code": "first_goal",
+      "title": "Zielstrebig",
+      "description": "Dein erstes Ziel gesetzt.",
+      "icon": "flag",
+      "tier": "bronze",
+      "category": "goal",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"goal\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 50
+    },
+    {
+      "code": "goal_achieved_1",
+      "title": "Ziel erreicht",
+      "description": "Ein Ziel erfolgreich abgeschlossen.",
+      "icon": "verified",
+      "tier": "silver",
+      "category": "goal",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"goal\", \"op\": \"gte\", \"value\": 1, \"state\": \"achieved\"}",
+      "is_hidden": false,
+      "sort_order": 51
+    },
+    {
+      "code": "first_workout",
+      "title": "Eiserner Wille",
+      "description": "Dein erstes Workout abgeschlossen.",
+      "icon": "fitness-center",
+      "tier": "bronze",
+      "category": "workout",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"workout_session\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 60
+    },
+    {
+      "code": "workouts_10",
+      "title": "Trainings-Tier",
+      "description": "10 Workouts abgeschlossen.",
+      "icon": "fitness-center",
+      "tier": "silver",
+      "category": "workout",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"workout_session\", \"op\": \"gte\", \"value\": 10}",
+      "is_hidden": false,
+      "sort_order": 61
+    },
+    {
+      "code": "workouts_50",
+      "title": "Kraftpaket",
+      "description": "50 Workouts abgeschlossen.",
+      "icon": "fitness-center",
+      "tier": "gold",
+      "category": "workout",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"workout_session\", \"op\": \"gte\", \"value\": 50}",
+      "is_hidden": false,
+      "sort_order": 62
+    },
+    {
+      "code": "first_share",
+      "title": "Teamplayer",
+      "description": "Zum ersten Mal Daten geteilt.",
+      "icon": "share",
+      "tier": "bronze",
+      "category": "social",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"sharing_relationship\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 70
+    },
+    {
+      "code": "early_bird",
+      "title": "Frühaufsteher",
+      "description": "Vor 6 Uhr morgens einen Wert eingetragen.",
+      "icon": "wb-twilight",
+      "tier": "silver",
+      "category": "special",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 1, \"hour_before\": 6}",
+      "is_hidden": true,
+      "sort_order": 80
+    },
+    {
+      "code": "night_owl_tracker",
+      "title": "Nachteule",
+      "description": "Nach Mitternacht noch getrackt.",
+      "icon": "dark-mode",
+      "tier": "silver",
+      "category": "special",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"measurement\", \"op\": \"gte\", \"value\": 1, \"hour_after\": 0, \"hour_before\": 4}",
+      "is_hidden": true,
+      "sort_order": 81
+    },
+    {
+      "code": "perfect_week",
+      "title": "Perfekte Woche",
+      "description": "Jeden Tag mindestens einen Eintrag, einen Habit und ein Workout.",
+      "icon": "auto-awesome",
+      "tier": "gold",
+      "category": "special",
+      "condition_type": "compound",
+      "condition_config": "{\"op\": \"and\", \"conditions\": [{\"type\": \"streak\", \"entity\": \"measurement\", \"days\": 7},{\"type\": \"streak\", \"entity\": \"habit_log\", \"days\": 7},{\"type\": \"count\", \"entity\": \"workout_session\", \"op\": \"gte\", \"value\": 1, \"within_days\": 7}]}",
+      "is_hidden": true,
+      "sort_order": 82
+    },
+    {
+      "code": "data_donor",
+      "title": "Wissenschafts-Spender",
+      "description": "Daten an Open Science gespendet.",
+      "icon": "science",
+      "tier": "gold",
+      "category": "special",
+      "condition_type": "count",
+      "condition_config": "{\"entity\": \"open_science_consent\", \"op\": \"gte\", \"value\": 1}",
+      "is_hidden": false,
+      "sort_order": 83
+    }
+  ],
+  "mood_tag": [
+    {
+      "code": "energetic",
+      "label": "Energetic",
+      "emoji": "⚡",
+      "category": "positive",
+      "is_system": true
+    },
+    {
+      "code": "happy",
+      "label": "Happy",
+      "emoji": "😊",
+      "category": "positive",
+      "is_system": true
+    },
+    {
+      "code": "productive",
+      "label": "Productive",
+      "emoji": "✅",
+      "category": "positive",
+      "is_system": true
+    },
+    {
+      "code": "grateful",
+      "label": "Grateful",
+      "emoji": "🙏",
+      "category": "positive",
+      "is_system": true
+    },
+    {
+      "code": "calm",
+      "label": "Calm",
+      "emoji": "🧘",
+      "category": "positive",
+      "is_system": true
+    },
+    {
+      "code": "okay",
+      "label": "Okay",
+      "emoji": "😐",
+      "category": "neutral",
+      "is_system": true
+    },
+    {
+      "code": "tired",
+      "label": "Tired",
+      "emoji": "😴",
+      "category": "negative",
+      "is_system": true
+    },
+    {
+      "code": "stressed",
+      "label": "Stressed",
+      "emoji": "😰",
+      "category": "negative",
+      "is_system": true
+    },
+    {
+      "code": "anxious",
+      "label": "Anxious",
+      "emoji": "😟",
+      "category": "negative",
+      "is_system": true
+    },
+    {
+      "code": "sad",
+      "label": "Sad",
+      "emoji": "😢",
+      "category": "negative",
+      "is_system": true
+    },
+    {
+      "code": "frustrated",
+      "label": "Frustrated",
+      "emoji": "😤",
+      "category": "negative",
+      "is_system": true
+    },
+    {
+      "code": "sick",
+      "label": "Sick",
+      "emoji": "🤒",
+      "category": "negative",
+      "is_system": true
+    }
+  ],
+  "metric_preference_defaults": [
+    {
+      "code": "steps",
+      "color": "#f59e0b",
+      "icon": "directions-walk",
+      "widget_size": "large",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 0
+    },
+    {
+      "code": "heart_rate",
+      "color": "#f43f5e",
+      "icon": "monitor-heart",
+      "widget_size": "medium",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 1
+    },
+    {
+      "code": "resting_heart_rate",
+      "color": "#e11d48",
+      "icon": "monitor-heart",
+      "widget_size": "small",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 2
+    },
+    {
+      "code": "spo2",
+      "color": "#0ea5e9",
+      "icon": "vital-signs",
+      "widget_size": "small",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 3
+    },
+    {
+      "code": "sleep",
+      "color": "#818cf8",
+      "icon": "bedtime",
+      "widget_size": "medium",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 4
+    },
+    {
+      "code": "weight",
+      "color": "#10b981",
+      "icon": "monitor-weight",
+      "widget_size": "small",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 5
+    },
+    {
+      "code": "systolic_bp",
+      "color": "#ef4444",
+      "icon": "vital-signs",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 6
+    },
+    {
+      "code": "diastolic_bp",
+      "color": "#dc2626",
+      "icon": "vital-signs",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 7
+    },
+    {
+      "code": "exercise",
+      "color": "#8b5cf6",
+      "icon": "exercise",
+      "widget_size": "medium",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 8
+    },
+    {
+      "code": "calories_burned",
+      "color": "#f97316",
+      "icon": "local-fire-department",
+      "widget_size": "medium",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 9
+    },
+    {
+      "code": "active_calories",
+      "color": "#fb923c",
+      "icon": "local-fire-department",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 10
+    },
+    {
+      "code": "distance",
+      "color": "#3b82f6",
+      "icon": "straighten",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 11
+    },
+    {
+      "code": "nutrition",
+      "color": "#10b981",
+      "icon": "restaurant",
+      "widget_size": "medium",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 12
+    },
+    {
+      "code": "blood_glucose",
+      "color": "#f97316",
+      "icon": "bloodtype",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 13
+    },
+    {
+      "code": "body_fat",
+      "color": "#ec4899",
+      "icon": "body-fat",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 14
+    },
+    {
+      "code": "water",
+      "color": "#06b6d4",
+      "icon": "water-drop",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 15
+    },
+    {
+      "code": "stress",
+      "color": "#f43f5e",
+      "icon": "psychology",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 16
+    },
+    {
+      "code": "hrv",
+      "color": "#06b6d4",
+      "icon": "monitoring",
+      "widget_size": "small",
+      "widget_enabled": true,
+      "enabled": true,
+      "position": 17
+    },
+    {
+      "code": "readiness",
+      "color": "#a78bfa",
+      "icon": "checklist",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 18
+    },
+    {
+      "code": "waist",
+      "color": "#f59e0b",
+      "icon": "straighten",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 19
+    },
+    {
+      "code": "hip",
+      "color": "#8b5cf6",
+      "icon": "straighten",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 20
+    },
+    {
+      "code": "chest",
+      "color": "#06b6d4",
+      "icon": "straighten",
+      "widget_size": "small",
+      "widget_enabled": false,
+      "enabled": true,
+      "position": 21
+    }
+  ]
+}

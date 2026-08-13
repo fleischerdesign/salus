@@ -29,6 +29,7 @@
   import { healthSyncService } from '$lib/native/health-sync';
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
+  import { seedReferenceData } from '$lib/db/seed';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let { children } = $props();
@@ -81,6 +82,8 @@
   // ── Auth bootstrap & SW Update Listener ──
 
   onMount(() => {
+    seedReferenceData().catch(() => {});
+
     if (!auth.token) {
       auth.setLoading(false);
       if (!isPublic) goto('/auth/login');
