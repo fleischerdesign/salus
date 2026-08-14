@@ -124,11 +124,27 @@
     });
   }
 
+  function resolvedRange(
+    r: LabResult,
+    marker: LabMarker | undefined
+  ): { low: number | null; high: number | null } {
+    return {
+      low: r.reference_low ?? marker?.reference_low ?? null,
+      high: r.reference_high ?? marker?.reference_high ?? null
+    };
+  }
+
   function rangeLabel(r: LabResult, marker: LabMarker | undefined): string {
-    const low = r.reference_low ?? marker?.reference_low;
-    const high = r.reference_high ?? marker?.reference_high;
+    const { low, high } = resolvedRange(r, marker);
     if (low == null && high == null) return '';
     return `ref ${low ?? '—'}–${high ?? '—'}`;
+  }
+
+  function abnormalDirection(r: LabResult, marker: LabMarker | undefined): string {
+    const { low, high } = resolvedRange(r, marker);
+    if (high != null && r.value > high) return 'High';
+    if (low != null && r.value < low) return 'Low';
+    return 'Abnormal';
   }
 </script>
 
@@ -204,7 +220,7 @@
                     <span
                       class="rounded-full bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-600"
                     >
-                      High/Low
+                      {abnormalDirection(r, marker)}
                     </span>
                   {/if}
                   <span class="text-sm font-semibold text-surface-900">
