@@ -23,7 +23,19 @@ export type Mutation =
       optimisticTable?: string;
       optimisticData?: Record<string, unknown>;
       responseTable?: string;
+      optimisticRows?: OptimisticRows[];
+      optimisticDelete?: OptimisticDelete[];
     };
+
+export interface OptimisticRows {
+  table: string;
+  rows: Record<string, unknown>[];
+}
+
+export interface OptimisticDelete {
+  table: string;
+  ids: string[];
+}
 
 export interface MutationResult {
   ok: boolean;
@@ -81,6 +93,17 @@ async function applyOptimistic(m: Mutation): Promise<void> {
       await db.table(table).put(existing ? { ...existing, ...data } : data);
     } else {
       await db.table(table).put(data);
+    }
+  }
+
+  if (m.kind === 'command' && m.optimisticRows) {
+    for (const { table: childTable, rows } of m.optimisticRows) {
+      if (rows.length > 0) await db.table(childTable).bulkPut(rows);
+    }
+  }
+  if (m.kind === 'command' && m.optimisticDelete) {
+    for (const { table: childTable, ids } of m.optimisticDelete) {
+      if (ids.length > 0) await db.table(childTable).bulkDelete(ids);
     }
   }
 }
