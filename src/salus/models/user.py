@@ -34,6 +34,9 @@ class User(SQLModel, table=True):
     colorblind: bool = Field(default=False)
     accent_hue: int | None = Field(default=None)
     onboarding_dismissed: bool = Field(default=False)
+    dq_notify_hard_bound: bool = Field(default=True)
+    dq_notify_cross_source: bool = Field(default=True)
+    dq_notify_anomaly: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

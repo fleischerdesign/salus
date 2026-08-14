@@ -1,9 +1,11 @@
 from salus.models import DataType
 from salus.repositories.protocols import IMetricDefinitionRepository
+from salus.services.lab_reference import LAB_MARKERS
 
 METRIC_GROUPS: list[dict[str, str]] = [
     {"key": "blood_pressure", "name": "Blood Pressure", "icon": "monitor-heart", "input_mode": "combined"},
     {"key": "body_measurements", "name": "Body Measurements", "icon": "fitness-center", "input_mode": "individual"},
+    {"key": "laboratory", "name": "Laboratory", "icon": "science", "input_mode": "individual"},
 ]
 
 METRIC_DEFINITIONS: list[dict] = [
@@ -50,7 +52,68 @@ METRIC_DEFINITIONS: list[dict] = [
     {"code": "cervical_mucus", "name": "Cervical Mucus", "unit": "", "data_type": DataType.TEXT, "source_data_type": "cervical_mucus", "sort_order": 173},
     {"code": "spotting", "name": "Intermenstrual Bleeding", "unit": "", "data_type": DataType.TEXT, "source_data_type": "spotting", "sort_order": 174},
     {"code": "sexual_activity", "name": "Sexual Activity", "unit": "", "data_type": DataType.TEXT, "source_data_type": "sexual_activity", "sort_order": 175},
+    {"code": "fasting_hours", "name": "Fasting Duration", "unit": "hours", "data_type": DataType.NUMBER, "source_data_type": "fasting", "sort_order": 190},
 ]
+
+METRIC_DEFINITIONS += [
+    {
+        "code": m["code"],
+        "name": m["name"],
+        "unit": m["unit"],
+        "data_type": DataType.NUMBER,
+        "source_data_type": "lab",
+        "sort_order": m["sort_order"],
+        "group_key": "laboratory",
+    }
+    for m in LAB_MARKERS
+]
+
+# Hard plausibility bounds (min, max) for continuous/body metrics. Lab markers are
+# deliberately absent: their reference ranges are clinical, and out-of-range values
+# are the point of a test rather than a data-quality defect. See ADR-007.
+METRIC_BOUNDS: dict[str, tuple[float | None, float | None]] = {
+    "steps": (0.0, 150_000.0),
+    "heart_rate": (20.0, 300.0),
+    "resting_heart_rate": (30.0, 180.0),
+    "spo2": (50.0, 100.0),
+    "respiratory_rate": (4.0, 60.0),
+    "vo2_max": (10.0, 90.0),
+    "weight": (20.0, 400.0),
+    "height": (50.0, 250.0),
+    "body_temperature": (30.0, 45.0),
+    "basal_body_temp": (30.0, 45.0),
+    "systolic_bp": (50.0, 300.0),
+    "diastolic_bp": (30.0, 200.0),
+    "calories_burned": (0.0, 15_000.0),
+    "active_calories": (0.0, 10_000.0),
+    "distance": (0.0, 200.0),
+    "elevation_gained": (0.0, 5_000.0),
+    "floors_climbed": (0.0, 500.0),
+    "speed": (0.0, 100.0),
+    "power": (0.0, 2_000.0),
+    "cadence": (0.0, 300.0),
+    "wheelchair_pushes": (0.0, 20_000.0),
+    "blood_glucose": (20.0, 600.0),
+    "body_fat": (2.0, 80.0),
+    "bone_mass": (0.0, 20.0),
+    "lean_body_mass": (0.0, 200.0),
+    "body_water_mass": (0.0, 200.0),
+    "bmr": (0.0, 10_000.0),
+    "water": (0.0, 20_000.0),
+    "stress": (0.0, 100.0),
+    "hrv": (0.0, 500.0),
+    "readiness": (0.0, 100.0),
+    "waist": (20.0, 400.0),
+    "hip": (20.0, 400.0),
+    "chest": (20.0, 400.0),
+    "fasting_hours": (0.0, 168.0),
+}
+
+for _md in METRIC_DEFINITIONS:
+    _bounds = METRIC_BOUNDS.get(_md["code"])
+    if _bounds is not None:
+        _md["min_value"], _md["max_value"] = _bounds
+
 
 DEFAULT_METRIC_PREFERENCES: list[dict] = [
     {"code": "steps", "color": "#f59e0b", "icon": "directions-walk", "widget_size": "large", "widget_enabled": True, "position": 0},
@@ -75,6 +138,7 @@ DEFAULT_METRIC_PREFERENCES: list[dict] = [
     {"code": "waist", "color": "#f59e0b", "icon": "straighten", "widget_size": "small", "widget_enabled": False, "position": 19},
     {"code": "hip", "color": "#8b5cf6", "icon": "straighten", "widget_size": "small", "widget_enabled": False, "position": 20},
     {"code": "chest", "color": "#06b6d4", "icon": "straighten", "widget_size": "small", "widget_enabled": False, "position": 21},
+    {"code": "fasting_hours", "color": "#f59e0b", "icon": "timer", "widget_size": "small", "widget_enabled": False, "position": 22},
 ]
 
 DATA_TYPE_KEYWORD_TO_METRIC: dict[str, str] = {

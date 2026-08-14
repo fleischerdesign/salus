@@ -45,7 +45,13 @@ import type {
   Meal,
   MealItem,
   Recipe,
-  RecipeIngredient
+  RecipeIngredient,
+  LabMarker,
+  LabPanel,
+  LabResult,
+  FastingSession,
+  FastingProtocol,
+  DataQualityFlag
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -93,6 +99,12 @@ export class SalusDB extends Dexie {
   meal_item!: EntityTable<MealItem, 'id'>;
   recipe!: EntityTable<Recipe, 'id'>;
   recipe_ingredient!: EntityTable<RecipeIngredient, 'id'>;
+  lab_marker!: EntityTable<LabMarker, 'code'>;
+  lab_panel!: EntityTable<LabPanel, 'id'>;
+  lab_result!: EntityTable<LabResult, 'id'>;
+  fasting_session!: EntityTable<FastingSession, 'id'>;
+  fasting_protocol!: EntityTable<FastingProtocol, 'id'>;
+  data_quality_flag!: EntityTable<DataQualityFlag, 'id'>;
   outbox!: EntityTable<OutboxOp, 'id'>;
   meta!: EntityTable<SyncMeta, 'key'>;
   analytics_cache!: EntityTable<
@@ -280,6 +292,16 @@ export class SalusDB extends Dexie {
     });
     this.version(23).stores({
       outbox: '++id, createdAt, kind, client_id'
+    });
+    this.version(24).stores({
+      lab_marker: '&code, category',
+      lab_panel: 'id, user_id, collection_date, deleted_at',
+      lab_result: 'id, panel_id, user_id, metric_code, deleted_at',
+      fasting_session: 'id, user_id, started_at, deleted_at',
+      fasting_protocol: 'id, user_id, deleted_at'
+    });
+    this.version(25).stores({
+      data_quality_flag: 'id, user_id, kind, measurement_id, created_at'
     });
   }
 

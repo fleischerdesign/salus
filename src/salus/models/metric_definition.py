@@ -32,6 +32,8 @@ class MetricDefinition(SQLModel, table=True):
     group_key: str | None = Field(default=None, foreign_key="metric_group.key")
     description: str | None = Field(default=None)
     sort_order: int = Field(default=0)
+    min_value: float | None = Field(default=None)
+    max_value: float | None = Field(default=None)
 
     group: MetricGroup | None = Relationship(back_populates="definitions")
     measurements: list["Measurement"] = Relationship(back_populates="metric_definition")

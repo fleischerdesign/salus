@@ -44,6 +44,8 @@ export interface MetricDefinition {
   group_key: string | null;
   description: string | null;
   sort_order: number;
+  min_value: number | null;
+  max_value: number | null;
 }
 
 export interface MetricGroup {
@@ -220,6 +222,8 @@ export interface Notification {
   message: string;
   is_read: boolean;
   category: string;
+  severity: string;
+  link: string | null;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;
@@ -310,6 +314,9 @@ export interface UserProfile {
   colorblind: boolean;
   accent_hue: number | null;
   onboarding_dismissed: boolean;
+  dq_notify_hard_bound: boolean;
+  dq_notify_cross_source: boolean;
+  dq_notify_anomaly: boolean;
   is_admin: boolean;
   is_active: boolean;
   created_at: string | null;
@@ -590,4 +597,86 @@ export interface RecipeIngredient {
   notes: string | null;
   created_at: string;
   deleted_at: string | null;
+}
+
+export interface LabMarker {
+  code: string;
+  category: string;
+  reference_low: number | null;
+  reference_high: number | null;
+  optimal_low: number | null;
+  optimal_high: number | null;
+  description: string | null;
+}
+
+export interface LabPanel {
+  id: string;
+  user_id: string;
+  collection_date: string;
+  lab_name: string | null;
+  fasting: boolean;
+  notes: string | null;
+  attachment_path: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface LabResult {
+  id: string;
+  panel_id: string;
+  user_id: string;
+  metric_code: string;
+  value: number;
+  unit: string | null;
+  is_abnormal: boolean;
+  reference_low: number | null;
+  reference_high: number | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface FastingSession {
+  id: string;
+  user_id: string;
+  started_at: string;
+  ended_at: string | null;
+  target_hours: number;
+  fasting_type: string;
+  water_only: boolean;
+  notes: string | null;
+  mood_during: number | null;
+  difficulty: number | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface FastingProtocol {
+  id: string;
+  user_id: string;
+  name: string;
+  fasting_hours: number;
+  eating_window_hours: number;
+  schedule_type: string;
+  target_days_per_week: number | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface DataQualityFlag {
+  id: string;
+  user_id: string;
+  kind: string;
+  metric_code: string | null;
+  measurement_id: string | null;
+  severity: string;
+  message: string;
+  context_json: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string | null;
 }

@@ -60,6 +60,13 @@ from salus.services.webhook_ingestion import WebhookIngestionService
 from salus.services.achievement.service import AchievementService
 from salus.services.metric_definition import MetricDefinitionService
 from salus.services.mood import MoodService
+from salus.services.lab import LabService
+from salus.services.scheduler import AppScheduler
+from salus.services.data_quality import (
+    DataQualityCleanupJob,
+    DataQualityRecheckJob,
+    register_write_hooks,
+)
 
 
 def _check_secrets() -> None:
@@ -218,9 +225,17 @@ async def lifespan(app: FastAPI):
             lambda: AchievementService(uow).seed_definitions(),
         )
         _run_seeder("mood tags", lambda: MoodService(uow).seed_tags())
+        _run_seeder("lab markers", lambda: LabService(uow).seed_markers())
+        startup_session.commit()
     finally:
         session.close()
         startup_session.close()
+
+    scheduler = AppScheduler(lambda: Session(lifespan_engine))
+    scheduler.add(DataQualityRecheckJob(interval_seconds=settings.data_quality_recheck_interval_hours * 3600))
+    scheduler.add(DataQualityCleanupJob(interval_seconds=settings.data_quality_cleanup_interval_hours * 3600))
+    await scheduler.start()
+    app.state.scheduler = scheduler
 
     plugin_router = APIRouter(prefix="/api/plugins")
     for pr in plugin_manager.registry.api_routers:
@@ -232,6 +247,8 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    await scheduler.stop()
+
     for lifecycle_hook in plugin_manager.registry.lifecycles:
         try:
             lifecycle_hook.on_shutdown()
@@ -242,6 +259,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    register_write_hooks()
     app = FastAPI(title="salus", lifespan=lifespan)
     app.state.engine = engine
     app.state.limiter = limiter

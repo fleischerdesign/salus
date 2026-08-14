@@ -39,7 +39,7 @@ class MetricDefinitionService:
                 session.add(MetricDefinition(**md_data))
             else:
                 changed = False
-                for key in ("source_data_type", "group_key", "unit", "name", "sort_order"):
+                for key in ("source_data_type", "group_key", "unit", "name", "sort_order", "min_value", "max_value"):
                     if key in md_data and getattr(existing, key) != md_data[key]:
                         setattr(existing, key, md_data[key])
                         changed = True

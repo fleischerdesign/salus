@@ -18,6 +18,7 @@ from pathlib import Path
 
 from salus.models import DataType
 from salus.services.achievement.definitions import ACHIEVEMENT_DEFINITIONS
+from salus.services.lab_reference import LAB_MARKERS
 from salus.services.metric_type_mapping import (
     DEFAULT_METRIC_PREFERENCES,
     METRIC_DEFINITIONS,
@@ -54,6 +55,8 @@ def _metric_definitions() -> list[dict]:
             "group_key": md.get("group_key"),
             "description": None,
             "sort_order": md.get("sort_order", 0),
+            "min_value": md.get("min_value"),
+            "max_value": md.get("max_value"),
         })
     return out
 
@@ -89,6 +92,21 @@ def _mood_tags() -> list[dict]:
     ]
 
 
+def _lab_markers() -> list[dict]:
+    return [
+        {
+            "code": m["code"],
+            "category": m["category"],
+            "reference_low": m.get("reference_low"),
+            "reference_high": m.get("reference_high"),
+            "optimal_low": m.get("optimal_low"),
+            "optimal_high": m.get("optimal_high"),
+            "description": m.get("description"),
+        }
+        for m in LAB_MARKERS
+    ]
+
+
 def _metric_preference_defaults() -> list[dict]:
     return [
         {
@@ -111,6 +129,7 @@ def build_reference() -> dict:
         "metric_definition": _metric_definitions(),
         "achievement_definition": _achievement_definitions(),
         "mood_tag": _mood_tags(),
+        "lab_marker": _lab_markers(),
         "metric_preference_defaults": _metric_preference_defaults(),
     }
 

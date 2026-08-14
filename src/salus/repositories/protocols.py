@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from typing import Protocol, TypeVar, runtime_checkable
 
+from sqlmodel import Session
+
 from salus.services.constants import DEDUP_TTL_HOURS
 from salus.models.api_token import ApiToken
 from salus.models.dashboard import DashboardWidget
@@ -42,12 +44,17 @@ from salus.models.food import (
     RecipeIngredient,
 )
 from salus.models.user_source_preference import UserSourcePreference
+from salus.models.lab import LabMarker, LabPanel, LabResult
+from salus.models.fasting import FastingProtocol, FastingSession
+from salus.models.data_quality import DataQualityFlag
 
 T = TypeVar("T")
 
 
 @runtime_checkable
 class IRepository(Protocol[T]):
+    session: Session
+
     def get_by_id(self, id: str) -> T | None: ...
 
     def create(self, obj: T, auto_commit: bool = True) -> T: ...
@@ -109,7 +116,7 @@ class IMeasurementRepository(IRepository[Measurement], Protocol):
         self, source_data_type: str, user_id: str | None = None
     ) -> Measurement | None: ...
 
-    def upsert_all(self, records: list[Measurement]) -> tuple[int, int]: ...
+    def upsert_all(self, records: list[Measurement]) -> tuple[int, int, list[Measurement]]: ...
 
     def find_by_date_range(
         self, user_id: str, source_data_types: list[str], since: datetime, until: datetime
@@ -546,3 +553,43 @@ class IUserSourcePreferenceRepository(IRepository[UserSourcePreference], Protoco
     def find_by_user_metric_source(
         self, user_id: str, metric_code: str, source: str
     ) -> UserSourcePreference | None: ...
+
+
+@runtime_checkable
+class ILabMarkerRepository(IRepository[LabMarker], Protocol):
+    def find_all(self) -> list[LabMarker]: ...
+
+    def find_by_code(self, code: str) -> LabMarker | None: ...
+
+
+@runtime_checkable
+class ILabPanelRepository(IRepository[LabPanel], Protocol):
+    def find_by_user(self, user_id: str) -> list[LabPanel]: ...
+
+    def find_by_user_and_date_range(
+        self, user_id: str, since: date, until: date
+    ) -> list[LabPanel]: ...
+
+
+@runtime_checkable
+class ILabResultRepository(IRepository[LabResult], Protocol):
+    def find_by_panel(self, panel_id: str) -> list[LabResult]: ...
+
+
+@runtime_checkable
+class IFastingSessionRepository(IRepository[FastingSession], Protocol):
+    def find_active_by_user(self, user_id: str) -> FastingSession | None: ...
+
+    def find_by_user(self, user_id: str) -> list[FastingSession]: ...
+
+
+@runtime_checkable
+class IFastingProtocolRepository(IRepository[FastingProtocol], Protocol):
+    def find_by_user(self, user_id: str) -> list[FastingProtocol]: ...
+
+
+@runtime_checkable
+class IDataQualityFlagRepository(IRepository[DataQualityFlag], Protocol):
+    def find_by_user(self, user_id: str, limit: int = 100) -> list[DataQualityFlag]: ...
+
+    def find_by_measurement(self, measurement_id: str) -> list[DataQualityFlag]: ...

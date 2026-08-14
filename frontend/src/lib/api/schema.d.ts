@@ -857,6 +857,44 @@ export interface paths {
         patch: operations["patch_one_api_v1_exercises__item_id__patch"];
         trace?: never;
     };
+    "/api/v1/fasting-protocols": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_fasting_protocols_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_fasting_protocols_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fasting-protocols/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_fasting_protocols__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_fasting_protocols__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_fasting_protocols__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_fasting_protocols__item_id__patch"];
+        trace?: never;
+    };
     "/api/v1/federation/accept": {
         parameters: {
             query?: never;
@@ -1260,6 +1298,40 @@ export interface paths {
         };
         /** Search Entries */
         get: operations["search_entries_api_v1_journal_search_results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lab-markers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_lab_markers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lab-markers/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_lab_markers__item_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3570,6 +3642,46 @@ export interface components {
             /** Video Url */
             video_url?: string | null;
         };
+        /** FastingProtocol */
+        FastingProtocol: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /**
+             * Eating Window Hours
+             * @default 8
+             */
+            eating_window_hours: number;
+            /**
+             * Fasting Hours
+             * @default 16
+             */
+            fasting_hours: number;
+            /** Id */
+            id?: string | null;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Schedule Type
+             * @default daily
+             */
+            schedule_type: string;
+            /** Target Days Per Week */
+            target_days_per_week?: number | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id?: string | null;
+        };
         /** FoodItemResponse */
         FoodItemResponse: {
             /** Barcode */
@@ -3867,6 +3979,23 @@ export interface components {
             items: components["schemas"]["JournalEntryResponse"][];
             /** Total */
             total: number;
+        };
+        /** LabMarker */
+        LabMarker: {
+            /** Category */
+            category: string;
+            /** Code */
+            code: string;
+            /** Description */
+            description?: string | null;
+            /** Optimal High */
+            optimal_high?: number | null;
+            /** Optimal Low */
+            optimal_low?: number | null;
+            /** Reference High */
+            reference_high?: number | null;
+            /** Reference Low */
+            reference_low?: number | null;
         };
         /** LeaderboardGroup */
         LeaderboardGroup: {
@@ -4293,6 +4422,10 @@ export interface components {
             description?: string | null;
             /** Group Key */
             group_key?: string | null;
+            /** Max Value */
+            max_value?: number | null;
+            /** Min Value */
+            min_value?: number | null;
             /** Name */
             name: string;
             /**
@@ -4514,8 +4647,15 @@ export interface components {
              * @default false
              */
             is_read: boolean;
+            /** Link */
+            link?: string | null;
             /** Message */
             message: string;
+            /**
+             * Severity
+             * @default info
+             */
+            severity: string;
             /** Title */
             title: string;
             /** Updated At */
@@ -4859,6 +4999,13 @@ export interface components {
              * @default
              */
             entity: string;
+            /**
+             * Extra
+             * @description Additional command result data
+             */
+            extra?: {
+                [key: string]: unknown;
+            } | null;
             /** Id */
             id?: string | null;
             /** Message */
@@ -7490,6 +7637,207 @@ export interface operations {
             };
         };
     };
+    list_all_api_v1_fasting_protocols_get: {
+        parameters: {
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FastingProtocol"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_one_api_v1_fasting_protocols_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FastingProtocol"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_fasting_protocols__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FastingProtocol"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_fasting_protocols__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FastingProtocol"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_fasting_protocols__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_fasting_protocols__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FastingProtocol"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     federated_accept_api_v1_federation_accept_post: {
         parameters: {
             query?: never;
@@ -8858,6 +9206,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JournalSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_v1_lab_markers_get: {
+        parameters: {
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabMarker"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_lab_markers__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabMarker"];
                 };
             };
             /** @description Validation Error */

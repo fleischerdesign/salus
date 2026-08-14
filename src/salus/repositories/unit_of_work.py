@@ -54,6 +54,12 @@ from salus.repositories.protocols import (
     IRecipeRepository,
     IRecipeIngredientRepository,
     IUserSourcePreferenceRepository,
+    ILabMarkerRepository,
+    ILabPanelRepository,
+    ILabResultRepository,
+    IFastingSessionRepository,
+    IFastingProtocolRepository,
+    IDataQualityFlagRepository,
 )
 from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.user import UserRepository
@@ -97,6 +103,9 @@ from salus.repositories.food import (
     RecipeIngredientRepository,
 )
 from salus.repositories.user_source_preference import UserSourcePreferenceRepository
+from salus.repositories.lab import LabMarkerRepository, LabPanelRepository, LabResultRepository
+from salus.repositories.fasting import FastingSessionRepository, FastingProtocolRepository
+from salus.repositories.data_quality import DataQualityFlagRepository
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -151,6 +160,13 @@ class IUnitOfWork(Protocol):
     recipes: IRecipeRepository
     recipe_ingredients: IRecipeIngredientRepository
 
+    lab_markers: ILabMarkerRepository
+    lab_panels: ILabPanelRepository
+    lab_results: ILabResultRepository
+    fasting_sessions: IFastingSessionRepository
+    fasting_protocols: IFastingProtocolRepository
+    data_quality_flags: IDataQualityFlagRepository
+
     def __enter__(self) -> "IUnitOfWork": ...
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None: ...
@@ -204,6 +220,12 @@ class SqlUnitOfWork:
     recipes: IRecipeRepository
     recipe_ingredients: IRecipeIngredientRepository
     user_source_preferences: IUserSourcePreferenceRepository
+    lab_markers: ILabMarkerRepository
+    lab_panels: ILabPanelRepository
+    lab_results: ILabResultRepository
+    fasting_sessions: IFastingSessionRepository
+    fasting_protocols: IFastingProtocolRepository
+    data_quality_flags: IDataQualityFlagRepository
 
     def __init__(self, session: Session, registry: "HookRegistry | None" = None) -> None:
         self.session = session
@@ -250,6 +272,12 @@ class SqlUnitOfWork:
         self.recipes = RecipeRepository(session)
         self.recipe_ingredients = RecipeIngredientRepository(session)
         self.user_source_preferences = UserSourcePreferenceRepository(session)
+        self.lab_markers = LabMarkerRepository(session)
+        self.lab_panels = LabPanelRepository(session)
+        self.lab_results = LabResultRepository(session)
+        self.fasting_sessions = FastingSessionRepository(session)
+        self.fasting_protocols = FastingProtocolRepository(session)
+        self.data_quality_flags = DataQualityFlagRepository(session)
 
     def __enter__(self) -> "SqlUnitOfWork":
         return self

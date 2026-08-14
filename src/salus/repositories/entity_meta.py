@@ -35,6 +35,9 @@ from salus.models.food import (
     RecipeIngredient,
 )
 from salus.models.user_source_preference import UserSourcePreference
+from salus.models.lab import LabMarker, LabPanel, LabResult
+from salus.models.fasting import FastingProtocol, FastingSession
+from salus.models.data_quality import DataQualityFlag
 
 if TYPE_CHECKING:
     from salus.schemas.sync import SyncOperation
@@ -109,6 +112,12 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="meal_item", model=MealItem, batch_size=2000),
     EntityMeta(name="recipe", model=Recipe, batch_size=500),
     EntityMeta(name="recipe_ingredient", model=RecipeIngredient, batch_size=500),
+    EntityMeta(name="lab_marker", model=LabMarker, strategy="global", no_soft_delete=True, batch_size=500),
+    EntityMeta(name="lab_panel", model=LabPanel, batch_size=500),
+    EntityMeta(name="lab_result", model=LabResult, batch_size=2000),
+    EntityMeta(name="fasting_session", model=FastingSession, batch_size=500),
+    EntityMeta(name="fasting_protocol", model=FastingProtocol, batch_size=500),
+    EntityMeta(name="data_quality_flag", model=DataQualityFlag, strategy="append_only", owner_field="user_id", timestamp_field="created_at", no_soft_delete=True, batch_size=500),
 ]
 
 # ── Derived mappings ──
@@ -139,13 +148,18 @@ APPEND_ONLY_DELTA_SPECS: list[EntityMeta] = [
 
 ValidatorFn = Callable[..., str | None]
 
-_SAFE_USER_UPDATE_FIELDS = {
+# User profile fields the client may write via sync push and the update_profile
+# command. Single source of truth — imported by services/commands/account.py.
+SAFE_PROFILE_FIELDS = {
     "theme",
     "locale",
     "display_name",
     "onboarding_dismissed",
     "colorblind",
     "accent_hue",
+    "dq_notify_hard_bound",
+    "dq_notify_cross_source",
+    "dq_notify_anomaly",
 }
 
 
@@ -156,7 +170,7 @@ def _validate_user_update(
         return "User creation via sync push is not allowed. Use the authentication flow."
     if op.type == "delete":
         return "User deletion via sync push is not allowed. Use the admin interface."
-    blocked = [k for k in data if k not in _SAFE_USER_UPDATE_FIELDS]
+    blocked = [k for k in data if k not in SAFE_PROFILE_FIELDS]
     if blocked:
         return f"Cannot update user fields via sync push: {', '.join(blocked)}"
     instance = session.get(User, op.id)
@@ -238,3 +252,14 @@ ENTITY_VALIDATORS: dict[str, ValidatorFn] = {
     "share_recipient": _readonly_validator("Share recipients"),
     "asymmetric_share": _readonly_validator("Asymmetric shares"),
 }
+
+# ── After-write hooks ──
+#
+# Optional per-entity callbacks run by the WritePipeline after a successful
+# create/update (never delete) within the same transaction. They must not raise:
+# the write path treats them as best-effort (e.g. data-quality flagging) and
+# isolates failures from the primary write.
+
+AfterWriteFn = Callable[..., None]
+
+ENTITY_AFTER_WRITE: dict[str, AfterWriteFn] = {}

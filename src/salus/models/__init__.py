@@ -12,11 +12,14 @@ from salus.models.api_token import ApiToken  # noqa: F401, E402
 from salus.models.asymmetric_share import AsymmetricShare, ShareRecipient  # noqa: F401, E402
 from salus.models.circadian import CircadianProfile  # noqa: F401, E402
 from salus.models.dashboard import DashboardWidget  # noqa: F401, E402
+from salus.models.data_quality import DataQualityFlag, DataQualityKind, DataQualitySeverity  # noqa: F401, E402
 from salus.models.food import FoodItem, Meal, MealItem, Recipe, RecipeIngredient  # noqa: F401, E402
+from salus.models.fasting import FastingProtocol, FastingSession  # noqa: F401, E402
 from salus.models.goal import Goal  # noqa: F401, E402
 from salus.models.habit import Habit, HabitLog  # noqa: F401, E402
 from salus.models.insight import Insight  # noqa: F401, E402
 from salus.models.journal import JournalEntry  # noqa: F401, E402
+from salus.models.lab import LabMarker, LabPanel, LabResult  # noqa: F401, E402
 from salus.models.measurement import Measurement  # noqa: F401, E402
 from salus.models.medication import (  # noqa: F401, E402
     Medication,
@@ -27,7 +30,7 @@ from salus.models.medication import (  # noqa: F401, E402
 from salus.models.metric_definition import MetricDefinition, MetricGroup  # noqa: F401, E402
 from salus.models.metric_preference import UserMetricPreference  # noqa: F401, E402
 from salus.models.mood import MoodEntry, MoodTag  # noqa: F401, E402
-from salus.models.notification import Notification  # noqa: F401, E402
+from salus.models.notification import Notification, NotificationCategory, NotificationSeverity  # noqa: F401, E402
 from salus.models.sharing import (  # noqa: F401, E402
     FederatedAccessLog,
     FederatedMeasurementCache,

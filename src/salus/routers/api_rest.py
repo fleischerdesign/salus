@@ -48,6 +48,8 @@ _PLURAL_MAP: dict[str, str] = {
     "journal_entry": "journal-entries",
     "medication": "medications",
     "food_item": "food-items",
+    "lab_marker": "lab-markers",
+    "fasting_protocol": "fasting-protocols",
 }
 
 # Entities whose CRUD is owned by a dedicated typed router, an auth/admin flow,
@@ -75,6 +77,13 @@ _SKIP_AUTO_CRUD: set[str] = {
     "recipe_ingredient",
     "achievement_definition",
     "user_achievement",
+    # lab panel/results and fasting sessions are written through command handlers
+    # (which also maintain the Measurement bridges) — single write path
+    "lab_panel",
+    "lab_result",
+    "fasting_session",
+    # append-only server diagnostics, synced read-only
+    "data_quality_flag",
 }
 
 # Write routes are only generated for entities whose data is user-owned.

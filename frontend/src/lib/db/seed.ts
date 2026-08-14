@@ -20,6 +20,8 @@ interface ReferenceMetricDefinition {
   group_key: string | null;
   description: string | null;
   sort_order: number;
+  min_value: number | null;
+  max_value: number | null;
 }
 
 interface ReferenceAchievementDefinition {
@@ -53,12 +55,23 @@ interface ReferenceMetricPreferenceDefault {
   position: number;
 }
 
+interface ReferenceLabMarker {
+  code: string;
+  category: string;
+  reference_low: number | null;
+  reference_high: number | null;
+  optimal_low: number | null;
+  optimal_high: number | null;
+  description: string | null;
+}
+
 interface ReferenceData {
   version: number;
   metric_group: ReferenceMetricGroup[];
   metric_definition: ReferenceMetricDefinition[];
   achievement_definition: ReferenceAchievementDefinition[];
   mood_tag: ReferenceMoodTag[];
+  lab_marker: ReferenceLabMarker[];
   metric_preference_defaults: ReferenceMetricPreferenceDefault[];
 }
 
@@ -76,6 +89,7 @@ export async function seedReferenceData(): Promise<void> {
   await db.metric_definition.bulkPut(data.metric_definition);
   await db.achievement_definition.bulkPut(data.achievement_definition);
   await db.mood_tag.bulkPut(data.mood_tag);
+  await db.lab_marker.bulkPut(data.lab_marker);
 
   const preferences = data.metric_preference_defaults.map((p) => ({
     id: uuid7(),
