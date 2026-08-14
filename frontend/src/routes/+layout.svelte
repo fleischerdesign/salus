@@ -51,6 +51,10 @@
     setUserTimezone(userProfile?.timezone);
   });
 
+  $effect(() => {
+    theme.apply();
+  });
+
   function updateFocusState() {
     const activeEl = document.activeElement;
     const isInputFocused =
@@ -88,7 +92,6 @@
   // ── Auth bootstrap & SW Update Listener ──
 
   onMount(() => {
-    theme.init();
     seedReferenceData().catch(() => {});
 
     if (!auth.token) {

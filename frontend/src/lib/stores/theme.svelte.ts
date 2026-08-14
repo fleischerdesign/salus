@@ -1,5 +1,6 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+import { MediaQuery } from 'svelte/reactivity';
 import { updateProfile } from '$lib/mutations/account';
 import { localMode } from '$lib/db/local-mode.svelte';
 
@@ -37,19 +38,22 @@ function readAccentHue(): number {
   return Number.isInteger(value) && value >= 0 && value < 360 ? value : DEFAULT_ACCENT_HUE;
 }
 
-function prefersDark(): boolean {
-  return (
-    typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-color-scheme: dark)').matches
-  );
-}
-
 class ThemeService {
   mode = $state<ThemeMode>(readMode());
   colorblind = $state<boolean>(readColorblind());
   accentHue = $state<number>(readAccentHue());
 
+  private _darkQuery: MediaQuery | null = null;
+
+  private get darkQuery(): MediaQuery | null {
+    if (this._darkQuery === null && typeof window !== 'undefined') {
+      this._darkQuery = new MediaQuery('(prefers-color-scheme: dark)');
+    }
+    return this._darkQuery;
+  }
+
   get resolved(): 'light' | 'dark' {
-    return this.mode === 'system' ? (prefersDark() ? 'dark' : 'light') : this.mode;
+    return this.mode === 'system' ? (this.darkQuery?.current ? 'dark' : 'light') : this.mode;
   }
 
   setMode(mode: ThemeMode): void {
@@ -69,7 +73,6 @@ class ThemeService {
 
   previewAccentHue(hue: number): void {
     this.accentHue = hue;
-    this.apply();
   }
 
   applyUserProfile(profile: {
@@ -92,12 +95,10 @@ class ThemeService {
       this.accentHue = profile.accent_hue;
     }
     this.persistLocal();
-    this.apply();
   }
 
   private persist(): void {
     this.persistLocal();
-    this.apply();
     this.pushToServer();
   }
 
@@ -125,15 +126,6 @@ class ThemeService {
       document.documentElement.dataset.colorblind = 'true';
     } else {
       delete document.documentElement.dataset.colorblind;
-    }
-  }
-
-  init(): void {
-    this.apply();
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (this.mode === 'system') this.apply();
-      });
     }
   }
 }
