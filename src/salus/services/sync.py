@@ -107,6 +107,7 @@ def _user_profile_dict(user: User) -> dict[str, Any]:
         "display_name": user.display_name,
         "theme": user.theme,
         "locale": user.locale,
+        "timezone": user.timezone,
         "colorblind": user.colorblind,
         "accent_hue": user.accent_hue,
         "onboarding_dismissed": user.onboarding_dismissed,

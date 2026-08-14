@@ -5,6 +5,7 @@ from salus.models.habit import Habit, HabitLog
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.habit import HabitCreate, HabitUpdate
 from salus.services.achievement.streak import compute_streak
+from salus.services.timezone import user_today
 
 
 class HabitService:
@@ -75,7 +76,7 @@ class HabitService:
 
     def toggle_check(self, habit_id: str, user_id: str) -> dict:
         self.get(habit_id, user_id)
-        today = date.today()
+        today = user_today(self.uow.session, user_id)
         existing = self.uow.habit_logs.find_by_habit_and_date(habit_id, today)
         if existing:
             existing.completed = not existing.completed
@@ -106,7 +107,7 @@ class HabitService:
 
     def get_stats(self, habit_id: str, user_id: str) -> dict:
         self.get(habit_id, user_id)
-        today = date.today()
+        today = user_today(self.uow.session, user_id)
         stats = self._streak_stats(habit_id, user_id, today)
         completed_dates = stats["completed_dates"]
         return {
@@ -119,7 +120,7 @@ class HabitService:
 
     def get_all_habits_stats(self, user_id: str) -> dict[str, dict]:
         habits = self.uow.habits.find_by_user(user_id)
-        today = date.today()
+        today = user_today(self.uow.session, user_id)
         completed_by_habit = self.uow.habit_logs.find_completed_dates_by_user(user_id)
         result: dict[str, dict] = {}
         for h in habits:

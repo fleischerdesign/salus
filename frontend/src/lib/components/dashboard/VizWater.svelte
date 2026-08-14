@@ -2,6 +2,8 @@
   import { db } from '$lib/db/database';
   import { createMeasurement } from '$lib/mutations/measurement';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { MS_PER_DAY } from '$lib/utils/datetime';
+  import { startOfTodayMs, userTimezone } from '$lib/utils/timezone';
 
   const DEFAULT_WATER_GOAL_ML = 2500;
 
@@ -10,15 +12,16 @@
     const metric = await db.metric_definition.where('source_data_type').equals('water').first();
     if (!metric) return { total: 0, goal: DEFAULT_WATER_GOAL_ML, metricCode: '' };
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = startOfTodayMs(userTimezone());
+    const todayEnd = todayStart + MS_PER_DAY;
 
     let total = 0;
     await db.measurement
       .where('[metric_code+start_time]')
-      .between([metric.code, todayStart.toISOString()], [metric.code, todayEnd.toISOString()])
+      .between(
+        [metric.code, new Date(todayStart).toISOString()],
+        [metric.code, new Date(todayEnd).toISOString()]
+      )
       .each((m) => {
         if (!m.deleted_at && m.value_numeric != null) {
           total += m.value_numeric;

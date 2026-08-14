@@ -1,10 +1,11 @@
 import logging
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 from salus.models.achievement import AchievementDefinition, UserAchievement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.achievement.evaluator import evaluate_achievement
 from salus.services.achievement.streak import compute_streak
+from salus.services.timezone import today_in_tz, tz_for
 
 logger = logging.getLogger("salus.services.achievement")
 
@@ -67,15 +68,16 @@ class AchievementService:
         return result
 
     def get_streaks(self, user_id: str) -> dict:
-        today = date.today()
+        tz = tz_for(self.uow.session, user_id)
+        today = today_in_tz(tz)
 
-        tracking_dates = self.uow.measurements.find_start_dates(user_id)
+        tracking_dates = self.uow.measurements.find_start_dates(user_id, tz)
         tr_current, tr_longest = compute_streak(tracking_dates, today)
 
         mood_dates = self.uow.mood_entries.find_dates(user_id)
         mo_current, mo_longest = compute_streak(mood_dates, today)
 
-        workout_dates = self.uow.workout_sessions.find_completed_dates(user_id)
+        workout_dates = self.uow.workout_sessions.find_completed_dates(user_id, tz)
         wo_current, wo_longest = compute_streak(workout_dates, today)
 
         completed_by_habit = self.uow.habit_logs.find_completed_dates_by_user(user_id)

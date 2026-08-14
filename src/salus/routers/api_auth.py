@@ -75,6 +75,7 @@ async def api_register(
             password=body.password,
             email=body.email,
             display_name=body.display_name,
+            timezone=body.timezone,
         )
     except ConflictError:
         raise

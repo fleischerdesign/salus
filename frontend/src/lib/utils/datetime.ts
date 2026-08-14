@@ -1,3 +1,5 @@
+import { dateStringInTz, userTimezone } from './timezone';
+
 export const MS_PER_DAY = 86_400_000;
 
 export function nowIso(): string {
@@ -12,5 +14,5 @@ export function dateString(d: Date): string {
 }
 
 export function todayString(): string {
-  return dateString(new Date());
+  return dateStringInTz(new Date(), userTimezone());
 }

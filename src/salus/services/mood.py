@@ -7,6 +7,7 @@ from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.mood import MoodEntryCreate
 from salus.services.achievement.streak import compute_streak
 from salus.services.analytics.stats import linear_regression
+from salus.services.timezone import user_today
 
 DEFAULT_MOOD_TAGS: list[dict[str, str]] = [
     {"code": "energetic", "label": "Energetic", "emoji": "⚡", "category": "positive"},
@@ -57,7 +58,7 @@ class MoodService:
         return self.uow.mood_entries.find_by_user_and_date(user_id, entry_date)
 
     def log(self, data: MoodEntryCreate, user_id: str) -> MoodEntry:
-        entry_date = data.entry_date or date.today()
+        entry_date = data.entry_date or user_today(self.uow.session, user_id)
         existing = self.uow.mood_entries.find_by_user_and_date(user_id, entry_date)
         tag_json = json.dumps(data.tag_codes) if data.tag_codes else None
 
@@ -83,8 +84,9 @@ class MoodService:
     def get_stats(
         self, user_id: str, days: int = 30
     ) -> dict:
-        since = date.today() - timedelta(days=days)
-        entries = self.uow.mood_entries.find_by_user_range(user_id, since, date.today())
+        today = user_today(self.uow.session, user_id)
+        since = today - timedelta(days=days)
+        entries = self.uow.mood_entries.find_by_user_range(user_id, since, today)
 
         if not entries:
             return {
@@ -116,7 +118,7 @@ class MoodService:
         unique_dates = sorted(
             set(_e.entry_date for _e in entries), reverse=True
         )
-        current_streak, longest_streak = compute_streak(unique_dates, date.today())
+        current_streak, longest_streak = compute_streak(unique_dates, today)
 
         dist: dict[str, int] = {}
         for s in range(1, 11):

@@ -20,6 +20,7 @@ from salus.services.data_quality.checks import (
     _make_flag,
     _notify_data_quality,
 )
+from salus.services.timezone import tz_for
 
 if TYPE_CHECKING:
     from salus.repositories.unit_of_work import IUnitOfWork
@@ -42,6 +43,7 @@ class DataQualityService:
 
     def _run_anomaly_check(self, user_id: str) -> int:
         session = self.uow.session
+        tz = tz_for(session, user_id)
         codes = session.exec(
             select(Measurement.metric_code).where(
                 Measurement.user_id == user_id,
@@ -77,12 +79,13 @@ class DataQualityService:
                     continue
                 message = f"{code} deviated {abs(z):.1f}σ from your personal baseline"
                 session.add(_make_flag(user_id, DataQualityKind.ANOMALY, measurement, message))
-                _notify_data_quality(session, user_id, DataQualityKind.ANOMALY, measurement, message)
+                _notify_data_quality(session, user_id, DataQualityKind.ANOMALY, measurement, message, tz)
                 flagged += 1
         return flagged
 
     def _run_cross_source_sweep(self, user_id: str) -> int:
         session = self.uow.session
+        tz = tz_for(session, user_id)
         window_start = datetime.now(timezone.utc) - timedelta(days=CROSS_SOURCE_LOOKBACK_DAYS)
         rows = session.exec(
             select(Measurement).where(
@@ -96,9 +99,9 @@ class DataQualityService:
 
         flagged = 0
         for measurement in rows:
-            cross_source = _cross_source_violation(session, measurement)
+            cross_source = _cross_source_violation(session, measurement, tz)
             if cross_source and not _flag_exists(session, user_id, measurement.id, DataQualityKind.CROSS_SOURCE):
                 session.add(_make_flag(user_id, DataQualityKind.CROSS_SOURCE, measurement, cross_source))
-                _notify_data_quality(session, user_id, DataQualityKind.CROSS_SOURCE, measurement, cross_source)
+                _notify_data_quality(session, user_id, DataQualityKind.CROSS_SOURCE, measurement, cross_source, tz)
                 flagged += 1
         return flagged

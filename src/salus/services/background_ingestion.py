@@ -6,6 +6,7 @@ from sqlmodel import Session
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.sharing import SharingService
+from salus.services.timezone import local_date, tz_for
 from salus.services.webhook_ingestion import WebhookIngestionService
 
 logger = logging.getLogger("salus.services.background_ingestion")
@@ -40,11 +41,12 @@ class BackgroundIngestionService:
                 from salus.repositories.unit_of_work import SqlUnitOfWork
 
                 sharing_svc = self._sharing_factory(SqlUnitOfWork(session))
+                tz = tz_for(session, user_id)
 
                 unique_updates: set[tuple[str, str]] = set()
                 for rec in records:
                     if rec.source_data_type and rec.start_time:
-                        date_str = rec.start_time.date().strftime("%Y-%m-%d")
+                        date_str = local_date(rec.start_time, tz).strftime("%Y-%m-%d")
                         unique_updates.add((rec.source_data_type, date_str))
 
                 for source_data_type, date_str in unique_updates:

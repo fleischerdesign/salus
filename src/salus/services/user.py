@@ -80,6 +80,7 @@ class UserService:
         password: str,
         email: str | None = None,
         display_name: str | None = None,
+        timezone: str | None = None,
     ) -> User:
         existing = self.uow.users.get_by_username(username)
         if existing is not None:
@@ -95,6 +96,7 @@ class UserService:
             password_hash=hash_password(password),
             email=email,
             display_name=display_name or username,
+            timezone=timezone or "UTC",
             is_admin=self._is_first_user(),
         )
         user = self.uow.users.create(user)

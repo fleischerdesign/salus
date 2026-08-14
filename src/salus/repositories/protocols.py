@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, tzinfo
 from typing import Protocol, TypeVar, runtime_checkable
 
 from sqlmodel import Session
@@ -96,7 +96,7 @@ class IUserIdentityRepository(IRepository[UserIdentity], Protocol):
 
 @runtime_checkable
 class IMeasurementRepository(IRepository[Measurement], Protocol):
-    def find_start_dates(self, user_id: str) -> list[date]: ...
+    def find_start_dates(self, user_id: str, tz: tzinfo | None = None) -> list[date]: ...
 
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None
@@ -294,7 +294,7 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
 
     def find_all_by_user(self, user_id: str) -> list[WorkoutSession]: ...
 
-    def find_completed_dates(self, user_id: str) -> list[date]: ...
+    def find_completed_dates(self, user_id: str, tz: tzinfo | None = None) -> list[date]: ...
 
     def count_completed_in_range(
         self, user_id: str, since: "datetime", until: "datetime"
@@ -495,7 +495,7 @@ class IMedicationScheduleRepository(IRepository[MedicationSchedule], Protocol):
 class IMedicationLogRepository(IRepository[MedicationLog], Protocol):
     def find_by_medication(self, medication_id: str) -> list[MedicationLog]: ...
 
-    def find_by_user_and_date(self, user_id: str, log_date: date) -> list[MedicationLog]: ...
+    def find_by_user_and_range(self, user_id: str, start: datetime, end: datetime) -> list[MedicationLog]: ...
 
     def find_by_schedule_and_time(self, schedule_id: str, taken_at_start: datetime, taken_at_end: datetime) -> MedicationLog | None: ...
 

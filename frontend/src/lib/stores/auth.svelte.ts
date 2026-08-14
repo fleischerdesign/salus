@@ -19,6 +19,7 @@ function buildLocalUser(displayName: string): User {
     is_active: true,
     is_admin: false,
     locale: 'en',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     colorblind: false,
     accent_hue: null,
     onboarding_dismissed: false,

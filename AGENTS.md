@@ -49,6 +49,9 @@ src/salus/
 │   ├── sync.py          ← Full sync (cursor paginated) + delta sync (per-strategy security)
 │   ├── write_pipeline.py ← Sync push: create/update/delete, dedup, ownership, PK protection
 │   ├── event_bus.py     ← EventBus ABC + InMemoryEventBus (asyncio.Queue) for SSE live sync
+│   ├── scheduler.py     ← AppScheduler (dependency-free asyncio loop) + ScheduledJob protocol
+│   ├── timezone.py      ← Single source for local-day computation (User.timezone, ADR-009)
+│   ├── data_quality/    ← checks.py (write-time), service.py (sweep), jobs.py (scheduled)
 │   └── ...              ← Domain services
 ├── routers/         ← FastAPI route handlers — THIN: parse input, call service, return JSON
 │   ├── api_sync.py      ← Sync endpoints (/api/v1/sync, /sync/push, /sync/entities, /sync/events)
@@ -300,6 +303,20 @@ WritePipeline commit → event_bus.publish(user_id)
 - **Write channels** (documented): CRUD → WritePipeline (sync push + auto-CRUD); domain verbs →
   services; commands → command handlers. All channels must publish SSE events after commit.
 
+### 18. Timezone & local-day boundaries (ADR-009)
+
+`User.timezone` (IANA name, default `UTC`) is the **single source** for "which calendar day an
+instant belongs to". Measurements are stored as naive UTC; day strings (`log_date`, `entry_date`)
+are opaque local dates created by the tz-aware frontend `todayString()`.
+
+- Backend: route all day logic through `services/timezone.py` (`local_date`, `today_in_tz`,
+  `local_day_range`, `start_of_local_day`, `tz_for`, `user_today`). Never `datetime.now(utc).date()`
+  or `date.today()` for a *user's* day; use half-open `[local_midnight, next_local_midnight)`.
+- Frontend: `$lib/utils/timezone.ts` (cached profile zone + `dateStringInTz`/`startOfTodayMs`);
+  `$lib/utils/datetime.ts`'s `todayString()` is tz-aware. Display formatting stays browser-local.
+- `services/scheduler.py` (`AppScheduler`/`ScheduledJob`) runs periodic jobs; write-time side
+  effects hook via `ENTITY_AFTER_WRITE` (registered explicitly in `main.create_app`, not by import).
+
 ## Adding a new entity (checklist)
 
 1. `models/<name>.py` — SQLModel table
@@ -325,13 +342,16 @@ Every new entity needs a sync strategy. Available values:
 
 | Strategy | When to use | Example |
 |---|---|---|
-| `user_scoped` (default) | Data belongs to one user, synced only to their devices | `habit`, `meal`, `medication` |
+| `user_scoped` (default) | Data belongs to one user, synced only to their devices | `habit`, `meal`, `medication`, `lab_panel`, `lab_result`, `fasting_session` |
 | `shared_nullable` | System-seeded items (user_id=null) + user-created items (user_id set). All users see system items, only creator sees theirs. | `exercise`, `food_item` |
-| `global` | Immutable reference data, same for all users, no user_id column | `metric_definition`, `achievement_definition` |
+| `global` | Immutable reference data, same for all users, no user_id column | `metric_definition`, `achievement_definition`, `lab_marker` |
 | `relational` | Child entity whose owner is determined via parent FK chain | `workout_plan_exercise`, `workout_log_entry` |
-| `append_only` | Write-once, never updated or deleted | `api_token`, `federated_access_log` |
+| `append_only` | Write-once, never updated or deleted | `api_token`, `federated_access_log`, `data_quality_flag` |
 
 `batch_size`: parent entities → 500, high-volume log children → 2000.
+
+Composed domains that also write a Measurement bridge (lab panels/results, fasting sessions)
+use command handlers as their single write path (`_SKIP_AUTO_CRUD`), not generic CRUD.
 
 ### Metric system vs Domain Model decision
 

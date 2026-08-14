@@ -20,6 +20,7 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=6, max_length=128)
     email: str | None = None
     display_name: str | None = None
+    timezone: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -34,6 +35,7 @@ class UserResponse(BaseModel):
     is_active: bool
     theme: str
     locale: str
+    timezone: str
     colorblind: bool
     accent_hue: int | None
     onboarding_dismissed: bool

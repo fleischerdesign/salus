@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from typing import Optional
 
 from salus.models.sharing import FederatedAccessLog, SharingRelationship
@@ -8,6 +8,7 @@ from salus.services.sharing.keys import FederationKeyService
 from salus.services.sharing.discovery import FederationDiscoveryService
 from salus.services.sharing.resolver import FederationDataResolver, build_day_result
 from salus.services.sharing.notify import PeerNotificationService
+from salus.services.timezone import local_date, local_day_range, tz_for
 
 __all__ = [
     "SharingService",
@@ -146,17 +147,17 @@ class SharingService:
                     target_date=date_str,
                 )
             )
-            since_dt = datetime.combine(
-                target_date, datetime.min.time(), tzinfo=timezone.utc
-            )
+            owner_tz = tz_for(self.uow.session, owner_id)
+            since_dt, until_dt = local_day_range(target_date, owner_tz)
             raw_measurements = self.uow.measurements.find_all(
                 user_id=owner_id,
                 source_data_types=[source_data_type],
                 since=since_dt,
-                until=since_dt + timedelta(days=1),
+                until=until_dt,
             )
             day_measurements = [
-                m for m in raw_measurements if m.start_time.date() == target_date
+                m for m in raw_measurements
+                if local_date(m.start_time, owner_tz) == target_date
             ]
             return build_day_result(
                 owner_username=owner_username,

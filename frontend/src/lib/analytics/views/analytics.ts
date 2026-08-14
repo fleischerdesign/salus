@@ -3,6 +3,7 @@ import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import { AUTH_USER_KEY } from '$lib/constants';
 import { MS_PER_DAY } from '$lib/utils/datetime';
+import { dateStringInTz, userTimezone } from '$lib/utils/timezone';
 import {
   benjaminiHochberg,
   bmrCunningham,
@@ -18,6 +19,11 @@ import {
   sleepDebtCumulative,
   tdee
 } from '$lib/analytics/stats';
+
+/** The user's local calendar day (`YYYY-MM-DD`) a measurement belongs to. */
+function dayKey(m: Measurement): string {
+  return dateStringInTz(m.start_time, userTimezone());
+}
 
 interface Correlation {
   metric_a: string;
@@ -139,7 +145,7 @@ function computeSteps(measurements: Measurement[]): StepDay[] {
   );
   const byDate = new Map<string, number[]>();
   for (const m of stepM) {
-    const date = m.start_time.slice(0, 10);
+    const date = dayKey(m);
     const arr = byDate.get(date) ?? [];
     arr.push(m.value_numeric!);
     byDate.set(date, arr);
@@ -167,7 +173,7 @@ function computeWeight(measurements: Measurement[]): WeightPoint[] {
   for (const m of weightM.sort(
     (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
   )) {
-    const date = m.start_time.slice(0, 10);
+    const date = dayKey(m);
     if (seen.has(date)) continue;
     seen.add(date);
     points.push({ date, weight_kg: m.value_numeric! });
@@ -206,7 +212,7 @@ function computeSleep(measurements: Measurement[]): Array<{
       const total = deep + rem + light + awake;
       if (total <= 0) continue;
       results.push({
-        date: m.start_time.slice(0, 10),
+        date: dayKey(m),
         duration_hours: Math.round((total / 3600) * 100) / 100,
         awake_pct: Math.round((awake / total) * 1000) / 10,
         light_pct: Math.round((light / total) * 1000) / 10,
@@ -271,7 +277,7 @@ function computeExercise(measurements: Measurement[]): Array<{
       const d = JSON.parse(m.value_json);
       sessions.push({
         type_name: (d.exercise_type_name ?? d.type_name ?? 'Exercise') as string,
-        date: m.start_time.slice(0, 10),
+        date: dayKey(m),
         time: m.start_time.slice(11, 19),
         duration_seconds: (d.duration_seconds ?? d.duration ?? 0) as number,
         distance_meters: (d.distance_meters ?? d.distance ?? 0) as number,

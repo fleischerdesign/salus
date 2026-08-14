@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from sqlmodel import col, select
 
@@ -73,15 +73,15 @@ class MedicationLogRepository(Repository[MedicationLog]):
             ).all()
         )
 
-    def find_by_user_and_date(self, user_id: str, log_date: date) -> list[MedicationLog]:
-        start = datetime(log_date.year, log_date.month, log_date.day, 0, 0, 0)
-        end = datetime(log_date.year, log_date.month, log_date.day, 23, 59, 59)
+    def find_by_user_and_range(
+        self, user_id: str, start: datetime, end: datetime
+    ) -> list[MedicationLog]:
         return list(
             self.session.exec(
                 select(MedicationLog).where(
                     MedicationLog.user_id == user_id,
                     col(MedicationLog.taken_at) >= start,
-                    col(MedicationLog.taken_at) <= end,
+                    col(MedicationLog.taken_at) < end,
                     MedicationLog.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 )
             ).all()

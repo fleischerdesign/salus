@@ -31,6 +31,7 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     theme: str = Field(default="system")
     locale: str = Field(default="en")
+    timezone: str = Field(default="UTC")
     colorblind: bool = Field(default=False)
     accent_hue: int | None = Field(default=None)
     onboarding_dismissed: bool = Field(default=False)

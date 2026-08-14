@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, tzinfo
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import desc, func
@@ -8,6 +8,7 @@ from sqlmodel import col, select
 from salus.models.measurement import Measurement
 from salus.repositories.base import Repository
 from salus.repositories.protocols import IMeasurementRepository
+from salus.services.timezone import local_date
 
 if TYPE_CHECKING:
     from salus.services.plugin.hooks import HookRegistry
@@ -49,12 +50,15 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         )
         return self.session.exec(stmt).first()
 
-    def find_start_dates(self, user_id: str) -> list[date]:
+    def find_start_dates(self, user_id: str, tz: tzinfo | None = None) -> list[date]:
         stmt = select(col(Measurement.start_time)).where(
             Measurement.user_id == user_id,
             Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
-        return [row.date() for row in self.session.exec(stmt).all()]
+        rows = [row for row in self.session.exec(stmt).all() if row is not None]
+        if tz is None:
+            return [row.date() for row in rows]
+        return [local_date(row, tz) for row in rows]
 
     def find_by_metric_type(
         self, metric_code: str, user_id: str | None = None

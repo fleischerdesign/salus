@@ -4,6 +4,7 @@ from salus.exceptions import NotFoundError
 from salus.models.journal import JournalEntry
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.journal import JournalEntryCreate, JournalEntryUpdate
+from salus.services.timezone import user_today
 
 
 class JournalService:
@@ -28,7 +29,7 @@ class JournalService:
     def create(self, data: JournalEntryCreate, user_id: str) -> JournalEntry:
         entry = JournalEntry(
             user_id=user_id,
-            entry_date=data.entry_date or date.today(),
+            entry_date=data.entry_date or user_today(self.uow.session, user_id),
             title=data.title,
             content=data.content,
             mood_score=data.mood_score,

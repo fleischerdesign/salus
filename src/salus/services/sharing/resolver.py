@@ -12,6 +12,7 @@ from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, parse_date, summarize_daily_values, make_handle
 from salus.services.sharing._http import retry_http_request
+from salus.services.timezone import local_date, local_day_range, today_in_tz, user_tz
 
 if TYPE_CHECKING:
     from salus.services.sharing.keys import FederationKeyService
@@ -175,19 +176,19 @@ class FederationDataResolver:
                     f"Access denied: no active sharing relationship from {owner_handle}"
                 )
 
-            target_date = parse_date(date_str) or datetime.now(timezone.utc).date()
-            since_dt = datetime.combine(
-                target_date, datetime.min.time(), tzinfo=timezone.utc
-            )
+            owner_tz = user_tz(owner_user)
+            target_date = parse_date(date_str) or today_in_tz(owner_tz)
+            since_dt, until_dt = local_day_range(target_date, owner_tz)
             raw_measurements = self.uow.measurements.find_all(
                 user_id=uid(owner_user),
                 source_data_types=[source_data_type],
                 since=since_dt,
-                until=since_dt + timedelta(days=1),
+                until=until_dt,
             )
 
             day_measurements = [
-                m for m in raw_measurements if m.start_time.date() == target_date
+                m for m in raw_measurements
+                if local_date(m.start_time, owner_tz) == target_date
             ]
 
             return build_day_result(
@@ -258,15 +259,16 @@ class FederationDataResolver:
         return []
 
     def get_feed_activities(self, user_id: str) -> list[dict]:
-        today = datetime.now(timezone.utc).date()
-        three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
-        activities = []
-
         with self.uow:
             user = self.uow.users.get_by_id(user_id)
             if not user:
                 raise NotFoundError("User not found")
             user_handle = make_handle(user)
+            tz = user_tz(user)
+
+            today = today_in_tz(tz)
+            three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
+            activities = []
 
             local_incoming = self.uow.sharing_relationships.find_active_by_grantee(
                 user_handle
@@ -321,7 +323,7 @@ class FederationDataResolver:
                         day_measurements = [
                             m
                             for m in raw_measurements
-                            if m.start_time.date() == day
+                            if local_date(m.start_time, tz) == day
                             and m.value_numeric is not None
                         ]
                         if day_measurements:

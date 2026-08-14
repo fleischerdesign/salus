@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, timezone, tzinfo
 from typing import Any, TYPE_CHECKING
 
 from salus.models.lab import LabMarker, LabPanel, LabResult
@@ -8,6 +8,7 @@ from salus.models.measurement import Measurement
 from salus.services._helpers import uid
 from salus.services.command_registry import CommandResult, register
 from salus.services.serialization import serialize_record
+from salus.services.timezone import start_of_local_day, today_in_tz, user_tz
 from salus.utils import uuid7_str
 
 if TYPE_CHECKING:
@@ -28,14 +29,14 @@ _RESULT_FIELDS = (
 )
 
 
-def _parse_date(value: str | None) -> date:
+def _parse_date(value: str | None, tz: tzinfo) -> date:
     if value:
         return date.fromisoformat(value)
-    return date.today()
+    return today_in_tz(tz)
 
 
-def _panel_start(collection_date: date) -> datetime:
-    return datetime.combine(collection_date, time(0, 0, 0), tzinfo=timezone.utc)
+def _panel_start(collection_date: date, tz: tzinfo) -> datetime:
+    return start_of_local_day(collection_date, tz)
 
 
 def _marker_defaults(uow: IUnitOfWork, metric_code: str) -> LabMarker | None:
@@ -108,7 +109,8 @@ def _delete_measurement(uow: IUnitOfWork, external_id: str) -> None:
 class CreateLabPanelHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         user_id = uid(user)
-        collection_date = _parse_date(payload.get("collection_date"))
+        tz = user_tz(user)
+        collection_date = _parse_date(payload.get("collection_date"), tz)
         panel_id = payload.get("id") or uuid7_str()
 
         now = datetime.now(timezone.utc)
@@ -125,7 +127,7 @@ class CreateLabPanelHandler:
         )
         uow.lab_panels.add(panel)
 
-        start_time = _panel_start(collection_date)
+        start_time = _panel_start(collection_date, tz)
         for raw in payload.get("results", []):
             result = _resolve_result(uow, user_id, panel.id or "", collection_date, raw)
             uow.lab_results.add(result)
@@ -153,7 +155,7 @@ class UpdateLabPanelHandler:
             return CommandResult(status="not_found", message="Lab panel not found")
 
         if "collection_date" in payload and payload["collection_date"] is not None:
-            panel.collection_date = _parse_date(payload.get("collection_date"))
+            panel.collection_date = _parse_date(payload.get("collection_date"), user_tz(user))
         if "lab_name" in payload:
             panel.lab_name = payload.get("lab_name")
         if "fasting" in payload:
@@ -170,7 +172,7 @@ class UpdateLabPanelHandler:
                 _delete_measurement(uow, old.id or "")
                 uow.lab_results.delete(old)
 
-            start_time = _panel_start(panel.collection_date)
+            start_time = _panel_start(panel.collection_date, user_tz(user))
             for raw in payload.get("results", []):
                 result = _resolve_result(uow, user_id, panel_id, panel.collection_date, raw)
                 uow.lab_results.add(result)

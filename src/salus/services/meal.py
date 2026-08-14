@@ -1,11 +1,12 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date, tzinfo
 
 from salus.exceptions import ApiError, NotFoundError
 from salus.models.food import Meal, MealItem
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.food import MealCreate, MealUpdate
+from salus.services.timezone import start_of_local_day, tz_for, user_today
 
 
 def _calc_macros(items, food_items_by_id: dict) -> dict:
@@ -60,7 +61,7 @@ class MealService:
                 result[fid] = food
         return result
 
-    def _measurement_for_meal(self, meal: Meal, items: list[MealItem], food_map: dict) -> Measurement:
+    def _measurement_for_meal(self, meal: Meal, items: list[MealItem], food_map: dict, tz: tzinfo) -> Measurement:
         macros = _calc_macros(items, food_map)
         return Measurement(
             user_id=meal.user_id,
@@ -69,10 +70,7 @@ class MealService:
             source="meal",
             external_id=meal.id,
             value_json=json.dumps(macros),
-            start_time=datetime(
-                meal.log_date.year, meal.log_date.month, meal.log_date.day,
-                0, 0, 0, tzinfo=timezone.utc,
-            ),
+            start_time=start_of_local_day(meal.log_date, tz),
         )
 
     def _delete_measurement_for_meal(self, meal: Meal) -> None:
@@ -103,9 +101,9 @@ class MealService:
         self, user_id: str, since: date | None = None, until: date | None = None
     ) -> list[dict]:
         if since is None:
-            since = date.today()
+            since = user_today(self.uow.session, user_id)
         if until is None:
-            until = date.today()
+            until = user_today(self.uow.session, user_id)
         meals = self.uow.meals.find_by_user_and_date_range(user_id, since, until)
         result = []
         for meal in meals:
@@ -124,7 +122,7 @@ class MealService:
         if not data.items:
             raise ApiError(code="empty_meal", message="Meal must have at least one item", status_code=400)
 
-        log_date = date.fromisoformat(data.log_date) if data.log_date else date.today()
+        log_date = date.fromisoformat(data.log_date) if data.log_date else user_today(self.uow.session, user_id)
         meal = Meal(
             user_id=user_id,
             log_date=log_date,
@@ -147,7 +145,7 @@ class MealService:
             items.append(item)
 
         food_map = self._resolve_food_items(items)
-        measurement = self._measurement_for_meal(meal, items, food_map)
+        measurement = self._measurement_for_meal(meal, items, food_map, tz_for(self.uow.session, user_id))
         self.uow.measurements.create(measurement)
 
         return self._meal_to_response(meal, items, food_map)
@@ -184,7 +182,7 @@ class MealService:
 
         self._delete_measurement_for_meal(meal)
         food_map = self._resolve_food_items(items)
-        measurement = self._measurement_for_meal(meal, items, food_map)
+        measurement = self._measurement_for_meal(meal, items, food_map, tz_for(self.uow.session, user_id))
         self.uow.measurements.create(measurement)
 
         return self._meal_to_response(meal, items, food_map)
@@ -200,7 +198,7 @@ class MealService:
     # ── Today + Summary ──
 
     def get_today(self, user_id: str) -> list[dict]:
-        meals = self.uow.meals.find_by_user_and_date(user_id, date.today())
+        meals = self.uow.meals.find_by_user_and_date(user_id, user_today(self.uow.session, user_id))
         result = []
         for meal in meals:
             items = self.uow.meal_items.find_by_meal(meal.id or "")
@@ -212,9 +210,9 @@ class MealService:
         self, user_id: str, since: date | None = None, until: date | None = None
     ) -> list[dict]:
         if since is None:
-            since = date.today()
+            since = user_today(self.uow.session, user_id)
         if until is None:
-            until = date.today()
+            until = user_today(self.uow.session, user_id)
 
         meals = self.uow.meals.find_by_user_and_date_range(user_id, since, until)
         by_date: dict[str, dict] = {}

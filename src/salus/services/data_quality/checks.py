@@ -8,7 +8,7 @@ notification channel is the generic ``Notification`` model via ``link``.
 from __future__ import annotations
 
 import json
-from datetime import datetime, time, timezone
+from datetime import tzinfo
 from typing import Any
 
 from sqlmodel import col, select
@@ -20,6 +20,13 @@ from salus.models.notification import Notification, NotificationCategory, Notifi
 from salus.models.user import User
 from salus.repositories.entity_meta import ENTITY_AFTER_WRITE
 from salus.services._helpers import uid
+from salus.services.timezone import (
+    local_date,
+    local_day_range,
+    start_of_local_day,
+    today_in_tz,
+    tz_for,
+)
 
 CROSS_SOURCE_DIVERGENCE = 0.25
 
@@ -51,13 +58,12 @@ def _hard_bound_violation(session: Any, measurement: Measurement) -> str | None:
     return None
 
 
-def _cross_source_violation(session: Any, measurement: Measurement) -> str | None:
+def _cross_source_violation(session: Any, measurement: Measurement, tz: tzinfo) -> str | None:
     code = measurement.metric_code
     if code not in DISCRETE_METRICS or measurement.value_numeric is None:
         return None
-    day = measurement.start_time.date()
-    start = datetime.combine(day, time.min)
-    end = datetime.combine(day, time.max)
+    day = local_date(measurement.start_time, tz)
+    start, end = local_day_range(day, tz)
     others = session.exec(
         select(Measurement).where(
             Measurement.user_id == measurement.user_id,
@@ -65,7 +71,7 @@ def _cross_source_violation(session: Any, measurement: Measurement) -> str | Non
             Measurement.source != measurement.source,
             col(Measurement.value_numeric).is_not(None),
             Measurement.start_time >= start,
-            Measurement.start_time <= end,
+            Measurement.start_time < end,
             col(Measurement.deleted_at).is_(None),
         )
     ).all()
@@ -134,10 +140,10 @@ def _metric_link(metric_code: str | None) -> str | None:
     return f"/entries/{metric_code}" if metric_code else None
 
 
-def _recent_notification_exists(session: Any, user_id: str, link: str | None) -> bool:
+def _recent_notification_exists(session: Any, user_id: str, link: str | None, tz: tzinfo) -> bool:
     if not link:
         return False
-    start = datetime.combine(datetime.now(timezone.utc).date(), time.min)
+    start = start_of_local_day(today_in_tz(tz), tz)
     return session.exec(
         select(Notification).where(
             Notification.user_id == user_id,
@@ -149,7 +155,7 @@ def _recent_notification_exists(session: Any, user_id: str, link: str | None) ->
 
 
 def _notify_data_quality(
-    session: Any, user_id: str, kind: DataQualityKind, measurement: Measurement, message: str,
+    session: Any, user_id: str, kind: DataQualityKind, measurement: Measurement, message: str, tz: tzinfo,
 ) -> None:
     user = session.get(User, user_id)
     if not _notify_enabled(user, kind):
@@ -157,7 +163,7 @@ def _notify_data_quality(
     if kind != DataQualityKind.ANOMALY and measurement.source == "manual":
         return
     link = _metric_link(measurement.metric_code)
-    if _recent_notification_exists(session, user_id, link):
+    if _recent_notification_exists(session, user_id, link, tz):
         return
     session.add(Notification(
         user_id=user_id,
@@ -176,12 +182,13 @@ def _evaluate_kind(
     op_type: str,
     kind: DataQualityKind,
     violation: str | None,
+    tz: tzinfo,
 ) -> None:
     """Ensure a flag exists when violated, remove it when resolved on update."""
     if violation:
         if not _flag_exists(session, user_id, instance.id, kind):
             session.add(_make_flag(user_id, kind, instance, violation))
-            _notify_data_quality(session, user_id, kind, instance, violation)
+            _notify_data_quality(session, user_id, kind, instance, violation, tz)
     elif op_type == "update":
         _delete_flags(session, user_id, instance.id, {kind})
 
@@ -195,13 +202,14 @@ def check_measurement(
     if instance.metric_code is None or instance.value_numeric is None:
         return
 
+    tz = tz_for(session, user_id)
     _evaluate_kind(
         session, user_id, instance, op_type,
-        DataQualityKind.HARD_BOUND, _hard_bound_violation(session, instance),
+        DataQualityKind.HARD_BOUND, _hard_bound_violation(session, instance), tz,
     )
     _evaluate_kind(
         session, user_id, instance, op_type,
-        DataQualityKind.CROSS_SOURCE, _cross_source_violation(session, instance),
+        DataQualityKind.CROSS_SOURCE, _cross_source_violation(session, instance, tz), tz,
     )
 
 

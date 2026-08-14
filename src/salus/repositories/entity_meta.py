@@ -153,6 +153,7 @@ ValidatorFn = Callable[..., str | None]
 SAFE_PROFILE_FIELDS = {
     "theme",
     "locale",
+    "timezone",
     "display_name",
     "onboarding_dismissed",
     "colorblind",

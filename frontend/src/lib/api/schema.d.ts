@@ -4815,6 +4815,8 @@ export interface components {
             email?: string | null;
             /** Password */
             password: string;
+            /** Timezone */
+            timezone?: string | null;
             /** Username */
             username: string;
         };
@@ -5133,6 +5135,8 @@ export interface components {
             onboarding_dismissed: boolean;
             /** Theme */
             theme: string;
+            /** Timezone */
+            timezone: string;
             /**
              * Updated At
              * Format: date-time

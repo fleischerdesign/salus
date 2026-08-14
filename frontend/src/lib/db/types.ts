@@ -311,6 +311,7 @@ export interface UserProfile {
   display_name: string | null;
   theme: string;
   locale: string;
+  timezone: string;
   colorblind: boolean;
   accent_hue: number | null;
   onboarding_dismissed: boolean;

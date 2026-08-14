@@ -93,7 +93,7 @@ class UpdateProfileHandler:
         record: dict[str, Any] = {
             "id": user.id, "username": user.username,
             "email": user.email, "display_name": user.display_name,
-            "theme": user.theme, "locale": user.locale,
+            "theme": user.theme, "locale": user.locale, "timezone": user.timezone,
             "colorblind": user.colorblind, "accent_hue": user.accent_hue,
             "onboarding_dismissed": user.onboarding_dismissed,
             "dq_notify_hard_bound": user.dq_notify_hard_bound,

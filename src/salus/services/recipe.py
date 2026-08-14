@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 from salus.exceptions import NotFoundError
 from salus.models.food import (
@@ -11,6 +11,7 @@ from salus.models.food import (
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.food import RecipeCreate, RecipeUpdate
+from salus.services.timezone import user_today
 
 
 class RecipeService:
@@ -181,7 +182,7 @@ class RecipeService:
 
         meal = Meal(
             user_id=user_id,
-            log_date=date.today(),
+            log_date=user_today(self.uow.session, user_id),
             meal_type="other",
             name=f"Recipe: {recipe.name}",
         )

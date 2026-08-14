@@ -15,6 +15,7 @@ from salus.models.sharing import (
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, make_handle, summarize_daily_values
 from salus.services.sharing.relationship import RelationshipService
+from salus.services.timezone import local_date, next_local_day_start, start_of_local_day, user_tz
 
 logger = logging.getLogger("salus.services.leaderboard")
 
@@ -221,14 +222,11 @@ class LeaderboardService:
         local_user = self.uow.users.get_by_username(username)
         if not local_user:
             return 0.0
+        tz = user_tz(local_user)
 
         if group.source_data_type == "workouts":
-            since_dt = datetime.combine(
-                start_date, datetime.min.time(), tzinfo=timezone.utc
-            )
-            until_dt = datetime.combine(
-                end_date, datetime.max.time(), tzinfo=timezone.utc
-            )
+            since_dt = start_of_local_day(start_date, tz)
+            until_dt = next_local_day_start(end_date, tz)
             return float(
                 self.uow.workout_sessions.count_completed_in_range(
                     uid(local_user), since_dt, until_dt
@@ -238,18 +236,14 @@ class LeaderboardService:
         measurements = self.uow.measurements.find_all(
             user_id=uid(local_user),
             source_data_types=[group.source_data_type],
-            since=datetime.combine(
-                start_date, datetime.min.time(), tzinfo=timezone.utc
-            ),
-            until=datetime.combine(
-                end_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
-            ),
+            since=start_of_local_day(start_date, tz),
+            until=next_local_day_start(end_date, tz),
         )
         day_values = [
             ms.value_numeric
             for ms in measurements
-            if ms.start_time.date() >= start_date
-            and ms.start_time.date() <= end_date
+            if local_date(ms.start_time, tz) >= start_date
+            and local_date(ms.start_time, tz) <= end_date
             and ms.value_numeric is not None
         ]
         if not day_values:

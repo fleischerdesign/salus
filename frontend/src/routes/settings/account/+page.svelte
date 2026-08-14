@@ -6,7 +6,8 @@
   import {
     changePassword as doChangePassword,
     createToken as doCreateToken,
-    revokeToken as doRevokeToken
+    revokeToken as doRevokeToken,
+    updateProfile as doUpdateProfile
   } from '$lib/mutations/account';
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -119,6 +120,11 @@
   async function revokeToken(id: string | number) {
     await doRevokeToken(String(id));
   }
+
+  async function useDeviceTimezone() {
+    const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await doUpdateProfile({ timezone: deviceTz });
+  }
 </script>
 
 <div class="space-y-6">
@@ -150,6 +156,22 @@
           Preferred Language
         </p>
         <RadioGroup name="locale" options={localeOptions} value={locale} onchange={setLocale} />
+      </div>
+    </Card>
+
+    <!-- Timezone -->
+    <Card padding={false}>
+      {#snippet header()}
+        <span class="text-sm font-semibold text-surface-900">Timezone</span>
+      {/snippet}
+      <div class="p-5">
+        <p class="mb-1 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+          Day boundaries use this timezone
+        </p>
+        <p class="mb-3 font-mono text-sm text-surface-700">
+          {userProfiles?.[0]?.timezone || 'UTC'}
+        </p>
+        <Btn variant="secondary" size="sm" onclick={useDeviceTimezone}>Use device timezone</Btn>
       </div>
     </Card>
 

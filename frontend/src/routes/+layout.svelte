@@ -33,6 +33,7 @@
   import { localMode, SERVER_ONLY_PATH_PREFIXES } from '$lib/db/local-mode.svelte';
   import { theme } from '$stores/theme.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { setUserTimezone } from '$lib/utils/timezone';
 
   let { children } = $props();
 
@@ -44,6 +45,10 @@
   let userProfile = $derived(
     userProfiles && (userProfiles ?? []).length > 0 ? userProfiles[0] : null
   );
+
+  $effect(() => {
+    setUserTimezone(userProfile?.timezone);
+  });
 
   // ── Reactive Guards Integration for PWA Auto-Reload ──
 

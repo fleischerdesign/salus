@@ -1,10 +1,11 @@
-from datetime import date, datetime
+from datetime import date, datetime, tzinfo
 from sqlmodel import select, or_, desc, col
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
 from salus.repositories.base import Repository
 from salus.repositories.protocols import IExerciseRepository, IWorkoutPlanRepository, IWorkoutSessionRepository
+from salus.services.timezone import local_date
 
 
 class ExerciseRepository(Repository[Exercise], IExerciseRepository):
@@ -67,17 +68,16 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
             ).all()
         )
 
-    def find_completed_dates(self, user_id: str) -> list[date]:
+    def find_completed_dates(self, user_id: str, tz: tzinfo | None = None) -> list[date]:
         stmt = select(col(WorkoutSession.completed_at)).where(
             WorkoutSession.user_id == user_id,
             col(WorkoutSession.completed_at).isnot(None),
             WorkoutSession.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
         )
-        return [
-            row.date()
-            for row in self.session.exec(stmt).all()
-            if row is not None
-        ]
+        rows = [row for row in self.session.exec(stmt).all() if row is not None]
+        if tz is None:
+            return [row.date() for row in rows]
+        return [local_date(row, tz) for row in rows]
 
     def count_completed_in_range(
         self, user_id: str, since: datetime, until: datetime

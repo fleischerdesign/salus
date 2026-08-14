@@ -11,6 +11,7 @@ from salus.models.mood import MoodEntry
 from salus.models.goal import Goal
 from salus.models.sharing import SharingRelationship
 from salus.models.workout import WorkoutSession
+from salus.services.timezone import local_date, today_in_tz, tz_for
 from salus.services.achievement.streak import compute_streak
 
 
@@ -95,7 +96,8 @@ def _streak_entity(
     entity: str,
     days: int,
 ) -> bool:
-    today = date.today()
+    tz = tz_for(session, user_id)
+    today = today_in_tz(tz)
 
     match entity:
         case "measurement":
@@ -105,7 +107,7 @@ def _streak_entity(
                     Measurement.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 ).order_by(Measurement.start_time.desc())  # pyright: ignore[reportAttributeAccessIssue]
             ).all()
-            dates = [r.date() for r in rows if isinstance(r, datetime)]
+            dates = [local_date(r, tz) for r in rows if isinstance(r, datetime)]
         case "habit_log":
             rows = session.exec(
                 select(HabitLog.log_date).where(  # pyright: ignore[reportArgumentType]
@@ -131,7 +133,7 @@ def _streak_entity(
                     WorkoutSession.deleted_at.is_(None),  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
                 ).order_by(WorkoutSession.completed_at.desc())  # pyright: ignore[reportAttributeAccessIssue]
             ).all()
-            dates = [r.date() for r in rows if isinstance(r, datetime)]
+            dates = [local_date(r, tz) for r in rows if isinstance(r, datetime)]
         case _:
             return False
 

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone, tzinfo
 
 from salus.exceptions import ApiError, NotFoundError
 from salus.models.medication import (
@@ -15,14 +15,16 @@ from salus.schemas.medication import (
     MedicationScheduleCreate,
     MedicationUpdate,
 )
+from salus.services.timezone import local_day_range, today_in_tz, tz_for, user_today
 
 
 END_OF_DAY_HOUR = 23
 END_OF_DAY_MINUTE = 59
 
 
-def _make_dt(d: date, hour: int, minute: int) -> datetime:
-    return datetime(d.year, d.month, d.day, hour, minute, 0)
+def _make_dt(d: date, hour: int, minute: int, tz: tzinfo) -> datetime:
+    """Naive-UTC instant of the given local wall-clock time in ``tz``."""
+    return datetime.combine(d, time(hour, minute), tzinfo=tz).astimezone(timezone.utc).replace(tzinfo=None)
 
 
 class MedicationService:
@@ -93,7 +95,7 @@ class MedicationService:
             dosage=data.dosage,
             times=data.times,
             days_of_week=data.days_of_week,
-            start_date=date.fromisoformat(data.start_date) if data.start_date else date.today(),
+            start_date=date.fromisoformat(data.start_date) if data.start_date else user_today(self.uow.session, user_id),
             end_date=date.fromisoformat(data.end_date) if data.end_date else None,
         )
         return self.uow.medication_schedules.create(s)
@@ -126,11 +128,12 @@ class MedicationService:
         self, medication_id: str, user_id: str, schedule_id: str | None, scheduled_time: str | None
     ) -> dict:
         self.get(medication_id, user_id)
-        today = date.today()
+        tz = tz_for(self.uow.session, user_id)
+        today = today_in_tz(tz)
         if schedule_id and scheduled_time:
             hour, minute = map(int, scheduled_time.split(":"))
-            window_start = _make_dt(today, hour, minute)
-            window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE)
+            window_start = _make_dt(today, hour, minute, tz)
+            window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE, tz)
             existing = self.uow.medication_logs.find_by_schedule_and_time(
                 schedule_id, window_start, window_end
             )
@@ -161,9 +164,9 @@ class MedicationService:
         self, medication_id: str, user_id: str, schedule_id: str, scheduled_time: str
     ) -> MedicationLog:
         self.get(medication_id, user_id)
+        tz = tz_for(self.uow.session, user_id)
         hour, minute = map(int, scheduled_time.split(":"))
-        today = date.today()
-        taken_at = _make_dt(today, hour, minute)
+        taken_at = _make_dt(today_in_tz(tz), hour, minute, tz)
         log = MedicationLog(
             medication_id=medication_id,
             user_id=user_id,
@@ -188,8 +191,10 @@ class MedicationService:
 
     def get_today(self, user_id: str) -> dict:
         medications = self.uow.medications.find_active(user_id)
-        today = date.today()
-        today_logs = self.uow.medication_logs.find_by_user_and_date(user_id, today)
+        tz = tz_for(self.uow.session, user_id)
+        today = today_in_tz(tz)
+        start, end = local_day_range(today, tz)
+        today_logs = self.uow.medication_logs.find_by_user_and_range(user_id, start, end)
         schedules = self.uow.medication_schedules.find_by_user(user_id)
 
         sched_map: dict[str, list[MedicationSchedule]] = {}
@@ -208,8 +213,8 @@ class MedicationService:
                     continue
                 for t in sched.times:
                     hour, minute = map(int, t.split(":"))
-                    window_start = _make_dt(today, hour, minute)
-                    window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE)
+                    window_start = _make_dt(today, hour, minute, tz)
+                    window_end = _make_dt(today, END_OF_DAY_HOUR, END_OF_DAY_MINUTE, tz)
                     existing = next(
                         (
                             log

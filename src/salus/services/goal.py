@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import tzinfo
 
 from salus.exceptions import NotFoundError
 from salus.models.analytics import GoalProgress
@@ -13,6 +13,7 @@ from salus.services.analytics.stats import (
     prediction_interval,
 )
 from salus.services.plugin.hooks import HookRegistry
+from salus.services.timezone import local_date, start_of_local_week, today_in_tz, tz_for
 
 logger = logging.getLogger("salus.services.goal")
 
@@ -56,6 +57,7 @@ class GoalService:
         entries = self.uow.measurements.find_by_metric_type(
             goal.metric_code, goal.user_id
         )
+        tz = tz_for(self.uow.session, goal.user_id)
 
         plugin_fulfilled = None
         if self._registry:
@@ -69,12 +71,12 @@ class GoalService:
                     logger.error(f"Error executing plugin goal validator: {e}")
 
         if goal.frequency == GoalFrequency.DAILY:
-            entries = _filter_today(entries)
+            entries = _filter_today(entries, tz)
         elif goal.frequency == GoalFrequency.WEEKLY:
-            entries = _filter_this_week(entries)
+            entries = _filter_this_week(entries, tz)
 
         current = _extract_current_value(entries, goal.direction)
-        deadline_passed = goal.deadline is not None and goal.deadline < date.today()
+        deadline_passed = goal.deadline is not None and goal.deadline < today_in_tz(tz)
 
         percent, status, fulfilled = compute_goal_progress(
             current_value=current,
@@ -95,7 +97,7 @@ class GoalService:
             and goal.deadline is not None
             and not deadline_passed
         ):
-            forecast = self._compute_deadline_forecast(goal, entries)
+            forecast = self._compute_deadline_forecast(goal, entries, tz)
 
         if fulfilled and self._registry:
             for sub in self._registry.event_subscribers:
@@ -121,7 +123,7 @@ class GoalService:
         )
 
     def _compute_deadline_forecast(
-        self, goal: Goal, entries: list[Measurement]
+        self, goal: Goal, entries: list[Measurement], tz: tzinfo
     ) -> dict:
         entries_sorted = sorted(entries, key=lambda e: e.start_time)
         if len(entries_sorted) < 3:
@@ -129,7 +131,7 @@ class GoalService:
         xs: list[float] = []
         ys: list[float] = []
         for e in entries_sorted:
-            days_since = (e.start_time.date() - goal.created_at.date()).days
+            days_since = (local_date(e.start_time, tz) - local_date(goal.created_at, tz)).days
             xs.append(float(days_since))
             if e.value_numeric is not None:
                 ys.append(e.value_numeric)
@@ -146,7 +148,7 @@ class GoalService:
             return {}
         if goal.deadline is None:
             return {}
-        days_total = (goal.deadline - goal.created_at.date()).days
+        days_total = (goal.deadline - local_date(goal.created_at, tz)).days
         pi = prediction_interval(reg, float(days_total), confidence=0.80)
         if pi is None:
             return {}
@@ -163,15 +165,14 @@ class GoalService:
         }
 
 
-def _filter_today(entries: list[Measurement]) -> list[Measurement]:
-    today = datetime.now(timezone.utc).date()
-    return [e for e in entries if e.start_time.date() == today]
+def _filter_today(entries: list[Measurement], tz: tzinfo) -> list[Measurement]:
+    today = today_in_tz(tz)
+    return [e for e in entries if local_date(e.start_time, tz) == today]
 
 
-def _filter_this_week(entries: list[Measurement]) -> list[Measurement]:
-    today = datetime.now(timezone.utc).date()
-    monday = today - timedelta(days=today.weekday())
-    return [e for e in entries if e.start_time.date() >= monday]
+def _filter_this_week(entries: list[Measurement], tz: tzinfo) -> list[Measurement]:
+    monday = start_of_local_week(tz)
+    return [e for e in entries if local_date(e.start_time, tz) >= monday]
 
 
 def _extract_current_value(

@@ -3,6 +3,7 @@
   import { quantileRank } from '$lib/analytics/stats';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
+  import { dateStringInTz, userTimezone } from '$lib/utils/timezone';
 
   interface Props {
     metric: string;
@@ -32,7 +33,7 @@
       .between([m, start], [m, end])
       .each((item) => {
         if (!item.deleted_at && item.value_numeric != null) {
-          const d = item.start_time.slice(0, 10);
+          const d = dateStringInTz(item.start_time, userTimezone());
           const cur = daily.get(d) ?? -Infinity;
           daily.set(d, Math.max(cur, item.value_numeric));
         }
@@ -45,7 +46,7 @@
   let values = $derived([...(data?.values() ?? [])]);
 
   function getValue(d: Date): number | null {
-    const k = d.toISOString().slice(0, 10);
+    const k = dateStringInTz(d, userTimezone());
     return data?.get(k) ?? null;
   }
 

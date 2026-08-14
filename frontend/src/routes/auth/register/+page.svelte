@@ -26,7 +26,8 @@
     const res = await rawPost('/api/v1/auth/register', {
       username,
       password,
-      email: email.trim() || undefined
+      email: email.trim() || undefined,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
     const body = await res.json().catch(() => null);
     const data = res.ok ? (body as { token: string; user: Record<string, unknown> }) : null;
