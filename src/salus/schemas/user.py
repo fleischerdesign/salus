@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+    timezone: str | None = None
 
 
 class RegisterRequest(BaseModel):

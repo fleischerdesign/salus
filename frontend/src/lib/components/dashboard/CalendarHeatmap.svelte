@@ -95,7 +95,7 @@
     const v = getValue(d.date);
     const p = v != null ? percentile(v) : null;
     hovered = {
-      date: d.date.toISOString().slice(0, 10),
+      date: dateStringInTz(d.date, userTimezone()),
       dayOfMonth: d.date.toLocaleDateString('en', {
         weekday: 'short',
         month: 'short',
@@ -170,7 +170,7 @@
           if (e.key === 'Enter') goto(`/entries`);
         }}
       >
-        <title>{d.date.toISOString().slice(0, 10)}: {getValue(d.date) ?? 'No data'}</title>
+        <title>{dateStringInTz(d.date, userTimezone())}: {getValue(d.date) ?? 'No data'}</title>
       </rect>
     {/each}
   </svg>

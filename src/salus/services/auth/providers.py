@@ -31,7 +31,7 @@ class LdapAuthProvider:
         self._user_dn_template = user_dn_template
         self._use_tls = use_tls
 
-    def authenticate(self, username: str, password: str) -> User | None:
+    def authenticate(self, username: str, password: str, timezone: str | None = None) -> User | None:
         user_dn = self._user_dn_template.format(
             username=username, base_dn=self._base_dn
         )
@@ -41,6 +41,7 @@ class LdapAuthProvider:
                 provider="ldap",
                 provider_user_id=user_dn,
                 username=username,
+                timezone=timezone,
             )
         return None
 
@@ -80,9 +81,9 @@ class OidcAuthProvider:
             client_kwargs={"scope": "openid email profile"},
         )
 
-    def get_authorization_url(self, redirect_uri: str) -> str:
+    def get_authorization_url(self, redirect_uri: str, state: str | None = None) -> str:
         client = getattr(self._oauth, self.name)
-        return client.authorize_redirect(redirect_uri).url
+        return client.authorize_redirect(redirect_uri, state=state).url
 
     async def authenticate(self, request) -> User | None:
         client = getattr(self._oauth, self.name)
@@ -94,10 +95,13 @@ class OidcAuthProvider:
         provider_user_id = userinfo.get("sub", userinfo.get("email", ""))
         email = userinfo.get("email")
         name = userinfo.get("name", email)
+        state = token.get("state")
+        timezone = state if isinstance(state, str) and state else None
 
         return self._user_svc.register_with_identity(
             provider=self.name,
             provider_user_id=provider_user_id,
             email=email,
             display_name=name,
+            timezone=timezone,
         )

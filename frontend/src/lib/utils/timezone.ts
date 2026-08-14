@@ -57,12 +57,39 @@ function wallParts(tz: string, d: Date) {
   };
 }
 
+/** Offset (ms) of a timezone at a given instant. */
+function offsetMsAt(tz: string, at: Date): number {
+  const p = wallParts(tz, at);
+  const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  return asUTC - Math.floor(at.getTime() / 1000) * 1000;
+}
+
+/**
+ * Epoch (ms) of local midnight for a `YYYY-MM-DD` calendar date in a timezone.
+ *
+ * The wall-clock→epoch conversion is a fixed point (the offset is piecewise
+ * constant, changing only at DST transitions), so a couple of iterations resolve
+ * the exact midnight even across spring-forward/fall-back days.
+ */
+export function startOfLocalDayMs(dateStr: string, tz: string): number {
+  const asUTC = Date.parse(`${dateStr}T00:00:00Z`);
+  let epoch = asUTC;
+  for (let i = 0; i < 3; i++) {
+    epoch = asUTC - offsetMsAt(tz, new Date(epoch));
+  }
+  return epoch;
+}
+
 /** Millisecond epoch of local midnight (start of today) in a timezone. */
 export function startOfTodayMs(tz: string): number {
-  const now = new Date();
-  const p = wallParts(tz, now);
-  const nowSeconds = Math.floor(now.getTime() / 1000) * 1000;
-  const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
-  const offsetMs = asUTC - nowSeconds;
-  return Date.UTC(p.year, p.month - 1, p.day, 0, 0, 0) - offsetMs;
+  return startOfLocalDayMs(dateStringInTz(new Date(), tz), tz);
+}
+
+/** The local weekday (0=Monday … 6=Sunday) of an instant in a timezone. */
+export function weekdayInTz(value: Date, tz: string): number {
+  const dow = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    weekday: 'short'
+  }).format(value);
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(dow);
 }

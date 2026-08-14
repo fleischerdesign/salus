@@ -37,20 +37,20 @@ class AuthService:
         token = self._jwt.create_token(uid(user), user.username)
         return token, user
 
-    def login_ldap(self, username: str, password: str) -> tuple[str, User]:
+    def login_ldap(self, username: str, password: str, timezone: str | None = None) -> tuple[str, User]:
         if self._ldap is None:
             raise InvalidCredentialsError("LDAP not configured")
-        user = self._ldap.authenticate(username=username, password=password)
+        user = self._ldap.authenticate(username=username, password=password, timezone=timezone)
         if user is None:
             raise InvalidCredentialsError()
         token = self._jwt.create_token(uid(user), user.username)
         return token, user
 
-    def get_oidc_authorization_url(self, provider_name: str, redirect_uri: str) -> str:
+    def get_oidc_authorization_url(self, provider_name: str, redirect_uri: str, state: str | None = None) -> str:
         provider = self._oidc_providers.get(provider_name)
         if provider is None:
             raise ValueError(f"Unknown OIDC provider: {provider_name}")
-        return provider.get_authorization_url(redirect_uri)
+        return provider.get_authorization_url(redirect_uri, state=state)
 
     def get_oidc_provider(self, name: str) -> "OidcAuthProvider | None":
         return self._oidc_providers.get(name)

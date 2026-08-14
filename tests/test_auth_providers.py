@@ -75,6 +75,7 @@ class TestLdapAuthProvider:
             provider="ldap",
             provider_user_id="uid=testuser,dc=example,dc=com",
             username="testuser",
+            timezone=None,
         )
 
     def test_authenticate_failed_bind(self, mock_user_service):
@@ -173,7 +174,7 @@ class TestOidcAuthProvider:
 
             assert url == "https://provider.com/auth?state=xyz"
             mock_client.authorize_redirect.assert_called_once_with(
-                "http://localhost:8000/auth/callback"
+                "http://localhost:8000/auth/callback", state=None
             )
 
     @pytest.mark.asyncio
@@ -212,6 +213,7 @@ class TestOidcAuthProvider:
                 provider_user_id="google-123",
                 email="user@gmail.com",
                 display_name="Test User",
+                timezone=None,
             )
 
     @pytest.mark.asyncio
@@ -273,4 +275,40 @@ class TestOidcAuthProvider:
                 provider_user_id="fallback@example.com",
                 email="fallback@example.com",
                 display_name="fallback@example.com",
+                timezone=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_authenticate_passes_state_as_timezone(self, mock_user_service):
+        mock_request = MagicMock()
+        mock_token = MagicMock()
+        mock_token.get.side_effect = lambda key, default=None: {
+            "userinfo": {"sub": "google-123", "email": "u@gmail.com", "name": "U"},
+            "state": "Europe/Berlin",
+        }.get(key, default)
+
+        mock_client = MagicMock()
+        mock_client.authorize_access_token = AsyncMock(return_value=mock_token)
+
+        with patch(
+            "authlib.integrations.starlette_client.OAuth"
+        ) as MockOAuth:
+            MockOAuth.return_value = self._make_mock_oauth(mock_client)
+
+            provider = OidcAuthProvider(
+                name="google",
+                issuer_url="https://accounts.google.com",
+                client_id="client-id",
+                client_secret="client-secret",
+                user_service=mock_user_service,
+            )
+
+            await provider.authenticate(mock_request)
+
+            mock_user_service.register_with_identity.assert_called_once_with(
+                provider="google",
+                provider_user_id="google-123",
+                email="u@gmail.com",
+                display_name="U",
+                timezone="Europe/Berlin",
             )

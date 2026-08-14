@@ -4058,6 +4058,8 @@ export interface components {
         LoginRequest: {
             /** Password */
             password: string;
+            /** Timezone */
+            timezone?: string | null;
             /** Username */
             username: string;
         };
@@ -6733,7 +6735,9 @@ export interface operations {
     };
     api_oidc_authorize_api_v1_auth_oidc__provider__get: {
         parameters: {
-            query?: never;
+            query?: {
+                tz?: string | null;
+            };
             header?: never;
             path: {
                 provider: string;
@@ -6795,7 +6799,9 @@ export interface operations {
     };
     api_oidc_login_api_v1_auth_oidc__provider__login_get: {
         parameters: {
-            query?: never;
+            query?: {
+                tz?: string | null;
+            };
             header?: never;
             path: {
                 provider: string;

@@ -9,6 +9,7 @@ from salus.services.timezone import (
     resolve_timezone,
     start_of_local_day,
     today_in_tz,
+    tz_for,
 )
 
 
@@ -50,3 +51,34 @@ def test_local_day_range_is_dst_aware():
 def test_today_in_tz_matches_local_date_of_now():
     tz = ZoneInfo("UTC")
     assert today_in_tz(tz) == datetime.now(timezone.utc).date()
+
+
+def test_make_dt_converts_wall_clock_to_naive_utc():
+    from salus.services.medication import _make_dt
+
+    # 08:00 local in Berlin (UTC+2 in August) == 06:00 UTC.
+    assert _make_dt(date(2026, 8, 14), 8, 0, ZoneInfo("Europe/Berlin")) == datetime(
+        2026, 8, 14, 6, 0, 0
+    )
+
+
+def test_tz_for_resolves_user_timezone(db_engine):
+    from sqlmodel import Session
+
+    from salus.models.user import User
+
+    with Session(db_engine) as session:
+        user = User(username="tzuser", password_hash="x", timezone="Europe/Berlin")
+        session.add(user)
+        session.commit()
+        user_id = user.id
+
+    with Session(db_engine) as session:
+        assert str(tz_for(session, user_id)) == "Europe/Berlin"
+
+
+def test_tz_for_falls_back_to_utc_for_unknown_user(db_engine):
+    from sqlmodel import Session
+
+    with Session(db_engine) as session:
+        assert tz_for(session, "nonexistent") is timezone.utc

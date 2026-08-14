@@ -118,6 +118,7 @@ class UserService:
         username: str | None = None,
         email: str | None = None,
         display_name: str | None = None,
+        timezone: str | None = None,
     ) -> User:
         existing = self.uow.identities.get_by_provider_user_id(
             provider, provider_user_id
@@ -146,6 +147,7 @@ class UserService:
             password_hash=None,
             email=email,
             display_name=derived_display,
+            timezone=timezone or "UTC",
             is_admin=self._is_first_user(),
         )
         user = self.uow.users.create(user)

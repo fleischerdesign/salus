@@ -17,6 +17,7 @@
   import RadioGroup from '$components/ui/RadioGroup.svelte';
   import Avatar from '$components/ui/Avatar.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { userTimezone } from '$lib/utils/timezone';
 
   const PROVIDER_METADATA: Record<string, { displayName: string; path: string }> = {
     google: {
@@ -34,12 +35,11 @@
   };
 
   function getProviderMetadata(name: string) {
-    return (
-      PROVIDER_METADATA[name] || {
-        displayName: name.toUpperCase(),
-        path: `/api/v1/auth/oidc/${name}/login`
-      }
-    );
+    const meta = PROVIDER_METADATA[name] || {
+      displayName: name.toUpperCase(),
+      path: `/api/v1/auth/oidc/${name}/login`
+    };
+    return { ...meta, path: `${meta.path}?tz=${userTimezone()}` };
   }
 
   $effect(() => {

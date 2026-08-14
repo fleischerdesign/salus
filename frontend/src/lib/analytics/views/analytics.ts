@@ -3,7 +3,12 @@ import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import { AUTH_USER_KEY } from '$lib/constants';
 import { MS_PER_DAY } from '$lib/utils/datetime';
-import { dateStringInTz, userTimezone } from '$lib/utils/timezone';
+import {
+  dateStringInTz,
+  startOfLocalDayMs,
+  startOfTodayMs,
+  userTimezone
+} from '$lib/utils/timezone';
 import {
   benjaminiHochberg,
   bmrCunningham,
@@ -87,8 +92,7 @@ export const RANGE_KEYS = Object.keys(RANGE_DAYS);
 
 function computeAnalytics(measurements: Measurement[], rangeKey: string): AnalyticsResult {
   const days = RANGE_DAYS[rangeKey] ?? 30;
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  const cutoff = new Date(startOfTodayMs(userTimezone()) - days * MS_PER_DAY);
   const recent = measurements.filter((m) => new Date(m.start_time) >= cutoff && !m.deleted_at);
 
   const stepsTrend = computeSteps(recent);
@@ -292,8 +296,7 @@ function computeExercise(measurements: Measurement[]): Array<{
 
 export async function fetchAnalytics(rangeKey: string = '30d') {
   const days = RANGE_DAYS[rangeKey] ?? 30;
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  const cutoff = new Date(startOfTodayMs(userTimezone()) - days * MS_PER_DAY);
   const cutoffISO = cutoff.toISOString();
 
   const targetCodes = ['steps', 'weight', 'body_weight', 'sleep', 'exercise', 'resting_heart_rate'];
@@ -326,8 +329,7 @@ export async function fetchCorrelations(
     return { pairs: [], n_comparisons: 0, correction: 'Benjamini-Hochberg FDR' };
   }
   const days = RANGE_DAYS[rangeKey] ?? 90;
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  const cutoff = new Date(startOfTodayMs(userTimezone()) - days * MS_PER_DAY);
   const pivot = new Map<string, number[]>();
 
   await db.measurement
@@ -403,8 +405,7 @@ export interface TrendResult {
 export async function fetchTrend(metric: string, rangeKey: string = '90d') {
   if (!metric) return { values: [], labels: [], regression: null };
   const days = RANGE_DAYS[rangeKey] ?? 90;
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  const cutoff = new Date(startOfTodayMs(userTimezone()) - days * MS_PER_DAY);
   const cutoffISO = cutoff.toISOString();
 
   const dayMap = new Map<string, { sum: number; count: number }>();
@@ -451,11 +452,10 @@ export async function fetchTrend(metric: string, rangeKey: string = '90d') {
 }
 
 export async function fetchWellness(dateStr?: string) {
-  const target = dateStr ? new Date(dateStr) : new Date();
-  const since = new Date(target);
-  since.setDate(since.getDate() - 28);
-  const sinceISO = since.toISOString();
-  const untilISO = new Date(target.getTime() + MS_PER_DAY).toISOString();
+  const tz = userTimezone();
+  const targetMs = dateStr ? startOfLocalDayMs(dateStr, tz) : startOfTodayMs(tz);
+  const sinceISO = new Date(targetMs - 28 * MS_PER_DAY).toISOString();
+  const untilISO = new Date(targetMs + MS_PER_DAY).toISOString();
 
   const targetCodes = ['resting_heart_rate', 'heart_rate', 'steps', 'sleep'];
   const arrays = await Promise.all(

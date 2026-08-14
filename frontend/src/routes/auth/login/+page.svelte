@@ -13,6 +13,7 @@
 
   import { Capacitor } from '@capacitor/core';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
+  import { userTimezone } from '$lib/utils/timezone';
 
   let username = $state('');
   let password = $state('');
@@ -191,7 +192,11 @@
         <div class="flex flex-col gap-2">
           {#each authConfig.oidcProviders as provider}
             {@const meta = getProviderMetadata(provider)}
-            <Btn variant="secondary" fullWidth onclick={() => (window.location.href = meta.path)}>
+            <Btn
+              variant="secondary"
+              fullWidth
+              onclick={() => (window.location.href = `${meta.path}?tz=${userTimezone()}`)}
+            >
               <Icon name={meta.icon} />
               {meta.label}
             </Btn>

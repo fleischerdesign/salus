@@ -1,7 +1,7 @@
 # pyright: reportOptionalOperand=false
 import logging
 import secrets
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ from salus.models.sharing import (
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services._helpers import uid, make_handle, summarize_daily_values
 from salus.services.sharing.relationship import RelationshipService
-from salus.services.timezone import local_date, next_local_day_start, start_of_local_day, user_tz
+from salus.services.timezone import local_date, next_local_day_start, start_of_local_day, today_in_tz, user_tz
 
 logger = logging.getLogger("salus.services.leaderboard")
 
@@ -162,7 +162,7 @@ class LeaderboardService:
             if not member_check or member_check.status != "active":
                 raise ForbiddenError("You are not a member of this challenge group")
 
-            start_date, end_date = self._timeframe(group)
+            start_date, end_date = self._timeframe(group, user_tz(current_user))
 
             members = self.uow.leaderboard_members.find_by_group_id(group.id)
             active_members = [m for m in members if m.status == "active"]
@@ -196,19 +196,15 @@ class LeaderboardService:
                 "end_date": end_date,
             }
 
-    def _timeframe(self, group: LeaderboardGroup) -> tuple[date, date]:
-        now = datetime.now(timezone.utc)
+    def _timeframe(self, group: LeaderboardGroup, tz: tzinfo) -> tuple[date, date]:
+        today = today_in_tz(tz)
         if group.time_frame == "weekly":
-            start_date = (now - timedelta(days=WEEKLY_WINDOW_DAYS)).date()
+            start_date = today - timedelta(days=WEEKLY_WINDOW_DAYS)
         elif group.time_frame == "monthly":
-            start_date = (now - timedelta(days=MONTHLY_WINDOW_DAYS)).date()
+            start_date = today - timedelta(days=MONTHLY_WINDOW_DAYS)
         else:
-            start_date = (
-                group.start_date.date()
-                if group.start_date
-                else (now - timedelta(days=WEEKLY_WINDOW_DAYS)).date()
-            )
-        end_date = group.end_date.date() if group.end_date else now.date()
+            start_date = group.start_date.date() if group.start_date else today - timedelta(days=WEEKLY_WINDOW_DAYS)
+        end_date = group.end_date.date() if group.end_date else today
         return start_date, end_date
 
     def _score_local_member(

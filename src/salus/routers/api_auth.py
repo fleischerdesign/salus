@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from salus.config import settings
@@ -106,7 +106,7 @@ async def api_ldap(
     auth_svc: AuthService = Depends(get_auth_service),
 ):
     try:
-        token, user = auth_svc.login_ldap(username=body.username, password=body.password)
+        token, user = auth_svc.login_ldap(username=body.username, password=body.password, timezone=body.timezone)
     except InvalidCredentialsError:
         raise ApiError(code="ldap_failed", message="LDAP authentication failed", status_code=401)
 
@@ -119,11 +119,12 @@ async def api_ldap(
 async def api_oidc_authorize(
     provider: str,
     request: Request,
+    tz: str | None = Query(default=None),
     auth_svc: AuthService = Depends(get_auth_service),
 ):
     redirect_uri = str(request.url_for("oidc_callback", provider=provider))
     try:
-        auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri)
+        auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri, state=tz)
     except ValueError:
         raise ApiError(code="unknown_provider", message=f"Unknown provider: {provider}", status_code=404)
     return JSONResponse(content={"authorization_url": auth_url})
@@ -133,11 +134,12 @@ async def api_oidc_authorize(
 async def api_oidc_login(
     provider: str,
     request: Request,
+    tz: str | None = Query(default=None),
     auth_svc: AuthService = Depends(get_auth_service),
 ):
     redirect_uri = str(request.url_for("oidc_callback", provider=provider))
     try:
-        auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri)
+        auth_url = auth_svc.get_oidc_authorization_url(provider, redirect_uri, state=tz)
     except ValueError:
         raise ApiError(code="unknown_provider", message=f"Unknown provider: {provider}", status_code=404)
     return RedirectResponse(url=auth_url)
