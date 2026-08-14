@@ -35,6 +35,7 @@
 
   let restoreTarget = $state<string | null>(null);
   let deleteTarget = $state<string | null>(null);
+  let fileInput = $state<HTMLInputElement | null>(null);
 
   async function load() {
     error = '';
@@ -95,8 +96,6 @@
 
   async function uploadBackup(e: SubmitEvent) {
     e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement;
     if (!fileInput?.files?.[0]) {
       error = 'Select a file.';
       return;
@@ -167,6 +166,7 @@
           {#if passwordConfigured}
             <form onsubmit={uploadBackup} class="flex items-center gap-2">
               <input
+                bind:this={fileInput}
                 type="file"
                 accept=".enc"
                 class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700"

@@ -24,6 +24,8 @@
     class: extraClass = ''
   }: Props = $props();
 
+  let dateInput = $state<HTMLInputElement | null>(null);
+
   function handleDateInput(e: Event) {
     const input = e.target as HTMLInputElement;
     onDateChange?.(input.value);
@@ -49,20 +51,18 @@
     role="button"
     tabindex="0"
     onclick={() => {
-      const input = document.getElementById('daynav-hidden-date') as HTMLInputElement;
-      input?.showPicker();
+      dateInput?.showPicker();
     }}
     onkeydown={(e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        const input = document.getElementById('daynav-hidden-date') as HTMLInputElement;
-        input?.showPicker();
+        dateInput?.showPicker();
       }
     }}
   >
     {dateDisplay}
   </span>
-  <input id="daynav-hidden-date" type="date" class="sr-only" onchange={handleDateInput} />
+  <input bind:this={dateInput} type="date" class="sr-only" onchange={handleDateInput} />
 
   <button
     class="duration-micro flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors hover:bg-primary-50 hover:text-primary-600"

@@ -66,6 +66,8 @@
   let recipientName = $state('');
   let recipientPubkey = $state('');
   let shareRecipientId = $state('');
+  let shareDays = $state('30');
+  let shareExpireHours = $state('24');
   let shareResultUrl = $state('');
   let shareResultVisible = $state(false);
   let shareCreating = $state(false);
@@ -137,10 +139,8 @@
     shareCreating = true;
     shareResultVisible = false;
 
-    const form = e.target as HTMLFormElement;
-    const days = parseInt((form.querySelector('[name="share_days"]') as HTMLInputElement).value);
-    const expireHours =
-      parseInt((form.querySelector('[name="expire_hours"]') as HTMLInputElement).value) || null;
+    const days = parseInt(shareDays);
+    const expireHours = parseInt(shareExpireHours) || null;
 
     const recipient = recipients.find((r) => r.id === shareRecipientId);
     if (!recipient) {
@@ -401,10 +401,10 @@
         </FormField>
         <div class="grid grid-cols-2 gap-4">
           <FormField label="Days of Data">
-            <Input name="share_days" type="number" value={30} min={1} max={365} />
+            <Input name="share_days" type="number" bind:value={shareDays} min={1} max={365} />
           </FormField>
           <FormField label="Expiration (Hours)">
-            <Input name="expire_hours" type="number" value={24} min={1} />
+            <Input name="expire_hours" type="number" bind:value={shareExpireHours} min={1} />
           </FormField>
         </div>
         <Btn variant="primary" type="submit" size="sm" loading={shareCreating}
