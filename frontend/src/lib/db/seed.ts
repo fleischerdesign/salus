@@ -81,26 +81,37 @@ const data = reference as ReferenceData;
  * Seeds code-defined reference data into Dexie when the store is empty, so the
  * app renders its metric/achievement structure without a first full sync. A
  * subsequent full sync overwrites it (server is authoritative).
+ *
+ * Each reference table is seeded independently when it is empty, so tables
+ * added after an install's initial seed (e.g. lab markers) still get backfilled.
  */
 export async function seedReferenceData(): Promise<void> {
-  if ((await db.metric_definition.count()) > 0) return;
+  if ((await db.metric_definition.count()) === 0) {
+    await db.metric_group.bulkPut(data.metric_group);
+    await db.metric_definition.bulkPut(data.metric_definition);
+  }
+  if ((await db.achievement_definition.count()) === 0) {
+    await db.achievement_definition.bulkPut(data.achievement_definition);
+  }
+  if ((await db.mood_tag.count()) === 0) {
+    await db.mood_tag.bulkPut(data.mood_tag);
+  }
+  if ((await db.lab_marker.count()) === 0) {
+    await db.lab_marker.bulkPut(data.lab_marker);
+  }
 
-  await db.metric_group.bulkPut(data.metric_group);
-  await db.metric_definition.bulkPut(data.metric_definition);
-  await db.achievement_definition.bulkPut(data.achievement_definition);
-  await db.mood_tag.bulkPut(data.mood_tag);
-  await db.lab_marker.bulkPut(data.lab_marker);
-
-  const preferences = data.metric_preference_defaults.map((p) => ({
-    id: uuid7(),
-    user_id: SELF_USER_ID,
-    metric_code: p.code,
-    enabled: p.enabled,
-    color: p.color,
-    icon: p.icon,
-    widget_size: p.widget_size,
-    widget_enabled: p.widget_enabled,
-    position: p.position
-  }));
-  await db.user_metric_preference.bulkPut(preferences);
+  if ((await db.user_metric_preference.count()) === 0) {
+    const preferences = data.metric_preference_defaults.map((p) => ({
+      id: uuid7(),
+      user_id: SELF_USER_ID,
+      metric_code: p.code,
+      enabled: p.enabled,
+      color: p.color,
+      icon: p.icon,
+      widget_size: p.widget_size,
+      widget_enabled: p.widget_enabled,
+      position: p.position
+    }));
+    await db.user_metric_preference.bulkPut(preferences);
+  }
 }
