@@ -175,7 +175,7 @@
     {#if selections.length > 0}
       <div class="rounded-lg border border-surface-200 p-3">
         <div class="mb-2 flex items-center justify-between">
-          <h4 class="text-xs font-semibold tracking-wider text-surface-400 uppercase">Items</h4>
+          <h3 class="text-xs font-semibold tracking-wider text-surface-400 uppercase">Items</h3>
           <span class="text-xs font-medium text-surface-600">{Math.round(totalCalories)} kcal</span>
         </div>
         <div class="flex flex-col gap-2">

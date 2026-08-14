@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from '$components/ui/Icon.svelte';
+  import { theme } from '$stores/theme.svelte';
+  import { moodGradient } from '$lib/theme/scales';
 
   interface Props {
     score: number;
@@ -32,18 +34,6 @@
     'Amazing',
     'Fantastic'
   ];
-  const gradients = [
-    'from-red-500 to-red-400',
-    'from-red-400 to-orange-400',
-    'from-orange-400 to-amber-400',
-    'from-amber-400 to-yellow-400',
-    'from-yellow-400 to-lime-400',
-    'from-lime-400 to-emerald-400',
-    'from-emerald-400 to-teal-400',
-    'from-teal-400 to-cyan-400',
-    'from-cyan-400 to-blue-400',
-    'from-blue-400 to-indigo-400'
-  ];
 </script>
 
 <div class="space-y-4">
@@ -72,7 +62,7 @@
         <div class="text-sm font-semibold text-surface-800">{labels[score - 1]}</div>
         <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
           <div
-            class="h-full rounded-full bg-gradient-to-r {gradients[score - 1]}"
+            class="h-full rounded-full bg-gradient-to-r {moodGradient(score, theme.colorblind)}"
             style="width: {score * 10}%"
           ></div>
         </div>

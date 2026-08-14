@@ -129,9 +129,9 @@
       {/if}
     {:else if frequentItems.length > 0}
       <div>
-        <h3 class="mb-3 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+        <h2 class="mb-3 text-xs font-semibold tracking-wider text-surface-400 uppercase">
           All Items
-        </h3>
+        </h2>
         <div class="flex flex-wrap gap-2">
           {#each frequentItems as item (item.id)}
             <Chip variant="neutral">{item.name}</Chip>

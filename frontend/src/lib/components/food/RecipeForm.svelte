@@ -173,9 +173,9 @@
 
     {#if ingredients.length > 0}
       <div class="rounded-lg border border-surface-200 p-3">
-        <h4 class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+        <h3 class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
           Ingredients
-        </h4>
+        </h3>
         <div class="flex flex-col gap-2">
           {#each ingredients as ing (ing.foodItemId)}
             <div class="flex items-center gap-3 rounded-lg bg-surface-50 px-3 py-2">

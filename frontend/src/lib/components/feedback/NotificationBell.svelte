@@ -92,7 +92,7 @@
   <div class={menuClass}>
     <div class="flex items-center justify-between border-b border-surface-200 px-4 py-2.5">
       <div class="flex items-center gap-2">
-        <h4 class="text-sm font-semibold text-surface-900">Notifications</h4>
+        <h3 class="text-sm font-semibold text-surface-900">Notifications</h3>
         {#if unreadCount > 0}
           <span
             class="rounded-full bg-surface-100 px-1.5 py-0.5 text-[10px] font-bold text-surface-600"

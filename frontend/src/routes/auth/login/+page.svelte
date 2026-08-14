@@ -110,7 +110,7 @@
 <div class="flex min-h-[80vh] items-center justify-center">
   <Card variant="elevated">
     <div style="max-width:400px;width:340px">
-      <h2 class="mb-2 text-center text-3xl leading-[36px] font-bold text-surface-900">Sign In</h2>
+      <h1 class="mb-2 text-center text-3xl leading-[36px] font-bold text-surface-900">Sign In</h1>
       <p class="mb-8 text-center text-base text-surface-500">Access your health data dashboard</p>
 
       <!-- Server Host pill/expander for Native APK / Decentralized instances -->

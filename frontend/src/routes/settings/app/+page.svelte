@@ -391,7 +391,7 @@
       <div class="space-y-4 p-5">
         <div class="flex items-center justify-between">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Energiesparmodus</h5>
+            <p class="text-sm font-semibold text-surface-800">Energiesparmodus</p>
             <p class="text-xs text-surface-400">
               Synchronisationsintervall bei mobilen Daten reduzieren
             </p>
@@ -407,7 +407,7 @@
 
         <div class="flex items-center justify-between border-t border-surface-100 pt-4">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Vollsync ausführen</h5>
+            <p class="text-sm font-semibold text-surface-800">Vollsync ausführen</p>
             <p class="text-xs text-surface-400">Alle Daten frisch vom Server abgleichen</p>
           </div>
           <Btn variant="secondary" size="sm" loading={isResyncing} onclick={handleForceResync}>
@@ -425,7 +425,7 @@
       <div class="space-y-4 p-5">
         <div class="flex items-center justify-between">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Health-Connect-Import</h5>
+            <p class="text-sm font-semibold text-surface-800">Health-Connect-Import</p>
             <p class="text-xs text-surface-400">
               Erfolgsmeldung mit Anzahl importierter Datenpunkte anzeigen
             </p>
@@ -438,7 +438,7 @@
 
         <div class="flex items-center justify-between border-t border-surface-100 pt-4">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Manueller Cloud-Sync</h5>
+            <p class="text-sm font-semibold text-surface-800">Manueller Cloud-Sync</p>
             <p class="text-xs text-surface-400">
               Fortschrittsbalken und Bestätigung bei manuellem Sync
             </p>
@@ -451,7 +451,7 @@
 
         <div class="flex items-center justify-between border-t border-surface-100 pt-4">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Automatischer Hintergrund-Sync</h5>
+            <p class="text-sm font-semibold text-surface-800">Automatischer Hintergrund-Sync</p>
             <p class="text-xs text-surface-400">
               Meldungen bei automatischem Hintergrund-Sync und App-Start
             </p>
@@ -464,7 +464,7 @@
 
         <div class="flex items-center justify-between border-t border-surface-100 pt-4">
           <div>
-            <h5 class="text-sm font-semibold text-surface-800">Netzwerk-Status</h5>
+            <p class="text-sm font-semibold text-surface-800">Netzwerk-Status</p>
             <p class="text-xs text-surface-400">
               Hinweise bei Verbindungsverlust und Wiederverbindung
             </p>
@@ -546,7 +546,7 @@
         <div class="divide-y divide-surface-100 p-5">
           <div class="flex items-center justify-between pb-4">
             <div>
-              <h5 class="text-sm font-semibold text-surface-800">Biometrische Sperre</h5>
+              <p class="text-sm font-semibold text-surface-800">Biometrische Sperre</p>
               <p class="text-xs text-surface-400">
                 App-Zugriff per Fingerabdruck / FaceID schützen
               </p>
@@ -556,7 +556,7 @@
 
           <div class="flex items-center justify-between pt-4">
             <div>
-              <h5 class="text-sm font-semibold text-surface-800">Haptisches Feedback</h5>
+              <p class="text-sm font-semibold text-surface-800">Haptisches Feedback</p>
               <p class="text-xs text-surface-400">Vibration bei Trainingssätzen</p>
             </div>
             <Toggle checked={hapticsEnabled} onchange={toggleHaptics} />

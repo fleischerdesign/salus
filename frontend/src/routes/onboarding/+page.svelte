@@ -143,7 +143,7 @@
     <Card>
       <div class="py-8 text-center">
         <Icon name="celebration" size="2xl" class="text-success-500" />
-        <h2 class="mt-4 text-xl font-semibold text-surface-900">You're all set!</h2>
+        <h1 class="mt-4 text-xl font-semibold text-surface-900">You're all set!</h1>
         <p class="mt-2 text-sm text-surface-500">Start tracking your health data.</p>
         <div class="mt-6">
           <Btn variant="primary" onclick={dismiss}>Go to Dashboard</Btn>

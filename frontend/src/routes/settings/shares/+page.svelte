@@ -334,7 +334,7 @@
 
     <!-- 1. Register Recipient -->
     <div class="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">1. Register Recipient (Public Key)</h4>
+      <h2 class="mb-3 text-sm font-bold text-surface-900">1. Register Recipient (Public Key)</h2>
       <div class="mb-3 flex gap-2">
         <Btn variant="secondary" size="sm" onclick={generateKeyPair}>
           <Icon name="key" size="sm" />Generate Key Pair
@@ -363,7 +363,7 @@
 
     <!-- Registered Recipients -->
     <div class="mb-6 rounded-lg border border-surface-200 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">Registered Recipients</h4>
+      <h2 class="mb-3 text-sm font-bold text-surface-900">Registered Recipients</h2>
       {#if recipients.length > 0}
         <div class="space-y-2">
           {#each recipients as r}
@@ -389,7 +389,7 @@
 
     <!-- 2. Encrypt & Share -->
     <div class="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">2. Encrypt &amp; Share Data</h4>
+      <h2 class="mb-3 text-sm font-bold text-surface-900">2. Encrypt &amp; Share Data</h2>
       <form onsubmit={createShare} class="space-y-3">
         <FormField label="Recipient">
           <Select
@@ -430,7 +430,7 @@
 
     <!-- Active Shares -->
     <div class="rounded-lg border border-surface-200 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">Active Encrypted Share Links</h4>
+      <h2 class="mb-3 text-sm font-bold text-surface-900">Active Encrypted Share Links</h2>
       {#if shares.length > 0}
         <div class="space-y-2">
           {#each shares as s}
@@ -471,9 +471,9 @@
     </p>
 
     <div class="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">
+      <h2 class="mb-3 text-sm font-bold text-surface-900">
         1. Select Metrics &amp; Generalization
-      </h4>
+      </h2>
       <div class="space-y-4">
         <div>
           <p class="mb-2 text-xs font-semibold text-surface-500">Health Vitals to Share</p>
@@ -546,7 +546,7 @@
     </div>
 
     <div class="rounded-lg border border-surface-200 p-5">
-      <h4 class="mb-3 text-sm font-bold text-surface-900">2. Preview &amp; Donate Dataset</h4>
+      <h2 class="mb-3 text-sm font-bold text-surface-900">2. Preview &amp; Donate Dataset</h2>
       {#if scienceVisible && sciencePreview}
         <Textarea name="json_output" value={JSON.stringify(sciencePreview, null, 2)} rows={8} />
         <div class="mt-3 flex flex-wrap items-center justify-between gap-3">

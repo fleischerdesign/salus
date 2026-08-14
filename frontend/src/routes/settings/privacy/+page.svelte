@@ -23,13 +23,13 @@
         <Icon name="shield" size="sm" />
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-surface-900">Local First Policy</h3>
+        <h2 class="text-lg font-semibold text-surface-900">Local First Policy</h2>
         <p class="mt-2 text-sm leading-relaxed text-surface-500">
           Your health data stays on your device and server. No third-party analytics, no cloud
           intermediaries, and no telemetry unless you explicitly opt in.
         </p>
         <div class="mt-4 rounded-lg border border-surface-200 bg-surface-50 p-4">
-          <h4 class="text-sm font-semibold text-surface-700">Zero-Knowledge Protocol Assurance</h4>
+          <h3 class="text-sm font-semibold text-surface-700">Zero-Knowledge Protocol Assurance</h3>
           <p class="mt-1 text-sm text-surface-500">
             Medical shares use end-to-end encryption (AES-GCM + RSA-OAEP). Your private key never
             leaves your browser.

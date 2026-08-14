@@ -97,7 +97,7 @@
   {:else if advice}
     <Card>
       {#snippet header()}
-        <h2 class="text-lg font-semibold text-surface-900">24-Hour Circadian Alignment Timeline</h2>
+        <h3 class="text-lg font-semibold text-surface-900">24-Hour Circadian Alignment Timeline</h3>
         <p class="mt-1 text-xs text-surface-500">
           Visualizing solar phases alongside your actual habits.
         </p>
@@ -182,7 +182,7 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">Location & Chronotype</h2>
+            <h3 class="text-lg font-semibold text-surface-900">Location & Chronotype</h3>
           {/snippet}
           <form onsubmit={save} class="flex flex-col gap-4">
             <div class="grid grid-cols-2 gap-4">
@@ -209,7 +209,7 @@
       <div class="space-y-6">
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">Optimal Sleep Window</h2>
+            <h3 class="text-lg font-semibold text-surface-900">Optimal Sleep Window</h3>
           {/snippet}
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
@@ -236,7 +236,7 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">Light Exposure Scheduling</h2>
+            <h3 class="text-lg font-semibold text-surface-900">Light Exposure Scheduling</h3>
           {/snippet}
           <div class="-mx-4 divide-y divide-surface-100">
             {#each advice.light_advice as la, i}
@@ -262,7 +262,7 @@
 
         <Card>
           {#snippet header()}
-            <h2 class="text-lg font-semibold text-surface-900">Metabolic Window (Eating)</h2>
+            <h3 class="text-lg font-semibold text-surface-900">Metabolic Window (Eating)</h3>
           {/snippet}
           <div class="space-y-3">
             <div class="w-fit rounded-lg border border-teal-200 bg-teal-50 p-3">

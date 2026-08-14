@@ -51,9 +51,9 @@
 <div class="flex min-h-[80vh] items-center justify-center">
   <Card variant="elevated">
     <div style="max-width:400px;width:340px">
-      <h2 class="mb-2 text-center text-3xl leading-[36px] font-bold text-surface-900">
+      <h1 class="mb-2 text-center text-3xl leading-[36px] font-bold text-surface-900">
         Create Account
-      </h2>
+      </h1>
       <p class="mb-8 text-center text-base text-surface-500">Start tracking your health data</p>
 
       {#if error}
