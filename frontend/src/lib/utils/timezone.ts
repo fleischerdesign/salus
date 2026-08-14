@@ -84,12 +84,3 @@ export function startOfLocalDayMs(dateStr: string, tz: string): number {
 export function startOfTodayMs(tz: string): number {
   return startOfLocalDayMs(dateStringInTz(new Date(), tz), tz);
 }
-
-/** The local weekday (0=Monday … 6=Sunday) of an instant in a timezone. */
-export function weekdayInTz(value: Date, tz: string): number {
-  const dow = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    weekday: 'short'
-  }).format(value);
-  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(dow);
-}

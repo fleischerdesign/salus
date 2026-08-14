@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable, type IndexableType } from 'dexie';
+import Dexie, { type EntityTable } from 'dexie';
 import { uuid7 } from './uuid';
 import type {
   OutboxOp,
@@ -307,20 +307,21 @@ export class SalusDB extends Dexie {
 
   /**
    * Resolves "not soft-deleted" records. Rows are either deleted
-   * (deleted_at set) or not (deleted_at is '' or null after sync).
+   * (deleted_at set to a timestamp) or not (deleted_at is null or '' after sync).
+   *
+   * Uses a full-table filter rather than a `deleted_at` index query: IndexedDB
+   * does not index `null`, so "deleted_at IS NULL" is unreachable via an index
+   * and the only correct query is a scan. Use it only on small tables —
+   * high-volume time-series (db.measurement) must keep the composite-index
+   * cursor-streaming pattern instead.
    *
    * Returns a Dexie `Collection`, so it only supports full-table reads
    * (`.toArray()`/`.each()`); it does NOT compose with a further
    * `.where()`/`.equals()` chain. For field-filtered queries, keep the
-   * `.where(...).filter((x) => !x.deleted_at)` form. Requires a
-   * `deleted_at` index on the target table.
+   * `.where(...).filter((x) => !x.deleted_at)` form.
    */
   notDeleted<T extends { id: string; deleted_at?: string | null }>(table: EntityTable<T, 'id'>) {
-    return table
-      .where('deleted_at')
-      .equals('')
-      .or('deleted_at')
-      .equals(null as unknown as IndexableType);
+    return table.filter((x) => !x.deleted_at);
   }
 }
 
