@@ -58,7 +58,7 @@
   }
 </script>
 
-<svelte:window onclick={handleOutsideClick} onkeydown={handleKeydown} />
+<svelte:document onclick={handleOutsideClick} onkeydown={handleKeydown} />
 
 <div class="relative {extraClass}" bind:this={containerEl}>
   <button

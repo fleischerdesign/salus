@@ -19,13 +19,13 @@ describe('BrowserNetworkProvider', () => {
     const provider = new BrowserNetworkProvider();
     const unsubscribe = provider.onChange(() => {});
 
-    expect(addSpy).toHaveBeenCalledWith('online', expect.any(Function));
-    expect(addSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+    expect(addSpy).toHaveBeenCalledWith('online', expect.any(Function), expect.anything());
+    expect(addSpy).toHaveBeenCalledWith('offline', expect.any(Function), expect.anything());
 
     unsubscribe();
 
-    expect(removeSpy).toHaveBeenCalledWith('online', expect.any(Function));
-    expect(removeSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith('online', expect.any(Function), expect.anything());
+    expect(removeSpy).toHaveBeenCalledWith('offline', expect.any(Function), expect.anything());
 
     vi.unstubAllGlobals();
   });

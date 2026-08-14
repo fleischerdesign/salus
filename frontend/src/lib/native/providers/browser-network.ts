@@ -1,3 +1,4 @@
+import { on } from 'svelte/events';
 import type { INetworkProvider } from '../types';
 
 export class BrowserNetworkProvider implements INetworkProvider {
@@ -8,14 +9,12 @@ export class BrowserNetworkProvider implements INetworkProvider {
   onChange(callback: (online: boolean) => void): () => void {
     if (typeof window === 'undefined') return () => {};
 
-    const onOnline = () => callback(true);
-    const onOffline = () => callback(false);
-    window.addEventListener('online', onOnline);
-    window.addEventListener('offline', onOffline);
+    const offOnline = on(window, 'online', () => callback(true));
+    const offOffline = on(window, 'offline', () => callback(false));
 
     return () => {
-      window.removeEventListener('online', onOnline);
-      window.removeEventListener('offline', onOffline);
+      offOnline();
+      offOffline();
     };
   }
 }

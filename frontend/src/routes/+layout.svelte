@@ -13,6 +13,7 @@
   import { db } from '$lib/db/database';
   import { setLocaleState } from '$lib/api/headers';
   import { onMount } from 'svelte';
+  import { on } from 'svelte/events';
   import Icon from '$components/ui/Icon.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import AlertBanner from '$components/ui/AlertBanner.svelte';
@@ -103,13 +104,11 @@
     }
 
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data?.type === 'SALUS_UPDATE_AVAILABLE') {
+      return on(navigator.serviceWorker, 'message', (event) => {
+        if ((event as MessageEvent).data?.type === 'SALUS_UPDATE_AVAILABLE') {
           updateService.setUpdatePending(true);
         }
-      };
-      navigator.serviceWorker.addEventListener('message', handleMessage);
-      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+      });
     }
   });
 
@@ -171,7 +170,7 @@
   }
 </script>
 
-<svelte:window
+<svelte:document
   onfocusin={updateFocusState}
   onfocusout={updateFocusState}
   onvisibilitychange={handleVisibilityChange}

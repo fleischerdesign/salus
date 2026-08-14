@@ -21,9 +21,18 @@ class MockEventSource {
     this.listeners[type].push(listener);
   }
 
+  removeEventListener(type: string, listener: EventListener) {
+    const listeners = this.listeners[type];
+    if (!listeners) return;
+    const idx = listeners.indexOf(listener);
+    if (idx !== -1) listeners.splice(idx, 1);
+  }
+
   dispatchEvent(type: string) {
+    const event = new Event(type);
+    Object.defineProperty(event, 'target', { value: this });
     for (const fn of this.listeners[type] || []) {
-      fn(new Event(type));
+      fn(event);
     }
   }
 
