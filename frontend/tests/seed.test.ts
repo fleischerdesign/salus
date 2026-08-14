@@ -21,6 +21,12 @@ describe('seedReferenceData', () => {
     const steps = await db.metric_definition.get('steps');
     expect(steps?.data_type).toBe('number');
     expect(steps?.source_data_type).toBe('steps');
+
+    const labDefs = await db.metric_definition
+      .where('group_key')
+      .equals('laboratory')
+      .toArray();
+    expect(labDefs.length).toBeGreaterThan(0);
   });
 
   it('backfills reference tables for existing installs', async () => {

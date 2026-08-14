@@ -303,6 +303,9 @@ export class SalusDB extends Dexie {
     this.version(25).stores({
       data_quality_flag: 'id, user_id, kind, measurement_id, created_at'
     });
+    this.version(26).stores({
+      metric_definition: 'code, name, source_data_type, group_key'
+    });
   }
 
   /**
