@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Check that backend ENTITY_META matches frontend TABLE_NAMES and types."""
+"""Check that backend ENTITY_META matches frontend types and Dexie stores.
+
+The frontend discovers entity names dynamically via ``/api/v1/sync/entities``
+(no hardcoded fallback list), so the static artifacts to keep in sync are the
+TypeScript interfaces (``types.ts``) and the Dexie stores (``database.ts``).
+"""
 import re
 import sys
 from pathlib import Path
@@ -11,17 +16,6 @@ def parse_entity_meta_names() -> frozenset[str]:
     meta = (ROOT / "src" / "salus" / "repositories" / "entity_meta.py").read_text()
     names = re.findall(r'name="([^"]+)"', meta)
     return frozenset(names)
-
-
-def parse_frontend_table_names() -> frozenset[str]:
-    info = (ROOT / "frontend" / "src" / "lib" / "db" / "entity-info.ts").read_text()
-    match = re.search(
-        r"HARDCODED_FALLBACK.*?=.*?new\s+Set\(\[\s*(.*?)\s*\]\)",
-        info, re.DOTALL,
-    )
-    if not match:
-        return frozenset()
-    return frozenset(re.findall(r"'([^']+)'", match.group(1)))
 
 
 def parse_types_interface_names() -> frozenset[str]:
@@ -52,7 +46,6 @@ def main() -> int:
     errors = 0
 
     backend = parse_entity_meta_names()
-    frontend = parse_frontend_table_names()
     types = parse_types_interface_names()
     stores = parse_database_store_names()
 
@@ -60,20 +53,9 @@ def main() -> int:
 
     print(f"ENTITY_META (backend):  {len(backend)} entities")
     print(f"special entities:       {len(SPECIAL_ENTITIES)} entities")
-    print(f"TABLE_NAMES (frontend): {len(frontend)} entities")
     print(f"interfaces (types.ts):  {len(types)} interfaces")
     print(f"stores (database.ts):   {len(stores)} stores")
     print()
-
-    in_backend_not_frontend = all_backend - frontend
-    for name in sorted(in_backend_not_frontend):
-        print(f"  ERROR: '{name}' in backend but NOT in frontend fallback list")
-        errors += 1
-
-    in_frontend_not_backend = frontend - all_backend
-    for name in sorted(in_frontend_not_backend):
-        print(f"  ERROR: '{name}' in frontend fallback but NOT in backend")
-        errors += 1
 
     for name in sorted(all_backend):
         pascal = snake_to_pascal(name)

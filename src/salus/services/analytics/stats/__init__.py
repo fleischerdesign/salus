@@ -99,7 +99,6 @@ __all__ = [
     "fatigue_emwa",
     "Fatigue",
     "FDR",
-    "FDR",
     "Forecast",
     "hr_max_tanaka",
     "hrr_pct",
