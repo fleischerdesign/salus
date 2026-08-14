@@ -73,7 +73,15 @@ async function applyOptimistic(m: Mutation): Promise<void> {
   const table = m.kind === 'crud' ? m.entity : m.optimisticTable;
   const data = m.kind === 'crud' ? m.optimistic : m.optimisticData;
   if (table && data) {
-    await db.table(table).put(data);
+    const id = (data as { id?: string }).id;
+    if (id != null) {
+      // Optimistic data is often a partial update (e.g. `{ id, ended_at }`); merge
+      // it into the existing row instead of replacing the whole record.
+      const existing = await db.table(table).get(id);
+      await db.table(table).put(existing ? { ...existing, ...data } : data);
+    } else {
+      await db.table(table).put(data);
+    }
   }
 }
 

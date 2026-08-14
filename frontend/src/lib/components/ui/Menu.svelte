@@ -46,26 +46,19 @@
   }
 
   function handleOutsideClick(e: MouseEvent) {
+    if (!open) return;
     if (containerEl && !containerEl.contains(e.target as Node)) {
       close();
     }
   }
 
   function handleKeydown(e: KeyboardEvent) {
+    if (!open) return;
     if (e.key === 'Escape') close();
   }
-
-  $effect(() => {
-    if (open) {
-      document.addEventListener('click', handleOutsideClick);
-      document.addEventListener('keydown', handleKeydown);
-      return () => {
-        document.removeEventListener('click', handleOutsideClick);
-        document.removeEventListener('keydown', handleKeydown);
-      };
-    }
-  });
 </script>
+
+<svelte:window onclick={handleOutsideClick} onkeydown={handleKeydown} />
 
 <div class="relative {extraClass}" bind:this={containerEl}>
   <button

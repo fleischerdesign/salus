@@ -66,6 +66,43 @@ describe('mutate', () => {
       expect(mockSyncEngine.enqueueOutbox).toHaveBeenCalledOnce();
     });
 
+    it('merges partial optimistic updates into the existing row', async () => {
+      mockSyncEngine.flushSingle.mockResolvedValueOnce({ ok: true });
+      await db.outbox.clear();
+      await db.measurement.put({
+        id: 'uid-test-1',
+        user_id: 'u',
+        metric_code: 'weight',
+        source_data_type: 'weight',
+        source: 'manual',
+        value_numeric: 70,
+        value_text: null,
+        value_json: null,
+        start_time: '2026-08-14T08:00:00Z',
+        end_time: null,
+        notes: null,
+        external_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: null,
+        deleted_at: null
+      });
+
+      const result = await mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'measurement',
+        id: 'uid-test-1',
+        optimistic: { id: 'uid-test-1', value_numeric: 75 },
+        data: { value_numeric: 75 }
+      });
+
+      expect(result.ok).toBe(true);
+      const row = await db.measurement.get('uid-test-1');
+      expect(row?.value_numeric).toBe(75);
+      expect(row?.source_data_type).toBe('weight');
+      expect(row?.start_time).toBe('2026-08-14T08:00:00Z');
+    });
+
     it('enqueues conflict on conflict response', async () => {
       mockSyncEngine.flushSingle.mockResolvedValueOnce({ ok: false, conflict: true, error: 'Conflict' });
 

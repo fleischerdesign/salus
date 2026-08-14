@@ -50,6 +50,24 @@
     setUserTimezone(userProfile?.timezone);
   });
 
+  function updateFocusState() {
+    const activeEl = document.activeElement;
+    const isInputFocused =
+      activeEl &&
+      (activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.getAttribute('contenteditable') === 'true');
+    updateService.setIsDirty(Boolean(isInputFocused));
+  }
+
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      updateService.triggerSafeReload();
+    } else if (document.visibilityState === 'visible') {
+      biometricLock.enforce().catch(() => {});
+    }
+  }
+
   // ── Reactive Guards Integration for PWA Auto-Reload ──
 
   const activeSessionsQuery = useQuery(() =>
@@ -64,26 +82,6 @@
 
   $effect(() => {
     updateService.setIsSyncing(syncEngine.status !== 'idle');
-  });
-
-  $effect(() => {
-    if (typeof document === 'undefined') return;
-    const updateFocusState = () => {
-      const activeEl = document.activeElement;
-      const isInputFocused =
-        activeEl &&
-        (activeEl.tagName === 'INPUT' ||
-          activeEl.tagName === 'TEXTAREA' ||
-          activeEl.getAttribute('contenteditable') === 'true');
-      updateService.setIsDirty(Boolean(isInputFocused));
-    };
-
-    document.addEventListener('focusin', updateFocusState);
-    document.addEventListener('focusout', updateFocusState);
-    return () => {
-      document.removeEventListener('focusin', updateFocusState);
-      document.removeEventListener('focusout', updateFocusState);
-    };
   });
 
   // ── Auth bootstrap & SW Update Listener ──
@@ -120,21 +118,6 @@
   beforeNavigate(() => {
     updateService.triggerSafeReload();
   });
-
-  $effect(() => {
-    if (typeof document === 'undefined') return;
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        updateService.triggerSafeReload();
-      } else if (document.visibilityState === 'visible') {
-        biometricLock.enforce().catch(() => {});
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  });
-
-  // ── Locale from Dexie (updates reactive, persists to localStorage for headers.ts) ──
 
   $effect(() => {
     if (userProfile) {
@@ -187,6 +170,12 @@
     await goto('/auth/login');
   }
 </script>
+
+<svelte:window
+  onfocusin={updateFocusState}
+  onfocusout={updateFocusState}
+  onvisibilitychange={handleVisibilityChange}
+/>
 
 {#if isPublic}
   <div class="flex min-h-screen items-center justify-center bg-surface-50 p-4">

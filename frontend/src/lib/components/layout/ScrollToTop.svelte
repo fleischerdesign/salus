@@ -19,12 +19,9 @@
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  $effect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  });
 </script>
+
+<svelte:window onscroll={handleScroll} />
 
 {#if visible}
   <button
