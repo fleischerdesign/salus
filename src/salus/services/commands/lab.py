@@ -87,8 +87,11 @@ def _out_of_range(
     return False
 
 
-def _measurement_for_result(result: LabResult, start_time: datetime) -> Measurement:
+def _measurement_for_result(
+    result: LabResult, start_time: datetime, measurement_id: str | None = None
+) -> Measurement:
     return Measurement(
+        id=measurement_id,
         user_id=result.user_id,
         metric_code=result.metric_code,
         source_data_type=LAB_SOURCE,
@@ -131,7 +134,9 @@ class CreateLabPanelHandler:
         for raw in payload.get("results", []):
             result = _resolve_result(uow, user_id, panel.id or "", collection_date, raw)
             uow.lab_results.add(result)
-            uow.measurements.add(_measurement_for_result(result, start_time))
+            uow.measurements.add(
+                _measurement_for_result(result, start_time, raw.get("measurement_id"))
+            )
 
         uow.commit()
         uow.session.refresh(panel)
@@ -176,7 +181,9 @@ class UpdateLabPanelHandler:
             for raw in payload.get("results", []):
                 result = _resolve_result(uow, user_id, panel_id, panel.collection_date, raw)
                 uow.lab_results.add(result)
-                uow.measurements.add(_measurement_for_result(result, start_time))
+                uow.measurements.add(
+                    _measurement_for_result(result, start_time, raw.get("measurement_id"))
+                )
 
         uow.commit()
         uow.session.refresh(panel)

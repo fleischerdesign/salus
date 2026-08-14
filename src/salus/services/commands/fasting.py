@@ -36,8 +36,11 @@ def _now_utc() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-def _session_measurement(session: FastingSession, hours: float) -> Measurement:
+def _session_measurement(
+    session: FastingSession, hours: float, measurement_id: str | None = None
+) -> Measurement:
     return Measurement(
+        id=measurement_id,
         user_id=session.user_id,
         metric_code=FASTING_METRIC_CODE,
         source_data_type=FASTING_SOURCE,
@@ -114,7 +117,9 @@ class EndFastingSessionHandler:
         uow.fasting_sessions.add(session)
 
         hours = (session.ended_at - session.started_at).total_seconds() / 3600.0
-        uow.measurements.add(_session_measurement(session, hours))
+        uow.measurements.add(
+            _session_measurement(session, hours, payload.get("measurement_id"))
+        )
 
         uow.commit()
         uow.session.refresh(session)
