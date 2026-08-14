@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { resize } from '$lib/actions/resize';
+
   interface ChartSeries {
     label: string;
     data: number[];
@@ -33,7 +35,10 @@
   const tickCount = 4;
 
   let width = $state(800);
-  let containerEl: HTMLDivElement | null = $state(null);
+
+  function handleResize(newWidth: number) {
+    width = newWidth;
+  }
 
   const chartW = $derived(width - padLeft - padRight);
   const chartH = $derived(height - padTop - padBottom);
@@ -114,23 +119,9 @@
   let labelStep = $derived(labels.length > 12 ? Math.ceil(labels.length / 8) : 1);
 
   let gradientId = `linechart-grad-${Math.random().toString(36).slice(2, 9)}`;
-
-  const ro = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      width = entry.contentRect.width;
-    }
-  });
-
-  $effect(() => {
-    if (containerEl) {
-      width = containerEl.clientWidth;
-      ro.observe(containerEl);
-      return () => ro.disconnect();
-    }
-  });
 </script>
 
-<div bind:this={containerEl} class="relative w-full">
+<div use:resize={handleResize} class="relative w-full">
   <svg {width} {height} viewBox="0 0 {width} {height}" preserveAspectRatio="none">
     <defs>
       {#each series as s, i}

@@ -12,6 +12,7 @@
   import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
   import { exportDatabase, importDatabase } from '$lib/db/export-import';
+  import { downloadBlob } from '$lib/utils/download';
   import { theme, type ThemeMode, ACCENT_HUES } from '$stores/theme.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import HueRing from '$components/ui/HueRing.svelte';
@@ -186,12 +187,7 @@
     try {
       const json = await exportDatabase();
       const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `salus-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `salus-backup-${new Date().toISOString().slice(0, 10)}.json`);
       storageMessage = { type: 'success', text: 'Backup exportiert.' };
     } catch {
       storageMessage = { type: 'error', text: 'Export fehlgeschlagen.' };

@@ -16,6 +16,7 @@
   import AlertBanner from '$components/ui/AlertBanner.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { downloadBlob } from '$lib/utils/download';
 
   /* ── Crypto utilities ── */
   function formatAsPem(binary: ArrayBuffer, label: string): string {
@@ -103,12 +104,7 @@
       recipientPubkey = formatAsPem(exportedPub, 'PUBLIC KEY');
       const exportedPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
       const blob = new Blob([JSON.stringify(exportedPriv, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `salus_gp_key_${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `salus_gp_key_${Date.now()}.json`);
       error = '';
       success = 'Keys generated. Public key filled in form. Private key downloaded.';
     } catch (e: unknown) {
@@ -269,12 +265,7 @@
   function downloadJSON() {
     if (!sciencePreview) return;
     const blob = new Blob([JSON.stringify(sciencePreview, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `salus_synthetic_data_${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `salus_synthetic_data_${Date.now()}.json`);
   }
 
   function downloadCSV() {
@@ -289,12 +280,7 @@
       csv += `${r.week_start},${r.metric_type},${r.value_numeric}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `salus_synthetic_data_${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `salus_synthetic_data_${Date.now()}.csv`);
   }
 
   function donate() {
