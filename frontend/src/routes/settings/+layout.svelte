@@ -16,7 +16,8 @@
     { key: 'app', label: 'App & System', icon: 'smartphone' },
     { key: 'privacy', label: 'Privacy', icon: 'shield' },
     { key: 'shares', label: 'Shares', icon: 'share' },
-    { key: 'sources', label: 'Data Sources', icon: 'devices' }
+    { key: 'sources', label: 'Data Sources', icon: 'devices' },
+    { key: 'data-quality', label: 'Datenqualität', icon: 'health-and-safety' }
   ];
 
   let activeTab = $derived(

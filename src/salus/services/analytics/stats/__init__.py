@@ -37,6 +37,7 @@ from salus.services.analytics.stats._stats import (
     rolling_zscore,
     std,
     variance,
+    zscore_vs_baseline,
 )
 from salus.services.analytics.stats._regression import (
     linear_regression,
@@ -144,4 +145,5 @@ __all__ = [
     "variance",
     "xorshift64",
     "yule_walker_ar1",
+    "zscore_vs_baseline",
 ]

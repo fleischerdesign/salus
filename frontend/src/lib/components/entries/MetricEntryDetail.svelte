@@ -30,6 +30,7 @@
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import Pagination from '$components/ui/Pagination.svelte';
   import MetricSettingsModal from '$components/forms/MetricSettingsModal.svelte';
+  import { boundHint } from '$lib/utils/bounds';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
 
@@ -96,6 +97,17 @@
   let saving = $state(false);
   let entryToDelete = $state<Entry | null>(null);
   let deleteDialogOpen = $state(false);
+
+  const flagsQuery = useQuery(() => db.data_quality_flag.toArray());
+  const flaggedIds = $derived.by(() => {
+    const ids = new Set<string>();
+    for (const f of flagsQuery.value ?? []) {
+      if (f.measurement_id) ids.add(f.measurement_id);
+    }
+    return ids;
+  });
+
+  const valueHint = $derived(boundHint(entryValue, metric));
 
   function toDatetimeLocal(ts: string): string {
     const dt = new Date(ts);
@@ -337,6 +349,14 @@
                         >{displayValue(e)}</span
                       >{#if metric.unit}<span class="text-xs text-surface-400">{metric.unit}</span
                         >{/if}
+                      {#if flaggedIds.has(e.id)}
+                        <Icon
+                          name="warning"
+                          size="sm"
+                          class="ml-1 shrink-0 text-warning-500"
+                          ariaHidden={false}
+                        />
+                      {/if}
                     </div>
                     <p class="mt-0.5 truncate text-xs text-surface-500">
                       {formatDate(e.start_time)}{#if e.notes}<span class="italic">
@@ -380,6 +400,12 @@
     <FormField label="Value" required
       ><Input name="value" bind:value={entryValue} required /></FormField
     >
+    {#if valueHint}
+      <p class="flex items-center gap-1 text-sm text-warning-600">
+        <Icon name="info" size="sm" />
+        {valueHint}
+      </p>
+    {/if}
     <FormField label="Timestamp"
       ><Input name="timestamp" type="datetime-local" bind:value={entryTimestamp} /></FormField
     >

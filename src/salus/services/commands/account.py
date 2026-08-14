@@ -6,6 +6,7 @@ from typing import Any, TYPE_CHECKING
 import bcrypt
 
 from salus.models.api_token import ApiToken
+from salus.repositories.entity_meta import SAFE_PROFILE_FIELDS
 from salus.services.command_registry import CommandResult, register
 from salus.services.password import hash_password, verify_password
 
@@ -82,18 +83,9 @@ class RevokeTokenHandler:
 
 @register("update_profile")
 class UpdateProfileHandler:
-    _SAFE_FIELDS = {
-        "theme",
-        "locale",
-        "display_name",
-        "onboarding_dismissed",
-        "colorblind",
-        "accent_hue",
-    }
-
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         for key, value in payload.items():
-            if key in self._SAFE_FIELDS:
+            if key in SAFE_PROFILE_FIELDS:
                 setattr(user, key, value)
         uow.users.update(user)
         uow.commit()
@@ -104,5 +96,8 @@ class UpdateProfileHandler:
             "theme": user.theme, "locale": user.locale,
             "colorblind": user.colorblind, "accent_hue": user.accent_hue,
             "onboarding_dismissed": user.onboarding_dismissed,
+            "dq_notify_hard_bound": user.dq_notify_hard_bound,
+            "dq_notify_cross_source": user.dq_notify_cross_source,
+            "dq_notify_anomaly": user.dq_notify_anomaly,
         }
         return CommandResult(status="updated", record=record, id=user.id)  # pyright: ignore[reportArgumentType]

@@ -7,11 +7,12 @@ class TestAchievementRoutes:
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
-        if len(data) > 0:
-            for a in data:
-                assert "code" in a
-                assert "title" in a
-                assert "tier" in a
+        assert len(data) > 0
+        for a in data:
+            assert "achievement" in a
+            assert "code" in a["achievement"]
+            assert "title" in a["achievement"]
+            assert "tier" in a["achievement"]
 
     def test_unlocked_empty_for_new_user(self, authenticated_client):
         resp = authenticated_client.get("/api/v1/achievements/unlocked")

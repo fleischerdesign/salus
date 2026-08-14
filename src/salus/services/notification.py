@@ -1,6 +1,6 @@
 import logging
 from salus.exceptions import NotFoundError
-from salus.models.notification import Notification
+from salus.models.notification import Notification, NotificationCategory
 from salus.repositories.unit_of_work import IUnitOfWork
 
 logger = logging.getLogger("salus.services.notification")
@@ -11,7 +11,7 @@ class NotificationService:
         self.uow = uow
 
     def create_notification(
-        self, user_id: str, title: str, message: str, category: str = "system"
+        self, user_id: str, title: str, message: str, category: str = NotificationCategory.SYSTEM
     ) -> Notification:
         with self.uow:
             # Check user exists

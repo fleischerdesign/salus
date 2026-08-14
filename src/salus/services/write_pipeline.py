@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
+import logging
 from typing import Any
 
 from sqlmodel import Session
-
 from salus.models.sync_push_log import SyncPushLog
 from salus.models.user import User
 from salus.repositories.entity_meta import (
+    ENTITY_AFTER_WRITE,
     ENTITY_META_BY_NAME,
     ENTITY_REGISTRY,
     ENTITY_VALIDATORS,
@@ -153,6 +154,7 @@ class WritePipeline:
             status=result.status,
             record=result.record,
             message=result.message,
+            extra=result.extra,
         )
 
     def _inject_user_id(self, meta: EntityMeta, data: dict[str, Any]) -> dict[str, Any]:
@@ -189,6 +191,17 @@ class WritePipeline:
             record_id=record_id,
             status=status,
         ))
+
+    def _run_after_write_hooks(self, entity: str, instance: Any, op_type: str) -> None:
+        hook = ENTITY_AFTER_WRITE.get(entity)
+        if hook is None:
+            return
+        try:
+            hook(self.session, self.user, instance, op_type)
+        except Exception:
+            logging.getLogger("salus.write_pipeline").exception(
+                "after-write hook for '%s' failed", entity
+            )
 
     def _check_ownership(self, instance: Any, meta: EntityMeta | None = None) -> bool:
 
@@ -235,6 +248,8 @@ class WritePipeline:
         if op.client_id and record_id is not None:
             client_id_map[op.client_id] = record_id
             self._log_dedup(op.client_id, op.entity or "", record_id, "created")
+
+        self._run_after_write_hooks(op.entity or "", instance, "create")
 
         return SyncResult(
             type=op.type, entity=op.entity or "", client_id=op.client_id,
@@ -290,6 +305,8 @@ class WritePipeline:
 
         if op.client_id and op.id is not None:
             self._log_dedup(op.client_id, op.entity or "", op.id, "updated")
+
+        self._run_after_write_hooks(op.entity or "", instance, "update")
 
         return SyncResult(
             type=op.type, entity=op.entity or "", id=op.id, status="updated",

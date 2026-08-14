@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     backup_webdav_password: str | None = None
     backup_retention_days: int = 14
 
+    data_quality_recheck_interval_hours: int = 6
+    data_quality_cleanup_interval_hours: int = 24
+
     model_config = {"env_prefix": "SALUS_"}
 
     @property

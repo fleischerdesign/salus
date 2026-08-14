@@ -24,6 +24,7 @@ class SyncResult(BaseModel):
     conflict: dict[str, Any] | None = None
     message: str | None = None
     command: str | None = None
+    extra: dict[str, Any] | None = Field(default=None, description="Additional command result data")
 
 
 class SyncPushRequest(BaseModel):

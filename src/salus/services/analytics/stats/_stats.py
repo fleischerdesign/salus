@@ -84,3 +84,21 @@ def rolling_zscore(xs: list[float], window: int) -> list[float | None]:
         if r_mean[i] is not None and r_std[i] is not None and r_std[i] != 0:
             result[i] = (xs[i] - r_mean[i]) / r_std[i]  # type: ignore[operator]
     return result
+
+
+def zscore_vs_baseline(xs: list[float], window: int) -> list[float | None]:
+    """Z-score of each point against the *preceding* ``window`` points.
+
+    Unlike ``rolling_zscore`` (whose window includes the current point), this
+    measures a point against the personal baseline that precedes it, so a single
+    outlier among stable data is detected instead of being absorbed into the
+    window's own variance. Used by the data-quality anomaly check (ADR-007).
+    """
+    result: list[float | None] = [None] * len(xs)
+    for i in range(window, len(xs)):
+        chunk = xs[i - window : i]
+        mean = sum(chunk) / window
+        sd = (sum((x - mean) ** 2 for x in chunk) / window) ** 0.5
+        if sd > 0:
+            result[i] = (xs[i] - mean) / sd
+    return result

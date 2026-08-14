@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -6,6 +7,20 @@ from salus.utils import uuid7_str
 
 if TYPE_CHECKING:
     from salus.models.user import User  # noqa: F401
+
+
+class NotificationCategory(str, Enum):
+    SYSTEM = "system"
+    FEDERATION = "federation"
+    CHALLENGE = "challenge"
+    DATA_QUALITY = "data_quality"
+
+
+class NotificationSeverity(str, Enum):
+    INFO = "info"
+    SUCCESS = "success"
+    WARNING = "warning"
+    CRITICAL = "critical"
 
 
 class Notification(SQLModel, table=True):
@@ -16,7 +31,9 @@ class Notification(SQLModel, table=True):
     title: str
     message: str
     is_read: bool = Field(default=False)
-    category: str = Field(default="system")  # "federation", "challenge", "system"
+    category: str = Field(default=NotificationCategory.SYSTEM)
+    severity: str = Field(default=NotificationSeverity.INFO)
+    link: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime | None = Field(
         default=None,

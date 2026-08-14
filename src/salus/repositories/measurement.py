@@ -129,9 +129,16 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
         results = self.find_all(user_id=user_id, source_data_types=[source_data_type], limit=1)
         return results[0] if results else None
 
-    def upsert_all(self, records: list[Measurement]) -> tuple[int, int]:
+    def upsert_all(self, records: list[Measurement]) -> tuple[int, int, list[Measurement]]:
+        """Insert-or-update by ``(external_id, source)``.
+
+        Returns ``(inserted, duplicates, persisted)`` where ``persisted`` holds the
+        final objects (new records for inserts, the matched rows for updates) so
+        callers can post-process the actually-persisted entities.
+        """
         inserted = 0
         duplicates = 0
+        persisted: list[Measurement] = []
 
         # 1. Gather all external IDs to query existing records in chunks
         external_ids = [rec.external_id for rec in records if rec.external_id]
@@ -164,15 +171,17 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                 existing.end_time = rec.end_time
                 self.session.add(existing)
                 duplicates += 1
+                persisted.append(existing)
             else:
                 self.session.add(rec)
                 if rec.external_id:
                     existing_map[(rec.external_id, rec.source)] = rec
                 inserted += 1
+                persisted.append(rec)
 
         # 3. Commit the transaction once at the end
         self.session.commit()
-        return inserted, duplicates
+        return inserted, duplicates, persisted
 
     def find_by_date_range(
         self, user_id: str, source_data_types: list[str], since: datetime, until: datetime

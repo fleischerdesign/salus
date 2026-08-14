@@ -2,6 +2,7 @@ import json
 import logging
 
 from salus.repositories.protocols import IMeasurementRepository
+from salus.services.data_quality import check_measurement
 from salus.services.metric_type_mapping import MetricDefinitionMappingService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.plugin.hooks import HookRegistry
@@ -52,7 +53,17 @@ class WebhookIngestionService:
                     logger.error(f"Error executing ingestion interceptor: {e}")
 
         # 2. Persist to database
-        res = self._measurement_repo.upsert_all(records)
+        inserted, duplicates, persisted = self._measurement_repo.upsert_all(records)
+
+        # 2b. Data-quality checks (hard bounds + cross-source), best-effort.
+        # "update" semantics re-evaluates idempotently: it removes stale flags when
+        # a value was corrected and keeps them when still out of bounds.
+        for measurement in persisted:
+            try:
+                check_measurement(self._measurement_repo.session, user_id, measurement, "update")
+            except Exception:
+                logger.exception("Data-quality check failed during ingestion")
+        self._measurement_repo.session.commit()
 
         # 3. Notify Event Subscribers (HookEventSubscriber)
         if self._registry:
@@ -65,4 +76,4 @@ class WebhookIngestionService:
                             f"Error notifying event subscriber during ingestion: {e}"
                         )
 
-        return res
+        return inserted, duplicates

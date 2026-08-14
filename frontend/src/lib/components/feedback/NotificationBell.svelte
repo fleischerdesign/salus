@@ -4,6 +4,7 @@
   import { markAllNotificationsRead } from '$lib/mutations/notification';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import type { Notification } from '$lib/db/types';
 
   let open = $state(false);
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -24,24 +25,9 @@
   let highestSeverity = $derived.by(() => {
     if (unreadCount === 0) return null;
     // Severity cascade: critical > warning > success > info
-    const hasCritical = unreadList.some(
-      (n) =>
-        (n as unknown as { severity?: string }).severity === 'critical' ||
-        n.title.toLowerCase().includes('update') ||
-        n.title.toLowerCase().includes('security')
-    );
-    if (hasCritical) return 'critical' as const;
-
-    const hasWarning = unreadList.some(
-      (n) => (n as unknown as { severity?: string }).severity === 'warning'
-    );
-    if (hasWarning) return 'warning' as const;
-
-    const hasSuccess = unreadList.some(
-      (n) => (n as unknown as { severity?: string }).severity === 'success'
-    );
-    if (hasSuccess) return 'success' as const;
-
+    if (unreadList.some((n) => n.severity === 'critical')) return 'critical' as const;
+    if (unreadList.some((n) => n.severity === 'warning')) return 'warning' as const;
+    if (unreadList.some((n) => n.severity === 'success')) return 'success' as const;
     return 'info' as const;
   });
 
@@ -115,43 +101,46 @@
       {#if notifications.length === 0}
         <div class="px-4 py-8 text-center text-sm text-surface-400">No notifications</div>
       {:else}
-        {#each notifications as n}
-          {@const isCritical =
-            (n as unknown as { severity?: string }).severity === 'critical' ||
-            n.title.toLowerCase().includes('update')}
-          <div
-            class="duration-micro border-b border-surface-100 px-4 py-3 transition-colors hover:bg-surface-50 {n.is_read
-              ? 'opacity-60'
-              : ''}"
-          >
-            <div class="flex items-start gap-2.5">
-              {#if !n.is_read}
-                <span
-                  class="mt-1.5 h-2 w-2 shrink-0 rounded-full {isCritical
-                    ? 'animate-pulse bg-error-500'
-                    : 'bg-primary-500'}"
-                ></span>
+        {#snippet row(n: Notification)}
+          <div class="flex items-start gap-2.5">
+            {#if !n.is_read}
+              <span
+                class="mt-1.5 h-2 w-2 shrink-0 rounded-full {n.severity === 'critical'
+                  ? 'animate-pulse bg-error-500'
+                  : 'bg-primary-500'}"
+              ></span>
+            {/if}
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold text-surface-900">{n.title}</p>
+              <p class="mt-0.5 text-xs leading-relaxed text-surface-600">{n.message}</p>
+              {#if n.created_at}
+                <p class="mt-1 font-mono text-[10px] text-surface-400">
+                  {new Date(n.created_at).toLocaleString()}
+                </p>
               {/if}
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between">
-                  <p class="text-sm font-semibold text-surface-900">{n.title}</p>
-                  {#if isCritical}
-                    <span
-                      class="rounded-md bg-error-50 px-1.5 py-0.5 text-[10px] font-bold text-error-700 uppercase"
-                    >
-                      Update
-                    </span>
-                  {/if}
-                </div>
-                <p class="mt-0.5 text-xs leading-relaxed text-surface-600">{n.message}</p>
-                {#if n.created_at}
-                  <p class="mt-1 font-mono text-[10px] text-surface-400">
-                    {new Date(n.created_at).toLocaleString()}
-                  </p>
-                {/if}
-              </div>
             </div>
           </div>
+        {/snippet}
+        {#each notifications as n}
+          {#if n.link}
+            <a
+              href={n.link}
+              onclick={() => (open = false)}
+              class="duration-micro block border-b border-surface-100 px-4 py-3 no-underline transition-colors hover:bg-surface-50 {n.is_read
+                ? 'opacity-60'
+                : ''}"
+            >
+              {@render row(n)}
+            </a>
+          {:else}
+            <div
+              class="duration-micro border-b border-surface-100 px-4 py-3 transition-colors hover:bg-surface-50 {n.is_read
+                ? 'opacity-60'
+                : ''}"
+            >
+              {@render row(n)}
+            </div>
+          {/if}
         {/each}
       {/if}
     </div>

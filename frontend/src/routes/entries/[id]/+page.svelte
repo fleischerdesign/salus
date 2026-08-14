@@ -22,6 +22,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import MetricEntryDetail from '$components/entries/MetricEntryDetail.svelte';
+  import { boundHint } from '$lib/utils/bounds';
   import { page } from '$app/state';
   import { fade } from 'svelte/transition';
   import { staggerFade } from '$lib/utils/motion';
@@ -407,6 +408,7 @@
     <form onsubmit={saveEntry} class="flex flex-col gap-4">
       <div class="flex gap-4">
         {#each allGroupMetrics as m (m.code)}
+          {@const hint = boundHint(combinedValues[m.code] ?? '', m)}
           <FormField
             label="{m.name} ({m.unit})"
             required={g.input_mode === 'combined'}
@@ -418,6 +420,12 @@
               required={g.input_mode === 'combined'}
               type="number"
             />
+            {#if hint}
+              <p class="mt-1 flex items-center gap-1 text-xs text-warning-600">
+                <Icon name="info" size="sm" />
+                {hint}
+              </p>
+            {/if}
           </FormField>
         {/each}
       </div>

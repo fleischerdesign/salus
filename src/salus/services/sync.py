@@ -110,6 +110,9 @@ def _user_profile_dict(user: User) -> dict[str, Any]:
         "colorblind": user.colorblind,
         "accent_hue": user.accent_hue,
         "onboarding_dismissed": user.onboarding_dismissed,
+        "dq_notify_hard_bound": user.dq_notify_hard_bound,
+        "dq_notify_cross_source": user.dq_notify_cross_source,
+        "dq_notify_anomaly": user.dq_notify_anomaly,
         "is_admin": user.is_admin,
         "is_active": user.is_active,
         "created_at": user.created_at.isoformat() if user.created_at else None,
@@ -279,10 +282,14 @@ class SyncService:
             ts_field = spec.timestamp_field or "created_at"
             owner_attr = _owner_attr(model, spec)
 
+            clauses = [getattr(model, ts_field) >= since]
+            if hasattr(model, "updated_at"):
+                clauses.append(getattr(model, "updated_at") >= since)
+
             changed[name] = list(s.exec(
                 select(model).where(
                     owner_attr == user_id,
-                    getattr(model, ts_field) >= since,
+                    or_(*clauses),
                 )
             ).all())  # type: ignore[reportArgumentType]
 
