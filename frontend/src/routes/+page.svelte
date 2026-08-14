@@ -2,7 +2,6 @@
   import { useQuery } from '$lib/db/use-query.svelte';
   import { todayString } from '$lib/utils/datetime';
   import Sortable from 'sortablejs';
-  import { onDestroy } from 'svelte';
   import {
     addWidget as addWidgetMut,
     updateWidget as updateWidgetMut,
@@ -180,14 +179,15 @@
   $effect(() => {
     if (gridEl && editing) {
       initSortable();
-    } else if (sortableInstance && !editing) {
+      return () => {
+        sortableInstance?.destroy();
+        sortableInstance = null;
+      };
+    }
+    if (sortableInstance && !editing) {
       sortableInstance.destroy();
       sortableInstance = null;
     }
-  });
-
-  onDestroy(() => {
-    if (sortableInstance) sortableInstance.destroy();
   });
 
   const availableMetrics = $derived(

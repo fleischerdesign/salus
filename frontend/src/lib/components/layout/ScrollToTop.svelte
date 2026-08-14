@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '$components/ui/Icon.svelte';
   import { fly } from 'svelte/transition';
+  import { scrollY } from 'svelte/reactivity/window';
   import { DURATIONS, motionParams } from '$lib/utils/motion';
 
   interface Props {
@@ -10,18 +11,12 @@
 
   let { threshold = 300, class: extraClass = '' }: Props = $props();
 
-  let visible = $state(false);
-
-  function handleScroll() {
-    visible = window.scrollY > threshold;
-  }
+  let visible = $derived((scrollY.current ?? 0) > threshold);
 
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
-
-<svelte:window onscroll={handleScroll} />
 
 {#if visible}
   <button

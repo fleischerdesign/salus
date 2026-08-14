@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
-  import { onDestroy } from 'svelte';
 
   interface Props {
     name?: string;
@@ -20,23 +19,14 @@
     class: extraClass = ''
   }: Props = $props();
 
-  let timer: ReturnType<typeof setTimeout> | null = null;
-
-  function handleInput(e: Event) {
-    const input = e.target as HTMLInputElement;
-    value = input.value;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => onsearch?.(value), debounceMs);
-  }
+  $effect(() => {
+    const timer = setTimeout(() => onsearch?.(value), debounceMs);
+    return () => clearTimeout(timer);
+  });
 
   function clear() {
     value = '';
-    onsearch?.('');
   }
-
-  onDestroy(() => {
-    if (timer) clearTimeout(timer);
-  });
 </script>
 
 <div class="relative flex items-center {extraClass}">
@@ -49,8 +39,7 @@
     {name}
     type="search"
     {placeholder}
-    value
-    oninput={handleInput}
+    bind:value
     class="duration-micro h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm font-normal text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
   />
   {#if value}
