@@ -78,6 +78,11 @@
     { href: '/achievements', icon: 'emoji-events', label: 'Achievements' }
   ];
 
+  const healthItems = [
+    { href: '/labs', icon: 'science', label: 'Lab Results' },
+    { href: '/fasting', icon: 'timer', label: 'Fasting' }
+  ];
+
   let mobileOpen = $state(false);
 
   function navLinkClass(link: { href: string }) {
@@ -151,6 +156,15 @@
         { type: 'link', href: '/mood', icon: 'sentiment-satisfied', label: 'Mood' },
         { type: 'link', href: '/journal', icon: 'edit-note', label: 'Journal' },
         { type: 'link', href: '/achievements', icon: 'emoji-events', label: 'Achievements' }
+      ]
+    },
+    {
+      type: 'group',
+      label: 'Health',
+      icon: 'monitor-heart',
+      items: [
+        { type: 'link', href: '/labs', icon: 'science', label: 'Lab Results' },
+        { type: 'link', href: '/fasting', icon: 'timer', label: 'Fasting' }
       ]
     },
     { type: 'link', href: '/settings', icon: 'settings', label: 'Settings' }
@@ -283,6 +297,7 @@
         <NavDropdown label="Community" items={communityItems} />
       {/if}
       <NavDropdown label="Wellness" items={wellnessItems} />
+      <NavDropdown label="Health" items={healthItems} />
     </nav>
 
     <div class="flex-1"></div>

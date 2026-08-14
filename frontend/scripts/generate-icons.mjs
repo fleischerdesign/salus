@@ -25,6 +25,7 @@ const SKIP_NAMES = new Set([
   'content', 'title',
   'dosage', 'strength', 'time',
   'brand', 'calories', 'carbs', 'fat', 'protein', 'servings',
+  'fasting',
 ]);
 
 function walk(dir) {
