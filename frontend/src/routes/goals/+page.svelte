@@ -34,6 +34,7 @@
   let formDirection = $state('increase');
   let formFrequency = $state('daily');
   let formDeadline = $state('');
+  let formNutritionField = $state('calories');
   let formError = $state('');
   let saving = $state(false);
 
@@ -52,12 +53,27 @@
     { value: 'once', label: 'Once' }
   ];
 
+  const nutritionFieldOptions = [
+    { value: 'calories', label: 'Calories (kcal)' },
+    { value: 'protein', label: 'Protein (g)' },
+    { value: 'carbs', label: 'Carbs (g)' },
+    { value: 'fat', label: 'Fat (g)' }
+  ];
+
+  const isNutritionMetric = $derived(formMetricId === 'nutrition');
+
+  $effect(() => {
+    if (!isNutritionMetric) return;
+    formDirection = formNutritionField === 'protein' ? 'increase' : 'decrease';
+  });
+
   function openForm() {
     formMetricId = '';
     formTarget = '';
     formDirection = 'increase';
     formFrequency = 'daily';
     formDeadline = '';
+    formNutritionField = 'calories';
     formError = '';
     showForm = true;
   }
@@ -75,7 +91,8 @@
       parseFloat(formTarget),
       formDirection as 'increase' | 'decrease',
       formFrequency as 'daily' | 'weekly' | 'once',
-      formFrequency === 'once' && formDeadline ? formDeadline : undefined
+      formFrequency === 'once' && formDeadline ? formDeadline : undefined,
+      isNutritionMetric ? formNutritionField : null
     );
     saving = false;
     if (!ok) {
@@ -241,6 +258,16 @@
     <FormField label="Metric" required>
       <Select name="metric_type_id" options={metricOptions} bind:value={formMetricId} />
     </FormField>
+
+    {#if isNutritionMetric}
+      <FormField label="Nutrient" required>
+        <Select
+          name="nutrition_field"
+          options={nutritionFieldOptions}
+          bind:value={formNutritionField}
+        />
+      </FormField>
+    {/if}
 
     <FormField label="Target Value" required>
       <Input

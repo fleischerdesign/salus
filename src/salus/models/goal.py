@@ -22,6 +22,13 @@ class GoalFrequency(str, Enum):
     ONCE = "once"
 
 
+class NutritionField(str, Enum):
+    CALORIES = "calories"
+    PROTEIN = "protein"
+    CARBS = "carbs"
+    FAT = "fat"
+
+
 class Goal(SQLModel, table=True):
     __tablename__ = "goal"  # pyright: ignore[reportAssignmentType]
 
@@ -31,6 +38,7 @@ class Goal(SQLModel, table=True):
     target_value: float
     direction: GoalDirection = Field(default=GoalDirection.INCREASE)
     frequency: GoalFrequency = Field(default=GoalFrequency.DAILY)
+    nutrition_field: NutritionField | None = Field(default=None)
     deadline: date | None = Field(default=None)
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

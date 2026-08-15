@@ -114,6 +114,7 @@ export interface Goal {
   target_value: number;
   direction: string;
   frequency: string;
+  nutrition_field: string | null;
   deadline: string | null;
   is_active: boolean;
   created_at: string;

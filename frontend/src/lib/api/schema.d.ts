@@ -3858,6 +3858,7 @@ export interface components {
             is_active: boolean;
             /** Metric Code */
             metric_code: string;
+            nutrition_field?: components["schemas"]["NutritionField"] | null;
             /** Target Value */
             target_value: number;
             /** Updated At */
@@ -4763,6 +4764,11 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * NutritionField
+         * @enum {string}
+         */
+        NutritionField: "calories" | "protein" | "carbs" | "fat";
         /** OneRMResultModel */
         OneRMResultModel: {
             /** Ci Lower */

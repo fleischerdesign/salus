@@ -1,9 +1,10 @@
+import json
 import logging
 from datetime import tzinfo
 
 from salus.exceptions import NotFoundError
 from salus.models.analytics import GoalProgress
-from salus.models.goal import Goal, GoalDirection, GoalFrequency
+from salus.models.goal import Goal, GoalDirection, GoalFrequency, NutritionField
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.schemas.goal import GoalCreate
@@ -45,6 +46,7 @@ class GoalService:
             target_value=data.target_value,
             direction=data.direction,
             frequency=data.frequency,
+            nutrition_field=data.nutrition_field,
             deadline=data.deadline,
         )
         return self.uow.goals.create(goal)
@@ -75,7 +77,9 @@ class GoalService:
         elif goal.frequency == GoalFrequency.WEEKLY:
             entries = _filter_this_week(entries, tz)
 
-        current = _extract_current_value(entries, goal.direction)
+        current = _extract_current_value(
+            entries, goal.direction, goal.metric_code, goal.nutrition_field
+        )
         deadline_passed = goal.deadline is not None and goal.deadline < today_in_tz(tz)
 
         percent, status, fulfilled = compute_goal_progress(
@@ -176,10 +180,15 @@ def _filter_this_week(entries: list[Measurement], tz: tzinfo) -> list[Measuremen
 
 
 def _extract_current_value(
-    entries: list[Measurement], direction: GoalDirection
+    entries: list[Measurement],
+    direction: GoalDirection,
+    metric_code: str,
+    nutrition_field: NutritionField | None,
 ) -> float | None:
     if not entries:
         return None
+    if metric_code == "nutrition" and nutrition_field is not None:
+        return _extract_nutrition_total(entries, nutrition_field)
     try:
         values = [float(e.value_text) for e in entries if e.value_text]
         values += [
@@ -194,3 +203,36 @@ def _extract_current_value(
     if direction == GoalDirection.INCREASE:
         return max(values)
     return min(values)
+
+
+_NUTRITION_KEYS: dict[NutritionField, tuple[str, ...]] = {
+    NutritionField.CALORIES: ("calories", "total_kcal"),
+    NutritionField.PROTEIN: ("protein_grams", "protein_g", "protein"),
+    NutritionField.CARBS: ("carbs_grams", "carbs_g", "carbs"),
+    NutritionField.FAT: ("fat_grams", "fat_g", "fat"),
+}
+
+
+def _extract_nutrition_total(
+    entries: list[Measurement], nutrition_field: NutritionField
+) -> float:
+    keys = _NUTRITION_KEYS[nutrition_field]
+    total = 0.0
+    for e in entries:
+        if e.value_json is None:
+            continue
+        try:
+            payload = json.loads(e.value_json)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        for key in keys:
+            value = payload.get(key)
+            if value is not None:
+                try:
+                    total += float(value)
+                except (ValueError, TypeError):
+                    pass
+                break
+    return total

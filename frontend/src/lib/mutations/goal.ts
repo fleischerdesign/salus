@@ -7,7 +7,8 @@ export const createGoal = (
   targetValue: number,
   direction = 'increase',
   frequency = 'daily',
-  deadline?: string
+  deadline?: string,
+  nutritionField?: string | null
 ) => {
   const id = uuid7();
   return mutate({
@@ -21,7 +22,8 @@ export const createGoal = (
       target_value: targetValue,
       direction,
       frequency,
-      deadline: deadline ?? null
+      deadline: deadline ?? null,
+      nutrition_field: nutritionField ?? null
     },
     optimistic: {
       id,
@@ -31,6 +33,7 @@ export const createGoal = (
       direction,
       frequency,
       deadline: deadline ?? null,
+      nutrition_field: nutritionField ?? null,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: null,

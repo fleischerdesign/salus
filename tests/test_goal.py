@@ -1,5 +1,7 @@
-from salus.models.goal import GoalDirection, GoalFrequency
+from salus.models.goal import GoalDirection, GoalFrequency, NutritionField
+from salus.models.measurement import Measurement
 from salus.services.analytics.calculations import compute_goal_progress
+from salus.services.goal import _extract_current_value
 
 
 def _get_metric_code(client, name: str) -> str:
@@ -65,6 +67,63 @@ class TestComputeGoalProgress:
         )
         assert status == "fulfilled"
         assert fulfilled
+
+
+class TestNutritionGoalEvaluation:
+    def _measurement(self, value_json: dict) -> Measurement:
+        import json
+
+        return Measurement(
+            id="x",
+            user_id="u",
+            metric_code="nutrition",
+            value_numeric=None,
+            value_json=json.dumps(value_json),
+        )
+
+    def test_protein_sum_over_multiple_meals(self):
+        entries = [
+            self._measurement({"calories": 400, "protein_grams": 30}),
+            self._measurement({"calories": 600, "protein_grams": 45}),
+        ]
+        current = _extract_current_value(
+            entries, GoalDirection.INCREASE, "nutrition", NutritionField.PROTEIN
+        )
+        assert current == 75
+
+    def test_calories_sum_with_legacy_key_fallback(self):
+        entries = [
+            self._measurement({"total_kcal": 420}),
+            self._measurement({"total_kcal": 180}),
+        ]
+        current = _extract_current_value(
+            entries, GoalDirection.INCREASE, "nutrition", NutritionField.CALORIES
+        )
+        assert current == 600
+
+    def test_skips_rows_without_sub_field(self):
+        entries = [
+            self._measurement({"calories": 500, "protein_grams": 20}),
+            self._measurement({"calories": 300}),  # no protein key
+        ]
+        current = _extract_current_value(
+            entries, GoalDirection.DECREASE, "nutrition", NutritionField.PROTEIN
+        )
+        assert current == 20
+
+    def test_invalid_json_is_ignored(self):
+        entries = [Measurement(id="x", user_id="u", metric_code="nutrition", value_json="not-json")]
+        current = _extract_current_value(
+            entries, GoalDirection.INCREASE, "nutrition", NutritionField.CARBS
+        )
+        assert current == 0
+
+    def test_non_nutrition_metric_unaffected(self):
+        entries = [self._measurement({"calories": 500})]
+        current = _extract_current_value(
+            entries, GoalDirection.INCREASE, "steps", None
+        )
+        assert current is None
 
 
 class TestGoalRoutes:

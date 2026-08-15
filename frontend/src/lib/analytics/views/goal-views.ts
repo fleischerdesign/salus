@@ -14,6 +14,7 @@ export interface GoalView {
   metric_color: string;
   metric_icon: string;
   metric_unit: string;
+  nutrition_field: string | null;
   target_value: number;
   direction: string;
   frequency: string;
@@ -97,7 +98,12 @@ function buildGoalView(
   metric: MetricWithPreference | undefined,
   measurements: Measurement[]
 ): GoalView {
-  const currentValue = computeGoalCurrent(measurements, g.metric_code, g.frequency);
+  const currentValue = computeGoalCurrent(
+    measurements,
+    g.metric_code,
+    g.frequency,
+    g.nutrition_field
+  );
   const deadlinePassed = g.deadline != null ? new Date(g.deadline) < new Date() : false;
   const progress = computeGoalProgress(
     currentValue,
@@ -119,6 +125,7 @@ function buildGoalView(
     metric_color: metric?.color ?? '#4f46e5',
     metric_icon: metric?.icon ?? 'track-changes',
     metric_unit: metric?.unit ?? '',
+    nutrition_field: g.nutrition_field ?? null,
     target_value: g.target_value,
     direction: g.direction,
     frequency: g.frequency,
@@ -187,10 +194,18 @@ export async function fetchGoalView(goalId: string): Promise<GoalView | null> {
   return buildGoalView(g, metric, measurements);
 }
 
+const NUTRITION_KEYS: Record<string, string[]> = {
+  calories: ['calories', 'total_kcal'],
+  protein: ['protein_grams', 'protein_g', 'protein'],
+  carbs: ['carbs_grams', 'carbs_g', 'carbs'],
+  fat: ['fat_grams', 'fat_g', 'fat']
+};
+
 function computeGoalCurrent(
   measurements: Measurement[],
   metricCode: string,
-  frequency: string
+  frequency: string,
+  nutritionField: string | null
 ): number | null {
   const relevant = measurements.filter((m) => m.metric_code === metricCode && !m.deleted_at);
 
@@ -211,6 +226,28 @@ function computeGoalCurrent(
 
   if (filtered.length === 0) {
     filtered = relevant;
+  }
+
+  if (metricCode === 'nutrition' && nutritionField) {
+    const keys = NUTRITION_KEYS[nutritionField] ?? [];
+    let total = 0;
+    for (const m of filtered) {
+      if (!m.value_json) continue;
+      try {
+        const payload = JSON.parse(m.value_json);
+        if (!payload || typeof payload !== 'object') continue;
+        for (const key of keys) {
+          const v = payload[key];
+          if (v != null && typeof v === 'number') {
+            total += v;
+            break;
+          }
+        }
+      } catch {
+        /* skip invalid json */
+      }
+    }
+    return total;
   }
 
   const values = filtered.map((m) => m.value_numeric).filter((v): v is number => v != null);

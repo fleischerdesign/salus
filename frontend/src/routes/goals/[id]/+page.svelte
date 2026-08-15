@@ -17,6 +17,18 @@
   const goalViewQuery = useQuery(() => fetchGoalView(goalId));
   const goalView = $derived(goalViewQuery.value);
 
+  const nutrientLabels: Record<string, string> = {
+    calories: 'Calories',
+    protein: 'Protein',
+    carbs: 'Carbs',
+    fat: 'Fat'
+  };
+  const nutritionUnit = $derived(
+    goalView?.nutrition_field
+      ? (nutrientLabels[goalView.nutrition_field] ?? goalView.nutrition_field)
+      : ''
+  );
+
   // Load measurements for this goal's metric type to render trend chart
   const measurementsQuery = useQuery(async () => {
     const g = await db.goal.get(goalId);
@@ -103,7 +115,11 @@
   <!-- Header -->
   <PageHeader
     title={goalView ? `${goalView.metric_name} Goal` : 'Loading Goal…'}
-    subtitle={goalView ? `${goalView.frequency} Goal` : ''}
+    subtitle={goalView
+      ? nutritionUnit
+        ? `${goalView.frequency} Goal · ${nutritionUnit}`
+        : `${goalView.frequency} Goal`
+      : ''}
     backUrl="/goals"
     icon={goalView?.metric_icon || 'track-changes'}
     iconColor={goalView?.metric_color}
