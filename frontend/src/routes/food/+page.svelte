@@ -12,10 +12,15 @@
   import FormField from '$components/forms/FormField.svelte';
   import { createFoodItem } from '$lib/mutations/food-item';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { api } from '$lib/api/client';
+  import type { FoodItem } from '$lib/db/types';
 
   let search = $state('');
   let createOpen = $state(false);
   let saving = $state(false);
+  let barcode = $state('');
+  let lookingUp = $state(false);
+  let lookupMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
   let newName = $state('');
   let newBrand = $state('');
@@ -41,6 +46,49 @@
   const frequentItems = $derived((foodItems ?? []).slice(0, 10));
 
   const canCreate = $derived(newName.trim().length > 0);
+
+  async function handleBarcodeLookup() {
+    const code = barcode.trim();
+    if (!code) return;
+    lookingUp = true;
+    lookupMessage = null;
+    try {
+      const local = await db.food_item.where('barcode').equals(code).first();
+      if (local && !local.deleted_at) {
+        lookupMessage = { type: 'success', text: `Already in database: ${local.name}` };
+        search = local.name;
+        return;
+      }
+      const res = await api.GET('/api/v1/food/items/barcode/{barcode}', {
+        params: { path: { barcode: code } }
+      });
+      const found = res.data as Partial<FoodItem> | null;
+      if (found?.id && found.name) {
+        await db.food_item.put({
+          ...found,
+          serving_size: found.serving_size ?? 100,
+          serving_unit: found.serving_unit ?? 'g',
+          calories_per_serving: found.calories_per_serving ?? 0,
+          protein_g: found.protein_g ?? 0,
+          carbs_g: found.carbs_g ?? 0,
+          fat_g: found.fat_g ?? 0,
+          user_id: found.user_id ?? null,
+          is_verified: found.is_verified ?? true,
+          source: found.source ?? 'openfoodfacts',
+          updated_at: null,
+          deleted_at: null
+        } as FoodItem);
+        lookupMessage = { type: 'success', text: `Added: ${found.name}` };
+        search = found.name;
+      } else {
+        lookupMessage = { type: 'error', text: 'Barcode not found. Create it manually.' };
+      }
+    } catch {
+      lookupMessage = { type: 'error', text: 'Lookup failed — are you online?' };
+    } finally {
+      lookingUp = false;
+    }
+  }
 
   async function handleCreate() {
     if (!canCreate) return;
@@ -85,7 +133,26 @@
   {#if loading}
     <div class="flex justify-center py-20"><Spinner /></div>
   {:else}
-    <div class="max-w-xl">
+    <div class="max-w-xl space-y-3">
+      <form
+        class="flex items-end gap-2"
+        onsubmit={(e) => {
+          e.preventDefault();
+          handleBarcodeLookup();
+        }}
+      >
+        <div class="flex-1">
+          <Input name="barcode" placeholder="Barcode (EAN/UPC)…" bind:value={barcode} />
+        </div>
+        <Btn variant="secondary" onclick={handleBarcodeLookup} loading={lookingUp}>Lookup</Btn>
+      </form>
+      {#if lookupMessage}
+        <p
+          class="text-sm {lookupMessage.type === 'success' ? 'text-success-600' : 'text-error-600'}"
+        >
+          {lookupMessage.text}
+        </p>
+      {/if}
       <Input name="search_food" placeholder="Search food items..." bind:value={search} />
     </div>
 

@@ -65,6 +65,20 @@ interface ReferenceLabMarker {
   description: string | null;
 }
 
+interface ReferenceFoodItem {
+  id: string;
+  name: string;
+  serving_size: number;
+  calories_per_serving: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number | null;
+  sugar_g: number | null;
+  saturated_fat_g: number | null;
+  sodium_mg: number | null;
+}
+
 interface ReferenceData {
   version: number;
   metric_group: ReferenceMetricGroup[];
@@ -72,6 +86,7 @@ interface ReferenceData {
   achievement_definition: ReferenceAchievementDefinition[];
   mood_tag: ReferenceMoodTag[];
   lab_marker: ReferenceLabMarker[];
+  food_item: ReferenceFoodItem[];
   metric_preference_defaults: ReferenceMetricPreferenceDefault[];
 }
 
@@ -98,6 +113,23 @@ export async function seedReferenceData(): Promise<void> {
   }
   if ((await db.lab_marker.count()) === 0) {
     await db.lab_marker.bulkPut(data.lab_marker);
+  }
+  if ((await db.food_item.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.food_item.bulkPut(
+      data.food_item.map((f) => ({
+        ...f,
+        brand: null,
+        barcode: null,
+        serving_unit: 'g',
+        is_verified: true,
+        user_id: null,
+        source: 'system',
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
   }
 
   if ((await db.user_metric_preference.count()) === 0) {

@@ -16,6 +16,7 @@ describe('seedReferenceData', () => {
     expect(await db.achievement_definition.count()).toBeGreaterThan(0);
     expect(await db.mood_tag.count()).toBeGreaterThan(0);
     expect(await db.lab_marker.count()).toBeGreaterThan(0);
+    expect(await db.food_item.count()).toBeGreaterThan(0);
     expect(await db.user_metric_preference.count()).toBeGreaterThan(0);
 
     const steps = await db.metric_definition.get('steps');
@@ -27,6 +28,10 @@ describe('seedReferenceData', () => {
       .equals('laboratory')
       .toArray();
     expect(labDefs.length).toBeGreaterThan(0);
+
+    const oats = await db.food_item.get('food-oatmeal');
+    expect(oats?.is_verified).toBe(true);
+    expect(oats?.user_id).toBeNull();
   });
 
   it('backfills reference tables for existing installs', async () => {
