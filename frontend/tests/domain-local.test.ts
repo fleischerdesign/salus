@@ -5,6 +5,10 @@ import { seedReferenceData } from '$lib/db/seed';
 import { createLabPanel, deleteLabPanel } from '$lib/mutations/lab';
 import { startFastingSession, endFastingSession } from '$lib/mutations/fasting';
 import { createMeal, deleteMeal } from '$lib/mutations/meal';
+import { createRecipe, deleteRecipe } from '$lib/mutations/recipe';
+import { createPlan, deletePlan } from '$lib/mutations/plan';
+import { toggleHabit } from '$lib/mutations/wellness';
+import { toggleMedicationLog } from '$lib/mutations/medication';
 import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 
@@ -157,31 +161,142 @@ describe('composed-domain optimistic writes (local-first)', () => {
   });
 
   describe('createMeal', () => {
-    it('persists the meal and its items locally', async () => {
+    it('persists the meal, its items and the nutrition bridge locally', async () => {
+      await db.food_item.bulkAdd([
+        {
+          id: 'food-1', name: 'Oats', brand: null, barcode: null, serving_size: 100,
+          serving_unit: 'g', calories_per_serving: 350, protein_g: 12, carbs_g: 60, fat_g: 6,
+          fiber_g: null, sugar_g: null, saturated_fat_g: null, sodium_mg: null,
+          is_verified: false, user_id: null, source: null, created_at: new Date().toISOString(),
+          updated_at: null, deleted_at: null
+        }
+      ]);
+
       await createMeal({
         meal_type: 'lunch',
-        name: 'Salad',
-        items: [
-          { food_item_id: 'food-1', servings: 1 },
-          { food_item_id: 'food-2', servings: 2 }
-        ]
+        name: 'Oat bowl',
+        items: [{ food_item_id: 'food-1', servings: 2 }]
       });
 
       expect(await db.meal.count()).toBe(1);
       const meal = (await db.meal.toArray())[0];
       const items = await db.meal_item.toArray();
-      expect(items).toHaveLength(2);
-      expect(items.every((i) => i.meal_id === meal!.id)).toBe(true);
+      expect(items).toHaveLength(1);
+      expect(items[0].meal_id).toBe(meal!.id);
+
+      const measurement = (await db.measurement.toArray())[0];
+      expect(measurement?.metric_code).toBe('nutrition');
+      expect(measurement?.source).toBe('meal');
+      expect(measurement?.external_id).toBe(meal!.id);
+      expect(measurement?.value_json).toContain('"calories":700');
     });
 
-    it('removes items when the meal is deleted', async () => {
-      await createMeal({ items: [{ food_item_id: 'food-1', servings: 1 }] });
+    it('removes items and the nutrition bridge when the meal is deleted', async () => {
+      await createMeal({ items: [{ food_item_id: 'food-missing', servings: 1 }] });
       const meal = (await db.meal.toArray())[0];
+      expect(await db.measurement.count()).toBe(1);
 
       await deleteMeal(meal!.id);
 
-      expect(await db.meal.count()).toBe(0);
+      expect(await db.meal.count()).toBe(1);
+      expect((await db.meal.toArray())[0]?.deleted_at).not.toBeNull();
       expect(await db.meal_item.count()).toBe(0);
+      expect(await db.measurement.count()).toBe(0);
+    });
+  });
+
+  describe('createRecipe', () => {
+    it('persists the recipe and its ingredients locally', async () => {
+      await createRecipe({
+        name: 'Porridge',
+        servings: 2,
+        ingredients: [{ food_item_id: 'food-1', amount_g: 150 }]
+      });
+
+      expect(await db.recipe.count()).toBe(1);
+      const recipe = (await db.recipe.toArray())[0];
+      const ingredients = await db.recipe_ingredient.toArray();
+      expect(ingredients).toHaveLength(1);
+      expect(ingredients[0].recipe_id).toBe(recipe!.id);
+    });
+
+    it('removes ingredients when the recipe is deleted', async () => {
+      await createRecipe({ name: 'P', ingredients: [{ food_item_id: 'food-1', amount_g: 100 }] });
+      const recipe = (await db.recipe.toArray())[0];
+
+      await deleteRecipe(recipe!.id);
+
+      expect(await db.recipe.count()).toBe(1);
+      expect((await db.recipe.toArray())[0]?.deleted_at).not.toBeNull();
+      expect(await db.recipe_ingredient.count()).toBe(0);
+    });
+  });
+
+  describe('createPlan', () => {
+    it('persists the plan and its exercises locally', async () => {
+      await createPlan('Push Day', null, 'advisory', [
+        { exercise_id: 'ex-1', target_sets: 3, target_reps: 8 },
+        { exercise_id: 'ex-2', target_sets: 4, target_reps: 10 }
+      ]);
+
+      expect(await db.workout_plan.count()).toBe(1);
+      const plan = (await db.workout_plan.toArray())[0];
+      const planExercises = await db.workout_plan_exercise.toArray();
+      expect(planExercises).toHaveLength(2);
+      expect(planExercises.every((pe) => pe.plan_id === plan!.id)).toBe(true);
+    });
+
+    it('removes plan exercises when the plan is deleted', async () => {
+      await createPlan('P', null, 'advisory', [{ exercise_id: 'ex-1' }]);
+      const plan = (await db.workout_plan.toArray())[0];
+
+      await deletePlan(plan!.id);
+
+      expect(await db.workout_plan.count()).toBe(1);
+      expect((await db.workout_plan.toArray())[0]?.deleted_at).not.toBeNull();
+      expect(await db.workout_plan_exercise.count()).toBe(0);
+    });
+  });
+
+  describe('toggleHabit', () => {
+    it('creates a completed log then un-completes on second toggle', async () => {
+      await db.habit.bulkAdd([
+        {
+          id: 'habit-1', user_id: SELF_USER_ID, name: 'Read', description: null,
+          color: '#fff', icon: 'book', frequency: 'daily', target_count: 1,
+          days_bitmask: null, stack_hint: null, is_archived: false,
+          created_at: new Date().toISOString(), updated_at: null, deleted_at: null
+        }
+      ]);
+
+      await toggleHabit('habit-1');
+      let logs = await db.habit_log.toArray();
+      expect(logs).toHaveLength(1);
+      expect(logs[0].completed).toBe(true);
+
+      await toggleHabit('habit-1');
+      logs = await db.habit_log.toArray();
+      expect(logs).toHaveLength(1);
+      expect(logs[0].completed).toBe(false);
+    });
+  });
+
+  describe('toggleMedicationLog', () => {
+    it('writes a taken log locally', async () => {
+      await db.medication.bulkAdd([
+        {
+          id: 'med-1', user_id: SELF_USER_ID, name: 'Metformin', active_ingredient: null,
+          strength: null, form: 'tablet', instructions: null, color_hex: '', icon: 'medication',
+          is_active: true, created_at: new Date().toISOString(), updated_at: null, deleted_at: null
+        }
+      ]);
+
+      await toggleMedicationLog('med-1', null, null);
+
+      const logs = await db.medication_log.toArray();
+      expect(logs).toHaveLength(1);
+      expect(logs[0].medication_id).toBe('med-1');
+      expect(logs[0].skipped).toBe(false);
     });
   });
 });

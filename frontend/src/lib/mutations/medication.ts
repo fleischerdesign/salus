@@ -1,5 +1,5 @@
 import { mutate } from '$lib/mutate';
-import { todayString } from '$lib/utils/datetime';
+import { todayString, nowIso } from '$lib/utils/datetime';
 import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
@@ -102,11 +102,12 @@ export async function toggleMedicationLog(
 
     if (existing) {
       return mutate({
-        kind: 'crud',
-        op: 'delete',
-        entity: 'medication_log',
-        id: existing.id,
-        data: { id: existing.id }
+        kind: 'command',
+        command: 'delete_medication_log',
+        queueable: true,
+        payload: { id: existing.id },
+        optimisticTable: 'medication_log',
+        optimisticData: { id: existing.id, deleted_at: nowIso() }
       });
     }
   }
@@ -114,17 +115,18 @@ export async function toggleMedicationLog(
   const id = uuid7();
   const now = new Date().toISOString();
   return mutate({
-    kind: 'crud',
-    op: 'create',
-    entity: 'medication_log',
-    id,
-    data: {
+    kind: 'command',
+    command: 'log_medication',
+    queueable: true,
+    payload: {
+      id,
       medication_id: medicationId,
       schedule_id: scheduleId,
       taken_at: now,
       skipped: false
     },
-    optimistic: {
+    optimisticTable: 'medication_log',
+    optimisticData: {
       id,
       medication_id: medicationId,
       user_id: SELF_USER_ID,
@@ -146,17 +148,17 @@ export async function skipDose(medicationId: string, scheduleId: string, time: s
   const now = new Date().toISOString();
 
   return mutate({
-    kind: 'crud',
-    op: 'create',
-    entity: 'medication_log',
-    id,
-    data: {
+    kind: 'command',
+    command: 'skip_medication_dose',
+    queueable: true,
+    payload: {
+      id,
       medication_id: medicationId,
       schedule_id: scheduleId,
-      taken_at: takenAt,
-      skipped: true
+      scheduled_time: time
     },
-    optimistic: {
+    optimisticTable: 'medication_log',
+    optimisticData: {
       id,
       medication_id: medicationId,
       user_id: SELF_USER_ID,

@@ -27,33 +27,33 @@ export async function toggleHabit(habitId: string) {
   const today = todayString();
   const existing = await db.habit_log
     .where({ habit_id: habitId })
-    .filter((l) => l.log_date === today && l.completed)
+    .filter((l) => l.log_date === today && !l.deleted_at)
     .first();
 
   if (existing) {
     return mutate({
-      kind: 'crud',
-      op: 'delete',
-      entity: 'habit_log',
-      id: existing.id,
-      data: { id: existing.id }
+      kind: 'command',
+      command: 'toggle_habit_check',
+      queueable: true,
+      payload: { habit_id: habitId },
+      optimisticTable: 'habit_log',
+      optimisticData: {
+        id: existing.id,
+        completed: !existing.completed,
+        completed_at: existing.completed ? null : new Date().toISOString()
+      }
     });
   }
 
   const id = uuid7();
   const now = new Date().toISOString();
   return mutate({
-    kind: 'crud',
-    op: 'create',
-    entity: 'habit_log',
-    id,
-    data: {
-      habit_id: habitId,
-      log_date: today,
-      completed: true,
-      completed_at: now
-    },
-    optimistic: {
+    kind: 'command',
+    command: 'toggle_habit_check',
+    queueable: true,
+    payload: { habit_id: habitId },
+    optimisticTable: 'habit_log',
+    optimisticData: {
       id,
       habit_id: habitId,
       user_id: SELF_USER_ID,

@@ -1772,8 +1772,7 @@ export interface paths {
         /** List Entries */
         get: operations["list_entries_api_v1_mood_get"];
         put?: never;
-        /** Log Mood */
-        post: operations["log_mood_api_v1_mood_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4538,21 +4537,6 @@ export interface components {
             updated_at?: string | null;
             /** User Id */
             user_id: string;
-        };
-        /** MoodEntryCreate */
-        MoodEntryCreate: {
-            /** Energy Level */
-            energy_level?: number | null;
-            /** Entry Date */
-            entry_date?: string | null;
-            /** Mood Score */
-            mood_score: number;
-            /** Notes */
-            notes?: string | null;
-            /** Stress Level */
-            stress_level?: number | null;
-            /** Tag Codes */
-            tag_codes?: string[] | null;
         };
         /** MoodEntryResponse */
         MoodEntryResponse: {
@@ -8539,7 +8523,10 @@ export interface operations {
     toggle_check_api_v1_habits__habit_id__check_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 habit_id: string;
             };
@@ -9471,7 +9458,10 @@ export interface operations {
     create_meal_api_v1_meals_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -9535,7 +9525,10 @@ export interface operations {
     update_meal_api_v1_meals__meal_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 meal_id: string;
             };
@@ -9570,7 +9563,10 @@ export interface operations {
     delete_meal_api_v1_meals__meal_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 meal_id: string;
             };
@@ -10152,7 +10148,10 @@ export interface operations {
     log_intake_api_v1_medications__medication_id__log_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 medication_id: string;
             };
@@ -10554,39 +10553,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MoodEntryResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    log_mood_api_v1_mood_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MoodEntryCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MoodEntryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11372,7 +11338,10 @@ export interface operations {
     create_recipe_api_v1_recipes_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -11436,7 +11405,10 @@ export interface operations {
     update_recipe_api_v1_recipes__recipe_id__put: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 recipe_id: string;
             };
@@ -11471,7 +11443,10 @@ export interface operations {
     delete_recipe_api_v1_recipes__recipe_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 recipe_id: string;
             };
@@ -11502,7 +11477,10 @@ export interface operations {
             query?: {
                 servings?: number;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 recipe_id: string;
             };
