@@ -28,16 +28,6 @@ _RECIPE_FIELDS = (
 )
 
 
-def _resolve_food_items(uow: IUnitOfWork, ingredients: list[RecipeIngredient]) -> dict:
-    food_ids = {ing.food_item_id for ing in ingredients}
-    result: dict = {}
-    for fid in food_ids:
-        food = uow.food_items.get_by_id(fid)
-        if food:
-            result[fid] = food
-    return result
-
-
 @register("create_recipe")
 class CreateRecipeHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
@@ -149,27 +139,39 @@ class CookRecipeHandler:
         if recipe.user_id != uid(user):
             return CommandResult(status="forbidden", message="Not your recipe")
 
-        ingredients = uow.recipe_ingredients.find_by_recipe(data.recipe_id)
-        food_map = _resolve_food_items(uow, ingredients)
-        scale = data.servings / recipe.servings if recipe.servings > 0 else 1.0
-
-        items = []
-        for ing in ingredients:
-            food = food_map.get(ing.food_item_id)
-            if food is None:
-                continue
-            total_weight = ing.amount_g * scale
-            items.append(MealItemPayload(
-                id=uuid7_str(),
-                food_item_id=ing.food_item_id,
-                servings=total_weight / food.serving_size if food.serving_size else 0,
-                amount_g=total_weight,
-            ))
+        items = data.items
+        if not items:
+            ingredients = uow.recipe_ingredients.find_by_recipe(data.recipe_id)
+            food_map = _resolve_food_items(uow, ingredients)
+            scale = data.servings / recipe.servings if recipe.servings > 0 else 1.0
+            items = []
+            for ing in ingredients:
+                food = food_map.get(ing.food_item_id)
+                if food is None:
+                    continue
+                total_weight = round(ing.amount_g * scale)
+                items.append(MealItemPayload(
+                    id=uuid7_str(),
+                    food_item_id=ing.food_item_id,
+                    servings=total_weight / food.serving_size if food.serving_size else 0,
+                    amount_g=total_weight,
+                ))
 
         meal_payload = CreateMealPayload(
+            id=data.meal_id,
             meal_type="other",
             name=f"Recipe: {recipe.name}",
             measurement_id=data.measurement_id,
             items=items,
         )
         return CreateMealHandler().execute(uow, user, meal_payload.model_dump())
+
+
+def _resolve_food_items(uow: IUnitOfWork, ingredients: list[RecipeIngredient]) -> dict:
+    food_ids = {ing.food_item_id for ing in ingredients}
+    result: dict = {}
+    for fid in food_ids:
+        food = uow.food_items.get_by_id(fid)
+        if food:
+            result[fid] = food
+    return result

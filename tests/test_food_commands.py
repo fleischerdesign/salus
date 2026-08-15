@@ -124,14 +124,26 @@ class TestRecipeCommands:
         })
         recipe_id = created["id"]
 
-        result = _push_cmd(authenticated_client, "cook_recipe", {"recipe_id": recipe_id})
+        result = _push_cmd(authenticated_client, "cook_recipe", {
+            "recipe_id": recipe_id,
+            "servings": 1,
+            "items": [{"food_item_id": food_id, "servings": 1.0, "amount_g": 50.0}],
+        })
         assert result["status"] == "created"
         meal_id = result["id"]
 
         meal = authenticated_client.get(f"/api/v1/meals/{meal_id}").json()
         assert len(meal["items"]) == 1
+        assert meal["items"][0]["amount_g"] == 50.0
         measurements = _nutrition_measurements(authenticated_client)
         assert any(m["external_id"] == meal_id and m["source"] == "meal" for m in measurements)
+
+    def test_cook_unknown_recipe(self, authenticated_client: TestClient):
+        result = _push_cmd(authenticated_client, "cook_recipe", {
+            "recipe_id": str(uuid.uuid4()),
+            "items": [],
+        })
+        assert result["status"] == "not_found"
 
 
 class TestToggleHabitCheckHandler:

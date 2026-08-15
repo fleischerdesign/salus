@@ -77,6 +77,8 @@ class CookRecipePayload(BaseModel):
     recipe_id: str
     servings: float = Field(default=1.0, gt=0)
     measurement_id: str | None = None
+    meal_id: str | None = None
+    items: list[MealItemPayload] = Field(default_factory=list)
 
 
 class ToggleHabitCheckPayload(BaseModel):
