@@ -168,33 +168,6 @@ class TestDeleteLogSetHandler:
         assert result["status"] == "error"
 
 
-class TestCreateExerciseHandler:
-    def test_create_exercise(self, authenticated_client: TestClient):
-        result = _push_cmd(authenticated_client, "create_exercise", {
-            "name": "Pull-up", "equipment": "bodyweight", "primary_muscles": "back,biceps",
-        })
-        assert result["status"] == "created"
-        assert result["record"]["name"] == "Pull-up"
-        assert result["record"]["equipment"] == "bodyweight"
-
-    def test_create_exercise_duplicate_name(self, authenticated_client: TestClient):
-        _push_cmd(authenticated_client, "create_exercise", {"name": "Unique Exercise", "primary_muscles": "chest"})
-        result = _push_cmd(authenticated_client, "create_exercise", {"name": "Unique Exercise", "primary_muscles": "chest"})
-        assert result["status"] == "error"
-        assert "already exists" in result["message"]
-
-
-class TestDeleteExerciseHandler:
-    def test_delete_exercise(self, authenticated_client: TestClient):
-        created = _push_cmd(authenticated_client, "create_exercise", {"name": "To Delete", "primary_muscles": "chest"})
-        result = _push_cmd(authenticated_client, "delete_exercise", {"id": created["id"]})
-        assert result["status"] == "deleted"
-
-    def test_delete_exercise_not_found(self, authenticated_client: TestClient):
-        result = _push_cmd(authenticated_client, "delete_exercise", {"id": str(uuid.uuid4())})
-        assert result["status"] == "deleted"
-
-
 class TestCreatePlanHandler:
     def test_create_plan(self, authenticated_client: TestClient):
         result = _push_cmd(authenticated_client, "create_plan", {
@@ -205,7 +178,10 @@ class TestCreatePlanHandler:
         assert result["record"]["autoreg_mode"] == "advisory"
 
     def test_create_plan_with_exercises(self, authenticated_client: TestClient):
-        ex = _push_cmd(authenticated_client, "create_exercise", {"name": "Bench", "primary_muscles": "chest"})
+        ex_resp = authenticated_client.post("/api/v1/sync/push", json={
+            "operations": [{"type": "create", "entity": "exercise", "data": {"name": "Bench", "primary_muscles": "chest"}}],
+        })
+        ex = ex_resp.json()["results"][0]
         result = _push_cmd(authenticated_client, "create_plan", {
             "name": "Push Day", "exercises": [{"exercise_id": ex["id"], "sequence": 0, "target_sets": 3, "target_reps": 8}],
         })

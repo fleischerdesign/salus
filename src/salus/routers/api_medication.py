@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, Response
 
 from salus.dependencies import (
     get_current_user,
-    get_event_bus,
     get_medication_service,
     get_write_pipeline,
 )
@@ -10,16 +9,13 @@ from salus.exceptions import raise_from_command_result
 from salus.models.user import User
 from salus.schemas.medication import (
     MedicationInventoryResponse,
-    MedicationInventoryUpdate,
     MedicationLogCreate,
     MedicationLogResponse,
-    MedicationScheduleCreate,
     MedicationScheduleResponse,
     MedicationTodayResponse,
 )
 from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
-from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.medication import MedicationService
 from salus.services.write_pipeline import WritePipeline
 
@@ -94,35 +90,6 @@ async def get_schedules(
     return [_schedule_to_response(s) for s in schedules]
 
 
-@router.post(
-    "/{medication_id}/schedule",
-    response_model=MedicationScheduleResponse,
-    status_code=201,
-)
-async def create_schedule(
-    medication_id: str,
-    data: MedicationScheduleCreate,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-    event_bus: EventBus = Depends(get_event_bus),
-):
-    s = medication_svc.add_schedule(medication_id, uid(current_user), data)
-    schedule_publish(event_bus, uid(current_user))
-    return _schedule_to_response(s)
-
-
-@router.delete("/schedule/{schedule_id}", status_code=204)
-async def delete_schedule(
-    schedule_id: str,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-    event_bus: EventBus = Depends(get_event_bus),
-):
-    medication_svc.delete_schedule(schedule_id, uid(current_user))
-    schedule_publish(event_bus, uid(current_user))
-    return Response(status_code=204)
-
-
 # ── Log ──
 
 
@@ -171,31 +138,6 @@ async def get_inventory(
     inv = medication_svc.get_inventory(medication_id, uid(current_user))
     if inv is None:
         return Response(status_code=204)
-    return {
-        "id": inv.id,
-        "medication_id": inv.medication_id,
-        "initial_count": inv.initial_count,
-        "remaining_count": inv.remaining_count,
-        "refill_at_count": inv.refill_at_count,
-        "prescription_refills": inv.prescription_refills,
-        "next_refill_date": inv.next_refill_date.isoformat() if inv.next_refill_date else None,
-        "needs_refill": inv.remaining_count <= inv.refill_at_count,
-    }
-
-
-@router.put(
-    "/{medication_id}/inventory",
-    response_model=MedicationInventoryResponse,
-)
-async def update_inventory(
-    medication_id: str,
-    data: MedicationInventoryUpdate,
-    current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-    event_bus: EventBus = Depends(get_event_bus),
-):
-    inv = medication_svc.update_inventory(medication_id, uid(current_user), data)
-    schedule_publish(event_bus, uid(current_user))
     return {
         "id": inv.id,
         "medication_id": inv.medication_id,

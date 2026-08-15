@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
-from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
+from salus.models.workout import WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
 from salus.utils import uuid7_str
 from salus.services._helpers import uid
 from salus.services.command_registry import CommandResult, register
@@ -181,7 +181,17 @@ class DeleteLogSetHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         entry_id = payload.get("id")
         if not entry_id:
-            return CommandResult(status="error", message="id is required")
+            session_id = payload.get("session_id")
+            exercise_id = payload.get("exercise_id")
+            set_number = payload.get("set_number")
+            if not (session_id and exercise_id and set_number is not None):
+                return CommandResult(status="error", message="id or (session_id, exercise_id, set_number) is required")
+            entry = uow.workout_log_entries.find_by_session_exercise_set(
+                session_id, exercise_id, set_number
+            )
+            if entry is None:
+                return CommandResult(status="deleted", id=None)
+            entry_id = entry.id or ""
 
         from sqlmodel import select
 
@@ -198,55 +208,6 @@ class DeleteLogSetHandler:
         uow.session.add(entry)
         uow.commit()
         return CommandResult(status="deleted", id=entry_id)
-
-
-@register("create_exercise")
-class CreateExerciseHandler:
-    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
-        name = payload.get("name", "").strip()
-        existing = uow.exercises.find_by_name(name)
-        if existing:
-            return CommandResult(status="error", message=f"Exercise '{name}' already exists")
-
-        now = datetime.now(timezone.utc)
-        ex = Exercise(
-            id=payload.get("id"),
-            name=name,
-            equipment=payload.get("equipment", "barbell"),
-            primary_muscles=payload.get("primary_muscles", ""),
-            secondary_muscles=payload.get("secondary_muscles"),
-            description=payload.get("description"),
-            instructions=payload.get("instructions"),
-            video_url=payload.get("video_url"),
-            image_url=payload.get("image_url"),
-            user_id=user.id,
-            created_at=now,
-            updated_at=now,
-        )
-        uow.exercises.add(ex)
-        uow.commit()
-        uow.session.refresh(ex)
-
-        record: dict[str, Any] = {k: getattr(ex, k, None) for k in
-            ("id", "name", "equipment", "primary_muscles", "secondary_muscles",
-             "description", "instructions", "video_url", "image_url", "user_id")}
-        return CommandResult(status="created", record=record, id=ex.id)
-
-
-@register("delete_exercise")
-class DeleteExerciseHandler:
-    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
-        ex_id = payload.get("id")
-        if not ex_id:
-            return CommandResult(status="error", message="id is required")
-        ex = uow.exercises.get_by_id(ex_id)  # pyright: ignore[reportArgumentType]
-        if not ex:
-            return CommandResult(status="deleted", id=ex_id)
-        if ex.user_id is not None and ex.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
-            return CommandResult(status="forbidden", message="Cannot delete system exercise")
-        uow.exercises.delete(ex)
-        uow.commit()
-        return CommandResult(status="deleted", id=ex_id)
 
 
 @register("create_plan")

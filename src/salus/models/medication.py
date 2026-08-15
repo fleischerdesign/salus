@@ -53,7 +53,7 @@ class MedicationSchedule(SQLModel, table=True):
     dosage: str
     times: list[str] = Field(sa_column=Column(JSON))
     days_of_week: list[int] | None = Field(default=None, sa_column=Column(JSON))
-    start_date: date
+    start_date: date = Field(default_factory=date.today)
     end_date: date | None = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     deleted_at: datetime | None = Field(default=None)

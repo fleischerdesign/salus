@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -12,10 +12,6 @@ class ExerciseBase(BaseModel):
     instructions: Optional[str] = None
     video_url: Optional[str] = None
     image_url: Optional[str] = None
-
-
-class ExerciseCreate(ExerciseBase):
-    pass
 
 
 class ExerciseResponse(ExerciseBase):
@@ -89,16 +85,6 @@ class WorkoutLogEntryResponse(BaseModel):
     exercise: ExerciseResponse
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class WorkoutSessionCreate(BaseModel):
-    plan_id: Optional[str] = None
-    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    completed_at: Optional[datetime] = None
-    autoreg_mode: str = "advisory"
-    recovery_score: Optional[float] = None
-    notes: Optional[str] = None
-    logs: list[WorkoutLogEntryCreate] = Field(default_factory=list)
 
 
 class WorkoutSessionResponse(BaseModel):

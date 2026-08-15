@@ -50,14 +50,35 @@ New/changed commands: `create_meal`/`update_meal`/`delete_meal`,
 `delete_medication_log`. `delete_plan` now removes orphaned
 `workout_plan_exercise` rows.
 
+The workout REST router (`/api/v1/workouts/*`) previously re-implemented the
+plan/session/log writes through `WorkoutService`; it now delegates them to the
+same commands, and `WorkoutService` (planner) is read-only. `delete_log_set`
+resolves a log by id *or* `(session_id, exercise_id, set_number)`, and session
+reads filter soft-deleted log entries out of the `logs` relationship.
+
 ### 2. Generic CRUD is the write path for flat entities only
 
 Flat entities (`goal`, `mood_entry`, `journal_entry`, `measurement`, `habit`,
-`medication`, `food_item`, …) are written by auto-CRUD (`WritePipeline` /
-`api_rest.py`), already shared by sync-push and REST. Redundant per-entity write
-methods and routers were removed: `create_goal`/`delete_goal` commands,
-`api_mood` POST (now auto-CRUD), `MoodService.log`,
-`MealService`/`RecipeService`/`HabitService` write methods (reads remain).
+`medication`, `food_item`, `exercise`, `medication_schedule`,
+`medication_inventory`, `dashboard_widget`, …) are written by auto-CRUD
+(`WritePipeline` / `api_rest.py`), already shared by sync-push and REST.
+Redundant per-entity write methods and routers were removed:
+
+- `create_goal`/`delete_goal` and `create_exercise`/`delete_exercise` commands,
+  plus the exercise write endpoints in `routers/workout.py` and
+  `WorkoutService.create/update/delete_exercise`.
+- `api_mood` POST and `MoodService.log`.
+- `api_dashboard` widget POST/PUT/DELETE and `DashboardWidgetService` write methods
+  (widgets via auto-CRUD; the `config_json` the client provides).
+- `MedicationService` write methods (medication/schedule/inventory/log/toggle),
+  with `medication_schedule`/`medication_inventory` moved to auto-CRUD and the
+  REST schedule/inventory write endpoints removed.
+- `MealService`/`RecipeService`/`HabitService` write methods (reads remain).
+
+Exercise keeps its auto-CRUD name-dedup validator (`_validate_exercise_create`)
+and system-row write protection (write_pipeline ownership denies writes to
+`user_id=None` rows). `MedicationSchedule.start_date` defaults to today so the
+generic create path needs no per-entity default logic.
 
 ### 3. Typed command payloads
 

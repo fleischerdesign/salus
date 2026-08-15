@@ -109,44 +109,6 @@ class DashboardWidgetService:
             raise NotFoundError("Widget not found")
         return w
 
-    def add_widget(
-        self, user_id: str, widget_type: str, metric_code: str | None, size: WidgetSize
-    ) -> DashboardWidget:
-        existing = self.uow.dashboard_widgets.find_by_user(user_id)
-        position = len(existing)
-        
-        if widget_type == "metric" and metric_code:
-            metric = self.uow.metric_definitions.find_by_code(metric_code)
-            viz_type = (
-                VIZ_TYPE_DEFAULTS.get(metric.source_data_type or "", "number")
-                if metric
-                else "number"
-            )
-            config = json.dumps({"viz_type": viz_type})
-        else:
-            config = "{}"
-
-        w = DashboardWidget(
-            user_id=user_id,
-            widget_type=widget_type,
-            metric_code=metric_code if widget_type == "metric" else None,
-            position=position,
-            size=size,
-            config_json=config,
-        )
-        return self.uow.dashboard_widgets.create(w)
-
-    def update_widget(
-        self, widget_id: str, user_id: str, size: WidgetSize
-    ) -> DashboardWidget:
-        w = self.get_widget(widget_id, user_id)
-        w.size = size
-        return self.uow.dashboard_widgets.update(w)
-
-    def delete_widget(self, widget_id: str, user_id: str) -> None:
-        w = self.get_widget(widget_id, user_id)
-        self.uow.dashboard_widgets.delete(w)
-
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
         self.uow.dashboard_widgets.reorder(user_id, ordered_ids)
 

@@ -123,7 +123,10 @@ class WorkoutSession(SQLModel, table=True):
     # Relations
     logs: list["WorkoutLogEntry"] = Relationship(
         back_populates="session",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "primaryjoin": "and_(WorkoutLogEntry.session_id == WorkoutSession.id, WorkoutLogEntry.deleted_at.is_(None))",
+        },
     )
     user: "User" = Relationship(back_populates="workout_sessions")
     plan: Optional[WorkoutPlan] = Relationship()

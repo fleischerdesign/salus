@@ -1,74 +1,22 @@
-from datetime import datetime, timezone
 from typing import Optional
-from salus.exceptions import ConflictError, ForbiddenError, NotFoundError
+
+from salus.exceptions import NotFoundError
 from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
-from salus.models.workout import (
-    Exercise,
-    WorkoutPlan,
-    WorkoutPlanExercise,
-    WorkoutSession,
-    WorkoutLogEntry,
-)
-from salus.schemas.workout import (
-    ExerciseCreate,
-    WorkoutPlanCreate,
-    WorkoutLogEntryCreate,
-)
+from salus.models.workout import Exercise, WorkoutPlan, WorkoutLogEntry, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.workout.autoregulation import AutoregulationService
 
 
 class WorkoutService:
+    """Read-only workout queries (write path is command handlers)."""
+
     def __init__(self, uow: IUnitOfWork, autoreg_svc: AutoregulationService) -> None:
         self.uow = uow
         self.autoreg_svc = autoreg_svc
 
     # --------------------------------------------------------------------------
-    # Exercise CRUD
+    # Exercise reads
     # --------------------------------------------------------------------------
-
-    def create_exercise(self, user_id: str, data: ExerciseCreate) -> Exercise:
-        with self.uow:
-            # Check if name is taken
-            existing = self.uow.exercises.find_by_name(data.name)
-            if existing:
-                raise ConflictError(f"Exercise with name '{data.name}' already exists.")
-
-            ex = Exercise(
-                name=data.name,
-                equipment=data.equipment,
-                primary_muscles=data.primary_muscles,
-                secondary_muscles=data.secondary_muscles,
-                description=data.description,
-                instructions=data.instructions,
-                video_url=data.video_url,
-                image_url=data.image_url,
-                user_id=user_id,
-            )
-            self.uow.exercises.add(ex)
-            return ex
-
-    def update_exercise(self, user_id: str, exercise_id: str, data: ExerciseCreate) -> Exercise:
-        with self.uow:
-            ex = self.uow.exercises.get_by_id(exercise_id)
-            if not ex:
-                raise NotFoundError("Exercise not found.")
-            if ex.user_id != user_id:
-                raise ForbiddenError("Cannot edit system default exercise.")
-
-            # Check if name is taken by another exercise
-            existing = self.uow.exercises.find_by_name(data.name)
-            if existing and existing.id != exercise_id:
-                raise ConflictError(f"Exercise with name '{data.name}' already exists.")
-
-            ex.name = data.name
-            ex.equipment = data.equipment
-            ex.primary_muscles = data.primary_muscles
-            ex.secondary_muscles = data.secondary_muscles
-            ex.description = data.description
-            ex.instructions = data.instructions
-            ex.video_url = data.video_url
-            return ex
 
     def get_exercise_catalog(self, user_id: str) -> list[Exercise]:
         with self.uow:
@@ -81,52 +29,9 @@ class WorkoutService:
                 return ex
             return None
 
-    def delete_exercise(self, user_id: str, exercise_id: str) -> None:
-        with self.uow:
-            ex = self.uow.exercises.get_by_id(exercise_id)
-            if not ex:
-                raise NotFoundError("Exercise not found.")
-            if ex.user_id != user_id:
-                raise ForbiddenError("Cannot delete system default exercise.")
-            self.uow.exercises.delete(ex)
-
     # --------------------------------------------------------------------------
-    # Plan CRUD
+    # Plan reads
     # --------------------------------------------------------------------------
-
-    def create_plan(self, user_id: str, data: WorkoutPlanCreate) -> WorkoutPlan:
-        with self.uow:
-            plan = WorkoutPlan(
-                name=data.name,
-                description=data.description,
-                user_id=user_id,
-                autoreg_mode=data.autoreg_mode,
-            )
-            self.uow.workout_plans.add(plan)
-
-            # Add plan exercises
-            plan_id = plan.id
-            if plan_id is None:
-                raise RuntimeError("Plan was not persisted correctly.")
-
-            for item in data.exercises:
-                ex = self.uow.exercises.get_by_id(item.exercise_id)
-                if not ex:
-                    raise NotFoundError(f"Exercise ID {item.exercise_id} not found.")
-
-                plan_ex = WorkoutPlanExercise(
-                    plan_id=plan_id,
-                    exercise_id=item.exercise_id,
-                    sequence=item.sequence,
-                    target_sets=item.target_sets,
-                    target_reps=item.target_reps,
-                    target_rpe=item.target_rpe,
-                    is_autoreg_exempt=item.is_autoreg_exempt,
-                    rest_seconds=item.rest_seconds,
-                )
-                self.uow.workout_plan_exercises.add(plan_ex)
-
-            return plan
 
     def get_plan(self, user_id: str, plan_id: str) -> WorkoutPlan:
         with self.uow:
@@ -139,179 +44,13 @@ class WorkoutService:
         with self.uow:
             return self.uow.workout_plans.find_by_user(user_id)
 
-    def reorder_plans(self, user_id: str, ordered_ids: list[str]) -> None:
-        with self.uow:
-            self.uow.workout_plans.reorder(user_id, ordered_ids)
-
-    def update_plan(
-        self,
-        user_id: str,
-        plan_id: str,
-        data: WorkoutPlanCreate,
-        client_updated_at: Optional[datetime] = None,
-    ) -> WorkoutPlan:
-        with self.uow:
-            plan = self.uow.workout_plans.get_by_id(plan_id)
-            if not plan or plan.user_id != user_id:
-                raise NotFoundError("Workout plan not found.")
-
-            if client_updated_at is not None and plan.updated_at is not None:
-                client_naive = client_updated_at.replace(tzinfo=None) if client_updated_at.tzinfo else client_updated_at
-                plan_naive = plan.updated_at.replace(tzinfo=None) if plan.updated_at.tzinfo else plan.updated_at
-                if plan_naive > client_naive:
-                    from salus.exceptions import ConflictError
-                    raise ConflictError(
-                        "Workout plan was modified online. Stale offline update rejected."
-                    )
-
-            plan.name = data.name
-            plan.description = data.description
-            plan.autoreg_mode = data.autoreg_mode
-            self.uow.workout_plans.update(plan)
-
-            # Replace plan exercises
-            plan_pk = plan.id
-            if plan_pk is None:
-                raise RuntimeError("Plan was not persisted correctly.")
-
-            new_exercises = []
-            for item in data.exercises:
-                ex = self.uow.exercises.get_by_id(item.exercise_id)
-                if not ex:
-                    raise NotFoundError(f"Exercise ID {item.exercise_id} not found.")
-
-                plan_ex = WorkoutPlanExercise(
-                    plan_id=plan_pk,
-                    exercise_id=item.exercise_id,
-                    sequence=item.sequence,
-                    target_sets=item.target_sets,
-                    target_reps=item.target_reps,
-                    target_rpe=item.target_rpe,
-                    is_autoreg_exempt=item.is_autoreg_exempt,
-                    rest_seconds=item.rest_seconds,
-                )
-                new_exercises.append(plan_ex)
-
-            self.uow.workout_plan_exercises.replace_exercises_for_plan(
-                plan_pk, new_exercises
-            )
-
-            return plan
-
-    def delete_plan(self, user_id: str, plan_id: str) -> None:
-        with self.uow:
-            plan = self.uow.workout_plans.get_by_id(plan_id)
-            if not plan or plan.user_id != user_id:
-                raise NotFoundError("Workout plan not found.")
-        self.uow.workout_plans.delete(plan)
-
     # --------------------------------------------------------------------------
-    # Workout Sessions Logging
+    # Session reads
     # --------------------------------------------------------------------------
-
-    def start_session(
-        self, user_id: str, plan_id: Optional[str] = None
-    ) -> WorkoutSession:
-        with self.uow:
-            # Check for active session
-            active = self.get_active_session(user_id)
-            if active:
-                return active
-
-            autoreg_mode = "disabled"
-            recovery_score = None
-            if plan_id:
-                plan = self.uow.workout_plans.get_by_id(plan_id)
-                if plan and plan.user_id == user_id:
-                    autoreg_mode = plan.autoreg_mode
-                    if autoreg_mode != "disabled":
-                        scores = self.autoreg_svc.calculate_recovery_score(user_id)
-                        recovery_score = scores[0]
-
-            session = WorkoutSession(
-                user_id=user_id,
-                plan_id=plan_id,
-                started_at=datetime.now(timezone.utc),
-                autoreg_mode=autoreg_mode,
-                recovery_score=recovery_score,
-            )
-            self.uow.workout_sessions.add(session)
-            return session
 
     def get_active_session(self, user_id: str) -> Optional[WorkoutSession]:
         with self.uow:
             return self.uow.workout_sessions.find_active_by_user(user_id)
-
-    def log_set(
-        self, user_id: str, session_id: str, entry: WorkoutLogEntryCreate
-    ) -> WorkoutLogEntry:
-        with self.uow:
-            if not session_id or session_id in ("0", "active"):
-                session = self.get_active_session(user_id)
-                if not session:
-                    raise NotFoundError("No active workout session found for this user.")
-                if session.id is None:
-                    raise RuntimeError("Workout session has no persisted ID")
-                session_id = session.id
-            else:
-                session = self.uow.workout_sessions.get_by_id(session_id)
-                if not session or session.user_id != user_id:
-                    raise NotFoundError("Active workout session not found.")
-
-            log = WorkoutLogEntry(
-                session_id=session_id,
-                exercise_id=entry.exercise_id,
-                set_number=entry.set_number,
-                weight=entry.weight,
-                reps=entry.reps,
-                rpe=entry.rpe,
-            )
-            self.uow.workout_log_entries.add(log)
-            return log
-
-    def delete_logged_set(
-        self, user_id: str, session_id: str, exercise_id: str, set_number: int
-    ) -> None:
-        with self.uow:
-            if not session_id or session_id in ("0", "active"):
-                session = self.get_active_session(user_id)
-                if not session:
-                    raise NotFoundError("No active workout session found for this user.")
-                if session.id is None:
-                    raise RuntimeError("Workout session has no persisted ID")
-                session_id = session.id
-            else:
-                session = self.uow.workout_sessions.get_by_id(session_id)
-                if not session or session.user_id != user_id:
-                    raise NotFoundError("Workout session not found.")
-
-            entry = self.uow.workout_log_entries.find_by_session_exercise_set(
-                session_id, exercise_id, set_number
-            )
-            if entry:
-                self.uow.session.delete(entry)
-
-    def complete_session(
-        self, user_id: str, session_id: str, notes: Optional[str] = None
-    ) -> WorkoutSession:
-        with self.uow:
-            if not session_id or session_id in ("0", "active"):
-                session = self.get_active_session(user_id)
-                if not session:
-                    raise NotFoundError("No active workout session found for this user.")
-                if session.id is None:
-                    raise RuntimeError("Workout session has no persisted ID")
-                session_id = session.id
-            else:
-                session = self.uow.workout_sessions.get_by_id(session_id)
-                if not session or session.user_id != user_id:
-                    raise NotFoundError("Workout session not found.")
-
-            session.completed_at = datetime.now(timezone.utc)
-            if notes is not None:
-                session.notes = notes
-            self.uow.workout_sessions.update(session)
-            return session
 
     def get_recent_sessions(
         self, user_id: str, limit: int = 10
@@ -381,7 +120,7 @@ class WorkoutService:
                 ex_pr = prs.get(t["exercise_id"], {})
                 t["pr_weight"] = ex_pr.get("max_weight", 0.0)
                 t["pr_est_1rm"] = ex_pr.get("max_est_1rm", 0.0)
-                
+
                 # Resolve rest duration override or default
                 pe, e = plan_ex_map.get(t["exercise_id"], (None, None))
                 rest_val = pe.rest_seconds if pe else None
@@ -402,13 +141,13 @@ class WorkoutService:
             exercise = self.get_exercise(user_id, exercise_id)
             if not exercise:
                 raise NotFoundError("Exercise not found.")
-                
+
             history = self.get_exercise_history(user_id, exercise_id)
             prs = self.uow.workout_sessions.get_personal_records(user_id, [exercise_id])
             ex_pr = prs.get(exercise_id, {})
             pr_weight = ex_pr.get("max_weight", 0.0)
             pr_est_1rm = ex_pr.get("max_est_1rm", 0.0)
-            
+
             return {
                 "exercise": exercise,
                 "history": history,
@@ -427,7 +166,7 @@ class WorkoutService:
             plan = self.uow.workout_plans.get_by_id(plan_id)
             if not plan or plan.user_id != user_id:
                 raise NotFoundError("Workout plan not found.")
-                
+
             exercises_with_details = []
             for plan_ex in plan.plan_exercises:
                 ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
@@ -436,9 +175,9 @@ class WorkoutService:
                         "plan_exercise": plan_ex,
                         "exercise": ex
                     })
-                    
+
             history = self.get_plan_history(user_id, plan_id)
-            
+
             return {
                 "plan": plan,
                 "exercises": exercises_with_details,

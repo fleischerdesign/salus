@@ -47,6 +47,8 @@ _PLURAL_MAP: dict[str, str] = {
     "mood_tag": "mood-tags",
     "journal_entry": "journal-entries",
     "medication": "medications",
+    "medication_schedule": "medication-schedules",
+    "medication_inventory": "medication-inventories",
     "food_item": "food-items",
     "lab_marker": "lab-markers",
     "fasting_protocol": "fasting-protocols",
@@ -66,9 +68,7 @@ _SKIP_AUTO_CRUD: set[str] = {
     "api_token",
     # dedicated typed routers own these domains (actions only; CRUD via auto-CRUD)
     "habit_log",
-    "medication_schedule",
     "medication_log",
-    "medication_inventory",
     # composed-aggregate domains: meal/recipe responses carry items/ingredients
     # and achievement exposes computed progress — not expressible as flat CRUD
     "meal",

@@ -94,7 +94,8 @@ class TestMedicationRoutes:
         })
         med_id = resp.json()["id"]
 
-        resp = authenticated_client.post(f"/api/v1/medications/{med_id}/schedule", json={
+        resp = authenticated_client.post("/api/v1/medication-schedules", json={
+            "medication_id": med_id,
             "dosage": "1 Tablette",
             "times": ["08:00", "20:00"],
             "days_of_week": [1, 2, 3, 4, 5],
@@ -116,13 +117,14 @@ class TestMedicationRoutes:
         })
         med_id = resp.json()["id"]
 
-        resp = authenticated_client.post(f"/api/v1/medications/{med_id}/schedule", json={
+        resp = authenticated_client.post("/api/v1/medication-schedules", json={
+            "medication_id": med_id,
             "dosage": "1 Tablette",
             "times": ["08:00"],
         })
         sched_id = resp.json()["id"]
 
-        resp = authenticated_client.delete(f"/api/v1/medications/schedule/{sched_id}")
+        resp = authenticated_client.delete(f"/api/v1/medication-schedules/{sched_id}")
         assert resp.status_code == 204
 
         resp = authenticated_client.get(f"/api/v1/medications/{med_id}/schedule")
@@ -154,7 +156,8 @@ class TestMedicationRoutes:
         })
         med_id = resp.json()["id"]
 
-        resp = authenticated_client.post(f"/api/v1/medications/{med_id}/schedule", json={
+        resp = authenticated_client.post("/api/v1/medication-schedules", json={
+            "medication_id": med_id,
             "dosage": "1 Tablette",
             "times": ["08:00", "20:00"],
             "start_date": "2026-01-01",
@@ -175,16 +178,19 @@ class TestMedicationRoutes:
         resp = authenticated_client.get(f"/api/v1/medications/{med_id}/inventory")
         assert resp.status_code == 204
 
-        resp = authenticated_client.put(f"/api/v1/medications/{med_id}/inventory", json={
+        resp = authenticated_client.post("/api/v1/medication-inventories", json={
+            "medication_id": med_id,
             "initial_count": 100,
             "remaining_count": 80,
             "refill_at_count": 10,
         })
-        assert resp.status_code == 200
+        assert resp.status_code == 201
         inv = resp.json()
         assert inv["initial_count"] == 100
         assert inv["remaining_count"] == 80
-        assert inv["needs_refill"] is False
+
+        resp = authenticated_client.get(f"/api/v1/medications/{med_id}/inventory")
+        assert resp.json()["needs_refill"] is False
 
     def test_inventory_refill_warning(self, authenticated_client):
         resp = authenticated_client.post("/api/v1/medications", json={
@@ -192,7 +198,8 @@ class TestMedicationRoutes:
         })
         med_id = resp.json()["id"]
 
-        authenticated_client.put(f"/api/v1/medications/{med_id}/inventory", json={
+        authenticated_client.post("/api/v1/medication-inventories", json={
+            "medication_id": med_id,
             "initial_count": 100,
             "remaining_count": 5,
             "refill_at_count": 10,

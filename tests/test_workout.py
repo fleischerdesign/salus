@@ -12,7 +12,6 @@ from salus.services.workout.autoregulation import AutoregulationService
 from salus.services.workout.planner import WorkoutService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.activity import ActivityAnalysisService
-from salus.schemas.workout import ExerciseCreate, WorkoutPlanCreate, WorkoutPlanExerciseCreate, WorkoutLogEntryCreate
 
 
 @pytest.fixture
@@ -38,49 +37,49 @@ def workout_services(session: Session):
 
 
 # ---------------------------------------------------------------------------
-# Service-level (business logic) tests — kept as-is
+# Service-level (business logic) tests — writes via command handlers
 # ---------------------------------------------------------------------------
+
+
+def _make_user(uow, username: str = "testuser") -> UserModel:
+    with uow:
+        user = UserModel(username=username, password_hash="hash")
+        uow.users.add(user)
+        uow.commit()
+        return user
 
 
 def test_exercise_catalog_and_creation(session: Session, workout_services):
     uow, _, workout_svc = workout_services
+    user = _make_user(uow, "testuser")
+    from salus.schemas.sync import SyncOperation
+    from salus.services.write_pipeline import WritePipeline
 
-    with uow:
-        user = UserModel(username="testuser", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-        user_id = user.id
+    pipeline = WritePipeline(uow, user)
 
-    custom_ex = ExerciseCreate(
-        name="Deficit Deadlift",
-        equipment="barbell",
-        primary_muscles="hamstrings,gluteus_maximus",
-        secondary_muscles="erector_spinae",
-        description="Deadlift standing on a plate.",
-    )
-    ex = workout_svc.create_exercise(user_id=user_id, data=custom_ex)
-    assert ex.id is not None
-    assert ex.user_id == user_id
+    data = {
+        "name": "Deficit Deadlift",
+        "equipment": "barbell",
+        "primary_muscles": "hamstrings,gluteus_maximus",
+        "secondary_muscles": "erector_spinae",
+        "description": "Deadlift standing on a plate.",
+    }
+    result = pipeline.process([SyncOperation(type="create", entity="exercise", data=data)])[0]
+    assert result.status == "created"
 
-    catalog = workout_svc.get_exercise_catalog(user_id=user_id)
-    assert len(catalog) >= 1
+    catalog = workout_svc.get_exercise_catalog(user_id=user.id)
     assert any(e.name == "Deficit Deadlift" for e in catalog)
 
-    from salus.exceptions import ConflictError
-
-    with pytest.raises(ConflictError):
-        workout_svc.create_exercise(user_id=user_id, data=custom_ex)
+    duplicate = pipeline.process([SyncOperation(type="create", entity="exercise", data=data)])[0]
+    assert duplicate.status == "error"
 
 
 def test_plan_crud_and_autoregulated_targets(session: Session, workout_services):
     uow, autoreg_svc, workout_svc = workout_services
+    user = _make_user(uow, "lifter")
+    from salus.services.commands.workout import CreatePlanHandler
 
     with uow:
-        user = UserModel(username="lifter", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-        user_id = user.id
-
         squat = Exercise(
             name="Squats",
             equipment="barbell",
@@ -100,20 +99,22 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
         squat_id = squat.id
         bench_id = bench.id
 
-    plan_data = WorkoutPlanCreate(
-        name="Push & Legs Day",
-        description="Heavy compounds",
-        autoreg_mode="advisory",
-        exercises=[
-            WorkoutPlanExerciseCreate(exercise_id=squat_id, sequence=0, target_sets=3, target_reps=8, target_rpe=8.0, rest_seconds=180),
-            WorkoutPlanExerciseCreate(exercise_id=bench_id, sequence=1, target_sets=3, target_reps=8, target_rpe=7.5, is_autoreg_exempt=True),
-        ]
-    )
-    plan = workout_svc.create_plan(user_id=user_id, data=plan_data)
-    assert plan.id is not None
-    assert len(plan.plan_exercises) == 2
+    plan = CreatePlanHandler().execute(uow, user, {
+        "name": "Push & Legs Day",
+        "description": "Heavy compounds",
+        "autoreg_mode": "advisory",
+        "exercises": [
+            {"exercise_id": squat_id, "sequence": 0, "target_sets": 3, "target_reps": 8, "target_rpe": 8.0, "rest_seconds": 180},
+            {"exercise_id": bench_id, "sequence": 1, "target_sets": 3, "target_reps": 8, "target_rpe": 7.5, "is_autoreg_exempt": True},
+        ],
+    })
+    assert plan.status == "created"
+    plan_id = plan.id
 
-    targets = workout_svc.get_session_targets(user_id=user_id, plan_id=plan.id)
+    plan_obj = workout_svc.get_plan(user_id=user.id, plan_id=plan_id)
+    assert len(plan_obj.plan_exercises) == 2
+
+    targets = workout_svc.get_session_targets(user_id=user.id, plan_id=plan_id)
     squat_target = next(t for t in targets if t["exercise_id"] == squat_id)
     bench_target = next(t for t in targets if t["exercise_id"] == bench_id)
 
@@ -128,7 +129,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
     with uow:
         for i in range(1, 7):
             m = Measurement(
-                user_id=user_id,
+                user_id=user.id,
                 source_data_type="sleep",
                 value_numeric=8.0 * 3600,
                 value_json='{"duration_seconds": 28800, "stages": []}',
@@ -138,7 +139,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
             )
             uow.measurements.add(m)
         m_last = Measurement(
-            user_id=user_id,
+            user_id=user.id,
             source_data_type="sleep",
             value_numeric=4.0 * 3600,
             value_json='{"duration_seconds": 14400, "stages": []}',
@@ -149,10 +150,10 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
         uow.measurements.add(m_last)
         uow.commit()
 
-    score, sleep_score, _, _ = autoreg_svc.calculate_recovery_score(user_id)
+    score, sleep_score, _, _ = autoreg_svc.calculate_recovery_score(user.id)
     assert sleep_score < 50.0
 
-    targets_fatigued = workout_svc.get_session_targets(user_id=user_id, plan_id=plan.id)
+    targets_fatigued = workout_svc.get_session_targets(user_id=user.id, plan_id=plan_id)
     squat_fatigued = next(t for t in targets_fatigued if t["exercise_id"] == squat_id)
     bench_fatigued = next(t for t in targets_fatigued if t["exercise_id"] == bench_id)
 
@@ -164,115 +165,89 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
 
 def test_session_starting_and_logging(session: Session, workout_services):
     uow, _, workout_svc = workout_services
+    user = _make_user(uow, "gymbro")
+    from salus.services.commands.workout import (
+        StartWorkoutHandler,
+        LogSetHandler,
+        CompleteWorkoutHandler,
+    )
 
     with uow:
-        user = UserModel(username="gymbro", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-        user_id = user.id
-
         ex = Exercise(name="Curls", equipment="dumbbell", primary_muscles="biceps")
         uow.exercises.add(ex)
         uow.commit()
         ex_id = ex.id
 
-    session_obj = workout_svc.start_session(user_id=user_id)
-    assert session_obj.id is not None
-    assert session_obj.completed_at is None
+    started = StartWorkoutHandler().execute(uow, user, {})
+    assert started.status == "created"
+    session_id = started.id
 
-    workout_svc.log_set(user_id=user_id, session_id=session_obj.id, entry=WorkoutLogEntryCreate(
-        exercise_id=ex_id, set_number=1, weight=14.0, reps=10, rpe=8.5
-    ))
-    workout_svc.log_set(user_id=user_id, session_id=session_obj.id, entry=WorkoutLogEntryCreate(
-        exercise_id=ex_id, set_number=2, weight=14.0, reps=10, rpe=9.0
-    ))
+    LogSetHandler().execute(uow, user, {
+        "session_id": session_id, "exercise_id": ex_id, "set_number": 1,
+        "weight": 14.0, "reps": 10, "rpe": 8.5,
+    })
+    LogSetHandler().execute(uow, user, {
+        "session_id": session_id, "exercise_id": ex_id, "set_number": 2,
+        "weight": 14.0, "reps": 10, "rpe": 9.0,
+    })
 
-    completed = workout_svc.complete_session(user_id=user_id, session_id=session_obj.id, notes="Felt a good pump.")
-    assert completed.completed_at is not None
-    assert completed.notes == "Felt a good pump."
-    assert len(completed.logs) == 2
+    completed = CompleteWorkoutHandler().execute(uow, user, {
+        "session_id": session_id, "notes": "Felt a good pump.",
+    })
+    assert completed.status == "updated"
+
+    session_obj = workout_svc.get_session(user_id=user.id, session_id=session_id)
+    assert session_obj.completed_at is not None
+    assert session_obj.notes == "Felt a good pump."
+    assert len(session_obj.logs) == 2
 
 
 def test_personal_records_and_unlogging(session: Session, workout_services):
     uow, _, workout_svc = workout_services
+    user = _make_user(uow, "pr_guy")
+    from salus.services.commands.workout import (
+        StartWorkoutHandler,
+        LogSetHandler,
+        CompleteWorkoutHandler,
+        DeleteLogSetHandler,
+    )
 
     with uow:
-        user = UserModel(username="pr_guy", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-        user_id = user.id
-
         ex = Exercise(name="Overhead Press", equipment="barbell", primary_muscles="shoulders")
         uow.exercises.add(ex)
         uow.commit()
         ex_id = ex.id
 
-    sess1 = workout_svc.start_session(user_id=user_id)
-    workout_svc.log_set(user_id=user_id, session_id=sess1.id, entry=WorkoutLogEntryCreate(
-        exercise_id=ex_id, set_number=1, weight=50.0, reps=5, rpe=8.0
-    ))
-    workout_svc.complete_session(user_id=user_id, session_id=sess1.id)
+    sess1 = StartWorkoutHandler().execute(uow, user, {})
+    LogSetHandler().execute(uow, user, {
+        "session_id": sess1.id, "exercise_id": ex_id, "set_number": 1,
+        "weight": 50.0, "reps": 5, "rpe": 8.0,
+    })
+    CompleteWorkoutHandler().execute(uow, user, {"session_id": sess1.id})
 
-    prs = workout_svc.uow.workout_sessions.get_personal_records(user_id, [ex_id])
+    prs = workout_svc.uow.workout_sessions.get_personal_records(user.id, [ex_id])
     assert prs[ex_id]["max_weight"] == 50.0
     assert prs[ex_id]["max_est_1rm"] > 56.0
 
-    sess2 = workout_svc.start_session(user_id=user_id)
-    logged = workout_svc.log_set(user_id=user_id, session_id=sess2.id, entry=WorkoutLogEntryCreate(
-        exercise_id=ex_id, set_number=1, weight=55.0, reps=5, rpe=9.0
-    ))
-    assert logged.id is not None
+    sess2 = StartWorkoutHandler().execute(uow, user, {})
+    LogSetHandler().execute(uow, user, {
+        "session_id": sess2.id, "exercise_id": ex_id, "set_number": 1,
+        "weight": 55.0, "reps": 5, "rpe": 9.0,
+    })
 
     with uow:
-        assert len(sess2.logs) == 1
+        sess2_obj = uow.workout_sessions.get_by_id(sess2.id)
+        assert len(sess2_obj.logs) == 1
 
-    workout_svc.delete_logged_set(user_id=user_id, session_id=sess2.id, exercise_id=ex_id, set_number=1)
+    deleted = DeleteLogSetHandler().execute(uow, user, {
+        "session_id": sess2.id, "exercise_id": ex_id, "set_number": 1,
+    })
+    assert deleted.status == "deleted"
 
     with uow:
         sess2_fresh = uow.workout_sessions.get_by_id(sess2.id)
         assert sess2_fresh is not None
-        assert len(sess2_fresh.logs) == 0
-
-
-def test_plan_conflict_resolution(session, workout_services):
-    from salus.exceptions import ConflictError
-
-    uow, _, workout_svc = workout_services
-
-    with uow:
-        user = UserModel(username="lww_lifter", password_hash="hash")
-        uow.users.add(user)
-        uow.commit()
-        user_id = user.id
-
-    plan_data = WorkoutPlanCreate(
-        name="LWW Plan",
-        description="Initial",
-        autoreg_mode="disabled",
-        exercises=[]
-    )
-    plan = workout_svc.create_plan(user_id=user_id, data=plan_data)
-    plan_id = plan.id
-
-    future_time = datetime.now(timezone.utc) + timedelta(minutes=5)
-    plan_data.name = "Updated Name"
-    updated_plan = workout_svc.update_plan(
-        user_id=user_id,
-        plan_id=plan_id,
-        data=plan_data,
-        client_updated_at=future_time
-    )
-    assert updated_plan.name == "Updated Name"
-
-    past_time = datetime.now(timezone.utc) - timedelta(minutes=5)
-    plan_data.name = "Stale Update"
-    with pytest.raises(ConflictError):
-        workout_svc.update_plan(
-            user_id=user_id,
-            plan_id=plan_id,
-            data=plan_data,
-            client_updated_at=past_time
-        )
+        assert all(log.deleted_at is not None for log in sess2_fresh.logs)
 
 
 # ---------------------------------------------------------------------------
@@ -432,14 +407,14 @@ def test_create_exercise_via_api(authenticated_client):
         "description": "Created via JSON API.",
         "instructions": "Curl with control.",
     }
-    resp = authenticated_client.post("/api/v1/workouts/exercises", json=data)
+    resp = authenticated_client.post("/api/v1/exercises", json=data)
     assert resp.status_code == 201
     body = resp.json()
     assert body["id"] is not None
     assert body["name"] == "API Curls"
 
-    duplicate = authenticated_client.post("/api/v1/workouts/exercises", json=data)
-    assert duplicate.status_code == 409
+    duplicate = authenticated_client.post("/api/v1/exercises", json=data)
+    assert duplicate.status_code == 400
 
 
 def test_delete_exercise_via_api(authenticated_client):
@@ -457,7 +432,7 @@ def test_delete_exercise_via_api(authenticated_client):
         db.commit()
         ex_id = ex.id
 
-    resp = authenticated_client.delete(f"/api/v1/workouts/exercises/{ex_id}")
+    resp = authenticated_client.delete(f"/api/v1/exercises/{ex_id}")
     assert resp.status_code == 204
 
     check = authenticated_client.get("/api/v1/workouts/exercises")

@@ -1,27 +1,4 @@
-from pydantic import BaseModel, Field
-
-from salus.models.medication import MedicationForm
-
-
-class MedicationCreate(BaseModel):
-    name: str
-    active_ingredient: str | None = None
-    strength: str | None = None
-    form: MedicationForm = Field(default=MedicationForm.TABLET)
-    instructions: str | None = None
-    color_hex: str = Field(default="#4f46e5")
-    icon: str = Field(default="medication")
-
-
-class MedicationUpdate(BaseModel):
-    name: str | None = None
-    active_ingredient: str | None = None
-    strength: str | None = None
-    form: MedicationForm | None = None
-    instructions: str | None = None
-    color_hex: str | None = None
-    icon: str | None = None
-    is_active: bool | None = None
+from pydantic import BaseModel
 
 
 class MedicationResponse(BaseModel):
@@ -35,14 +12,6 @@ class MedicationResponse(BaseModel):
     icon: str
     is_active: bool
     created_at: str
-
-
-class MedicationScheduleCreate(BaseModel):
-    dosage: str
-    times: list[str]
-    days_of_week: list[int] | None = None
-    start_date: str | None = None
-    end_date: str | None = None
 
 
 class MedicationScheduleResponse(BaseModel):
@@ -72,14 +41,6 @@ class MedicationLogResponse(BaseModel):
     skipped: bool
     notes: str | None = None
     created_at: str
-
-
-class MedicationInventoryUpdate(BaseModel):
-    initial_count: int | None = None
-    remaining_count: int | None = None
-    refill_at_count: int | None = None
-    prescription_refills: int | None = None
-    next_refill_date: str | None = None
 
 
 class MedicationInventoryResponse(BaseModel):
