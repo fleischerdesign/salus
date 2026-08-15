@@ -141,22 +141,25 @@ export async function deleteMeal(mealId: string) {
   });
 }
 
-async function calcMacros(
-  items: { food_item_id: string; servings: number }[]
-): Promise<{ calories: number; protein_g: number; carbs_g: number; fat_g: number }> {
+async function calcMacros(items: { food_item_id: string; servings: number }[]): Promise<{
+  calories: number;
+  protein_grams: number;
+  carbs_grams: number;
+  fat_grams: number;
+}> {
   const foodIds = [...new Set(items.map((i) => i.food_item_id))];
   const foods = await db.food_item.bulkGet(foodIds);
   const foodMap = new Map(foods.filter(Boolean).map((f) => [f!.id, f!]));
 
-  const total = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+  const total = { calories: 0, protein_grams: 0, carbs_grams: 0, fat_grams: 0 };
   for (const item of items) {
     const food = foodMap.get(item.food_item_id);
     if (!food) continue;
     const factor = item.servings;
     total.calories += food.calories_per_serving * factor;
-    total.protein_g += food.protein_g * factor;
-    total.carbs_g += food.carbs_g * factor;
-    total.fat_g += food.fat_g * factor;
+    total.protein_grams += food.protein_g * factor;
+    total.carbs_grams += food.carbs_g * factor;
+    total.fat_grams += food.fat_g * factor;
   }
   return total;
 }

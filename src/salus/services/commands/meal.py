@@ -28,16 +28,16 @@ _MEAL_FIELDS = (
 
 
 def _calc_macros(items: list[MealItem], food_map: dict) -> dict:
-    total = {"calories": 0.0, "protein_g": 0.0, "carbs_g": 0.0, "fat_g": 0.0}
+    total = {"calories": 0.0, "protein_grams": 0.0, "carbs_grams": 0.0, "fat_grams": 0.0}
     for item in items:
         food = food_map.get(item.food_item_id)
         if food is None:
             continue
         factor = item.servings
         total["calories"] += food.calories_per_serving * factor
-        total["protein_g"] += food.protein_g * factor
-        total["carbs_g"] += food.carbs_g * factor
-        total["fat_g"] += food.fat_g * factor
+        total["protein_grams"] += food.protein_g * factor
+        total["carbs_grams"] += food.carbs_g * factor
+        total["fat_grams"] += food.fat_g * factor
     return total
 
 

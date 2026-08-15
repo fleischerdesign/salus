@@ -189,6 +189,9 @@ describe('composed-domain optimistic writes (local-first)', () => {
       expect(measurement?.source).toBe('meal');
       expect(measurement?.external_id).toBe(meal!.id);
       expect(measurement?.value_json).toContain('"calories":700');
+      expect(measurement?.value_json).toContain('"protein_grams":24');
+      expect(measurement?.value_json).toContain('"carbs_grams":120');
+      expect(measurement?.value_json).toContain('"fat_grams":12');
     });
 
     it('removes items and the nutrition bridge when the meal is deleted', async () => {

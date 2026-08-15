@@ -60,6 +60,25 @@ class TestCreateMealHandler:
         assert bridge["source"] == "meal"
         assert '"calories": 700.0' in bridge["value_json"]
 
+    def test_bridge_matches_nutrition_analytics_contract(
+        self, authenticated_client: TestClient
+    ):
+        import json
+
+        food_id = _create_food_item(authenticated_client)
+        _push_cmd(authenticated_client, "create_meal", {
+            "items": [{"food_item_id": food_id, "servings": 2}],
+        })
+
+        measurements = _nutrition_measurements(authenticated_client)
+        bridge = next((m for m in measurements if m["source"] == "meal"), None)
+        assert bridge is not None
+        data = json.loads(bridge["value_json"])
+        assert data["calories"] == 700.0
+        assert data["protein_grams"] == 24.0
+        assert data["carbs_grams"] == 120.0
+        assert data["fat_grams"] == 12.0
+
     def test_rejects_empty_meal(self, authenticated_client: TestClient):
         result = _push_cmd(authenticated_client, "create_meal", {"items": []})
         assert result["status"] == "error"

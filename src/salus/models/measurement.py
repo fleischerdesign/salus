@@ -65,11 +65,11 @@ class Measurement(SQLModel, table=True):
                         if hours > 0:
                             return f"{hours}h {mins}m"
                         return f"{mins}m"
-                    elif "total_kcal" in data:
-                        kcal = data["total_kcal"]
-                        p = data.get("protein_g", 0)
-                        c = data.get("carbs_g", 0)
-                        f = data.get("fat_g", 0)
+                    elif "calories" in data or "total_kcal" in data:
+                        kcal = data.get("calories") or data.get("total_kcal", 0) or 0
+                        p = data.get("protein_grams") or data.get("protein_g", 0) or 0
+                        c = data.get("carbs_grams") or data.get("carbs_g", 0) or 0
+                        f = data.get("fat_grams") or data.get("fat_g", 0) or 0
                         return f"{kcal} kcal ({p}g P, {c}g C, {f}g F)"
             except Exception:
                 logger.debug("Failed to format measurement display value", exc_info=True)

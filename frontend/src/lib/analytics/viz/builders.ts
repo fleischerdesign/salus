@@ -324,9 +324,9 @@ export function buildNutritionViz(ctx: VizContext): WidgetViz {
   for (const m of todayN) {
     try {
       const d = JSON.parse(m.value_json!);
-      proteinG += (d.protein_g ?? d.protein ?? 0) as number;
-      carbsG += (d.carbs_g ?? d.carbs ?? 0) as number;
-      fatG += (d.fat_g ?? d.fat ?? 0) as number;
+      proteinG += (d.protein_grams ?? d.protein_g ?? d.protein ?? 0) as number;
+      carbsG += (d.carbs_grams ?? d.carbs_g ?? d.carbs ?? 0) as number;
+      fatG += (d.fat_grams ?? d.fat_g ?? d.fat ?? 0) as number;
       totalKcal += (d.total_kcal ?? d.calories ?? 0) as number;
     } catch {
       /* skip */
