@@ -9,29 +9,27 @@ function now(): string {
 export const createExercise = (data: Record<string, unknown>) => {
   const id = uuid7();
   return mutate({
-    kind: 'command',
-    command: 'create_exercise',
-    queueable: true,
-    payload: { id, ...data },
-    optimisticTable: 'exercise',
-    optimisticData: {
+    kind: 'crud',
+    op: 'create',
+    entity: 'exercise',
+    id,
+    data,
+    optimistic: {
       id,
       user_id: SELF_USER_ID,
       ...data,
       created_at: now(),
       updated_at: null,
       deleted_at: null
-    },
-    responseTable: 'exercise'
+    }
   });
 };
 
 export const deleteExercise = (exerciseId: string) =>
   mutate({
-    kind: 'command',
-    command: 'delete_exercise',
-    queueable: true,
-    payload: { id: exerciseId },
-    optimisticTable: 'exercise',
-    optimisticData: { id: exerciseId, deleted_at: now() }
+    kind: 'crud',
+    op: 'delete',
+    entity: 'exercise',
+    id: exerciseId,
+    optimistic: { id: exerciseId }
   });

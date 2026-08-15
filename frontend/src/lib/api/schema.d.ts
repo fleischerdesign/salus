@@ -776,27 +776,8 @@ export interface paths {
         /** Api List Widgets */
         get: operations["api_list_widgets_api_v1_dashboard_widgets_get"];
         put?: never;
-        /** Api Create Widget */
-        post: operations["api_create_widget_api_v1_dashboard_widgets_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/dashboard/widgets/{widget_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Api Update Widget */
-        put: operations["api_update_widget_api_v1_dashboard_widgets__widget_id__put"];
         post?: never;
-        /** Api Delete Widget */
-        delete: operations["api_delete_widget_api_v1_dashboard_widgets__widget_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1517,6 +1498,82 @@ export interface paths {
         patch: operations["patch_one_api_v1_measurements__item_id__patch"];
         trace?: never;
     };
+    "/api/v1/medication-inventories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_medication_inventories_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_medication_inventories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medication-inventories/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_medication_inventories__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_medication_inventories__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_medication_inventories__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_medication_inventories__item_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/medication-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_medication_schedules_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_medication_schedules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medication-schedules/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_medication_schedules__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_medication_schedules__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_medication_schedules__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_medication_schedules__item_id__patch"];
+        trace?: never;
+    };
     "/api/v1/medications": {
         parameters: {
             query?: never;
@@ -1564,8 +1621,7 @@ export interface paths {
         };
         /** Get Inventory */
         get: operations["get_inventory_api_v1_medications__medication_id__inventory_get"];
-        /** Update Inventory */
-        put: operations["update_inventory_api_v1_medications__medication_id__inventory_put"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1601,26 +1657,8 @@ export interface paths {
         /** Get Schedules */
         get: operations["get_schedules_api_v1_medications__medication_id__schedule_get"];
         put?: never;
-        /** Create Schedule */
-        post: operations["create_schedule_api_v1_medications__medication_id__schedule_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medications/schedule/{schedule_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
         post?: never;
-        /** Delete Schedule */
-        delete: operations["delete_schedule_api_v1_medications_schedule__schedule_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2801,8 +2839,7 @@ export interface paths {
         /** List Exercises */
         get: operations["list_exercises_api_v1_workouts_exercises_get"];
         put?: never;
-        /** Create Exercise */
-        post: operations["create_exercise_api_v1_workouts_exercises_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2820,8 +2857,7 @@ export interface paths {
         get: operations["get_exercise_api_v1_workouts_exercises__exercise_id__get"];
         put?: never;
         post?: never;
-        /** Delete Exercise */
-        delete: operations["delete_exercise_api_v1_workouts_exercises__exercise_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3593,28 +3629,6 @@ export interface components {
             /** Video Url */
             video_url?: string | null;
         };
-        /** ExerciseCreate */
-        ExerciseCreate: {
-            /** Description */
-            description?: string | null;
-            /**
-             * Equipment
-             * @default barbell
-             */
-            equipment: string;
-            /** Image Url */
-            image_url?: string | null;
-            /** Instructions */
-            instructions?: string | null;
-            /** Name */
-            name: string;
-            /** Primary Muscles */
-            primary_muscles: string;
-            /** Secondary Muscles */
-            secondary_muscles?: string | null;
-            /** Video Url */
-            video_url?: string | null;
-        };
         /** ExerciseResponse */
         ExerciseResponse: {
             /** Description */
@@ -4234,6 +4248,34 @@ export interface components {
             /** Value Text */
             value_text?: string | null;
         };
+        /** MedicationInventory */
+        MedicationInventory: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Initial Count */
+            initial_count: number;
+            /** Medication Id */
+            medication_id: string;
+            /** Next Refill Date */
+            next_refill_date?: string | null;
+            /** Prescription Refills */
+            prescription_refills?: number | null;
+            /** Refill At Count */
+            refill_at_count: number;
+            /** Remaining Count */
+            remaining_count: number;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /** MedicationInventoryResponse */
         MedicationInventoryResponse: {
             /** Id */
@@ -4255,19 +4297,6 @@ export interface components {
             refill_at_count: number;
             /** Remaining Count */
             remaining_count: number;
-        };
-        /** MedicationInventoryUpdate */
-        MedicationInventoryUpdate: {
-            /** Initial Count */
-            initial_count?: number | null;
-            /** Next Refill Date */
-            next_refill_date?: string | null;
-            /** Prescription Refills */
-            prescription_refills?: number | null;
-            /** Refill At Count */
-            refill_at_count?: number | null;
-            /** Remaining Count */
-            remaining_count?: number | null;
         };
         /** MedicationLogCreate */
         MedicationLogCreate: {
@@ -4327,18 +4356,34 @@ export interface components {
             /** Strength */
             strength?: string | null;
         };
-        /** MedicationScheduleCreate */
-        MedicationScheduleCreate: {
+        /** MedicationSchedule */
+        MedicationSchedule: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
             /** Days Of Week */
             days_of_week?: number[] | null;
+            /** Deleted At */
+            deleted_at?: string | null;
             /** Dosage */
             dosage: string;
             /** End Date */
             end_date?: string | null;
-            /** Start Date */
-            start_date?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Medication Id */
+            medication_id: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date?: string;
             /** Times */
             times: string[];
+            /** User Id */
+            user_id: string;
         };
         /** MedicationScheduleResponse */
         MedicationScheduleResponse: {
@@ -5217,20 +5262,6 @@ export interface components {
             score: number;
             sleep: components["schemas"]["WellnessComponent"];
             steps: components["schemas"]["WellnessComponent"];
-        };
-        /** WidgetCreateResponse */
-        WidgetCreateResponse: {
-            /** Id */
-            id: string;
-            /** Metric Code */
-            metric_code?: string | null;
-            /** Size */
-            size: string;
-            /**
-             * Widget Type
-             * @default metric
-             */
-            widget_type: string;
         };
         /** WidgetResponse */
         WidgetResponse: {
@@ -7298,101 +7329,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WidgetResponse"][];
-                };
-            };
-        };
-    };
-    api_create_widget_api_v1_dashboard_widgets_post: {
-        parameters: {
-            query?: {
-                metric_code?: string | null;
-                size?: string;
-                widget_type?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WidgetCreateResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_update_widget_api_v1_dashboard_widgets__widget_id__put: {
-        parameters: {
-            query: {
-                size: string;
-            };
-            header?: never;
-            path: {
-                widget_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WidgetCreateResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    api_delete_widget_api_v1_dashboard_widgets__widget_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                widget_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -9845,6 +9781,408 @@ export interface operations {
             };
         };
     };
+    list_all_api_v1_medication_inventories_get: {
+        parameters: {
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationInventory"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_one_api_v1_medication_inventories_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationInventory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_medication_inventories__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationInventory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_medication_inventories__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationInventory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_medication_inventories__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_medication_inventories__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationInventory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_v1_medication_schedules_get: {
+        parameters: {
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationSchedule"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_one_api_v1_medication_schedules_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationSchedule"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_medication_schedules__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationSchedule"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_medication_schedules__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationSchedule"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_medication_schedules__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_medication_schedules__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationSchedule"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_all_api_v1_medications_get: {
         parameters: {
             query?: {
@@ -10079,41 +10417,6 @@ export interface operations {
             };
         };
     };
-    update_inventory_api_v1_medications__medication_id__inventory_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                medication_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MedicationInventoryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MedicationInventoryResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_logs_api_v1_medications__medication_id__log_get: {
         parameters: {
             query?: never;
@@ -10202,70 +10505,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MedicationScheduleResponse"][];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_schedule_api_v1_medications__medication_id__schedule_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                medication_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MedicationScheduleCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MedicationScheduleResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_schedule_api_v1_medications_schedule__schedule_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                schedule_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -13719,39 +13958,6 @@ export interface operations {
             };
         };
     };
-    create_exercise_api_v1_workouts_exercises_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExerciseCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExerciseResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_exercise_api_v1_workouts_exercises__exercise_id__get: {
         parameters: {
             query?: never;
@@ -13771,35 +13977,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ExerciseResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_exercise_api_v1_workouts_exercises__exercise_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exercise_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -13835,7 +14012,10 @@ export interface operations {
     create_plan_api_v1_workouts_plans_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -13899,7 +14079,10 @@ export interface operations {
     delete_plan_api_v1_workouts_plans__plan_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path: {
                 plan_id: string;
             };
@@ -13984,7 +14167,10 @@ export interface operations {
                 notes?: string | null;
                 session_id: string;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14015,7 +14201,10 @@ export interface operations {
             query: {
                 session_id: string;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14052,7 +14241,10 @@ export interface operations {
                 session_id: string;
                 set_number: number;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -14112,7 +14304,10 @@ export interface operations {
             query?: {
                 plan_id?: string | null;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
