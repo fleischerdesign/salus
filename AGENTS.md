@@ -370,7 +370,20 @@ Not every domain belongs in the metric system. Use this framework:
 
 ### Frontend data loading (Dexie-first)
 
-**NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB. The single reactive-read idiom is the **`useQuery`** hook from `$lib/db/use-query.svelte` — it re-subscribes both on Dexie changes and when the querier's reactive dependencies (route params, dates) change. Do **not** hand-write `$effect(() => { liveQuery(...).subscribe(...) })` blocks and do **not** assign a `liveQuery` store (`let x = liveQuery(...)` + `$x`) — those miss state-parameter changes and leave stale data on navigation.
+**NEVER call the REST API directly for reading data.** All data lives in Dexie IndexedDB. The single reactive-read idiom is the **`useQuery`** hook from `$lib/db/use-query.svelte`. Dexie's `liveQuery` runs the querier asynchronously, so reads *inside* the querier are invisible to Svelte reactivity — pass a **`deps` getter** for any external reactive input (dates, params, view modes) so the subscription re-runs when it changes:
+
+```typescript
+const dayQuery = useQuery(
+  async () => {
+    const meals = await db.meal.where('log_date').equals(selectedDate).toArray();
+    // ... also query meal_item, both tables in one liveQuery (no cross-query dependency)
+    return { meals, items };
+  },
+  () => selectedDate   // ← re-subscribes when selectedDate changes
+);
+```
+
+Do **not** hand-write `$effect(() => { liveQuery(...).subscribe(...) })` blocks and do **not** assign a `liveQuery` store (`let x = liveQuery(...)` + `$x`). Avoid one `useQuery` reading another query's *result* as its input — the child query never re-runs when the parent updates (and early-returning `[]` before touching a table leaves it with **no observer at all**). Query each table independently and join in `$derived`, or read both tables in one composite query.
 
 **Never destructure `useQuery`'s result.** Svelte 5 `$state` reactivity is resolved at compile time (`$.get`/`$.set`); it does **not** survive returning a value out of a function and destructuring it. `const { value: medications } = useQuery(...)` captures a one-time snapshot — `loading` stays `true` and `value` stays `undefined` forever. Keep the query object and bind `value`/`loading` via `$derived` aliases, which are reactive reads.
 
@@ -406,6 +419,16 @@ await mutate({ kind: 'crud', op: 'create', entity: 'medication', id: crypto.rand
 // ❌ WRONG
 await api.POST('/api/v1/medications', { body: data });
 ```
+
+### Food / Nutrition frontend (Log Food builder + flat rendering)
+
+- **One universal add flow**: `MealForm` is the **Log Food builder** — the only entry to log food. It has a slot selector (meal type), a search that surfaces **foods and recipes**, a scan button, frequent-food chips, a live item list with ±/×, a collapsible "Details" section (optional **name + notes**), and a sticky "Add to [Slot]" footer with live macros. Reachable from the PageHeader "Log Food" button (slot inferred by time) and per-group "+ Add" (slot preselected).
+- **`name` is the composition trigger**: a meal with a name (or a cooked recipe, named `Recipe: …`) renders as a **`MealBlock`** (header + expandable items, edit/delete). An unnamed meal renders its items as **flat `MealItemRow`s** directly under the meal-type group — single foods and several separate foods stand alone. Rendering rule lives in `MealGroups`.
+- **Recipes flow into the builder**: `composeRecipe(recipeId, servings)` (`mutations/recipe.ts`) returns scaled `{ name, items }` without committing; `CookModal` hands the servings back to the builder, which lands the composition in the item list.
+- **Barcode scanning uses `@zxing/browser`** (`BarcodeScanner.svelte`, `BrowserMultiFormatOneDReader` + `decodeFromConstraints`, FullHD ideal, `facingMode: environment`). Cross-browser; a `BarcodeNotFound` notice (not a forced modal) offers inline food creation with the scanned barcode.
+- **PortionPickerModal** (`servings` stepper + grams input for g/ml units, live macros) is used for every food selection. `MealItemRow` shows the real quantity (`servings × serving_size + unit`), not the vestigial `amount_g`.
+- **Shared helpers** in `$lib/food/`: `frequent.ts` (`loadFrequentFoods`, `newestFood`), `nutrition-goals.ts` (`fetchNutritionTargets`), `barcode.ts` (`lookupBarcode`).
+- **Nutrition goals (P6)**: `Goal.nutrition_field` (`calories|protein|carbs|fat`, nullable) targets a `value_json` sub-field; the evaluator **sums** it over the period. The `/goals` form shows a sub-field picker when `metric_code="nutrition"`.
 
 ### High-Performance Time-Series & Frontend Data Architecture (Strict Rules)
 

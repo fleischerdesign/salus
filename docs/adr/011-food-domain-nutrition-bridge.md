@@ -68,12 +68,12 @@ Composed/verb writes go through command handlers (`create_meal`,
 routers. `food_item` is flat and written via auto-CRUD. Macros are computed in
 one place (`commands/meal.py::_calc_macros`), including for `cook_recipe`.
 
-### 5. Goal integration (note)
+### 5. Goal integration
 
-Nutrition goals use `metric_code="nutrition"` but the target refers to one of
-four sub-fields. The goal evaluator currently compares a single `value_numeric`;
-comparing against a `value_json` sub-field is a small extension that is
-**deferred** and tracked here so it is not re-discovered later.
+Nutrition goals use `metric_code="nutrition"` with a `nutrition_field` sub-field
+(`calories|protein|carbs|fat`). The evaluator reads the `value_json` sub-field and
+**sums** it over the period (daily/weekly), compared against `target_value` + direction.
+Implemented in `services/goal.py` (`_extract_nutrition_total`).
 
 ### 6. Deferred
 
