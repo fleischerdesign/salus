@@ -3,14 +3,17 @@
 
   import PageHeader from '$components/ui/PageHeader.svelte';
   import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
+  import { goto } from '$app/navigation';
   import Card from '$components/ui/Card.svelte';
   import Input from '$components/ui/Input.svelte';
   import Chip from '$components/ui/Chip.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import Modal from '$components/ui/Modal.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import Icon from '$components/ui/Icon.svelte';
+  import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import FormField from '$components/forms/FormField.svelte';
-  import { createFoodItem } from '$lib/mutations/food-item';
+  import { createFoodItem, updateFoodItem, deleteFoodItem } from '$lib/mutations/food-item';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { api } from '$lib/api/client';
   import type { FoodItem } from '$lib/db/types';
@@ -21,6 +24,8 @@
   let barcode = $state('');
   let lookingUp = $state(false);
   let lookupMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+  let editingItem = $state<FoodItem | null>(null);
+  let deleteTarget = $state<FoodItem | null>(null);
 
   let newName = $state('');
   let newBrand = $state('');
@@ -90,11 +95,37 @@
     }
   }
 
+  function openCreate() {
+    editingItem = null;
+    newName = '';
+    newBrand = '';
+    newCalories = 0;
+    newProtein = 0;
+    newCarbs = 0;
+    newFat = 0;
+    newServingSize = 100;
+    newServingUnit = 'g';
+    createOpen = true;
+  }
+
+  function openEdit(item: FoodItem) {
+    editingItem = item;
+    newName = item.name;
+    newBrand = item.brand ?? '';
+    newCalories = item.calories_per_serving;
+    newProtein = item.protein_g;
+    newCarbs = item.carbs_g;
+    newFat = item.fat_g;
+    newServingSize = item.serving_size;
+    newServingUnit = item.serving_unit;
+    createOpen = true;
+  }
+
   async function handleCreate() {
     if (!canCreate) return;
     saving = true;
     try {
-      await createFoodItem({
+      const payload = {
         name: newName.trim(),
         brand: newBrand.trim() || undefined,
         calories_per_serving: newCalories,
@@ -103,19 +134,22 @@
         fat_g: newFat,
         serving_size: newServingSize,
         serving_unit: newServingUnit
-      });
+      };
+      if (editingItem) {
+        await updateFoodItem(editingItem.id, payload);
+      } else {
+        await createFoodItem(payload);
+      }
       createOpen = false;
-      newName = '';
-      newBrand = '';
-      newCalories = 0;
-      newProtein = 0;
-      newCarbs = 0;
-      newFat = 0;
-      newServingSize = 100;
-      newServingUnit = 'g';
     } finally {
       saving = false;
     }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    await deleteFoodItem(deleteTarget.id);
+    deleteTarget = null;
   }
 </script>
 
@@ -125,7 +159,13 @@
   <PageHeader title="Food Database" subtitle="Search and manage food items" icon="search">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <PageHeaderAction icon="add" onclick={() => (createOpen = true)}>New Item</PageHeaderAction>
+        <PageHeaderAction variant="secondary" icon="restaurant" onclick={() => goto('/meals')}
+          >Meals</PageHeaderAction
+        >
+        <PageHeaderAction variant="secondary" icon="menu-book" onclick={() => goto('/recipes')}
+          >Recipes</PageHeaderAction
+        >
+        <PageHeaderAction icon="add" onclick={openCreate}>New Item</PageHeaderAction>
       </div>
     {/snippet}
   </PageHeader>
@@ -161,7 +201,7 @@
         <Card>
           <div class="divide-y divide-surface-100">
             {#each results as item (item.id)}
-              <div class="flex items-start justify-between px-4 py-3">
+              <div class="flex items-start justify-between gap-3 px-4 py-3">
                 <div>
                   <div class="text-sm font-medium text-surface-800">
                     {item.name}
@@ -174,17 +214,37 @@
                     · {item.carbs_g}C · {item.fat_g}F
                   </div>
                 </div>
-                {#if item.is_verified}
-                  <span
-                    class="flex-shrink-0 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600"
-                    >Verified</span
-                  >
-                {:else if item.user_id}
-                  <span
-                    class="flex-shrink-0 rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500"
-                    >Custom</span
-                  >
-                {/if}
+                <div class="flex flex-shrink-0 items-center gap-2">
+                  {#if item.is_verified}
+                    <span
+                      class="rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-medium text-success-600"
+                      >Verified</span
+                    >
+                  {:else if item.user_id}
+                    <span
+                      class="rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500"
+                      >Custom</span
+                    >
+                  {/if}
+                  {#if item.user_id}
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-primary-600"
+                      aria-label="Edit {item.name}"
+                      onclick={() => openEdit(item)}
+                    >
+                      <Icon name="edit" size="sm" />
+                    </button>
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-error-500"
+                      aria-label="Delete {item.name}"
+                      onclick={() => (deleteTarget = item)}
+                    >
+                      <Icon name="delete" size="sm" />
+                    </button>
+                  {/if}
+                </div>
               </div>
             {/each}
           </div>
@@ -208,7 +268,12 @@
     {/if}
   {/if}
 
-  <Modal open={createOpen} onclose={() => (createOpen = false)} title="New Food Item" size="md">
+  <Modal
+    open={createOpen}
+    onclose={() => (createOpen = false)}
+    title={editingItem ? 'Edit Food Item' : 'New Food Item'}
+    size="md"
+  >
     <div class="flex flex-col gap-4">
       <FormField label="Name" required>
         <Input name="food_name" placeholder="e.g. Haferflocken" bind:value={newName} />
@@ -241,9 +306,21 @@
       <div class="flex justify-end gap-3 pt-2">
         <Btn variant="ghost" onclick={() => (createOpen = false)}>Cancel</Btn>
         <Btn variant="primary" onclick={handleCreate} disabled={!canCreate || saving}>
-          {saving ? 'Saving...' : 'Create'}
+          {saving ? 'Saving...' : editingItem ? 'Save' : 'Create'}
         </Btn>
       </div>
     </div>
   </Modal>
+
+  <ConfirmDialog
+    open={deleteTarget !== null}
+    title="Delete Food Item"
+    variant="danger"
+    message={deleteTarget
+      ? `Delete "${deleteTarget.name}"? Meals using it will show 0 kcal for it.`
+      : ''}
+    confirmLabel="Delete"
+    onconfirm={handleDelete}
+    oncancel={() => (deleteTarget = null)}
+  />
 </div>

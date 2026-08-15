@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
-  import type { FoodItem } from '$lib/db/types';
+  import type { FoodItem, MealItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Card from '$components/ui/Card.svelte';
@@ -10,13 +10,19 @@
   import Badge from '$components/ui/Badge.svelte';
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import Input from '$components/ui/Input.svelte';
   import MealItemRow from '$components/food/MealItemRow.svelte';
-  import { deleteMeal } from '$lib/mutations/meal';
+  import { deleteMeal, updateMeal } from '$lib/mutations/meal';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { SELF_USER_ID } from '$lib/constants';
+  import { uuid7 } from '$lib/db/uuid';
 
   let id = $derived(page.params.id);
 
   let deleteOpen = $state(false);
+  let saving = $state(false);
+  let addSearch = $state('');
+  let editItems = $state<MealItem[]>([]);
 
   const mealQuery = useQuery(() =>
     id ? db.meal.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
@@ -46,7 +52,7 @@
       protein = 0,
       carbs = 0,
       fat = 0;
-    for (const mi of mealItems ?? []) {
+    for (const mi of editItems) {
       const food = foodMap[mi.food_item_id];
       if (!food) continue;
       calories += food.calories_per_serving * mi.servings;
@@ -56,6 +62,82 @@
     }
     return { calories, protein, carbs, fat };
   });
+
+  const addResults = $derived(
+    addSearch.trim()
+      ? (foodItems ?? []).filter(
+          (f) =>
+            f.name.toLowerCase().includes(addSearch.trim().toLowerCase()) &&
+            !f.deleted_at &&
+            !editItems.some((i) => i.food_item_id === f.id)
+        )
+      : []
+  );
+
+  $effect(() => {
+    if (editItems.length === 0 && (mealItems ?? []).length > 0) {
+      editItems = mealItems!;
+    }
+  });
+
+  async function persistItems(items: MealItem[]) {
+    if (!id) return;
+    saving = true;
+    try {
+      await updateMeal(id, {
+        items: items.map((i) => ({
+          id: i.id,
+          food_item_id: i.food_item_id,
+          servings: i.servings,
+          amount_g: i.amount_g ?? undefined
+        }))
+      });
+    } finally {
+      saving = false;
+    }
+  }
+
+  function incrementItem(mi: MealItem) {
+    const next = editItems.map((x) =>
+      x.id === mi.id ? { ...x, servings: Math.round((x.servings + 0.5) * 2) / 2 } : x
+    );
+    editItems = next;
+    persistItems(next);
+  }
+
+  function decrementItem(mi: MealItem) {
+    const next = editItems.map((x) =>
+      x.id === mi.id
+        ? { ...x, servings: Math.max(0.25, Math.round((x.servings - 0.5) * 2) / 2) }
+        : x
+    );
+    editItems = next;
+    persistItems(next);
+  }
+
+  function removeItem(mi: MealItem) {
+    const next = editItems.filter((x) => x.id !== mi.id);
+    editItems = next;
+    persistItems(next);
+  }
+
+  function addItem(food: FoodItem) {
+    const now = new Date().toISOString();
+    const item: MealItem = {
+      id: uuid7(),
+      meal_id: id ?? '',
+      user_id: SELF_USER_ID,
+      food_item_id: food.id ?? '',
+      servings: 1,
+      amount_g: null,
+      created_at: now,
+      deleted_at: null
+    };
+    const next = [...editItems, item];
+    editItems = next;
+    addSearch = '';
+    persistItems(next);
+  }
 
   async function handleDelete() {
     if (!id) return;
@@ -102,7 +184,7 @@
           )}C · {Math.round(macros.fat)}F
         </h3>
         <div class="flex flex-col gap-2">
-          {#each mealItems ?? [] as mi (mi.id)}
+          {#each editItems as mi (mi.id)}
             {@const food = foodMap[mi.food_item_id]}
             <MealItemRow
               name={food?.name ?? 'Unknown'}
@@ -112,13 +194,39 @@
               proteinG={food ? food.protein_g * mi.servings : 0}
               carbsG={food ? food.carbs_g * mi.servings : 0}
               fatG={food ? food.fat_g * mi.servings : 0}
-              onRemove={() => {}}
-              onIncrement={() => {}}
-              onDecrement={() => {}}
+              onRemove={() => removeItem(mi)}
+              onIncrement={() => incrementItem(mi)}
+              onDecrement={() => decrementItem(mi)}
             />
           {:else}
             <p class="text-sm text-surface-400 text-center py-4">No items in this meal.</p>
           {/each}
+        </div>
+
+        <div class="mt-4 border-t border-surface-100 pt-4">
+          <p class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
+            Add Item
+          </p>
+          <Input name="add_food" placeholder="Search food items..." bind:value={addSearch} />
+          {#if addSearch.trim()}
+            <div class="mt-2 divide-y divide-surface-100 rounded-lg bg-surface-50">
+              {#each addResults as food (food.id)}
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-100"
+                  onclick={() => addItem(food)}
+                >
+                  <span class="font-medium text-surface-700">{food.name}</span>
+                  <span class="text-xs text-surface-400">{food.calories_per_serving} kcal</span>
+                </button>
+              {:else}
+                <p class="px-3 py-2 text-sm text-surface-400">No matching food items.</p>
+              {/each}
+            </div>
+          {/if}
+          {#if saving}
+            <p class="mt-2 text-xs text-surface-400">Saving…</p>
+          {/if}
         </div>
       </Card>
     </div>

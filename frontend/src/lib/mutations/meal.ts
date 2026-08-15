@@ -109,13 +109,98 @@ export async function updateMeal(
     items?: MealItemInput[];
   }
 ) {
+  const now = nowIso();
+
+  if (!data.items) {
+    return mutate({
+      kind: 'command',
+      command: 'update_meal',
+      queueable: true,
+      payload: { id: mealId, ...data },
+      optimisticTable: 'meal',
+      optimisticData: { id: mealId, ...data },
+      responseTable: 'meal'
+    });
+  }
+
+  const oldItems = await db.meal_item
+    .where('meal_id')
+    .equals(mealId)
+    .filter((i) => !i.deleted_at)
+    .toArray();
+  const oldMeasurement = await db.measurement
+    .where('external_id')
+    .equals(mealId)
+    .filter((m) => !m.deleted_at)
+    .first();
+  const meal = await db.meal.get(mealId);
+
+  const newItems = data.items.map((item) => ({ id: uuid7(), ...item }));
+  const macros = await calcMacros(newItems);
+  const logDate = meal?.log_date ?? todayString();
+  const startTime = new Date(startOfLocalDayMs(logDate, userTimezone())).toISOString();
+  const measurementId = uuid7();
+
   return mutate({
     kind: 'command',
     command: 'update_meal',
     queueable: true,
-    payload: { id: mealId, ...data },
+    payload: {
+      id: mealId,
+      ...(data.meal_type !== undefined ? { meal_type: data.meal_type } : {}),
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      measurement_id: measurementId,
+      items: newItems.map((i) => ({
+        id: i.id,
+        food_item_id: i.food_item_id,
+        servings: i.servings,
+        amount_g: i.amount_g ?? null
+      }))
+    },
     optimisticTable: 'meal',
-    optimisticData: { id: mealId, ...data },
+    optimisticData: { id: mealId },
+    optimisticDelete: [
+      ...(oldItems.length > 0 ? [{ table: 'meal_item', ids: oldItems.map((i) => i.id) }] : []),
+      ...(oldMeasurement ? [{ table: 'measurement', ids: [oldMeasurement.id] }] : [])
+    ],
+    optimisticRows: [
+      {
+        table: 'meal_item',
+        rows: newItems.map((i) => ({
+          id: i.id,
+          meal_id: mealId,
+          user_id: SELF_USER_ID,
+          food_item_id: i.food_item_id,
+          servings: i.servings,
+          amount_g: i.amount_g ?? null,
+          created_at: now,
+          deleted_at: null
+        }))
+      },
+      {
+        table: 'measurement',
+        rows: [
+          {
+            id: measurementId,
+            user_id: SELF_USER_ID,
+            metric_code: 'nutrition',
+            source_data_type: 'nutrition',
+            source: MEAL_SOURCE,
+            value_numeric: null,
+            value_text: null,
+            value_json: JSON.stringify(macros),
+            start_time: startTime,
+            end_time: null,
+            notes: null,
+            external_id: mealId,
+            created_at: now,
+            updated_at: null,
+            deleted_at: null
+          }
+        ]
+      }
+    ],
     responseTable: 'meal'
   });
 }

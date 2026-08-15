@@ -11,14 +11,16 @@
   import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
-  import { updateRecipe, deleteRecipe } from '$lib/mutations/recipe';
-  import { createMeal } from '$lib/mutations/meal';
+  import CookModal from '$components/food/CookModal.svelte';
+  import { updateRecipe, deleteRecipe, cookRecipe } from '$lib/mutations/recipe';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let id = $derived(page.params.id);
 
   let editOpen = $state(false);
   let deleteOpen = $state(false);
+  let cookOpen = $state(false);
+  let cooking = $state(false);
   let saving = $state(false);
 
   const recipeQuery = useQuery(() =>
@@ -78,19 +80,16 @@
     goto('/recipes');
   }
 
-  async function handleCook() {
+  async function handleCook(servings: number) {
     if (!recipe) return;
-    const recipeIngredients = (ingredients ?? []).filter((i) => !i.deleted_at);
-    await createMeal({
-      name: `Recipe: ${recipe.name}`,
-      meal_type: 'other',
-      items: recipeIngredients.map((i) => ({
-        food_item_id: i.food_item_id,
-        servings: 1,
-        amount_g: i.amount_g
-      }))
-    });
-    goto('/meals');
+    cooking = true;
+    try {
+      await cookRecipe(recipe.id ?? '', servings);
+      cookOpen = false;
+      goto('/meals');
+    } finally {
+      cooking = false;
+    }
   }
 </script>
 
@@ -112,7 +111,8 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch gap-2">
-        <PageHeaderAction icon="restaurant" onclick={handleCook}>Cook</PageHeaderAction>
+        <PageHeaderAction icon="restaurant" onclick={() => (cookOpen = true)}>Cook</PageHeaderAction
+        >
         <PageHeaderAction variant="secondary" icon="edit" onclick={() => (editOpen = true)}
           >Edit</PageHeaderAction
         >
@@ -231,10 +231,26 @@
       prep_time_min: recipe.prep_time_min,
       cook_time_min: recipe.cook_time_min
     }}
+    recipeIngredients={(ingredients ?? [])
+      .filter((i) => !i.deleted_at)
+      .map((i) => ({
+        food_item_id: i.food_item_id,
+        amount_g: i.amount_g,
+        notes: i.notes ?? null
+      }))}
     foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (editOpen = false)}
     {saving}
+  />
+
+  <CookModal
+    open={cookOpen}
+    recipeName={recipe.name}
+    recipeServings={recipe.servings}
+    onCook={handleCook}
+    onClose={() => (cookOpen = false)}
+    {cooking}
   />
 
   <ConfirmDialog

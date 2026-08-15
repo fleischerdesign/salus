@@ -24,3 +24,27 @@ export async function createFoodItem(data: {
     data
   });
 }
+
+export async function updateFoodItem(
+  foodItemId: string,
+  data: Partial<Parameters<typeof createFoodItem>[0]>
+) {
+  return mutate({
+    kind: 'crud',
+    op: 'update',
+    entity: 'food_item',
+    id: foodItemId,
+    data,
+    optimistic: { id: foodItemId, ...data }
+  });
+}
+
+export async function deleteFoodItem(foodItemId: string) {
+  return mutate({
+    kind: 'crud',
+    op: 'delete',
+    entity: 'food_item',
+    id: foodItemId,
+    optimistic: { id: foodItemId }
+  });
+}

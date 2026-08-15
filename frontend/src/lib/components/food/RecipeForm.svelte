@@ -28,6 +28,7 @@
       prep_time_min: number | null;
       cook_time_min: number | null;
     } | null;
+    recipeIngredients?: Array<{ food_item_id: string; amount_g: number; notes: string | null }>;
     foodItems: FoodItem[];
     onSave: (data: {
       name: string;
@@ -42,7 +43,15 @@
     saving?: boolean;
   }
 
-  let { open, recipe, foodItems, onSave, onClose, saving = false }: Props = $props();
+  let {
+    open,
+    recipe,
+    recipeIngredients,
+    foodItems,
+    onSave,
+    onClose,
+    saving = false
+  }: Props = $props();
 
   let name = $state('');
   let description = $state('');
@@ -70,7 +79,19 @@
       cookTimeMin = undefined;
     }
     search = '';
-    ingredients = [];
+    ingredients = (recipeIngredients ?? []).map((ri) => {
+      const food = foodItems.find((f) => f.id === ri.food_item_id);
+      return {
+        foodItemId: ri.food_item_id,
+        amountG: ri.amount_g,
+        name: food?.name ?? ri.food_item_id,
+        calories: food?.calories_per_serving ?? 0,
+        proteinG: food?.protein_g ?? 0,
+        carbsG: food?.carbs_g ?? 0,
+        fatG: food?.fat_g ?? 0,
+        notes: ri.notes ?? ''
+      };
+    });
   }
 
   $effect(() => {
@@ -104,6 +125,14 @@
 
   function removeIngredient(foodItemId: string) {
     ingredients = ingredients.filter((i) => i.foodItemId !== foodItemId);
+  }
+
+  function updateAmount(foodItemId: string, value: number) {
+    ingredients = ingredients.map((i) =>
+      i.foodItemId === foodItemId && Number.isFinite(value) && value > 0
+        ? { ...i, amountG: value }
+        : i
+    );
   }
 
   const canSave = $derived(name.trim().length > 0 && ingredients.length > 0);
@@ -186,12 +215,13 @@
                 </div>
               </div>
               <div class="flex flex-shrink-0 items-center gap-2">
-                <Input
+                <input
                   name={'amount_' + ing.foodItemId}
                   type="number"
                   value={ing.amountG}
                   min={1}
-                  class="!h-8 w-20 text-xs"
+                  class="h-8 w-20 rounded-md border border-surface-300 bg-surface-50 px-2 text-xs text-surface-900 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+                  oninput={(e) => updateAmount(ing.foodItemId, Number(e.currentTarget.value))}
                 />
                 <button
                   onclick={() => removeIngredient(ing.foodItemId)}

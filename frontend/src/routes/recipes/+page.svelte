@@ -3,14 +3,17 @@
   import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
+  import { goto } from '$app/navigation';
   import Spinner from '$components/ui/Spinner.svelte';
   import RecipeGrid from '$components/food/RecipeGrid.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
-  import { createRecipe } from '$lib/mutations/recipe';
-  import { createMeal } from '$lib/mutations/meal';
+  import CookModal from '$components/food/CookModal.svelte';
+  import { createRecipe, cookRecipe } from '$lib/mutations/recipe';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let formOpen = $state(false);
+  let cookTarget = $state<{ id: string; name: string; servings: number } | null>(null);
+  let cooking = $state(false);
 
   const recipesQuery = useQuery(() => db.notDeleted(db.recipe).toArray());
   const recipes = $derived(recipesQuery.value);
@@ -63,18 +66,18 @@
   async function handleCook(recipeId: string) {
     const r = (recipes ?? []).find((r) => r.id === recipeId);
     if (!r) return;
-    const recipeIngredients = (ingredients ?? []).filter(
-      (i) => i.recipe_id === recipeId && !i.deleted_at
-    );
-    await createMeal({
-      name: r.name ? `Recipe: ${r.name}` : undefined,
-      meal_type: 'other',
-      items: recipeIngredients.map((i) => ({
-        food_item_id: i.food_item_id,
-        servings: 1,
-        amount_g: i.amount_g
-      }))
-    });
+    cookTarget = { id: recipeId, name: r.name ?? 'Recipe', servings: r.servings };
+  }
+
+  async function handleCookConfirm(servings: number) {
+    if (!cookTarget) return;
+    cooking = true;
+    try {
+      await cookRecipe(cookTarget.id, servings);
+      cookTarget = null;
+    } finally {
+      cooking = false;
+    }
   }
 </script>
 
@@ -88,6 +91,12 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">
+        <PageHeaderAction variant="secondary" icon="restaurant" onclick={() => goto('/meals')}
+          >Meals</PageHeaderAction
+        >
+        <PageHeaderAction variant="secondary" icon="search" onclick={() => goto('/food')}
+          >Food DB</PageHeaderAction
+        >
         <PageHeaderAction icon="add" onclick={() => (formOpen = true)}>New Recipe</PageHeaderAction>
       </div>
     {/snippet}
@@ -105,5 +114,14 @@
     foodItems={foodItems ?? []}
     onSave={handleSave}
     onClose={() => (formOpen = false)}
+  />
+
+  <CookModal
+    open={cookTarget !== null}
+    recipeName={cookTarget?.name ?? ''}
+    recipeServings={cookTarget?.servings ?? 1}
+    onCook={handleCookConfirm}
+    onClose={() => (cookTarget = null)}
+    {cooking}
   />
 </div>
