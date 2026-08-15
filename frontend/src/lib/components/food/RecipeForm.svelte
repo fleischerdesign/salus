@@ -57,8 +57,8 @@
   let description = $state('');
   let instructions = $state('');
   let servings = $state(4);
-  let prepTimeMin = $state<string | undefined>(undefined);
-  let cookTimeMin = $state<string | undefined>(undefined);
+  let prepTimeMin = $state('');
+  let cookTimeMin = $state('');
   let search = $state('');
   let ingredients = $state<IngredientSelection[]>([]);
 
@@ -68,15 +68,15 @@
       description = recipe.description ?? '';
       instructions = recipe.instructions ?? '';
       servings = recipe.servings;
-      prepTimeMin = recipe.prep_time_min?.toString() ?? undefined;
-      cookTimeMin = recipe.cook_time_min?.toString() ?? undefined;
+      prepTimeMin = recipe.prep_time_min?.toString() ?? '';
+      cookTimeMin = recipe.cook_time_min?.toString() ?? '';
     } else {
       name = '';
       description = '';
       instructions = '';
       servings = 4;
-      prepTimeMin = undefined;
-      cookTimeMin = undefined;
+      prepTimeMin = '';
+      cookTimeMin = '';
     }
     search = '';
     ingredients = (recipeIngredients ?? []).map((ri) => {

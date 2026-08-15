@@ -37,7 +37,7 @@
   let times = $state<string[]>(['08:00']);
   let daysOfWeek = $state<number[]>([1, 2, 3, 4, 5, 6, 7]);
   let startDate = $state(todayString());
-  let endDate = $state<string | undefined>(undefined);
+  let endDate = $state('');
 
   $effect(() => {
     dosage = initialDosage;
