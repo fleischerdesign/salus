@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/foods/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Api Admin Import Foods */
+        post: operations["api_admin_import_foods_api_v1_admin_foods_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/plugins": {
         parameters: {
             query?: never;
@@ -3695,6 +3712,58 @@ export interface components {
             /** User Id */
             user_id?: string | null;
         };
+        /** FoodImportItem */
+        FoodImportItem: {
+            /** Barcode */
+            barcode?: string | null;
+            /** Brand */
+            brand?: string | null;
+            /**
+             * Calories Per Serving
+             * @default 0
+             */
+            calories_per_serving: number;
+            /**
+             * Carbs G
+             * @default 0
+             */
+            carbs_g: number;
+            /**
+             * Fat G
+             * @default 0
+             */
+            fat_g: number;
+            /** Fiber G */
+            fiber_g?: number | null;
+            /** Name */
+            name: string;
+            /**
+             * Protein G
+             * @default 0
+             */
+            protein_g: number;
+            /** Saturated Fat G */
+            saturated_fat_g?: number | null;
+            /**
+             * Serving Size
+             * @default 100
+             */
+            serving_size: number;
+            /**
+             * Serving Unit
+             * @default g
+             */
+            serving_unit: string;
+            /** Sodium Mg */
+            sodium_mg?: number | null;
+            /** Sugar G */
+            sugar_g?: number | null;
+        };
+        /** FoodImportRequest */
+        FoodImportRequest: {
+            /** Items */
+            items: components["schemas"]["FoodImportItem"][];
+        };
         /** FoodItemResponse */
         FoodItemResponse: {
             /** Barcode */
@@ -5803,6 +5872,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_admin_import_foods_api_v1_admin_foods_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FoodImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

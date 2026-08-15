@@ -15,7 +15,8 @@
   import FormField from '$components/forms/FormField.svelte';
   import { createFoodItem, updateFoodItem, deleteFoodItem } from '$lib/mutations/food-item';
   import { useQuery } from '$lib/db/use-query.svelte';
-  import { api } from '$lib/api/client';
+  import { lookupBarcode, setDirectOffEnabled, setOffApiKey, offApiKey } from '$lib/food/barcode';
+  import { localMode } from '$lib/db/local-mode.svelte';
   import type { FoodItem } from '$lib/db/types';
 
   let search = $state('');
@@ -26,6 +27,12 @@
   let lookupMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
   let editingItem = $state<FoodItem | null>(null);
   let deleteTarget = $state<FoodItem | null>(null);
+  let directOff = $state(localStorage.getItem('salus_food_direct_api') === 'true');
+  let offKey = $state(offApiKey());
+  let scanning = $state(false);
+  let cameraEl = $state<HTMLVideoElement | null>(null);
+  let scanner = $state<{ stop: () => void } | null>(null);
+  let scanUnsupported = $state(typeof window !== 'undefined' && !('BarcodeDetector' in window));
 
   let newName = $state('');
   let newBrand = $state('');
@@ -52,38 +59,15 @@
 
   const canCreate = $derived(newName.trim().length > 0);
 
-  async function handleBarcodeLookup() {
-    const code = barcode.trim();
-    if (!code) return;
+  async function handleBarcodeLookup(code?: string) {
+    const value = (code ?? barcode).trim();
+    if (!value) return;
     lookingUp = true;
     lookupMessage = null;
     try {
-      const local = await db.food_item.where('barcode').equals(code).first();
-      if (local && !local.deleted_at) {
-        lookupMessage = { type: 'success', text: `Already in database: ${local.name}` };
-        search = local.name;
-        return;
-      }
-      const res = await api.GET('/api/v1/food/items/barcode/{barcode}', {
-        params: { path: { barcode: code } }
-      });
-      const found = res.data as Partial<FoodItem> | null;
-      if (found?.id && found.name) {
-        await db.food_item.put({
-          ...found,
-          serving_size: found.serving_size ?? 100,
-          serving_unit: found.serving_unit ?? 'g',
-          calories_per_serving: found.calories_per_serving ?? 0,
-          protein_g: found.protein_g ?? 0,
-          carbs_g: found.carbs_g ?? 0,
-          fat_g: found.fat_g ?? 0,
-          user_id: found.user_id ?? null,
-          is_verified: found.is_verified ?? true,
-          source: found.source ?? 'openfoodfacts',
-          updated_at: null,
-          deleted_at: null
-        } as FoodItem);
-        lookupMessage = { type: 'success', text: `Added: ${found.name}` };
+      const found = await lookupBarcode(value);
+      if (found) {
+        lookupMessage = { type: 'success', text: `Found: ${found.name}` };
         search = found.name;
       } else {
         lookupMessage = { type: 'error', text: 'Barcode not found. Create it manually.' };
@@ -94,6 +78,78 @@
       lookingUp = false;
     }
   }
+
+  function toggleDirectOff(enabled: boolean) {
+    directOff = enabled;
+    setDirectOffEnabled(enabled);
+  }
+
+  function handleOffKey(value: string) {
+    offKey = value;
+    setOffApiKey(value.trim());
+  }
+
+  function cleanupScanner() {
+    scanner?.stop();
+    scanner = null;
+    if (cameraEl) cameraEl.srcObject = null;
+    scanning = false;
+  }
+
+  async function startScanner() {
+    if (scanning) {
+      cleanupScanner();
+      return;
+    }
+    scanning = true;
+    lookupMessage = null;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      if (cameraEl) cameraEl.srcObject = stream;
+      await cameraEl?.play();
+
+      const Detector = (
+        window as unknown as {
+          BarcodeDetector: new (o: unknown) => {
+            detect: (v: HTMLVideoElement) => Promise<Array<{ rawValue: string }>>;
+          };
+        }
+      ).BarcodeDetector;
+      const detector = new Detector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+
+      const interval = window.setInterval(async () => {
+        try {
+          const codes = await detector.detect(cameraEl!);
+          if (codes.length > 0) {
+            const raw = codes[0].rawValue;
+            window.clearInterval(interval);
+            cleanupScanner();
+            barcode = raw;
+            await handleBarcodeLookup(raw);
+          }
+        } catch {
+          /* frame skipped */
+        }
+      }, 200);
+
+      scanner = {
+        stop() {
+          window.clearInterval(interval);
+          stream.getTracks().forEach((t) => t.stop());
+        }
+      };
+    } catch {
+      scanning = false;
+      lookupMessage = { type: 'error', text: 'Camera unavailable — type the barcode instead.' };
+    }
+  }
+
+  $effect(() => {
+    if (!scanning) return;
+    return () => cleanupScanner();
+  });
 
   function openCreate() {
     editingItem = null;
@@ -184,8 +240,33 @@
         <div class="flex-1">
           <Input name="barcode" placeholder="Barcode (EAN/UPC)…" bind:value={barcode} />
         </div>
-        <Btn variant="secondary" onclick={handleBarcodeLookup} loading={lookingUp}>Lookup</Btn>
+        {#if !scanUnsupported}
+          <Btn
+            variant="secondary"
+            onclick={startScanner}
+            class={scanning ? 'border-primary-500 text-primary-600' : ''}
+          >
+            <Icon name={scanning ? 'close' : 'camera-alt'} size="sm" />
+            {scanning ? 'Stop' : 'Scan'}
+          </Btn>
+        {/if}
+        <Btn variant="secondary" onclick={() => handleBarcodeLookup()} loading={lookingUp}
+          >Lookup</Btn
+        >
       </form>
+
+      {#if scanning}
+        <div class="overflow-hidden rounded-lg border border-primary-300">
+          <video bind:this={cameraEl} class="bg-surface-950 max-h-64 w-full" muted playsinline
+          ></video>
+        </div>
+        {#if scanUnsupported}
+          <p class="text-xs text-surface-400">
+            Camera scanning needs a Chromium-based browser. Type the barcode instead.
+          </p>
+        {/if}
+      {/if}
+
       {#if lookupMessage}
         <p
           class="text-sm {lookupMessage.type === 'success' ? 'text-success-600' : 'text-error-600'}"
@@ -193,6 +274,29 @@
           {lookupMessage.text}
         </p>
       {/if}
+
+      {#if localMode.active}
+        <div class="rounded-lg border border-surface-200 p-3">
+          <label class="flex items-center justify-between text-sm text-surface-700">
+            <span>Direct OpenFoodFacts lookup (offline)</span>
+            <input
+              type="checkbox"
+              checked={directOff}
+              onchange={(e) => toggleDirectOff(e.currentTarget.checked)}
+            />
+          </label>
+          {#if directOff}
+            <input
+              type="text"
+              class="mt-2 h-9 w-full rounded-md border border-surface-300 bg-surface-50 px-3 text-sm text-surface-900 focus:border-primary-500 focus:outline-none"
+              placeholder="Optional OFF API key"
+              value={offKey}
+              oninput={(e) => handleOffKey(e.currentTarget.value)}
+            />
+          {/if}
+        </div>
+      {/if}
+
       <Input name="search_food" placeholder="Search food items..." bind:value={search} />
     </div>
 
