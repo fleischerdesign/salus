@@ -83,6 +83,12 @@
     { href: '/fasting', icon: 'timer', label: 'Fasting' }
   ];
 
+  const nutritionItems = [
+    { href: '/meals', icon: 'restaurant', label: 'Meals' },
+    { href: '/food', icon: 'search', label: 'Food DB' },
+    { href: '/recipes', icon: 'menu-book', label: 'Recipes' }
+  ];
+
   let mobileOpen = $state(false);
 
   function navLinkClass(link: { href: string }) {
@@ -165,6 +171,16 @@
       items: [
         { type: 'link', href: '/labs', icon: 'science', label: 'Lab Results' },
         { type: 'link', href: '/fasting', icon: 'timer', label: 'Fasting' }
+      ]
+    },
+    {
+      type: 'group',
+      label: 'Nutrition',
+      icon: 'restaurant',
+      items: [
+        { type: 'link', href: '/meals', icon: 'restaurant', label: 'Meals' },
+        { type: 'link', href: '/food', icon: 'search', label: 'Food DB' },
+        { type: 'link', href: '/recipes', icon: 'menu-book', label: 'Recipes' }
       ]
     },
     { type: 'link', href: '/settings', icon: 'settings', label: 'Settings' }
@@ -298,6 +314,7 @@
       {/if}
       <NavDropdown label="Wellness" items={wellnessItems} />
       <NavDropdown label="Health" items={healthItems} />
+      <NavDropdown label="Nutrition" items={nutritionItems} />
     </nav>
 
     <div class="flex-1"></div>
