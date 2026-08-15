@@ -15,6 +15,7 @@
     { key: 'general', label: 'General', icon: 'settings' },
     { key: 'users', label: 'Users', icon: 'groups' },
     { key: 'stats', label: 'Statistics', icon: 'monitoring' },
+    { key: 'foods', label: 'Food DB', icon: 'restaurant' },
     { key: 'plugins', label: 'Plugins', icon: 'extension' },
     { key: 'backups', label: 'Backups', icon: 'cloud-done' }
   ];

@@ -50,7 +50,6 @@ class TestFoodItemRoutes:
             "carbs_g": 10.0,
             "fat_g": 2.0,
         })
-        item_id = resp.json()["id"]
 
         resp = authenticated_client.get("/api/v1/food/items/barcode/1234567890123")
         assert resp.status_code == 200
@@ -279,7 +278,6 @@ class TestRecipeRoutes:
 
 
 def test_seed_common_foods(session):
-    from sqlmodel import Session
     from salus.models.food import FoodItem
     from salus.repositories.unit_of_work import SqlUnitOfWork
     from salus.services.food_item import FoodItemService
@@ -299,3 +297,30 @@ def test_seed_common_foods(session):
     assert oats.is_verified is True
     assert oats.user_id is None
     assert oats.source == "system"
+
+
+def test_import_foods_is_idempotent(session):
+    from sqlmodel import select
+    from salus.models.food import FoodItem
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+    from salus.services.food_item import FoodItemService
+
+    uow = SqlUnitOfWork(session)
+    svc = FoodItemService(uow)
+
+    items = [
+        {"name": "Protein Bar", "barcode": "900000000001", "calories_per_serving": 250, "protein_g": 20, "carbs_g": 25, "fat_g": 9},
+        {"name": "Veggie Chips", "calories_per_serving": 120, "protein_g": 2, "carbs_g": 20, "fat_g": 4},
+    ]
+    first = svc.import_items(items)
+    session.commit()
+    assert first == 2
+
+    second = svc.import_items(items)
+    session.commit()
+    assert second == 0
+
+    bar = session.exec(select(FoodItem).where(FoodItem.barcode == "900000000001")).first()
+    assert bar is not None
+    assert bar.is_verified is True
+    assert bar.user_id is None

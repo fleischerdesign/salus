@@ -1,5 +1,7 @@
 import httpx
 
+from sqlmodel import select
+
 from salus.exceptions import NotFoundError
 from salus.models.food import FoodItem
 from salus.repositories.protocols import ISystemConfigRepository
@@ -97,6 +99,50 @@ class FoodItemService:
 
     def get_frequent(self, user_id: str, limit: int = 20) -> list[FoodItem]:
         return self.uow.food_items.find_frequent(user_id, limit)
+
+    def import_items(self, items: list[dict]) -> int:
+        """Bulk-import curated foods as verified system items (idempotent by barcode/name)."""
+        session = self.uow.session
+        existing_barcodes = {
+            item.barcode for item in session.exec(select(FoodItem)).all() if item.barcode
+        }
+        existing_names = {
+            item.name for item in session.exec(select(FoodItem)).all() if item.name
+        }
+        count = 0
+        for raw in items:
+            name = (raw.get("name") or "").strip()
+            barcode = raw.get("barcode") or None
+            if not name:
+                continue
+            if barcode and barcode in existing_barcodes:
+                continue
+            if not barcode and name in existing_names:
+                continue
+            session.add(FoodItem(
+                id=uuid7_str(),
+                name=name,
+                brand=raw.get("brand"),
+                barcode=barcode,
+                serving_size=raw.get("serving_size", 100),
+                serving_unit=raw.get("serving_unit", "g"),
+                calories_per_serving=raw.get("calories_per_serving") or 0,
+                protein_g=raw.get("protein_g") or 0,
+                carbs_g=raw.get("carbs_g") or 0,
+                fat_g=raw.get("fat_g") or 0,
+                fiber_g=raw.get("fiber_g"),
+                sugar_g=raw.get("sugar_g"),
+                saturated_fat_g=raw.get("saturated_fat_g"),
+                sodium_mg=raw.get("sodium_mg"),
+                is_verified=True,
+                user_id=None,
+                source=raw.get("source") or SOURCE_SYSTEM,
+            ))
+            if barcode:
+                existing_barcodes.add(barcode)
+            existing_names.add(name)
+            count += 1
+        return count
 
     def seed_common_foods(self) -> int:
         session = self.uow.session

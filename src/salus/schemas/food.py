@@ -1,6 +1,26 @@
 from pydantic import BaseModel, Field
 
 
+class FoodImportItem(BaseModel):
+    name: str
+    brand: str | None = None
+    barcode: str | None = None
+    serving_size: float = Field(default=100.0)
+    serving_unit: str = "g"
+    calories_per_serving: float = Field(default=0.0)
+    protein_g: float = Field(default=0.0)
+    carbs_g: float = Field(default=0.0)
+    fat_g: float = Field(default=0.0)
+    fiber_g: float | None = None
+    sugar_g: float | None = None
+    saturated_fat_g: float | None = None
+    sodium_mg: float | None = None
+
+
+class FoodImportRequest(BaseModel):
+    items: list[FoodImportItem]
+
+
 # ── FoodItem ──
 
 

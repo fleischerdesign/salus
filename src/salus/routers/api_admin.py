@@ -12,14 +12,18 @@ from salus.dependencies import (
     get_backup_service,
     get_config_service,
     get_plugin_manager,
+    get_unit_of_work,
     require_admin,
 )
 from salus.exceptions import ApiError
 from salus.models.user import User
+from salus.repositories.unit_of_work import IUnitOfWork
+from salus.schemas.food import FoodImportRequest
 from salus.services._helpers import uid
 from salus.services.admin import AdminService
 from salus.services.backup.service import BackupService
 from salus.services.config import ConfigService
+from salus.services.food_item import FoodItemService
 from salus.services.plugin.manager import PluginManager
 
 router = APIRouter(prefix="/api/v1/admin")
@@ -414,3 +418,15 @@ async def api_admin_upload_backup(
         "message": f"Backup '{backup_file.filename}' uploaded successfully.",
         "backups": _list_backups(backup_svc),
     }
+
+
+@router.post("/foods/import", response_model=dict)
+async def api_admin_import_foods(
+    data: FoodImportRequest,
+    current_user: User = Depends(require_admin),
+    uow: IUnitOfWork = Depends(get_unit_of_work),
+):
+    svc = FoodItemService(uow)
+    imported = svc.import_items([item.model_dump() for item in data.items])
+    uow.commit()
+    return {"imported": imported}
