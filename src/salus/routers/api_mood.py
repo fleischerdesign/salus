@@ -2,11 +2,10 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from salus.dependencies import get_current_user, get_event_bus, get_mood_service
+from salus.dependencies import get_current_user, get_mood_service
 from salus.models.user import User
-from salus.schemas.mood import MoodEntryCreate, MoodEntryResponse, MoodStatsResponse, MoodTagResponse
+from salus.schemas.mood import MoodEntryResponse, MoodStatsResponse, MoodTagResponse
 from salus.services._helpers import uid
-from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.mood import MoodService
 
 router = APIRouter(prefix="/api/v1/mood")
@@ -60,18 +59,6 @@ async def list_entries(
     until = date.fromisoformat(to_date) if to_date else None
     entries = mood_svc.find_by_user_range(uid(current_user), since, until)
     return [_entry_to_response(e) for e in entries]
-
-
-@router.post("", response_model=MoodEntryResponse, status_code=201)
-async def log_mood(
-    data: MoodEntryCreate,
-    current_user: User = Depends(get_current_user),
-    mood_svc: MoodService = Depends(get_mood_service),
-    event_bus: EventBus = Depends(get_event_bus),
-):
-    entry = mood_svc.log(data, uid(current_user))
-    schedule_publish(event_bus, uid(current_user))
-    return _entry_to_response(entry)
 
 
 @router.get("/stats", response_model=MoodStatsResponse)

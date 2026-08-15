@@ -308,6 +308,8 @@ class DeletePlanHandler:
             return CommandResult(status="deleted", id=plan_id)
         if plan.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
             return CommandResult(status="forbidden", id=plan_id)
+        for plan_ex in uow.workout_plan_exercises.find_by_plan(plan_id):
+            uow.workout_plan_exercises.delete(plan_ex)
         uow.workout_plans.delete(plan)
         uow.commit()
         return CommandResult(status="deleted", id=plan_id)

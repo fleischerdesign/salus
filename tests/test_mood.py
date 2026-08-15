@@ -3,6 +3,15 @@
 from datetime import date, timedelta
 
 
+def _log_mood(client, payload: dict) -> dict:
+    """Create a mood entry via the generic auto-CRUD write surface."""
+    resp = client.post("/api/v1/sync/push", json={
+        "operations": [{"type": "create", "entity": "mood_entry", "data": payload}],
+    })
+    assert resp.status_code == 200
+    return resp.json()["results"][0]
+
+
 class TestMoodRoutes:
     def test_tags(self, authenticated_client):
         resp = authenticated_client.get("/api/v1/mood/tags")
@@ -12,16 +21,16 @@ class TestMoodRoutes:
 
     def test_log_and_get(self, authenticated_client):
         today = date.today().isoformat()
-        resp = authenticated_client.post("/api/v1/mood", json={
+        result = _log_mood(authenticated_client, {
+            "entry_date": today,
             "mood_score": 7,
             "energy_level": 6,
             "stress_level": 3,
             "notes": "Feeling good",
         })
-        assert resp.status_code == 201
-        data = resp.json()
-        assert data["mood_score"] == 7
-        assert data["entry_date"] == today
+        assert result["status"] == "created"
+        assert result["record"]["mood_score"] == 7
+        assert result["record"]["entry_date"] == today
 
         resp = authenticated_client.get("/api/v1/mood")
         assert resp.status_code == 200
@@ -30,8 +39,8 @@ class TestMoodRoutes:
         assert entries[0]["mood_score"] == 7
 
     def test_get_by_date(self, authenticated_client):
-        authenticated_client.post("/api/v1/mood", json={"mood_score": 5})
         today = date.today().isoformat()
+        _log_mood(authenticated_client, {"entry_date": today, "mood_score": 5})
         resp = authenticated_client.get(f"/api/v1/mood/{today}")
         assert resp.status_code == 200
         assert resp.json()["mood_score"] == 5
@@ -39,7 +48,7 @@ class TestMoodRoutes:
     def test_stats(self, authenticated_client):
         for i in range(5):
             d = (date.today() - timedelta(days=i)).isoformat()
-            authenticated_client.post("/api/v1/mood", json={
+            _log_mood(authenticated_client, {
                 "mood_score": 6 + i,
                 "entry_date": d,
             })

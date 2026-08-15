@@ -1,10 +1,8 @@
-import json
 from collections import Counter
 from datetime import date, timedelta
 
 from salus.models.mood import MoodEntry, MoodTag, MoodTagCategory
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.schemas.mood import MoodEntryCreate
 from salus.services.achievement.streak import compute_streak
 from salus.services.analytics.stats import linear_regression
 from salus.services.timezone import user_today
@@ -56,30 +54,6 @@ class MoodService:
 
     def get_by_date(self, user_id: str, entry_date: date) -> MoodEntry | None:
         return self.uow.mood_entries.find_by_user_and_date(user_id, entry_date)
-
-    def log(self, data: MoodEntryCreate, user_id: str) -> MoodEntry:
-        entry_date = data.entry_date or user_today(self.uow.session, user_id)
-        existing = self.uow.mood_entries.find_by_user_and_date(user_id, entry_date)
-        tag_json = json.dumps(data.tag_codes) if data.tag_codes else None
-
-        if existing:
-            existing.mood_score = data.mood_score
-            existing.energy_level = data.energy_level
-            existing.stress_level = data.stress_level
-            existing.tag_codes = tag_json
-            existing.notes = data.notes
-            return self.uow.mood_entries.update(existing)
-
-        entry = MoodEntry(
-            user_id=user_id,
-            entry_date=entry_date,
-            mood_score=data.mood_score,
-            energy_level=data.energy_level,
-            stress_level=data.stress_level,
-            tag_codes=tag_json,
-            notes=data.notes,
-        )
-        return self.uow.mood_entries.create(entry)
 
     def get_stats(
         self, user_id: str, days: int = 30

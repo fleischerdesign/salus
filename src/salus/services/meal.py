@@ -1,12 +1,9 @@
-import json
-from datetime import date, tzinfo
+from datetime import date
 
-from salus.exceptions import ApiError, NotFoundError
+from salus.exceptions import NotFoundError
 from salus.models.food import Meal, MealItem
-from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.schemas.food import MealCreate, MealUpdate
-from salus.services.timezone import start_of_local_day, tz_for, user_today
+from salus.services.timezone import user_today
 
 
 def _calc_macros(items, food_items_by_id: dict) -> dict:
@@ -61,24 +58,6 @@ class MealService:
                 result[fid] = food
         return result
 
-    def _measurement_for_meal(self, meal: Meal, items: list[MealItem], food_map: dict, tz: tzinfo) -> Measurement:
-        macros = _calc_macros(items, food_map)
-        return Measurement(
-            user_id=meal.user_id,
-            metric_code="nutrition",
-            source_data_type="nutrition",
-            source="meal",
-            external_id=meal.id,
-            value_json=json.dumps(macros),
-            start_time=start_of_local_day(meal.log_date, tz),
-        )
-
-    def _delete_measurement_for_meal(self, meal: Meal) -> None:
-        if meal.id:
-            existing = self.uow.measurements.find_by_external_id(meal.id, "meal")
-            if existing:
-                self.uow.measurements.delete(existing)
-
     def _meal_to_response(self, meal: Meal, items: list[MealItem], food_map: dict) -> dict:
         macros = _calc_macros(items, food_map)
         return {
@@ -117,83 +96,6 @@ class MealService:
         items = self.uow.meal_items.find_by_meal(meal_id)
         food_map = self._resolve_food_items(items)
         return self._meal_to_response(meal, items, food_map)
-
-    def create(self, data: MealCreate, user_id: str) -> dict:
-        if not data.items:
-            raise ApiError(code="empty_meal", message="Meal must have at least one item", status_code=400)
-
-        log_date = date.fromisoformat(data.log_date) if data.log_date else user_today(self.uow.session, user_id)
-        meal = Meal(
-            user_id=user_id,
-            log_date=log_date,
-            meal_type=data.meal_type,
-            name=data.name,
-            notes=data.notes,
-        )
-        self.uow.meals.create(meal)
-
-        items = []
-        for item_data in data.items:
-            item = MealItem(
-                meal_id=meal.id or "",
-                user_id=user_id,
-                food_item_id=item_data.food_item_id,
-                servings=item_data.servings,
-                amount_g=item_data.amount_g,
-            )
-            self.uow.meal_items.create(item)
-            items.append(item)
-
-        food_map = self._resolve_food_items(items)
-        measurement = self._measurement_for_meal(meal, items, food_map, tz_for(self.uow.session, user_id))
-        self.uow.measurements.create(measurement)
-
-        return self._meal_to_response(meal, items, food_map)
-
-    def update(self, meal_id: str, user_id: str, data: MealUpdate) -> dict:
-        meal = self._get(meal_id, user_id)
-
-        if data.meal_type is not None:
-            meal.meal_type = data.meal_type
-        if data.name is not None:
-            meal.name = data.name
-        if data.notes is not None:
-            meal.notes = data.notes
-        self.uow.meals.update(meal)
-
-        if data.items is not None:
-            old_items = self.uow.meal_items.find_by_meal(meal_id)
-            for item in old_items:
-                self.uow.meal_items.delete(item)
-
-            items = []
-            for item_data in data.items:
-                item = MealItem(
-                    meal_id=meal.id or "",
-                    user_id=user_id,
-                    food_item_id=item_data.food_item_id,
-                    servings=item_data.servings,
-                    amount_g=item_data.amount_g,
-                )
-                self.uow.meal_items.create(item)
-                items.append(item)
-        else:
-            items = self.uow.meal_items.find_by_meal(meal_id)
-
-        self._delete_measurement_for_meal(meal)
-        food_map = self._resolve_food_items(items)
-        measurement = self._measurement_for_meal(meal, items, food_map, tz_for(self.uow.session, user_id))
-        self.uow.measurements.create(measurement)
-
-        return self._meal_to_response(meal, items, food_map)
-
-    def delete(self, meal_id: str, user_id: str) -> None:
-        meal = self._get(meal_id, user_id)
-        items = self.uow.meal_items.find_by_meal(meal_id)
-        for item in items:
-            self.uow.meal_items.delete(item)
-        self._delete_measurement_for_meal(meal)
-        self.uow.meals.delete(meal)
 
     # ── Today + Summary ──
 

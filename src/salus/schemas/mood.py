@@ -1,6 +1,4 @@
-from datetime import date
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class MoodTagResponse(BaseModel):
@@ -8,15 +6,6 @@ class MoodTagResponse(BaseModel):
     label: str
     emoji: str | None = None
     category: str
-
-
-class MoodEntryCreate(BaseModel):
-    entry_date: date | None = None
-    mood_score: int = Field(ge=1, le=10)
-    energy_level: int | None = Field(default=None, ge=1, le=10)
-    stress_level: int | None = Field(default=None, ge=1, le=10)
-    tag_codes: list[str] | None = None
-    notes: str | None = None
 
 
 class MoodEntryResponse(BaseModel):

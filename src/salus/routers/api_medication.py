@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Depends, Response
 
-from salus.dependencies import get_current_user, get_event_bus, get_medication_service
+from salus.dependencies import (
+    get_current_user,
+    get_event_bus,
+    get_medication_service,
+    get_write_pipeline,
+)
+from salus.exceptions import raise_from_command_result
 from salus.models.user import User
 from salus.schemas.medication import (
     MedicationInventoryResponse,
@@ -11,9 +17,11 @@ from salus.schemas.medication import (
     MedicationScheduleResponse,
     MedicationTodayResponse,
 )
+from salus.schemas.sync import SyncOperation
 from salus.services._helpers import uid
 from salus.services.event_bus import EventBus, schedule_publish
 from salus.services.medication import MedicationService
+from salus.services.write_pipeline import WritePipeline
 
 router = APIRouter(prefix="/api/v1/medications")
 
@@ -123,12 +131,19 @@ async def log_intake(
     medication_id: str,
     data: MedicationLogCreate,
     current_user: User = Depends(get_current_user),
-    medication_svc: MedicationService = Depends(get_medication_service),
-    event_bus: EventBus = Depends(get_event_bus),
+    pipeline: WritePipeline = Depends(get_write_pipeline),
 ):
-    log = medication_svc.log_intake(medication_id, uid(current_user), data)
-    schedule_publish(event_bus, uid(current_user))
-    return _log_to_response(log)
+    result = pipeline.process(
+        [
+            SyncOperation(
+                type="command",
+                command="log_medication",
+                payload={"medication_id": medication_id, **data.model_dump()},
+            )
+        ]
+    )[0]
+    raise_from_command_result(result.status, result.message)
+    return result.record or {}
 
 
 @router.get("/{medication_id}/log", response_model=list[MedicationLogResponse])

@@ -224,31 +224,6 @@ class TestDeletePlanHandler:
         assert result["status"] == "deleted"
 
 
-class TestGoalCommands:
-    def test_create_goal(self, authenticated_client: TestClient):
-        result = _push_cmd(authenticated_client, "create_goal", {
-            "metric_code": "steps",
-            "target_value": 100.0,
-            "direction": "increase",
-            "frequency": "daily",
-        })
-        assert result["status"] == "created"
-
-    def test_delete_goal(self, authenticated_client: TestClient):
-        created = _push_cmd(authenticated_client, "create_goal", {
-            "metric_code": "steps",
-            "target_value": 200.0,
-            "direction": "decrease",
-            "frequency": "weekly",
-        })
-        result = _push_cmd(authenticated_client, "delete_goal", {"id": created["id"]})
-        assert result["status"] == "deleted"
-
-    def test_delete_goal_not_found(self, authenticated_client: TestClient):
-        result = _push_cmd(authenticated_client, "delete_goal", {"id": str(uuid.uuid4())})
-        assert result["status"] == "not_found"
-
-
 class TestAccountCommands:
     def test_change_password_success(self, authenticated_client: TestClient):
         result = _push_cmd(authenticated_client, "change_password", {
