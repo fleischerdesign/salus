@@ -3,7 +3,6 @@
   import type { FoodItem } from '$lib/db/types';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
-  import { goto } from '$app/navigation';
   import Spinner from '$components/ui/Spinner.svelte';
   import RecipeGrid from '$components/food/RecipeGrid.svelte';
   import RecipeForm from '$components/food/RecipeForm.svelte';
@@ -12,7 +11,12 @@
   import { useQuery } from '$lib/db/use-query.svelte';
 
   let formOpen = $state(false);
-  let cookTarget = $state<{ id: string; name: string; servings: number } | null>(null);
+  let cookTarget = $state<{
+    id: string;
+    name: string;
+    servings: number;
+    macros: { calories: number; protein: number; carbs: number; fat: number } | null;
+  } | null>(null);
   let cooking = $state(false);
 
   const recipesQuery = useQuery(() => db.notDeleted(db.recipe).toArray());
@@ -38,11 +42,18 @@
         const recipeIngredients = (ingredients ?? []).filter(
           (i) => i.recipe_id === r.id && !i.deleted_at
         );
-        let calories = 0;
+        let calories = 0,
+          protein = 0,
+          carbs = 0,
+          fat = 0;
         for (const ing of recipeIngredients) {
           const food = foodMap[ing.food_item_id];
           if (food) {
-            calories += (food.calories_per_serving / food.serving_size) * ing.amount_g;
+            const factor = ing.amount_g / food.serving_size;
+            calories += food.calories_per_serving * factor;
+            protein += food.protein_g * factor;
+            carbs += food.carbs_g * factor;
+            fat += food.fat_g * factor;
           }
         }
         return {
@@ -50,7 +61,10 @@
           name: r.name,
           description: r.description,
           servings: r.servings,
-          totalCalories: Math.round(calories),
+          totalCalories: calories,
+          totalProtein: protein,
+          totalCarbs: carbs,
+          totalFat: fat,
           prepTimeMin: r.prep_time_min,
           cookTimeMin: r.cook_time_min,
           isFavorite: r.is_favorite
@@ -66,7 +80,20 @@
   async function handleCook(recipeId: string) {
     const r = (recipes ?? []).find((r) => r.id === recipeId);
     if (!r) return;
-    cookTarget = { id: recipeId, name: r.name ?? 'Recipe', servings: r.servings };
+    const macros = recipeData.find((rd) => rd.id === recipeId);
+    cookTarget = {
+      id: recipeId,
+      name: r.name ?? 'Recipe',
+      servings: r.servings,
+      macros: macros
+        ? {
+            calories: macros.totalCalories,
+            protein: macros.totalProtein,
+            carbs: macros.totalCarbs,
+            fat: macros.totalFat
+          }
+        : null
+    };
   }
 
   async function handleCookConfirm(servings: number) {
@@ -91,12 +118,6 @@
   >
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <PageHeaderAction variant="secondary" icon="restaurant" onclick={() => goto('/meals')}
-          >Meals</PageHeaderAction
-        >
-        <PageHeaderAction variant="secondary" icon="search" onclick={() => goto('/food')}
-          >Food DB</PageHeaderAction
-        >
         <PageHeaderAction icon="add" onclick={() => (formOpen = true)}>New Recipe</PageHeaderAction>
       </div>
     {/snippet}
@@ -120,6 +141,7 @@
     open={cookTarget !== null}
     recipeName={cookTarget?.name ?? ''}
     recipeServings={cookTarget?.servings ?? 1}
+    macros={cookTarget?.macros ?? null}
     onCook={handleCookConfirm}
     onClose={() => (cookTarget = null)}
     {cooking}

@@ -9,6 +9,9 @@
     description: string | null;
     servings: number;
     totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
     prepTimeMin: number | null;
     cookTimeMin: number | null;
     isFavorite: boolean;
@@ -21,11 +24,21 @@
     description,
     servings,
     totalCalories,
+    totalProtein,
+    totalCarbs,
+    totalFat,
     prepTimeMin,
     cookTimeMin,
     isFavorite,
     onCook
   }: Props = $props();
+
+  const perServing = $derived({
+    calories: servings > 0 ? totalCalories / servings : 0,
+    protein: servings > 0 ? totalProtein / servings : 0,
+    carbs: servings > 0 ? totalCarbs / servings : 0,
+    fat: servings > 0 ? totalFat / servings : 0
+  });
 </script>
 
 <div
@@ -53,7 +66,7 @@
           {/if}
           <div class="mt-1 text-xs text-surface-400">
             {servings} serving{servings !== 1 ? 's' : ''}
-            · {Math.round(totalCalories / servings)} kcal/serving
+            · {Math.round(perServing.calories)} kcal/serving
             {#if prepTimeMin || cookTimeMin}
               · {prepTimeMin ? `${prepTimeMin}m prep` : ''}{prepTimeMin && cookTimeMin
                 ? ' + '
@@ -66,12 +79,17 @@
           <Icon name="favorite" size="sm" class="mt-0.5 text-warning-500" />
         {/if}
       </div>
+
+      <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-surface-100 pt-2.5 text-xs">
+        <span class="text-primary-600">P {Math.round(perServing.protein)}g</span>
+        <span class="text-warning-600">C {Math.round(perServing.carbs)}g</span>
+        <span class="text-error-500">F {Math.round(perServing.fat)}g</span>
+        <span class="ml-auto text-surface-400">{Math.round(totalCalories)} kcal total</span>
+      </div>
     </div>
 
-    <div class="border-t border-surface-100"></div>
-
-    <div class="flex items-center justify-between px-4 py-2.5">
-      <span class="text-xs text-surface-400">{Math.round(totalCalories)} kcal total</span>
+    <div class="flex items-center justify-between border-t border-surface-100 px-4 py-2.5">
+      <span class="text-xs text-surface-400">per serving</span>
       <button
         onclick={(e) => {
           e.stopPropagation();

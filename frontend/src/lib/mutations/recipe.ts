@@ -11,6 +11,39 @@ export interface RecipeIngredientInput {
   notes?: string;
 }
 
+export async function composeRecipe(
+  recipeId: string,
+  servings: number
+): Promise<{
+  name: string;
+  items: { food_item_id: string; servings: number; amount_g: number }[];
+} | null> {
+  const recipe = await db.recipe.get(recipeId);
+  if (!recipe || recipe.deleted_at) return null;
+  const ingredients = await db.recipe_ingredient
+    .where('recipe_id')
+    .equals(recipeId)
+    .filter((i) => !i.deleted_at)
+    .toArray();
+  const foodIds = [...new Set(ingredients.map((i) => i.food_item_id))];
+  const foods = await db.food_item.bulkGet(foodIds);
+  const foodMap = new Map(foods.filter(Boolean).map((f) => [f!.id, f!]));
+  const scale = recipe.servings > 0 ? servings / recipe.servings : 1;
+  const items = ingredients
+    .map((ing) => {
+      const food = foodMap.get(ing.food_item_id);
+      if (!food) return null;
+      const amountG = Math.round(ing.amount_g * scale);
+      return {
+        food_item_id: ing.food_item_id,
+        servings: food.serving_size > 0 ? amountG / food.serving_size : 0,
+        amount_g: amountG
+      };
+    })
+    .filter((x): x is { food_item_id: string; servings: number; amount_g: number } => x != null);
+  return { name: recipe.name, items };
+}
+
 export async function cookRecipe(recipeId: string, servings: number) {
   const recipe = await db.recipe.get(recipeId);
   if (!recipe || recipe.deleted_at) return { ok: false, error: 'Recipe not found' };
@@ -147,7 +180,7 @@ export async function createRecipe(data: {
 }) {
   const id = uuid7();
   const now = nowIso();
-  const ingredients = (data.ingredients ?? []).map((ing) => ({ id: uuid7(), ...ing }));
+  const ingredients = (data.ingredients ?? []).map((ing) => ({ ...ing, id: uuid7() }));
 
   return mutate({
     kind: 'command',
@@ -216,7 +249,7 @@ export async function updateRecipe(
     ingredients?: RecipeIngredientInput[];
   }
 ) {
-  const ingredients = data.ingredients?.map((ing) => ({ id: uuid7(), ...ing }));
+  const ingredients = data.ingredients?.map((ing) => ({ ...ing, id: uuid7() }));
   return mutate({
     kind: 'command',
     command: 'update_recipe',

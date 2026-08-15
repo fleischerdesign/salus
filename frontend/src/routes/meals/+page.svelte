@@ -2,57 +2,74 @@
   import { db } from '$lib/db/database';
   import { todayString, dateString } from '$lib/utils/datetime';
   import type { FoodItem, Meal, MealItem } from '$lib/db/types';
-  import { goto } from '$app/navigation';
   import PageHeader from '$components/ui/PageHeader.svelte';
   import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
   import DayNavigator from '$components/ui/DayNavigator.svelte';
   import Card from '$components/ui/Card.svelte';
-  import NutritionSummary from '$components/food/NutritionSummary.svelte';
-  import MealGrid from '$components/food/MealGrid.svelte';
+  import Stat from '$components/ui/Stat.svelte';
+  import SegmentedControl from '$components/ui/SegmentedControl.svelte';
+  import LineChart from '$components/dashboard/LineChart.svelte';
+  import MealGroups from '$components/food/MealGroups.svelte';
   import MealForm from '$components/food/MealForm.svelte';
-  import { createMeal, deleteMeal } from '$lib/mutations/meal';
+  import FoodDetailModal from '$components/food/FoodDetailModal.svelte';
+  import FoodFormModal from '$components/food/FoodFormModal.svelte';
+  import { createMeal, deleteMeal, updateMeal } from '$lib/mutations/meal';
+  import { fetchNutritionTargets, type NutritionTargets } from '$lib/food/nutrition-goals';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { page } from '$app/state';
 
   let formOpen = $state(false);
+  let formMealType = $state('snack');
+  let preSelectedFoodId = $state<string | null>(null);
+  let editMeal = $state<Meal | null>(null);
+  let viewFood = $state<FoodItem | null>(null);
+  let foodFormOpen = $state(false);
+  let editFood = $state<FoodItem | null>(null);
   let viewMode = $state<'day' | 'week' | 'month'>('day');
 
   let selectedDate = $state(todayString());
 
-  const mealsQuery = useQuery(() =>
-    db.meal
-      .where('log_date')
-      .equals(selectedDate)
-      .filter((m) => !m.deleted_at)
-      .toArray()
+  const dayQuery = useQuery(
+    async () => {
+      const meals = await db.meal
+        .where('log_date')
+        .equals(selectedDate)
+        .filter((m) => !m.deleted_at)
+        .toArray();
+      const mealIds = meals.map((m) => m.id);
+      const items =
+        mealIds.length > 0
+          ? await db.meal_item
+              .where('meal_id')
+              .anyOf(mealIds)
+              .filter((mi) => !mi.deleted_at)
+              .toArray()
+          : [];
+      return { meals, items };
+    },
+    () => selectedDate
   );
-  const meals = $derived(mealsQuery.value);
-  const mealItemsQuery = useQuery(async () => {
-    const mealIds = (meals ?? []).map((m) => m.id);
-    if (mealIds.length === 0) return [] as MealItem[];
-    return db.meal_item
-      .where('meal_id')
-      .anyOf(mealIds)
-      .filter((mi) => !mi.deleted_at)
-      .toArray();
-  });
-  const mealItems = $derived(mealItemsQuery.value);
+  const meals = $derived(dayQuery.value?.meals ?? []);
+  const mealItems = $derived(dayQuery.value?.items ?? []);
   const foodItemsQuery = useQuery(() => db.notDeleted(db.food_item).toArray());
   const foodItems = $derived(foodItemsQuery.value);
-  const loading = $derived(foodItemsQuery.loading);
+  const targetsQuery = useQuery(() => fetchNutritionTargets());
+  const targets = $derived(targetsQuery.value ?? ({} as NutritionTargets));
+  const loading = $derived(foodItemsQuery.loading || dayQuery.loading);
 
   const today = $derived(todayString());
   const isToday = $derived(selectedDate === today);
 
   const mealsForDate = $derived(
-    (meals ?? [])
+    meals
       .filter((m) => m.log_date === selectedDate && !m.deleted_at)
       .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
   );
 
   const mealItemsMap = $derived.by(() => {
     const map: Record<string, MealItem[]> = {};
-    for (const mi of mealItems ?? []) {
+    for (const mi of mealItems) {
       if (mi.deleted_at) continue;
       if (!map[mi.meal_id]) map[mi.meal_id] = [];
       map[mi.meal_id].push(mi);
@@ -104,54 +121,78 @@
     return { calories, protein, carbs, fat };
   });
 
-  // ── Week / Month overview ──
+  // ── Week / Month chart ──
   const rangeStart = $derived(
     viewMode === 'month' ? selectedDate.slice(0, 8) + '01' : startOfWeek(selectedDate)
   );
-  const rangeMealsQuery = useQuery(async () => {
-    if (viewMode === 'day') return [] as Meal[];
-    return db.meal
-      .where('log_date')
-      .between(rangeStart, selectedDate, true, true)
-      .filter((m) => !m.deleted_at)
-      .toArray();
-  });
-  const rangeMeals = $derived(rangeMealsQuery.value);
-  const rangeItemsQuery = useQuery(async () => {
-    const ids = (rangeMeals ?? []).map((m) => m.id);
-    if (ids.length === 0) return [] as MealItem[];
-    return db.meal_item
-      .where('meal_id')
-      .anyOf(ids)
-      .filter((mi) => !mi.deleted_at)
-      .toArray();
-  });
-  const rangeItems = $derived(rangeItemsQuery.value);
+  const rangeQuery = useQuery(
+    async () => {
+      if (viewMode === 'day') return { meals: [] as Meal[], items: [] as MealItem[] };
+      const meals = await db.meal
+        .where('log_date')
+        .between(rangeStart, selectedDate, true, true)
+        .filter((m) => !m.deleted_at)
+        .toArray();
+      const ids = meals.map((m) => m.id);
+      const items =
+        ids.length > 0
+          ? await db.meal_item
+              .where('meal_id')
+              .anyOf(ids)
+              .filter((mi) => !mi.deleted_at)
+              .toArray()
+          : [];
+      return { meals, items };
+    },
+    () => [viewMode, selectedDate]
+  );
+  const rangeMeals = $derived(rangeQuery.value?.meals ?? []);
+  const rangeItems = $derived(rangeQuery.value?.items ?? []);
 
-  const dailySummary = $derived.by(() => {
-    const map: Record<
-      string,
-      { calories: number; protein: number; carbs: number; fat: number; count: number }
-    > = {};
-    for (const meal of rangeMeals ?? []) {
-      const d = meal.log_date;
-      if (!map[d]) map[d] = { calories: 0, protein: 0, carbs: 0, fat: 0, count: 0 };
-      map[d].count += 1;
-    }
-    const mealByDate = new Map((rangeMeals ?? []).map((m) => [m.id, m.log_date]));
-    for (const mi of rangeItems ?? []) {
+  const dayKcalMap = $derived.by(() => {
+    const map: Record<string, number> = {};
+    const mealByDate = new Map(rangeMeals.map((m) => [m.id, m.log_date]));
+    for (const mi of rangeItems) {
       const food = foodMap[mi.food_item_id];
       if (!food) continue;
       const d = mealByDate.get(mi.meal_id) ?? selectedDate;
-      if (!map[d]) map[d] = { calories: 0, protein: 0, carbs: 0, fat: 0, count: 0 };
-      map[d].calories += food.calories_per_serving * mi.servings;
-      map[d].protein += food.protein_g * mi.servings;
-      map[d].carbs += food.carbs_g * mi.servings;
-      map[d].fat += food.fat_g * mi.servings;
+      map[d] = (map[d] ?? 0) + food.calories_per_serving * mi.servings;
     }
-    return Object.entries(map)
-      .map(([date, totals]) => ({ date, ...totals }))
-      .sort((a, b) => b.date.localeCompare(a.date));
+    return map;
+  });
+
+  const chartData = $derived.by(() => {
+    if (viewMode === 'day') return null;
+    const days: { label: string; kcal: number }[] = [];
+    const start = new Date(rangeStart + 'T12:00');
+    const end = new Date(selectedDate + 'T12:00');
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const ds = dateString(d);
+      days.push({
+        label: new Date(ds + 'T12:00').toLocaleDateString('en-US', {
+          weekday: 'short',
+          day: 'numeric'
+        }),
+        kcal: Math.round(dayKcalMap[ds] ?? 0)
+      });
+    }
+    const series = [
+      {
+        label: 'kcal',
+        data: days.map((d) => d.kcal),
+        color: 'var(--color-primary-500)',
+        yAxis: 'left' as const
+      }
+    ];
+    if (targets.calories != null) {
+      series.push({
+        label: 'Target',
+        data: days.map(() => targets.calories!),
+        color: 'var(--color-surface-300)',
+        yAxis: 'left'
+      });
+    }
+    return { labels: days.map((d) => d.label), series };
   });
 
   function startOfWeek(dateStr: string): string {
@@ -162,13 +203,20 @@
   }
 
   async function handleSave(data: {
+    id?: string;
     meal_type: string;
     name: string;
     notes: string;
     items: { food_item_id: string; servings: number }[];
   }) {
-    await createMeal({ ...data, log_date: selectedDate });
+    const { id, ...rest } = data;
+    if (id) {
+      await updateMeal(id, rest);
+    } else {
+      await createMeal({ ...rest, log_date: selectedDate });
+    }
     formOpen = false;
+    editMeal = null;
   }
 
   async function handleDelete(mealId: string) {
@@ -176,9 +224,56 @@
     if (!ok) console.error('Failed to delete meal:', error);
   }
 
-  function goToEdit(mealId: string) {
-    window.location.href = '/meals/' + mealId;
+  async function handleUpdateItems(mealId: string, items: MealItem[]) {
+    if (items.length === 0) {
+      await deleteMeal(mealId);
+      return;
+    }
+    await updateMeal(mealId, {
+      items: items.map((i) => ({
+        id: i.id,
+        food_item_id: i.food_item_id,
+        servings: i.servings,
+        amount_g: i.amount_g ?? undefined
+      }))
+    });
   }
+
+  function openEdit(mealId: string) {
+    const meal = mealsForDate.find((m) => m.id === mealId) ?? null;
+    editMeal = meal;
+    formMealType = meal?.meal_type ?? 'snack';
+    preSelectedFoodId = null;
+    formOpen = true;
+  }
+
+  function openAdd(mealType: string) {
+    editMeal = null;
+    formMealType = mealType;
+    preSelectedFoodId = null;
+    formOpen = true;
+  }
+
+  function inferMealType(): string {
+    const hour = new Date().getHours();
+    if (hour < 11) return 'breakfast';
+    if (hour < 15) return 'lunch';
+    if (hour < 21) return 'dinner';
+    return 'snack';
+  }
+
+  const addParam = $derived(page.url.searchParams.get('add'));
+  const addServingsParam = $derived(page.url.searchParams.get('servings'));
+  const initialServings = $derived(
+    addServingsParam ? Math.max(0.25, parseFloat(addServingsParam) || 1) : 1
+  );
+
+  $effect(() => {
+    if (!addParam) return;
+    preSelectedFoodId = addParam;
+    editMeal = null;
+    formOpen = true;
+  });
 </script>
 
 <svelte:head><title>Salus — Meals</title></svelte:head>
@@ -187,14 +282,48 @@
   <PageHeader title="Meals" subtitle="Track your nutrition, one meal at a time" icon="restaurant">
     {#snippet actions()}
       <div class="flex h-full items-stretch">
-        <PageHeaderAction variant="secondary" icon="search" onclick={() => goto('/food')}
-          >Food DB</PageHeaderAction
+        <PageHeaderAction icon="add" onclick={() => openAdd(inferMealType())}
+          >Log Food</PageHeaderAction
         >
-        <PageHeaderAction variant="secondary" icon="menu-book" onclick={() => goto('/recipes')}
-          >Recipes</PageHeaderAction
-        >
-        <PageHeaderAction icon="add" onclick={() => (formOpen = true)}>Log Meal</PageHeaderAction>
       </div>
+    {/snippet}
+    {#snippet stats()}
+      {#if isToday}
+        <div
+          class="grid grid-cols-2 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-6 py-4">
+            <Stat
+              value={Math.round(dailyTotals.calories)}
+              unit={targets.calories != null
+                ? `/ ${targets.calories.toLocaleString()} kcal`
+                : 'kcal'}
+              label="Calories"
+            />
+          </div>
+          <div class="px-6 py-4">
+            <Stat
+              value={targets.protein != null ? Math.round(dailyTotals.protein) : '—'}
+              unit={targets.protein != null ? `/ ${targets.protein} g` : 'g'}
+              label="Protein"
+            />
+          </div>
+          <div class="px-6 py-4">
+            <Stat
+              value={targets.carbs != null ? Math.round(dailyTotals.carbs) : '—'}
+              unit={targets.carbs != null ? `/ ${targets.carbs} g` : 'g'}
+              label="Carbs"
+            />
+          </div>
+          <div class="px-6 py-4">
+            <Stat
+              value={targets.fat != null ? Math.round(dailyTotals.fat) : '—'}
+              unit={targets.fat != null ? `/ ${targets.fat} g` : 'g'}
+              label="Fat"
+            />
+          </div>
+        </div>
+      {/if}
     {/snippet}
   </PageHeader>
 
@@ -203,7 +332,7 @@
       <Spinner />
     </div>
   {:else}
-    <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
       <DayNavigator
         dateDisplay={new Date(selectedDate + 'T12:00').toLocaleDateString('en-US', {
           weekday: 'short',
@@ -235,82 +364,60 @@
         {/snippet}
       </DayNavigator>
 
-      <div class="flex overflow-hidden rounded-md border border-surface-200">
-        {#each ['day', 'week', 'month'] as const as mode}
-          <button
-            type="button"
-            class="px-3 py-1.5 text-xs font-medium capitalize transition-colors {viewMode === mode
-              ? 'bg-primary-500 text-on-primary'
-              : 'text-surface-500 hover:bg-surface-100'}"
-            onclick={() => (viewMode = mode)}
-          >
-            {mode}
-          </button>
-        {/each}
-      </div>
+      <SegmentedControl
+        options={[
+          { value: 'day', label: 'Day' },
+          { value: 'week', label: 'Week' },
+          { value: 'month', label: 'Month' }
+        ]}
+        bind:value={viewMode}
+      />
     </div>
 
     {#if viewMode === 'day'}
-      <NutritionSummary
-        totalCalories={dailyTotals.calories}
-        totalProtein={dailyTotals.protein}
-        totalCarbs={dailyTotals.carbs}
-        totalFat={dailyTotals.fat}
-        mealCount={mealsForDate.length}
-      />
-
-      <MealGrid
-        meals={mealsForDate}
-        {mealItemsMap}
-        {foodMap}
-        {macroTotals}
-        onEdit={goToEdit}
-        onDelete={handleDelete}
-        onCreate={() => (formOpen = true)}
-      />
-    {:else}
-      <Card>
-        <h2 class="mb-3 text-sm font-semibold tracking-wider text-surface-400 uppercase">
-          {viewMode === 'week' ? 'This Week' : 'This Month'}
-        </h2>
-        {#if dailySummary.length > 0}
-          <div class="divide-y divide-surface-100">
-            {#each dailySummary as day}
-              <button
-                type="button"
-                class="flex w-full items-center justify-between py-2.5 text-left hover:bg-surface-50"
-                onclick={() => {
-                  selectedDate = day.date;
-                  viewMode = 'day';
-                }}
-              >
-                <div>
-                  <div class="text-sm font-medium text-surface-800">
-                    {new Date(day.date + 'T12:00').toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </div>
-                  <div class="text-xs text-surface-400">
-                    {day.count}
-                    {day.count === 1 ? 'meal' : 'meals'}
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-semibold text-surface-900">
-                    {Math.round(day.calories)} kcal
-                  </div>
-                  <div class="text-xs text-surface-400">
-                    {Math.round(day.protein)}P · {Math.round(day.carbs)}C · {Math.round(day.fat)}F
-                  </div>
-                </div>
-              </button>
-            {/each}
+      {#if mealsForDate.length > 0}
+        <MealGroups
+          meals={mealsForDate}
+          {mealItemsMap}
+          {foodMap}
+          {macroTotals}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onUpdateItems={handleUpdateItems}
+          onAdd={openAdd}
+          onViewFood={(food) => (viewFood = food)}
+        />
+      {:else}
+        <Card>
+          <div class="flex flex-col items-center gap-2 py-8 text-center">
+            <p class="text-sm font-medium text-surface-700">No meals logged yet</p>
+            <p class="max-w-sm text-xs text-surface-400">
+              Use the "Log Food" button or the "+ Add" buttons to start tracking your nutrition.
+            </p>
           </div>
-        {:else}
-          <p class="py-6 text-center text-sm text-surface-400">No meals in this range.</p>
-        {/if}
+        </Card>
+      {/if}
+    {:else}
+      <Card padding={false}>
+        {#snippet header()}
+          <span class="text-sm font-semibold text-surface-900">
+            {viewMode === 'week' ? 'This Week' : 'This Month'} · Calories
+          </span>
+        {/snippet}
+        <div class="p-6">
+          {#if chartData}
+            <LineChart
+              labels={chartData.labels}
+              series={chartData.series}
+              leftUnit="kcal"
+              height={240}
+            />
+          {:else}
+            <div class="flex h-[200px] items-center justify-center">
+              <p class="text-sm text-surface-400">No meals in this range.</p>
+            </div>
+          {/if}
+        </div>
       </Card>
     {/if}
   {/if}
@@ -318,7 +425,35 @@
   <MealForm
     open={formOpen}
     foodItems={foodItems ?? []}
+    initialMealType={formMealType}
+    initialFoodId={preSelectedFoodId}
+    {initialServings}
+    meal={editMeal}
+    mealItems={editMeal ? (mealItemsMap[editMeal.id ?? ''] ?? []) : []}
     onSave={handleSave}
-    onClose={() => (formOpen = false)}
+    onClose={() => {
+      formOpen = false;
+      editMeal = null;
+      preSelectedFoodId = null;
+    }}
+  />
+
+  <FoodDetailModal
+    food={viewFood}
+    onEdit={(food) => {
+      viewFood = null;
+      editFood = food;
+      foodFormOpen = true;
+    }}
+    onClose={() => (viewFood = null)}
+  />
+
+  <FoodFormModal
+    open={foodFormOpen}
+    food={editFood}
+    onClose={() => {
+      foodFormOpen = false;
+      editFood = null;
+    }}
   />
 </div>

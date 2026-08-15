@@ -25,6 +25,7 @@
     class?: string;
     style?: string;
     pattern?: string;
+    el?: HTMLInputElement | null;
   }
 
   let {
@@ -44,7 +45,8 @@
     class: extraClass = '',
     style,
     pattern,
-    autocomplete
+    autocomplete,
+    el = $bindable(null)
   }: Props = $props();
 </script>
 
@@ -67,6 +69,7 @@
       {step}
       {pattern}
       bind:value
+      bind:this={el}
       {required}
       {placeholder}
       {disabled}

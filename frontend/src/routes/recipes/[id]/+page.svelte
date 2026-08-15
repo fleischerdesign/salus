@@ -248,6 +248,12 @@
     open={cookOpen}
     recipeName={recipe.name}
     recipeServings={recipe.servings}
+    macros={{
+      calories: macros.calories,
+      protein: macros.protein,
+      carbs: macros.carbs,
+      fat: macros.fat
+    }}
     onCook={handleCook}
     onClose={() => (cookOpen = false)}
     {cooking}

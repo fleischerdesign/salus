@@ -60,6 +60,7 @@
     "@capacitor/share": "^8.0.1",
     "@capgo/capacitor-updater": "^8.51.3",
     "@iconify/svelte": "^5.2.2",
+    "@zxing/browser": "^0.2.1",
     "dexie": "^4.0.0",
     "openapi-fetch": "^0.13.0",
     "sortablejs": "^1.15.7"

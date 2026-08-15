@@ -17,6 +17,7 @@
   import Modal from '$components/ui/Modal.svelte';
   import HueRing from '$components/ui/HueRing.svelte';
   import { hueGradient } from '$lib/theme/hue';
+  import { offApiKey, setDirectOffEnabled, setOffApiKey } from '$lib/food/barcode';
 
   const CURRENT_APP_VERSION = '0.1.0';
   let isNative = $state(Capacitor.isNativePlatform());
@@ -170,6 +171,17 @@
   // ── Gerätesicherheit (Native Android) ──
   let hapticsEnabled = $state(localStorage.getItem('salus_haptics') !== 'false');
   let biometricsEnabled = $state(localStorage.getItem('salus_biometrics') === 'true');
+  let directOff = $state(localStorage.getItem('salus_food_direct_api') === 'true');
+  let offKey = $state(offApiKey());
+
+  function toggleDirectOff(val: boolean) {
+    directOff = val;
+    setDirectOffEnabled(val);
+  }
+
+  $effect(() => {
+    setOffApiKey(offKey);
+  });
 
   // ── Lokaler Speicher: Export/Import ──
   let exporting = $state(false);
@@ -470,6 +482,32 @@
             onchange={(val) => toastSettings.setNetworkStatus(val)}
           />
         </div>
+      </div>
+    </Card>
+
+    <!-- Nahrungsmittel-Datenquelle -->
+    <Card padding={false}>
+      {#snippet header()}
+        <span class="text-sm font-semibold text-surface-900">Nahrungsmittel-Datenquelle</span>
+      {/snippet}
+      <div class="space-y-4 p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-surface-800">Direkte OpenFoodFacts-Abfrage</p>
+            <p class="text-xs text-surface-400">
+              Barcode-Suche im Offline-/Local-Modus direkt bei OpenFoodFacts statt über den Server
+            </p>
+          </div>
+          <Toggle checked={directOff} onchange={toggleDirectOff} />
+        </div>
+
+        {#if directOff}
+          <div class="border-t border-surface-100 pt-4">
+            <FormField label="OpenFoodFacts-API-Key (optional)">
+              <Input name="off_key" placeholder="API-Key eingeben…" bind:value={offKey} />
+            </FormField>
+          </div>
+        {/if}
       </div>
     </Card>
 

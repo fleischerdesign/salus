@@ -4,7 +4,8 @@
   interface Props {
     name: string;
     servings: number;
-    amountG: number | null;
+    servingSize: number;
+    servingUnit: string;
     calories: number;
     proteinG: number;
     carbsG: number;
@@ -12,32 +13,44 @@
     onRemove: () => void;
     onIncrement: () => void;
     onDecrement: () => void;
+    onViewFood?: () => void;
   }
 
   let {
     name,
     servings,
-    amountG,
+    servingSize,
+    servingUnit,
     calories,
     proteinG,
     carbsG,
     fatG,
     onRemove,
     onIncrement,
-    onDecrement
+    onDecrement,
+    onViewFood
   }: Props = $props();
+
+  const quantity = $derived(Math.round(servings * servingSize * 10) / 10);
 </script>
 
 <div class="flex items-center justify-between rounded-lg bg-surface-50 px-3 py-2">
   <div class="min-w-0 flex-1">
-    <div class="truncate text-sm font-medium text-surface-800">{name}</div>
+    {#if onViewFood}
+      <button
+        type="button"
+        onclick={onViewFood}
+        class="block max-w-full truncate text-left text-sm font-medium text-surface-800 hover:text-primary-600"
+      >
+        {name}
+      </button>
+    {:else}
+      <div class="truncate text-sm font-medium text-surface-800">{name}</div>
+    {/if}
     <div class="text-xs text-surface-400">
-      {Math.round(calories)} kcal · {Math.round(proteinG)}P · {Math.round(carbsG)}C · {Math.round(
-        fatG
-      )}F
-      {#if amountG}
-        · {Math.round(amountG * servings)}g
-      {/if}
+      {quantity}
+      {servingUnit} · {Math.round(calories)} kcal · {Math.round(proteinG)}P ·{' '}
+      {Math.round(carbsG)}C · {Math.round(fatG)}F
     </div>
   </div>
 

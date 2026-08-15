@@ -1,5 +1,6 @@
 <script lang="ts">
   import EmptyState from '$components/ui/EmptyState.svelte';
+  import Btn from '$components/ui/Btn.svelte';
   import RecipeCard from './RecipeCard.svelte';
 
   interface Props {
@@ -9,6 +10,9 @@
       description: string | null;
       servings: number;
       totalCalories: number;
+      totalProtein: number;
+      totalCarbs: number;
+      totalFat: number;
       prepTimeMin: number | null;
       cookTimeMin: number | null;
       isFavorite: boolean;
@@ -26,7 +30,7 @@
     title="No recipes"
     description="Create your first recipe to quickly log frequent meals."
   >
-    <button onclick={onCreate} class="btn btn-primary mt-4">Create Recipe</button>
+    <Btn variant="primary" onclick={onCreate}>Create Recipe</Btn>
   </EmptyState>
 {:else}
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -37,6 +41,9 @@
         description={recipe.description}
         servings={recipe.servings}
         totalCalories={recipe.totalCalories}
+        totalProtein={recipe.totalProtein}
+        totalCarbs={recipe.totalCarbs}
+        totalFat={recipe.totalFat}
         prepTimeMin={recipe.prepTimeMin}
         cookTimeMin={recipe.cookTimeMin}
         isFavorite={recipe.isFavorite}

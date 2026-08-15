@@ -24,7 +24,7 @@ export async function createMeal(data: {
   const now = nowIso();
   const logDate = data.log_date ?? todayString();
   const measurementId = uuid7();
-  const items = (data.items ?? []).map((item) => ({ id: uuid7(), ...item }));
+  const items = (data.items ?? []).map((item) => ({ ...item, id: uuid7() }));
 
   const macros = await calcMacros(items);
   const startTime = new Date(startOfLocalDayMs(logDate, userTimezone())).toISOString();
@@ -135,7 +135,7 @@ export async function updateMeal(
     .first();
   const meal = await db.meal.get(mealId);
 
-  const newItems = data.items.map((item) => ({ id: uuid7(), ...item }));
+  const newItems = data.items.map((item) => ({ ...item, id: uuid7() }));
   const macros = await calcMacros(newItems);
   const logDate = meal?.log_date ?? todayString();
   const startTime = new Date(startOfLocalDayMs(logDate, userTimezone())).toISOString();
