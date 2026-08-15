@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     data_quality_recheck_interval_hours: int = 6
     data_quality_cleanup_interval_hours: int = 24
 
+    food_off_enabled: bool = True
+
     model_config = {"env_prefix": "SALUS_"}
 
     @property

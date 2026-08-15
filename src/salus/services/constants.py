@@ -9,6 +9,10 @@ SYNC_BATCH_SIZE = 500
 # Measurement source channel for manually entered data
 SOURCE_MANUAL = "manual"
 
+# Food item sources (food_item.source)
+SOURCE_SYSTEM = "system"
+SOURCE_OPENFOODFACTS = "openfoodfacts"
+
 # Workout autoregulation defaults
 DEFAULT_RPE = 8.0
 DEFAULT_REST_SECONDS = 90

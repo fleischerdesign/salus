@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+
 class TestFoodItemRoutes:
     def test_list_empty_search(self, client):
         resp = client.get("/api/v1/food/items/search?q=notfound")
@@ -53,8 +56,46 @@ class TestFoodItemRoutes:
         assert resp.status_code == 200
         assert resp.json()["name"] == "Item With Barcode"
 
-        resp = authenticated_client.get("/api/v1/food/items/barcode/doesnotexist")
-        assert resp.json() is None
+        with patch("salus.services.food_item.httpx.get", side_effect=Exception("network")):
+            resp = authenticated_client.get("/api/v1/food/items/barcode/doesnotexist")
+            assert resp.json() is None
+
+    def test_barcode_openfoodfacts_proxy(self, authenticated_client):
+        def fake_get(url, **kwargs):
+            class Resp:
+                status_code = 200
+
+                def json(self):
+                    return {
+                        "status": 1,
+                        "product": {
+                            "product_name": "Test Snack",
+                            "brands": "TestBrand",
+                            "nutriments": {
+                                "energy-kcal_100g": 420,
+                                "proteins_100g": 12.0,
+                                "carbohydrates_100g": 55.0,
+                                "fat_100g": 15.0,
+                                "fiber_100g": 3.0,
+                            },
+                        },
+                    }
+
+            return Resp()
+
+        with patch("salus.services.food_item.httpx.get", side_effect=fake_get):
+            resp = authenticated_client.get("/api/v1/food/items/barcode/4006381333931")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["name"] == "Test Snack"
+            assert data["brand"] == "TestBrand"
+            assert data["is_verified"] is True
+
+            # cached as a system food item → a second lookup hits no network
+            with patch("salus.services.food_item.httpx.get", side_effect=Exception("network")):
+                resp2 = authenticated_client.get("/api/v1/food/items/barcode/4006381333931")
+                assert resp2.status_code == 200
+                assert resp2.json()["name"] == "Test Snack"
 
 
 class TestMealRoutes:
@@ -235,3 +276,26 @@ class TestRecipeRoutes:
     def test_requires_auth(self, client):
         resp = client.get("/api/v1/recipes")
         assert resp.status_code == 401
+
+
+def test_seed_common_foods(session):
+    from sqlmodel import Session
+    from salus.models.food import FoodItem
+    from salus.repositories.unit_of_work import SqlUnitOfWork
+    from salus.services.food_item import FoodItemService
+
+    uow = SqlUnitOfWork(session)
+    svc = FoodItemService(uow)
+
+    count = svc.seed_common_foods()
+    session.commit()
+    assert count > 0
+
+    second = svc.seed_common_foods()
+    assert second == 0
+
+    oats = session.get(FoodItem, "food-oatmeal")
+    assert oats is not None
+    assert oats.is_verified is True
+    assert oats.user_id is None
+    assert oats.source == "system"

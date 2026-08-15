@@ -61,6 +61,7 @@ from salus.services.achievement.service import AchievementService
 from salus.services.metric_definition import MetricDefinitionService
 from salus.services.mood import MoodService
 from salus.services.lab import LabService
+from salus.services.food_item import FoodItemService
 from salus.services.scheduler import AppScheduler
 from salus.services.data_quality import (
     DataQualityCleanupJob,
@@ -226,6 +227,7 @@ async def lifespan(app: FastAPI):
         )
         _run_seeder("mood tags", lambda: MoodService(uow).seed_tags())
         _run_seeder("lab markers", lambda: LabService(uow).seed_markers())
+        _run_seeder("common foods", lambda: FoodItemService(uow).seed_common_foods())
         startup_session.commit()
     finally:
         session.close()

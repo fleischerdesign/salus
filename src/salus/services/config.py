@@ -31,9 +31,10 @@ CONFIG_DEFINITIONS = [
     ("llm_api_key", "LLM API Key", "llm", True),
     ("llm_api_url", "LLM API Base URL (optional)", "llm", False),
     ("llm_model", "LLM Model name", "llm", False),
+    ("food_off_enabled", "OpenFoodFacts barcode lookup enabled", "food", False),
 ]
 
-CATEGORY_ORDER = ["general", "security", "oidc", "ldap", "llm"]
+CATEGORY_ORDER = ["general", "security", "oidc", "ldap", "llm", "food"]
 
 
 def system_config_enriched(s) -> list[dict]:

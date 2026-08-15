@@ -1,8 +1,53 @@
+import httpx
+
 from salus.exceptions import NotFoundError
 from salus.models.food import FoodItem
+from salus.repositories.protocols import ISystemConfigRepository
+from salus.repositories.system_config import SystemConfigRepository
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.schemas.food import FoodItemCreate
-from salus.services.constants import SOURCE_MANUAL
+from salus.services.config import ConfigService
+from salus.services.constants import SOURCE_OPENFOODFACTS, SOURCE_SYSTEM
+from salus.services.food_reference import COMMON_FOODS
+from salus.utils import uuid7_str
+
+_OFF_API = "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
+_OFF_USER_AGENT = "SalusHealth/0.1 (self-hosted health tracker)"
+
+
+def _lookup_openfoodfacts(barcode: str) -> dict | None:
+    """Look up a barcode on OpenFoodFacts and map it to food_item fields (per 100 g)."""
+    try:
+        resp = httpx.get(
+            _OFF_API.format(barcode=barcode),
+            headers={"User-Agent": _OFF_USER_AGENT},
+            timeout=10.0,
+        )
+        if resp.status_code != 200:
+            return None
+        payload = resp.json()
+        if payload.get("status") != 1:
+            return None
+        product = payload.get("product") or {}
+        name = (
+            product.get("product_name")
+            or product.get("product_name_en")
+            or f"Produkt {barcode}"
+        )
+        nutriments = product.get("nutriments") or {}
+        return {
+            "name": name,
+            "brand": product.get("brands"),
+            "calories_per_serving": nutriments.get("energy-kcal_100g"),
+            "protein_g": nutriments.get("proteins_100g"),
+            "carbs_g": nutriments.get("carbohydrates_100g"),
+            "fat_g": nutriments.get("fat_100g"),
+            "fiber_g": nutriments.get("fiber_100g"),
+            "sugar_g": nutriments.get("sugars_100g"),
+            "saturated_fat_g": nutriments.get("saturated-fat_100g"),
+            "sodium_mg": nutriments.get("sodium_100g"),
+        }
+    except Exception:
+        return None
 
 
 class FoodItemService:
@@ -19,27 +64,68 @@ class FoodItemService:
         return item
 
     def find_by_barcode(self, barcode: str) -> FoodItem | None:
-        return self.uow.food_items.find_by_barcode(barcode)
-
-    def create(self, data: FoodItemCreate, user_id: str) -> FoodItem:
+        existing = self.uow.food_items.find_by_barcode(barcode)
+        if existing:
+            return existing
+        if not self._off_enabled():
+            return None
+        data = _lookup_openfoodfacts(barcode)
+        if data is None:
+            return None
         item = FoodItem(
-            user_id=user_id,
-            name=data.name,
-            brand=data.brand,
-            barcode=data.barcode,
-            serving_size=data.serving_size,
-            serving_unit=data.serving_unit,
-            calories_per_serving=data.calories_per_serving,
-            protein_g=data.protein_g,
-            carbs_g=data.carbs_g,
-            fat_g=data.fat_g,
-            fiber_g=data.fiber_g,
-            sugar_g=data.sugar_g,
-            saturated_fat_g=data.saturated_fat_g,
-            sodium_mg=data.sodium_mg,
-            source=SOURCE_MANUAL,
+            id=uuid7_str(),
+            name=data["name"],
+            brand=data.get("brand"),
+            barcode=barcode,
+            serving_size=100,
+            serving_unit="g",
+            calories_per_serving=data.get("calories_per_serving") or 0,
+            protein_g=data.get("protein_g") or 0,
+            carbs_g=data.get("carbs_g") or 0,
+            fat_g=data.get("fat_g") or 0,
+            fiber_g=data.get("fiber_g"),
+            sugar_g=data.get("sugar_g"),
+            saturated_fat_g=data.get("saturated_fat_g"),
+            sodium_mg=data.get("sodium_mg"),
+            is_verified=True,
+            user_id=None,
+            source=SOURCE_OPENFOODFACTS,
         )
-        return self.uow.food_items.create(item)
+        self.uow.food_items.add(item)
+        self.uow.commit()
+        return item
 
     def get_frequent(self, user_id: str, limit: int = 20) -> list[FoodItem]:
         return self.uow.food_items.find_frequent(user_id, limit)
+
+    def seed_common_foods(self) -> int:
+        session = self.uow.session
+        count = 0
+        for data in COMMON_FOODS:
+            if session.get(FoodItem, data["id"]) is None:
+                session.add(FoodItem(
+                    id=data["id"],
+                    name=data["name"],
+                    serving_size=data.get("serving_size", 100),
+                    serving_unit="g",
+                    calories_per_serving=data.get("calories_per_serving", 0),
+                    protein_g=data.get("protein_g", 0),
+                    carbs_g=data.get("carbs_g", 0),
+                    fat_g=data.get("fat_g", 0),
+                    fiber_g=data.get("fiber_g"),
+                    sugar_g=data.get("sugar_g"),
+                    saturated_fat_g=data.get("saturated_fat_g"),
+                    sodium_mg=data.get("sodium_mg"),
+                    is_verified=True,
+                    user_id=None,
+                    source=SOURCE_SYSTEM,
+                ))
+                count += 1
+        return count
+
+    def _off_enabled(self) -> bool:
+        cfg: ISystemConfigRepository = SystemConfigRepository(self.uow.session)
+        value = ConfigService(cfg).get_resolved_value("food_off_enabled")
+        if value == "":
+            return True
+        return value.strip().lower() in ("1", "true", "yes", "on")
