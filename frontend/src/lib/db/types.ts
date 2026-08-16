@@ -89,6 +89,16 @@ export interface UserSourcePreference {
   deleted_at?: string | null;
 }
 
+export interface UserSourceStatus {
+  id: string;
+  user_id: string;
+  source: string;
+  connected: boolean;
+  created_at: string;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+}
+
 export interface Measurement {
   id: string;
   user_id: string;

@@ -7,6 +7,7 @@ import type {
   MetricGroup,
   UserMetricPreference,
   UserSourcePreference,
+  UserSourceStatus,
   Measurement,
   Goal,
   CircadianProfile,
@@ -59,6 +60,7 @@ export class SalusDB extends Dexie {
   metric_definition!: EntityTable<MetricDefinition, 'code'>;
   user_metric_preference!: EntityTable<UserMetricPreference, 'id'>;
   user_source_preference!: EntityTable<UserSourcePreference, 'id'>;
+  user_source_status!: EntityTable<UserSourceStatus, 'id'>;
   measurement!: EntityTable<Measurement, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
   circadian_profile!: EntityTable<CircadianProfile, 'id'>;
@@ -305,6 +307,9 @@ export class SalusDB extends Dexie {
     });
     this.version(26).stores({
       metric_definition: 'code, name, source_data_type, group_key'
+    });
+    this.version(27).stores({
+      user_source_status: 'id, user_id, source'
     });
   }
 

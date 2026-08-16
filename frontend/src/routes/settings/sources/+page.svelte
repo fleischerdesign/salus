@@ -1,7 +1,8 @@
 <script lang="ts">
   import { db } from '$lib/db/database';
   import { getSourceStats } from '$lib/db/metric-stats';
-  import type { MetricDefinition, UserSourcePreference } from '$lib/db/types';
+  import type { MetricDefinition, UserSourcePreference, UserSourceStatus } from '$lib/db/types';
+  import { SOURCES, isSourceEnabled, type SourceStatus } from '$lib/sources';
   import Card from '$components/ui/Card.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -27,6 +28,8 @@
   let sourceCounts = $state<Record<string, number>>({});
   let metricKnownSources = $state<Record<string, string[]>>({});
   let savingMetric = $state<string | null>(null);
+  let statuses = $state<Record<string, SourceStatus>>({});
+  let statusesLoading = $state(true);
 
   const CATEGORY_OPTIONS = [
     { value: 'all', label: 'All Categories' },
@@ -36,15 +39,24 @@
     { value: 'body', label: 'Body Metrics' }
   ];
 
-  const KNOWN_SOURCES = [
-    { id: 'health_connect', name: 'Android Health Connect', icon: 'smartphone', color: '#3ddc84' },
-    { id: 'apple_health', name: 'Apple Health', icon: 'favorite', color: '#ff2d55' },
-    { id: 'samsung_health', name: 'Samsung Health', icon: 'health-and-safety', color: '#1428a0' },
-    { id: 'oura', name: 'Oura Ring', icon: 'bedtime', color: '#1f2937' },
-    { id: 'garmin', name: 'Garmin Connect', icon: 'watch', color: '#007cc3' },
-    { id: 'manual', name: 'Manual Input', icon: 'edit', color: '#4f46e5' },
-    { id: 'seed', name: 'Dev Seed Data', icon: 'database', color: '#8b5cf6' }
-  ];
+  // Account-level source status (synced down from the app). Reactive to sync changes.
+  const syncedStatusQuery = useQuery(() => db.user_source_status.toArray());
+  const syncedStatuses = $derived(syncedStatusQuery.value ?? ([] as UserSourceStatus[]));
+
+  async function refreshStatuses() {
+    const out: Record<string, SourceStatus> = {};
+    for (const src of SOURCES) {
+      out[src.id] = await isSourceEnabled(src.id);
+    }
+    statuses = out;
+    statusesLoading = false;
+  }
+
+  $effect(() => {
+    // Recompute when synced rows arrive/change (e.g. app reports a connection).
+    void syncedStatuses;
+    refreshStatuses();
+  });
 
   const sourceDataQuery = useQuery(async () => {
     const allMetrics = await db.metric_definition.toArray();
@@ -54,7 +66,7 @@
     const counts: Record<string, number> = {};
     const knownPerMetric: Record<string, Set<string>> = {};
 
-    for (const src of KNOWN_SOURCES) {
+    for (const src of SOURCES) {
       counts[src.id] = srcStats[src.id]?.entry_count ?? 0;
     }
 
@@ -106,7 +118,7 @@
 
   let sortedAndFilteredSources = $derived.by(() => {
     const query = sourceSearchQuery.trim().toLowerCase();
-    let sources = KNOWN_SOURCES.filter((s) => {
+    let sources = SOURCES.filter((s) => {
       if (!query) return true;
       return s.name.toLowerCase().includes(query) || s.id.toLowerCase().includes(query);
     });
@@ -114,8 +126,8 @@
     return sources.sort((a, b) => {
       const countA = sourceCounts[a.id] ?? 0;
       const countB = sourceCounts[b.id] ?? 0;
-      const activeA = countA > 0 ? 1 : 0;
-      const activeB = countB > 0 ? 1 : 0;
+      const activeA = statuses[a.id]?.enabled ? 1 : 0;
+      const activeB = statuses[b.id]?.enabled ? 1 : 0;
 
       if (activeA !== activeB) return activeB - activeA;
       if (countA !== countB) return countB - countA;
@@ -277,7 +289,8 @@
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {#each sortedAndFilteredSources as src (src.id)}
             {@const count = sourceCounts[src.id] ?? 0}
-            {@const isActive = count > 0}
+            {@const status = statuses[src.id]}
+            {@const isActive = status?.enabled ?? false}
             <div
               role="button"
               tabindex="0"
@@ -311,17 +324,24 @@
                       </div>
                     </div>
 
-                    {#if isActive}
+                    {#if statusesLoading}
+                      <span
+                        class="inline-flex items-center rounded-full border border-surface-200/60 bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500"
+                      >
+                        …
+                      </span>
+                    {:else if isActive}
                       <span
                         class="inline-flex items-center gap-1.5 rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700"
                       >
-                        <span class="h-1.5 w-1.5 rounded-full bg-success-500"></span> Active
+                        <span class="h-1.5 w-1.5 rounded-full bg-success-500"></span>
+                        {status?.reason === 'has_data' ? 'Active' : 'Connected'}
                       </span>
                     {:else}
                       <span
                         class="inline-flex items-center rounded-full border border-surface-200/60 bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-500"
                       >
-                        Inactive
+                        {status?.reason === 'missing_permissions' ? 'Permissions' : 'Not connected'}
                       </span>
                     {/if}
                   </div>
@@ -403,5 +423,6 @@
     bind:open={sourceModalOpen}
     source={selectedSource}
     count={sourceCounts[selectedSource.id] ?? 0}
+    onStatusChange={refreshStatuses}
   />
 {/if}

@@ -2255,6 +2255,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/source-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Get Source Statuses */
+        get: operations["api_get_source_statuses_api_v1_settings_source_status_get"];
+        /** Api Set Source Status */
+        put: operations["api_set_source_status_api_v1_settings_source_status_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/theme": {
         parameters: {
             query?: never;
@@ -2768,6 +2786,44 @@ export interface paths {
         head?: never;
         /** Patch One */
         patch: operations["patch_one_api_v1_user_source_preferences__item_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/user-source-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["list_all_api_v1_user_source_statuses_get"];
+        put?: never;
+        /** Create One */
+        post: operations["create_one_api_v1_user_source_statuses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-source-statuses/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["get_one_api_v1_user_source_statuses__item_id__get"];
+        /** Patch One */
+        put: operations["patch_one_api_v1_user_source_statuses__item_id__put"];
+        post?: never;
+        /** Delete One */
+        delete: operations["delete_one_api_v1_user_source_statuses__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch One */
+        patch: operations["patch_one_api_v1_user_source_statuses__item_id__patch"];
         trace?: never;
     };
     "/api/v1/workout-plans": {
@@ -5296,6 +5352,57 @@ export interface components {
             metric_code: string;
             /** Priority Rank */
             priority_rank: number;
+            /** Source */
+            source: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
+        /** UserSourceStatus */
+        UserSourceStatus: {
+            /**
+             * Connected
+             * @default false
+             */
+            connected: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Deleted At */
+            deleted_at?: string | null;
+            /** Id */
+            id?: string | null;
+            /** Source */
+            source: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** User Id */
+            user_id: string;
+        };
+        /** UserSourceStatusCreate */
+        UserSourceStatusCreate: {
+            /**
+             * Connected
+             * @default false
+             */
+            connected: boolean;
+            /** Source */
+            source: string;
+        };
+        /** UserSourceStatusResponse */
+        UserSourceStatusResponse: {
+            /** Connected */
+            connected: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
             /** Source */
             source: string;
             /** Updated At */
@@ -12064,6 +12171,59 @@ export interface operations {
             };
         };
     };
+    api_get_source_statuses_api_v1_settings_source_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatusResponse"][];
+                };
+            };
+        };
+    };
+    api_set_source_status_api_v1_settings_source_status_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserSourceStatusCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     api_set_theme_api_v1_settings_theme_put: {
         parameters: {
             query?: never;
@@ -13633,6 +13793,207 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserSourcePreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_api_v1_user_source_statuses_get: {
+        parameters: {
+            query?: {
+                limit?: number | null;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatus"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_one_api_v1_user_source_statuses_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_one_api_v1_user_source_statuses__item_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_user_source_statuses__item_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_one_api_v1_user_source_statuses__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_one_api_v1_user_source_statuses__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSourceStatus"];
                 };
             };
             /** @description Validation Error */

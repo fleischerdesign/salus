@@ -28,6 +28,7 @@
   import { updateService } from '$lib/stores/update.svelte';
   import { getSystemStats } from '$lib/db/metric-stats';
   import { healthSyncService } from '$lib/native/health-sync';
+  import { reportDeviceSourceStatus } from '$lib/sources';
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
   import { seedReferenceData } from '$lib/db/seed';
@@ -102,6 +103,7 @@
       getSystemStats().catch(() => {});
       if (nativeBridge.isNative) {
         healthSyncService.syncNow().catch(() => {});
+        reportDeviceSourceStatus().catch(() => {});
         biometricLock.enforce().catch(() => {});
       }
     }

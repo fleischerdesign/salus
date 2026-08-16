@@ -103,15 +103,22 @@ export async function recomputeAllStats(): Promise<SystemStats> {
       })
     );
 
-    for (const src of ['manual', 'health_connect', 'salus_sensor', 'apple_health']) {
-      const srcCnt = await db.measurement.where('source').equals(src).count();
-      sources[src] = {
-        source_id: src,
-        entry_count: srcCnt,
-        latest_time: null,
-        metrics: {}
-      };
-    }
+    // Aggregate source counts from ALL distinct source values present in
+    // measurements (single pass over the source index, excluding deleted rows).
+    await db.measurement.orderBy('source').each((m) => {
+      if (m.deleted_at || !m.source) return;
+      const stat = sources[m.source];
+      if (stat) {
+        stat.entry_count += 1;
+      } else {
+        sources[m.source] = {
+          source_id: m.source,
+          entry_count: 1,
+          latest_time: null,
+          metrics: {}
+        };
+      }
+    });
 
     const stats: SystemStats = {
       version: STATS_VERSION,

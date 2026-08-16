@@ -4,6 +4,7 @@
   import { getSourceStat } from '$lib/db/metric-stats';
   import { Capacitor } from '@capacitor/core';
   import { healthSyncService } from '$lib/native/health-sync';
+  import { isSourceEnabled, reportDeviceSourceStatus, type SourceStatus } from '$lib/sources';
   import Modal from '$components/ui/Modal.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Btn from '$components/ui/Btn.svelte';
@@ -22,12 +23,14 @@
     source: KnownSource | null;
     count: number;
     onClose?: () => void;
+    onStatusChange?: () => void;
   }
 
-  let { open = $bindable(false), source, count = 0, onClose }: Props = $props();
+  let { open = $bindable(false), source, count = 0, onClose, onStatusChange }: Props = $props();
 
   let metricsSupplied = $state<Array<{ code: string; name: string; count: number }>>([]);
   let lastSyncTime = $state<string | null>(null);
+  let sourceStatus = $state<SourceStatus | null>(null);
 
   // Health Connect integration state
   let isNativeAndroid = $derived(Capacitor.isNativePlatform());
@@ -79,6 +82,17 @@
     }
   });
 
+  $effect(() => {
+    if (!open || !source) return;
+    isSourceEnabled(source.id).then((s) => (sourceStatus = s));
+  });
+
+  async function refreshStatus() {
+    if (!source) return;
+    sourceStatus = await isSourceEnabled(source.id);
+    onStatusChange?.();
+  }
+
   async function handleRequestPermissions() {
     requestingPerms = true;
     syncFeedback = null;
@@ -86,6 +100,8 @@
       await healthSyncService.requestPermissions();
       const status = await healthSyncService.checkPermissions();
       healthConnectGranted = status.granted;
+      await reportDeviceSourceStatus();
+      await refreshStatus();
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
       syncFeedback = { type: 'error', text: err };
@@ -166,21 +182,29 @@
           </div>
 
           <div>
-            {#if count > 0}
+            {#if sourceStatus?.enabled}
               <span
                 class="inline-flex items-center gap-1.5 rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-700"
               >
-                <span class="h-2 w-2 rounded-full bg-success-500"></span> Active
+                <span class="h-2 w-2 rounded-full bg-success-500"></span> Connected
               </span>
             {:else}
               <span
                 class="inline-flex items-center rounded-full bg-surface-200 px-2.5 py-1 text-xs font-medium text-surface-600"
               >
-                Inactive
+                Not connected
               </span>
             {/if}
           </div>
         </div>
+
+        {#if sourceStatus?.detail}
+          <p
+            class="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-xs text-surface-600"
+          >
+            {sourceStatus.detail}
+          </p>
+        {/if}
 
         {#if syncFeedback}
           <div
