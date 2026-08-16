@@ -40,6 +40,18 @@ data class ChangesResult(
     val nextToken: String
 )
 
+/** One bounded page of a time-based harvest plus the cursor to resume the next page from. */
+data class HarvestBatch(
+    val metrics: List<HarvestedMetric>,
+    val nextCursor: String?
+)
+
+/** Internal cursor position across the record-type list for [HealthConnectHarvester.harvestBatch]. */
+private data class HarvestCursor(
+    val typeIndex: Int,
+    val pageToken: String?
+)
+
 class HealthConnectHarvester(private val context: Context) {
 
     private val healthConnectClient: HealthConnectClient?
@@ -99,28 +111,72 @@ class HealthConnectHarvester(private val context: Context) {
     )
 
     /**
-     * Time-based read of all records since [sinceIso] (blank = full history). Used once to seed
-     * existing Health Connect data; the change API drives every subsequent sync.
+     * Time-based, cursor-paginated read of all records since [sinceIso] (blank = full history).
+     * Returns bounded pages of metrics; [HarvestBatch.nextCursor] resumes the next page, or is
+     * null when the harvest is exhausted. Used to seed existing Health Connect data; the change
+     * API drives every subsequent sync.
      */
-    suspend fun harvest(sinceIso: String): List<HarvestedMetric> {
-        val client = healthConnectClient ?: return emptyList()
+    suspend fun harvestBatch(sinceIso: String, cursor: String?, batchSize: Int = 2000): HarvestBatch {
+        val client = healthConnectClient ?: return HarvestBatch(emptyList(), null)
         val startTime = try {
             if (sinceIso.isNotBlank()) Instant.parse(sinceIso) else Instant.EPOCH
         } catch (_: Exception) {
             Instant.EPOCH
         }
         val timeRangeFilter = TimeRangeFilter.between(startTime, Instant.now())
+        val start = cursor?.let(::decodeCursor) ?: HarvestCursor(0, null)
         val metrics = mutableListOf<HarvestedMetric>()
-        for (recordType in recordTypes) {
+        var typeIndex = start.typeIndex
+        var pageToken = start.pageToken
+
+        while (typeIndex < recordTypes.size && metrics.size < batchSize) {
+            val recordType = recordTypes.elementAt(typeIndex)
             try {
-                for (record in readAllRecords(client, recordType, timeRangeFilter)) {
+                val request = ReadRecordsRequest(
+                    recordType = recordType,
+                    timeRangeFilter = timeRangeFilter,
+                    pageToken = pageToken,
+                    pageSize = batchSize
+                )
+                val response = client.readRecords(request)
+                for (record in response.records) {
                     metrics.addAll(toHarvestedMetrics(record))
+                }
+                pageToken = response.pageToken
+                if (pageToken == null) {
+                    typeIndex += 1
                 }
             } catch (_: Exception) {
                 // permission missing or type unsupported — skip, never fail the whole harvest
+                typeIndex += 1
+                pageToken = null
             }
         }
-        return metrics
+
+        val nextCursor = if (typeIndex < recordTypes.size || pageToken != null) {
+            encodeCursor(HarvestCursor(typeIndex, pageToken))
+        } else {
+            null
+        }
+        return HarvestBatch(metrics, nextCursor)
+    }
+
+    private fun encodeCursor(cursor: HarvestCursor): String {
+        val obj = org.json.JSONObject()
+        obj.put("t", cursor.typeIndex)
+        if (cursor.pageToken != null) {
+            obj.put("p", cursor.pageToken)
+        }
+        return obj.toString()
+    }
+
+    private fun decodeCursor(raw: String): HarvestCursor {
+        return try {
+            val obj = org.json.JSONObject(raw)
+            HarvestCursor(obj.optInt("t", 0), obj.optString("p", null)?.takeIf { it.isNotBlank() })
+        } catch (_: Exception) {
+            HarvestCursor(0, null)
+        }
     }
 
     /**
@@ -381,26 +437,5 @@ class HealthConnectHarvester(private val context: Context) {
         obj.put("carbs_grams", record.totalCarbohydrate?.inGrams ?: 0.0)
         obj.put("fat_grams", record.totalFat?.inGrams ?: 0.0)
         return obj.toString()
-    }
-
-    private suspend fun readAllRecords(
-        client: HealthConnectClient,
-        recordType: KClass<out Record>,
-        timeRangeFilter: TimeRangeFilter
-    ): List<Record> {
-        val allRecords = mutableListOf<Record>()
-        var pageToken: String? = null
-        do {
-            val request = ReadRecordsRequest(
-                recordType = recordType,
-                timeRangeFilter = timeRangeFilter,
-                pageToken = pageToken,
-                pageSize = 5000
-            )
-            val response = client.readRecords(request)
-            allRecords.addAll(response.records)
-            pageToken = response.pageToken
-        } while (pageToken != null)
-        return allRecords
     }
 }

@@ -165,15 +165,17 @@ class HealthConnectPlugin : Plugin() {
     @PluginMethod
     fun fetchDelta(call: PluginCall) {
         val sinceIso = call.getString("sinceIso") ?: ""
+        val cursor = call.getString("cursor")
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val metrics = HealthConnectHarvester(context).harvest(sinceIso)
+                val batch = HealthConnectHarvester(context).harvestBatch(sinceIso, cursor)
                 val metricsArray = JSArray()
-                for (item in metrics) {
+                for (item in batch.metrics) {
                     metricsArray.put(item.toJSObject())
                 }
                 val ret = JSObject()
                 ret.put("metrics", metricsArray)
+                ret.put("next_cursor", batch.nextCursor ?: "")
                 call.resolve(ret)
             } catch (e: Exception) {
                 call.reject("Health Connect fetch error: ${e.message}")

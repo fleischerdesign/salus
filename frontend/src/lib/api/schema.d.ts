@@ -2695,6 +2695,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sync/health-push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Api Sync Health Push
+         * @description Bulk replicate device health measurements (idempotent by external_id).
+         */
+        post: operations["api_sync_health_push_api_v1_sync_health_push_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sync/push": {
         parameters: {
             query?: never;
@@ -4032,6 +4052,47 @@ export interface components {
             longest_streak: number;
             /** Total Checks */
             total_checks: number;
+        };
+        /**
+         * HealthMeasurementIn
+         * @description A measurement pushed by a device health source (bulk replication path).
+         */
+        HealthMeasurementIn: {
+            /** Created At */
+            created_at?: string | null;
+            /** End Time */
+            end_time?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Id */
+            id: string;
+            /** Metric Code */
+            metric_code: string;
+            /** Source */
+            source: string;
+            /**
+             * Source Data Type
+             * @default
+             */
+            source_data_type: string;
+            /**
+             * Start Time
+             * Format: date-time
+             */
+            start_time: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Value Json */
+            value_json?: string | null;
+            /** Value Numeric */
+            value_numeric?: number | null;
+            /** Value Text */
+            value_text?: string | null;
+        };
+        /** HealthPushRequest */
+        HealthPushRequest: {
+            /** Measurements */
+            measurements: components["schemas"]["HealthMeasurementIn"][];
         };
         /** HeatmapDay */
         HeatmapDay: {
@@ -13354,6 +13415,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_sync_health_push_api_v1_sync_health_push_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Salus-Sync-Version"?: number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HealthPushRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Validation Error */

@@ -3,7 +3,7 @@
   import { db } from '$lib/db/database';
   import { getSourceStat } from '$lib/db/metric-stats';
   import { Capacitor } from '@capacitor/core';
-  import { healthSyncService, permissionLabel } from '$lib/native/health-sync';
+  import { healthSyncService, healthSyncUi, permissionLabel } from '$lib/native/health-sync.svelte';
   import { isSourceEnabled, reportDeviceSourceStatus, type SourceStatus } from '$lib/sources';
   import Modal from '$components/ui/Modal.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -83,8 +83,22 @@
     };
   }
 
+  // Permissions are granted in the system Health Connect screen; refresh when the modal
+  // (re)gains focus so the status reflects the latest grant state.
+  $effect(() => {
+    if (!open || source?.id !== 'health_connect' || !isNativeAndroid) return;
+    const refresh = () => void loadPermissionState();
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  });
+
   async function handleOpenSettings() {
     const ok = await healthSyncService.openHealthConnectSettings();
+    await loadPermissionState();
     if (!ok) {
       syncFeedback = {
         type: 'error',
@@ -298,6 +312,28 @@
                 </details>
               </div>
             {/if}
+          </div>
+        {/if}
+
+        {#if healthSyncUi.seedProgress}
+          <div class="rounded-lg border border-surface-200 bg-surface-50 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <Spinner size="sm" />
+                <h5 class="text-xs font-bold text-surface-900">Importing Health Connect history</h5>
+              </div>
+              {#if (healthSyncUi.seedProgress?.done ?? 0) > 0}
+                <span class="font-mono text-xs text-surface-500">
+                  {(healthSyncUi.seedProgress?.done ?? 0).toLocaleString()} measurements
+                </span>
+              {/if}
+            </div>
+            <p class="mt-1 text-[10px] text-surface-600">
+              First sync imports your full history. Later syncs are instant.
+            </p>
+            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-surface-100">
+              <div class="h-1 w-full animate-pulse rounded-full bg-primary-400"></div>
+            </div>
           </div>
         {/if}
 

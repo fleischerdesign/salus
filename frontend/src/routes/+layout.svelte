@@ -27,7 +27,7 @@
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { updateService } from '$lib/stores/update.svelte';
   import { getSystemStats } from '$lib/db/metric-stats';
-  import { healthSyncService } from '$lib/native/health-sync';
+  import { healthSyncService } from '$lib/native/health-sync.svelte';
   import { reportDeviceSourceStatus } from '$lib/sources';
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';

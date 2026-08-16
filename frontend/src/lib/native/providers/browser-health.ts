@@ -1,7 +1,7 @@
 import type {
   HealthChangesResult,
+  HealthFetchResult,
   INativeHealthBridge,
-  IngestedMetricPayload,
   PermissionStatusResult
 } from '../types';
 
@@ -21,8 +21,8 @@ export class BrowserHealthBridge implements INativeHealthBridge {
     return false;
   }
 
-  async fetchDelta(_sinceIso: string): Promise<IngestedMetricPayload[]> {
-    return [];
+  async fetchDelta(_sinceIso: string, _cursor?: string | null): Promise<HealthFetchResult> {
+    return { metrics: [], nextCursor: '' };
   }
 
   async getChangesToken(): Promise<string | null> {

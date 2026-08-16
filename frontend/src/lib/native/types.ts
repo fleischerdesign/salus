@@ -21,11 +21,16 @@ export interface HealthChangesResult {
   nextToken: string;
 }
 
+export interface HealthFetchResult {
+  metrics: IngestedMetricPayload[];
+  nextCursor: string;
+}
+
 export interface INativeHealthBridge {
   isAvailable(): Promise<boolean>;
   checkPermissions(): Promise<PermissionStatusResult>;
   requestPermissions(): Promise<boolean>;
-  fetchDelta(sinceIso: string): Promise<IngestedMetricPayload[]>;
+  fetchDelta(sinceIso: string, cursor?: string | null): Promise<HealthFetchResult>;
   getChangesToken(): Promise<string | null>;
   getChanges(token: string): Promise<HealthChangesResult>;
   openSettings(): Promise<boolean>;

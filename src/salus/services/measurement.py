@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from salus.exceptions import NotFoundError
 from salus.models.measurement import Measurement
 from salus.repositories.unit_of_work import IUnitOfWork
-from salus.schemas.measurement import MeasurementCreate
-from salus.services.constants import SOURCE_MANUAL
+from salus.schemas.measurement import HealthMeasurementIn, MeasurementCreate
+from salus.services.constants import SOURCE_MANUAL, SOURCE_HEALTH_CONNECT
 from salus.services.plugin.hooks import HookRegistry
 
 logger = logging.getLogger("salus.services.measurement")
@@ -70,3 +70,31 @@ class MeasurementService:
     def delete(self, measurement_id: str, user_id: str) -> None:
         obj = self.get(measurement_id, user_id)
         self.uow.measurements.delete(obj)
+
+    def bulk_upsert_health(
+        self, measurements: list[HealthMeasurementIn], user_id: str
+    ) -> tuple[int, int]:
+        """Bulk replicate device health measurements.
+
+        Idempotent insert-or-update keyed by ``(external_id, source)`` so a re-seed
+        after an app-data wipe never duplicates rows. Returns ``(inserted, duplicates)``.
+        """
+        records = [
+            Measurement(
+                id=m.id,
+                user_id=user_id,
+                metric_code=m.metric_code,
+                source_data_type=m.source_data_type,
+                source=SOURCE_HEALTH_CONNECT,
+                value_numeric=m.value_numeric,
+                value_text=m.value_text,
+                value_json=m.value_json,
+                start_time=m.start_time,
+                end_time=m.end_time,
+                external_id=m.external_id,
+                created_at=m.created_at or m.start_time,
+                updated_at=m.updated_at,
+            )
+            for m in measurements
+        ]
+        return self.uow.measurements.upsert_all(records)[:2]

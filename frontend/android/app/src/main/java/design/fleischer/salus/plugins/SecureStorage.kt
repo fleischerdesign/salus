@@ -17,7 +17,6 @@ object SecureStorage {
     private const val KEY_TOKEN = "auth_token"
     private const val KEY_SERVER_URL = "server_url"
     private const val KEY_LAST_HARVEST = "last_harvest_at"
-    private const val KEY_PENDING_QUEUE = "pending_queue"
 
     private fun prefs(context: Context): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
@@ -61,8 +60,4 @@ object SecureStorage {
     fun lastHarvestAt(context: Context): String? = getString(context, KEY_LAST_HARVEST)
 
     fun setLastHarvestAt(context: Context, value: String?) = setString(context, KEY_LAST_HARVEST, value)
-
-    fun pendingQueue(context: Context): String? = getString(context, KEY_PENDING_QUEUE)
-
-    fun setPendingQueue(context: Context, value: String?) = setString(context, KEY_PENDING_QUEUE, value)
 }

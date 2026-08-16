@@ -9,6 +9,9 @@ SYNC_BATCH_SIZE = 500
 # Measurement source channel for manually entered data
 SOURCE_MANUAL = "manual"
 
+# Measurement source channel for device health sources (Health Connect bulk replication)
+SOURCE_HEALTH_CONNECT = "health_connect"
+
 # Food item sources (food_item.source)
 SOURCE_SYSTEM = "system"
 SOURCE_OPENFOODFACTS = "openfoodfacts"

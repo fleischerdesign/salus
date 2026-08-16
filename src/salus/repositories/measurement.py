@@ -146,7 +146,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
 
         # 1. Gather all external IDs to query existing records in chunks
         external_ids = [rec.external_id for rec in records if rec.external_id]
-        existing_map: dict[tuple[str, str], Measurement] = {}
+        existing_map: dict[tuple[str, str, str], Measurement] = {}
 
         if external_ids:
             # Chunking to avoid SQLite parameter limit (usually 999)
@@ -159,13 +159,13 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
                 chunk_existing = self.session.exec(stmt).all()
                 for ext in chunk_existing:
                     if ext.external_id:
-                        existing_map[(ext.external_id, ext.source)] = ext
+                        existing_map[(ext.user_id or "", ext.external_id, ext.source)] = ext
 
         # 2. Match and update/insert
         for rec in records:
             existing = None
             if rec.external_id:
-                existing = existing_map.get((rec.external_id, rec.source))
+                existing = existing_map.get((rec.user_id or "", rec.external_id, rec.source))
 
             if existing is not None:
                 existing.value_numeric = rec.value_numeric
@@ -179,7 +179,7 @@ class MeasurementRepository(Repository[Measurement], IMeasurementRepository):
             else:
                 self.session.add(rec)
                 if rec.external_id:
-                    existing_map[(rec.external_id, rec.source)] = rec
+                    existing_map[(rec.user_id or "", rec.external_id, rec.source)] = rec
                 inserted += 1
                 persisted.append(rec)
 

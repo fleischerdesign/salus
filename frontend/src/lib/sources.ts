@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { db } from '$lib/db/database';
-import { healthSyncService } from '$lib/native/health-sync';
+import { healthSyncService } from '$lib/native/health-sync.svelte';
 import { updateSourceStatus } from '$lib/mutations/source-status';
 
 export interface SourceStatus {

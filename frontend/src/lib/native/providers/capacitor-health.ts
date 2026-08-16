@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type {
   HealthChangesResult,
+  HealthFetchResult,
   INativeHealthBridge,
   IngestedMetricPayload,
   PermissionStatusResult
@@ -14,7 +15,10 @@ interface HealthConnectPluginNative {
     missing: string[];
   }>;
   requestPermissions(): Promise<{ granted: boolean }>;
-  fetchDelta(options: { sinceIso: string }): Promise<{ metrics: IngestedMetricPayload[] }>;
+  fetchDelta(options: {
+    sinceIso: string;
+    cursor?: string | null;
+  }): Promise<{ metrics: IngestedMetricPayload[]; next_cursor: string }>;
   getChangesToken(): Promise<{ token: string }>;
   getChanges(options: {
     token: string;
@@ -61,13 +65,13 @@ export class CapacitorHealthBridge implements INativeHealthBridge {
     }
   }
 
-  async fetchDelta(sinceIso: string): Promise<IngestedMetricPayload[]> {
-    if (!Capacitor.isNativePlatform()) return [];
+  async fetchDelta(sinceIso: string, cursor?: string | null): Promise<HealthFetchResult> {
+    if (!Capacitor.isNativePlatform()) return { metrics: [], nextCursor: '' };
     try {
-      const res = await HealthConnectPlugin.fetchDelta({ sinceIso });
-      return res.metrics || [];
+      const res = await HealthConnectPlugin.fetchDelta({ sinceIso, cursor });
+      return { metrics: res.metrics || [], nextCursor: res.next_cursor || '' };
     } catch {
-      return [];
+      return { metrics: [], nextCursor: '' };
     }
   }
 
