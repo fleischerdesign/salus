@@ -9,6 +9,7 @@
   import Icon from '$components/ui/Icon.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
+  import StatusDot from '$components/ui/StatusDot.svelte';
   import { resolveColor } from '$lib/theme/colors';
 
   interface KnownSource {
@@ -37,9 +38,7 @@
   let syncing = $state(false);
   let requestingPerms = $state(false);
   let healthConnectGranted = $state(false);
-  let permissionState = $state<{ granted: number; total: number; missingLabels: string[] } | null>(
-    null
-  );
+  let permissionState = $state<{ granted: number; missingLabels: string[] } | null>(null);
   let syncFeedback = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const sourceDataQuery = useQuery(async () => {
@@ -80,7 +79,6 @@
     healthConnectGranted = res.granted;
     permissionState = {
       granted: res.grantedPermissions.length,
-      total: res.grantedPermissions.length + res.missing.length,
       missingLabels: res.missing.map(permissionLabel)
     };
   }
@@ -265,28 +263,39 @@
             </div>
 
             {#if permissionState && permissionState.missingLabels.length > 0}
-              <div class="mt-3 rounded-lg border border-warning-200 bg-warning-50 p-3">
+              <div class="mt-3 rounded-lg border border-surface-200 bg-surface-50 p-3">
                 <div class="flex items-center justify-between gap-2">
-                  <h5 class="text-xs font-bold text-warning-900">
-                    Data access ({permissionState.granted} of {permissionState.total})
-                  </h5>
+                  <div class="flex items-center gap-2">
+                    <StatusDot status="warning" size="sm" />
+                    <h5 class="text-xs font-bold text-surface-900">
+                      Data access · {permissionState.granted} categories readable
+                    </h5>
+                  </div>
                   <Btn variant="secondary" size="sm" onclick={handleOpenSettings}>
                     <Icon name="settings" size="sm" class="mr-1" />
                     Open settings
                   </Btn>
                 </div>
-                <p class="mt-1 text-[10px] text-warning-700">
-                  Missing permissions prevent the following data from syncing:
+                <p class="mt-1.5 text-[10px] leading-relaxed text-surface-600">
+                  Categories not offered by Health Connect on this device are skipped automatically.
+                  Grant everything Health Connect offers to enable all possible data.
                 </p>
-                <div class="mt-2 flex flex-wrap gap-1">
-                  {#each permissionState.missingLabels as label (label)}
-                    <span
-                      class="rounded-full bg-warning-100 px-2 py-0.5 text-[10px] font-medium text-warning-800"
-                    >
-                      {label}
-                    </span>
-                  {/each}
-                </div>
+                <details class="mt-2">
+                  <summary
+                    class="cursor-pointer text-[10px] font-medium text-surface-500 select-none"
+                  >
+                    Show {permissionState.missingLabels.length} skipped categories
+                  </summary>
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {#each permissionState.missingLabels as label (label)}
+                      <span
+                        class="rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-600"
+                      >
+                        {label}
+                      </span>
+                    {/each}
+                  </div>
+                </details>
               </div>
             {/if}
           </div>
