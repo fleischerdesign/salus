@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
-  import { getSourceStat } from '$lib/db/metric-stats';
+  import { getSourceStat, scheduleStatsRefresh } from '$lib/db/metric-stats';
   import { Capacitor } from '@capacitor/core';
   import { healthSyncService, healthSyncUi, permissionLabel } from '$lib/native/health-sync.svelte';
   import { isSourceEnabled, reportDeviceSourceStatus, type SourceStatus } from '$lib/sources';
@@ -32,6 +32,7 @@
   let metricsSupplied = $state<Array<{ code: string; name: string; count: number }>>([]);
   let lastSyncTime = $state<string | null>(null);
   let sourceStatus = $state<SourceStatus | null>(null);
+  let refreshTick = $state(0);
 
   // Health Connect integration state
   let isNativeAndroid = $derived(Capacitor.isNativePlatform());
@@ -41,29 +42,32 @@
   let permissionState = $state<{ granted: number; missingLabels: string[] } | null>(null);
   let syncFeedback = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const sourceDataQuery = useQuery(async () => {
-    if (!open || !source) return { supplied: [], lastTime: null };
-    const srcId = source.id;
-    const allDefs = await db.metric_definition.toArray();
-    const defNameByCode = new Map(allDefs.map((d) => [d.code, d.name]));
-    const srcStat = await getSourceStat(srcId);
+  const sourceDataQuery = useQuery(
+    async () => {
+      if (!open || !source) return { supplied: [], lastTime: null };
+      const srcId = source.id;
+      const allDefs = await db.metric_definition.toArray();
+      const defNameByCode = new Map(allDefs.map((d) => [d.code, d.name]));
+      const srcStat = await getSourceStat(srcId);
 
-    const supplied: Array<{ code: string; name: string; count: number }> = [];
-    if (srcStat && srcStat.metrics) {
-      for (const [code, cnt] of Object.entries(srcStat.metrics)) {
-        if (cnt > 0) {
-          supplied.push({
-            code,
-            name: defNameByCode.get(code) ?? code,
-            count: cnt
-          });
+      const supplied: Array<{ code: string; name: string; count: number }> = [];
+      if (srcStat && srcStat.metrics) {
+        for (const [code, cnt] of Object.entries(srcStat.metrics)) {
+          if (cnt > 0) {
+            supplied.push({
+              code,
+              name: defNameByCode.get(code) ?? code,
+              count: cnt
+            });
+          }
         }
       }
-    }
-    supplied.sort((a, b) => b.count - a.count);
+      supplied.sort((a, b) => b.count - a.count);
 
-    return { supplied, lastTime: srcStat?.latest_time ?? null };
-  });
+      return { supplied, lastTime: srcStat?.latest_time ?? null };
+    },
+    () => `${open}:${source?.id}:${refreshTick}`
+  );
   const sourceData = $derived(sourceDataQuery.value);
   const loading = $derived(sourceDataQuery.loading);
 
@@ -120,6 +124,16 @@
     isSourceEnabled(source.id).then((s) => (sourceStatus = s));
   });
 
+  // When a background history import finishes, re-run the diagnostics query with fresh stats.
+  let wasSeeding = $state(false);
+  $effect(() => {
+    const isSeeding = healthSyncUi.seedProgress !== null;
+    if (wasSeeding && !isSeeding) {
+      refreshTick += 1;
+    }
+    wasSeeding = isSeeding;
+  });
+
   async function refreshStatus() {
     if (!source) return;
     sourceStatus = await isSourceEnabled(source.id);
@@ -157,8 +171,15 @@
       if (toastSettings.healthConnect) {
         toast(res.message, res.success ? (res.count > 0 ? 'success' : 'info') : 'error');
       }
-      if (res.success && res.count > 0) {
-        await loadPermissionState();
+      if (res.success) {
+        // Refresh diagnostics once the background stats recompute lands; the button itself
+        // must not block on it.
+        void scheduleStatsRefresh().then(() => {
+          refreshTick += 1;
+        });
+        if (res.count > 0) {
+          await loadPermissionState();
+        }
       }
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);

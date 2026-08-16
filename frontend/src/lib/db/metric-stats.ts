@@ -29,6 +29,8 @@ export interface SystemStats {
 // L1 RAM Cache
 let _memoryStats: SystemStats | null = null;
 let _isRecomputing = false;
+let _statsTimer: ReturnType<typeof setTimeout> | null = null;
+let _pendingStats: Promise<SystemStats> | null = null;
 
 /**
  * Retrieves the materialized system statistics:
@@ -57,8 +59,10 @@ export async function getSystemStats(): Promise<SystemStats> {
 }
 
 /**
- * Recomputes all metric and source statistics in a fast indexed pass,
- * stores in L1 RAM immediately, and writes to L2 Disk in background.
+ * Recomputes all metric and source statistics in a fast indexed pass —
+ * never a full record scan, so the cost scales with the number of metrics
+ * and sources, not with the measurement volume. Stores in L1 RAM
+ * immediately and writes to L2 Disk in background.
  */
 export async function recomputeAllStats(): Promise<SystemStats> {
   if (_isRecomputing && _memoryStats) {
@@ -68,57 +72,8 @@ export async function recomputeAllStats(): Promise<SystemStats> {
 
   try {
     const defs = await db.metric_definition.toArray();
-    const metrics: Record<string, MetricStat> = {};
-    const sources: Record<string, SourceStat> = {};
-    let total = 0;
-
-    function metricRange(code: string) {
-      return db.measurement
-        .where('[metric_code+start_time]')
-        .between([code, Dexie.minKey], [code, Dexie.maxKey]);
-    }
-
-    await Promise.all(
-      defs.map(async (d) => {
-        const latest = await metricRange(d.code).last();
-        if (latest && !latest.deleted_at) {
-          const count = await metricRange(d.code).count();
-          total += count;
-          metrics[d.code] = {
-            metric_code: d.code,
-            entry_count: count,
-            latest_value: latest.value_text ?? latest.value_numeric?.toString() ?? null,
-            latest_date: latest.start_time ? latest.start_time.split('T')[0] : null,
-            latest_timestamp: latest.start_time ? new Date(latest.start_time).getTime() : null
-          };
-        } else {
-          metrics[d.code] = {
-            metric_code: d.code,
-            entry_count: 0,
-            latest_value: null,
-            latest_date: null,
-            latest_timestamp: null
-          };
-        }
-      })
-    );
-
-    // Aggregate source counts from ALL distinct source values present in
-    // measurements (single pass over the source index, excluding deleted rows).
-    await db.measurement.orderBy('source').each((m) => {
-      if (m.deleted_at || !m.source) return;
-      const stat = sources[m.source];
-      if (stat) {
-        stat.entry_count += 1;
-      } else {
-        sources[m.source] = {
-          source_id: m.source,
-          entry_count: 1,
-          latest_time: null,
-          metrics: {}
-        };
-      }
-    });
+    const { metrics, total } = await computeMetricStats(defs);
+    const sources = await computeSourceStats();
 
     const stats: SystemStats = {
       version: STATS_VERSION,
@@ -144,6 +99,90 @@ export async function recomputeAllStats(): Promise<SystemStats> {
   } finally {
     _isRecomputing = false;
   }
+}
+
+/**
+ * Schedule a background stats refresh. Multiple triggers within the delay window
+ * coalesce into a single recompute; the returned promise resolves when it lands.
+ */
+export function scheduleStatsRefresh(delayMs = 300): Promise<SystemStats> {
+  if (_pendingStats) return _pendingStats;
+  _pendingStats = new Promise((resolve, reject) => {
+    _statsTimer = setTimeout(async () => {
+      _statsTimer = null;
+      try {
+        resolve(await recomputeAllStats());
+      } catch (e) {
+        reject(e);
+      } finally {
+        _pendingStats = null;
+      }
+    }, delayMs);
+  });
+  return _pendingStats;
+}
+
+function computeMetricStats(
+  defs: Array<{ code: string }>
+): Promise<{ metrics: Record<string, MetricStat>; total: number }> {
+  const metrics: Record<string, MetricStat> = {};
+  let total = 0;
+
+  function metricRange(code: string) {
+    return db.measurement
+      .where('[metric_code+start_time]')
+      .between([code, Dexie.minKey], [code, Dexie.maxKey]);
+  }
+
+  return Promise.all(
+    defs.map(async (d) => {
+      const latest = await metricRange(d.code).last();
+      if (latest && !latest.deleted_at) {
+        const count = await metricRange(d.code).count();
+        total += count;
+        metrics[d.code] = {
+          metric_code: d.code,
+          entry_count: count,
+          latest_value: latest.value_text ?? latest.value_numeric?.toString() ?? null,
+          latest_date: latest.start_time ? latest.start_time.split('T')[0] : null,
+          latest_timestamp: latest.start_time ? new Date(latest.start_time).getTime() : null
+        };
+      } else {
+        metrics[d.code] = {
+          metric_code: d.code,
+          entry_count: 0,
+          latest_value: null,
+          latest_date: null,
+          latest_timestamp: null
+        };
+      }
+    })
+  ).then(() => ({ metrics, total }));
+}
+
+/**
+ * Per-source entry counts via the source index (distinct keys + indexed counts),
+ * excluding soft-deleted rows. Replaces the previous full-record scan.
+ */
+async function computeSourceStats(): Promise<Record<string, SourceStat>> {
+  const sources: Record<string, SourceStat> = {};
+  const sourceKeys = (await db.measurement.orderBy('source').distinct().keys()) as string[];
+  for (const sourceId of sourceKeys) {
+    if (!sourceId) continue;
+    const total = await db.measurement.where('source').equals(sourceId).count();
+    const deleted = await db.measurement
+      .where('source')
+      .equals(sourceId)
+      .filter((m) => Boolean(m.deleted_at))
+      .count();
+    sources[sourceId] = {
+      source_id: sourceId,
+      entry_count: total - deleted,
+      latest_time: null,
+      metrics: {}
+    };
+  }
+  return sources;
 }
 
 export async function getMetricStats(): Promise<Record<string, MetricStat>> {

@@ -4,7 +4,7 @@ import { SELF_USER_ID } from '$lib/constants';
 import { uuid7 } from '$lib/db/uuid';
 import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
-import { recomputeAllStats } from '$lib/db/metric-stats';
+import { scheduleStatsRefresh } from '$lib/db/metric-stats';
 import { localMode } from '$lib/db/local-mode.svelte';
 import { api } from '$lib/api/client';
 
@@ -79,9 +79,27 @@ export const healthSyncService = {
     }
 
     try {
-      // The changes API requires a read permission for every record type it covers, so a probe
-      // returns null when it is unusable (e.g. no permission granted at all). Degrade to a
-      // bounded time-based delta instead of a full-history scan.
+      const grantedSignature = await this.grantedSignature();
+      const storedToken = await db.meta.get(CHANGES_TOKEN_KEY);
+      const storedValue = typeof storedToken?.value === 'string' ? storedToken.value : '';
+      const storedGranted = (await db.meta.get(CHANGES_GRANTED_KEY))?.value;
+
+      // Steady state: a stored token with an unchanged grant set means the changes API works,
+      // so skip the capability probe and go straight to the incremental read.
+      if (storedValue && storedGranted === grantedSignature) {
+        const result = await nativeBridge.health.getChanges(storedValue);
+        if (result.nextToken) {
+          await db.meta.put({ key: CHANGES_TOKEN_KEY, value: result.nextToken });
+          const count = await ingestMetrics(result.metrics, storedValue);
+          void pushUnsyncedHealth();
+          return syncResult(count);
+        }
+        // Stale or expired token → re-pin below.
+      }
+
+      // First run, a grant change, or a stale token: probe whether the changes API is usable.
+      // When it is not (e.g. no permission granted at all), degrade to a bounded time-based
+      // delta instead of a full-history scan.
       const probe = await nativeBridge.health.getChangesToken();
       if (!probe) {
         const lastSync = await db.meta.get(LAST_SYNC_KEY);
@@ -97,26 +115,6 @@ export const healthSyncService = {
         return syncResult(count);
       }
 
-      const grantedSignature = await this.grantedSignature();
-      const storedToken = await db.meta.get(CHANGES_TOKEN_KEY);
-      const storedValue = typeof storedToken?.value === 'string' ? storedToken.value : '';
-      const storedGranted = (await db.meta.get(CHANGES_GRANTED_KEY))?.value;
-
-      if (!storedValue || storedGranted !== grantedSignature) {
-        // First run, or the granted permission set changed (e.g. after re-authorizing):
-        // import the full history in the background so the UI never blocks.
-        return startSeed(probe, grantedSignature);
-      }
-
-      const result = await nativeBridge.health.getChanges(storedValue);
-      if (result.nextToken) {
-        await db.meta.put({ key: CHANGES_TOKEN_KEY, value: result.nextToken });
-        const count = await ingestMetrics(result.metrics, storedValue);
-        void pushUnsyncedHealth();
-        return syncResult(count);
-      }
-
-      // Stale or expired token: re-pin a fresh baseline and re-import in the background.
       return startSeed(probe, grantedSignature);
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
@@ -197,7 +195,7 @@ async function ingestMetrics(
     await db.meta.put({ key: LAST_SYNC_KEY, value: maxMeasuredAt });
   }
   if (count > 0) {
-    await recomputeAllStats();
+    void scheduleStatsRefresh();
   }
   return count;
 }
