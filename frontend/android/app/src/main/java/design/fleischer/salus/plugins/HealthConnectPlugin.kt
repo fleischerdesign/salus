@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 class HealthConnectPlugin : Plugin() {
 
     private val PERMISSIONS = setOf(
+        HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY,
         HealthPermission.getReadPermission(StepsRecord::class),
         HealthPermission.getReadPermission(HeartRateRecord::class),
         HealthPermission.getReadPermission(RestingHeartRateRecord::class),
@@ -101,7 +102,11 @@ class HealthConnectPlugin : Plugin() {
                 val granted = client.permissionController.getGrantedPermissions()
                 val missing = PERMISSIONS.filter { it !in granted }
                 val ret = JSObject()
-                ret.put("granted", missing.isEmpty())
+                ret.put("granted", granted.isNotEmpty())
+                ret.put("available", true)
+                val grantedArray = JSArray()
+                granted.forEach { grantedArray.put(it) }
+                ret.put("grantedPermissions", grantedArray)
                 val missingArray = JSArray()
                 missing.forEach { missingArray.put(it) }
                 ret.put("missing", missingArray)
@@ -154,21 +159,12 @@ class HealthConnectPlugin : Plugin() {
     @PluginMethod
     fun fetchDelta(call: PluginCall) {
         val sinceIso = call.getString("sinceIso") ?: ""
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val harvester = HealthConnectHarvester(context)
-                val metrics = harvester.harvest(sinceIso)
+                val metrics = HealthConnectHarvester(context).harvest(sinceIso)
                 val metricsArray = JSArray()
                 for (item in metrics) {
-                    val obj = JSObject()
-                    obj.put("metric_code", item.metricCode)
-                    obj.put("value", item.value)
-                    obj.put("unit", item.unit)
-                    obj.put("measured_at", item.measuredAt)
-                    obj.put("external_id", item.externalId)
-                    obj.put("source", item.source)
-                    metricsArray.put(obj)
+                    metricsArray.put(item.toJSObject())
                 }
                 val ret = JSObject()
                 ret.put("metrics", metricsArray)
@@ -177,5 +173,54 @@ class HealthConnectPlugin : Plugin() {
                 call.reject("Health Connect fetch error: ${e.message}")
             }
         }
+    }
+
+    @PluginMethod
+    fun getChangesToken(call: PluginCall) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val token = HealthConnectHarvester(context).getChangesToken()
+                val ret = JSObject()
+                ret.put("token", token ?: "")
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("Health Connect get changes token error: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getChanges(call: PluginCall) {
+        val token = call.getString("token") ?: ""
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val result = HealthConnectHarvester(context).getChanges(token)
+                val ret = JSObject()
+                val metricsArray = JSArray()
+                if (result != null) {
+                    for (item in result.metrics) {
+                        metricsArray.put(item.toJSObject())
+                    }
+                    ret.put("token", result.nextToken)
+                } else {
+                    ret.put("token", "")
+                }
+                ret.put("metrics", metricsArray)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("Health Connect get changes error: ${e.message}")
+            }
+        }
+    }
+
+    private fun HarvestedMetric.toJSObject(): JSObject {
+        val obj = JSObject()
+        obj.put("metric_code", metricCode)
+        obj.put("value", value)
+        obj.put("unit", unit)
+        obj.put("measured_at", measuredAt)
+        obj.put("external_id", externalId)
+        obj.put("source", source)
+        return obj
     }
 }

@@ -10,6 +10,12 @@ export interface IngestedMetricPayload {
 export interface PermissionStatusResult {
   granted: boolean;
   missingPermissions: string[];
+  grantedPermissions?: string[];
+}
+
+export interface HealthChangesResult {
+  metrics: IngestedMetricPayload[];
+  nextToken: string;
 }
 
 export interface INativeHealthBridge {
@@ -17,6 +23,9 @@ export interface INativeHealthBridge {
   checkPermissions(): Promise<PermissionStatusResult>;
   requestPermissions(): Promise<boolean>;
   fetchDelta(sinceIso: string): Promise<IngestedMetricPayload[]>;
+  getChangesToken(): Promise<string | null>;
+  getChanges(token: string): Promise<HealthChangesResult>;
+  openSettings(): Promise<boolean>;
 }
 
 export interface LocalNotificationPayload {

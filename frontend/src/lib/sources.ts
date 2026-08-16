@@ -27,7 +27,12 @@ const healthConnectStatus = async (): Promise<SourceStatus> => {
     const res = await healthSyncService.checkPermissions();
     return res.granted
       ? { enabled: true, reason: 'granted' }
-      : { enabled: false, reason: 'missing_permissions', detail: res.missing.join(', ') };
+      : {
+          enabled: false,
+          reason: 'missing_permissions',
+          detail:
+            'No Health Connect data permissions granted. Open the source to review and authorize.'
+        };
   }
   const synced = await db.user_source_status.get('health_connect');
   return synced?.connected

@@ -3,7 +3,7 @@
   import { db } from '$lib/db/database';
   import { getSourceStat } from '$lib/db/metric-stats';
   import { Capacitor } from '@capacitor/core';
-  import { healthSyncService } from '$lib/native/health-sync';
+  import { healthSyncService, permissionLabel } from '$lib/native/health-sync';
   import { isSourceEnabled, reportDeviceSourceStatus, type SourceStatus } from '$lib/sources';
   import Modal from '$components/ui/Modal.svelte';
   import Icon from '$components/ui/Icon.svelte';
@@ -37,6 +37,9 @@
   let syncing = $state(false);
   let requestingPerms = $state(false);
   let healthConnectGranted = $state(false);
+  let permissionState = $state<{ granted: number; total: number; missingLabels: string[] } | null>(
+    null
+  );
   let syncFeedback = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const sourceDataQuery = useQuery(async () => {
@@ -68,11 +71,29 @@
   $effect(() => {
     syncFeedback = null;
     if (source?.id === 'health_connect' && isNativeAndroid) {
-      healthSyncService.checkPermissions().then((res) => {
-        healthConnectGranted = res.granted;
-      });
+      loadPermissionState();
     }
   });
+
+  async function loadPermissionState() {
+    const res = await healthSyncService.checkPermissions();
+    healthConnectGranted = res.granted;
+    permissionState = {
+      granted: res.grantedPermissions.length,
+      total: res.grantedPermissions.length + res.missing.length,
+      missingLabels: res.missing.map(permissionLabel)
+    };
+  }
+
+  async function handleOpenSettings() {
+    const ok = await healthSyncService.openHealthConnectSettings();
+    if (!ok) {
+      syncFeedback = {
+        type: 'error',
+        text: 'Could not open Health Connect settings on this device.'
+      };
+    }
+  }
 
   $effect(() => {
     const val = sourceData;
@@ -98,8 +119,7 @@
     syncFeedback = null;
     try {
       await healthSyncService.requestPermissions();
-      const status = await healthSyncService.checkPermissions();
-      healthConnectGranted = status.granted;
+      await loadPermissionState();
       await reportDeviceSourceStatus();
       await refreshStatus();
     } catch (e: unknown) {
@@ -126,8 +146,7 @@
         toast(res.message, res.success ? (res.count > 0 ? 'success' : 'info') : 'error');
       }
       if (res.success && res.count > 0) {
-        const status = await healthSyncService.checkPermissions();
-        healthConnectGranted = status.granted;
+        await loadPermissionState();
       }
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
@@ -244,6 +263,32 @@
                 </Btn>
               </div>
             </div>
+
+            {#if permissionState && permissionState.missingLabels.length > 0}
+              <div class="mt-3 rounded-lg border border-warning-200 bg-warning-50 p-3">
+                <div class="flex items-center justify-between gap-2">
+                  <h5 class="text-xs font-bold text-warning-900">
+                    Data access ({permissionState.granted} of {permissionState.total})
+                  </h5>
+                  <Btn variant="secondary" size="sm" onclick={handleOpenSettings}>
+                    <Icon name="settings" size="sm" class="mr-1" />
+                    Open settings
+                  </Btn>
+                </div>
+                <p class="mt-1 text-[10px] text-warning-700">
+                  Missing permissions prevent the following data from syncing:
+                </p>
+                <div class="mt-2 flex flex-wrap gap-1">
+                  {#each permissionState.missingLabels as label (label)}
+                    <span
+                      class="rounded-full bg-warning-100 px-2 py-0.5 text-[10px] font-medium text-warning-800"
+                    >
+                      {label}
+                    </span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
           </div>
         {/if}
 

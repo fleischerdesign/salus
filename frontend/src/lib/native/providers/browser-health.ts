@@ -1,4 +1,9 @@
-import type { INativeHealthBridge, IngestedMetricPayload, PermissionStatusResult } from '../types';
+import type {
+  HealthChangesResult,
+  INativeHealthBridge,
+  IngestedMetricPayload,
+  PermissionStatusResult
+} from '../types';
 
 export class BrowserHealthBridge implements INativeHealthBridge {
   async isAvailable(): Promise<boolean> {
@@ -18,5 +23,17 @@ export class BrowserHealthBridge implements INativeHealthBridge {
 
   async fetchDelta(_sinceIso: string): Promise<IngestedMetricPayload[]> {
     return [];
+  }
+
+  async getChangesToken(): Promise<string | null> {
+    return null;
+  }
+
+  async getChanges(_token: string): Promise<HealthChangesResult> {
+    return { metrics: [], nextToken: '' };
+  }
+
+  async openSettings(): Promise<boolean> {
+    return false;
   }
 }
