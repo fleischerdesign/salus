@@ -44,6 +44,7 @@ from salus.models.food import (
     RecipeIngredient,
 )
 from salus.models.user_source_preference import UserSourcePreference
+from salus.models.user_source_status import UserSourceStatus
 from salus.models.lab import LabMarker, LabPanel, LabResult
 from salus.models.fasting import FastingProtocol, FastingSession
 from salus.models.data_quality import DataQualityFlag
@@ -553,6 +554,13 @@ class IUserSourcePreferenceRepository(IRepository[UserSourcePreference], Protoco
     def find_by_user_metric_source(
         self, user_id: str, metric_code: str, source: str
     ) -> UserSourcePreference | None: ...
+
+
+@runtime_checkable
+class IUserSourceStatusRepository(IRepository[UserSourceStatus], Protocol):
+    def find_by_user(self, user_id: str) -> list[UserSourceStatus]: ...
+
+    def find_by_user_source(self, user_id: str, source: str) -> UserSourceStatus | None: ...
 
 
 @runtime_checkable

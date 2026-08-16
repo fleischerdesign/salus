@@ -54,6 +54,7 @@ from salus.repositories.protocols import (
     IRecipeRepository,
     IRecipeIngredientRepository,
     IUserSourcePreferenceRepository,
+    IUserSourceStatusRepository,
     ILabMarkerRepository,
     ILabPanelRepository,
     ILabResultRepository,
@@ -103,6 +104,7 @@ from salus.repositories.food import (
     RecipeIngredientRepository,
 )
 from salus.repositories.user_source_preference import UserSourcePreferenceRepository
+from salus.repositories.user_source_status import UserSourceStatusRepository
 from salus.repositories.lab import LabMarkerRepository, LabPanelRepository, LabResultRepository
 from salus.repositories.fasting import FastingSessionRepository, FastingProtocolRepository
 from salus.repositories.data_quality import DataQualityFlagRepository
@@ -119,6 +121,7 @@ class IUnitOfWork(Protocol):
     metric_groups: IMetricGroupRepository
     metric_preferences: IMetricPreferenceRepository
     user_source_preferences: IUserSourcePreferenceRepository
+    user_source_statuses: IUserSourceStatusRepository
     measurements: IMeasurementRepository
     goals: IGoalRepository
     api_tokens: IApiTokenRepository
@@ -220,6 +223,7 @@ class SqlUnitOfWork:
     recipes: IRecipeRepository
     recipe_ingredients: IRecipeIngredientRepository
     user_source_preferences: IUserSourcePreferenceRepository
+    user_source_statuses: IUserSourceStatusRepository
     lab_markers: ILabMarkerRepository
     lab_panels: ILabPanelRepository
     lab_results: ILabResultRepository
@@ -272,6 +276,7 @@ class SqlUnitOfWork:
         self.recipes = RecipeRepository(session)
         self.recipe_ingredients = RecipeIngredientRepository(session)
         self.user_source_preferences = UserSourcePreferenceRepository(session)
+        self.user_source_statuses = UserSourceStatusRepository(session)
         self.lab_markers = LabMarkerRepository(session)
         self.lab_panels = LabPanelRepository(session)
         self.lab_results = LabResultRepository(session)

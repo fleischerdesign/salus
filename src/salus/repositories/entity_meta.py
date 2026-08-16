@@ -35,6 +35,7 @@ from salus.models.food import (
     RecipeIngredient,
 )
 from salus.models.user_source_preference import UserSourcePreference
+from salus.models.user_source_status import UserSourceStatus
 from salus.models.lab import LabMarker, LabPanel, LabResult
 from salus.models.fasting import FastingProtocol, FastingSession
 from salus.models.data_quality import DataQualityFlag
@@ -71,6 +72,7 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="metric_definition", model=MetricDefinition, strategy="global", batch_size=500),
     EntityMeta(name="user_metric_preference", model=UserMetricPreference, batch_size=500),
     EntityMeta(name="user_source_preference", model=UserSourcePreference, batch_size=500),
+    EntityMeta(name="user_source_status", model=UserSourceStatus, batch_size=500),
     EntityMeta(name="measurement", model=Measurement, batch_size=2000),
     EntityMeta(name="goal", model=Goal, batch_size=500),
     EntityMeta(name="circadian_profile", model=CircadianProfile, batch_size=500),

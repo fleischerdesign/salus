@@ -28,6 +28,7 @@ _PLURAL_MAP: dict[str, str] = {
     "metric_definition": "metric-definitions",
     "user_metric_preference": "user-metric-preferences",
     "user_source_preference": "user-source-preferences",
+    "user_source_status": "user-source-statuses",
     "measurement": "measurements",
     "goal": "goals",
     "circadian_profile": "circadian-profiles",

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from salus.models.measurement import Measurement
 from salus.models.user_source_preference import UserSourcePreference
+from salus.models.user_source_status import UserSourceStatus
 from salus.schemas.user_source_preference import (
     BulkSourcePriorityUpdate,
     MetricSourcePriorityItem,
@@ -64,6 +65,22 @@ class SourceResolutionService:
         for u in updates:
             res[u.metric_code] = self.set_metric_preferences(user_id, u.metric_code, u.priorities)
         return res
+
+    def get_source_statuses(self, user_id: str) -> list[UserSourceStatus]:
+        return self.uow.user_source_statuses.find_by_user(user_id)
+
+    def set_source_status(self, user_id: str, source: str, connected: bool) -> UserSourceStatus:
+        existing = self.uow.user_source_statuses.find_by_user_source(user_id, source)
+        if existing:
+            existing.connected = connected
+            return self.uow.user_source_statuses.update(existing)
+        new_status = UserSourceStatus(
+            id=uuid7_str(),
+            user_id=user_id,
+            source=source,
+            connected=connected,
+        )
+        return self.uow.user_source_statuses.create(new_status)
 
     def resolve_measurements(self, user_id: str, records: list[Measurement]) -> list[Measurement]:
         if not records:

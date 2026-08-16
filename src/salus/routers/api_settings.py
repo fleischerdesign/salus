@@ -14,6 +14,10 @@ from salus.schemas.user_source_preference import (
     MetricSourcePriorityItem,
     UserSourcePreferenceResponse,
 )
+from salus.schemas.user_source_status import (
+    UserSourceStatusCreate,
+    UserSourceStatusResponse,
+)
 from salus.services._helpers import uid
 from salus.services.api_token import ApiTokenService
 from salus.services.source_resolution import SourceResolutionService
@@ -212,3 +216,20 @@ async def api_bulk_set_source_preferences(
     source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
 ):
     return source_res_svc.bulk_set_preferences(uid(current_user), updates)
+
+
+@router.get("/settings/source-status", response_model=list[UserSourceStatusResponse])
+async def api_get_source_statuses(
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.get_source_statuses(uid(current_user))
+
+
+@router.put("/settings/source-status", response_model=UserSourceStatusResponse)
+async def api_set_source_status(
+    body: UserSourceStatusCreate,
+    current_user: User = Depends(get_current_user),
+    source_res_svc: SourceResolutionService = Depends(get_source_resolution_service),
+):
+    return source_res_svc.set_source_status(uid(current_user), body.source, body.connected)
