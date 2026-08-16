@@ -118,7 +118,7 @@
           pname = "salus-frontend";
           version = "0.1.0";
           src = ./frontend;
-          npmDepsHash = "sha256-FDwZ4m683EFBbMLPWB9l/gt/IwjB1njhvdhWKxY2Kg8=";
+          npmDepsHash = "sha256-U58+WZjijPJ4IaEaFGD59zicMrwxh4Y2XhXwHXlQkp8=";
           installPhase = ''
             runHook preInstall
             mkdir -p $out
