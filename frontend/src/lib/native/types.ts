@@ -19,6 +19,7 @@ export interface PermissionStatusResult {
 export interface HealthChangesResult {
   metrics: IngestedMetricPayload[];
   nextToken: string;
+  expired: boolean;
 }
 
 export interface HealthFetchResult {

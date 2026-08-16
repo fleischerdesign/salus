@@ -30,7 +30,7 @@ export class BrowserHealthBridge implements INativeHealthBridge {
   }
 
   async getChanges(_token: string): Promise<HealthChangesResult> {
-    return { metrics: [], nextToken: '' };
+    return { metrics: [], nextToken: '', expired: false };
   }
 
   async openSettings(): Promise<boolean> {

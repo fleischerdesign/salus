@@ -210,8 +210,10 @@ class HealthConnectPlugin : Plugin() {
                         metricsArray.put(item.toJSObject())
                     }
                     ret.put("token", result.nextToken)
+                    ret.put("expired", result.expired)
                 } else {
                     ret.put("token", "")
+                    ret.put("expired", false)
                 }
                 ret.put("metrics", metricsArray)
                 call.resolve(ret)

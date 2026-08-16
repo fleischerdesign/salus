@@ -22,7 +22,7 @@ interface HealthConnectPluginNative {
   getChangesToken(): Promise<{ token: string }>;
   getChanges(options: {
     token: string;
-  }): Promise<{ metrics: IngestedMetricPayload[]; token: string }>;
+  }): Promise<{ metrics: IngestedMetricPayload[]; token: string; expired: boolean }>;
   openHealthConnectSettings(): Promise<void>;
 }
 
@@ -86,12 +86,16 @@ export class CapacitorHealthBridge implements INativeHealthBridge {
   }
 
   async getChanges(token: string): Promise<HealthChangesResult> {
-    if (!Capacitor.isNativePlatform()) return { metrics: [], nextToken: '' };
+    if (!Capacitor.isNativePlatform()) return { metrics: [], nextToken: '', expired: false };
     try {
       const res = await HealthConnectPlugin.getChanges({ token });
-      return { metrics: res.metrics || [], nextToken: res.token || '' };
+      return {
+        metrics: res.metrics || [],
+        nextToken: res.token || '',
+        expired: res.expired || false
+      };
     } catch {
-      return { metrics: [], nextToken: '' };
+      return { metrics: [], nextToken: '', expired: false };
     }
   }
 

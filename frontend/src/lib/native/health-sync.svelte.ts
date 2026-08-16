@@ -88,13 +88,13 @@ export const healthSyncService = {
       // so skip the capability probe and go straight to the incremental read.
       if (storedValue && storedGranted === grantedSignature) {
         const result = await nativeBridge.health.getChanges(storedValue);
-        if (result.nextToken) {
+        if (result.nextToken && !result.expired) {
           await db.meta.put({ key: CHANGES_TOKEN_KEY, value: result.nextToken });
           const count = await ingestMetrics(result.metrics, storedValue);
           void pushUnsyncedHealth();
           return syncResult(count);
         }
-        // Stale or expired token → re-pin below.
+        // Stale or expired token → re-pin below (never advance a dead token).
       }
 
       // First run, a grant change, or a stale token: probe whether the changes API is usable.
@@ -123,14 +123,26 @@ export const healthSyncService = {
   }
 };
 
-function syncResult(count: number): HealthSyncResult {
-  return count > 0
-    ? {
-        success: true,
-        count,
-        message: `Successfully synchronized ${count} measurements from Health Connect.`
-      }
-    : { success: true, count: 0, message: 'Health Connect is up to date (0 new entries).' };
+async function syncResult(count: number): Promise<HealthSyncResult> {
+  if (count > 0) {
+    return {
+      success: true,
+      count,
+      message: `Successfully synchronized ${count} measurements from Health Connect.`
+    };
+  }
+  const entry = await db.meta.get('system_stats');
+  const total = entry?.value
+    ? (entry.value as { total_measurements?: number }).total_measurements
+    : undefined;
+  return {
+    success: true,
+    count: 0,
+    message:
+      total != null
+        ? `Health Connect is up to date — ${total.toLocaleString()} measurements synced.`
+        : 'Health Connect is up to date — no new measurements.'
+  };
 }
 
 function startSeed(token: string, grantedSignature: string): HealthSyncResult {

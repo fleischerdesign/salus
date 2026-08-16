@@ -34,10 +34,12 @@ data class HarvestedMetric(
     val source: String = "health_connect"
 )
 
-/** Result of a change-based fetch: upserted metrics and the token the next read advances from. */
+/** Result of a change-based fetch: upserted metrics, the token the next read advances from,
+ *  and whether the supplied token had expired (a fresh baseline + re-import is then required). */
 data class ChangesResult(
     val metrics: List<HarvestedMetric>,
-    val nextToken: String
+    val nextToken: String,
+    val expired: Boolean = false
 )
 
 /** One bounded page of a time-based harvest plus the cursor to resume the next page from. */
@@ -206,9 +208,14 @@ class HealthConnectHarvester(private val context: Context) {
         val client = healthConnectClient ?: return null
         val metrics = mutableListOf<HarvestedMetric>()
         var currentToken = token
+        var expired = false
         return try {
             do {
                 val response = client.getChanges(currentToken)
+                if (response.changesTokenExpired) {
+                    expired = true
+                    break
+                }
                 for (change in response.changes) {
                     if (change is UpsertionChange) {
                         metrics.addAll(toHarvestedMetrics(change.record))
@@ -216,7 +223,7 @@ class HealthConnectHarvester(private val context: Context) {
                 }
                 currentToken = response.nextChangesToken
             } while (response.hasMore)
-            ChangesResult(metrics, currentToken)
+            ChangesResult(metrics, currentToken, expired)
         } catch (_: Exception) {
             null
         }
