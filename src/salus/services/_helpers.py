@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 DEFAULT_METRIC_COLOR = "#4f46e5"
 
-_SUMMABLE_METRIC_CODES = frozenset({"steps", "water"})
+_SUMMABLE_METRIC_CODES = frozenset({"steps", "water", "exercise", "mindfulness", "planned_exercise"})
 
 __all__ = [
     "uid",

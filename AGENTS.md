@@ -474,6 +474,11 @@ Salus operates across two runtime environments with strict context-awareness:
 - Features requiring native hardware (Server Host URL inputs, biometric sensors, haptic toggles) MUST be guarded with `{#if Capacitor.isNativePlatform()}`.
 - Web/PWA sessions display read-only origin info (`Active Origin: window.location.origin`) and browser storage gauges instead of redundant server host inputs.
 
+**Android Health Connect gotchas:**
+- Every Health Connect permission the plugin requests (`HealthConnectPlugin.PERMISSIONS`, `HealthConnectHarvester.recordTypes`) MUST be declared as `<uses-permission>` in `AndroidManifest.xml`. Android's PermissionController silently drops any runtime-requested permission that is not manifest-declared — it is never offered in the permission prompt and never appears in `dumpsys`.
+- `getChangesToken(ChangesTokenRequest(recordTypes))` throws a SecurityException if the app lacks a read permission for ANY requested record type — always filter `recordTypes` against `getGrantedPermissions()` before requesting a token.
+- Without `PERMISSION_READ_HEALTH_DATA_HISTORY`, reads silently return no data older than 30 days (no error). Granting it requires re-launching the Health Connect permission prompt after the app started requesting it.
+
 ### Local Mode (server-optional)
 
 Salus supports an additive **Local Mode** (`localMode` flag, `SELF_USER_ID='self'`):

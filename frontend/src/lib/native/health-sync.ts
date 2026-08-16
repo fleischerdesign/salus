@@ -20,6 +20,7 @@ export interface HealthPermissionState {
 }
 
 const CHANGES_TOKEN_KEY = 'health_connect:changes_token';
+const CHANGES_GRANTED_KEY = 'health_connect:changes_granted';
 const LAST_SYNC_KEY = 'health_connect:last_sync';
 
 export function permissionLabel(permission: string): string {
@@ -62,41 +63,52 @@ export const healthSyncService = {
     }
 
     try {
-      // Incremental path: the Health Connect change token is the sync cursor.
-      const storedToken = await db.meta.get(CHANGES_TOKEN_KEY);
-      const storedValue = storedToken?.value;
-      if (typeof storedValue === 'string' && storedValue) {
-        const result = await nativeBridge.health.getChanges(storedValue);
-        if (result.nextToken) {
-          await db.meta.put({ key: CHANGES_TOKEN_KEY, value: result.nextToken });
-          return ingestMetrics(result.metrics, storedValue);
-        }
-        // Stale or expired token: re-pin a fresh baseline and reseed the history.
-        const freshToken = await nativeBridge.health.getChangesToken();
-        if (!freshToken) {
-          return {
-            success: false,
-            count: 0,
-            message:
-              'Health Connect change tracking is unavailable. Grant the "Health data history" permission and try again.'
-          };
-        }
-        await db.meta.put({ key: CHANGES_TOKEN_KEY, value: freshToken });
-        const reseedMetrics = await nativeBridge.health.fetchDelta('');
-        return ingestMetrics(reseedMetrics, '');
+      // The changes API requires a read permission for every record type it covers, so a probe
+      // returns null when it is unusable (e.g. no permission granted at all). Degrade to a
+      // bounded time-based delta instead of a full-history scan.
+      const probe = await nativeBridge.health.getChangesToken();
+      if (!probe) {
+        const lastSync = await db.meta.get(LAST_SYNC_KEY);
+        const cursor = typeof lastSync?.value === 'string' ? lastSync.value : '';
+        const metrics = await nativeBridge.health.fetchDelta(cursor);
+        return ingestMetrics(metrics, cursor);
       }
 
-      // First run: seed the full history once, then pin the change token as baseline.
-      const seedMetrics = await nativeBridge.health.fetchDelta('');
-      const baselineToken = await nativeBridge.health.getChangesToken();
-      if (baselineToken) {
-        await db.meta.put({ key: CHANGES_TOKEN_KEY, value: baselineToken });
+      const grantedSignature = await this.grantedSignature();
+      const storedToken = await db.meta.get(CHANGES_TOKEN_KEY);
+      const storedValue = typeof storedToken?.value === 'string' ? storedToken.value : '';
+      const storedGranted = (await db.meta.get(CHANGES_GRANTED_KEY))?.value;
+
+      if (!storedValue || storedGranted !== grantedSignature) {
+        // First run, or the granted permission set changed (e.g. after re-authorizing):
+        // pin a fresh baseline and seed the full history once.
+        await db.meta.put({ key: CHANGES_TOKEN_KEY, value: probe });
+        await db.meta.put({ key: CHANGES_GRANTED_KEY, value: grantedSignature });
+        const seed = await nativeBridge.health.fetchDelta('');
+        return ingestMetrics(seed, '');
       }
-      return ingestMetrics(seedMetrics, '');
+
+      const result = await nativeBridge.health.getChanges(storedValue);
+      if (result.nextToken) {
+        await db.meta.put({ key: CHANGES_TOKEN_KEY, value: result.nextToken });
+        return ingestMetrics(result.metrics, storedValue);
+      }
+
+      // Stale or expired token: re-pin a fresh baseline and reseed once. The granted-set guard
+      // above prevents this from looping on every sync.
+      await db.meta.put({ key: CHANGES_TOKEN_KEY, value: probe });
+      await db.meta.put({ key: CHANGES_GRANTED_KEY, value: grantedSignature });
+      const reseed = await nativeBridge.health.fetchDelta('');
+      return ingestMetrics(reseed, '');
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
       return { success: false, count: 0, message: `Health Connect sync failed: ${err}` };
     }
+  },
+
+  async grantedSignature(): Promise<string> {
+    const res = await nativeBridge.health.checkPermissions();
+    return [...(res.grantedPermissions ?? [])].sort().join(',');
   }
 };
 
@@ -129,13 +141,20 @@ async function ingestMetrics(
   for (const item of metrics) {
     const existing = item.external_id ? existingById.get(item.external_id) : undefined;
     if (existing) {
-      // Edited record: propagate the value/time change to the local measurement.
-      if (existing.value_numeric !== item.value || existing.start_time !== item.measured_at) {
+      // Edited record: propagate value/time changes to the local measurement.
+      const valueChanged =
+        existing.value_numeric !== (item.value ?? null) ||
+        existing.value_text !== (item.value_text ?? null) ||
+        existing.value_json !== (item.value_json ?? null) ||
+        existing.start_time !== item.measured_at;
+      if (valueChanged) {
         const updated: Measurement = {
           ...existing,
-          value_numeric: item.value,
+          value_numeric: item.value ?? null,
+          value_text: item.value_text ?? null,
+          value_json: item.value_json ?? null,
           start_time: item.measured_at,
-          end_time: item.measured_at,
+          end_time: item.end_time ?? existing.end_time,
           updated_at: nowIso
         };
         newMeasurements.push(updated);
@@ -162,11 +181,11 @@ async function ingestMetrics(
       user_id: SELF_USER_ID,
       metric_code: item.metric_code,
       source_data_type: '',
-      value_numeric: item.value,
-      value_text: null,
-      value_json: null,
+      value_numeric: item.value ?? null,
+      value_text: item.value_text ?? null,
+      value_json: item.value_json ?? null,
       start_time: item.measured_at,
-      end_time: item.measured_at,
+      end_time: item.end_time ?? item.measured_at,
       source: 'health_connect',
       external_id: item.external_id,
       notes: null,

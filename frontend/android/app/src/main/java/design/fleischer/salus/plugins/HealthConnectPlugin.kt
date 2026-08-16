@@ -59,7 +59,10 @@ class HealthConnectPlugin : Plugin() {
         HealthPermission.getReadPermission(OvulationTestRecord::class),
         HealthPermission.getReadPermission(CervicalMucusRecord::class),
         HealthPermission.getReadPermission(IntermenstrualBleedingRecord::class),
-        HealthPermission.getReadPermission(SexualActivityRecord::class)
+        HealthPermission.getReadPermission(SexualActivityRecord::class),
+        HealthPermission.getReadPermission(MindfulnessSessionRecord::class),
+        HealthPermission.getReadPermission(PlannedExerciseSessionRecord::class),
+        HealthPermission.getReadPermission(SkinTemperatureRecord::class)
     )
 
     private val healthConnectClient: HealthConnectClient?
@@ -100,12 +103,15 @@ class HealthConnectPlugin : Plugin() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val granted = client.permissionController.getGrantedPermissions()
+                // Only report the permissions we actually request — the frontend uses this set
+                // as the "changes token coverage" cursor for re-pinning on permission changes.
+                val grantedOfOurs = granted.intersect(PERMISSIONS)
                 val missing = PERMISSIONS.filter { it !in granted }
                 val ret = JSObject()
-                ret.put("granted", granted.isNotEmpty())
+                ret.put("granted", grantedOfOurs.isNotEmpty())
                 ret.put("available", true)
                 val grantedArray = JSArray()
-                granted.forEach { grantedArray.put(it) }
+                grantedOfOurs.forEach { grantedArray.put(it) }
                 ret.put("grantedPermissions", grantedArray)
                 val missingArray = JSArray()
                 missing.forEach { missingArray.put(it) }
@@ -216,10 +222,13 @@ class HealthConnectPlugin : Plugin() {
     private fun HarvestedMetric.toJSObject(): JSObject {
         val obj = JSObject()
         obj.put("metric_code", metricCode)
-        obj.put("value", value)
         obj.put("unit", unit)
         obj.put("measured_at", measuredAt)
         obj.put("external_id", externalId)
+        obj.put("value", valueNumeric)
+        obj.put("value_text", valueText)
+        obj.put("value_json", valueJson)
+        obj.put("end_time", endTime)
         obj.put("source", source)
         return obj
     }

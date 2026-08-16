@@ -1,7 +1,10 @@
 export interface IngestedMetricPayload {
   metric_code: string;
-  value: number;
+  value: number | null;
+  value_text?: string | null;
+  value_json?: string | null;
   measured_at: string;
+  end_time?: string | null;
   source: 'health_connect' | 'samsung_health' | 'manual';
   source_data_type?: string;
   external_id: string;
