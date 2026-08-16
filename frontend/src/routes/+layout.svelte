@@ -27,7 +27,7 @@
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { updateService } from '$lib/stores/update.svelte';
   import { getSystemStats } from '$lib/db/metric-stats';
-  import { healthSyncService } from '$lib/native/health-sync.svelte';
+  import { startBackgroundSync } from '$lib/native/background-sync';
   import { reportDeviceSourceStatus } from '$lib/sources';
   import { nativeBridge } from '$lib/native/bridge';
   import { biometricLock } from '$lib/native/biometric-lock.svelte';
@@ -94,6 +94,7 @@
 
   onMount(() => {
     seedReferenceData().catch(() => {});
+    let stopBackgroundSync = () => {};
 
     if (!auth.token) {
       auth.setLoading(false);
@@ -102,19 +103,24 @@
       auth.setLoading(false);
       getSystemStats().catch(() => {});
       if (nativeBridge.isNative) {
-        healthSyncService.syncNow().catch(() => {});
+        stopBackgroundSync = startBackgroundSync();
         reportDeviceSourceStatus().catch(() => {});
         biometricLock.enforce().catch(() => {});
       }
     }
 
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      return on(navigator.serviceWorker, 'message', (event) => {
+      const off = on(navigator.serviceWorker, 'message', (event) => {
         if ((event as MessageEvent).data?.type === 'SALUS_UPDATE_AVAILABLE') {
           updateService.setUpdatePending(true);
         }
       });
+      return () => {
+        off();
+        stopBackgroundSync();
+      };
     }
+    return stopBackgroundSync;
   });
 
   // ── Guarded Auto-Reload on Navigation or Backgrounding ──

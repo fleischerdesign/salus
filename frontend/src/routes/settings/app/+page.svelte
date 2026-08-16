@@ -8,9 +8,15 @@
   import Badge from '$components/ui/Badge.svelte';
   import Toggle from '$components/ui/Toggle.svelte';
   import RadioGroup from '$components/ui/RadioGroup.svelte';
+  import Select from '$components/ui/Select.svelte';
   import { db } from '$lib/db/database';
   import { getSystemStats } from '$lib/db/metric-stats';
   import { getApiBaseUrl, setApiBaseUrl, testServerConnection } from '$lib/api/headers';
+  import {
+    HEALTH_SYNC_INTERVAL_KEY,
+    readBackgroundSyncInterval,
+    refreshBackgroundSyncInterval
+  } from '$lib/native/background-sync';
   import { exportDatabase, importDatabase } from '$lib/db/export-import';
   import { downloadBlob } from '$lib/utils/download';
   import { theme, type ThemeMode, ACCENT_HUES } from '$stores/theme.svelte';
@@ -98,11 +104,20 @@
   let batterySaverSync = $state(localStorage.getItem('salus_sync_battery_saver') === 'true');
   let isResyncing = $state(false);
   let resyncMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+  let syncIntervalStr = $state(String(readBackgroundSyncInterval()));
 
   function toggleBatterySaver(val: boolean) {
     batterySaverSync = val;
     localStorage.setItem('salus_sync_battery_saver', val ? 'true' : 'false');
   }
+
+  $effect(() => {
+    const parsed = parseInt(syncIntervalStr, 10);
+    if (Number.isFinite(parsed) && parsed > 0 && parsed !== readBackgroundSyncInterval()) {
+      localStorage.setItem(HEALTH_SYNC_INTERVAL_KEY, String(parsed));
+      refreshBackgroundSyncInterval();
+    }
+  });
 
   async function handleForceResync() {
     isResyncing = true;
@@ -405,6 +420,28 @@
             </p>
           </div>
           <Toggle checked={batterySaverSync} onchange={toggleBatterySaver} />
+        </div>
+
+        <div class="flex items-center justify-between border-t border-surface-100 pt-4">
+          <div>
+            <p class="text-sm font-semibold text-surface-800">Health-Connect-Synchronisation</p>
+            <p class="text-xs text-surface-400">
+              Intervall für den automatischen Abruf neuer Health-Connect-Daten
+            </p>
+          </div>
+          <div class="w-40">
+            <Select
+              name="health_sync_interval"
+              options={[
+                { value: '5', label: 'Alle 5 Minuten' },
+                { value: '10', label: 'Alle 10 Minuten' },
+                { value: '15', label: 'Alle 15 Minuten' },
+                { value: '30', label: 'Alle 30 Minuten' },
+                { value: '60', label: 'Stündlich' }
+              ]}
+              bind:value={syncIntervalStr}
+            />
+          </div>
         </div>
 
         {#if resyncMessage}
