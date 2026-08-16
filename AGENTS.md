@@ -516,7 +516,13 @@ Run `just --list` to see all available commands. Key recipes:
 | `just build-frontend` | Production build frontend |
 | `just install-frontend` | Install frontend dependencies |
 | `just sync-backend` | Sync Python dependencies (uv sync) |
+| `just build-apk` | Build APK: build frontend → `cap sync android` (copies bundle into Android assets) → `assembleDebug` |
+| `just install-apk` | `build-apk` + `adb install -r` on the connected device |
 | `just check` | Full pre-commit: lint + typecheck + test (backend + frontend) |
+
+**APK builds MUST go through `just build-apk` / `just install-apk`.** Never run
+`npm run build` + `./gradlew assembleDebug` manually — that skips the Capacitor
+asset copy (`cap sync`), so the APK silently ships the stale frontend bundle.
 
 ## Git workflow
 
