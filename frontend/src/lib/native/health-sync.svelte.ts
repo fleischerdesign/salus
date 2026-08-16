@@ -279,29 +279,38 @@ function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+/** One bulk push at a time — a new sync must never stack another heavy push run. */
+let _pushing = false;
+
 /** Bulk-replicate unsynced health measurements to the server (idempotent by external_id). */
 async function pushUnsyncedHealth(): Promise<void> {
+  if (_pushing) return;
   if (localMode.active) return;
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
-  const watermark = (await db.meta.get(LAST_PUSHED_KEY))?.value as string | undefined;
-  const unsynced = await db.measurement
-    .where('source')
-    .equals('health_connect')
-    .filter((m) => !m.deleted_at && (!watermark || (m.updated_at ?? m.created_at) > watermark))
-    .sortBy('updated_at');
-  if (unsynced.length === 0) return;
+  _pushing = true;
+  try {
+    const watermark = (await db.meta.get(LAST_PUSHED_KEY))?.value as string | undefined;
+    const unsynced = await db.measurement
+      .where('source')
+      .equals('health_connect')
+      .filter((m) => !m.deleted_at && (!watermark || (m.updated_at ?? m.created_at) > watermark))
+      .sortBy('updated_at');
+    if (unsynced.length === 0) return;
 
-  for (let i = 0; i < unsynced.length; i += BATCH) {
-    const chunk = unsynced.slice(i, i + BATCH);
-    if (!(await pushMeasurements(chunk))) return;
-    const maxUpdated = chunk.reduce<string>(
-      (max, m) => ((m.updated_at ?? m.created_at) > max ? (m.updated_at ?? m.created_at) : max),
-      ''
-    );
-    if (maxUpdated) {
-      await db.meta.put({ key: LAST_PUSHED_KEY, value: maxUpdated });
+    for (let i = 0; i < unsynced.length; i += BATCH) {
+      const chunk = unsynced.slice(i, i + BATCH);
+      if (!(await pushMeasurements(chunk))) return;
+      const maxUpdated = chunk.reduce<string>(
+        (max, m) => ((m.updated_at ?? m.created_at) > max ? (m.updated_at ?? m.created_at) : max),
+        ''
+      );
+      if (maxUpdated) {
+        await db.meta.put({ key: LAST_PUSHED_KEY, value: maxUpdated });
+      }
     }
+  } finally {
+    _pushing = false;
   }
 }
 

@@ -161,27 +161,23 @@ function computeMetricStats(
 }
 
 /**
- * Per-source entry counts via the source index (distinct keys + indexed counts),
- * excluding soft-deleted rows. Replaces the previous full-record scan.
+ * Per-source entry counts via the source index only — distinct keys iterated
+ * incrementally, indexed counts per source, no record loads. Counts include
+ * soft-deleted rows, matching the metric stats (which are also inclusive).
  */
 async function computeSourceStats(): Promise<Record<string, SourceStat>> {
   const sources: Record<string, SourceStat> = {};
-  const sourceKeys = (await db.measurement.orderBy('source').distinct().keys()) as string[];
-  for (const sourceId of sourceKeys) {
-    if (!sourceId) continue;
-    const total = await db.measurement.where('source').equals(sourceId).count();
-    const deleted = await db.measurement
-      .where('source')
-      .equals(sourceId)
-      .filter((m) => Boolean(m.deleted_at))
-      .count();
-    sources[sourceId] = {
-      source_id: sourceId,
-      entry_count: total - deleted,
+  await db.measurement.orderBy('source').eachUniqueKey(async (sourceId) => {
+    if (!sourceId) return;
+    const key = sourceId as string;
+    const count = await db.measurement.where('source').equals(key).count();
+    sources[key] = {
+      source_id: key,
+      entry_count: count,
       latest_time: null,
       metrics: {}
     };
-  }
+  });
   return sources;
 }
 
