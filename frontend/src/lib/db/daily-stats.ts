@@ -43,11 +43,12 @@ export async function fetchDailyMeans(
   fromDay: string,
   toDay: string
 ): Promise<Array<{ day: string; count: number; mean: number }>> {
-  // aboveOrEqual + a JS day filter: Dexie's between() upper bound is unreliable for
-  // composite keys (it silently drops the upper day), and the cache is small anyway.
+  // Code-bounded range (between with maxKey upper) plus a JS day filter — a plain
+  // aboveOrEqual would bleed into every lexicographically larger metric, and Dexie's
+  // between() upper bound is unreliable for the exact upper day.
   const rows = await db.metric_daily_stats
     .where('[metric_code+day]')
-    .aboveOrEqual([code, fromDay])
+    .between([code, fromDay], [code, Dexie.maxKey])
     .filter((r) => r.day <= toDay)
     .toArray();
   const out: Array<{ day: string; count: number; mean: number }> = [];

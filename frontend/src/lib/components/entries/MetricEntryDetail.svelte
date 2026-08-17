@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Dexie from 'dexie';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { db } from '$lib/db/database';
+  import { measurementPageBounds } from '$lib/db/measurement-paging';
   import type { Measurement as Entry, MetricWithPreference } from '$lib/db/types';
   import type { MetricOverview } from '$lib/analytics/views/metric-overview';
   import { overviewForMetric } from '$lib/analytics/views/metric-overview';
@@ -58,7 +58,7 @@
   let pageNum = $state(1);
   const perPage = 25;
 
-  type Cursor = { mode: 'top' } | { mode: 'below'; time: string } | { mode: 'above'; time: string };
+  type Cursor = { mode: 'top' } | { mode: 'older'; time: string } | { mode: 'newer'; time: string };
   let cursor = $state<Cursor>({ mode: 'top' });
 
   // Cursor-based pagination on the [metric_code+start_time] index: O(log n) per page instead
@@ -68,29 +68,13 @@
       const code = metricCode;
       if (!code) return { count: 0, items: [] };
       const stat = await getMetricStat(code);
-      let rawItems: Entry[];
-      if (cursor.mode === 'below') {
-        rawItems = await db.measurement
-          .where('[metric_code+start_time]')
-          .below([code, cursor.time])
-          .reverse()
-          .limit(perPage)
-          .toArray();
-      } else if (cursor.mode === 'above') {
-        rawItems = await db.measurement
-          .where('[metric_code+start_time]')
-          .above([code, cursor.time])
-          .reverse()
-          .limit(perPage)
-          .toArray();
-      } else {
-        rawItems = await db.measurement
-          .where('[metric_code+start_time]')
-          .between([code, Dexie.minKey], [code, Dexie.maxKey])
-          .reverse()
-          .limit(perPage)
-          .toArray();
-      }
+      const bounds = measurementPageBounds(code, cursor);
+      const rawItems = await db.measurement
+        .where('[metric_code+start_time]')
+        .between(bounds.lower, bounds.upper, bounds.includeLower, bounds.includeUpper)
+        .reverse()
+        .limit(perPage)
+        .toArray();
       return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
     },
     () => `${metricCode}:${pageNum}:${cursor.mode}:${cursor.mode === 'top' ? '' : cursor.time}`
@@ -227,11 +211,11 @@
     const last = pagedEntries[pagedEntries.length - 1]?.start_time;
     if (p < pageNum) {
       // Prev (newer): bound above the current first item.
-      if (first) cursor = { mode: 'above', time: first };
+      if (first) cursor = { mode: 'newer', time: first };
       pageNum = p;
     } else if (p > pageNum) {
       // Next (older): bound below the current last item.
-      if (last) cursor = { mode: 'below', time: last };
+      if (last) cursor = { mode: 'older', time: last };
       pageNum = p;
     }
   }
