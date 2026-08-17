@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 
@@ -22,8 +23,14 @@ def openapi_spec(_cached_app: FastAPI) -> dict:
 def _regenerate_schema_dts(openapi_path: str, output_path: str) -> None:
     frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
     cli = os.path.join(frontend_dir, "node_modules", ".bin", "openapi-typescript")
+    if os.path.exists(cli):
+        cmd = [cli, openapi_path, "-o", output_path, "--alphabetize"]
+    elif shutil.which("npx"):
+        cmd = ["npx", "--yes", "openapi-typescript", openapi_path, "-o", output_path, "--alphabetize"]
+    else:
+        pytest.skip("openapi-typescript CLI not found and npx is unavailable")
     result = subprocess.run(
-        [cli, openapi_path, "-o", output_path, "--alphabetize"],
+        cmd,
         capture_output=True, text=True, cwd=frontend_dir,
     )
     if result.returncode != 0:
