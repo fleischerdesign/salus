@@ -14,15 +14,18 @@
 
   const exerciseId = $derived(page.params.id as string);
 
-  const exerciseQuery = useQuery(() =>
-    db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null))
+  const exerciseQuery = useQuery(
+    () => db.exercise.get(exerciseId!).then((e) => (e && !e.deleted_at ? e : null)),
+    () => exerciseId
   );
   const exercise = $derived(exerciseQuery.value);
 
-  const logsQuery = useQuery(() =>
-    db.workout_log_entry
-      .toArray()
-      .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at))
+  const logsQuery = useQuery(
+    () =>
+      db.workout_log_entry
+        .toArray()
+        .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at)),
+    () => exerciseId
   );
   const logs = $derived(logsQuery.value);
 

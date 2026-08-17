@@ -58,20 +58,43 @@
   let pageNum = $state(1);
   const perPage = 25;
 
-  const pagedDataQuery = useQuery(async () => {
-    const code = metricCode;
-    if (!code) return { count: 0, items: [] };
-    const stat = await getMetricStat(code);
-    const rawItems = await db.measurement
-      .where('[metric_code+start_time]')
-      .between([code, Dexie.minKey], [code, Dexie.maxKey])
-      .reverse()
-      .offset((pageNum - 1) * perPage)
-      .limit(perPage)
-      .toArray();
+  type Cursor = { mode: 'top' } | { mode: 'below'; time: string } | { mode: 'above'; time: string };
+  let cursor = $state<Cursor>({ mode: 'top' });
 
-    return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
-  });
+  // Cursor-based pagination on the [metric_code+start_time] index: O(log n) per page instead
+  // of O(page × perPage) offset skips, which is unusable on high-volume metrics.
+  const pagedDataQuery = useQuery(
+    async () => {
+      const code = metricCode;
+      if (!code) return { count: 0, items: [] };
+      const stat = await getMetricStat(code);
+      let rawItems: Entry[];
+      if (cursor.mode === 'below') {
+        rawItems = await db.measurement
+          .where('[metric_code+start_time]')
+          .below([code, cursor.time])
+          .reverse()
+          .limit(perPage)
+          .toArray();
+      } else if (cursor.mode === 'above') {
+        rawItems = await db.measurement
+          .where('[metric_code+start_time]')
+          .above([code, cursor.time])
+          .reverse()
+          .limit(perPage)
+          .toArray();
+      } else {
+        rawItems = await db.measurement
+          .where('[metric_code+start_time]')
+          .between([code, Dexie.minKey], [code, Dexie.maxKey])
+          .reverse()
+          .limit(perPage)
+          .toArray();
+      }
+      return { count: stat?.entry_count ?? 0, items: rawItems.filter((e) => !e.deleted_at) };
+    },
+    () => `${metricCode}:${pageNum}:${cursor.mode}:${cursor.mode === 'top' ? '' : cursor.time}`
+  );
   const pagedData = $derived(pagedDataQuery.value);
   const entriesLoading = $derived(pagedDataQuery.loading);
 
@@ -82,10 +105,16 @@
     }
   });
 
+  const hasPrev = $derived(cursor.mode !== 'top' && pageNum > 1);
+  const hasNext = $derived(pagedEntries.length >= perPage);
+
   let entries = $derived(pagedEntries);
   let total = $derived(totalEntriesCount);
   let range = $state('90d');
-  let trendQuery = useQuery(() => fetchTrend(metricCode, range));
+  let trendQuery = useQuery(
+    () => fetchTrend(metricCode, range),
+    () => `${metricCode}:${range}`
+  );
   let trend = $derived(trendQuery.value);
 
   let showEntryModal = $state(false);
@@ -194,7 +223,17 @@
   }
 
   function onPageChange(p: number) {
-    pageNum = p;
+    const first = pagedEntries[0]?.start_time;
+    const last = pagedEntries[pagedEntries.length - 1]?.start_time;
+    if (p < pageNum) {
+      // Prev (newer): bound above the current first item.
+      if (first) cursor = { mode: 'above', time: first };
+      pageNum = p;
+    } else if (p > pageNum) {
+      // Next (older): bound below the current last item.
+      if (last) cursor = { mode: 'below', time: last };
+      pageNum = p;
+    }
   }
 
   let prevCode = $state<string | undefined>(undefined);
@@ -202,6 +241,7 @@
     if (metricCode !== prevCode) {
       prevCode = metricCode;
       pageNum = 1;
+      cursor = { mode: 'top' };
     }
   });
 
@@ -276,7 +316,32 @@
     {/snippet}
   </PageHeader>
 
-  {#if trend && trend.values.length >= 2}
+  {#if trend?.building}
+    <Card padding={false}>
+      {#snippet header()}
+        <div class="flex w-full items-center justify-between pr-2">
+          <div class="flex items-center gap-2">
+            <Icon name="monitoring" size="sm" class="text-surface-400" /><span
+              class="text-sm font-semibold text-surface-900">Trend & History</span
+            >
+          </div>
+          <div class="flex gap-1">
+            {#each RANGE_KEYS as r}
+              <Btn
+                variant={range === r ? 'primary' : 'secondary'}
+                size="sm"
+                onclick={() => (range = r)}
+                >{r === '1y' ? '1Y' : r === '90d' ? '90D' : r === '30d' ? '30D' : '7D'}</Btn
+              >
+            {/each}
+          </div>
+        </div>
+      {/snippet}
+      <div class="flex h-64 items-center justify-center p-6">
+        <Spinner size="lg" />
+      </div>
+    </Card>
+  {:else if trend && trend.values.length >= 2}
     <Card padding={false}>
       {#snippet header()}
         <div class="flex w-full items-center justify-between pr-2">
@@ -391,7 +456,16 @@
         {/each}
       </div>
     </Card>
-    <Pagination page={pageNum} {total} {perPage} itemsLabel="entries" onpage={onPageChange} />
+    <Pagination
+      page={pageNum}
+      {total}
+      {perPage}
+      itemsLabel="entries"
+      cursorMode
+      {hasPrev}
+      {hasNext}
+      onpage={onPageChange}
+    />
   {/if}
 </div>
 

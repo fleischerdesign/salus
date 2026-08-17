@@ -4,6 +4,10 @@ import { getAuthHeaders, getApiBaseUrl } from '$lib/api/headers';
 import { uuid7 } from './db/uuid';
 import { network } from '$lib/native/network';
 import { localMode } from './db/local-mode.svelte';
+import { deleteMeasurements, upsertMeasurements } from './db/measurement-writes';
+import type { Measurement } from './db/types';
+
+const isMeasurement = (table?: string) => table === 'measurement';
 
 export type Mutation =
   | {
@@ -78,7 +82,27 @@ async function resolveExpectedUpdatedAt(m: Mutation): Promise<void> {
 
 async function applyOptimistic(m: Mutation): Promise<void> {
   if (m.kind === 'crud' && m.op === 'delete' && m.id) {
-    await db.table(m.entity).delete(m.id);
+    if (isMeasurement(m.entity)) {
+      await deleteMeasurements([m.id]);
+    } else {
+      await db.table(m.entity).delete(m.id);
+    }
+    return;
+  }
+
+  if (m.kind === 'crud' && isMeasurement(m.entity)) {
+    const data = m.optimistic;
+    if (data) {
+      const id = (data as { id?: string }).id;
+      let record: Measurement;
+      if (id != null) {
+        const existing = await db.measurement.get(id);
+        record = existing ? { ...existing, ...data } : (data as unknown as Measurement);
+      } else {
+        record = data as unknown as Measurement;
+      }
+      await upsertMeasurements([record]);
+    }
     return;
   }
 
@@ -98,12 +122,22 @@ async function applyOptimistic(m: Mutation): Promise<void> {
 
   if (m.kind === 'command' && m.optimisticRows) {
     for (const { table: childTable, rows } of m.optimisticRows) {
-      if (rows.length > 0) await db.table(childTable).bulkPut(rows);
+      if (rows.length === 0) continue;
+      if (isMeasurement(childTable)) {
+        await upsertMeasurements(rows as unknown as Measurement[]);
+      } else {
+        await db.table(childTable).bulkPut(rows);
+      }
     }
   }
   if (m.kind === 'command' && m.optimisticDelete) {
     for (const { table: childTable, ids } of m.optimisticDelete) {
-      if (ids.length > 0) await db.table(childTable).bulkDelete(ids);
+      if (ids.length === 0) continue;
+      if (isMeasurement(childTable)) {
+        await deleteMeasurements(ids);
+      } else {
+        await db.table(childTable).bulkDelete(ids);
+      }
     }
   }
 }
@@ -149,7 +183,11 @@ async function sendCommandNow(
 
     if (result?.status === 'created' || result?.status === 'updated') {
       if (result.record && m.responseTable) {
-        await db.table(m.responseTable).put(result.record);
+        if (isMeasurement(m.responseTable)) {
+          await upsertMeasurements([result.record as unknown as Measurement]);
+        } else {
+          await db.table(m.responseTable).put(result.record);
+        }
       }
       return { ok: true, data: result.record };
     }

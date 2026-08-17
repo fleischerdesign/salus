@@ -16,17 +16,20 @@
 
   const planId = $derived(page.params.id as string);
 
-  const planQuery = useQuery(() =>
-    db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null))
+  const planQuery = useQuery(
+    () => db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null)),
+    () => planId
   );
   const plan = $derived(planQuery.value);
 
-  const planExercisesQuery = useQuery(() =>
-    db.workout_plan_exercise
-      .where('plan_id')
-      .equals(planId!)
-      .toArray()
-      .then((arr) => arr.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence))
+  const planExercisesQuery = useQuery(
+    () =>
+      db.workout_plan_exercise
+        .where('plan_id')
+        .equals(planId!)
+        .toArray()
+        .then((arr) => arr.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence)),
+    () => planId
   );
   const planExercises = $derived(planExercisesQuery.value);
 
@@ -38,28 +41,33 @@
   );
   const exercises = $derived(exercisesQuery.value);
 
-  const sessionsQuery = useQuery(() =>
-    db.workout_session
-      .where('plan_id')
-      .equals(planId!)
-      .toArray()
-      .then((arr) =>
-        arr
-          .filter((s) => !s.deleted_at && s.completed_at != null)
-          .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
-      )
+  const sessionsQuery = useQuery(
+    () =>
+      db.workout_session
+        .where('plan_id')
+        .equals(planId!)
+        .toArray()
+        .then((arr) =>
+          arr
+            .filter((s) => !s.deleted_at && s.completed_at != null)
+            .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+        ),
+    () => planId
   );
   const sessions = $derived(sessionsQuery.value);
 
-  const logsQuery = useQuery(async () => {
-    const sessionIds = (sessions ?? []).slice(0, 10).map((s) => s.id);
-    if (sessionIds.length === 0) return [];
-    return db.workout_log_entry
-      .where('session_id')
-      .anyOf(sessionIds)
-      .filter((l) => !l.deleted_at)
-      .toArray();
-  });
+  const logsQuery = useQuery(
+    async () => {
+      const sessionIds = (sessions ?? []).slice(0, 10).map((s) => s.id);
+      if (sessionIds.length === 0) return [];
+      return db.workout_log_entry
+        .where('session_id')
+        .anyOf(sessionIds)
+        .filter((l) => !l.deleted_at)
+        .toArray();
+    },
+    () => `${planId}:${(sessions ?? []).length}`
+  );
   const logs = $derived(logsQuery.value);
 
   let starting = $state(false);

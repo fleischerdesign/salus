@@ -6,6 +6,10 @@
     total?: number;
     perPage?: number;
     itemsLabel?: string;
+    /** Cursor mode: prev/next only (no numbered page jump) — for very large datasets. */
+    cursorMode?: boolean;
+    hasPrev?: boolean;
+    hasNext?: boolean;
     onpage?: (page: number) => void;
     class?: string;
   }
@@ -15,6 +19,9 @@
     total = 0,
     perPage = 20,
     itemsLabel = 'items',
+    cursorMode = false,
+    hasPrev = false,
+    hasNext = false,
     onpage,
     class: extraClass = ''
   }: Props = $props();
@@ -42,41 +49,45 @@
   }
 </script>
 
-{#if totalPages > 1}
+{#if totalPages > 1 || cursorMode}
   <nav
     class="flex flex-wrap items-center justify-center gap-1 {extraClass}"
     aria-label="Pagination"
   >
     <button
       class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
-      disabled={page <= 1}
-      onclick={() => go(page - 1)}
+      disabled={cursorMode ? !hasPrev : page <= 1}
+      onclick={() => onpage?.(page - 1)}
       aria-label="Previous page"
     >
       <Icon name="chevron-left" />
     </button>
 
-    {#each pages as p}
-      {#if p === '...'}
-        <span class="flex h-10 w-10 items-center justify-center text-sm text-surface-400">…</span>
-      {:else}
-        <button
-          class="duration-micro flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors {page ===
-          p
-            ? 'bg-primary-50 text-primary-600'
-            : 'text-surface-600 hover:bg-surface-100'}"
-          onclick={() => go(p)}
-          aria-current={page === p ? 'page' : undefined}
-        >
-          {p}
-        </button>
-      {/if}
-    {/each}
+    {#if cursorMode}
+      <span class="px-2 text-sm text-surface-500">Page {page}</span>
+    {:else}
+      {#each pages as p}
+        {#if p === '...'}
+          <span class="flex h-10 w-10 items-center justify-center text-sm text-surface-400">…</span>
+        {:else}
+          <button
+            class="duration-micro flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors {page ===
+            p
+              ? 'bg-primary-50 text-primary-600'
+              : 'text-surface-600 hover:bg-surface-100'}"
+            onclick={() => go(p)}
+            aria-current={page === p ? 'page' : undefined}
+          >
+            {p}
+          </button>
+        {/if}
+      {/each}
+    {/if}
 
     <button
       class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
-      disabled={page >= totalPages}
-      onclick={() => go(page + 1)}
+      disabled={cursorMode ? !hasNext : page >= totalPages}
+      onclick={() => onpage?.(page + 1)}
       aria-label="Next page"
     >
       <Icon name="chevron-right" />

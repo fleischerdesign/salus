@@ -1,5 +1,6 @@
 import { db } from '$lib/db/database';
 import { fetchTrend } from '$lib/analytics/views/analytics';
+import { createMeasurements } from '$lib/db/measurement-writes';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 function measurement(id: string, metric_code: string, value: number) {
@@ -30,7 +31,7 @@ beforeEach(async () => {
 
 describe('fetchTrend', () => {
   it('queries by metric_code — not by the DataType enum value', async () => {
-    await db.measurement.bulkAdd([
+    await createMeasurements([
       measurement('m1', 'steps', 100),
       measurement('m2', 'steps', 120),
       measurement('m3', 'steps', 140)

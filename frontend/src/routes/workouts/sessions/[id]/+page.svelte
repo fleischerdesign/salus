@@ -12,15 +12,18 @@
 
   const sessionId = $derived(page.params.id as string);
 
-  const sessionQuery = useQuery(() =>
-    db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null))
+  const sessionQuery = useQuery(
+    () => db.workout_session.get(sessionId!).then((s) => (s && !s.deleted_at ? s : null)),
+    () => sessionId
   );
   const session = $derived(sessionQuery.value);
 
-  const logsQuery = useQuery(() =>
-    db.workout_log_entry
-      .toArray()
-      .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at))
+  const logsQuery = useQuery(
+    () =>
+      db.workout_log_entry
+        .toArray()
+        .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at)),
+    () => sessionId
   );
   const logs = $derived(logsQuery.value);
 

@@ -3,6 +3,8 @@ import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import { AUTH_USER_KEY } from '$lib/constants';
 import { MS_PER_DAY } from '$lib/utils/datetime';
+import { getMetricStat } from '$lib/db/metric-stats';
+import { fetchDailyMeans, rebuildMetricDailyCache } from '$lib/db/daily-stats';
 import {
   dateStringInTz,
   startOfLocalDayMs,
@@ -300,16 +302,18 @@ export async function fetchAnalytics(rangeKey: string = '30d') {
   const cutoffISO = cutoff.toISOString();
 
   const targetCodes = ['steps', 'weight', 'body_weight', 'sleep', 'exercise', 'resting_heart_rate'];
-  const arrays = await Promise.all(
+  const measurements: Measurement[] = [];
+  await Promise.all(
     targetCodes.map((code) =>
       db.measurement
         .where('[metric_code+start_time]')
         .between([code, cutoffISO], [code, Dexie.maxKey])
-        .toArray()
+        .each((m) => {
+          if (!m.deleted_at) measurements.push(m);
+        })
     )
   );
 
-  const measurements = arrays.flat().filter((m) => !m.deleted_at);
   return computeAnalytics(measurements, rangeKey);
 }
 
@@ -392,6 +396,7 @@ export async function fetchCorrelations(
 export interface TrendResult {
   values: number[];
   labels: string[];
+  building?: boolean;
   regression: {
     slope: number;
     intercept: number;
@@ -402,52 +407,59 @@ export interface TrendResult {
   } | null;
 }
 
-export async function fetchTrend(metric: string, rangeKey: string = '90d') {
+/**
+ * Daily trend for a metric. Reads the per-day aggregate cache (device-local,
+ * maintained by the measurement write facade), so it stays fast regardless of
+ * the raw measurement volume. When a metric has data but no cache yet (first
+ * view after an upgrade/import), the cache is rebuilt in the background and a
+ * `building` result is returned; the live query re-runs once it lands.
+ * Sparse metrics (<=150 rows in range) fall back to a bounded raw scatter.
+ */
+export async function fetchTrend(metric: string, rangeKey: string = '90d'): Promise<TrendResult> {
   if (!metric) return { values: [], labels: [], regression: null };
   const days = RANGE_DAYS[rangeKey] ?? 90;
-  const cutoff = new Date(startOfTodayMs(userTimezone()) - days * MS_PER_DAY);
-  const cutoffISO = cutoff.toISOString();
+  const tz = userTimezone();
+  const cutoff = new Date(startOfTodayMs(tz) - days * MS_PER_DAY);
+  const fromDay = dateStringInTz(cutoff, tz);
+  const toDay = dateStringInTz(new Date(), tz);
 
-  const dayMap = new Map<string, { sum: number; count: number }>();
+  const daily = await fetchDailyMeans(metric, fromDay, toDay);
+  if (daily.length === 0) {
+    const stat = await getMetricStat(metric);
+    if ((stat?.entry_count ?? 0) > 0) {
+      void rebuildMetricDailyCache(metric);
+      return { values: [], labels: [], regression: null, building: true };
+    }
+    return { values: [], labels: [], regression: null };
+  }
+
+  const totalInRange = daily.reduce((acc, d) => acc + d.count, 0);
+  if (totalInRange > 150) {
+    const values = daily.map((d) => Math.round(d.mean * 10) / 10);
+    const labels = daily.map((d) => d.day.slice(5));
+    return finalizeTrend(values, labels);
+  }
+
+  // Sparse metric: render the raw points directly (bounded — few rows).
+  const cutoffISO = cutoff.toISOString();
   const rawValues: number[] = [];
   const rawLabels: string[] = [];
-  let count = 0;
-
   await db.measurement
     .where('[metric_code+start_time]')
     .between([metric, cutoffISO], [metric, Dexie.maxKey])
     .each((m) => {
       if (!m.deleted_at && m.value_numeric != null) {
-        count++;
-        const day = m.start_time.split('T')[0];
-        const existing = dayMap.get(day);
-        if (existing) {
-          existing.sum += m.value_numeric;
-          existing.count += 1;
-        } else {
-          dayMap.set(day, { sum: m.value_numeric, count: 1 });
-        }
         rawValues.push(m.value_numeric);
         rawLabels.push(m.start_time.slice(5));
       }
     });
+  return finalizeTrend(rawValues, rawLabels);
+}
 
-  let values: number[];
-  let labels: string[];
-
-  if (count > 150) {
-    labels = Array.from(dayMap.keys()).map((d) => d.slice(5));
-    values = Array.from(dayMap.values()).map((v) => Math.round((v.sum / v.count) * 10) / 10);
-  } else {
-    values = rawValues;
-    labels = rawLabels;
-  }
-
+function finalizeTrend(values: number[], labels: string[]): TrendResult {
   if (values.length < 3) return { values, labels, regression: null };
-
   const regression = regressionSeries(values);
   if (!regression) return { values, labels, regression: null };
-
   return { values, labels, regression };
 }
 

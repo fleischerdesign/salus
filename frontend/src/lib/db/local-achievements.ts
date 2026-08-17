@@ -1,11 +1,6 @@
 import { db } from './database';
 import type { AchievementDefinition } from './types';
 
-interface MeasurementLike {
-  start_time: string;
-  deleted_at?: string | null;
-}
-
 interface HabitLogLike {
   completed: boolean;
   log_date: string;
@@ -23,7 +18,9 @@ interface WorkoutSessionLike {
 }
 
 interface AchievementContext {
-  measurements: MeasurementLike[];
+  measurementCount: number;
+  measurementDays: string[];
+  measurementHourCounts: number[];
   habitCount: number;
   habitLogs: HabitLogLike[];
   moodEntries: MoodEntryLike[];
@@ -75,12 +72,16 @@ function countEntity(
   let count = 0;
   switch (entity) {
     case 'measurement':
-      count = ctx.measurements.filter((m) => {
-        const hour = new Date(m.start_time).getUTCHours();
-        if (config.hour_before !== undefined && hour >= config.hour_before) return false;
-        if (config.hour_after !== undefined && hour < config.hour_after) return false;
-        return true;
-      }).length;
+      if (config.hour_before !== undefined || config.hour_after !== undefined) {
+        const after = config.hour_after ?? 0;
+        const before = config.hour_before ?? 24;
+        count = ctx.measurementHourCounts.reduce(
+          (acc, n, hour) => (hour >= after && hour < before ? acc + n : acc),
+          0
+        );
+      } else {
+        count = ctx.measurementCount;
+      }
       break;
     case 'habit':
       count = ctx.habitCount;
@@ -127,7 +128,7 @@ function countEntity(
 function streakEntity(ctx: AchievementContext, entity: string, days: number): boolean {
   switch (entity) {
     case 'measurement':
-      return longestStreak(ctx.measurements.map((m) => m.start_time)) >= days;
+      return longestStreak(ctx.measurementDays) >= days;
     case 'habit_log':
       return longestStreak(ctx.habitLogs.filter((l) => l.completed).map((l) => l.log_date)) >= days;
     case 'mood_entry':
@@ -181,15 +182,37 @@ function evaluateAchievement(ctx: AchievementContext, definition: AchievementDef
 }
 
 /**
+ * Streams the measurement aggregates needed by the local evaluator in a single
+ * in-flight pass — no full array is materialized (bounded memory for large
+ * datasets): total count, per-UTC-hour buckets and the distinct measurement days.
+ */
+async function aggregateMeasurements(): Promise<{
+  count: number;
+  days: string[];
+  hourCounts: number[];
+}> {
+  let count = 0;
+  const days = new Set<string>();
+  const hourCounts = new Array<number>(24).fill(0);
+  await db.measurement.each((m) => {
+    if (m.deleted_at) return;
+    count++;
+    hourCounts[new Date(m.start_time).getUTCHours()]++;
+    days.add(m.start_time.slice(0, 10));
+  });
+  return { count, days: [...days], hourCounts };
+}
+
+/**
  * Computes the set of locally-unlocked achievement codes from Dexie. Mirrors the
  * server-side evaluator (services/achievement/evaluator.py); server-only
  * conditions (sharing_relationship, open_science_consent) never unlock locally.
  */
 export async function evaluateLocalAchievements(): Promise<Set<string>> {
-  const [definitions, measurements, habits, habitLogs, moodEntries, goals, workoutSessions] =
+  const [definitions, measurementAgg, habits, habitLogs, moodEntries, goals, workoutSessions] =
     await Promise.all([
       db.achievement_definition.toArray(),
-      db.measurement.toArray(),
+      aggregateMeasurements(),
       db.habit.toArray(),
       db.habit_log.toArray(),
       db.mood_entry.toArray(),
@@ -198,7 +221,9 @@ export async function evaluateLocalAchievements(): Promise<Set<string>> {
     ]);
 
   const ctx: AchievementContext = {
-    measurements: measurements.filter((m) => !m.deleted_at),
+    measurementCount: measurementAgg.count,
+    measurementDays: measurementAgg.days,
+    measurementHourCounts: measurementAgg.hourCounts,
     habitCount: habits.filter((h) => !h.deleted_at).length,
     habitLogs: habitLogs.filter((l) => !l.deleted_at),
     moodEntries: moodEntries.filter((m) => !m.deleted_at),

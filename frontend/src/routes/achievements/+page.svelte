@@ -12,8 +12,9 @@
   const definitions = $derived(definitionsQuery.value);
   const unlockedQuery = useQuery(() => db.user_achievement.toArray());
   const unlocked = $derived(unlockedQuery.value);
-  const localUnlockedQuery = useQuery(() =>
-    localMode.active ? evaluateLocalAchievements() : Promise.resolve(new Set<string>())
+  const localUnlockedQuery = useQuery(
+    () => (localMode.active ? evaluateLocalAchievements() : Promise.resolve(new Set<string>())),
+    () => localMode.active
   );
   const localUnlocked = $derived(localUnlockedQuery.value);
   const loading = $derived(localMode.active ? localUnlockedQuery.loading : unlockedQuery.loading);

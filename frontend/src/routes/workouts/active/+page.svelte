@@ -25,26 +25,32 @@
   );
   const session = $derived(sessionQuery.value);
 
-  const planExercisesQuery = useQuery(async () => {
-    const activeSession = session;
-    if (!activeSession?.plan_id) return [];
-    const pes = await db.workout_plan_exercise
-      .where('plan_id')
-      .equals(activeSession.plan_id)
-      .toArray();
-    return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
-  });
+  const planExercisesQuery = useQuery(
+    async () => {
+      const activeSession = session;
+      if (!activeSession?.plan_id) return [];
+      const pes = await db.workout_plan_exercise
+        .where('plan_id')
+        .equals(activeSession.plan_id)
+        .toArray();
+      return pes.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence);
+    },
+    () => session?.plan_id
+  );
   const planExercises = $derived(planExercisesQuery.value);
 
-  const allLogsQuery = useQuery(async () => {
-    const activeSession = session;
-    if (!activeSession) return [];
-    return db.workout_log_entry
-      .where('session_id')
-      .equals(activeSession.id)
-      .toArray()
-      .then((arr) => arr.filter((l) => !l.deleted_at));
-  });
+  const allLogsQuery = useQuery(
+    async () => {
+      const activeSession = session;
+      if (!activeSession) return [];
+      return db.workout_log_entry
+        .where('session_id')
+        .equals(activeSession.id)
+        .toArray()
+        .then((arr) => arr.filter((l) => !l.deleted_at));
+    },
+    () => session?.id
+  );
   const allLogs = $derived(allLogsQuery.value);
 
   let logStates = $state<Record<string, LogState>>({});

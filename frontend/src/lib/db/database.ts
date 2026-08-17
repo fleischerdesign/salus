@@ -52,7 +52,8 @@ import type {
   LabResult,
   FastingSession,
   FastingProtocol,
-  DataQualityFlag
+  DataQualityFlag,
+  MetricDailyStat
 } from './types';
 
 export class SalusDB extends Dexie {
@@ -62,6 +63,7 @@ export class SalusDB extends Dexie {
   user_source_preference!: EntityTable<UserSourcePreference, 'id'>;
   user_source_status!: EntityTable<UserSourceStatus, 'id'>;
   measurement!: EntityTable<Measurement, 'id'>;
+  metric_daily_stats!: Dexie.Table<MetricDailyStat, [string, string]>;
   goal!: EntityTable<Goal, 'id'>;
   circadian_profile!: EntityTable<CircadianProfile, 'id'>;
   exercise!: EntityTable<Exercise, 'id'>;
@@ -310,6 +312,9 @@ export class SalusDB extends Dexie {
     });
     this.version(27).stores({
       user_source_status: 'id, user_id, source'
+    });
+    this.version(28).stores({
+      metric_daily_stats: '[metric_code+day], metric_code, day'
     });
   }
 

@@ -479,6 +479,21 @@ Salus operates across two runtime environments with strict context-awareness:
 - `getChangesToken(ChangesTokenRequest(recordTypes))` throws a SecurityException if the app lacks a read permission for ANY requested record type — always filter `recordTypes` against `getGrantedPermissions()` before requesting a token.
 - Without `PERMISSION_READ_HEALTH_DATA_HISTORY`, reads silently return no data older than 30 days (no error). Granting it requires re-launching the Health Connect permission prompt after the app started requesting it.
 
+**Measurement write facade + daily-aggregate cache:**
+- ALL measurement row writes MUST route through `$lib/db/measurement-writes.ts`
+  (`create/upsert/update/delete/restoreMeasurements`) — never `db.measurement.put/delete`
+  directly. The four write sites are: `mutate.ts` (crud + command optimistic rows),
+  `sync-pull.ts`, `health-sync.svelte.ts` ingest, `export-import.ts` import.
+- The facade maintains `metric_daily_stats` (`[metric_code+day]`, `{count,sum}` over
+  non-deleted numeric rows) atomically with each write. Trend charts
+  (`fetchTrend`) read per-day means from it — never scan raw windows of
+  high-volume metrics. See `docs/adr/013-metric-daily-aggregate-cache.md`.
+- Dexie's `between()` upper bound is unreliable for composite keys (drops the upper
+  day): day-range reads use `aboveOrEqual(...)` + a JS `day <= toDay` filter.
+- Every `useQuery` that reads external Svelte state (range/date/page/route params/
+  another query's result) MUST pass a deps getter as the second argument, or the
+  live query never re-runs when that input changes.
+
 ### Local Mode (server-optional)
 
 Salus supports an additive **Local Mode** (`localMode` flag, `SELF_USER_ID='self'`):

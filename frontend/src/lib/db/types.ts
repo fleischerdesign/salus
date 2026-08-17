@@ -117,6 +117,14 @@ export interface Measurement {
   deleted_at: string | null;
 }
 
+/** Per-day numeric aggregate (device-local, derived from measurements; not synced). */
+export interface MetricDailyStat {
+  metric_code: string;
+  day: string;
+  count: number;
+  sum: number;
+}
+
 export interface Goal {
   id: string;
   user_id: string;

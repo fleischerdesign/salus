@@ -14,7 +14,10 @@
 
   const goalId = $derived(page.params.id as string);
 
-  const goalViewQuery = useQuery(() => fetchGoalView(goalId));
+  const goalViewQuery = useQuery(
+    () => fetchGoalView(goalId),
+    () => goalId
+  );
   const goalView = $derived(goalViewQuery.value);
 
   const nutrientLabels: Record<string, string> = {
@@ -30,19 +33,22 @@
   );
 
   // Load measurements for this goal's metric type to render trend chart
-  const measurementsQuery = useQuery(async () => {
-    const g = await db.goal.get(goalId);
-    if (!g) return [];
-    return db.measurement
-      .where('metric_code')
-      .equals(g.metric_code)
-      .toArray()
-      .then((arr) =>
-        arr
-          .filter((m) => !m.deleted_at && m.value_numeric != null)
-          .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-      );
-  });
+  const measurementsQuery = useQuery(
+    async () => {
+      const g = await db.goal.get(goalId);
+      if (!g) return [];
+      return db.measurement
+        .where('metric_code')
+        .equals(g.metric_code)
+        .toArray()
+        .then((arr) =>
+          arr
+            .filter((m) => !m.deleted_at && m.value_numeric != null)
+            .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+        );
+    },
+    () => goalId
+  );
   const measurements = $derived(measurementsQuery.value);
 
   let chartData = $derived.by(() => {

@@ -40,101 +40,108 @@
   }
 
   // Load single peer connection details
-  const peerQuery = useQuery(async () => {
-    const uid = auth.user?.id;
-    const username = auth.user?.username;
-    if (!uid || !username || !handle) return null;
+  const peerQuery = useQuery(
+    async () => {
+      const uid = auth.user?.id;
+      const username = auth.user?.username;
+      if (!uid || !username || !handle) return null;
 
-    const [rels, metricTypes, prefs, profiles] = await Promise.all([
-      db.sharing_relationship.toArray(),
-      db.metric_definition.toArray(),
-      db.user_metric_preference.toArray(),
-      db.user_profile.toArray()
-    ]);
+      const [rels, metricTypes, prefs, profiles] = await Promise.all([
+        db.sharing_relationship.toArray(),
+        db.metric_definition.toArray(),
+        db.user_metric_preference.toArray(),
+        db.user_profile.toArray()
+      ]);
 
-    const active = rels.filter((r) => !r.deleted_at);
-    const merged = mergeMetricPrefs(metricTypes, prefs);
-    const metricMap = new Map(merged.map((m) => [m.code, m]));
-    const profileById = new Map(profiles.map((p) => [p.id, p]));
+      const active = rels.filter((r) => !r.deleted_at);
+      const merged = mergeMetricPrefs(metricTypes, prefs);
+      const metricMap = new Map(merged.map((m) => [m.code, m]));
+      const profileById = new Map(profiles.map((p) => [p.id, p]));
 
-    let resolvedPeer: PeerConnection | null = null;
+      let resolvedPeer: PeerConnection | null = null;
 
-    for (const rel of active) {
-      const isOwned = rel.owner_id === uid;
-      const isGrantee = rel.grantee_handle === username;
-      if (!isOwned && !isGrantee) continue;
+      for (const rel of active) {
+        const isOwned = rel.owner_id === uid;
+        const isGrantee = rel.grantee_handle === username;
+        if (!isOwned && !isGrantee) continue;
 
-      const peerHandle = isOwned
-        ? rel.grantee_handle
-        : (profileById.get(rel.owner_id)?.username ?? `user_${rel.owner_id}`);
+        const peerHandle = isOwned
+          ? rel.grantee_handle
+          : (profileById.get(rel.owner_id)?.username ?? `user_${rel.owner_id}`);
 
-      if (peerHandle !== handle) continue;
+        if (peerHandle !== handle) continue;
 
-      const metric = metricMap.get(rel.metric_code);
+        const metric = metricMap.get(rel.metric_code);
 
-      const pm: PeerMetric = {
-        metric_name: metric?.name ?? `Metric #${rel.metric_code}`,
-        icon: metric?.icon ?? 'monitoring',
-        color: metric?.color ?? '#6b7280',
-        aggregation: rel.aggregation_level,
-        direction: isOwned ? 'outgoing' : 'incoming',
-        relationship_id: rel.id
-      };
-
-      if (!resolvedPeer) {
-        resolvedPeer = {
-          handle: peerHandle,
-          display_name: profileById.get(rel.owner_id)?.display_name ?? '',
-          is_mutual: false,
-          is_remote: peerHandle.includes(':'),
-          is_pending: false,
-          metrics: [],
-          expiration: null,
-          api_token: null,
-          last_sync: null
+        const pm: PeerMetric = {
+          metric_name: metric?.name ?? `Metric #${rel.metric_code}`,
+          icon: metric?.icon ?? 'monitoring',
+          color: metric?.color ?? '#6b7280',
+          aggregation: rel.aggregation_level,
+          direction: isOwned ? 'outgoing' : 'incoming',
+          relationship_id: rel.id
         };
+
+        if (!resolvedPeer) {
+          resolvedPeer = {
+            handle: peerHandle,
+            display_name: profileById.get(rel.owner_id)?.display_name ?? '',
+            is_mutual: false,
+            is_remote: peerHandle.includes(':'),
+            is_pending: false,
+            metrics: [],
+            expiration: null,
+            api_token: null,
+            last_sync: null
+          };
+        }
+
+        resolvedPeer.metrics.push(pm);
+        if (rel.status === 'pending') resolvedPeer.is_pending = true;
+        if (
+          rel.expiration_date &&
+          (!resolvedPeer.expiration || rel.expiration_date > resolvedPeer.expiration)
+        )
+          resolvedPeer.expiration = rel.expiration_date;
+        if (
+          rel.last_sync_at &&
+          (!resolvedPeer.last_sync || rel.last_sync_at > resolvedPeer.last_sync)
+        )
+          resolvedPeer.last_sync = rel.last_sync_at;
       }
 
-      resolvedPeer.metrics.push(pm);
-      if (rel.status === 'pending') resolvedPeer.is_pending = true;
-      if (
-        rel.expiration_date &&
-        (!resolvedPeer.expiration || rel.expiration_date > resolvedPeer.expiration)
-      )
-        resolvedPeer.expiration = rel.expiration_date;
-      if (
-        rel.last_sync_at &&
-        (!resolvedPeer.last_sync || rel.last_sync_at > resolvedPeer.last_sync)
-      )
-        resolvedPeer.last_sync = rel.last_sync_at;
-    }
+      if (resolvedPeer) {
+        const hasOut = resolvedPeer.metrics.some((m) => m.direction === 'outgoing');
+        const hasIn = resolvedPeer.metrics.some((m) => m.direction === 'incoming');
+        resolvedPeer.is_mutual = hasOut && hasIn;
+      }
 
-    if (resolvedPeer) {
-      const hasOut = resolvedPeer.metrics.some((m) => m.direction === 'outgoing');
-      const hasIn = resolvedPeer.metrics.some((m) => m.direction === 'incoming');
-      resolvedPeer.is_mutual = hasOut && hasIn;
-    }
-
-    return resolvedPeer;
-  });
+      return resolvedPeer;
+    },
+    () => handle
+  );
   const peer = $derived(peerQuery.value);
 
   // Filter activities belonging only to this connection
-  const activitiesQuery = useQuery(async () => {
-    if (!handle) return [];
-    const p = await db.user_profile.where('username').equals(handle).first();
-    const displayName = p?.display_name ?? '';
+  const activitiesQuery = useQuery(
+    async () => {
+      if (!handle) return [];
+      const p = await db.user_profile.where('username').equals(handle).first();
+      const displayName = p?.display_name ?? '';
 
-    return db.community_activity
-      .toArray()
-      .then((arr) =>
-        arr
-          .filter(
-            (act) => act.friend_name === handle || (displayName && act.friend_name === displayName)
-          )
-          .sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
-      );
-  });
+      return db.community_activity
+        .toArray()
+        .then((arr) =>
+          arr
+            .filter(
+              (act) =>
+                act.friend_name === handle || (displayName && act.friend_name === displayName)
+            )
+            .sort((a, b) => new Date(b.time ?? '').getTime() - new Date(a.time ?? '').getTime())
+        );
+    },
+    () => handle
+  );
   const activities = $derived(activitiesQuery.value);
 
   async function revoke(id: string) {

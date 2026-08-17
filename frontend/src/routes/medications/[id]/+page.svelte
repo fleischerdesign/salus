@@ -35,29 +35,39 @@
   let deleteOpen = $state(false);
   let saving = $state(false);
 
-  const medicationQuery = useQuery(() =>
-    id ? db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null)) : Promise.resolve(null)
+  const medicationQuery = useQuery(
+    () =>
+      id
+        ? db.medication.get(id).then((m) => (m && !m.deleted_at ? m : null))
+        : Promise.resolve(null),
+    () => id
   );
   const medication = $derived(medicationQuery.value);
-  const schedulesQuery = useQuery(() =>
-    db.medication_schedule
-      .where({ medication_id: id })
-      .filter((s) => !s.deleted_at)
-      .toArray()
+  const schedulesQuery = useQuery(
+    () =>
+      db.medication_schedule
+        .where({ medication_id: id })
+        .filter((s) => !s.deleted_at)
+        .toArray(),
+    () => id
   );
   const schedules = $derived(schedulesQuery.value);
-  const logsQuery = useQuery(() =>
-    db.medication_log
-      .where({ medication_id: id })
-      .filter((l) => !l.deleted_at)
-      .toArray()
+  const logsQuery = useQuery(
+    () =>
+      db.medication_log
+        .where({ medication_id: id })
+        .filter((l) => !l.deleted_at)
+        .toArray(),
+    () => id
   );
   const logs = $derived(logsQuery.value);
-  const inventoryQuery = useQuery(() =>
-    db.medication_inventory
-      .where({ medication_id: id })
-      .filter((i) => !i.deleted_at)
-      .first()
+  const inventoryQuery = useQuery(
+    () =>
+      db.medication_inventory
+        .where({ medication_id: id })
+        .filter((i) => !i.deleted_at)
+        .first(),
+    () => id
   );
   const inventory = $derived(inventoryQuery.value);
   const loading = $derived(inventoryQuery.loading);

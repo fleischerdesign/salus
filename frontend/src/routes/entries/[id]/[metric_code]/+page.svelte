@@ -10,14 +10,17 @@
   const parentGroupKey = $derived(page.params.id);
   const childMetricCode = $derived(page.params.metric_code);
 
-  const metricDataQuery = useQuery(async () => {
-    const code = childMetricCode;
-    if (!code) return null;
-    const def = await db.metric_definition.get(code);
-    if (!def) return null;
-    const pref = await db.user_metric_preference.where('metric_code').equals(code).first();
-    return mergeMetricPrefs([def], pref ? [pref] : [])[0] ?? null;
-  });
+  const metricDataQuery = useQuery(
+    async () => {
+      const code = childMetricCode;
+      if (!code) return null;
+      const def = await db.metric_definition.get(code);
+      if (!def) return null;
+      const pref = await db.user_metric_preference.where('metric_code').equals(code).first();
+      return mergeMetricPrefs([def], pref ? [pref] : [])[0] ?? null;
+    },
+    () => childMetricCode
+  );
   const metric = $derived(metricDataQuery.value);
   const loading = $derived(metricDataQuery.loading);
 

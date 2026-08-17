@@ -46,16 +46,26 @@
     { value: '1y', label: '1Y' }
   ];
 
-  const analyticsQuery = useQuery(() => fetchAnalytics(range));
+  const analyticsQuery = useQuery(
+    () => fetchAnalytics(range),
+    () => range
+  );
   const data = $derived(analyticsQuery.value);
   let correlationMethod = $state<'pearson' | 'spearman'>('pearson');
-  const correlationsQuery = useQuery(() =>
-    fetchCorrelations(tab === 'deep' ? '90d' : null, correlationMethod)
+  const correlationsQuery = useQuery(
+    () => fetchCorrelations(tab === 'deep' ? '90d' : null, correlationMethod),
+    () => `${tab}:${correlationMethod}`
   );
   const correlations = $derived(correlationsQuery.value);
-  const weightTrendQuery = useQuery(() => fetchTrend('weight', range));
+  const weightTrendQuery = useQuery(
+    () => fetchTrend('weight', range),
+    () => range
+  );
   const weightTrend = $derived(weightTrendQuery.value);
-  const hrTrendQuery = useQuery(() => fetchTrend('heart_rate', range));
+  const hrTrendQuery = useQuery(
+    () => fetchTrend('heart_rate', range),
+    () => range
+  );
   const hrTrend = $derived(hrTrendQuery.value);
   const sleepDebtQuery = useQuery(() => fetchSleepDebt(30));
   const sleepDebt = $derived(sleepDebtQuery.value);

@@ -12,12 +12,14 @@
   let date = $state(new Date().toISOString().slice(0, 10));
   let generating = $state(false);
 
-  const insightQuery = useQuery(() =>
-    db.insight
-      .where('query_date')
-      .equals(date)
-      .first()
-      .then((i) => (i && !i.deleted_at ? i : null))
+  const insightQuery = useQuery(
+    () =>
+      db.insight
+        .where('query_date')
+        .equals(date)
+        .first()
+        .then((i) => (i && !i.deleted_at ? i : null)),
+    () => date
   );
   const insight = $derived(insightQuery.value);
 

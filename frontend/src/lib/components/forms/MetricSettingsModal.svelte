@@ -22,47 +22,50 @@
   let preferences = $state<UserSourcePreference[]>([]);
   let saving = $state(false);
 
-  const loadedPrefsQuery = useQuery(async () => {
-    if (!open || !metricCode) return [] as UserSourcePreference[];
-    // Fetch user preferences for this metric
-    const userPrefs = await db.user_source_preference
-      .where('metric_code')
-      .equals(metricCode)
-      .sortBy('priority_rank');
+  const loadedPrefsQuery = useQuery(
+    async () => {
+      if (!open || !metricCode) return [] as UserSourcePreference[];
+      // Fetch user preferences for this metric
+      const userPrefs = await db.user_source_preference
+        .where('metric_code')
+        .equals(metricCode)
+        .sortBy('priority_rank');
 
-    // Fetch distinct sources present in measurement table for this metric (sample recent)
-    const measurements = await db.measurement
-      .where('metric_code')
-      .equals(metricCode)
-      .limit(100)
-      .toArray();
+      // Fetch distinct sources present in measurement table for this metric (sample recent)
+      const measurements = await db.measurement
+        .where('metric_code')
+        .equals(metricCode)
+        .limit(100)
+        .toArray();
 
-    const knownSources = new Set<string>();
-    measurements.forEach((m) => {
-      if (m.source) knownSources.add(m.source);
-    });
+      const knownSources = new Set<string>();
+      measurements.forEach((m) => {
+        if (m.source) knownSources.add(m.source);
+      });
 
-    // Combine known sources with existing preferences
-    const existingSources = new Set(userPrefs.map((p) => p.source));
-    const combined: UserSourcePreference[] = [...userPrefs];
+      // Combine known sources with existing preferences
+      const existingSources = new Set(userPrefs.map((p) => p.source));
+      const combined: UserSourcePreference[] = [...userPrefs];
 
-    let nextRank = userPrefs.length + 1;
-    for (const s of knownSources) {
-      if (!existingSources.has(s)) {
-        combined.push({
-          id: `temp-${s}`,
-          user_id: SELF_USER_ID,
-          metric_code: metricCode,
-          source: s,
-          priority_rank: nextRank++,
-          is_enabled: true,
-          created_at: new Date().toISOString()
-        });
+      let nextRank = userPrefs.length + 1;
+      for (const s of knownSources) {
+        if (!existingSources.has(s)) {
+          combined.push({
+            id: `temp-${s}`,
+            user_id: SELF_USER_ID,
+            metric_code: metricCode,
+            source: s,
+            priority_rank: nextRank++,
+            is_enabled: true,
+            created_at: new Date().toISOString()
+          });
+        }
       }
-    }
 
-    return combined.sort((a, b) => a.priority_rank - b.priority_rank);
-  });
+      return combined.sort((a, b) => a.priority_rank - b.priority_rank);
+    },
+    () => `${open}:${metricCode}`
+  );
   const loadedPrefs = $derived(loadedPrefsQuery.value);
   const loading = $derived(loadedPrefsQuery.loading);
 

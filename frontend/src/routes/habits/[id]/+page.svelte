@@ -21,15 +21,19 @@
 
   let id = $derived(page.params.id);
 
-  const habitQuery = useQuery(() =>
-    id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null)
+  const habitQuery = useQuery(
+    () =>
+      id ? db.habit.get(id).then((h) => (h && !h.deleted_at ? h : null)) : Promise.resolve(null),
+    () => id
   );
   const habit = $derived(habitQuery.value);
-  const logsQuery = useQuery(() =>
-    db.habit_log
-      .where({ habit_id: id })
-      .filter((l) => !l.deleted_at)
-      .toArray()
+  const logsQuery = useQuery(
+    () =>
+      db.habit_log
+        .where({ habit_id: id })
+        .filter((l) => !l.deleted_at)
+        .toArray(),
+    () => id
   );
   const logs = $derived(logsQuery.value);
   const loading = $derived(logsQuery.loading);

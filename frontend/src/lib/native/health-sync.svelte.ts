@@ -6,6 +6,7 @@ import { db } from '$lib/db/database';
 import type { Measurement } from '$lib/db/types';
 import { scheduleStatsRefresh } from '$lib/db/metric-stats';
 import { localMode } from '$lib/db/local-mode.svelte';
+import { upsertMeasurements } from '$lib/db/measurement-writes';
 import { api } from '$lib/api/client';
 
 export interface HealthSyncResult {
@@ -282,7 +283,7 @@ async function ingestChunk(
   }
 
   if (writes.length > 0) {
-    await db.measurement.bulkPut(writes);
+    await upsertMeasurements(writes);
   }
   return { count: writes.length, maxMeasuredAt };
 }

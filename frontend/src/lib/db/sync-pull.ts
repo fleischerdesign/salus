@@ -2,6 +2,8 @@ import { db } from './database';
 import { rawGet } from '$lib/api/client';
 import { fetchEntityNames } from './entity-info';
 import { recomputeAllStats } from '$lib/db/metric-stats';
+import { createMeasurements, deleteMeasurements, upsertMeasurements } from './measurement-writes';
+import type { Measurement } from './types';
 
 const SYNC_META_KEYS = new Set(['cursors', 'has_more', 'synced_at']);
 const CHUNK_SIZE = 500;
@@ -97,11 +99,18 @@ export async function pullFull(
 
       if (!clearedTables.has(table)) {
         await db.table(table).clear();
+        if (table === 'measurement') {
+          await db.metric_daily_stats.clear();
+        }
         clearedTables.add(table);
       }
 
       if (isRecordArray(rows) && rows.length > 0) {
-        await _bulkPutChunked(table, rows);
+        if (table === 'measurement') {
+          await createMeasurements(rows as unknown as Measurement[]);
+        } else {
+          await _bulkPutChunked(table, rows);
+        }
       } else if (typeof rows === 'object' && rows !== null && !Array.isArray(rows)) {
         await db.table(table).put(rows as Record<string, unknown>);
       }
@@ -150,14 +159,22 @@ export async function pullDelta(
   for (const [table, rows] of changedEntities) {
     const applyProgress = totalOps > 0 ? 0.2 + (opIdx / totalOps) * 0.75 : 0.2;
     onProgress?.(`Saving ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
-    await _bulkPutChunked(table, rows);
+    if (table === 'measurement') {
+      await upsertMeasurements(rows as unknown as Measurement[]);
+    } else {
+      await _bulkPutChunked(table, rows);
+    }
     opIdx++;
   }
 
   for (const [table, ids] of deletedEntities) {
     const applyProgress = totalOps > 0 ? 0.2 + (opIdx / totalOps) * 0.75 : 0.2;
     onProgress?.(`Cleaning ${table} (${opIdx + 1}/${totalOps})...`, applyProgress);
-    await _bulkDeleteChunked(table, ids);
+    if (table === 'measurement') {
+      await deleteMeasurements(ids as string[]);
+    } else {
+      await _bulkDeleteChunked(table, ids);
+    }
     opIdx++;
   }
 

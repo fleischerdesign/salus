@@ -34,31 +34,34 @@
   let groupMetrics = $state<MetricWithPreference[]>([]);
   let metricDetail = $state<MetricWithPreference | null>(null);
 
-  const detailDataQuery = useQuery(async () => {
-    const id = metricId;
-    if (!id) return null;
-    const g = await db.metric_group.get(id);
-    if (g) {
-      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === g.key);
-      defs.sort((a, b) => a.sort_order - b.sort_order);
+  const detailDataQuery = useQuery(
+    async () => {
+      const id = metricId;
+      if (!id) return null;
+      const g = await db.metric_group.get(id);
+      if (g) {
+        const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === g.key);
+        defs.sort((a, b) => a.sort_order - b.sort_order);
+        const prefs = await db.user_metric_preference.toArray();
+        return {
+          isGroup: true,
+          group: g,
+          groupMetrics: mergeMetricPrefs(defs, prefs),
+          metricDetail: null
+        };
+      }
+      const defs = await db.metric_definition.toArray();
       const prefs = await db.user_metric_preference.toArray();
+      const merged = mergeMetricPrefs(defs, prefs);
       return {
-        isGroup: true,
-        group: g,
-        groupMetrics: mergeMetricPrefs(defs, prefs),
-        metricDetail: null
+        isGroup: false,
+        group: null,
+        groupMetrics: [],
+        metricDetail: merged.find((m) => m.code === id) || null
       };
-    }
-    const defs = await db.metric_definition.toArray();
-    const prefs = await db.user_metric_preference.toArray();
-    const merged = mergeMetricPrefs(defs, prefs);
-    return {
-      isGroup: false,
-      group: null,
-      groupMetrics: [],
-      metricDetail: merged.find((m) => m.code === id) || null
-    };
-  });
+    },
+    () => metricId
+  );
   const detailData = $derived(detailDataQuery.value);
   const loading = $derived(detailDataQuery.loading);
 
@@ -78,25 +81,30 @@
   let entriesForGroup = $state<Entry[]>([]);
   let entriesForGroupLoading = $state(true);
 
-  const groupEntriesDataQuery = useQuery(async () => {
-    const gKey = group?.key;
-    if (!isGroup || !gKey || group?.input_mode !== 'combined') return [] as Entry[];
-    const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-    const codes = defs.map((d) => d.code);
-    if (codes.length === 0) return [] as Entry[];
-    const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
-    const results = await Promise.all(
-      codes.map((code) =>
-        db.measurement
-          .where('[metric_code+start_time]')
-          .between([code, cutoff], [code, Dexie.maxKey])
-          .filter((e) => !e.deleted_at)
-          .toArray()
-      )
-    );
-    const all = results.flat();
-    return all.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
-  });
+  const groupEntriesDataQuery = useQuery(
+    async () => {
+      const gKey = group?.key;
+      if (!isGroup || !gKey || group?.input_mode !== 'combined') return [] as Entry[];
+      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
+      const codes = defs.map((d) => d.code);
+      if (codes.length === 0) return [] as Entry[];
+      const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
+      const results = await Promise.all(
+        codes.map((code) =>
+          db.measurement
+            .where('[metric_code+start_time]')
+            .between([code, cutoff], [code, Dexie.maxKey])
+            .filter((e) => !e.deleted_at)
+            .toArray()
+        )
+      );
+      const all = results.flat();
+      return all.sort(
+        (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+      );
+    },
+    () => `${isGroup}:${group?.key}:${group?.input_mode}`
+  );
   const groupEntriesData = $derived(groupEntriesDataQuery.value);
 
   $effect(() => {
@@ -137,38 +145,41 @@
     { code: string; name: string; color: string; data: (number | null)[]; labels: string[] }[]
   >([]);
 
-  const chartDataQuery = useQuery(async () => {
-    const gKey = group?.key;
-    if (!isGroup || !gKey || group?.input_mode !== 'combined') return [];
-    const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
-    const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
-    const result: {
-      code: string;
-      name: string;
-      color: string;
-      data: (number | null)[];
-      labels: string[];
-    }[] = [];
-    for (const d of defs) {
-      const clean = await db.measurement
-        .where('[metric_code+start_time]')
-        .between([d.code, cutoff], [d.code, Dexie.maxKey])
-        .filter((e) => !e.deleted_at)
-        .toArray();
-      if (clean.length > 0) {
-        result.push({
-          code: d.code,
-          name: d.name,
-          color: '#4f46e5',
-          labels: clean.map((e) => new Date(e.start_time).toLocaleDateString()),
-          data: clean.map(
-            (e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null)
-          )
-        });
+  const chartDataQuery = useQuery(
+    async () => {
+      const gKey = group?.key;
+      if (!isGroup || !gKey || group?.input_mode !== 'combined') return [];
+      const defs = (await db.metric_definition.toArray()).filter((d) => d.group_key === gKey);
+      const cutoff = new Date(Date.now() - 90 * MS_PER_DAY).toISOString();
+      const result: {
+        code: string;
+        name: string;
+        color: string;
+        data: (number | null)[];
+        labels: string[];
+      }[] = [];
+      for (const d of defs) {
+        const clean = await db.measurement
+          .where('[metric_code+start_time]')
+          .between([d.code, cutoff], [d.code, Dexie.maxKey])
+          .filter((e) => !e.deleted_at)
+          .toArray();
+        if (clean.length > 0) {
+          result.push({
+            code: d.code,
+            name: d.name,
+            color: '#4f46e5',
+            labels: clean.map((e) => new Date(e.start_time).toLocaleDateString()),
+            data: clean.map(
+              (e) => e.value_numeric ?? (e.value_text ? parseFloat(e.value_text) : null)
+            )
+          });
+        }
       }
-    }
-    return result;
-  });
+      return result;
+    },
+    () => `${isGroup}:${group?.key}:${group?.input_mode}`
+  );
   const chartData = $derived(chartDataQuery.value);
 
   $effect(() => {
