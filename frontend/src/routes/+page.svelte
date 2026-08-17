@@ -23,7 +23,6 @@
   import VizCandlestick from '$components/dashboard/VizCandlestick.svelte';
   import VizNumber from '$components/dashboard/VizNumber.svelte';
   import VizPills, { type PillBucket } from '$components/dashboard/VizPills.svelte';
-  import VizProgress from '$components/dashboard/VizProgress.svelte';
   import VizSparkline from '$components/dashboard/VizSparkline.svelte';
   import VizWorkoutLauncher from '$components/dashboard/VizWorkoutLauncher.svelte';
   import VizSleepCoach from '$components/dashboard/VizSleepCoach.svelte';
@@ -425,16 +424,6 @@
               subLabel={viz.subtitle ?? undefined}
               color={viz.color ?? undefined}
               animate={true}
-            />
-          {:else if viz.type === 'progress'}
-            <VizProgress
-              value={typeof viz.value === 'number'
-                ? viz.value
-                : Number(String(viz.value ?? 0).replace(/,/g, '')) || 0}
-              target={viz.goal_target ?? undefined}
-              unit={viz.unit ?? undefined}
-              color={viz.color ?? undefined}
-              showPercent={true}
             />
           {:else if viz.type === 'pills'}
             <VizPills

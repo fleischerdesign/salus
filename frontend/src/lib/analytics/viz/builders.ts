@@ -5,7 +5,6 @@ import { MS_PER_DAY } from '$lib/utils/datetime';
 export interface WidgetViz {
   type:
     | 'number'
-    | 'progress'
     | 'pills'
     | 'bar'
     | 'sparkline'
@@ -23,9 +22,6 @@ export interface WidgetViz {
   delta?: string | null;
   empty?: boolean;
   empty_text?: string;
-  goal_label?: string;
-  goal_percent?: number;
-  goal_target?: number;
   sparkline_path?: string;
   segments?: Array<{
     label: string;
@@ -93,12 +89,6 @@ function latestWeight(measurements: Measurement[]): number | null {
   return dayM[0]?.value_numeric ?? null;
 }
 
-function findGoal(goals: Goal[], sourceDataType: string, metricCode: string): Goal | null {
-  return (
-    goals.find((g) => g.deleted_at == null && g.is_active && g.metric_code === metricCode) ?? null
-  );
-}
-
 /* ── Builders ── */
 
 export function buildStepsViz(ctx: VizContext): WidgetViz {
@@ -106,9 +96,9 @@ export function buildStepsViz(ctx: VizContext): WidgetViz {
   const todaySteps = stepsTrend(dayM);
   if (todaySteps == null) {
     return {
-      type: 'progress',
+      type: 'number',
       title: 'Steps',
-      value: 0,
+      value: '—',
       unit: 'steps',
       empty: true,
       empty_text: 'No step data yet.'
@@ -121,22 +111,14 @@ export function buildStepsViz(ctx: VizContext): WidgetViz {
     return t >= yStart && t < yStart + MS_PER_DAY && !m.deleted_at;
   });
   const yesterdaySteps = stepsTrend(yestM);
-  const goal = findGoal(ctx.goals, 'steps', ctx.metric.code);
-  const viz: WidgetViz = {
-    type: 'progress',
+  return {
+    type: 'number',
     title: 'Steps',
-    value: todaySteps,
+    value: todaySteps.toLocaleString(),
     unit: 'steps',
-    subtitle: 'today',
     color: ctx.color ?? '#4f46e5',
-    delta: deltaStr(todaySteps, yesterdaySteps, { isInteger: true }),
-    goal_target: goal ? goal.target_value : undefined,
-    goal_percent: goal
-      ? Math.min(100, Math.floor((todaySteps / goal.target_value) * 100))
-      : undefined,
-    goal_label: goal ? `Target: ${Math.round(goal.target_value).toLocaleString()} / day` : undefined
+    delta: deltaStr(todaySteps, yesterdaySteps, { isInteger: true })
   };
-  return viz;
 }
 
 export function buildHeartRateViz(ctx: VizContext): WidgetViz {
