@@ -98,7 +98,7 @@
       backUrl="/workouts/plans"
     >
       {#snippet actions()}
-        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
+        <div class="divide-surface-200 flex h-full items-stretch divide-x select-none">
           <!-- Badges Segment -->
           <div class="flex items-center gap-1.5 px-6">
             <Badge
@@ -120,7 +120,7 @@
 
     <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
       <div class="space-y-3">
-        <h2 class="text-lg font-semibold text-surface-900">Exercises</h2>
+        <h2 class="text-surface-900 text-lg font-semibold">Exercises</h2>
         {#if planExercises.length === 0}
           <EmptyState
             title="No exercises"
@@ -129,7 +129,7 @@
           />
         {:else}
           <Card padding={false}>
-            <div class="divide-y divide-surface-100">
+            <div class="divide-surface-100 divide-y">
               {#each planExercises as pe (pe.id)}
                 {@const ex = exercises?.get(pe.exercise_id)}
                 <ListItem hoverable>
@@ -139,18 +139,18 @@
                       class="flex min-w-0 flex-1 items-center justify-between gap-3 no-underline"
                     >
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-medium text-surface-900">
+                        <p class="text-surface-900 truncate text-sm font-medium">
                           {ex?.name ?? 'Unknown'}
                         </p>
-                        <p class="mt-0.5 text-xs text-surface-400 capitalize">
+                        <p class="text-surface-400 mt-0.5 text-xs capitalize">
                           {ex?.equipment ?? ''} · {ex?.primary_muscles ?? ''}
                         </p>
                       </div>
                       <div class="shrink-0 text-right">
-                        <p class="text-sm font-semibold text-surface-700">
+                        <p class="text-surface-700 text-sm font-semibold">
                           {pe.target_sets}×{pe.target_reps}
                         </p>
-                        <p class="text-xs text-surface-400">@ RPE {pe.target_rpe ?? '—'}</p>
+                        <p class="text-surface-400 text-xs">@ RPE {pe.target_rpe ?? '—'}</p>
                       </div>
                     </a>
                   {/snippet}
@@ -162,14 +162,14 @@
       </div>
 
       <div class="space-y-3">
-        <h2 class="text-lg font-semibold text-surface-900">Session History</h2>
+        <h2 class="text-surface-900 text-lg font-semibold">Session History</h2>
         {#if !sessions || (sessions ?? []).length === 0}
           <Card
-            ><p class="text-sm text-surface-400">No completed sessions for this plan yet.</p></Card
+            ><p class="text-surface-400 text-sm">No completed sessions for this plan yet.</p></Card
           >
         {:else}
           <Card padding={false}>
-            <div class="divide-y divide-surface-100">
+            <div class="divide-surface-100 divide-y">
               {#each (sessions ?? []).slice(0, 10) as sess (sess.id)}
                 <ListItem hoverable>
                   {#snippet children()}
@@ -178,10 +178,10 @@
                       class="flex min-w-0 flex-1 items-center justify-between gap-3 no-underline"
                     >
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-medium text-surface-700">
+                        <p class="text-surface-700 truncate text-sm font-medium">
                           {new Date(sess.completed_at ?? sess.started_at).toLocaleDateString()}
                         </p>
-                        <p class="text-xs text-surface-400">
+                        <p class="text-surface-400 text-xs">
                           {formatDuration(sess.started_at, sess.completed_at)} · {sessionVolume(
                             logs,
                             sess.id

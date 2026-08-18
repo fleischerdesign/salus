@@ -69,18 +69,20 @@
   <!-- Header: Primary Value & Daily Range Summary (Flush Left & Right) -->
   <div class="flex items-baseline justify-between">
     <div class="flex items-baseline gap-1.5">
-      <span class="text-2xl font-bold text-surface-900">{value ?? '—'}</span>
+      <span class="text-2xl font-black text-[var(--text-main)] tabular-nums">{value ?? '—'}</span>
       {#if unit}
-        <span class="text-xs font-semibold tracking-wider text-surface-400 uppercase">{unit}</span>
+        <span class="text-xs font-bold tracking-wider text-[var(--text-soft)] uppercase"
+          >{unit}</span
+        >
       {/if}
     </div>
 
     {#if hoveredBucket}
-      <span class="text-xs font-medium text-error-500 transition-all">
+      <span class="text-xs font-bold text-rose-500 transition-all">
         {hoveredBucket.label}: {hoveredBucket.min}–{hoveredBucket.max} bpm
       </span>
     {:else if subtitle}
-      <span class="text-xs text-surface-500">{subtitle}</span>
+      <span class="text-xs font-semibold text-[var(--text-muted)]">{subtitle}</span>
     {/if}
   </div>
 

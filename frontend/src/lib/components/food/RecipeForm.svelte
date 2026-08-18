@@ -1,11 +1,11 @@
 <script lang="ts">
   import Modal from '$components/ui/Modal.svelte';
   import Btn from '$components/ui/Btn.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import Input from '$components/ui/Input.svelte';
   import Textarea from '$components/ui/Textarea.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import type { FoodItem } from '$lib/db/types';
+  import type { RecipeIngredientInput } from '$lib/mutations/recipe';
 
   interface IngredientSelection {
     foodItemId: string;
@@ -22,22 +22,27 @@
     open: boolean;
     recipe?: {
       name: string;
-      description: string;
-      instructions: string;
+      description?: string | null;
+      instructions?: string | null;
       servings: number;
-      prep_time_min: number | null;
-      cook_time_min: number | null;
+      prep_time_min?: number | null;
+      cook_time_min?: number | null;
     } | null;
-    recipeIngredients?: Array<{ food_item_id: string; amount_g: number; notes: string | null }>;
-    foodItems: FoodItem[];
+    recipeIngredients?: {
+      food_item_id: string;
+      amount_g: number;
+      notes?: string | null;
+    }[];
+    existingIngredients?: IngredientSelection[];
+    foodItems?: FoodItem[];
     onSave: (data: {
       name: string;
-      description: string;
-      instructions: string;
+      description?: string;
+      instructions?: string;
       servings: number;
-      prep_time_min: number | null;
-      cook_time_min: number | null;
-      ingredients: { food_item_id: string; amount_g: number; notes: string }[];
+      prep_time_min?: number | null;
+      cook_time_min?: number | null;
+      ingredients: RecipeIngredientInput[];
     }) => void;
     onClose: () => void;
     saving?: boolean;
@@ -46,8 +51,9 @@
   let {
     open,
     recipe,
-    recipeIngredients,
-    foodItems,
+    recipeIngredients = [],
+    existingIngredients = [],
+    foodItems = [],
     onSave,
     onClose,
     saving = false
@@ -56,70 +62,73 @@
   let name = $state('');
   let description = $state('');
   let instructions = $state('');
-  let servings = $state(4);
-  let prepTimeMin = $state('');
-  let cookTimeMin = $state('');
-  let search = $state('');
+  let servings = $state(1);
+  let prepTimeMin = $state<number | undefined>(undefined);
+  let cookTimeMin = $state<number | undefined>(undefined);
   let ingredients = $state<IngredientSelection[]>([]);
+  let search = $state('');
 
-  function reset() {
+  $effect(() => {
+    if (!open) return;
     if (recipe) {
       name = recipe.name;
       description = recipe.description ?? '';
       instructions = recipe.instructions ?? '';
       servings = recipe.servings;
-      prepTimeMin = recipe.prep_time_min?.toString() ?? '';
-      cookTimeMin = recipe.cook_time_min?.toString() ?? '';
+      prepTimeMin = recipe.prep_time_min ?? undefined;
+      cookTimeMin = recipe.cook_time_min ?? undefined;
+
+      if (recipeIngredients.length > 0) {
+        const foodMap = new Map(foodItems.map((f) => [f.id, f]));
+        ingredients = recipeIngredients.map((ri) => {
+          const food = foodMap.get(ri.food_item_id);
+          return {
+            foodItemId: ri.food_item_id,
+            amountG: ri.amount_g,
+            name: food?.name ?? 'Zutat',
+            calories: food?.calories_per_serving ?? 0,
+            proteinG: food?.protein_g ?? 0,
+            carbsG: food?.carbs_g ?? 0,
+            fatG: food?.fat_g ?? 0,
+            notes: ri.notes ?? ''
+          };
+        });
+      } else {
+        ingredients = [...existingIngredients];
+      }
     } else {
       name = '';
       description = '';
       instructions = '';
-      servings = 4;
-      prepTimeMin = '';
-      cookTimeMin = '';
+      servings = 1;
+      prepTimeMin = undefined;
+      cookTimeMin = undefined;
+      ingredients = [];
     }
-    search = '';
-    ingredients = (recipeIngredients ?? []).map((ri) => {
-      const food = foodItems.find((f) => f.id === ri.food_item_id);
-      return {
-        foodItemId: ri.food_item_id,
-        amountG: ri.amount_g,
-        name: food?.name ?? ri.food_item_id,
-        calories: food?.calories_per_serving ?? 0,
-        proteinG: food?.protein_g ?? 0,
-        carbsG: food?.carbs_g ?? 0,
-        fatG: food?.fat_g ?? 0,
-        notes: ri.notes ?? ''
-      };
-    });
-  }
-
-  $effect(() => {
-    if (open) reset();
   });
 
   const filteredItems = $derived(
     search.trim()
       ? foodItems.filter(
-          (f) => f.name.toLowerCase().includes(search.toLowerCase()) && !f.deleted_at
+          (f) =>
+            f.name.toLowerCase().includes(search.toLowerCase()) ||
+            (f.brand && f.brand.toLowerCase().includes(search.toLowerCase()))
         )
       : []
   );
 
   function addIngredient(food: FoodItem) {
-    ingredients = [
-      ...ingredients,
-      {
-        foodItemId: food.id ?? '',
-        amountG: 100,
-        name: food.name,
-        calories: food.calories_per_serving,
-        proteinG: food.protein_g,
-        carbsG: food.carbs_g,
-        fatG: food.fat_g,
-        notes: ''
-      }
-    ];
+    if (ingredients.some((i) => i.foodItemId === food.id)) return;
+    ingredients.push({
+      foodItemId: food.id,
+      amountG: food.serving_size || 100,
+      name: food.name,
+      calories: food.calories_per_serving,
+      proteinG: food.protein_g,
+      carbsG: food.carbs_g,
+      fatG: food.fat_g,
+      notes: ''
+    });
     search = '';
   }
 
@@ -127,105 +136,153 @@
     ingredients = ingredients.filter((i) => i.foodItemId !== foodItemId);
   }
 
-  function updateAmount(foodItemId: string, value: number) {
-    ingredients = ingredients.map((i) =>
-      i.foodItemId === foodItemId && Number.isFinite(value) && value > 0
-        ? { ...i, amountG: value }
-        : i
-    );
+  function updateAmount(foodItemId: string, amountG: number) {
+    const item = ingredients.find((i) => i.foodItemId === foodItemId);
+    if (item) item.amountG = amountG;
   }
 
-  const canSave = $derived(name.trim().length > 0 && ingredients.length > 0);
+  const isValid = $derived(name.trim().length > 0 && servings > 0);
 
   function handleSubmit() {
-    if (!canSave) return;
+    if (!isValid) return;
     onSave({
       name: name.trim(),
-      description: description.trim() || '',
-      instructions: instructions.trim() || '',
+      description: description.trim() || undefined,
+      instructions: instructions.trim() || undefined,
       servings,
-      prep_time_min: prepTimeMin ? parseInt(prepTimeMin) : null,
-      cook_time_min: cookTimeMin ? parseInt(cookTimeMin) : null,
+      prep_time_min: prepTimeMin !== undefined ? Number(prepTimeMin) : null,
+      cook_time_min: cookTimeMin !== undefined ? Number(cookTimeMin) : null,
       ingredients: ingredients.map((i) => ({
         food_item_id: i.foodItemId,
         amount_g: i.amountG,
-        notes: i.notes || ''
+        notes: i.notes || undefined
       }))
     });
   }
 </script>
 
-<Modal {open} onclose={onClose} title={recipe ? 'Edit Recipe' : 'New Recipe'} size="lg">
-  <div class="flex flex-col gap-4">
-    <FormField label="Name" required>
-      <Input name="recipe_name" placeholder="e.g. Protein Pancakes" bind:value={name} />
-    </FormField>
+<Modal
+  {open}
+  onclose={onClose}
+  title={recipe ? 'Rezept bearbeiten' : 'Neues Rezept'}
+  subtitle="Zutaten, Nährwerte und Zubereitungsschritte"
+  icon="menu_book"
+  size="lg"
+>
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSubmit();
+    }}
+    class="space-y-4 text-xs"
+  >
+    <Input
+      label="Rezeptname"
+      name="recipe_name"
+      placeholder="z. B. Protein Haferflocken Bowl"
+      bind:value={name}
+      required
+    />
 
-    <FormField label="Description">
-      <Input name="description" placeholder="Short description..." bind:value={description} />
-    </FormField>
+    <Input
+      label="Kurzbeschreibung (optional)"
+      name="description"
+      placeholder="z. B. Schnelles Post-Workout Frühstück mit hohem Proteingehalt"
+      bind:value={description}
+    />
 
-    <div class="grid grid-cols-3 gap-4">
-      <FormField label="Servings">
-        <Input name="servings" type="number" bind:value={servings} min={1} />
-      </FormField>
-      <FormField label="Prep Time (min)">
-        <Input name="prep_time" type="number" bind:value={prepTimeMin} min={0} placeholder="10" />
-      </FormField>
-      <FormField label="Cook Time (min)">
-        <Input name="cook_time" type="number" bind:value={cookTimeMin} min={0} placeholder="20" />
-      </FormField>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <Input
+        label="Portionen"
+        name="servings"
+        type="number"
+        bind:value={servings}
+        min={1}
+        required
+      />
+      <Input
+        label="Vorbereitungszeit (Minuten)"
+        name="prep_time"
+        type="number"
+        bind:value={prepTimeMin}
+        min={0}
+        placeholder="10"
+      />
+      <Input
+        label="Koch-/Backzeit (Minuten)"
+        name="cook_time"
+        type="number"
+        bind:value={cookTimeMin}
+        min={0}
+        placeholder="20"
+      />
     </div>
 
-    <FormField label="Add Ingredients">
-      <Input name="recipe_food_search" placeholder="Search food items..." bind:value={search} />
-    </FormField>
+    <div>
+      <Input
+        label="Zutaten aus Datenbank hinzufügen"
+        icon="search"
+        name="recipe_food_search"
+        placeholder="Lebensmittel suchen..."
+        bind:value={search}
+      />
+    </div>
 
     {#if search.trim() && filteredItems.length > 0}
-      <div class="max-h-40 overflow-y-auto rounded-lg border border-surface-200">
+      <div
+        class="max-h-40 divide-y divide-[var(--border-subtle)] overflow-y-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)]"
+      >
         {#each filteredItems.slice(0, 10) as food (food.id)}
           <button
+            type="button"
             onclick={() => addIngredient(food)}
-            class="flex w-full items-center justify-between border-b border-surface-100 px-3 py-2 text-left last:border-b-0 hover:bg-surface-50"
+            class="flex w-full cursor-pointer items-center justify-between px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--bg-surface-50)]"
           >
             <div>
-              <div class="text-sm font-medium text-surface-700">{food.name}</div>
-              <div class="text-xs text-surface-400">
-                {food.calories_per_serving} kcal per {food.serving_size}{food.serving_unit}
+              <div class="text-xs font-bold text-[var(--text-main)]">{food.name}</div>
+              <div class="text-[0.6875rem] text-[var(--text-muted)]">
+                {food.calories_per_serving} kcal pro {food.serving_size}
+                {food.serving_unit}
               </div>
             </div>
-            <Icon name="add-circle" size="sm" class="text-primary-500" />
+            <Icon name="add-circle" size="sm" class="text-[var(--color-primary)]" />
           </button>
         {/each}
       </div>
     {/if}
 
     {#if ingredients.length > 0}
-      <div class="rounded-lg border border-surface-200 p-3">
-        <h3 class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">
-          Ingredients
+      <div class="space-y-2 rounded-2xl border border-[var(--border-subtle)] p-3">
+        <h3 class="text-xs font-bold tracking-wider text-[var(--text-muted)] uppercase">
+          Enthaltene Zutaten ({ingredients.length})
         </h3>
         <div class="flex flex-col gap-2">
           {#each ingredients as ing (ing.foodItemId)}
-            <div class="flex items-center gap-3 rounded-lg bg-surface-50 px-3 py-2">
+            <div
+              class="flex items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2"
+            >
               <div class="min-w-0 flex-1">
-                <div class="truncate text-sm font-medium text-surface-700">{ing.name}</div>
-                <div class="text-xs text-surface-400">
+                <div class="truncate text-xs font-bold text-[var(--text-main)]">{ing.name}</div>
+                <div class="text-[0.6875rem] text-[var(--text-muted)]">
                   {Math.round(ing.calories * (ing.amountG / 100))} kcal
                 </div>
               </div>
               <div class="flex flex-shrink-0 items-center gap-2">
-                <input
-                  name={'amount_' + ing.foodItemId}
-                  type="number"
-                  value={ing.amountG}
-                  min={1}
-                  class="h-8 w-20 rounded-md border border-surface-300 bg-surface-50 px-2 text-xs text-surface-900 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
-                  oninput={(e) => updateAmount(ing.foodItemId, Number(e.currentTarget.value))}
-                />
+                <div class="w-28">
+                  <Input
+                    name={'amount_' + ing.foodItemId}
+                    type="number"
+                    value={ing.amountG}
+                    min={1}
+                    unit="g"
+                    oninput={(e) =>
+                      updateAmount(ing.foodItemId, Number((e.target as HTMLInputElement).value))}
+                  />
+                </div>
                 <button
+                  type="button"
                   onclick={() => removeIngredient(ing.foodItemId)}
-                  class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:text-error-500"
+                  class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                 >
                   <Icon name="close" size="sm" />
                 </button>
@@ -236,20 +293,19 @@
       </div>
     {/if}
 
-    <FormField label="Instructions">
-      <Textarea
-        name="instructions"
-        placeholder="Step-by-step preparation..."
-        bind:value={instructions}
-        rows={4}
-      />
-    </FormField>
+    <Textarea
+      label="Zubereitungsschritte"
+      name="instructions"
+      placeholder="Schritt-für-Schritt Zubereitungsanleitung..."
+      bind:value={instructions}
+      rows={4}
+    />
 
-    <div class="flex justify-end gap-3 pt-2">
-      <Btn variant="ghost" onclick={onClose}>Cancel</Btn>
-      <Btn variant="primary" onclick={handleSubmit} disabled={!canSave || saving}>
-        {saving ? 'Saving...' : recipe ? 'Save' : 'Create'}
+    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
+      <Btn variant="primary" size="md" type="submit" disabled={!isValid || saving} loading={saving}>
+        {recipe ? 'Speichern' : 'Rezept anlegen'}
       </Btn>
     </div>
-  </div>
+  </form>
 </Modal>

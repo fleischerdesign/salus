@@ -1,9 +1,7 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
   import { page } from '$app/state';
-  import PageHeader from '$components/ui/PageHeader.svelte';
-  import PageTransition from '$components/ui/PageTransition.svelte';
-  import Icon from '$components/ui/Icon.svelte';
+  import Badge from '$components/ui/Badge.svelte';
 
   interface Props {
     children?: Snippet;
@@ -11,47 +9,62 @@
 
   let { children }: Props = $props();
 
-  const tabs = [
-    { key: 'general', label: 'General', icon: 'settings' },
-    { key: 'users', label: 'Users', icon: 'groups' },
-    { key: 'stats', label: 'Statistics', icon: 'monitoring' },
-    { key: 'foods', label: 'Food DB', icon: 'restaurant' },
-    { key: 'plugins', label: 'Plugins', icon: 'extension' },
-    { key: 'backups', label: 'Backups', icon: 'cloud-done' }
+  const navigationTabs = [
+    { id: 'overview', label: 'Übersicht & Jobs', path: '/admin' },
+    { id: 'general', label: 'Allgemein & Config', path: '/admin/general' },
+    { id: 'users', label: 'Benutzer', path: '/admin/users' },
+    { id: 'stats', label: 'Statistiken', path: '/admin/stats' },
+    { id: 'foods', label: 'Lebensmittel-DB', path: '/admin/foods' },
+    { id: 'plugins', label: 'Erweiterungen', path: '/admin/plugins' },
+    { id: 'backups', label: 'Backups', path: '/admin/backups' }
   ];
 
   let activeTab = $derived(
-    tabs.find((t) => page.url.pathname === `/admin/${t.key}`)?.key ?? 'stats'
+    page.url.pathname === '/admin'
+      ? 'overview'
+      : (navigationTabs.find((t) => t.path !== '/admin' && page.url.pathname.startsWith(t.path))
+          ?.id ?? 'overview')
   );
 </script>
 
-<svelte:head><title>Salus — Admin</title></svelte:head>
+<svelte:head><title>Salus — Administration</title></svelte:head>
 
 <div class="space-y-6">
-  <PageHeader
-    title="Admin Panel"
-    subtitle="Manage database backups, system metrics, general settings, and loaded plugins."
-    icon="admin_panel_settings"
-  />
-
-  <div class="flex gap-6">
-    <nav class="flex w-60 shrink-0 flex-col border-r border-surface-200 py-2">
-      {#each tabs as tab}
-        <a
-          href="/admin/{tab.key}"
-          class="duration-micro flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-xs font-semibold tracking-label no-underline transition-colors {activeTab ===
-          tab.key
-            ? 'border-primary-500 bg-primary-50 text-primary-600'
-            : 'border-transparent text-surface-600 hover:bg-surface-100'}"
-        >
-          <Icon name={tab.icon} size="md" />
-          {tab.label}
-        </a>
-      {/each}
-    </nav>
-
-    <div class="min-w-0 flex-1">
-      <PageTransition>{@render children?.()}</PageTransition>
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-2xl font-extrabold tracking-tight">System- und Server-Administration</h1>
+        <Badge variant="primary" class="font-bold">Admin-Modus</Badge>
+      </div>
+      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+        Server-Ressourcen, AppScheduler Hintergrundjobs (ADR-009), Datenbank-Statistiken und
+        Systemverwaltung
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <Badge variant="success">FastAPI + SQLModel Backend</Badge>
     </div>
   </div>
+
+  <!-- Primary Horizontal Sub-Navigation Tabs -->
+  <div class="relative w-full overflow-hidden">
+    <div
+      class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 px-1 py-1.5 select-none"
+    >
+      {#each navigationTabs as tab}
+        <a
+          href={tab.path}
+          class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
+          tab.id
+            ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
+            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        >
+          <span>{tab.label}</span>
+        </a>
+      {/each}
+    </div>
+  </div>
+
+  {@render children?.()}
 </div>

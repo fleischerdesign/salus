@@ -5,6 +5,7 @@
   import { MS_PER_DAY } from '$lib/utils/datetime';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import Select from '$components/ui/Select.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
 
   const activeSessionQuery = useQuery(() =>
@@ -14,6 +15,7 @@
 
   const plansQuery = useQuery(() => db.workout_plan.filter((p) => !p.deleted_at).toArray());
   const plans = $derived(plansQuery.value);
+  const planOptions = $derived((plans ?? []).map((p) => ({ value: p.id, label: p.name })));
 
   const lastSessionDataQuery = useQuery(async () => {
     const list = await db.workout_session
@@ -61,12 +63,12 @@
 
 <div class="flex flex-col gap-4">
   {#if activeSession}
-    <div class="flex flex-col gap-3 rounded-lg border border-primary-100 bg-primary-50 p-4">
-      <div class="flex items-center gap-2 text-primary-700">
-        <Icon name="exercise" size="lg" class="animate-pulse text-primary-700" />
+    <div class="border-primary-100 bg-primary-50 flex flex-col gap-3 rounded-lg border p-4">
+      <div class="text-primary-700 flex items-center gap-2">
+        <Icon name="exercise" size="lg" class="text-primary-700 animate-pulse" />
         <span class="text-sm font-semibold">Workout in progress!</span>
       </div>
-      <p class="text-xs text-primary-600">
+      <p class="text-primary-600 text-xs">
         You have a workout session currently active. Resume it to log your sets.
       </p>
       <Btn variant="primary" onclick={() => goto('/workouts/active')}>Resume Session</Btn>
@@ -74,27 +76,7 @@
   {:else}
     <div class="flex flex-col gap-3">
       {#if plans && (plans ?? []).length > 0}
-        <div class="flex flex-col gap-1.5">
-          <label for="workout-launcher-select" class="text-xs font-semibold text-surface-500">
-            Select Training Plan
-          </label>
-          <div class="relative w-full">
-            <select
-              id="workout-launcher-select"
-              class="w-full rounded-lg border border-surface-200 bg-surface-50 py-2.5 pr-10 pl-3 text-sm font-medium text-surface-700 transition-all outline-none focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-500/20"
-              bind:value={selectedPlanId}
-            >
-              {#each plans ?? [] as plan (plan.id)}
-                <option value={plan.id}>{plan.name}</option>
-              {/each}
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-surface-400"
-            >
-              <Icon name="expand-more" />
-            </div>
-          </div>
-        </div>
+        <Select label="Select Training Plan" options={planOptions} bind:value={selectedPlanId} />
 
         <Btn variant="primary" loading={starting} onclick={start}>
           <span class="flex w-full items-center justify-center gap-2">
@@ -104,27 +86,27 @@
         </Btn>
       {:else}
         <div
-          class="rounded-lg border border-dashed border-surface-200 bg-surface-50/50 p-4 text-center"
+          class="rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-50)]/50 p-4 text-center"
         >
-          <p class="text-xs text-surface-500">No workout plans created yet.</p>
+          <p class="text-xs text-[var(--text-muted)]">Noch keine Trainingspläne erstellt.</p>
           <a
             href="/workouts/plans"
-            class="mt-2 inline-block text-xs font-semibold text-primary-600 hover:text-primary-700"
+            class="mt-2 inline-block text-xs font-bold text-[var(--color-primary)] hover:underline"
           >
-            Create a Plan
+            Trainingsplan erstellen &rarr;
           </a>
         </div>
       {/if}
 
       {#if lastSessionData}
         <div
-          class="flex items-center gap-1.5 border-t border-surface-100 pt-3 text-[10px] text-surface-400"
+          class="flex items-center gap-1.5 border-t border-[var(--border-subtle)] pt-3 text-[10px] text-[var(--text-soft)]"
         >
           <Icon name="history" size="sm" />
           <span>
-            Last completed:
-            <strong class="text-surface-600">
-              {lastSessionData.plan?.name || 'Quick Workout'}
+            Zuletzt absolviert:
+            <strong class="font-bold text-[var(--text-main)]">
+              {lastSessionData.plan?.name || 'Freies Training'}
             </strong>
             ({formatRelativeTime(lastSessionData.session.completed_at!)})
           </span>

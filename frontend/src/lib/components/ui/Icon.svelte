@@ -16,5 +16,5 @@
 </script>
 
 <span class="inline-flex shrink-0 {extraClass}" {style} aria-hidden={ariaHidden} role="img">
-  <IconComponent icon="material-symbols:{name}" width={px} height={px} />
+  <IconComponent icon="material-symbols:{name.replace(/_/g, '-')}" width={px} height={px} />
 </span>

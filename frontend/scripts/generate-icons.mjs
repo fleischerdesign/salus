@@ -6,12 +6,12 @@ const BACKEND_SRC = new URL('../../src/salus/', import.meta.url).pathname;
 const ICONS_JSON = new URL('../src/lib/icons.json', import.meta.url).pathname;
 const FULL_SET = new URL('../node_modules/@iconify-json/material-symbols/icons.json', import.meta.url).pathname;
 
-// Matches name="icon-name" or icon: 'icon-name' or icon="icon-name"
-const ICON_NAME_RE = /\b(?:name|icon)\s*[=:]\s*['"]([a-z0-9][a-z0-9-]+)['"]/g;
+// Matches name="icon-name" or icon: 'icon-name' or icon="icon_name"
+const ICON_NAME_RE = /\b(?:name|icon)\s*[=:]\s*['"]([a-z0-9][a-z0-9-_]+)['"]/g;
 
 // Matches the icon field inside DEFAULT_METRIC_TYPES tuples in metric_type_mapping.py
 // Each tuple entry has the icon as the 6th string literal: ("Name", "unit", ..., "icon-name", ...)
-const METRIC_TYPE_ICON_RE = /['"]([a-z0-9][a-z0-9-]+)['"]\s*,\s*['"](?:small|medium|large)['"]\s*,\s*(?:True|False)/g;
+const METRIC_TYPE_ICON_RE = /['"]([a-z0-9][a-z0-9-_]+)['"]\s*,\s*['"](?:small|medium|large)['"]\s*,\s*(?:True|False)/g;
 
 const SKIP_NAMES = new Set([
   'name', 'label', 'value', 'password', 'username', 'email',
@@ -26,6 +26,7 @@ const SKIP_NAMES = new Set([
   'dosage', 'strength', 'time',
   'brand', 'calories', 'carbs', 'fat', 'protein', 'servings',
   'fasting', 'amount',
+  'measurement', 'measurements', 'labs', 'vitals',
 ]);
 
 function walk(dir) {
@@ -44,14 +45,21 @@ function walk(dir) {
 function extractIconNames() {
   const names = new Set();
 
-  // 1. Scan frontend source for icon="..." / name="..." references
+  // 1. Scan frontend source for Icon components and icon properties
   for (const file of walk(FRONTEND_SRC)) {
     if (file.endsWith('icons.json') || file.includes('node_modules')) continue;
     const src = readFileSync(file, 'utf8');
-    for (const match of src.matchAll(ICON_NAME_RE)) {
-      const name = match[1];
-      if (SKIP_NAMES.has(name)) continue;
-      names.add(name);
+
+    // Match <Icon ... name="xyz" />
+    for (const match of src.matchAll(/<Icon\b[^>]*\bname\s*=\s*['"]([a-z0-9-_]+)['"]/g)) {
+      const name = match[1].replace(/_/g, '-');
+      if (!SKIP_NAMES.has(name)) names.add(name);
+    }
+
+    // Match icon: 'xyz' or icon="xyz" (excluding HTML input names)
+    for (const match of src.matchAll(/\bicon\s*[:=]\s*['"]([a-z0-9-_]+)['"]/g)) {
+      const name = match[1].replace(/^material-symbols:/, '').replace(/_/g, '-');
+      if (!SKIP_NAMES.has(name)) names.add(name);
     }
   }
 
@@ -59,7 +67,7 @@ function extractIconNames() {
   const mappingPath = join(BACKEND_SRC, 'services', 'metric_type_mapping.py');
   const mappingSrc = readFileSync(mappingPath, 'utf8');
   for (const match of mappingSrc.matchAll(METRIC_TYPE_ICON_RE)) {
-    names.add(match[1]);
+    names.add(match[1].replace(/_/g, '-'));
   }
 
   return [...names].sort();

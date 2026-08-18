@@ -17,7 +17,7 @@
   let sizeClasses = $derived(size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm');
 </script>
 
-<div class="inline-flex gap-1 rounded-lg bg-surface-100 p-1 {extraClass}">
+<div class="bg-surface-100 inline-flex gap-1 rounded-lg p-1 {extraClass}">
   {#each options as opt}
     <button
       type="button"

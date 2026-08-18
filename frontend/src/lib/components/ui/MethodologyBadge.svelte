@@ -30,7 +30,7 @@
 </script>
 
 <button
-  class="group relative inline-flex items-center gap-1 rounded-full border border-surface-200 bg-surface-50 px-2 py-0.5 text-[10px] text-surface-500 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600"
+  class="group border-surface-200 bg-surface-50 text-surface-500 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600 relative inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] transition-colors"
   onclick={() => (expanded = !expanded)}
   aria-expanded={expanded}
 >
@@ -44,25 +44,25 @@
 
 {#if expanded}
   <div
-    class="absolute z-50 mt-2 w-72 rounded-md border border-surface-200 bg-surface-0 p-4 shadow-lg"
+    class="border-surface-200 bg-surface-0 absolute z-50 mt-2 w-72 rounded-md border p-4 shadow-lg"
     role="dialog"
     aria-label="Methodology"
   >
     <div class="mb-3 flex items-center justify-between">
-      <span class="text-sm font-semibold text-surface-900">{method}</span>
+      <span class="text-surface-900 text-sm font-semibold">{method}</span>
       <button onclick={() => (expanded = false)} aria-label="Close">
         <Icon name="close" size="sm" class="text-surface-400" />
       </button>
     </div>
-    <div class="space-y-2 text-xs text-surface-600">
+    <div class="text-surface-600 space-y-2 text-xs">
       <div class="flex justify-between">
         <span>Sample size</span>
-        <span class="font-medium text-surface-800 tabular-nums">n = {n}</span>
+        <span class="text-surface-800 font-medium tabular-nums">n = {n}</span>
       </div>
       {#if p != null}
         <div class="flex justify-between">
           <span>p-value (2-tailed)</span>
-          <span class="font-medium text-surface-800 tabular-nums"
+          <span class="text-surface-800 font-medium tabular-nums"
             >p = {p < 0.001 ? '<0.001' : p.toFixed(4)} {sigLevel(p)}</span
           >
         </div>
@@ -70,24 +70,24 @@
       {#if ci95}
         <div class="flex justify-between">
           <span>95% CI</span>
-          <span class="font-mono text-surface-800">{ci95}</span>
+          <span class="text-surface-800 font-mono">{ci95}</span>
         </div>
       {/if}
       {#if effectSize}
         <div class="flex justify-between">
           <span>Effect size</span>
-          <span class="font-medium text-surface-800">{effectSize}</span>
+          <span class="text-surface-800 font-medium">{effectSize}</span>
         </div>
       {/if}
     </div>
-    <div class="mt-3 border-t border-surface-100 pt-2 text-[10px] leading-relaxed text-surface-400">
+    <div class="border-surface-100 text-surface-400 mt-3 border-t pt-2 text-[10px] leading-relaxed">
       {citation.text}
       {#if citation.doi}
         <a
           href="https://doi.org/{citation.doi}"
           target="_blank"
           rel="noopener"
-          class="ml-1 text-primary-500 hover:underline">doi:{citation.doi}</a
+          class="text-primary-500 ml-1 hover:underline">doi:{citation.doi}</a
         >
       {/if}
     </div>

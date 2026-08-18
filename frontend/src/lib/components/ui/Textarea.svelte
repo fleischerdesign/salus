@@ -2,7 +2,7 @@
   import Icon from './Icon.svelte';
 
   interface Props {
-    name: string;
+    name?: string;
     label?: string;
     value?: string;
     placeholder?: string;
@@ -11,12 +11,14 @@
     rows?: number;
     error?: string;
     hint?: string;
+    id?: string;
     class?: string;
+    style?: string;
   }
 
   let {
-    name,
-    label,
+    name = '',
+    label = '',
     value = $bindable(''),
     placeholder = '',
     required = false,
@@ -24,27 +26,34 @@
     rows = 3,
     error,
     hint,
-    class: extraClass = ''
+    id = name || `textarea_${Math.random().toString(36).slice(2, 7)}`,
+    class: extraClass = '',
+    style
   }: Props = $props();
 
   const baseClasses =
-    'w-full rounded-md border px-3 py-2.5 text-sm text-surface-900 transition-colors duration-micro focus:outline-none focus:ring-2 resize-y min-h-[80px]';
+    'w-full rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition-colors duration-micro outline-none resize-none';
   const normal =
-    'border-surface-300 bg-surface-50 placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-primary-200';
-  const errorClasses = 'border-error-400 bg-error-50 focus:border-error-500 focus:ring-error-200';
-  const disabledClasses = 'border-surface-200 bg-surface-100 text-surface-500 cursor-not-allowed';
+    'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:border-[var(--color-primary)]';
+  const errorClasses =
+    'border-rose-500 bg-rose-500/5 text-[var(--text-main)] focus:border-rose-500';
+  const disabledClasses =
+    'border-[var(--border-subtle)] bg-[var(--bg-surface-100)] text-[var(--text-muted)] cursor-not-allowed opacity-60';
 </script>
 
-<div class="flex flex-col gap-1 {extraClass}">
+<div class="space-y-1 text-xs {extraClass}" {style}>
   {#if label}
-    <label for={name} class="text-xs leading-[18px] font-semibold text-surface-900">
+    <label
+      for={id}
+      class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase select-none"
+    >
       {label}
-      {#if required}<span class="ml-0.5 text-error-500">*</span>{/if}
+      {#if required}<span class="ml-0.5 text-rose-500">*</span>{/if}
     </label>
   {/if}
   <textarea
-    id={name}
-    {name}
+    {id}
+    name={name || id}
     {rows}
     {placeholder}
     {required}
@@ -54,11 +63,11 @@
     aria-invalid={error ? 'true' : undefined}
   ></textarea>
   {#if error}
-    <span class="flex items-center gap-1 text-sm text-error-600" role="alert">
+    <span class="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-500" role="alert">
       <Icon name="error" size="sm" />
       {error}
     </span>
   {:else if hint}
-    <span class="text-sm text-surface-500">{hint}</span>
+    <span class="mt-1 block text-xs text-[var(--text-muted)]">{hint}</span>
   {/if}
 </div>

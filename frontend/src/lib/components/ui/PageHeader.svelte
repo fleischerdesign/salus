@@ -19,14 +19,14 @@
 
 <Card padding={false} class="overflow-hidden">
   <div
-    class="flex min-h-[4rem] flex-col divide-y divide-surface-200 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0"
+    class="divide-surface-200 flex min-h-[4rem] flex-col divide-y sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0"
   >
     <!-- Left Segment: Icon & Title -->
     <div class="flex flex-1 items-center gap-3 px-6 py-4">
       {#if backUrl}
         <a
           href={backUrl}
-          class="duration-micro flex h-9 w-9 items-center justify-center rounded-lg text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+          class="duration-micro text-surface-400 hover:bg-surface-100 hover:text-surface-700 flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
           aria-label="Go back"
         >
           <Icon name="arrow-back" size="sm" />
@@ -48,11 +48,11 @@
       {/if}
 
       <div class="min-w-0 flex-1">
-        <h1 class="truncate text-lg font-semibold text-surface-900">
+        <h1 class="text-surface-900 truncate text-lg font-semibold">
           {title}
         </h1>
         {#if subtitle}
-          <p class="text-xs text-surface-500">{subtitle}</p>
+          <p class="text-surface-500 text-xs">{subtitle}</p>
         {/if}
       </div>
     </div>
@@ -66,7 +66,7 @@
   </div>
 
   {#if stats}
-    <div class="border-t border-surface-100">
+    <div class="border-surface-100 border-t">
       {@render stats()}
     </div>
   {/if}

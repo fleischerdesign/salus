@@ -165,7 +165,7 @@
     {#each series as s}
       <div class="flex items-center gap-1.5">
         <span class="inline-block h-2 w-2 rounded-full" style="background-color: {s.color}"></span>
-        <span class="text-[10px] text-surface-500">{s.label}</span>
+        <span class="text-surface-500 text-[10px]">{s.label}</span>
       </div>
     {/each}
   </div>

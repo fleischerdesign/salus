@@ -42,7 +42,7 @@
     {@render children?.()}
     {#if dimissible}
       <button
-        class="ml-0.5 rounded-full p-0.5 hover:bg-surface-200"
+        class="hover:bg-surface-200 ml-0.5 rounded-full p-0.5"
         {onclick}
         type="button"
         aria-label="Dismiss">&times;</button

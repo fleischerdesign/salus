@@ -51,19 +51,19 @@
     />
 
     {#if diff.length > 0}
-      <div class="overflow-x-auto rounded-lg border border-surface-200">
+      <div class="border-surface-200 overflow-x-auto rounded-lg border">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="border-b border-surface-200 bg-surface-50">
-              <th class="px-4 py-2 font-medium text-surface-500">Field</th>
-              <th class="px-4 py-2 font-medium text-surface-500">Server</th>
-              <th class="px-4 py-2 font-medium text-surface-500">Yours</th>
+            <tr class="border-surface-200 bg-surface-50 border-b">
+              <th class="text-surface-500 px-4 py-2 font-medium">Field</th>
+              <th class="text-surface-500 px-4 py-2 font-medium">Server</th>
+              <th class="text-surface-500 px-4 py-2 font-medium">Yours</th>
             </tr>
           </thead>
           <tbody>
             {#each diff as row (row.field)}
-              <tr class="border-b border-surface-100 last:border-b-0">
-                <td class="px-4 py-2 text-surface-700">{row.field}</td>
+              <tr class="border-surface-100 border-b last:border-b-0">
+                <td class="text-surface-700 px-4 py-2">{row.field}</td>
                 <td class="px-4 py-2">
                   <label class="flex cursor-pointer items-center gap-2">
                     <input
@@ -72,7 +72,7 @@
                       value="server"
                       checked={selection[row.field] === 'server'}
                       onchange={() => (selection[row.field] = 'server')}
-                      class="h-4 w-4 accent-primary-500"
+                      class="accent-primary-500 h-4 w-4"
                     />
                     <span class="text-surface-600">{formatValue(row.server)}</span>
                   </label>
@@ -85,7 +85,7 @@
                       value="mine"
                       checked={selection[row.field] === 'mine'}
                       onchange={() => (selection[row.field] = 'mine')}
-                      class="h-4 w-4 accent-primary-500"
+                      class="accent-primary-500 h-4 w-4"
                     />
                     <span class="text-surface-600">{formatValue(row.client)}</span>
                   </label>
@@ -96,7 +96,7 @@
         </table>
       </div>
     {:else}
-      <p class="text-sm text-surface-500">
+      <p class="text-surface-500 text-sm">
         No field differences detected. The server version will be used.
       </p>
     {/if}

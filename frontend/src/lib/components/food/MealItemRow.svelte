@@ -34,20 +34,20 @@
   const quantity = $derived(Math.round(servings * servingSize * 10) / 10);
 </script>
 
-<div class="flex items-center justify-between rounded-lg bg-surface-50 px-3 py-2">
+<div class="bg-surface-50 flex items-center justify-between rounded-lg px-3 py-2">
   <div class="min-w-0 flex-1">
     {#if onViewFood}
       <button
         type="button"
         onclick={onViewFood}
-        class="block max-w-full truncate text-left text-sm font-medium text-surface-800 hover:text-primary-600"
+        class="text-surface-800 hover:text-primary-600 block max-w-full truncate text-left text-sm font-medium"
       >
         {name}
       </button>
     {:else}
-      <div class="truncate text-sm font-medium text-surface-800">{name}</div>
+      <div class="text-surface-800 truncate text-sm font-medium">{name}</div>
     {/if}
-    <div class="text-xs text-surface-400">
+    <div class="text-surface-400 text-xs">
       {quantity}
       {servingUnit} · {Math.round(calories)} kcal · {Math.round(proteinG)}P ·{' '}
       {Math.round(carbsG)}C · {Math.round(fatG)}F
@@ -58,21 +58,21 @@
     <button
       onclick={onDecrement}
       disabled={servings <= 0.25}
-      class="flex h-7 w-7 items-center justify-center rounded-full border border-surface-200 text-surface-400 hover:bg-surface-100 disabled:opacity-30"
+      class="border-surface-200 text-surface-400 hover:bg-surface-100 flex h-7 w-7 items-center justify-center rounded-full border disabled:opacity-30"
     >
       <Icon name="remove" size="sm" />
     </button>
-    <span class="w-8 text-center text-sm font-medium text-surface-700 tabular-nums">{servings}</span
+    <span class="text-surface-700 w-8 text-center text-sm font-medium tabular-nums">{servings}</span
     >
     <button
       onclick={onIncrement}
-      class="flex h-7 w-7 items-center justify-center rounded-full border border-surface-200 text-surface-400 hover:bg-surface-100"
+      class="border-surface-200 text-surface-400 hover:bg-surface-100 flex h-7 w-7 items-center justify-center rounded-full border"
     >
       <Icon name="add" size="sm" />
     </button>
     <button
       onclick={onRemove}
-      class="flex h-7 w-7 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-error-500"
+      class="text-surface-400 hover:bg-surface-100 hover:text-error-500 flex h-7 w-7 items-center justify-center rounded"
     >
       <Icon name="close" size="sm" />
     </button>

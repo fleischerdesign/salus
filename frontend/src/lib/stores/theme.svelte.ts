@@ -61,6 +61,10 @@ class ThemeService {
     this.persist();
   }
 
+  toggle(): void {
+    this.setMode(this.resolved === 'dark' ? 'light' : 'dark');
+  }
+
   setColorblind(value: boolean): void {
     this.colorblind = value;
     this.persist();

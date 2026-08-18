@@ -20,7 +20,11 @@
   import { page } from '$app/state';
   import { beforeNavigate, goto } from '$app/navigation';
   import { useOffline } from '$lib/db/use-offline.svelte';
-  import TopAppBar from '$components/layout/TopAppBar.svelte';
+  import FloatingGlassDock from '$components/nav/FloatingGlassDock.svelte';
+  import QuickLogModal from '$components/modals/QuickLogModal.svelte';
+  import CommandPalette from '$components/modals/CommandPalette.svelte';
+  import NotificationDrawer from '$components/layout/NotificationDrawer.svelte';
+  import OnboardingModal from '$components/onboarding/OnboardingModal.svelte';
   import PageTransition from '$components/ui/PageTransition.svelte';
   import Toast from '$components/ui/Toast.svelte';
   import ConflictResolver from '$components/feedback/ConflictResolver.svelte';
@@ -179,7 +183,22 @@
     auth.clear();
     await goto('/auth/login');
   }
+
+  // Global Modals State
+  let isQuickLogOpen = $state(false);
+  let isCmdKOpen = $state(false);
+  let isNotificationsOpen = $state(false);
+  let isOnboardingOpen = $state(false);
+
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      isCmdKOpen = !isCmdKOpen;
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <svelte:document
   onfocusin={updateFocusState}
@@ -188,14 +207,23 @@
 />
 
 {#if isPublic}
-  <div class="flex min-h-screen items-center justify-center bg-surface-50 p-4">
+  <div class="flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] p-4">
     <PageTransition>{@render children()}</PageTransition>
   </div>
 {:else if auth.isAuthenticated}
-  <div class="flex min-h-screen flex-col bg-surface-50">
-    <TopAppBar />
+  <div
+    class="relative flex min-h-screen flex-col bg-[var(--bg-canvas)] pb-32 text-[var(--text-main)] md:pb-16"
+  >
+    <!-- Floating Glass Navigation Dock (Desktop Sticky Capsule + Mobile Bottom Dock & Center Hub) -->
+    <FloatingGlassDock
+      onopenquicklog={() => (isQuickLogOpen = true)}
+      onopennotifications={() => (isNotificationsOpen = true)}
+      onopencmdk={() => (isCmdKOpen = true)}
+      onopenonboarding={() => (isOnboardingOpen = true)}
+    />
+
     {#if sessionExpired}
-      <div class="mx-auto w-full max-w-[1440px] px-6 pt-4 md:px-10">
+      <div class="mx-auto w-full max-w-[1440px] px-4 pt-4 md:px-10">
         <AlertBanner variant="warning" class="justify-between">
           <span class="flex flex-1 items-center justify-between gap-3">
             <span>Sitzung abgelaufen – melde dich erneut an, um zu synchronisieren.</span>
@@ -204,24 +232,35 @@
         </AlertBanner>
       </div>
     {/if}
-    <main class="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 md:px-10">
+
+    <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-12">
       <PageTransition>{@render children()}</PageTransition>
     </main>
+
     <Toast />
     <ConflictResolver />
+
+    <!-- Global Modals & Drawers -->
+    <QuickLogModal open={isQuickLogOpen} onclose={() => (isQuickLogOpen = false)} />
+
+    <CommandPalette open={isCmdKOpen} onclose={() => (isCmdKOpen = false)} />
+
+    <NotificationDrawer open={isNotificationsOpen} onclose={() => (isNotificationsOpen = false)} />
+
+    <OnboardingModal open={isOnboardingOpen} onclose={() => (isOnboardingOpen = false)} />
   </div>
   {#if biometricLock.locked}
     <!-- Biometric lock overlay -->
     <div
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
+      class="bg-surface-0/85 fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
     >
       <div class="flex flex-col items-center gap-4 text-center">
-        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
+        <div class="bg-surface-100 flex h-14 w-14 items-center justify-center rounded-2xl">
           <Icon name="lock" size="2xl" class="text-surface-400" />
         </div>
         <div>
-          <p class="text-sm font-semibold text-surface-900">App entsperren</p>
-          <p class="mt-0.5 text-xs text-surface-500">Bestätige deine Identität per Biometrie.</p>
+          <p class="text-surface-900 text-sm font-semibold">App entsperren</p>
+          <p class="text-surface-500 mt-0.5 text-xs">Bestätige deine Identität per Biometrie.</p>
         </div>
         <Btn variant="primary" onclick={() => biometricLock.unlock()}>Entsperren</Btn>
       </div>
@@ -230,7 +269,7 @@
 {:else if auth.loading}
   <div class="flex min-h-screen items-center justify-center">
     <div
-      class="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"
+      class="border-primary-200 border-t-primary-600 h-8 w-8 animate-spin rounded-full border-4"
     ></div>
   </div>
 {/if}

@@ -42,6 +42,24 @@ export const createGoal = (
   });
 };
 
+export const updateGoal = (
+  goalId: string,
+  data: Partial<{
+    target_value: number;
+    direction: string;
+    frequency: string;
+    deadline: string | null;
+  }>
+) =>
+  mutate({
+    kind: 'crud',
+    op: 'update',
+    entity: 'goal',
+    id: goalId,
+    data,
+    optimistic: { id: goalId, ...data }
+  });
+
 export const deleteGoal = (goalId: string) =>
   mutate({
     kind: 'crud',

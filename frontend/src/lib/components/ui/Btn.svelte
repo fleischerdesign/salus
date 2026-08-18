@@ -1,16 +1,19 @@
 <script lang="ts">
   import { type Snippet } from 'svelte';
   import Icon from '$components/ui/Icon.svelte';
+
   const variantClasses = {
-    primary: 'bg-primary-500 text-on-primary hover:bg-primary-600 active:bg-primary-700',
+    primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 active:scale-95 shadow-sm',
     secondary:
-      'border border-primary-500 bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
-    ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
-    danger: 'bg-error-50 text-error-700 hover:bg-error-100 active:bg-error-200'
+      'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-main)] hover:bg-[var(--bg-surface-100)] active:scale-95',
+    ghost: 'bg-transparent text-[var(--text-main)] hover:bg-[var(--bg-surface-50)] active:scale-95',
+    danger:
+      'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95'
   };
   const sizeClasses = {
-    sm: 'h-8 px-3 text-xs gap-1.5',
-    md: 'h-11 px-5 text-sm gap-2'
+    sm: 'h-8 px-3 text-xs gap-1.5 rounded-xl',
+    md: 'h-10 px-4 text-sm gap-2 rounded-xl',
+    lg: 'h-12 px-5 text-base gap-2.5 rounded-2xl'
   };
 
   interface Props {
@@ -40,7 +43,7 @@
   }: Props = $props();
 
   let classes = $derived(
-    'relative inline-flex items-center justify-center rounded-md font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ' +
+    'relative inline-flex items-center justify-center font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] cursor-pointer ' +
       (fullWidth ? 'w-full ' : '') +
       variantClasses[variant] +
       ' ' +

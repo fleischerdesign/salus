@@ -12,14 +12,14 @@
 
 <div class="flex flex-col {compact ? '' : 'items-start gap-0.5'} {extraClass}">
   <div class="flex items-baseline gap-1">
-    <span class="text-3xl leading-[36px] font-semibold text-surface-900 tabular-nums">
+    <span class="text-surface-900 text-3xl leading-[36px] font-semibold tabular-nums">
       {typeof value === 'number' ? value.toLocaleString() : value}
     </span>
     {#if unit}
-      <span class="text-sm text-surface-500">{unit}</span>
+      <span class="text-surface-500 text-sm">{unit}</span>
     {/if}
   </div>
   {#if label}
-    <span class="text-xs font-semibold tracking-label text-surface-500 uppercase">{label}</span>
+    <span class="tracking-label text-surface-500 text-xs font-semibold uppercase">{label}</span>
   {/if}
 </div>

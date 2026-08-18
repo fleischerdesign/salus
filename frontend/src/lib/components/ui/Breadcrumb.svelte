@@ -1,28 +1,47 @@
 <script lang="ts">
+  export interface BreadcrumbItem {
+    label: string;
+    href?: string;
+    onclick?: () => void;
+    active?: boolean;
+  }
+
   interface Props {
-    items: { href: string; label: string }[];
+    items: BreadcrumbItem[];
     class?: string;
   }
 
   let { items, class: extraClass = '' }: Props = $props();
 </script>
 
-<nav aria-label="Breadcrumb" class="py-4 {extraClass}">
-  <ol class="flex flex-wrap items-center gap-0">
+<nav aria-label="Breadcrumb" class="py-2 {extraClass}">
+  <ol class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
     {#each items as item, index}
-      <li class="flex items-center">
-        {#if index < items.length - 1}
-          <a
-            href={item.href}
-            class="duration-micro text-sm text-surface-500 no-underline transition-colors hover:text-primary-600"
-          >
-            {item.label}
-          </a>
-          <span class="mx-2 text-surface-400 select-none">/</span>
+      <li class="flex items-center gap-1.5">
+        {#if index < items.length - 1 && !item.active}
+          {#if item.onclick}
+            <button
+              type="button"
+              onclick={item.onclick}
+              class="cursor-pointer text-[var(--text-muted)] transition-colors hover:text-[var(--color-primary)]"
+            >
+              {item.label}
+            </button>
+          {:else if item.href}
+            <a
+              href={item.href}
+              class="text-[var(--text-muted)] transition-colors hover:text-[var(--color-primary)]"
+            >
+              {item.label}
+            </a>
+          {:else}
+            <span class="text-[var(--text-muted)]">{item.label}</span>
+          {/if}
+          <span class="text-[var(--border-strong)] select-none">/</span>
         {:else}
-          <span class="text-sm font-semibold text-surface-900" aria-current="page"
-            >{item.label}</span
-          >
+          <span class="font-bold text-[var(--text-main)]" aria-current="page">
+            {item.label}
+          </span>
         {/if}
       </li>
     {/each}

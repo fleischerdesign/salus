@@ -160,7 +160,7 @@
         height={CELL}
         rx={3}
         fill={colorScale(getValue(d.date))}
-        class="cursor-pointer transition-colors hover:stroke-surface-500 hover:stroke-[1.5]"
+        class="hover:stroke-surface-500 cursor-pointer transition-colors hover:stroke-[1.5]"
         role="cell"
         tabindex={0}
         onmouseenter={(e) => handleMouseEnter(d, e)}
@@ -178,19 +178,20 @@
 
 {#if hovered}
   <div
-    class="pointer-events-none fixed z-60 rounded-md border border-surface-200 bg-surface-0 px-3 py-2 text-xs shadow-lg"
+    class="pointer-events-none fixed z-60 space-y-0.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--glass-dock-bg)] px-3.5 py-2 text-xs shadow-xl backdrop-blur-md"
     style="left:{hovered.x + 14}px;top:{hovered.y - 40}px"
   >
-    <div class="font-medium text-surface-800">{hovered.dayOfMonth}</div>
+    <div class="font-extrabold text-[var(--text-main)]">{hovered.dayOfMonth}</div>
     {#if hovered.value != null}
-      <div class="mt-0.5 text-surface-600 tabular-nums">
-        {metric}: {hovered.value.toLocaleString()}
+      <div class="font-semibold text-[var(--text-muted)] tabular-nums">
+        {metric}:
+        <span class="font-bold text-[var(--color-primary)]">{hovered.value.toLocaleString()}</span>
       </div>
-      <div class="text-[10px] text-surface-400 tabular-nums">
-        percentile: {(hovered.percentile! * 100).toFixed(0)}%
+      <div class="font-mono text-[10px] text-[var(--text-soft)] tabular-nums">
+        Perzentil: {(hovered.percentile! * 100).toFixed(0)}%
       </div>
     {:else}
-      <div class="text-surface-400">No data</div>
+      <div class="text-[var(--text-soft)]">Keine Daten</div>
     {/if}
   </div>
 {/if}

@@ -17,7 +17,9 @@
 </script>
 
 <div class="flex flex-col gap-2">
-  <div class="h-3 w-full overflow-hidden rounded-full bg-surface-100">
+  <div
+    class="h-3 w-full overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
+  >
     <div class="flex h-full">
       {#each segments as segment}
         {#if computedTotal > 0}
@@ -42,8 +44,8 @@
               class="inline-block h-2 w-2 rounded-full"
               style="background-color: {segment.color}"
             ></span>
-            <span class="text-xs text-surface-500">{segment.label}</span>
-            <span class="text-xs font-medium text-surface-700">{pct}%</span>
+            <span class="text-xs text-[var(--text-muted)]">{segment.label}</span>
+            <span class="text-xs font-bold text-[var(--text-main)] tabular-nums">{pct}%</span>
           </div>
         {/if}
       {/each}

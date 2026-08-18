@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-
-  $effect(() => {
-    goto('/settings/account', { replaceState: true });
-  });
+  import SettingsPage from '$components/pages/SettingsPage.svelte';
 </script>
+
+<svelte:head><title>Salus — Einstellungen</title></svelte:head>
+
+<SettingsPage initialTab="account" />

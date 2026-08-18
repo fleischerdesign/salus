@@ -1,55 +1,66 @@
 <script lang="ts">
-  interface Props {
+  let {
+    checked = $bindable(false),
+    label = '',
+    description = '',
+    disabled = false,
+    id = `toggle_${Math.random().toString(36).slice(2, 7)}`,
+    name = '',
+    class: extraClass = '',
+    onchange
+  } = $props<{
     checked?: boolean;
-    disabled?: boolean;
     label?: string;
-    onchange?: (checked: boolean) => void;
+    description?: string;
+    disabled?: boolean;
+    id?: string;
     name?: string;
     class?: string;
+    onchange?: (checked: boolean) => void;
+  }>();
+
+  function toggle() {
+    if (disabled) return;
+    checked = !checked;
+    onchange?.(checked);
   }
-
-  let {
-    checked = false,
-    disabled = false,
-    label,
-    onchange,
-    name,
-    class: extraClass = ''
-  }: Props = $props();
-
-  function handleChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    onchange?.(input.checked);
-  }
-
-  let labelClass = $derived(
-    'inline-flex items-center gap-3 ' + (disabled ? 'opacity-50' : 'cursor-pointer')
-  );
-  let trackClass = $derived(
-    'relative inline-block h-6 w-11 rounded-full bg-surface-200 transition-colors duration-micro peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 ' +
-      (checked ? 'bg-primary-500' : '')
-  );
-  let thumbClass = $derived(
-    'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-micro ' +
-      (checked ? 'translate-x-5' : '')
-  );
 </script>
 
-<label class="{labelClass} {extraClass}">
-  {#if label}
-    <span class="text-xs font-semibold tracking-label text-surface-700">{label}</span>
+<div class="flex items-center justify-between gap-3 text-xs {extraClass}">
+  {#if label || description}
+    <div class="flex-1 space-y-0.5 select-none">
+      {#if label}
+        <label for={id} class="block cursor-pointer font-bold text-[var(--text-main)]">
+          {label}
+        </label>
+      {/if}
+      {#if description}
+        <span class="block text-[0.6875rem] leading-snug text-[var(--text-muted)]">
+          {description}
+        </span>
+      {/if}
+    </div>
   {/if}
-  <span class={trackClass}>
-    <span class={thumbClass}></span>
-  </span>
-  <input
-    type="checkbox"
-    {name}
-    {checked}
-    {disabled}
-    onchange={handleChange}
-    class="peer sr-only"
+
+  <button
+    type="button"
+    {id}
+    name={name || id}
     role="switch"
     aria-checked={checked}
-  />
-</label>
+    aria-label={label || 'Umschalten'}
+    {disabled}
+    onclick={toggle}
+    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:outline-none {checked
+      ? 'bg-[var(--color-primary)]'
+      : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-100)]'} {disabled
+      ? 'cursor-not-allowed opacity-50'
+      : ''}"
+  >
+    <span
+      class="inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out {checked
+        ? 'translate-x-5'
+        : 'translate-x-0'}"
+    ></span>
+  </button>
+</div>

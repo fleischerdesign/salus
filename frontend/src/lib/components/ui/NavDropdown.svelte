@@ -75,7 +75,7 @@
   <button class={triggerClass} aria-expanded={open} aria-haspopup="true" type="button">
     {label}
     {#if hasHighlight}
-      <span class="ml-0.5 inline-block h-2 w-2 animate-pulse rounded-full bg-success-500"></span>
+      <span class="bg-success-500 ml-0.5 inline-block h-2 w-2 animate-pulse rounded-full"></span>
     {/if}
     <Icon name="expand-more" size="sm" class={chevronClass} />
   </button>
@@ -88,7 +88,7 @@
           $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + '/')}
         <a
           href={item.href}
-          class="duration-micro flex items-center gap-3 px-4 py-2.5 text-xs font-semibold tracking-label no-underline transition-colors hover:bg-surface-50 {item.highlight
+          class="duration-micro tracking-label hover:bg-surface-50 flex items-center gap-3 px-4 py-2.5 text-xs font-semibold no-underline transition-colors {item.highlight
             ? 'text-success-600'
             : active
               ? 'text-primary-600'
@@ -96,7 +96,7 @@
           aria-current={active ? 'page' : undefined}
         >
           {#if item.highlight}
-            <span class="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-success-500"
+            <span class="bg-success-500 inline-block h-2 w-2 shrink-0 animate-pulse rounded-full"
             ></span>
           {/if}
           <Icon name={item.icon} size="md" class={item.highlight ? 'text-success-500' : ''} />

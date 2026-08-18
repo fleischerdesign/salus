@@ -1,7 +1,6 @@
 <script lang="ts">
   import Modal from '$components/ui/Modal.svelte';
   import Btn from '$components/ui/Btn.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import Input from '$components/ui/Input.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import { createFoodItem, updateFoodItem } from '$lib/mutations/food-item';
@@ -50,29 +49,38 @@
     }
   });
 
-  const canSave = $derived(name.trim().length > 0);
+  const canSave = $derived(name.trim().length > 0 && servingSize > 0);
 
   async function handleSave() {
-    if (!canSave) return;
+    if (!canSave || saving) return;
     saving = true;
     try {
-      const payload = {
-        name: name.trim(),
-        brand: brand.trim() || undefined,
-        calories_per_serving: calories,
-        protein_g: protein,
-        carbs_g: carbs,
-        fat_g: fat,
-        serving_size: servingSize,
-        serving_unit: servingUnit.trim() || 'g'
-      };
       if (food) {
-        await updateFoodItem(food.id ?? '', payload);
+        await updateFoodItem(food.id, {
+          name: name.trim(),
+          brand: brand.trim() || undefined,
+          calories_per_serving: Number(calories),
+          protein_g: Number(protein),
+          carbs_g: Number(carbs),
+          fat_g: Number(fat),
+          serving_size: Number(servingSize),
+          serving_unit: servingUnit.trim() || 'g'
+        });
       } else {
-        await createFoodItem({ ...payload, barcode: initialBarcode ?? undefined });
+        await createFoodItem({
+          name: name.trim(),
+          brand: brand.trim() || undefined,
+          barcode: initialBarcode || undefined,
+          calories_per_serving: Number(calories),
+          protein_g: Number(protein),
+          carbs_g: Number(carbs),
+          fat_g: Number(fat),
+          serving_size: Number(servingSize),
+          serving_unit: servingUnit.trim() || 'g'
+        });
       }
-      onClose();
       onSaved?.();
+      onClose();
     } finally {
       saving = false;
     }
@@ -83,56 +91,76 @@
   {open}
   onclose={onClose}
   title={food
-    ? 'Edit Food Item'
+    ? 'Lebensmittel bearbeiten'
     : initialBarcode
-      ? `Create Food (barcode ${initialBarcode})`
-      : 'New Food Item'}
+      ? `Lebensmittel anlegen (Barcode: ${initialBarcode})`
+      : 'Neues Lebensmittel'}
+  subtitle="Nährwerte und Portionsangaben erfassen"
+  icon="nutrition"
   size="md"
 >
-  <div class="flex flex-col gap-4">
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSave();
+    }}
+    class="space-y-4 text-xs"
+  >
     {#if !food && initialBarcode}
       <div
-        class="flex items-center gap-2 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2"
+        class="flex items-center gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2"
       >
-        <Icon name="info" size="sm" class="text-surface-400" />
-        <span class="text-xs text-surface-500">Barcode</span>
-        <span class="font-mono text-xs font-medium text-surface-800">{initialBarcode}</span>
+        <Icon name="barcode_scanner" size="sm" class="text-[var(--color-primary)]" />
+        <span class="text-xs text-[var(--text-muted)]">Barcode:</span>
+        <span class="font-mono text-xs font-bold text-[var(--text-main)]">{initialBarcode}</span>
       </div>
     {/if}
 
-    <FormField label="Name" required>
-      <Input name="food_name" placeholder="e.g. Haferflocken" bind:value={name} />
-    </FormField>
-    <FormField label="Brand">
-      <Input name="brand" placeholder="e.g. Alnatura" bind:value={brand} />
-    </FormField>
-    <div class="grid grid-cols-2 gap-4">
-      <FormField label="Serving Size">
-        <Input name="serving_size" type="number" bind:value={servingSize} min={1} />
-      </FormField>
-      <FormField label="Unit">
-        <Input name="serving_unit" placeholder="g" bind:value={servingUnit} />
-      </FormField>
+    <Input
+      label="Produktname"
+      name="food_name"
+      placeholder="z. B. Haferflocken"
+      bind:value={name}
+      required
+    />
+
+    <Input
+      label="Marke / Hersteller"
+      name="brand"
+      placeholder="z. B. Alnatura, Kölln"
+      bind:value={brand}
+    />
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Input
+        label="Portionsgröße"
+        name="serving_size"
+        type="number"
+        bind:value={servingSize}
+        min={1}
+        required
+      />
+      <Input label="Einheit" name="serving_unit" placeholder="g oder ml" bind:value={servingUnit} />
     </div>
-    <div class="grid grid-cols-2 gap-4">
-      <FormField label="Calories (per serving)">
-        <Input name="calories" type="number" bind:value={calories} step={0.1} />
-      </FormField>
-      <FormField label="Protein (g)">
-        <Input name="protein" type="number" bind:value={protein} step={0.1} />
-      </FormField>
-      <FormField label="Carbs (g)">
-        <Input name="carbs" type="number" bind:value={carbs} step={0.1} />
-      </FormField>
-      <FormField label="Fat (g)">
-        <Input name="fat" type="number" bind:value={fat} step={0.1} />
-      </FormField>
+
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <Input
+        label="Kalorien (kcal)"
+        name="calories"
+        type="number"
+        bind:value={calories}
+        step={0.1}
+      />
+      <Input label="Protein (g)" name="protein" type="number" bind:value={protein} step={0.1} />
+      <Input label="Kohlenhydrate (g)" name="carbs" type="number" bind:value={carbs} step={0.1} />
+      <Input label="Fett (g)" name="fat" type="number" bind:value={fat} step={0.1} />
     </div>
-    <div class="flex justify-end gap-3 pt-2">
-      <Btn variant="ghost" onclick={onClose}>Cancel</Btn>
-      <Btn variant="primary" onclick={handleSave} disabled={!canSave || saving}>
-        {saving ? 'Saving...' : food ? 'Save' : 'Create'}
+
+    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
+      <Btn variant="primary" size="md" type="submit" disabled={!canSave || saving} loading={saving}>
+        {food ? 'Speichern' : 'Lebensmittel anlegen'}
       </Btn>
     </div>
-  </div>
+  </form>
 </Modal>

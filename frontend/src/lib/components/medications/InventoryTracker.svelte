@@ -44,12 +44,12 @@
   }
 </script>
 
-<div class="rounded-lg border border-surface-200 p-4">
+<div class="border-surface-200 rounded-lg border p-4">
   <div class="mb-3 flex items-center justify-between">
-    <h3 class="text-sm font-semibold text-surface-700">Inventory</h3>
+    <h3 class="text-surface-700 text-sm font-semibold">Inventory</h3>
     {#if needsRefill}
       <span
-        class="flex items-center gap-1 rounded-full bg-error-50 px-2 py-0.5 text-xs font-medium text-error-600"
+        class="bg-error-50 text-error-600 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
       >
         <Icon name="warning" size="sm" />
         Refill needed
@@ -58,11 +58,11 @@
   </div>
 
   <div class="mb-2">
-    <div class="mb-1 flex justify-between text-xs text-surface-500">
+    <div class="text-surface-500 mb-1 flex justify-between text-xs">
       <span>{remaining} remaining</span>
       <span>{percentage}%</span>
     </div>
-    <div class="h-2 w-full overflow-hidden rounded-full bg-surface-100">
+    <div class="bg-surface-100 h-2 w-full overflow-hidden rounded-full">
       <div
         class="h-full rounded-full transition-all {progressColor}"
         style="width: {percentage}%"
@@ -73,22 +73,22 @@
   <div class="flex items-center gap-3">
     <button
       onclick={handleDecrement}
-      class="flex h-8 w-8 items-center justify-center rounded-full border border-surface-200 text-surface-500 hover:bg-surface-100 disabled:opacity-30"
+      class="border-surface-200 text-surface-500 hover:bg-surface-100 flex h-8 w-8 items-center justify-center rounded-full border disabled:opacity-30"
       disabled={remaining <= 0}
     >
       <Icon name="remove" size="sm" />
     </button>
-    <span class="text-lg font-bold text-surface-800 tabular-nums">{remaining}</span>
+    <span class="text-surface-800 text-lg font-bold tabular-nums">{remaining}</span>
     <button
       onclick={handleIncrement}
-      class="flex h-8 w-8 items-center justify-center rounded-full border border-surface-200 text-surface-500 hover:bg-surface-100"
+      class="border-surface-200 text-surface-500 hover:bg-surface-100 flex h-8 w-8 items-center justify-center rounded-full border"
     >
       <Icon name="add" size="sm" />
     </button>
-    <span class="text-xs text-surface-400">of {initial}</span>
+    <span class="text-surface-400 text-xs">of {initial}</span>
   </div>
 
-  <div class="mt-3 text-xs text-surface-400">
+  <div class="text-surface-400 mt-3 text-xs">
     Refill warning at {refillAt} remaining
   </div>
 </div>

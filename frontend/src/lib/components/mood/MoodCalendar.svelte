@@ -53,15 +53,15 @@
   <div class="flex items-center justify-between">
     <button
       type="button"
-      class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
+      class="text-surface-500 hover:bg-surface-100 hover:text-surface-700 rounded-lg p-1.5"
       onclick={prevMonth}
     >
       <Icon name="chevron-left" size="lg" class="text-surface-500" />
     </button>
-    <span class="text-sm font-semibold text-surface-800">{monthLabel}</span>
+    <span class="text-surface-800 text-sm font-semibold">{monthLabel}</span>
     <button
       type="button"
-      class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
+      class="text-surface-500 hover:bg-surface-100 hover:text-surface-700 rounded-lg p-1.5"
       onclick={nextMonth}
     >
       <Icon name="chevron-right" size="lg" class="text-surface-500" />
@@ -70,7 +70,7 @@
 
   <div class="grid grid-cols-7 gap-1 text-center">
     {#each ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as day}
-      <span class="text-[10px] font-medium text-surface-400">{day}</span>
+      <span class="text-surface-400 text-[10px] font-medium">{day}</span>
     {/each}
 
     {#each Array(startOffset) as _}
@@ -83,9 +83,9 @@
       {@const scoreVal = moodMap.get(ds)}
       <button
         type="button"
-        class="duration-micro flex h-9 items-center justify-center rounded-lg text-xs font-medium transition-all hover:ring-2 hover:ring-primary-300 {scoreVal
+        class="duration-micro hover:ring-primary-300 flex h-9 items-center justify-center rounded-lg text-xs font-medium transition-all hover:ring-2 {scoreVal
           ? moodColor(scoreVal) + ' text-white'
-          : 'bg-surface-100 text-surface-600'} {ds === todayStr ? 'ring-2 ring-primary-500' : ''}"
+          : 'bg-surface-100 text-surface-600'} {ds === todayStr ? 'ring-primary-500 ring-2' : ''}"
         style={scoreVal ? `opacity: ${0.3 + scoreVal * 0.07}` : ''}
         onclick={() => onSelectDate(ds)}
       >

@@ -15,9 +15,9 @@
 
 <div class="flex flex-col items-center justify-center px-4 py-16 text-center {extraClass}">
   <Icon name={icon} size="2xl" class="text-surface-300" />
-  <h3 class="mt-4 text-base font-semibold text-surface-700">{title}</h3>
+  <h3 class="text-surface-700 mt-4 text-base font-semibold">{title}</h3>
   {#if description}
-    <p class="mt-1 max-w-sm text-sm text-surface-500">{description}</p>
+    <p class="text-surface-500 mt-1 max-w-sm text-sm">{description}</p>
   {/if}
   {#if children}
     <div class="mt-6">

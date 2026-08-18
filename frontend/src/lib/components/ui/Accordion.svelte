@@ -24,7 +24,7 @@
 </script>
 
 <div
-  class="divide-y divide-surface-200 rounded-lg border border-surface-200 bg-surface-0 {extraClass}"
+  class="divide-surface-200 border-surface-200 bg-surface-0 divide-y rounded-lg border {extraClass}"
 >
   {@render children()}
 </div>

@@ -23,7 +23,6 @@
   import Modal from '$components/ui/Modal.svelte';
   import Input from '$components/ui/Input.svelte';
   import Textarea from '$components/ui/Textarea.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
@@ -258,7 +257,7 @@
         {#if showSettings}
           <button
             type="button"
-            class="duration-micro flex h-full items-center justify-center border-r border-surface-200 px-4 text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+            class="duration-micro border-surface-200 text-surface-600 hover:bg-surface-100 hover:text-surface-900 flex h-full items-center justify-center border-r px-4 transition-colors"
             onclick={() => (settingsModalOpen = true)}
             title="Metric Settings & Source Priority"
             aria-label="Metric Settings"
@@ -272,7 +271,7 @@
     {#snippet stats()}
       {#if overview}
         <div
-          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+          class="divide-surface-100 grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
             <Stat value={overview.latest_value ?? '—'} unit={metric.unit} label="Latest" />
@@ -284,16 +283,16 @@
         </div>
       {:else}
         <div
-          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+          class="divide-surface-100 grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
-            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+            <div class="bg-surface-100 h-10 w-24 animate-pulse rounded"></div>
           </div>
           <div class="px-6 py-4">
-            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+            <div class="bg-surface-100 h-10 w-24 animate-pulse rounded"></div>
           </div>
           <div class="px-6 py-4">
-            <div class="h-10 w-24 animate-pulse rounded bg-surface-100"></div>
+            <div class="bg-surface-100 h-10 w-24 animate-pulse rounded"></div>
           </div>
         </div>
       {/if}
@@ -306,7 +305,7 @@
         <div class="flex w-full items-center justify-between pr-2">
           <div class="flex items-center gap-2">
             <Icon name="monitoring" size="sm" class="text-surface-400" /><span
-              class="text-sm font-semibold text-surface-900">Trend & History</span
+              class="text-surface-900 text-sm font-semibold">Trend & History</span
             >
           </div>
           <div class="flex gap-1">
@@ -331,7 +330,7 @@
         <div class="flex w-full items-center justify-between pr-2">
           <div class="flex items-center gap-2">
             <Icon name="monitoring" size="sm" class="text-surface-400" /><span
-              class="text-sm font-semibold text-surface-900">Trend & History</span
+              class="text-surface-900 text-sm font-semibold">Trend & History</span
             >
           </div>
           <div class="flex gap-1">
@@ -362,7 +361,7 @@
           regressionCI={trend.regression?.ci}
         />
         {#if trend.regression}
-          <div class="mt-2 text-center text-xs text-surface-400">
+          <div class="text-surface-400 mt-2 text-center text-xs">
             OLS Trend: {trend.regression.slope > 0
               ? 'Increasing'
               : trend.regression.slope < 0
@@ -386,7 +385,7 @@
     </EmptyState>
   {:else}
     <Card padding={false}>
-      <div class="divide-y divide-surface-100">
+      <div class="divide-surface-100 divide-y">
         {#each entries as e, i (e.id)}
           <div in:fade={{ ...staggerFade(i) }}>
             <ListItem hoverable primary={displayValue(e)} secondary="">
@@ -394,20 +393,20 @@
                 <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
                   <div class="min-w-0">
                     <div class="flex items-baseline gap-1">
-                      <span class="truncate text-sm font-bold text-surface-900"
+                      <span class="text-surface-900 truncate text-sm font-bold"
                         >{displayValue(e)}</span
-                      >{#if metric.unit}<span class="text-xs text-surface-400">{metric.unit}</span
+                      >{#if metric.unit}<span class="text-surface-400 text-xs">{metric.unit}</span
                         >{/if}
                       {#if flaggedIds.has(e.id)}
                         <Icon
                           name="warning"
                           size="sm"
-                          class="ml-1 shrink-0 text-warning-500"
+                          class="text-warning-500 ml-1 shrink-0"
                           ariaHidden={false}
                         />
                       {/if}
                     </div>
-                    <p class="mt-0.5 truncate text-xs text-surface-500">
+                    <p class="text-surface-500 mt-0.5 truncate text-xs">
                       {formatDate(e.start_time)}{#if e.notes}<span class="italic">
                           · "{e.notes}"</span
                         >{/if}
@@ -418,13 +417,13 @@
                   >
                     <button
                       type="button"
-                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
+                      class="duration-micro text-surface-400 hover:bg-surface-100 hover:text-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors"
                       aria-label="Edit entry"
                       onclick={() => openEditModal(e)}><Icon name="edit" size="sm" /></button
                     >
                     <button
                       type="button"
-                      class="duration-micro flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
+                      class="duration-micro text-surface-400 hover:bg-error-50 hover:text-error-500 flex h-7 w-7 items-center justify-center rounded transition-colors"
                       aria-label="Delete entry"
                       onclick={() => {
                         entryToDelete = e;
@@ -453,32 +452,42 @@
   {/if}
 </div>
 
-<Modal title={editingEntry ? 'Edit Entry' : 'New Entry'} bind:open={showEntryModal}>
-  <form onsubmit={saveEntry} class="flex flex-col gap-4">
-    <FormField label="Value" required
-      ><Input name="value" bind:value={entryValue} required /></FormField
-    >
+<Modal
+  title={editingEntry ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}
+  subtitle={`Messwert erfassen für ${metric.name}`}
+  icon="edit_note"
+  size="md"
+  bind:open={showEntryModal}
+  onclose={closeEntryModal}
+>
+  <form onsubmit={saveEntry} class="space-y-4 text-xs">
+    <Input label="Messwert" name="value" bind:value={entryValue} unit={metric.unit} required />
     {#if valueHint}
-      <p class="flex items-center gap-1 text-sm text-warning-600">
+      <p class="flex items-center gap-1 text-xs font-semibold text-amber-500">
         <Icon name="info" size="sm" />
         {valueHint}
       </p>
     {/if}
-    <FormField label="Timestamp"
-      ><Input name="timestamp" type="datetime-local" bind:value={entryTimestamp} /></FormField
-    >
-    <FormField label="Notes"
-      ><Textarea
-        name="notes"
-        bind:value={entryNotes}
-        rows={3}
-        placeholder="Optional notes…"
-      /></FormField
-    >
-    {#if entryError}<p class="text-sm text-error-500">{entryError}</p>{/if}
-    <div class="flex justify-end gap-2">
-      <Btn variant="ghost" onclick={closeEntryModal}>Cancel</Btn>
-      <Btn variant="primary" type="submit" loading={saving}>{editingEntry ? 'Save' : 'Create'}</Btn>
+    <Input
+      label="Zeitstempel"
+      name="timestamp"
+      type="datetime-local"
+      bind:value={entryTimestamp}
+      required
+    />
+    <Textarea
+      label="Notizen (optional)"
+      name="notes"
+      bind:value={entryNotes}
+      rows={3}
+      placeholder="Optionale Bemerkungen, Kontext…"
+    />
+    {#if entryError}<p class="text-xs font-bold text-rose-500">{entryError}</p>{/if}
+    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <Btn variant="secondary" size="md" onclick={closeEntryModal}>Abbrechen</Btn>
+      <Btn variant="primary" size="md" type="submit" loading={saving}
+        >{editingEntry ? 'Speichern' : 'Eintrag anlegen'}</Btn
+      >
     </div>
   </form>
 </Modal>

@@ -76,14 +76,14 @@
 
 <button
   type="button"
-  class="flex h-full w-full cursor-pointer flex-col justify-between border-0 bg-transparent p-2 text-left select-none focus:outline-none"
+  class="flex h-full w-full cursor-pointer flex-col justify-between border-0 bg-transparent p-1 text-left select-none focus:outline-none"
   onclick={() => goto('/coach/circadian')}
 >
   <!-- Solar Arc Visualizer -->
   <div class="relative mt-2 flex h-20 w-full flex-col justify-end">
     <!-- Curve line -->
     <svg
-      class="absolute inset-0 h-16 w-full text-surface-200"
+      class="absolute inset-0 h-16 w-full text-[var(--border-subtle)]"
       viewBox="0 0 100 30"
       preserveAspectRatio="none"
     >
@@ -106,13 +106,13 @@
       >
         {#if isNight}
           <div
-            class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-warning-200 shadow-md"
+            class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-slate-900 text-amber-300 shadow-md"
           >
             <Icon name="dark-mode" size="sm" />
           </div>
         {:else}
           <div
-            class="animate-spin-slow flex h-6 w-6 items-center justify-center rounded-full bg-warning-400 text-white shadow-md"
+            class="animate-spin-slow flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-white shadow-md"
           >
             <Icon name="wb-sunny" size="sm" />
           </div>
@@ -122,24 +122,26 @@
 
     <!-- Timeline Labels -->
     <div
-      class="flex justify-between border-t border-surface-100 px-2 pt-1 text-[10px] text-surface-400"
+      class="flex justify-between border-t border-[var(--border-subtle)] px-2 pt-1 text-[10px] text-[var(--text-soft)]"
     >
       <span class="flex items-center gap-0.5">
-        <Icon name="light-mode" size={10} class="text-warning-500" />
-        Sunrise: {advice?.solar_times?.sunrise ?? '—'}
+        <Icon name="light-mode" size={10} class="text-amber-500" />
+        Aufgang: {advice?.solar_times?.sunrise ?? '—'}
       </span>
       <span class="flex items-center gap-0.5">
-        Sunset: {advice?.solar_times?.sunset ?? '—'}
-        <Icon name="dark-mode" size={10} class="text-slate-500" />
+        Untergang: {advice?.solar_times?.sunset ?? '—'}
+        <Icon name="dark-mode" size={10} class="text-[var(--text-muted)]" />
       </span>
     </div>
   </div>
 
   <!-- Dynamic daily tip banner -->
-  <div class="rounded-lg border border-primary-500/10 bg-primary-50/50 p-2">
+  <div
+    class="mt-2 rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/10 p-2.5"
+  >
     <div class="flex items-start gap-1.5">
-      <Icon name="psychology" size="sm" class="mt-0.5 shrink-0 text-primary-500" />
-      <p class="text-[10px] leading-snug font-medium text-primary-700">
+      <Icon name="psychology" size="sm" class="mt-0.5 shrink-0 text-[var(--color-primary)]" />
+      <p class="text-[11px] leading-snug font-medium text-[var(--text-main)]">
         {activeAdvice}
       </p>
     </div>

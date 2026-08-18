@@ -9,6 +9,7 @@
   import NotificationBell from '$components/feedback/NotificationBell.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Icon from '$components/ui/Icon.svelte';
+  import StatusDot from '$components/ui/StatusDot.svelte';
   import { useOnline } from '$stores/online.svelte';
   import { syncEngine } from '$lib/db/sync-engine.svelte';
   import { useQuery } from '$lib/db/use-query.svelte';
@@ -261,11 +262,11 @@
 </script>
 
 <!-- scanner hint: icon="menu" -->
-<header class="sticky top-0 z-200 h-16 border-b border-surface-200 bg-surface-0" data-scrolled>
+<header class="border-surface-200 bg-surface-0 sticky top-0 z-200 h-16 border-b" data-scrolled>
   <div class="mx-auto flex h-full max-w-[1440px] items-center gap-6 px-6 md:px-10">
     {#if auth.isAuthenticated}
       <button
-        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-surface-600 hover:bg-surface-100 hover:text-surface-900 lg:hidden"
+        class="text-surface-600 hover:bg-surface-100 hover:text-surface-900 flex h-9 w-9 shrink-0 items-center justify-center rounded-md lg:hidden"
         aria-label="Toggle navigation"
         aria-expanded={mobileOpen}
         onclick={() => (mobileOpen = !mobileOpen)}
@@ -276,7 +277,7 @@
 
     <a
       href="/"
-      class="-track-[0.01em] shrink-0 text-xl leading-7 font-semibold text-primary-600 no-underline"
+      class="-track-[0.01em] text-primary-600 shrink-0 text-xl leading-7 font-semibold no-underline"
     >
       salus
     </a>
@@ -332,7 +333,7 @@
 
 {#if mobileOpen && auth.isAuthenticated}
   <div
-    class="fixed inset-0 z-300 bg-surface-900/30 lg:hidden"
+    class="bg-surface-900/30 fixed inset-0 z-300 lg:hidden"
     onclick={() => (mobileOpen = false)}
     onkeydown={(e) => {
       if (e.key === 'Escape') mobileOpen = false;
@@ -343,13 +344,13 @@
     transition:fade={motionParams(DURATIONS.micro)}
   ></div>
   <div
-    class="fixed top-0 bottom-0 left-0 z-400 w-[280px] bg-surface-0 shadow-xl lg:hidden"
+    class="bg-surface-0 fixed top-0 bottom-0 left-0 z-400 w-[280px] shadow-xl lg:hidden"
     transition:fly={{ x: -280, ...motionParams(DURATIONS.normal) }}
   >
-    <div class="flex h-16 items-center justify-between border-b border-surface-200 px-4">
-      <h2 class="text-xl font-semibold text-surface-900">Navigation</h2>
+    <div class="border-surface-200 flex h-16 items-center justify-between border-b px-4">
+      <h2 class="text-surface-900 text-xl font-semibold">Navigation</h2>
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-full text-surface-500 hover:bg-surface-100 hover:text-surface-700"
+        class="text-surface-500 hover:bg-surface-100 hover:text-surface-700 flex h-9 w-9 items-center justify-center rounded-full"
         onclick={() => (mobileOpen = false)}
         aria-label="Close navigation"
       >
@@ -362,7 +363,7 @@
           {@const active = isLinkActive(entry.href)}
           <a
             href={entry.href}
-            class="duration-micro flex items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold tracking-label no-underline transition-colors hover:bg-surface-50 {entry.highlight
+            class="duration-micro tracking-label hover:bg-surface-50 flex items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold no-underline transition-colors {entry.highlight
               ? 'text-success-600'
               : active
                 ? 'bg-primary-50 text-primary-600'
@@ -371,8 +372,7 @@
             onclick={() => (mobileOpen = false)}
           >
             {#if entry.highlight}
-              <span class="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-success-500"
-              ></span>
+              <StatusDot status="active" pulse={true} size="xs" />
             {/if}
             <Icon name={entry.icon} size="md" class={entry.highlight ? 'text-success-500' : ''} />
             {entry.label}
@@ -382,14 +382,14 @@
           {@const groupHasActive = isGroupActive(entry)}
           <button
             type="button"
-            class="duration-micro flex w-full items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold tracking-label text-surface-600 transition-colors hover:bg-surface-50"
+            class="duration-micro tracking-label text-surface-600 hover:bg-surface-50 flex w-full items-center gap-3 rounded-md px-4 py-3 text-xs font-semibold transition-colors"
             onclick={() => toggleGroup(entry.label)}
             aria-expanded={expanded}
           >
             <Icon name={entry.icon} size="md" />
             {entry.label}
             {#if groupHasActive && !expanded}
-              <span class="ml-auto h-2 w-2 rounded-full bg-primary-500"></span>
+              <span class="bg-primary-500 ml-auto h-2 w-2 rounded-full"></span>
             {/if}
             <Icon
               name="expand-more"
@@ -403,7 +403,7 @@
                 {@const active = isLinkActive(subItem.href)}
                 <a
                   href={subItem.href}
-                  class="duration-micro flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-xs font-medium tracking-label no-underline transition-colors hover:bg-surface-50 {subItem.highlight
+                  class="duration-micro tracking-label hover:bg-surface-50 flex items-center gap-3 rounded-md py-2.5 pr-4 pl-8 text-xs font-medium no-underline transition-colors {subItem.highlight
                     ? 'text-success-600'
                     : active
                       ? 'bg-primary-50 text-primary-600'
@@ -412,9 +412,7 @@
                   onclick={() => (mobileOpen = false)}
                 >
                   {#if subItem.highlight}
-                    <span
-                      class="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-success-500"
-                    ></span>
+                    <StatusDot status="active" pulse={true} size="xs" />
                   {:else}
                     <Icon name={subItem.icon} size="sm" class="text-surface-400" />
                   {/if}

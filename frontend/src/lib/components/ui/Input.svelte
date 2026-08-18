@@ -1,14 +1,17 @@
 <script lang="ts">
   import Icon from '$components/ui/Icon.svelte';
+  import type { Snippet } from 'svelte';
+
   const baseInput =
-    'h-11 w-full rounded-md border px-3 py-2.5 text-sm text-surface-900 transition-colors duration-micro focus:outline-none focus:ring-2';
+    'h-10 w-full rounded-xl border px-3.5 py-2 text-sm font-semibold transition-colors duration-micro outline-none';
   const normalInput =
-    'border-surface-300 bg-surface-50 placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-primary-200';
-  const errorInput = 'border-error-400 bg-error-50 focus:border-error-500 focus:ring-error-200';
-  const disabledInput = 'border-surface-200 bg-surface-100 text-surface-500 cursor-not-allowed';
+    'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:border-[var(--color-primary)]';
+  const errorInput = 'border-rose-500 bg-rose-500/5 text-[var(--text-main)] focus:border-rose-500';
+  const disabledInput =
+    'border-[var(--border-subtle)] bg-[var(--bg-surface-100)] text-[var(--text-muted)] cursor-not-allowed opacity-60';
 
   interface Props {
-    name: string;
+    name?: string;
     type?: string;
     label?: string;
     value?: string | number;
@@ -18,6 +21,7 @@
     placeholder?: string;
     autocomplete?: HTMLInputElement['autocomplete'];
     disabled?: boolean;
+    readonly?: boolean;
     min?: number;
     max?: number;
     minlength?: number;
@@ -26,18 +30,29 @@
     style?: string;
     pattern?: string;
     el?: HTMLInputElement | null;
+    id?: string;
+    unit?: string;
+    icon?: string;
+    trailing?: Snippet;
+    oninput?: (e: Event) => void;
+    onchange?: (e: Event) => void;
+    onkeydown?: (e: KeyboardEvent) => void;
+    onkeyup?: (e: KeyboardEvent) => void;
+    onfocus?: (e: FocusEvent) => void;
+    onblur?: (e: FocusEvent) => void;
   }
 
   let {
-    name,
+    name = '',
     type = 'text',
-    label,
+    label = '',
     value = $bindable(''),
     required = false,
-    error,
-    hint,
-    placeholder,
+    error = '',
+    hint = '',
+    placeholder = '',
     disabled = false,
+    readonly = false,
     min,
     max,
     minlength,
@@ -46,21 +61,46 @@
     style,
     pattern,
     autocomplete,
-    el = $bindable(null)
+    el = $bindable(null),
+    id = name || `input_${Math.random().toString(36).slice(2, 7)}`,
+    unit = '',
+    icon = '',
+    trailing,
+    oninput,
+    onchange,
+    onkeydown,
+    onkeyup,
+    onfocus,
+    onblur
   }: Props = $props();
 </script>
 
-<div class={extraClass} {style}>
+<div class="space-y-1 {extraClass}" {style}>
   {#if label}
-    <label for={name} class="text-xs leading-[18px] font-semibold text-surface-900">
-      {label}
-      {#if required}<span class="ml-0.5 text-error-500">*</span>{/if}
-    </label>
+    <div class="flex items-center justify-between">
+      <label
+        for={id}
+        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase select-none"
+      >
+        {label}
+        {#if required}<span class="ml-0.5 text-rose-500">*</span>{/if}
+      </label>
+      {#if unit}
+        <span class="text-[0.625rem] font-bold text-[var(--text-muted)] tabular-nums">{unit}</span>
+      {/if}
+    </div>
   {/if}
-  <div class="relative">
+
+  <div class="relative flex items-center">
+    {#if icon}
+      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-[var(--text-muted)]">
+        <Icon name={icon} size="sm" />
+      </div>
+    {/if}
+
     <input
-      id={name}
-      {name}
+      {id}
+      name={name || id}
       {type}
       {autocomplete}
       {minlength}
@@ -73,15 +113,41 @@
       {required}
       {placeholder}
       {disabled}
-      class="{baseInput} {error ? errorInput : normalInput} {disabled ? disabledInput : ''}"
+      {readonly}
+      {oninput}
+      {onchange}
+      {onkeydown}
+      {onkeyup}
+      {onfocus}
+      {onblur}
+      class="{baseInput} {icon ? 'pl-10' : ''} {unit && !trailing ? 'pr-12' : ''} {trailing
+        ? 'pr-11'
+        : ''} {type === 'number' ? 'tabular-nums' : ''} {error ? errorInput : normalInput} {disabled
+        ? disabledInput
+        : ''}"
     />
+
+    {#if unit && !trailing}
+      <div
+        class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--text-muted)] tabular-nums select-none"
+      >
+        {unit}
+      </div>
+    {/if}
+
+    {#if trailing}
+      <div class="absolute top-1/2 right-3.5 flex -translate-y-1/2 items-center">
+        {@render trailing()}
+      </div>
+    {/if}
   </div>
+
   {#if error}
-    <span class="flex items-center gap-1 text-sm text-error-600" role="alert">
+    <span class="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-500" role="alert">
       <Icon name="error" size="sm" />
       {error}
     </span>
   {:else if hint}
-    <span class="text-sm text-surface-500">{hint}</span>
+    <span class="mt-1 block text-xs text-[var(--text-muted)]">{hint}</span>
   {/if}
 </div>

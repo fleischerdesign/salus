@@ -216,7 +216,7 @@
       <div class="space-y-6">
         <!-- Header Info Card -->
         <div
-          class="flex items-center justify-between rounded-lg border border-surface-200 bg-surface-50 p-4"
+          class="border-surface-200 bg-surface-50 flex items-center justify-between rounded-lg border p-4"
         >
           <div class="flex items-center gap-3">
             <div
@@ -226,23 +226,23 @@
               <Icon name={source.icon} size="md" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-surface-900">
+              <h3 class="text-surface-900 text-sm font-bold">
                 {source.name}
               </h3>
-              <span class="font-mono text-xs text-surface-400">ID: {source.id}</span>
+              <span class="text-surface-400 font-mono text-xs">ID: {source.id}</span>
             </div>
           </div>
 
           <div>
             {#if sourceStatus?.enabled}
               <span
-                class="inline-flex items-center gap-1.5 rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-700"
+                class="border-success-200 bg-success-50 text-success-700 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold"
               >
-                <span class="h-2 w-2 rounded-full bg-success-500"></span> Connected
+                <span class="bg-success-500 h-2 w-2 rounded-full"></span> Connected
               </span>
             {:else}
               <span
-                class="inline-flex items-center rounded-full bg-surface-200 px-2.5 py-1 text-xs font-medium text-surface-600"
+                class="bg-surface-200 text-surface-600 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
               >
                 Not connected
               </span>
@@ -252,7 +252,7 @@
 
         {#if sourceStatus?.detail}
           <p
-            class="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-xs text-surface-600"
+            class="border-surface-200 bg-surface-50 text-surface-600 rounded-lg border px-3 py-2 text-xs"
           >
             {sourceStatus.detail}
           </p>
@@ -261,8 +261,8 @@
         {#if syncFeedback}
           <div
             class="rounded-lg p-3 text-xs font-medium {syncFeedback.type === 'success'
-              ? 'border border-success-200 bg-success-50 text-success-800'
-              : 'border border-error-200 bg-error-50 text-error-800'}"
+              ? 'border-success-200 bg-success-50 text-success-800 border'
+              : 'border-error-200 bg-error-50 text-error-800 border'}"
           >
             {syncFeedback.text}
           </div>
@@ -270,11 +270,11 @@
 
         <!-- NATIVE HEALTH CONNECT QUICK ACTION CONTROLS -->
         {#if source.id === 'health_connect' && isNativeAndroid}
-          <div class=" rounded-lg border border-primary-200 bg-primary-50/50 p-4">
+          <div class=" border-primary-200 bg-primary-50/50 rounded-lg border p-4">
             <div class="flex items-center justify-between">
               <div>
-                <h4 class="text-xs font-bold text-primary-900">Android Health Connect Bridge</h4>
-                <p class="mt-0.5 text-[10px] text-primary-700">
+                <h4 class="text-primary-900 text-xs font-bold">Android Health Connect Bridge</h4>
+                <p class="text-primary-700 mt-0.5 text-[10px]">
                   Direct native link to Google Health Connect & Samsung Health
                 </p>
               </div>
@@ -298,11 +298,11 @@
             </div>
 
             {#if permissionState && permissionState.missingLabels.length > 0}
-              <div class="mt-3 rounded-lg border border-surface-200 bg-surface-50 p-3">
+              <div class="border-surface-200 bg-surface-50 mt-3 rounded-lg border p-3">
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
                     <StatusDot status="warning" size="sm" />
-                    <h5 class="text-xs font-bold text-surface-900">
+                    <h5 class="text-surface-900 text-xs font-bold">
                       Data access · {permissionState.granted} categories readable
                     </h5>
                   </div>
@@ -311,20 +311,20 @@
                     Open settings
                   </Btn>
                 </div>
-                <p class="mt-1.5 text-[10px] leading-relaxed text-surface-600">
+                <p class="text-surface-600 mt-1.5 text-[10px] leading-relaxed">
                   Categories not offered by Health Connect on this device are skipped automatically.
                   Grant everything Health Connect offers to enable all possible data.
                 </p>
                 <details class="mt-2">
                   <summary
-                    class="cursor-pointer text-[10px] font-medium text-surface-500 select-none"
+                    class="text-surface-500 cursor-pointer text-[10px] font-medium select-none"
                   >
                     Show {permissionState.missingLabels.length} skipped categories
                   </summary>
                   <div class="mt-2 flex flex-wrap gap-1">
                     {#each permissionState.missingLabels as label (label)}
                       <span
-                        class="rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-[10px] font-medium text-surface-600"
+                        class="border-surface-200 bg-surface-100 text-surface-600 rounded-full border px-2 py-0.5 text-[10px] font-medium"
                       >
                         {label}
                       </span>
@@ -337,23 +337,23 @@
         {/if}
 
         {#if healthSyncUi.seedProgress}
-          <div class="rounded-lg border border-surface-200 bg-surface-50 p-3">
+          <div class="border-surface-200 bg-surface-50 rounded-lg border p-3">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <Spinner size="sm" />
-                <h5 class="text-xs font-bold text-surface-900">Importing Health Connect history</h5>
+                <h5 class="text-surface-900 text-xs font-bold">Importing Health Connect history</h5>
               </div>
               {#if (healthSyncUi.seedProgress?.done ?? 0) > 0}
-                <span class="font-mono text-xs text-surface-500">
+                <span class="text-surface-500 font-mono text-xs">
                   {(healthSyncUi.seedProgress?.done ?? 0).toLocaleString()} measurements
                 </span>
               {/if}
             </div>
-            <p class="mt-1 text-[10px] text-surface-600">
+            <p class="text-surface-600 mt-1 text-[10px]">
               First sync imports your full history. Later syncs are instant.
             </p>
-            <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-surface-100">
-              <div class="h-1 w-full animate-pulse rounded-full bg-primary-400"></div>
+            <div class="bg-surface-100 mt-2 h-1 w-full overflow-hidden rounded-full">
+              <div class="bg-primary-400 h-1 w-full animate-pulse rounded-full"></div>
             </div>
           </div>
         {/if}
@@ -362,34 +362,34 @@
           <!-- ACTIVE SOURCE DIAGNOSTICS -->
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
-              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
-                <span class="text-[10px] text-surface-500">Total Measurements</span>
-                <div class="mt-0.5 text-base font-bold text-surface-900">
+              <div class="border-surface-200 bg-surface-0 rounded-lg border p-3">
+                <span class="text-surface-500 text-[10px]">Total Measurements</span>
+                <div class="text-surface-900 mt-0.5 text-base font-bold">
                   {count.toLocaleString()}
                 </div>
               </div>
-              <div class="rounded-lg border border-surface-200 bg-surface-0 p-3">
-                <span class="text-[10px] text-surface-500">Last Data Ingest</span>
-                <div class="mt-1 truncate text-xs font-semibold text-surface-900">
+              <div class="border-surface-200 bg-surface-0 rounded-lg border p-3">
+                <span class="text-surface-500 text-[10px]">Last Data Ingest</span>
+                <div class="text-surface-900 mt-1 truncate text-xs font-semibold">
                   {lastSyncTime ?? 'Recent'}
                 </div>
               </div>
             </div>
 
             <div>
-              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase">
+              <h4 class="text-surface-700 mb-2 text-xs font-bold tracking-wider uppercase">
                 Metrics Supplied ({metricsSupplied.length})
               </h4>
               <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                 {#each metricsSupplied as item (item.code)}
                   <div
-                    class="flex items-center justify-between rounded-md border border-surface-200/70 bg-surface-0 px-3 py-2 text-xs"
+                    class="border-surface-200/70 bg-surface-0 flex items-center justify-between rounded-md border px-3 py-2 text-xs"
                   >
                     <div class="flex items-center gap-2">
                       <Icon name="monitoring" size="sm" class="text-primary-600" />
-                      <span class="font-semibold text-surface-900">{item.name}</span>
+                      <span class="text-surface-900 font-semibold">{item.name}</span>
                     </div>
-                    <span class="font-mono text-surface-500"
+                    <span class="text-surface-500 font-mono"
                       >{item.count.toLocaleString()} entries</span
                     >
                   </div>
@@ -400,23 +400,23 @@
         {:else}
           <!-- INACTIVE SOURCE DIAGNOSTICS & SETUP GUIDE -->
           <div class="space-y-4">
-            <div class="rounded-lg border border-surface-200 bg-surface-50 p-4">
-              <div class="mb-1 flex items-center gap-2 text-xs font-semibold text-surface-800">
+            <div class="border-surface-200 bg-surface-50 rounded-lg border p-4">
+              <div class="text-surface-800 mb-1 flex items-center gap-2 text-xs font-semibold">
                 <Icon name="info" size="sm" class="text-surface-500" />
                 Connection Status
               </div>
-              <p class="text-xs leading-relaxed text-surface-600">
+              <p class="text-surface-600 text-xs leading-relaxed">
                 No measurement data received from {source.name} yet. Tap Authorize / Sync Now above or
                 grant permissions in system settings to start syncing.
               </p>
             </div>
 
             <div>
-              <h4 class="mb-2 text-xs font-bold tracking-wider text-surface-700 uppercase">
+              <h4 class="text-surface-700 mb-2 text-xs font-bold tracking-wider uppercase">
                 Setup Instructions
               </h4>
               <div
-                class="rounded-lg border border-surface-200 bg-surface-0 p-4 text-xs leading-relaxed text-surface-700"
+                class="border-surface-200 bg-surface-0 text-surface-700 rounded-lg border p-4 text-xs leading-relaxed"
               >
                 {INACTIVE_GUIDES[source.id] ??
                   'Connect this source in system integration settings.'}
@@ -425,7 +425,7 @@
           </div>
         {/if}
 
-        <div class="flex items-center justify-end gap-3 border-t border-surface-200 pt-4">
+        <div class="border-surface-200 flex items-center justify-end gap-3 border-t pt-4">
           <Btn variant="secondary" onclick={() => (open = false)}>Close</Btn>
         </div>
       </div>

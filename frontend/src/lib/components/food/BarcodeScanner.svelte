@@ -105,13 +105,13 @@
   {/if}
 
   {#if active}
-    <div class="overflow-hidden rounded-lg border border-primary-300">
+    <div class="border-primary-300 overflow-hidden rounded-lg border">
       <video bind:this={cameraEl} class="bg-surface-950 max-h-64 w-full" muted playsinline></video>
     </div>
-    <p class="text-xs text-surface-400 tabular-nums">Scanning… {frames} frames</p>
+    <p class="text-surface-400 text-xs tabular-nums">Scanning… {frames} frames</p>
   {/if}
 
   {#if error}
-    <p class="text-xs text-error-600">{error}</p>
+    <p class="text-error-600 text-xs">{error}</p>
   {/if}
 </div>

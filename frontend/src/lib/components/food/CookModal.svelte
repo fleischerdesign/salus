@@ -43,17 +43,17 @@
 
 <Modal {open} onclose={onClose} title="Cook Recipe">
   <div class="flex flex-col gap-5">
-    <p class="text-sm text-surface-600">
-      Log <span class="font-semibold text-surface-900">{recipeName}</span> as a meal.
+    <p class="text-surface-600 text-sm">
+      Log <span class="text-surface-900 font-semibold">{recipeName}</span> as a meal.
     </p>
 
-    <div class="flex items-center justify-between rounded-xl bg-surface-50 px-4 py-3">
+    <div class="bg-surface-50 flex items-center justify-between rounded-xl px-4 py-3">
       <div>
-        <div class="text-2xl font-bold text-surface-900 tabular-nums">
+        <div class="text-surface-900 text-2xl font-bold tabular-nums">
           {scaled ? scaled.calories.toLocaleString() : '—'}
-          <span class="text-sm font-medium text-surface-400"> kcal</span>
+          <span class="text-surface-400 text-sm font-medium"> kcal</span>
         </div>
-        <div class="mt-1 text-xs text-surface-500">
+        <div class="text-surface-500 mt-1 text-xs">
           {#if scaled}
             {scaled.protein}P · {scaled.carbs}C · {scaled.fat}F
           {:else}

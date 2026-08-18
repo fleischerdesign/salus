@@ -1,792 +1,322 @@
 <script lang="ts">
-  import { useQuery } from '$lib/db/use-query.svelte';
   import { todayString } from '$lib/utils/datetime';
-  import Sortable from 'sortablejs';
-  import {
-    addWidget as addWidgetMut,
-    updateWidget as updateWidgetMut,
-    deleteWidget as deleteWidgetMut
-  } from '$lib/mutations/dashboard';
-  import { fetchDashboard, type DashboardWidgetView } from '$lib/analytics/views/dashboard';
-  import type { MetricWithPreference } from '$lib/db/types';
+  import { goto } from '$app/navigation';
+  import { db } from '$lib/db/database';
+  import { useQuery } from '$lib/db/use-query.svelte';
+  import DashboardDateBar from '$components/dashboard/DashboardDateBar.svelte';
+  import DynamicWidgetGroup from '$components/dashboard/DynamicWidgetGroup.svelte';
+  import WidgetRenderer from '$components/dashboard/WidgetRenderer.svelte';
+  import WidgetGalleryModal from '$components/dashboard/WidgetGalleryModal.svelte';
+  import WidgetGroupEditorModal from '$components/dashboard/WidgetGroupEditorModal.svelte';
   import Btn from '$components/ui/Btn.svelte';
-  import PageHeader from '$components/ui/PageHeader.svelte';
-  import PageHeaderAction from '$components/ui/PageHeaderAction.svelte';
-  import EmptyState from '$components/ui/EmptyState.svelte';
-  import Modal from '$components/ui/Modal.svelte';
-  import Select from '$components/ui/Select.svelte';
-  import Icon from '$components/ui/Icon.svelte';
-  import ConfirmDialog from '$components/ui/ConfirmDialog.svelte';
-  import ChromeCard from '$components/ui/ChromeCard.svelte';
-  import Tabs from '$components/ui/Tabs.svelte';
-  import VizBar from '$components/dashboard/VizBar.svelte';
-  import VizCandlestick from '$components/dashboard/VizCandlestick.svelte';
-  import VizNumber from '$components/dashboard/VizNumber.svelte';
-  import VizPills, { type PillBucket } from '$components/dashboard/VizPills.svelte';
-  import VizSparkline from '$components/dashboard/VizSparkline.svelte';
-  import VizWorkoutLauncher from '$components/dashboard/VizWorkoutLauncher.svelte';
-  import VizSleepCoach from '$components/dashboard/VizSleepCoach.svelte';
-  import VizWater from '$components/dashboard/VizWater.svelte';
-  import VizCircadian from '$components/dashboard/VizCircadian.svelte';
-  import VizLineChart from '$components/dashboard/VizLineChart.svelte';
+  import {
+    DEFAULT_DASHBOARD_ITEMS,
+    type DashboardItem,
+    type DashboardWidget,
+    type DashboardWidgetGroup
+  } from '$lib/types/widget-groups';
 
-  let displayDate = $state(todayString());
+  const DASHBOARD_STORAGE_KEY = 'salus_dashboard_layout_v2';
 
-  let displayDateFormatted = $derived.by(() => {
-    const [y, m, d] = displayDate.split('-').map(Number);
-    if (!y || !m || !d) return displayDate;
-    const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  });
+  let selectedDate = $state(todayString());
+  let isEditMode = $state(false);
 
-  const isToday = $derived(displayDate === todayString());
+  // 1. Reactive Dexie Query for Selected Date (Bounded Time Window)
+  const dayQuery = useQuery(
+    async () => {
+      const dayStart = new Date(selectedDate + 'T00:00:00').toISOString();
+      const dayEnd = new Date(selectedDate + 'T23:59:59.999').toISOString();
 
-  const dashboardDataQuery = useQuery(
-    () => fetchDashboard(displayDate),
-    () => displayDate
-  );
-  const dashboardData = $derived(dashboardDataQuery.value);
-  let isTransitioning = $state(false);
+      const [allMeasurements, allHabits, allHabitLogs] = await Promise.all([
+        db.measurement.where('start_time').between(dayStart, dayEnd).toArray(),
+        db.habit.toArray(),
+        db.habit_log.where('log_date').equals(selectedDate).toArray()
+      ]);
 
-  $effect(() => {
-    void displayDate;
-    isTransitioning = true;
-  });
-
-  $effect(() => {
-    if (dashboardData) isTransitioning = false;
-  });
-
-  let editing = $state(false);
-  let addModalOpen = $state(false);
-  let widgetType = $state<'metric' | 'custom'>('metric');
-  let selectedWidgetId = $state('');
-  let selectedSize = $state<'small' | 'medium' | 'large'>('medium');
-  let adding = $state(false);
-
-  let editModalOpen = $state(false);
-  let editWidget: DashboardWidgetView | null = $state(null);
-  let editSize = $state('medium');
-  let editSaving = $state(false);
-
-  let deleteConfirmOpen = $state(false);
-  let deleteWidgetId = $state<string | null>(null);
-
-  let gridEl: HTMLElement | null = $state(null);
-  let sortableInstance: Sortable | null = null;
-
-  let widgets = $derived(dashboardData?.widgets ?? []);
-  let metrics = $derived(dashboardData?.metrics ?? []);
-
-  function changeDay(deltaDays: number) {
-    const [y, m, d] = displayDate.split('-').map(Number);
-    const date = new Date(y, m - 1, d + deltaDays);
-    const ny = date.getFullYear();
-    const nm = String(date.getMonth() + 1).padStart(2, '0');
-    const nd = String(date.getDate()).padStart(2, '0');
-    displayDate = `${ny}-${nm}-${nd}`;
-  }
-
-  function handleDateChange(dateStr: string) {
-    if (!dateStr) return;
-    displayDate = dateStr;
-  }
-
-  async function addWidget() {
-    if (!selectedWidgetId) return;
-    adding = true;
-    try {
-      if (widgetType === 'metric') {
-        await addWidgetMut('metric', selectedWidgetId, selectedSize, widgets.length);
-      } else {
-        await addWidgetMut(selectedWidgetId, null, 'medium', widgets.length);
+      const validM = allMeasurements.filter((m) => !m.deleted_at);
+      const metricsMap = new Map<string, number>();
+      for (const m of validM) {
+        if (m.metric_code && m.value_numeric != null) {
+          metricsMap.set(m.metric_code, m.value_numeric);
+        }
       }
-      addModalOpen = false;
-      selectedWidgetId = '';
-    } catch {
-      /* error */
-    }
-    adding = false;
-  }
 
-  async function removeWidget(id: string) {
-    const { ok, error } = await deleteWidgetMut(id);
-    if (!ok) console.error('Failed to remove widget:', error);
-  }
+      const activeHabits = allHabits.filter((h) => !h.deleted_at && !h.is_archived);
+      const doneHabits = allHabitLogs.filter((l) => !l.deleted_at && l.completed).length;
 
-  async function updateWidgetSize() {
-    if (!editWidget) return;
-    editSaving = true;
-    try {
-      await updateWidgetMut(editWidget.id, { size: editSize });
-      editModalOpen = false;
-      editWidget = null;
-    } catch {
-      /* error */
-    }
-    editSaving = false;
-  }
-
-  async function reorderWidgets(newOrder: string[]) {
-    const updates = newOrder.map((id, idx) => updateWidgetMut(id, { position: idx }));
-    try {
-      await Promise.all(updates);
-    } catch {
-      /* reordering is best-effort; the next sync reconciles positions */
-    }
-  }
-
-  function toggleEdit() {
-    editing = !editing;
-  }
-
-  function openEditModal(w: DashboardWidgetView) {
-    editWidget = w;
-    editSize = w.size;
-    editModalOpen = true;
-  }
-
-  function confirmDelete() {
-    if (deleteWidgetId !== null) {
-      removeWidget(deleteWidgetId);
-      deleteWidgetId = null;
-      deleteConfirmOpen = false;
-    }
-  }
-
-  function initSortable() {
-    if (!gridEl) return;
-    if (sortableInstance) sortableInstance.destroy();
-    sortableInstance = Sortable.create(gridEl, {
-      handle: '.widget-chrome-handle',
-      filter: '.edit-chrome-actions',
-      preventOnFilter: false,
-      animation: 150,
-      ghostClass: 'widget-grid__ghost',
-      touchStartThreshold: 10,
-      onEnd: (evt) => {
-        if (evt.oldIndex === evt.newIndex) return;
-        const reordered = [...widgets];
-        const [moved] = reordered.splice(evt.oldIndex!, 1);
-        reordered.splice(evt.newIndex!, 0, moved);
-        reorderWidgets(reordered.map((w) => w.id));
-      }
-    });
-  }
-
-  $effect(() => {
-    if (gridEl && editing) {
-      initSortable();
-      return () => {
-        sortableInstance?.destroy();
-        sortableInstance = null;
+      return {
+        metricsMap,
+        steps: metricsMap.get('steps') ?? 0,
+        hydration: metricsMap.get('hydration') ?? 0,
+        habitsDone: doneHabits,
+        habitsTotal: activeHabits.length
       };
-    }
-    if (sortableInstance && !editing) {
-      sortableInstance.destroy();
-      sortableInstance = null;
-    }
-  });
-
-  const availableMetrics = $derived(
-    (metrics ?? [])
-      .filter(
-        (m: MetricWithPreference) =>
-          !widgets.some((w: DashboardWidgetView) => w.metric_code === m.code)
-      )
-      .map((m: MetricWithPreference) => ({
-        id: String(m.code),
-        name: m.name,
-        description:
-          m.source_data_type === 'steps'
-            ? 'Track daily step counts, progress towards goals, and walking trends.'
-            : m.source_data_type === 'heart_rate'
-              ? 'Monitor pulse, resting heart rate, and recovery metrics.'
-              : m.source_data_type === 'sleep'
-                ? 'Analyze sleep cycles, sleep duration, and rest hygiene.'
-                : m.source_data_type === 'weight'
-                  ? 'Monitor body weight fluctuations and BMI trends.'
-                  : m.source_data_type === 'blood_pressure'
-                    ? 'Track systolic and diastolic arterial pressure trends.'
-                    : 'Track values and log measurements over time.',
-        icon: m.icon || 'monitoring',
-        color: m.color || '#64748b',
-        source_data_type: m.source_data_type
-      }))
+    },
+    () => selectedDate
   );
 
-  const availableCustoms = $derived(
-    [
-      {
-        id: 'workout_launcher',
-        name: 'Workout Launcher',
-        description: 'Start workout routines and log active sets directly in real-time.',
-        icon: 'play-arrow',
-        color: '#6366f1',
-        source_data_type: 'workout_launcher'
-      },
-      {
-        id: 'sleep_coach',
-        name: 'Sleep Coach',
-        description: 'Track cumulative sleep debt and get ideal wind-down bedtime recommendations.',
-        icon: 'psychology',
-        color: '#4f46e5',
-        source_data_type: 'sleep_coach'
-      },
-      {
-        id: 'water_logger',
-        name: 'Water Intake',
-        description: 'Track hydration and log water consumption directly from your dashboard.',
-        icon: 'water-drop',
-        color: '#06b6d4',
-        source_data_type: 'water_logger'
-      },
-      {
-        id: 'circadian_timeline',
-        name: 'Circadian Timeline',
-        description:
-          'Monitor optimal sun light windows, caffeine cuts, and wind-down phases today.',
-        icon: 'routine',
-        color: '#f59e0b',
-        source_data_type: 'circadian_timeline'
+  const liveData = $derived(dayQuery.value);
+  const liveMetrics = $derived(liveData?.metricsMap);
+  const waterAmount = $derived(liveData?.hydration ?? 0);
+
+  // Modals State
+  let isGalleryOpen = $state(false);
+  let isGroupEditorOpen = $state(false);
+  let activeGroupForGallery = $state<DashboardWidgetGroup | null>(null);
+  let activeGroupForEdit = $state<DashboardWidgetGroup | null>(null);
+  let isCreatingNewGroup = $state(false);
+
+  function loadInitialItems(): DashboardItem[] {
+    if (typeof localStorage === 'undefined') return DEFAULT_DASHBOARD_ITEMS;
+    try {
+      const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
       }
-    ].filter((opt) => !widgets.some((w: DashboardWidgetView) => w.widget_type === opt.id))
-  );
+    } catch {
+      // Fallback
+    }
+    return DEFAULT_DASHBOARD_ITEMS;
+  }
+
+  let dashboardItems = $state<DashboardItem[]>(loadInitialItems());
+
+  function persistDashboard(items: DashboardItem[]) {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(items));
+    } catch {
+      // Silently ignore
+    }
+  }
 
   $effect(() => {
-    // Keep category toggle changes in sync with selection
-    if (widgetType === 'metric') {
-      const first = availableMetrics[0];
-      selectedWidgetId = first ? first.id : '';
-    } else {
-      const first = availableCustoms[0];
-      selectedWidgetId = first ? first.id : '';
-    }
+    persistDashboard(dashboardItems);
   });
 
-  let loading = $derived(dashboardData == null);
+  // Open Gallery for a specific Group
+  function openGalleryForGroup(group: DashboardWidgetGroup) {
+    activeGroupForGallery = group;
+    isGalleryOpen = true;
+  }
+
+  // Open Gallery for Dashboard Root
+  function openRootGallery() {
+    activeGroupForGallery = null;
+    isGalleryOpen = true;
+  }
+
+  function handleAddWidget(widget: DashboardWidget, targetGroupId: string | null) {
+    if (targetGroupId) {
+      for (const item of dashboardItems) {
+        if (item.kind === 'group' && item.group.id === targetGroupId) {
+          item.group.widgets = [...item.group.widgets, widget];
+          dashboardItems = [...dashboardItems];
+          return;
+        }
+      }
+    } else {
+      const newItem: DashboardItem = {
+        id: `item_${Date.now()}`,
+        kind: 'widget',
+        widget
+      };
+      dashboardItems = [...dashboardItems, newItem];
+    }
+  }
+
+  function handleRemoveRootItem(itemId: string) {
+    dashboardItems = dashboardItems.filter((item) => item.id !== itemId);
+  }
+
+  function handleRemoveGroupWidget(groupId: string, widgetId: string) {
+    for (const item of dashboardItems) {
+      if (item.kind === 'group' && item.group.id === groupId) {
+        item.group.widgets = item.group.widgets.filter((w) => w.id !== widgetId);
+        dashboardItems = [...dashboardItems];
+        return;
+      }
+    }
+  }
+
+  function openEditGroup(group: DashboardWidgetGroup) {
+    activeGroupForEdit = group;
+    isCreatingNewGroup = false;
+    isGroupEditorOpen = true;
+  }
+
+  function openCreateGroup() {
+    activeGroupForEdit = {
+      id: `grp_${Date.now()}`,
+      title: 'Neue Gruppe',
+      subtitle: '',
+      columns: 2,
+      widgets: []
+    };
+    isCreatingNewGroup = true;
+    isGroupEditorOpen = true;
+  }
+
+  function handleSaveGroup(savedGroup: DashboardWidgetGroup) {
+    if (isCreatingNewGroup) {
+      const newItem: DashboardItem = {
+        id: `item_${savedGroup.id}`,
+        kind: 'group',
+        group: savedGroup
+      };
+      dashboardItems = [...dashboardItems, newItem];
+    } else {
+      const idx = dashboardItems.findIndex(
+        (item) => item.kind === 'group' && item.group.id === savedGroup.id
+      );
+      if (idx !== -1) {
+        dashboardItems[idx] = {
+          id: dashboardItems[idx].id,
+          kind: 'group',
+          group: savedGroup
+        };
+        dashboardItems = [...dashboardItems];
+      }
+    }
+  }
+
+  function handleDeleteGroup(groupId: string) {
+    dashboardItems = dashboardItems.filter(
+      (item) => !(item.kind === 'group' && item.group.id === groupId)
+    );
+  }
+
+  function moveItemUp(index: number) {
+    if (index <= 0) return;
+    const item = dashboardItems[index];
+    const newArr = [...dashboardItems];
+    newArr.splice(index, 1);
+    newArr.splice(index - 1, 0, item);
+    dashboardItems = newArr;
+  }
+
+  function moveItemDown(index: number) {
+    if (index >= dashboardItems.length - 1) return;
+    const item = dashboardItems[index];
+    const newArr = [...dashboardItems];
+    newArr.splice(index, 1);
+    newArr.splice(index + 1, 0, item);
+    dashboardItems = newArr;
+  }
+
+  function resetDashboardLayout() {
+    dashboardItems = DEFAULT_DASHBOARD_ITEMS;
+    persistDashboard(DEFAULT_DASHBOARD_ITEMS);
+    isEditMode = false;
+  }
 </script>
 
-<svelte:head><title>Salus — Dashboard</title></svelte:head>
+<div class="mx-auto max-w-7xl space-y-6">
+  <!-- 1. DATE NAVIGATOR & EDIT MODE CONTROLS -->
+  <DashboardDateBar
+    bind:selectedDate
+    {isEditMode}
+    ontoggleedit={() => (isEditMode = !isEditMode)}
+    onaddwidget={openRootGallery}
+    onreset={resetDashboardLayout}
+  />
 
-<div class="space-y-6">
-  <PageHeader
-    title="Dashboard"
-    subtitle="Personal health overview and activity tracker"
-    icon="dashboard"
-  >
-    {#snippet actions()}
-      <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
-        <!-- Date Navigator Segment -->
-        <div class="flex h-full items-center gap-2 px-6">
-          <button
-            class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
-            onclick={() => changeDay(-1)}
-            aria-label="Previous day"
-            type="button"
-          >
-            <Icon name="chevron-left" />
-          </button>
-
-          <label
-            class="duration-micro relative cursor-pointer px-2 text-sm font-semibold tracking-label text-surface-700 transition-colors hover:text-primary-600"
-          >
-            <span>{displayDateFormatted}</span>
-            <input
-              id="dash-hidden-date"
-              type="date"
-              class="absolute inset-0 cursor-pointer opacity-0"
-              value={displayDate}
-              onchange={(e) => handleDateChange((e.target as HTMLInputElement).value)}
-            />
-          </label>
-
-          <button
-            class="duration-micro flex h-8 w-8 items-center justify-center rounded-full text-surface-500 transition-colors hover:bg-surface-200 hover:text-surface-700"
-            onclick={() => changeDay(1)}
-            aria-label="Next day"
-            type="button"
-          >
-            <Icon name="chevron-right" />
-          </button>
-
-          {#if !isToday}
+  <!-- 2. DYNAMIC USER DASHBOARD (Loose Standalone Widgets + Visual Groups) -->
+  <div class="space-y-6">
+    {#each dashboardItems as item, idx (item.id)}
+      <!-- CASE A: Standalone Loose Widget on Dashboard Canvas -->
+      {#if item.kind === 'widget'}
+        <div
+          class="relative mb-5 transition-transform {isEditMode
+            ? idx % 2 === 0
+              ? 'ios-wiggle-even'
+              : 'ios-wiggle-odd'
+            : ''}"
+        >
+          {#if isEditMode}
             <button
               type="button"
-              class="ml-1 rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600 transition-colors hover:text-primary-700"
-              onclick={() => handleDateChange(todayString())}
+              onclick={() => handleRemoveRootItem(item.id)}
+              class="animate-fade-in absolute -top-2 -right-2 z-30 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-[var(--bg-canvas)] bg-rose-500 text-sm font-extrabold text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
+              title="Widget entfernen"
+              aria-label="Widget entfernen"
             >
-              Today
+              &times;
             </button>
           {/if}
+
+          <WidgetRenderer
+            widget={item.widget}
+            {waterAmount}
+            {liveMetrics}
+            onopenfasting={() => goto('/fasting')}
+          />
         </div>
 
-        <!-- Edit Layout Segment -->
-        <PageHeaderAction
-          variant={editing ? 'secondary' : 'ghost'}
-          icon={editing ? 'check' : 'edit'}
-          onclick={toggleEdit}
+        <!-- CASE B: Visual Group Container -->
+      {:else if item.kind === 'group'}
+        <DynamicWidgetGroup
+          group={item.group}
+          {isEditMode}
+          {waterAmount}
+          {liveMetrics}
+          onopenfasting={() => goto('/fasting')}
+          oneditgroup={openEditGroup}
+          onaddwidget={openGalleryForGroup}
+          onremovewidget={handleRemoveGroupWidget}
+          onmoveup={() => moveItemUp(idx)}
+          onmovedown={() => moveItemDown(idx)}
+          ondeletegroup={() => handleDeleteGroup(item.group.id)}
+        />
+      {/if}
+    {/each}
+
+    <!-- Bottom Add Dropzone Card (in Edit Mode) -->
+    {#if isEditMode}
+      <button
+        type="button"
+        onclick={openRootGallery}
+        class="group flex min-h-[90px] w-full cursor-pointer items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-0)]/20 p-4 text-[var(--text-muted)] shadow-xs transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"
+      >
+        <div
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-base font-bold transition-all group-hover:bg-[var(--color-primary)] group-hover:text-white"
         >
-          {editing ? 'Done' : 'Edit Layout'}
-        </PageHeaderAction>
-
-        <!-- Add Widget Segment -->
-        {#if editing}
-          <PageHeaderAction icon="add" onclick={() => (addModalOpen = true)}>
-            Add Widget
-          </PageHeaderAction>
-        {/if}
-      </div>
-    {/snippet}
-  </PageHeader>
-
-  {#if loading}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-      <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
-      {#each Array(4) as _, i (i)}
-        <div class="overflow-hidden rounded-lg border border-surface-200 bg-surface-0">
-          <div class="border-b border-surface-100 px-3 py-2">
-            <div class="h-3 w-24 animate-pulse rounded bg-surface-100"></div>
-          </div>
-          <div class="min-h-[80px] space-y-3 px-4 pt-2 pb-4">
-            <div class="h-8 w-16 animate-pulse rounded bg-surface-100"></div>
-            <div class="h-20 w-full animate-pulse rounded bg-surface-100"></div>
-          </div>
+          +
         </div>
-      {/each}
-    </div>
-  {:else if widgets.length === 0}
-    <EmptyState
-      icon="dashboard"
-      title="No widgets yet"
-      description="Add widgets to start tracking your health data on the dashboard."
-    >
-      <Btn variant="primary" size="sm" onclick={() => (addModalOpen = true)}>+ Add Widget</Btn>
-    </EmptyState>
-  {:else}
+        <span
+          class="text-xs font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)]"
+        >
+          Weiteres Widget oder neue Gruppe zum Dashboard hinzufügen
+        </span>
+      </button>
+    {/if}
+  </div>
+
+  {#if dashboardItems.length === 0}
     <div
-      bind:this={gridEl}
-      class="duration-micro grid grid-cols-1 gap-4 transition-opacity sm:grid-cols-3 lg:grid-cols-6 {editing
-        ? 'rounded-lg bg-surface-100 p-2 ring-1 ring-primary-200'
-        : ''}"
+      class="space-y-3 rounded-3xl border-2 border-dashed border-[var(--border-subtle)] p-12 text-center"
     >
-      {#each widgets as widget (widget.id)}
-        {@const viz = widget.viz}
-        <ChromeCard
-          title={viz.title}
-          icon={undefined}
-          iconColor={viz.color ?? undefined}
-          unit={viz.unit ?? undefined}
-          editMode={editing}
-          dragHandle={editing}
-          dense
-          loading={isTransitioning}
-          class={widget.size === 'large'
-            ? 'lg:col-span-6'
-            : widget.size === 'medium'
-              ? 'lg:col-span-3'
-              : 'lg:col-span-2'}
-        >
-          {#snippet editActions()}
-            <button
-              class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600"
-              onclick={() => openEditModal(widget)}
-              aria-label="Edit widget size"
-            >
-              <Icon name="tune" size="sm" />
-            </button>
-            <button
-              class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-error-50 hover:text-error-500"
-              onclick={() => {
-                deleteWidgetId = widget.id;
-                deleteConfirmOpen = true;
-              }}
-              aria-label="Remove widget"
-            >
-              <Icon name="delete" size="sm" />
-            </button>
-          {/snippet}
-
-          {#if viz.empty}
-            <div class="flex min-h-[60px] items-center justify-center py-6 text-center">
-              <span class="max-w-[240px] text-sm text-surface-500">
-                {viz.empty_text ?? 'No data'}
-              </span>
-            </div>
-          {:else if viz.type === 'number'}
-            <VizNumber
-              value={viz.value ?? '—'}
-              unit={viz.unit ?? undefined}
-              subLabel={viz.subtitle ?? undefined}
-              color={viz.color ?? undefined}
-              animate={true}
-            />
-          {:else if viz.type === 'pills'}
-            <VizPills
-              value={viz.value}
-              unit={viz.unit}
-              subtitle={viz.subtitle}
-              color={viz.color ?? '#f43f5e'}
-              buckets={viz.segments as PillBucket[]}
-            />
-          {:else if viz.type === 'bar'}
-            <VizBar
-              segments={viz.segments as
-                { label: string; value: number; color: string }[] | undefined}
-            />
-          {:else if viz.type === 'sparkline'}
-            <VizSparkline
-              value={viz.value ?? '—'}
-              unit={viz.unit ?? undefined}
-              points={viz.sparkline_path ?? undefined}
-              color={viz.color ?? undefined}
-            />
-          {:else if viz.type === 'candlestick'}
-            <VizCandlestick data={undefined} color={viz.color ?? undefined} />
-          {:else if viz.type === 'workout_launcher'}
-            <VizWorkoutLauncher />
-          {:else if viz.type === 'sleep_coach'}
-            <VizSleepCoach />
-          {:else if viz.type === 'water_logger'}
-            <VizWater />
-          {:else if viz.type === 'circadian_timeline'}
-            <VizCircadian />
-          {:else if viz.type === 'line_chart'}
-            <VizLineChart
-              labels={viz.labels ?? []}
-              series={(viz.series ?? []) as { label: string; data: number[]; color: string }[]}
-              unit={viz.unit ?? undefined}
-            />
-          {:else}
-            <VizNumber
-              value={viz.value ?? '—'}
-              unit={viz.unit ?? undefined}
-              color={viz.color ?? undefined}
-              animate={true}
-            />
-          {/if}
-        </ChromeCard>
-      {/each}
+      <p class="text-sm text-[var(--text-muted)]">Dein Dashboard ist leer.</p>
+      <Btn variant="primary" onclick={openRootGallery}>+ Erstes Element hinzufügen</Btn>
     </div>
   {/if}
 </div>
 
-<Modal title="Add Widget" bind:open={addModalOpen}>
-  <div class="space-y-6">
-    <!-- Category Tabs -->
-    <Tabs
-      tabs={[
-        { key: 'metric', label: `Standard Metrics (${availableMetrics.length})` },
-        { key: 'custom', label: `Coaching & Actions (${availableCustoms.length})` }
-      ]}
-      bind:activeTab={widgetType}
-    />
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODALS: WIDGET GALLERY & GROUP EDITOR                              -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<WidgetGalleryModal
+  open={isGalleryOpen}
+  targetGroup={activeGroupForGallery}
+  onclose={() => (isGalleryOpen = false)}
+  onaddwidget={handleAddWidget}
+  oncreategroup={openCreateGroup}
+/>
 
-    <!-- Catalog Grid -->
-    {#if widgetType === 'metric'}
-      {#if availableMetrics.length > 0}
-        <div class="max-h-[340px] overflow-y-auto pr-1">
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {#each availableMetrics as opt}
-              <button
-                type="button"
-                class="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-surface-200 bg-surface-50 p-4 text-left transition-all hover:border-primary-300 hover:bg-surface-0 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                class:border-primary-500={selectedWidgetId === opt.id}
-                class:bg-surface-0={selectedWidgetId === opt.id}
-                class:shadow-sm={selectedWidgetId === opt.id}
-                class:ring-1={selectedWidgetId === opt.id}
-                class:ring-primary-500={selectedWidgetId === opt.id}
-                onclick={() => (selectedWidgetId = opt.id)}
-              >
-                <!-- Mini Preview Area -->
-                <div
-                  class="mb-3 flex h-24 w-full items-center justify-center overflow-hidden rounded-lg bg-surface-100/50 p-2 select-none"
-                >
-                  {#if opt.source_data_type === 'steps'}
-                    <div class="flex w-full flex-col justify-center gap-2 px-2 opacity-80">
-                      <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-warning-500">8,432</span>
-                        <span class="text-surface-400">/ 10k</span>
-                      </div>
-                      <div class="h-2 w-full overflow-hidden rounded-full bg-surface-200">
-                        <div class="h-full rounded-full bg-warning-500" style="width: 84%"></div>
-                      </div>
-                    </div>
-                  {:else if opt.source_data_type === 'heart_rate'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
-                    >
-                      <Icon name="monitor-heart" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-error-600">72 bpm</span>
-                    </div>
-                  {:else if opt.source_data_type === 'sleep'}
-                    <div class="flex h-12 w-full items-end justify-center gap-1.5 opacity-80">
-                      <div class="h-4 w-4 rounded-t bg-primary-500/40"></div>
-                      <div class="h-8 w-4 rounded-t bg-primary-500/70"></div>
-                      <div class="h-12 w-4 rounded-t bg-primary-500"></div>
-                    </div>
-                  {:else if opt.source_data_type === 'weight'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
-                    >
-                      <span class="text-xs font-bold text-success-600">78.5 kg</span>
-                      <div class="flex h-4 items-end justify-center gap-0.5">
-                        <div class="h-3 w-1 bg-success-500/30"></div>
-                        <div class="h-2.5 w-1 bg-success-500/50"></div>
-                        <div class="h-2 w-1 bg-success-500/70"></div>
-                        <div class="h-1.5 w-1 bg-success-500"></div>
-                      </div>
-                    </div>
-                  {:else if opt.source_data_type === 'blood_pressure'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="vital-signs" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-error-600">120 / 80</span>
-                      <span class="text-[10px] text-surface-400">mmHg</span>
-                    </div>
-                  {:else if opt.source_data_type === 'exercise'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="fitness-center" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-violet-600">45 mins</span>
-                      <span class="text-[10px] text-surface-400">320 kcal</span>
-                    </div>
-                  {:else if opt.source_data_type === 'nutrition'}
-                    <div class="flex w-full flex-col justify-center gap-1 px-2 opacity-80">
-                      <div class="flex items-baseline justify-between text-[10px]">
-                        <span class="font-bold text-success-600">2,100</span>
-                        <span class="text-surface-400">kcal</span>
-                      </div>
-                      <div
-                        class="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full bg-surface-200"
-                      >
-                        <div class="h-full bg-warning-500" style="width: 40%"></div>
-                        <div class="h-full bg-error-500" style="width: 30%"></div>
-                        <div class="h-full bg-success-500" style="width: 30%"></div>
-                      </div>
-                    </div>
-                  {:else if opt.source_data_type === 'blood_glucose'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="bloodtype" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-orange-600">95 mg/dL</span>
-                    </div>
-                  {:else if opt.source_data_type === 'body_fat'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="body-fat" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-pink-600">14.5 %</span>
-                    </div>
-                  {:else if opt.source_data_type === 'water'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="water-drop" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-cyan-600">850 ml</span>
-                    </div>
-                  {:else if opt.source_data_type === 'stress'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="psychology" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-error-600">Low (18)</span>
-                    </div>
-                  {:else if opt.source_data_type === 'hrv'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="monitoring" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-cyan-600">58 ms</span>
-                    </div>
-                  {:else if opt.source_data_type === 'readiness'}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-0.5 text-center opacity-80"
-                    >
-                      <Icon name="checklist" size="lg" style="color: {opt.color}" />
-                      <span class="text-xs font-bold text-purple-600">85 / 100</span>
-                    </div>
-                  {:else}
-                    <div
-                      class="flex w-full flex-col items-center justify-center gap-1 text-center opacity-80"
-                    >
-                      <Icon name="show-chart" size="lg" class="text-surface-400" />
-                      <span class="text-xs font-bold text-surface-600">72.0</span>
-                    </div>
-                  {/if}
-                </div>
-
-                <!-- Info Area -->
-                <div class="w-full">
-                  <div class="flex items-center gap-1.5">
-                    <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
-                    <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
-                  </div>
-                  <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
-                    {opt.description}
-                  </p>
-                </div>
-
-                <!-- Active Checkmark Indicator -->
-                {#if selectedWidgetId === opt.id}
-                  <div
-                    class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
-                  >
-                    <Icon name="check" size="sm" />
-                  </div>
-                {/if}
-              </button>
-            {/each}
-          </div>
-        </div>
-
-        <!-- Custom Size Selector for Metrics -->
-        <div class="flex flex-col gap-2 rounded-xl border border-surface-100 bg-surface-50 p-4">
-          <span class="text-xs font-bold tracking-wider text-surface-500 uppercase"
-            >Widget Display Size</span
-          >
-          <div class="grid grid-cols-3 gap-2">
-            {#each [{ value: 'small' as const, label: 'Small', desc: '1 Column' }, { value: 'medium' as const, label: 'Medium', desc: '2 Columns' }, { value: 'large' as const, label: 'Large', desc: 'Full Width' }] as sz}
-              <button
-                type="button"
-                class="flex flex-col items-center justify-center rounded-lg border border-surface-200 bg-surface-0 p-2.5 transition-all hover:bg-surface-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                class:border-primary-500={selectedSize === sz.value}
-                class:ring-1={selectedSize === sz.value}
-                class:ring-primary-500={selectedSize === sz.value}
-                onclick={() => (selectedSize = sz.value)}
-              >
-                <span class="text-sm font-semibold text-surface-800">{sz.label}</span>
-                <span class="text-[10px] text-surface-400">{sz.desc}</span>
-              </button>
-            {/each}
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 border-t border-surface-100 pt-4">
-          <Btn variant="ghost" onclick={() => (addModalOpen = false)}>Cancel</Btn>
-          <Btn variant="primary" loading={adding} onclick={addWidget}>Add to Dashboard</Btn>
-        </div>
-      {:else}
-        <EmptyState
-          icon="dashboard"
-          title="All metrics added"
-          description="Every standard metric already has a widget on your dashboard."
-        />
-      {/if}
-    {:else if availableCustoms.length > 0}
-      <div class="max-h-[340px] overflow-y-auto pr-1">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {#each availableCustoms as opt}
-            <button
-              type="button"
-              class="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-surface-200 bg-surface-50 p-4 text-left transition-all hover:border-primary-300 hover:bg-surface-0 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              class:border-primary-500={selectedWidgetId === opt.id}
-              class:bg-surface-0={selectedWidgetId === opt.id}
-              class:shadow-sm={selectedWidgetId === opt.id}
-              class:ring-1={selectedWidgetId === opt.id}
-              class:ring-primary-500={selectedWidgetId === opt.id}
-              onclick={() => (selectedWidgetId = opt.id)}
-            >
-              <!-- Mini Preview Area -->
-              <div
-                class="mb-3 flex h-24 w-full items-center justify-center overflow-hidden rounded-lg bg-surface-100/50 p-2 select-none"
-              >
-                {#if opt.source_data_type === 'workout_launcher'}
-                  <div
-                    class="flex w-full flex-col items-center justify-center gap-1.5 text-center opacity-80"
-                  >
-                    <Icon name="play-circle" size="xl" class="animate-pulse text-primary-500" />
-                    <div class="h-1.5 w-16 rounded bg-surface-300"></div>
-                    <div class="h-3 w-24 rounded bg-primary-500/20"></div>
-                  </div>
-                {:else if opt.source_data_type === 'sleep_coach'}
-                  <div class="flex w-full items-center justify-center gap-3 opacity-80">
-                    <div class="flex flex-col items-center">
-                      <span class="text-xs font-bold text-error-500">+4.5h</span>
-                      <span class="text-[10px] text-surface-400">Debt</span>
-                    </div>
-                    <div class="h-8 w-px bg-surface-200"></div>
-                    <div class="flex flex-col items-center">
-                      <span class="text-xs font-bold text-primary-500">09:30</span>
-                      <span class="text-[10px] text-surface-400">Wind Down</span>
-                    </div>
-                  </div>
-                {/if}
-              </div>
-
-              <!-- Info Area -->
-              <div class="w-full">
-                <div class="flex items-center gap-1.5">
-                  <Icon name={opt.icon} size="sm" style="color: {opt.color}" />
-                  <span class="text-sm leading-none font-bold text-surface-900">{opt.name}</span>
-                </div>
-                <p class="mt-1 line-clamp-2 text-[10px] leading-snug text-surface-500">
-                  {opt.description}
-                </p>
-              </div>
-
-              <!-- Active Checkmark Indicator -->
-              {#if selectedWidgetId === opt.id}
-                <div
-                  class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-on-primary shadow-sm ring-2 ring-white"
-                >
-                  <Icon name="check" size="sm" />
-                </div>
-              {/if}
-            </button>
-          {/each}
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 border-t border-surface-100 pt-4">
-        <Btn variant="ghost" onclick={() => (addModalOpen = false)}>Cancel</Btn>
-        <Btn variant="primary" loading={adding} onclick={addWidget}>Add to Dashboard</Btn>
-      </div>
-    {:else}
-      <EmptyState
-        icon="dashboard"
-        title="All custom widgets added"
-        description="Every custom coaching widget is already on your dashboard."
-      />
-    {/if}
-  </div>
-</Modal>
-
-<Modal title="Edit Widget Size" bind:open={editModalOpen}>
-  <div class="space-y-4">
-    <Select
-      name="edit-size"
-      label="Size"
-      options={[
-        { value: 'small', label: 'Small (1 column)' },
-        { value: 'medium', label: 'Medium (2 columns)' },
-        { value: 'large', label: 'Large (4 columns)' }
-      ]}
-      bind:value={editSize}
-    />
-    <div class="flex justify-end gap-2">
-      <Btn variant="ghost" onclick={() => (editModalOpen = false)}>Cancel</Btn>
-      <Btn variant="primary" loading={editSaving} onclick={updateWidgetSize}>Save</Btn>
-    </div>
-  </div>
-</Modal>
-
-<ConfirmDialog
-  bind:open={deleteConfirmOpen}
-  title="Remove Widget"
-  variant="danger"
-  message="Remove this widget from your dashboard? The metric and its data will not be deleted."
-  confirmLabel="Remove"
-  onconfirm={confirmDelete}
-  oncancel={() => {
-    deleteWidgetId = null;
-    deleteConfirmOpen = false;
-  }}
+<WidgetGroupEditorModal
+  open={isGroupEditorOpen}
+  group={activeGroupForEdit}
+  isNew={isCreatingNewGroup}
+  onclose={() => (isGroupEditorOpen = false)}
+  onsave={handleSaveGroup}
 />

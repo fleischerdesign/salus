@@ -63,7 +63,7 @@
 <div class="relative {extraClass}" bind:this={containerEl}>
   <button
     type="button"
-    class="duration-micro flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+    class="duration-micro text-surface-400 hover:bg-surface-100 hover:text-surface-700 focus:ring-primary-200 flex h-8 w-8 items-center justify-center rounded-md transition-colors focus:ring-2 focus:outline-none"
     aria-label={triggerLabel}
     aria-haspopup="menu"
     aria-expanded={open}
@@ -74,7 +74,7 @@
 
   {#if open}
     <div
-      class="absolute top-full z-50 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-surface-200 bg-surface-0 py-1 shadow-lg {align ===
+      class="border-surface-200 bg-surface-0 absolute top-full z-50 mt-1 min-w-[180px] overflow-hidden rounded-lg border py-1 shadow-lg {align ===
       'right'
         ? 'right-0'
         : 'left-0'}"
@@ -87,7 +87,7 @@
         {#each items as item, _i}
           <button
             type="button"
-            class="duration-micro flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-50 {item.variant ===
+            class="duration-micro hover:bg-surface-50 flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors {item.variant ===
             'danger'
               ? 'text-error-600 hover:bg-error-50'
               : 'text-surface-700'}"

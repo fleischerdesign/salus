@@ -39,12 +39,12 @@
 </script>
 
 <div
-  class="chrome-card duration-micro overflow-hidden rounded-lg border border-surface-200 bg-surface-0 transition-all {editMode
-    ? 'cursor-grab bg-surface-50 active:cursor-grabbing'
+  class="chrome-card duration-micro border-surface-200 bg-surface-0 overflow-hidden rounded-lg border transition-all {editMode
+    ? 'bg-surface-50 cursor-grab active:cursor-grabbing'
     : 'hover:border-surface-300 hover:shadow-md'} {extraClass}"
   class:widget-chrome-handle={editMode && dragHandle}
 >
-  <div class="flex items-center gap-1 border-b border-surface-100 px-3 py-2">
+  <div class="border-surface-100 flex items-center gap-1 border-b px-3 py-2">
     <!-- Drag handle -->
     {#if dragHandle}
       <span
@@ -67,9 +67,9 @@
     {/if}
 
     <!-- Title -->
-    <span class="flex-1 text-xs font-medium tracking-wide text-surface-500 uppercase">{title}</span>
+    <span class="text-surface-500 flex-1 text-xs font-medium tracking-wide uppercase">{title}</span>
     {#if unit}
-      <span class="text-xs text-surface-400">{unit}</span>
+      <span class="text-surface-400 text-xs">{unit}</span>
     {/if}
 
     <!-- Always-visible actions (for non-edit cards: Connections, Goals, etc.) -->
@@ -98,8 +98,8 @@
         {@render skeleton()}
       {:else}
         <div class="space-y-2.5">
-          <div class="h-7 w-20 animate-pulse rounded bg-surface-100"></div>
-          <div class="h-16 w-full animate-pulse rounded bg-surface-100"></div>
+          <div class="bg-surface-100 h-7 w-20 animate-pulse rounded"></div>
+          <div class="bg-surface-100 h-16 w-full animate-pulse rounded"></div>
         </div>
       {/if}
     {:else}

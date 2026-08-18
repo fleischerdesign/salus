@@ -55,7 +55,7 @@
     aria-label="Pagination"
   >
     <button
-      class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="duration-micro text-surface-500 hover:bg-surface-100 flex h-10 w-10 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       disabled={cursorMode ? !hasPrev : page <= 1}
       onclick={() => onpage?.(page - 1)}
       aria-label="Previous page"
@@ -64,11 +64,11 @@
     </button>
 
     {#if cursorMode}
-      <span class="px-2 text-sm text-surface-500">Page {page}</span>
+      <span class="text-surface-500 px-2 text-sm">Page {page}</span>
     {:else}
       {#each pages as p}
         {#if p === '...'}
-          <span class="flex h-10 w-10 items-center justify-center text-sm text-surface-400">…</span>
+          <span class="text-surface-400 flex h-10 w-10 items-center justify-center text-sm">…</span>
         {:else}
           <button
             class="duration-micro flex h-10 min-w-10 items-center justify-center rounded-md px-2 text-sm font-semibold transition-colors {page ===
@@ -85,7 +85,7 @@
     {/if}
 
     <button
-      class="duration-micro flex h-10 w-10 items-center justify-center rounded-md text-surface-500 transition-colors hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="duration-micro text-surface-500 hover:bg-surface-100 flex h-10 w-10 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       disabled={cursorMode ? !hasNext : page >= totalPages}
       onclick={() => onpage?.(page + 1)}
       aria-label="Next page"
@@ -94,7 +94,7 @@
     </button>
 
     {#if total > 0}
-      <span class="ml-3 text-sm text-surface-500">{total.toLocaleString()} {itemsLabel}</span>
+      <span class="text-surface-500 ml-3 text-sm">{total.toLocaleString()} {itemsLabel}</span>
     {/if}
   </nav>
 {/if}

@@ -68,15 +68,15 @@
 
 <div class="flex flex-col gap-1 {extraClass}">
   {#if label}
-    <label for={name} class="text-xs font-semibold text-surface-900">
+    <label for={name} class="text-surface-900 text-xs font-semibold">
       {label}
-      {#if required}<span class="ml-0.5 text-error-500">*</span>{/if}
+      {#if required}<span class="text-error-500 ml-0.5">*</span>{/if}
     </label>
   {/if}
 
   <div class="relative">
     <div
-      class="duration-micro flex min-h-11 flex-wrap items-center gap-1 rounded-md border border-surface-300 bg-surface-50 px-3 py-2 text-sm transition-colors focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-200 hover:border-surface-400 {disabled
+      class="duration-micro border-surface-300 bg-surface-50 focus-within:border-primary-500 focus-within:ring-primary-200 hover:border-surface-400 flex min-h-11 flex-wrap items-center gap-1 rounded-md border px-3 py-2 text-sm transition-colors focus-within:bg-white focus-within:ring-2 {disabled
         ? 'cursor-not-allowed opacity-50'
         : 'cursor-text'}"
       onclick={() => !disabled && ((open = true), inputRef?.focus())}
@@ -94,7 +94,7 @@
     >
       {#each selectedLabels as opt}
         <span
-          class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700"
+          class="bg-primary-100 text-primary-700 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
         >
           {opt.label}
           <button
@@ -114,7 +114,7 @@
         {disabled}
         onfocus={() => (open = true)}
         onblur={() => setTimeout(() => (open = false), 150)}
-        class="min-w-[80px] flex-1 bg-transparent text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none"
+        class="text-surface-900 placeholder:text-surface-400 min-w-[80px] flex-1 bg-transparent text-sm focus:outline-none"
       />
     </div>
 
@@ -122,14 +122,14 @@
       <div
         id={listboxId}
         role="listbox"
-        class="absolute top-full z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-surface-200 bg-surface-0 py-1 shadow-lg"
+        class="border-surface-200 bg-surface-0 absolute top-full z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border py-1 shadow-lg"
         transition:fly={{ y: -4, ...motionParams(DURATIONS.micro) }}
       >
         {#each filtered as opt}
           {@const isSelected = selected.includes(opt.value)}
           <button
             type="button"
-            class="duration-micro flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-surface-50 {isSelected
+            class="duration-micro hover:bg-surface-50 flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors {isSelected
               ? 'text-primary-600'
               : 'text-surface-700'}"
             onclick={() => toggle(opt.value)}
@@ -145,11 +145,11 @@
   </div>
 
   {#if error}
-    <span class="flex items-center gap-1 text-sm text-error-600" role="alert">
+    <span class="text-error-600 flex items-center gap-1 text-sm" role="alert">
       <Icon name="error" size="sm" />
       {error}
     </span>
   {:else if hint}
-    <span class="text-sm text-surface-500">{hint}</span>
+    <span class="text-surface-500 text-sm">{hint}</span>
   {/if}
 </div>

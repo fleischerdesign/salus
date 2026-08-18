@@ -64,14 +64,14 @@
         <span class="flex h-7 w-7 items-center justify-center rounded-lg {meta.color}">
           <Icon name={meta.icon} size="sm" />
         </span>
-        <h2 class="text-sm font-semibold text-surface-800">{meta.label}</h2>
-        <span class="text-xs text-surface-400 tabular-nums">
+        <h2 class="text-surface-800 text-sm font-semibold">{meta.label}</h2>
+        <span class="text-surface-400 text-xs tabular-nums">
           {Math.round(groupKcal(group.meals.map((m) => m.id ?? ''))).toLocaleString()} kcal
         </span>
         <button
           type="button"
           onclick={() => onAdd(group.type)}
-          class="ml-auto flex items-center gap-1 rounded-full border border-surface-200 px-2.5 py-1 text-xs font-semibold text-surface-600 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+          class="border-surface-200 text-surface-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 ml-auto flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors"
           aria-label={`Add to ${meta.label}`}
         >
           <Icon name="add" size="sm" />

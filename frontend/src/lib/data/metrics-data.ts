@@ -1,0 +1,442 @@
+import type { MetricGroup, MeasurementEntry } from '../types';
+
+export const METRIC_GROUPS: MetricGroup[] = [
+  {
+    key: 'blood_pressure',
+    title: 'Kardiovaskuläre Vitalwerte',
+    category: 'cardiovascular',
+    inputMode: 'combined',
+    description: 'Systolischer/Diastolischer Blutdruck, Ruhepuls und Herzratenvariabilität (HRV).',
+    subMetrics: [
+      {
+        code: 'systolic_bp',
+        name: 'Systolischer Blutdruck',
+        unit: 'mmHg',
+        category: 'cardiovascular',
+        dataType: 'number',
+        groupKey: 'blood_pressure',
+        currentValue: 118,
+        previousValue: 122,
+        deltaPercent: -3.2,
+        trend: 'improving',
+        referenceRange: '< 120 mmHg (ESC 2024)',
+        optimalRange: { min: 105, max: 120 },
+        ema7d: 119.2,
+        sparklineData: [124, 122, 120, 121, 119, 118, 118]
+      },
+      {
+        code: 'diastolic_bp',
+        name: 'Diastolischer Blutdruck',
+        unit: 'mmHg',
+        category: 'cardiovascular',
+        dataType: 'number',
+        groupKey: 'blood_pressure',
+        currentValue: 76,
+        previousValue: 79,
+        deltaPercent: -3.8,
+        trend: 'improving',
+        referenceRange: '< 80 mmHg (ESC 2024)',
+        optimalRange: { min: 70, max: 80 },
+        ema7d: 76.8,
+        sparklineData: [80, 78, 79, 77, 76, 76, 76]
+      },
+      {
+        code: 'resting_heart_rate',
+        name: 'Ruhepuls',
+        unit: 'bpm',
+        category: 'cardiovascular',
+        dataType: 'number',
+        groupKey: 'blood_pressure',
+        currentValue: 64,
+        previousValue: 66,
+        deltaPercent: -3.0,
+        trend: 'improving',
+        referenceRange: '60–80 bpm',
+        optimalRange: { min: 55, max: 70 },
+        ema7d: 64.5,
+        sparklineData: [68, 66, 65, 65, 64, 64, 64]
+      },
+      {
+        code: 'hrv_rmssd',
+        name: 'Herzratenvariabilität (HRV)',
+        unit: 'ms',
+        category: 'cardiovascular',
+        dataType: 'number',
+        groupKey: 'blood_pressure',
+        currentValue: 68,
+        previousValue: 58,
+        deltaPercent: 17.2,
+        trend: 'improving',
+        referenceRange: '> 50 ms',
+        optimalRange: { min: 55, max: 95 },
+        ema7d: 65.0,
+        sparklineData: [52, 58, 60, 62, 65, 66, 68]
+      }
+    ]
+  },
+  {
+    key: 'body_composition',
+    title: 'Körperzusammensetzung & Anthropometrie',
+    category: 'body',
+    inputMode: 'individual',
+    description: 'Körpergewicht, Körperfettanteil (KFA), Muskelmasse und Taillenumfang.',
+    subMetrics: [
+      {
+        code: 'weight',
+        name: 'Körpergewicht',
+        unit: 'kg',
+        category: 'body',
+        dataType: 'number',
+        groupKey: 'body_composition',
+        currentValue: 81.8,
+        previousValue: 82.5,
+        deltaPercent: -0.8,
+        trend: 'improving',
+        referenceRange: 'Ziel: 78–80 kg',
+        optimalRange: { min: 78, max: 80 },
+        ema7d: 82.0,
+        sparklineData: [83.2, 82.8, 82.5, 82.9, 82.2, 81.9, 81.8]
+      },
+      {
+        code: 'body_fat_pct',
+        name: 'Körperfettanteil (KFA)',
+        unit: '%',
+        category: 'body',
+        dataType: 'number',
+        groupKey: 'body_composition',
+        currentValue: 14.2,
+        previousValue: 15.0,
+        deltaPercent: -5.3,
+        trend: 'improving',
+        referenceRange: '10–16 % (Athletisch)',
+        optimalRange: { min: 11, max: 15 },
+        ema7d: 14.4,
+        sparklineData: [15.2, 15.0, 14.8, 14.6, 14.5, 14.3, 14.2]
+      },
+      {
+        code: 'muscle_mass',
+        name: 'Skelettmuskelmasse',
+        unit: 'kg',
+        category: 'body',
+        dataType: 'number',
+        groupKey: 'body_composition',
+        currentValue: 41.2,
+        previousValue: 40.8,
+        deltaPercent: 1.0,
+        trend: 'improving',
+        referenceRange: '> 38.0 kg',
+        optimalRange: { min: 39, max: 45 },
+        ema7d: 41.0,
+        sparklineData: [40.5, 40.7, 40.8, 40.9, 41.0, 41.1, 41.2]
+      },
+      {
+        code: 'waist_circumference',
+        name: 'Taillenumfang',
+        unit: 'cm',
+        category: 'body',
+        dataType: 'number',
+        groupKey: 'body_composition',
+        currentValue: 82.0,
+        previousValue: 83.5,
+        deltaPercent: -1.8,
+        trend: 'improving',
+        referenceRange: '< 94 cm (WHO Risikoarm)',
+        optimalRange: { min: 75, max: 84 },
+        ema7d: 82.4,
+        sparklineData: [84.0, 83.5, 83.0, 82.5, 82.5, 82.0, 82.0]
+      }
+    ]
+  },
+  {
+    key: 'metabolism_fasting',
+    title: 'Stoffwechsel & Fastenbiologie',
+    category: 'metabolism',
+    inputMode: 'individual',
+    description: 'Wasserzufuhr, Fastenstunden, Nüchternglukose und Blutketone.',
+    subMetrics: [
+      {
+        code: 'water_intake',
+        name: 'Tägliche Wasserzufuhr',
+        unit: 'ml',
+        category: 'metabolism',
+        dataType: 'number',
+        groupKey: 'metabolism_fasting',
+        currentValue: 2250,
+        previousValue: 2800,
+        deltaPercent: -19.6,
+        trend: 'stable',
+        referenceRange: 'Soll: 3.000 ml / Tag',
+        optimalRange: { min: 2500, max: 3500 },
+        ema7d: 2650,
+        sparklineData: [2900, 3100, 2700, 3000, 2800, 2900, 2250]
+      },
+      {
+        code: 'fasting_hours',
+        name: 'Intervallfasten Dauer',
+        unit: 'h',
+        category: 'metabolism',
+        dataType: 'number',
+        groupKey: 'metabolism_fasting',
+        currentValue: 16.5,
+        previousValue: 16.0,
+        deltaPercent: 3.1,
+        trend: 'improving',
+        referenceRange: 'Ziel: 16:8 (16h)',
+        optimalRange: { min: 14, max: 18 },
+        ema7d: 16.2,
+        sparklineData: [16.0, 16.2, 15.8, 16.5, 16.0, 16.5, 16.5]
+      },
+      {
+        code: 'fasting_glucose',
+        name: 'Nüchternglukose',
+        unit: 'mg/dL',
+        category: 'metabolism',
+        dataType: 'number',
+        groupKey: 'metabolism_fasting',
+        currentValue: 84,
+        previousValue: 88,
+        deltaPercent: -4.5,
+        trend: 'improving',
+        referenceRange: '70–99 mg/dL (ADA)',
+        optimalRange: { min: 72, max: 90 },
+        ema7d: 85.2,
+        sparklineData: [92, 90, 89, 88, 86, 85, 84]
+      },
+      {
+        code: 'blood_ketones',
+        name: 'Blutketone (Beta-Hydroxybutyrat)',
+        unit: 'mmol/L',
+        category: 'metabolism',
+        dataType: 'number',
+        groupKey: 'metabolism_fasting',
+        currentValue: 1.2,
+        previousValue: 0.8,
+        deltaPercent: 50.0,
+        trend: 'improving',
+        referenceRange: '0.5–3.0 mmol/L (Ernährungsketose)',
+        optimalRange: { min: 0.8, max: 2.0 },
+        ema7d: 1.0,
+        sparklineData: [0.4, 0.6, 0.8, 0.9, 1.0, 1.1, 1.2]
+      }
+    ]
+  },
+  {
+    key: 'sleep_recovery',
+    title: 'Schlafarchitektur & Erholung',
+    category: 'sleep',
+    inputMode: 'individual',
+    description: 'Schlafdauer, Tiefschlaf, REM-Schlaf und Erholungs-Score.',
+    subMetrics: [
+      {
+        code: 'sleep_duration',
+        name: 'Schlafdauer',
+        unit: 'h',
+        category: 'sleep',
+        dataType: 'number',
+        groupKey: 'sleep_recovery',
+        currentValue: 7.75,
+        previousValue: 7.2,
+        deltaPercent: 7.6,
+        trend: 'improving',
+        referenceRange: '7.5–9.0 h',
+        optimalRange: { min: 7.5, max: 8.5 },
+        ema7d: 7.6,
+        sparklineData: [7.1, 7.3, 7.8, 7.5, 8.0, 7.4, 7.75]
+      },
+      {
+        code: 'deep_sleep_pct',
+        name: 'Tiefschlaf-Anteil',
+        unit: '%',
+        category: 'sleep',
+        dataType: 'number',
+        groupKey: 'sleep_recovery',
+        currentValue: 20.4,
+        previousValue: 18.2,
+        deltaPercent: 12.1,
+        trend: 'improving',
+        referenceRange: '15–25 %',
+        optimalRange: { min: 18, max: 25 },
+        ema7d: 19.8,
+        sparklineData: [16, 17, 19, 18, 22, 20, 20.4]
+      },
+      {
+        code: 'recovery_score',
+        name: 'Erholungs-Score',
+        unit: '%',
+        category: 'sleep',
+        dataType: 'number',
+        groupKey: 'sleep_recovery',
+        currentValue: 92,
+        previousValue: 84,
+        deltaPercent: 9.5,
+        trend: 'improving',
+        referenceRange: '> 80 % (Optimal)',
+        optimalRange: { min: 85, max: 100 },
+        ema7d: 88.5,
+        sparklineData: [78, 82, 85, 86, 89, 88, 92]
+      }
+    ]
+  },
+  {
+    key: 'clinical_lipids',
+    title: 'Klinisches Lipid- & Entzündungsprofil',
+    category: 'labs',
+    inputMode: 'individual',
+    description: 'LDL-C, HDL-C, Triglyceride, ApoB und hs-CRP Entzündungsmarker.',
+    subMetrics: [
+      {
+        code: 'ldl_c',
+        name: 'LDL-Cholesterin',
+        unit: 'mg/dL',
+        category: 'labs',
+        dataType: 'number',
+        groupKey: 'clinical_lipids',
+        currentValue: 68,
+        previousValue: 76,
+        deltaPercent: -10.5,
+        trend: 'improving',
+        referenceRange: '< 70 mg/dL (ESC Ziel)',
+        optimalRange: { min: 50, max: 70 },
+        ema7d: 70.2,
+        sparklineData: [88, 84, 80, 78, 76, 72, 68]
+      },
+      {
+        code: 'apob',
+        name: 'Apolipoprotein B (ApoB)',
+        unit: 'mg/dL',
+        category: 'labs',
+        dataType: 'number',
+        groupKey: 'clinical_lipids',
+        currentValue: 62,
+        previousValue: 69,
+        deltaPercent: -10.1,
+        trend: 'improving',
+        referenceRange: '< 65 mg/dL (Atheroprotektiv)',
+        optimalRange: { min: 45, max: 65 },
+        ema7d: 64.0,
+        sparklineData: [78, 75, 72, 70, 69, 65, 62]
+      },
+      {
+        code: 'hs_crp',
+        name: 'hs-CRP (Hochsensitives CRP)',
+        unit: 'mg/L',
+        category: 'labs',
+        dataType: 'number',
+        groupKey: 'clinical_lipids',
+        currentValue: 0.4,
+        previousValue: 0.6,
+        deltaPercent: -33.3,
+        trend: 'improving',
+        referenceRange: '< 1.0 mg/L (Geringes Risiko)',
+        optimalRange: { min: 0.1, max: 0.8 },
+        ema7d: 0.45,
+        sparklineData: [1.2, 0.9, 0.8, 0.6, 0.5, 0.4, 0.4]
+      }
+    ]
+  }
+];
+
+export const MOCK_MEASUREMENTS: Record<string, MeasurementEntry[]> = {
+  systolic_bp: [
+    {
+      id: '1',
+      metricCode: 'systolic_bp',
+      value: 118,
+      unit: 'mmHg',
+      timestamp: '2026-08-14 08:15',
+      source: 'manual',
+      note: 'Morgens vor Kaffee'
+    },
+    {
+      id: '2',
+      metricCode: 'systolic_bp',
+      value: 119,
+      unit: 'mmHg',
+      timestamp: '2026-08-13 08:10',
+      source: 'manual'
+    },
+    {
+      id: '3',
+      metricCode: 'systolic_bp',
+      value: 121,
+      unit: 'mmHg',
+      timestamp: '2026-08-12 08:20',
+      source: 'manual'
+    },
+    {
+      id: '4',
+      metricCode: 'systolic_bp',
+      value: 120,
+      unit: 'mmHg',
+      timestamp: '2026-08-11 08:05',
+      source: 'manual'
+    },
+    {
+      id: '5',
+      metricCode: 'systolic_bp',
+      value: 122,
+      unit: 'mmHg',
+      timestamp: '2026-08-10 08:30',
+      source: 'manual'
+    },
+    {
+      id: '6',
+      metricCode: 'systolic_bp',
+      value: 124,
+      unit: 'mmHg',
+      timestamp: '2026-08-09 08:15',
+      source: 'manual'
+    }
+  ],
+  weight: [
+    {
+      id: '10',
+      metricCode: 'weight',
+      value: 81.8,
+      unit: 'kg',
+      timestamp: '2026-08-14 07:30',
+      source: 'manual',
+      note: 'Nüchtern nach Aufstehen'
+    },
+    {
+      id: '11',
+      metricCode: 'weight',
+      value: 81.9,
+      unit: 'kg',
+      timestamp: '2026-08-13 07:30',
+      source: 'manual'
+    },
+    {
+      id: '12',
+      metricCode: 'weight',
+      value: 82.2,
+      unit: 'kg',
+      timestamp: '2026-08-12 07:30',
+      source: 'manual'
+    },
+    {
+      id: '13',
+      metricCode: 'weight',
+      value: 82.5,
+      unit: 'kg',
+      timestamp: '2026-08-10 07:30',
+      source: 'manual'
+    },
+    {
+      id: '14',
+      metricCode: 'weight',
+      value: 82.8,
+      unit: 'kg',
+      timestamp: '2026-08-07 07:30',
+      source: 'manual'
+    },
+    {
+      id: '15',
+      metricCode: 'weight',
+      value: 83.2,
+      unit: 'kg',
+      timestamp: '2026-08-01 07:30',
+      source: 'manual'
+    }
+  ]
+};

@@ -290,7 +290,7 @@
     {#snippet stats()}
       {#if isToday}
         <div
-          class="grid grid-cols-2 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+          class="divide-surface-100 grid grid-cols-2 divide-y sm:grid-cols-4 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
             <Stat
@@ -355,7 +355,7 @@
         {#snippet children()}
           {#if !isToday}
             <button
-              class="text-xs text-primary-600 hover:text-primary-700"
+              class="text-primary-600 hover:text-primary-700 text-xs"
               onclick={() => (selectedDate = today)}
             >
               Today
@@ -390,8 +390,8 @@
       {:else}
         <Card>
           <div class="flex flex-col items-center gap-2 py-8 text-center">
-            <p class="text-sm font-medium text-surface-700">No meals logged yet</p>
-            <p class="max-w-sm text-xs text-surface-400">
+            <p class="text-surface-700 text-sm font-medium">No meals logged yet</p>
+            <p class="text-surface-400 max-w-sm text-xs">
               Use the "Log Food" button or the "+ Add" buttons to start tracking your nutrition.
             </p>
           </div>
@@ -400,7 +400,7 @@
     {:else}
       <Card padding={false}>
         {#snippet header()}
-          <span class="text-sm font-semibold text-surface-900">
+          <span class="text-surface-900 text-sm font-semibold">
             {viewMode === 'week' ? 'This Week' : 'This Month'} · Calories
           </span>
         {/snippet}
@@ -414,7 +414,7 @@
             />
           {:else}
             <div class="flex h-[200px] items-center justify-center">
-              <p class="text-sm text-surface-400">No meals in this range.</p>
+              <p class="text-surface-400 text-sm">No meals in this range.</p>
             </div>
           {/if}
         </div>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import Modal from '$components/ui/Modal.svelte';
   import Btn from '$components/ui/Btn.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import Input from '$components/ui/Input.svelte';
 
   interface Props {
@@ -76,69 +75,97 @@
   }
 </script>
 
-<Modal {open} onclose={onClose} title={medication ? 'Edit Medication' : 'New Medication'}>
-  <div class="flex flex-col gap-4">
-    <FormField label="Name" required>
-      <Input name="name" placeholder="e.g. Ibuprofen 400mg" bind:value={name} />
-    </FormField>
+<Modal
+  {open}
+  onclose={onClose}
+  title={medication ? 'Medikament bearbeiten' : 'Neues Medikament anlegen'}
+  subtitle="Erfasse Wirkstoff, Dosierung und Einnahmehinweise"
+  icon="medication"
+  size="md"
+>
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSubmit();
+    }}
+    class="space-y-4 text-xs"
+  >
+    <Input
+      label="Name"
+      name="name"
+      placeholder="z. B. Ibuprofen 400mg"
+      bind:value={name}
+      required
+    />
 
-    <div class="grid grid-cols-2 gap-4">
-      <FormField label="Active Ingredient">
-        <Input
-          name="active_ingredient"
-          placeholder="e.g. Ibuprofen"
-          bind:value={activeIngredient}
-        />
-      </FormField>
-      <FormField label="Strength">
-        <Input name="strength" placeholder="e.g. 400mg" bind:value={strength} />
-      </FormField>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Input
+        label="Wirkstoff"
+        name="active_ingredient"
+        placeholder="z. B. Ibuprofen"
+        bind:value={activeIngredient}
+      />
+      <Input
+        label="Stärke / Dosierung"
+        name="strength"
+        placeholder="z. B. 400mg"
+        bind:value={strength}
+      />
     </div>
 
-    <FormField label="Form">
-      <div class="flex flex-wrap gap-2">
+    <div>
+      <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Darreichungsform</span>
+      <div class="flex flex-wrap gap-1.5">
         {#each forms as f}
           <button
             type="button"
             onclick={() => (form = f)}
-            class="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
-            class:border-primary-500={form === f}
-            class:bg-primary-50={form === f}
-            class:text-primary-700={form === f}
-            class:border-surface-200={form !== f}
-            class:text-surface-600={form !== f}
-            class:hover:border-surface-300={form !== f}
+            class="cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-bold transition-all {form ===
+            f
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-xs'
+              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:border-[var(--color-primary)]'}"
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         {/each}
       </div>
-    </FormField>
+    </div>
 
-    <FormField label="Instructions">
-      <Input name="instructions" placeholder="e.g. Take with food" bind:value={instructions} />
-    </FormField>
+    <Input
+      label="Einnahmehinweise"
+      name="instructions"
+      placeholder="z. B. Nach den Mahlzeiten mit reichlich Wasser einnehmen"
+      bind:value={instructions}
+    />
 
-    <FormField label="Color">
-      <div class="flex items-center gap-3">
-        <input
-          type="color"
-          bind:value={colorHex}
-          class="h-9 w-12 cursor-pointer rounded border border-surface-200"
-        />
-        <span class="text-xs text-surface-500">{colorHex}</span>
+    <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2">
+      <div>
+        <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Farbe</span>
+        <div
+          class="flex h-10 items-center gap-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-3"
+        >
+          <input
+            type="color"
+            bind:value={colorHex}
+            class="h-6 w-8 cursor-pointer rounded-lg border-0 bg-transparent"
+          />
+          <span class="font-mono text-xs font-semibold text-[var(--text-muted)]">{colorHex}</span>
+        </div>
       </div>
-    </FormField>
 
-    <FormField label="Icon">
-      <Input name="icon" placeholder="Material Symbols icon name" bind:value={icon} />
-    </FormField>
+      <Input
+        label="Icon-Name"
+        name="icon"
+        placeholder="z. B. medication, pill, local_pharmacy"
+        bind:value={icon}
+      />
+    </div>
 
-    <div class="flex justify-end gap-3 pt-2">
-      <Btn variant="ghost" onclick={onClose}>Cancel</Btn>
-      <Btn variant="primary" onclick={handleSubmit} disabled={!isValid || saving}>
-        {saving ? 'Saving...' : medication ? 'Save' : 'Create'}
+    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
+      <Btn variant="primary" size="md" type="submit" disabled={!isValid || saving} loading={saving}>
+        {medication ? 'Speichern' : 'Medikament anlegen'}
       </Btn>
     </div>
-  </div>
+  </form>
 </Modal>

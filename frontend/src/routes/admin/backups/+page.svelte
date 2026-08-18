@@ -94,8 +94,8 @@
     await load();
   }
 
-  async function uploadBackup(e: SubmitEvent) {
-    e.preventDefault();
+  async function uploadBackup(e?: Event) {
+    e?.preventDefault();
     if (!fileInput?.files?.[0]) {
       error = 'Select a file.';
       return;
@@ -161,22 +161,23 @@
   <Card padding={false}>
     {#snippet header()}
       <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-surface-900">Backups</span>
+        <span class="text-xs font-bold tracking-wider text-[var(--text-main)] uppercase"
+          >Backups</span
+        >
         <div class="flex items-center gap-2">
           {#if passwordConfigured}
-            <form onsubmit={uploadBackup} class="flex items-center gap-2">
-              <input
-                bind:this={fileInput}
-                type="file"
-                accept=".enc"
-                class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700"
-              />
-              <Btn variant="secondary" size="sm" type="submit">
-                <Icon name="upload-file" size="sm" />Upload
-              </Btn>
-            </form>
+            <input
+              bind:this={fileInput}
+              type="file"
+              accept=".enc"
+              class="hidden"
+              onchange={uploadBackup}
+            />
+            <Btn variant="secondary" size="sm" onclick={() => fileInput?.click()}>
+              <Icon name="upload-file" size="sm" />Backup hochladen
+            </Btn>
             <Btn variant="primary" size="sm" loading={creating} onclick={createBackup}>
-              <Icon name="add" size="sm" />Create Backup
+              <Icon name="add" size="sm" />Neues Backup erstellen
             </Btn>
           {/if}
         </div>
@@ -186,11 +187,11 @@
     {#if loading}
       <div class="flex justify-center py-12"><Spinner /></div>
     {:else if error && backups.length === 0}
-      <div class="px-5 py-10 text-center text-sm text-surface-400">
+      <div class="text-surface-400 px-5 py-10 text-center text-sm">
         Could not load backups. Check your connection and try again.
       </div>
     {:else if backups.length === 0}
-      <div class="px-5 py-10 text-center text-sm text-surface-400">
+      <div class="text-surface-400 px-5 py-10 text-center text-sm">
         No backups yet. Create one to get started.
       </div>
     {:else}
@@ -214,14 +215,14 @@
   <div class="flex items-center gap-1.5">
     <button
       type="button"
-      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100 hover:text-primary-600"
+      class="duration-micro text-surface-600 hover:bg-surface-100 hover:text-primary-600 rounded px-2 py-1 text-xs font-medium transition-colors"
       onclick={() => (restoreTarget = b.filename)}
     >
       Restore
     </button>
     <button
       type="button"
-      class="duration-micro rounded px-2 py-1 text-xs font-medium text-error-600 transition-colors hover:bg-error-50"
+      class="duration-micro text-error-600 hover:bg-error-50 rounded px-2 py-1 text-xs font-medium transition-colors"
       onclick={() => (deleteTarget = b.filename)}
     >
       Delete

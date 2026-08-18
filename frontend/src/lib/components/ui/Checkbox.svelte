@@ -1,20 +1,46 @@
 <script lang="ts">
   interface Props {
-    name: string;
-    label: string;
+    name?: string;
+    label?: string;
     checked?: boolean;
+    disabled?: boolean;
+    id?: string;
     class?: string;
+    onchange?: (checked: boolean) => void;
   }
 
-  let { name, label, checked = $bindable(false), class: extraClass = '' }: Props = $props();
+  let {
+    name = '',
+    label = '',
+    checked = $bindable(false),
+    disabled = false,
+    id = name || `chk_${Math.random().toString(36).slice(2, 7)}`,
+    class: extraClass = '',
+    onchange
+  }: Props = $props();
+
+  function handleChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    checked = input.checked;
+    onchange?.(input.checked);
+  }
 </script>
 
-<label class="inline-flex cursor-pointer items-center {extraClass}">
+<label
+  class="inline-flex cursor-pointer items-center gap-2 select-none {disabled
+    ? 'cursor-not-allowed opacity-50'
+    : ''} {extraClass}"
+>
   <input
+    {id}
     type="checkbox"
-    {name}
+    name={name || id}
     bind:checked
-    class="h-4 w-4 rounded border-surface-300 accent-primary-600"
+    {disabled}
+    onchange={handleChange}
+    class="h-4 w-4 cursor-pointer rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] accent-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
   />
-  <span class="ml-2 text-sm text-surface-700">{label}</span>
+  {#if label}
+    <span class="text-xs font-semibold text-[var(--text-main)]">{label}</span>
+  {/if}
 </label>

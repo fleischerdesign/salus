@@ -174,7 +174,7 @@
 
       {#snippet stats()}
         <div
-          class="grid grid-cols-2 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+          class="divide-surface-100 grid grid-cols-2 divide-y sm:grid-cols-4 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
             <Stat
@@ -206,23 +206,23 @@
           {#snippet header()}
             <div class="flex items-center gap-2">
               <Icon name="menu-book" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900"> Execution Instructions </span>
+              <span class="text-surface-900 text-sm font-semibold"> Execution Instructions </span>
             </div>
           {/snippet}
           <div class="p-6">
             {#if exercise.description}
-              <p class="mb-4 text-sm leading-relaxed text-surface-600">
+              <p class="text-surface-600 mb-4 text-sm leading-relaxed">
                 {exercise.description}
               </p>
             {/if}
             {#if instructions.length > 0}
-              <ol class="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-surface-600">
+              <ol class="text-surface-600 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
                 {#each instructions as instr}
                   <li>{instr}</li>
                 {/each}
               </ol>
             {:else if !exercise.description}
-              <p class="text-sm text-surface-400">No detailed instructions recorded.</p>
+              <p class="text-surface-400 text-sm">No detailed instructions recorded.</p>
             {/if}
             {#if exercise.video_url}
               <div class="mt-4">
@@ -239,7 +239,7 @@
             <div class="flex w-full items-center justify-between pr-2">
               <div class="flex items-center gap-2">
                 <Icon name="monitoring" size="sm" class="text-surface-400" />
-                <span class="text-sm font-semibold text-surface-900">Progress History</span>
+                <span class="text-surface-900 text-sm font-semibold">Progress History</span>
               </div>
               <div class="flex gap-1">
                 <Btn
@@ -268,7 +268,7 @@
               {/if}
             {:else}
               <div class="flex h-[200px] items-center justify-center text-center">
-                <p class="text-sm text-surface-400">
+                <p class="text-surface-400 text-sm">
                   Perform this exercise in at least 2 sessions to see progress charts.
                 </p>
               </div>
@@ -282,7 +282,7 @@
           {#snippet header()}
             <div class="flex items-center gap-2">
               <Icon name="history" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900"> Logged History </span>
+              <span class="text-surface-900 text-sm font-semibold"> Logged History </span>
             </div>
           {/snippet}
           <div class="p-2">
@@ -301,7 +301,7 @@
               </div>
             {:else}
               <div class="px-4 py-8">
-                <p class="text-sm text-surface-400">No logged sets yet.</p>
+                <p class="text-surface-400 text-sm">No logged sets yet.</p>
               </div>
             {/if}
           </div>

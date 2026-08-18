@@ -88,8 +88,8 @@
 
   <Card>
     <div class="flex items-center justify-between">
-      <h2 class="text-sm font-semibold text-surface-900">Food Import</h2>
-      <span class="text-xs text-surface-400">Current local DB: {foodCount} items</span>
+      <h2 class="text-surface-900 text-sm font-semibold">Food Import</h2>
+      <span class="text-surface-400 text-xs">Current local DB: {foodCount} items</span>
     </div>
     <div class="mt-3">
       <Textarea
@@ -100,7 +100,7 @@
       />
     </div>
     {#if preview.length > 0}
-      <p class="mt-2 text-xs text-surface-400">
+      <p class="text-surface-400 mt-2 text-xs">
         Preview: {preview.join(', ')}{parseCsv(csv).length > 8 ? ', …' : ''}
       </p>
     {/if}

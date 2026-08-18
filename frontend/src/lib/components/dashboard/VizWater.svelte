@@ -70,7 +70,7 @@
   >
     <!-- Water level cup mask -->
     <div
-      class="relative flex h-28 w-20 flex-col justify-end overflow-hidden rounded-b-2xl border-4 border-t-0 border-surface-200 bg-surface-50/50 shadow-inner"
+      class="border-surface-200 bg-surface-50/50 relative flex h-28 w-20 flex-col justify-end overflow-hidden rounded-b-2xl border-4 border-t-0 shadow-inner"
     >
       <!-- Water liquid filling -->
       <div
@@ -88,21 +88,22 @@
       </div>
     </div>
     {#if percent < 25}
-      <span class="absolute text-xs font-bold text-surface-600 select-none">{percent}%</span>
+      <span class="absolute text-xs font-bold text-[var(--text-muted)] select-none">{percent}%</span
+      >
     {/if}
   </div>
 
   <!-- Quick log controls -->
   <div class="flex w-full flex-col gap-1.5">
-    <div class="flex items-center justify-between px-1 text-xs text-surface-500">
-      <span class="font-medium text-surface-700">{total} ml</span>
-      <span>Goal: {goal} ml</span>
+    <div class="flex items-center justify-between px-1 text-xs text-[var(--text-muted)]">
+      <span class="font-bold text-[var(--text-main)]">{total} ml</span>
+      <span class="text-[var(--text-soft)]">Ziel: {goal} ml</span>
     </div>
-    <div class="grid grid-cols-3 gap-1">
+    <div class="grid grid-cols-3 gap-1.5">
       <button
         type="button"
         disabled={logging || !metricCode}
-        class="duration-micro rounded-lg border border-surface-200 bg-surface-50 py-1.5 text-xs font-semibold text-cyan-600 transition-all hover:border-cyan-200 hover:bg-cyan-50 active:scale-95 disabled:opacity-50"
+        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] py-1.5 text-xs font-bold text-[var(--color-hydrate)] transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--bg-surface-50)] active:scale-95 disabled:opacity-50"
         onclick={() => logWater(250)}
       >
         +250ml
@@ -110,7 +111,7 @@
       <button
         type="button"
         disabled={logging || !metricCode}
-        class="duration-micro rounded-lg border border-surface-200 bg-surface-50 py-1.5 text-xs font-semibold text-cyan-600 transition-all hover:border-cyan-200 hover:bg-cyan-50 active:scale-95 disabled:opacity-50"
+        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] py-1.5 text-xs font-bold text-[var(--color-hydrate)] transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--bg-surface-50)] active:scale-95 disabled:opacity-50"
         onclick={() => logWater(500)}
       >
         +500ml
@@ -118,7 +119,7 @@
       <button
         type="button"
         disabled={logging || !metricCode}
-        class="duration-micro rounded-lg border border-surface-200 bg-surface-50 py-1.5 text-xs font-semibold text-cyan-600 transition-all hover:border-cyan-200 hover:bg-cyan-50 active:scale-95 disabled:opacity-50"
+        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] py-1.5 text-xs font-bold text-[var(--color-hydrate)] transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--bg-surface-50)] active:scale-95 disabled:opacity-50"
         onclick={() => logWater(750)}
       >
         +750ml

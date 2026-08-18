@@ -51,23 +51,23 @@
         onclick={() => onSelect(idx)}
       >
         <Icon name={icon} size="xl" />
-        <span class="text-[10px] leading-tight text-surface-500">{labels[i]}</span>
+        <span class="text-surface-500 text-[10px] leading-tight">{labels[i]}</span>
       </button>
     {/each}
   </div>
   {#if score > 0}
-    <div class="flex items-center gap-3 rounded-lg bg-surface-50 px-4 py-2.5">
+    <div class="bg-surface-50 flex items-center gap-3 rounded-lg px-4 py-2.5">
       <Icon name={moodIcons[score - 1]} size="lg" />
       <div class="flex-1">
-        <div class="text-sm font-semibold text-surface-800">{labels[score - 1]}</div>
-        <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
+        <div class="text-surface-800 text-sm font-semibold">{labels[score - 1]}</div>
+        <div class="bg-surface-200 h-1.5 w-full overflow-hidden rounded-full">
           <div
             class="h-full rounded-full bg-gradient-to-r {moodGradient(score, theme.colorblind)}"
             style="width: {score * 10}%"
           ></div>
         </div>
       </div>
-      <span class="text-sm font-bold text-surface-600">{score}/10</span>
+      <span class="text-surface-600 text-sm font-bold">{score}/10</span>
     </div>
   {/if}
 </div>

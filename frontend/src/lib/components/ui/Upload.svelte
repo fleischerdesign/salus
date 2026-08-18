@@ -58,7 +58,7 @@
   ondrop={handleDrop}
 >
   <Icon name="upload-file" size="xl" class="text-surface-400" />
-  <span class="mt-2 text-sm font-medium text-surface-700">
+  <span class="text-surface-700 mt-2 text-sm font-medium">
     {#if fileName}
       {fileName}
     {:else}
@@ -66,7 +66,7 @@
     {/if}
   </span>
   {#if hint}
-    <span class="mt-1 text-xs text-surface-400">{hint}</span>
+    <span class="text-surface-400 mt-1 text-xs">{hint}</span>
   {/if}
   <input type="file" id={name} {name} {accept} class="sr-only" onchange={handleChange} />
 </label>

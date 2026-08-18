@@ -134,14 +134,14 @@
       {#if goalView}
         <div class="grid gap-6 px-6 py-6 md:grid-cols-3">
           <div class="space-y-1">
-            <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
+            <span class="text-surface-400 text-xs font-medium tracking-wider uppercase"
               >Current / Target</span
             >
             <div class="flex items-baseline gap-1.5">
-              <span class="text-2xl font-bold text-surface-900">
+              <span class="text-surface-900 text-2xl font-bold">
                 {formatValue(goalView.progress.current_value)}
               </span>
-              <span class="text-sm text-surface-400">
+              <span class="text-surface-400 text-sm">
                 / {formatValue(goalView.target_value)}
                 {goalView.metric_unit}
               </span>
@@ -149,7 +149,7 @@
           </div>
 
           <div class="space-y-1">
-            <span class="text-xs font-medium tracking-wider text-surface-400 uppercase">Status</span
+            <span class="text-surface-400 text-xs font-medium tracking-wider uppercase">Status</span
             >
             <div>
               <span class="text-sm font-bold uppercase {statusColor(goalView.progress.status)}">
@@ -160,10 +160,10 @@
 
           {#if goalView.deadline}
             <div class="space-y-1">
-              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
+              <span class="text-surface-400 text-xs font-medium tracking-wider uppercase"
                 >Deadline</span
               >
-              <div class="text-sm font-semibold text-surface-700">
+              <div class="text-surface-700 text-sm font-semibold">
                 {new Date(goalView.deadline).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'long',
@@ -174,10 +174,10 @@
           {/if}
         </div>
 
-        <div class="border-t border-surface-100 px-6 py-4">
+        <div class="border-surface-100 border-t px-6 py-4">
           <div class="mb-2 flex items-center justify-between">
-            <span class="text-xs font-semibold text-surface-500">Goal Completion Progress</span>
-            <span class="text-xs font-bold text-surface-700">{goalView.progress.percent}%</span>
+            <span class="text-surface-500 text-xs font-semibold">Goal Completion Progress</span>
+            <span class="text-surface-700 text-xs font-bold">{goalView.progress.percent}%</span>
           </div>
           <ProgressBar
             value={goalView.progress.percent}
@@ -199,7 +199,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="show_chart" size="sm" class="text-surface-400" />
-            <span class="text-sm font-semibold text-surface-900">Historical Trend vs. Target</span>
+            <span class="text-surface-900 text-sm font-semibold">Historical Trend vs. Target</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -213,7 +213,7 @@
             />
           {:else}
             <div class="flex h-[200px] items-center justify-center">
-              <p class="text-sm text-surface-400">No data points logged for this metric yet.</p>
+              <p class="text-surface-400 text-sm">No data points logged for this metric yet.</p>
             </div>
           {/if}
         </div>
@@ -226,12 +226,12 @@
             {#snippet header()}
               <div class="flex items-center gap-2">
                 <Icon name="query_stats" size="sm" class="text-surface-400" />
-                <span class="text-sm font-semibold text-surface-900">Statistical Forecast</span>
+                <span class="text-surface-900 text-sm font-semibold">Statistical Forecast</span>
               </div>
             {/snippet}
             <div class="space-y-4 p-6">
               <div class="flex items-center justify-between">
-                <span class="text-sm text-surface-500">Deadline Status</span>
+                <span class="text-surface-500 text-sm">Deadline Status</span>
                 <span
                   class="rounded px-2 py-0.5 text-xs font-bold"
                   class:bg-success-50={goalView.forecast.on_track}
@@ -243,15 +243,15 @@
                 </span>
               </div>
 
-              <div class="flex items-baseline justify-between border-t border-surface-100 pt-3">
-                <span class="text-sm text-surface-500">Est. Target Value</span>
-                <span class="text-lg font-bold text-surface-900">
+              <div class="border-surface-100 flex items-baseline justify-between border-t pt-3">
+                <span class="text-surface-500 text-sm">Est. Target Value</span>
+                <span class="text-surface-900 text-lg font-bold">
                   {formatValue(goalView.forecast.predicted)}
                   {goalView.metric_unit}
                 </span>
               </div>
 
-              <div class="flex justify-between text-xs text-surface-400">
+              <div class="text-surface-400 flex justify-between text-xs">
                 <span>80% Confidence Range</span>
                 <span class="font-medium">
                   [{formatValue(goalView.forecast.ci_lower)} – {formatValue(
@@ -260,10 +260,10 @@
                 </span>
               </div>
 
-              <div class="border-t border-surface-100 pt-3">
-                <span class="mb-1 block text-xs font-semibold text-surface-400">Recommendation</span
+              <div class="border-surface-100 border-t pt-3">
+                <span class="text-surface-400 mb-1 block text-xs font-semibold">Recommendation</span
                 >
-                <p class="text-xs leading-relaxed text-surface-600">
+                <p class="text-surface-600 text-xs leading-relaxed">
                   {calculateRequiredRate()}
                 </p>
               </div>
@@ -275,21 +275,21 @@
           {#snippet header()}
             <div class="flex items-center gap-2">
               <Icon name="info" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900">Goal Parameters</span>
+              <span class="text-surface-900 text-sm font-semibold">Goal Parameters</span>
             </div>
           {/snippet}
-          <div class="space-y-3 p-6 text-sm text-surface-600">
+          <div class="text-surface-600 space-y-3 p-6 text-sm">
             <div class="flex justify-between">
               <span>Goal Type</span>
-              <span class="font-medium text-surface-800 capitalize">{goalView.frequency}</span>
+              <span class="text-surface-800 font-medium capitalize">{goalView.frequency}</span>
             </div>
             <div class="flex justify-between">
               <span>Direction</span>
-              <span class="font-medium text-surface-800 capitalize">{goalView.direction}</span>
+              <span class="text-surface-800 font-medium capitalize">{goalView.direction}</span>
             </div>
             <div class="flex justify-between">
               <span>Metric</span>
-              <span class="font-medium text-surface-800">{goalView.metric_name}</span>
+              <span class="text-surface-800 font-medium">{goalView.metric_name}</span>
             </div>
           </div>
         </Card>
@@ -301,31 +301,31 @@
           <div class="flex items-center justify-between pr-2">
             <div class="flex items-center gap-2">
               <Icon name="list_alt" size="sm" class="text-surface-400" />
-              <span class="text-sm font-semibold text-surface-900">Recent Contributions</span>
+              <span class="text-surface-900 text-sm font-semibold">Recent Contributions</span>
             </div>
             <a
               href="/entries/{goalView.metric_code}"
-              class="text-xs font-semibold text-primary-600 hover:text-primary-700"
+              class="text-primary-600 hover:text-primary-700 text-xs font-semibold"
             >
               Manage Entries
             </a>
           </div>
         {/snippet}
-        <div class="divide-y divide-surface-100">
+        <div class="divide-surface-100 divide-y">
           {#if (measurements ?? []).length === 0}
-            <div class="p-6 text-center text-sm text-surface-400">
+            <div class="text-surface-400 p-6 text-center text-sm">
               No measurements logged for this metric yet.
             </div>
           {:else}
             {#each (measurements ?? []).slice(-5).reverse() as m}
-              <div class="flex items-center justify-between px-6 py-3.5 hover:bg-surface-50">
+              <div class="hover:bg-surface-50 flex items-center justify-between px-6 py-3.5">
                 <div class="flex items-baseline gap-1">
-                  <span class="text-sm font-bold text-surface-900">
+                  <span class="text-surface-900 text-sm font-bold">
                     {formatValue(m.value_numeric)}
                   </span>
-                  <span class="text-xs text-surface-400">{goalView.metric_unit}</span>
+                  <span class="text-surface-400 text-xs">{goalView.metric_unit}</span>
                 </div>
-                <div class="text-xs text-surface-400">
+                <div class="text-surface-400 text-xs">
                   {new Date(m.start_time).toLocaleDateString(undefined, {
                     month: 'short',
                     day: 'numeric',

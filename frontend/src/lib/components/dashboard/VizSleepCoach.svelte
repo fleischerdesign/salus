@@ -75,43 +75,46 @@
   });
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-3 text-xs">
   {#if !sleepDebtData}
     <div class="flex flex-col items-center justify-center py-6 text-center">
-      <Icon name="bedtime" size="2xl" class="text-surface-300" />
-      <p class="mt-2 text-xs text-surface-500">
-        Requires at least 3 logged nights of sleep to calculate sleep debt.
+      <Icon name="bedtime" size="2xl" class="text-[var(--text-soft)]" />
+      <p class="mt-2 text-xs text-[var(--text-muted)]">
+        Benötigt mindestens 3 erfasste Schlafeinträge zur Berechnung der Schlafschuld.
       </p>
     </div>
   {:else}
     {@const debt = sleepDebtData.cumulativeDebt}
-    <div class="xs:grid-cols-2 grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <!-- Sleep Debt Status Card -->
       <div
-        class="flex flex-col justify-between rounded-lg bg-surface-50 p-3 ring-1 ring-surface-100"
+        class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
       >
-        <span class="text-xs font-semibold text-surface-500">Sleep Debt</span>
+        <span class="text-xs font-bold text-[var(--text-muted)]">Schlafschuld</span>
         <div class="mt-2 flex items-baseline gap-1">
           <span
-            class="text-3xl font-extrabold"
-            class:text-success-500={debt <= 1.0}
-            class:text-warning-500={debt > 1.0 && debt <= 4.0}
-            class:text-error-500={debt > 4.0}
+            class="text-2xl font-black tabular-nums {debt <= 1.0
+              ? 'text-[var(--color-success)]'
+              : debt <= 4.0
+                ? 'text-amber-500'
+                : 'text-rose-500'}"
           >
             {debt > 0 ? `+${debt}` : debt}
           </span>
-          <span class="text-xs text-surface-400">hours</span>
+          <span class="text-xs font-medium text-[var(--text-soft)]">Std.</span>
         </div>
-        <div class="mt-3 flex items-center gap-1">
+        <div class="mt-3 flex items-center gap-1.5">
           {#if debt <= 1.0}
-            <span class="inline-block h-2 w-2 rounded-full bg-success-500"></span>
-            <span class="text-[10px] font-bold text-success-600">Optimal Rest</span>
+            <span class="inline-block h-2 w-2 rounded-full bg-[var(--color-success)]"></span>
+            <span class="text-[0.6875rem] font-bold text-[var(--color-success)]"
+              >Optimal erholt</span
+            >
           {:else if debt <= 4.0}
-            <span class="inline-block h-2 w-2 rounded-full bg-warning-500"></span>
-            <span class="text-[10px] font-bold text-warning-600">Mild Deficit</span>
+            <span class="inline-block h-2 w-2 rounded-full bg-amber-500"></span>
+            <span class="text-[0.6875rem] font-bold text-amber-500">Leichtes Defizit</span>
           {:else}
-            <span class="inline-block h-2 w-2 rounded-full bg-error-500"></span>
-            <span class="text-[10px] font-bold text-error-600">Sleep Deprived</span>
+            <span class="inline-block h-2 w-2 rounded-full bg-rose-500"></span>
+            <span class="text-[0.6875rem] font-bold text-rose-500">Schlafmangel</span>
           {/if}
         </div>
       </div>
@@ -119,15 +122,15 @@
       <!-- Optimal Wind Down Card -->
       {#if coaching}
         <div
-          class="flex flex-col justify-between rounded-lg bg-surface-50 p-3 ring-1 ring-surface-100"
+          class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
         >
-          <span class="text-xs font-semibold text-surface-500">Optimal Wind-down</span>
-          <div class="mt-2 flex items-baseline gap-1 text-primary-600">
-            <span class="text-3xl font-extrabold">{coaching.windDownTime}</span>
-            <span class="text-xs font-medium text-surface-400">PM</span>
+          <span class="text-xs font-bold text-[var(--text-muted)]">Optimale Ruhephase</span>
+          <div class="mt-2 flex items-baseline gap-1 text-[var(--color-primary)]">
+            <span class="text-2xl font-black tabular-nums">{coaching.windDownTime}</span>
+            <span class="text-xs font-bold text-[var(--text-soft)]">Uhr</span>
           </div>
-          <span class="mt-3 text-[10px] text-surface-400">
-            Target sleep: {coaching.targetSleep}h (at {coaching.sleepTime})
+          <span class="mt-3 text-[0.6875rem] text-[var(--text-soft)]">
+            Ziel: {coaching.targetSleep}h (ab {coaching.sleepTime} Uhr)
           </span>
         </div>
       {/if}
@@ -136,14 +139,17 @@
     <!-- Personalized Sleep Advice -->
     {#if coaching}
       <div
-        class="flex gap-2.5 rounded-lg bg-primary-50/50 p-3 text-xs text-primary-700 ring-1 ring-primary-100/50"
+        class="flex gap-2.5 rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/10 p-3.5 text-xs text-[var(--text-main)]"
       >
-        <div class="mt-0.5">
-          <Icon name="info" size="sm" />
+        <Icon
+          name="tips_and_updates"
+          size="sm"
+          class="mt-0.5 shrink-0 text-[var(--color-primary)]"
+        />
+        <div class="space-y-1">
+          <span class="block font-bold text-[var(--color-primary)]">Schlaf-Empfehlung</span>
+          <p class="text-xs leading-relaxed text-[var(--text-muted)]">{coaching.advice}</p>
         </div>
-        <p class="leading-relaxed">
-          {coaching.advice}
-        </p>
       </div>
     {/if}
   {/if}

@@ -36,7 +36,7 @@
   />
 {:else}
   <span
-    class="inline-flex shrink-0 items-center justify-center rounded-full bg-primary-500 font-semibold text-on-primary uppercase {sizeClasses[
+    class="bg-primary-500 text-on-primary inline-flex shrink-0 items-center justify-center rounded-full font-semibold uppercase {sizeClasses[
       size
     ]} {interactiveClass} {extraClass}"
   >

@@ -81,7 +81,7 @@
 
 <Card padding={false}>
   <div
-    class="flex w-full cursor-pointer items-center justify-between px-4 py-3 hover:bg-surface-50"
+    class="hover:bg-surface-50 flex w-full cursor-pointer items-center justify-between px-4 py-3"
     onclick={() => (expanded = !expanded)}
     onkeydown={(e) => {
       if (e.key === 'Enter') expanded = !expanded;
@@ -91,13 +91,13 @@
   >
     <div class="flex min-w-0 items-center gap-3">
       <div
-        class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-500"
+        class="bg-surface-100 text-surface-500 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
       >
         <Icon name={typeIcon} size="md" />
       </div>
       <div class="min-w-0">
-        <div class="truncate text-sm font-semibold text-surface-800">{displayName}</div>
-        <div class="text-xs text-surface-400">
+        <div class="text-surface-800 truncate text-sm font-semibold">{displayName}</div>
+        <div class="text-surface-400 text-xs">
           {Math.round(totalCalories)} kcal · {Math.round(totalProtein)}P · {Math.round(totalCarbs)}C
           · {Math.round(totalFat)}F
         </div>
@@ -109,7 +109,7 @@
           e.stopPropagation();
           onEdit();
         }}
-        class="rounded p-1 text-surface-400 hover:bg-surface-100 hover:text-surface-600"
+        class="text-surface-400 hover:bg-surface-100 hover:text-surface-600 rounded p-1"
         aria-label="Edit meal"
       >
         <Icon name="edit" size="sm" />
@@ -120,7 +120,7 @@
             e.stopPropagation();
             onDelete();
           }}
-          class="rounded p-1 text-surface-400 hover:bg-surface-100 hover:text-error-500"
+          class="text-surface-400 hover:bg-surface-100 hover:text-error-500 rounded p-1"
           aria-label="Delete meal"
         >
           <Icon name="delete" size="sm" />
@@ -135,7 +135,7 @@
   </div>
 
   {#if expanded}
-    <div class="border-t border-surface-100 px-4 py-3">
+    <div class="border-surface-100 border-t px-4 py-3">
       <div class="flex flex-col gap-2">
         {#each editItems as item (item.id)}
           {@const food = foodMap[item.food_item_id]}

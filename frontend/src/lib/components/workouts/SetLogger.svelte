@@ -95,11 +95,11 @@
     : 'bg-surface-50/50'} {extraClass}"
 >
   <!-- Set number -->
-  <span class="w-7 shrink-0 text-xs font-bold text-surface-500 tabular-nums">{setNumber}</span>
+  <span class="text-surface-500 w-7 shrink-0 text-xs font-bold tabular-nums">{setNumber}</span>
 
   <!-- Weight stepper -->
   <div class="flex items-center gap-1.5">
-    <span class="text-[10px] font-medium text-surface-400 uppercase">kg</span>
+    <span class="text-surface-400 text-[10px] font-medium uppercase">kg</span>
     <div class={stepperClass}>
       <button
         type="button"
@@ -128,7 +128,7 @@
 
   <!-- Reps stepper -->
   <div class="flex items-center gap-1.5">
-    <span class="text-[10px] font-medium text-surface-400 uppercase">reps</span>
+    <span class="text-surface-400 text-[10px] font-medium uppercase">reps</span>
     <div class={stepperClass}>
       <button
         type="button"
@@ -157,7 +157,7 @@
 
   <!-- RPE stepper -->
   <div class="flex items-center gap-1.5">
-    <span class="text-[10px] font-medium text-surface-400 uppercase">RPE</span>
+    <span class="text-surface-400 text-[10px] font-medium uppercase">RPE</span>
     <div class="{stepperClass} {isRpe10 && isOn ? 'border-error-300' : ''}">
       <button
         type="button"
@@ -170,7 +170,7 @@
         type="number"
         value={rpe}
         oninput={updateRpe}
-        class="{inputClass} {isRpe10 && isOn ? 'font-bold text-error-600' : ''}"
+        class="{inputClass} {isRpe10 && isOn ? 'text-error-600 font-bold' : ''}"
         disabled={isOn}
         step="0.5"
         min="5"
@@ -211,7 +211,7 @@
     aria-label={isOn ? 'Remove set' : 'Log set'}
   >
     {#if isBusy}
-      <Icon name="progress-activity" size="sm" class="animate-spin text-primary-500" />
+      <Icon name="progress-activity" size="sm" class="text-primary-500 animate-spin" />
     {:else if isOn}
       <Icon name="check" size="sm" />
     {:else if logState === 'failed'}

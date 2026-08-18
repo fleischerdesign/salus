@@ -54,17 +54,17 @@
     <div class="p-4 pb-2">
       <div class="flex items-start gap-3">
         <div
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-warning-100 text-warning-600"
+          class="bg-warning-100 text-warning-600 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
         >
           <Icon name="menu-book" size="md" />
         </div>
 
         <div class="min-w-0 flex-1 pt-0.5">
-          <div class="font-semibold text-surface-900">{name}</div>
+          <div class="text-surface-900 font-semibold">{name}</div>
           {#if description}
-            <div class="truncate text-xs text-surface-500">{description}</div>
+            <div class="text-surface-500 truncate text-xs">{description}</div>
           {/if}
-          <div class="mt-1 text-xs text-surface-400">
+          <div class="text-surface-400 mt-1 text-xs">
             {servings} serving{servings !== 1 ? 's' : ''}
             · {Math.round(perServing.calories)} kcal/serving
             {#if prepTimeMin || cookTimeMin}
@@ -76,26 +76,26 @@
         </div>
 
         {#if isFavorite}
-          <Icon name="favorite" size="sm" class="mt-0.5 text-warning-500" />
+          <Icon name="favorite" size="sm" class="text-warning-500 mt-0.5" />
         {/if}
       </div>
 
-      <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-surface-100 pt-2.5 text-xs">
+      <div class="border-surface-100 mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2.5 text-xs">
         <span class="text-primary-600">P {Math.round(perServing.protein)}g</span>
         <span class="text-warning-600">C {Math.round(perServing.carbs)}g</span>
         <span class="text-error-500">F {Math.round(perServing.fat)}g</span>
-        <span class="ml-auto text-surface-400">{Math.round(totalCalories)} kcal total</span>
+        <span class="text-surface-400 ml-auto">{Math.round(totalCalories)} kcal total</span>
       </div>
     </div>
 
-    <div class="flex items-center justify-between border-t border-surface-100 px-4 py-2.5">
-      <span class="text-xs text-surface-400">per serving</span>
+    <div class="border-surface-100 flex items-center justify-between border-t px-4 py-2.5">
+      <span class="text-surface-400 text-xs">per serving</span>
       <button
         onclick={(e) => {
           e.stopPropagation();
           onCook();
         }}
-        class="rounded-full bg-primary-500 px-4 py-1.5 text-xs font-semibold text-on-primary transition-colors hover:bg-primary-600"
+        class="bg-primary-500 text-on-primary hover:bg-primary-600 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
       >
         Cook
       </button>

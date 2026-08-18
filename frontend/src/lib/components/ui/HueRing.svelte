@@ -63,7 +63,7 @@
 
 <div
   bind:this={ringEl}
-  class="relative cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+  class="focus-visible:outline-primary-500 relative cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
   style="width: {size}px; height: {size}px; background: {hueGradient()}; touch-action: none;"
   role="slider"
   aria-label="Akzentfarbe"

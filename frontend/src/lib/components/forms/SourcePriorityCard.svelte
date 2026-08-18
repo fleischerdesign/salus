@@ -71,27 +71,27 @@
     <div class="mb-3 flex items-start justify-between">
       <div class="flex min-w-0 items-center gap-2.5">
         <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary-600 shadow-2xs"
+          class="bg-primary-50 text-primary-600 flex h-8 w-8 shrink-0 items-center justify-center rounded-md shadow-2xs"
         >
           <Icon name="monitoring" size="sm" />
         </div>
         <div class="min-w-0">
-          <h3 class="truncate text-xs font-bold text-surface-900">{metric.name}</h3>
-          <span class="font-mono text-[10px] text-surface-400">{metric.code}</span>
+          <h3 class="text-surface-900 truncate text-xs font-bold">{metric.name}</h3>
+          <span class="text-surface-400 font-mono text-[10px]">{metric.code}</span>
         </div>
       </div>
 
       <div class="flex shrink-0 items-center gap-2">
         {#if primarySource && !allDisabled}
           <span
-            class="inline-flex items-center gap-1.5 rounded-md bg-surface-100 px-2 py-0.5 text-[10px] font-semibold text-surface-700"
+            class="bg-surface-100 text-surface-700 inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-semibold"
           >
             <Icon name="star" size="sm" class="text-warning-500" />
             {formatSourceLabel(primarySource)}
           </span>
         {:else if allDisabled}
           <span
-            class="inline-flex items-center gap-1 rounded-md border border-warning-200 bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700"
+            class="border-warning-200 bg-warning-50 text-warning-700 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold"
           >
             <Icon name="warning" size="sm" class="text-warning-600" /> Muted
           </span>
@@ -102,15 +102,15 @@
     <!-- Interactive Pill List -->
     {#if items.length <= 1}
       <div
-        class="flex items-center justify-between rounded-md border border-surface-200/60 bg-surface-50/50 px-3 py-2 text-xs"
+        class="border-surface-200/60 bg-surface-50/50 flex items-center justify-between rounded-md border px-3 py-2 text-xs"
       >
         <div class="flex items-center gap-2">
-          <span class="font-bold text-surface-500">1.</span>
-          <span class="font-medium text-surface-900"
+          <span class="text-surface-500 font-bold">1.</span>
+          <span class="text-surface-900 font-medium"
             >{formatSourceLabel(items[0]?.source ?? 'manual')}</span
           >
         </div>
-        <span class="text-[10px] text-surface-400">Single Source</span>
+        <span class="text-surface-400 text-[10px]">Single Source</span>
       </div>
     {:else}
       <div class="space-y-1.5">
@@ -121,8 +121,8 @@
               : 'border-surface-200/50 bg-surface-50/20 text-surface-400 opacity-60'}"
           >
             <div class="flex min-w-0 items-center gap-2">
-              <Icon name="drag_indicator" size="sm" class="shrink-0 cursor-grab text-surface-400" />
-              <span class="w-4 shrink-0 font-bold text-surface-500">{idx + 1}.</span>
+              <Icon name="drag_indicator" size="sm" class="text-surface-400 shrink-0 cursor-grab" />
+              <span class="text-surface-500 w-4 shrink-0 font-bold">{idx + 1}.</span>
               <span
                 class="truncate font-medium {item.is_enabled
                   ? 'text-surface-900'
@@ -135,7 +135,7 @@
             <div class="ml-2 flex shrink-0 items-center gap-1">
               <button
                 type="button"
-                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-700 disabled:opacity-20"
+                class="text-surface-400 hover:bg-surface-200 hover:text-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors disabled:opacity-20"
                 disabled={idx === 0}
                 onclick={() => moveUp(idx)}
                 title="Move Up"
@@ -144,14 +144,14 @@
               </button>
               <button
                 type="button"
-                class="flex h-7 w-7 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-700 disabled:opacity-20"
+                class="text-surface-400 hover:bg-surface-200 hover:text-surface-700 flex h-7 w-7 items-center justify-center rounded transition-colors disabled:opacity-20"
                 disabled={idx === items.length - 1}
                 onclick={() => moveDown(idx)}
                 title="Move Down"
               >
                 <Icon name="arrow-downward" size="sm" />
               </button>
-              <div class="ml-1 border-l border-surface-200/60 pl-1.5">
+              <div class="border-surface-200/60 ml-1 border-l pl-1.5">
                 <Toggle checked={item.is_enabled} onchange={() => toggleEnabled(idx)} />
               </div>
             </div>
@@ -163,12 +163,12 @@
     <!-- Progressive Disclosure Action Footer -->
     {#if items.length > 1 && onApplyToCategory}
       <div
-        class="mt-3 flex items-center justify-between border-t border-surface-100 pt-2 text-[10px]"
+        class="border-surface-100 mt-3 flex items-center justify-between border-t pt-2 text-[10px]"
       >
         <span class="text-surface-400">{items.length} Configured Sources</span>
         <button
           type="button"
-          class="duration-micro font-semibold text-primary-600 opacity-80 transition-colors group-hover:opacity-100 hover:text-primary-700"
+          class="duration-micro text-primary-600 hover:text-primary-700 font-semibold opacity-80 transition-colors group-hover:opacity-100"
           onclick={onApplyToCategory}
           disabled={saving}
         >

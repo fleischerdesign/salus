@@ -23,9 +23,9 @@
 
 <div class="flex items-center gap-3">
   <div class="flex items-baseline gap-1">
-    <span class="text-lg font-bold text-surface-900">{value}</span>
+    <span class="text-base font-extrabold text-[var(--text-main)] tabular-nums">{value}</span>
     {#if unit}
-      <span class="text-xs text-surface-400">{unit}</span>
+      <span class="text-xs font-bold text-[var(--text-soft)] uppercase">{unit}</span>
     {/if}
   </div>
 

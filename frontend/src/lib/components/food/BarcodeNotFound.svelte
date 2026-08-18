@@ -12,16 +12,16 @@
 </script>
 
 <div
-  class="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-3 py-3"
+  class="border-surface-200 bg-surface-50 flex items-center gap-3 rounded-lg border px-3 py-3"
   role="status"
 >
-  <Icon name="info" size="sm" class="flex-shrink-0 text-surface-400" />
+  <Icon name="info" size="sm" class="text-surface-400 flex-shrink-0" />
   <div class="min-w-0 flex-1">
-    <p class="text-sm text-surface-700">
-      Barcode <span class="font-mono text-xs font-medium text-surface-800">{barcode}</span> isn't in the
+    <p class="text-surface-700 text-sm">
+      Barcode <span class="text-surface-800 font-mono text-xs font-medium">{barcode}</span> isn't in the
       database yet.
     </p>
-    <p class="mt-0.5 text-xs text-surface-400">
+    <p class="text-surface-400 mt-0.5 text-xs">
       Add the nutrition info once — the next scan will recognize it.
     </p>
   </div>
@@ -29,7 +29,7 @@
   {#if onDismiss}
     <button
       type="button"
-      class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-600"
+      class="text-surface-400 hover:bg-surface-100 hover:text-surface-600 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded transition-colors"
       aria-label="Dismiss"
       onclick={onDismiss}
     >

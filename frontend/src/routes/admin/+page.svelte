@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-
-  $effect(() => {
-    goto('/admin/stats', { replaceState: true });
-  });
+  import AdminPage from '$components/pages/AdminPage.svelte';
 </script>
+
+<svelte:head><title>Salus — Administration</title></svelte:head>
+
+<AdminPage />

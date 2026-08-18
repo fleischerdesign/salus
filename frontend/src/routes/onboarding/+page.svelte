@@ -7,7 +7,6 @@
   import Card from '$components/ui/Card.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Input from '$components/ui/Input.svelte';
-  import FormField from '$components/forms/FormField.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import StepIndicator from '$components/ui/StepIndicator.svelte';
   import CopyToClipboard from '$components/ui/CopyToClipboard.svelte';
@@ -76,7 +75,7 @@
 
   {#if step === 1}
     <Card title="Connect a Data Source">
-      <p class="mb-4 text-sm text-surface-600">
+      <p class="text-surface-600 mb-4 text-sm">
         Get an API token to push health data from apps and devices.
       </p>
       <Btn variant="primary" onclick={createToken}>
@@ -85,12 +84,12 @@
       {#if token}
         <div class="mt-4 space-y-3">
           <div>
-            <p class="mb-1 text-xs font-medium text-surface-500">API Token</p>
+            <p class="text-surface-500 mb-1 text-xs font-medium">API Token</p>
             <CopyToClipboard value={token} label="API Token" />
           </div>
           {#if webhookUrl}
             <div>
-              <p class="mb-1 text-xs font-medium text-surface-500">Webhook URL</p>
+              <p class="text-surface-500 mb-1 text-xs font-medium">Webhook URL</p>
               <CopyToClipboard value={webhookUrl} label="Webhook URL" />
             </div>
           {/if}
@@ -101,41 +100,52 @@
       </div>
     </Card>
   {:else if step === 2}
-    <Card title="Log Your First Entry">
+    <Card title="Ersten Messwert erfassen">
       <div class="flex flex-col gap-4">
-        <FormField label="Metric Type ID" required>
-          <Input name="metric_id" type="number" bind:value={entryMetricId} required />
-        </FormField>
-        <FormField label="Value" required>
-          <Input name="value" bind:value={entryValue} required placeholder="e.g. 75.5" />
-        </FormField>
-        {#if error}<p class="text-sm text-error-500">{error}</p>{/if}
+        <Input
+          label="Metrik-Code / Typ-ID"
+          name="metric_id"
+          type="number"
+          bind:value={entryMetricId}
+          required
+        />
+        <Input
+          label="Messwert"
+          name="value"
+          bind:value={entryValue}
+          required
+          placeholder="z. B. 75.5"
+        />
+        {#if error}<p class="text-xs font-medium text-rose-500">{error}</p>{/if}
         <div class="flex justify-between">
-          <Btn variant="ghost" onclick={() => (step = 1)}>Back</Btn>
-          <Btn variant="primary" onclick={createEntry}>Save Entry</Btn>
+          <Btn variant="ghost" onclick={() => (step = 1)}>Zurück</Btn>
+          <Btn variant="primary" onclick={createEntry}>Eintrag speichern</Btn>
         </div>
       </div>
     </Card>
   {:else if step === 3}
-    <Card title="Set a Goal">
+    <Card title="Erstes Ziel setzen">
       <div class="flex flex-col gap-4">
-        <FormField label="Metric Type ID" required>
-          <Input name="metric_id" type="number" bind:value={goalMetricId} required />
-        </FormField>
-        <FormField label="Target Value" required>
-          <Input
-            name="target"
-            type="number"
-            step="0.1"
-            bind:value={goalTarget}
-            required
-            placeholder="e.g. 70"
-          />
-        </FormField>
-        {#if error}<p class="text-sm text-error-500">{error}</p>{/if}
+        <Input
+          label="Metrik-Code / Typ-ID"
+          name="metric_id"
+          type="number"
+          bind:value={goalMetricId}
+          required
+        />
+        <Input
+          label="Zielwert"
+          name="target"
+          type="number"
+          step="0.1"
+          bind:value={goalTarget}
+          required
+          placeholder="z. B. 70"
+        />
+        {#if error}<p class="text-xs font-medium text-rose-500">{error}</p>{/if}
         <div class="flex justify-between">
-          <Btn variant="ghost" onclick={() => (step = 2)}>Back</Btn>
-          <Btn variant="primary" onclick={createGoal}>Save Goal</Btn>
+          <Btn variant="ghost" onclick={() => (step = 2)}>Zurück</Btn>
+          <Btn variant="primary" onclick={createGoal}>Ziel speichern</Btn>
         </div>
       </div>
     </Card>
@@ -143,8 +153,8 @@
     <Card>
       <div class="py-8 text-center">
         <Icon name="celebration" size="2xl" class="text-success-500" />
-        <h1 class="mt-4 text-xl font-semibold text-surface-900">You're all set!</h1>
-        <p class="mt-2 text-sm text-surface-500">Start tracking your health data.</p>
+        <h1 class="text-surface-900 mt-4 text-xl font-semibold">You're all set!</h1>
+        <p class="text-surface-500 mt-2 text-sm">Start tracking your health data.</p>
         <div class="mt-6">
           <Btn variant="primary" onclick={dismiss}>Go to Dashboard</Btn>
         </div>

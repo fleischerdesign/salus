@@ -56,22 +56,22 @@
   {:else}
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-sm font-semibold text-surface-900">System Configuration</span>
+        <span class="text-surface-900 text-sm font-semibold">System Configuration</span>
       {/snippet}
       {#if (configItems ?? []).length === 0}
-        <div class="px-5 py-8 text-center text-sm text-surface-400">No configuration items.</div>
+        <div class="text-surface-400 px-5 py-8 text-center text-sm">No configuration items.</div>
       {:else}
-        <div class="divide-y divide-surface-100">
+        <div class="divide-surface-100 divide-y">
           {#each configItems ?? [] as item (item.key)}
             <div class="flex items-center justify-between px-5 py-4">
               <div class="min-w-0 flex-1">
-                <div class="text-sm font-medium text-surface-900">
+                <div class="text-surface-900 text-sm font-medium">
                   {item.key}
                   {#if item.is_secret}
-                    <Icon name="lock" size="sm" class="ml-1 inline-block text-warning-500" />
+                    <Icon name="lock" size="sm" class="text-warning-500 ml-1 inline-block" />
                   {/if}
                 </div>
-                <div class="text-xs text-surface-400">
+                <div class="text-surface-400 text-xs">
                   {item.description ?? item.category}
                 </div>
               </div>
@@ -82,7 +82,7 @@
                   <Btn variant="secondary" size="sm" onclick={cancelEdit}>Cancel</Btn>
                 {:else}
                   <code
-                    class="max-w-xs truncate rounded bg-surface-100 px-2 py-1 text-xs text-surface-600"
+                    class="bg-surface-100 text-surface-600 max-w-xs truncate rounded px-2 py-1 text-xs"
                   >
                     {item.is_secret ? '••••••' : item.value}
                   </code>

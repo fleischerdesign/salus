@@ -50,7 +50,7 @@
   {#if !notifications}
     <div class="flex flex-col gap-3">
       {#each Array(5) as _}
-        <div class="h-20 animate-pulse rounded-lg bg-surface-200"></div>
+        <div class="bg-surface-200 h-20 animate-pulse rounded-lg"></div>
       {/each}
     </div>
   {:else if (notifications ?? []).length === 0}
@@ -63,14 +63,14 @@
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <p class="text-sm font-medium text-surface-900">
+                  <p class="text-surface-900 text-sm font-medium">
                     {n.title ?? 'Notification'}
                   </p>
                   {#if !n.is_read}
-                    <span class="h-2 w-2 rounded-full bg-primary-500"></span>
+                    <span class="bg-primary-500 h-2 w-2 rounded-full"></span>
                   {/if}
                 </div>
-                <p class="mt-1 text-sm text-surface-600">
+                <p class="text-surface-600 mt-1 text-sm">
                   {n.message ?? ''}
                 </p>
               </div>

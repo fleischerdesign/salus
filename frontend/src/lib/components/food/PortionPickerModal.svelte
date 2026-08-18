@@ -2,6 +2,7 @@
   import Modal from '$components/ui/Modal.svelte';
   import Btn from '$components/ui/Btn.svelte';
   import Stepper from '$components/ui/Stepper.svelte';
+  import Input from '$components/ui/Input.svelte';
   import type { FoodItem } from '$lib/db/types';
 
   interface Props {
@@ -44,20 +45,20 @@
 <Modal open={Boolean(food)} onclose={onClose} title={food?.name ?? ''} size="sm">
   {#if food}
     <div class="flex flex-col gap-5">
-      <div class="flex items-end justify-between rounded-xl bg-surface-50 px-4 py-3">
+      <div class="bg-surface-50 flex items-end justify-between rounded-xl px-4 py-3">
         <div>
-          <div class="text-3xl font-bold text-surface-900 tabular-nums">
+          <div class="text-surface-900 text-3xl font-bold tabular-nums">
             {macros ? macros.calories.toLocaleString() : '—'}
-            <span class="text-base font-medium text-surface-400"> kcal</span>
+            <span class="text-surface-400 text-base font-medium"> kcal</span>
           </div>
-          <div class="mt-1 text-xs text-surface-500">
+          <div class="text-surface-500 mt-1 text-xs">
             {#if macros}
               {macros.protein}P · {macros.carbs}C · {macros.fat}F
             {/if}
           </div>
         </div>
-        <div class="text-right text-xs text-surface-400">
-          <span class="text-sm font-semibold text-surface-700 tabular-nums">{amount}</span>
+        <div class="text-surface-400 text-right text-xs">
+          <span class="text-surface-700 text-sm font-semibold tabular-nums">{amount}</span>
           {food.serving_unit}
         </div>
       </div>
@@ -65,26 +66,22 @@
       <div class="flex items-center justify-between gap-4">
         <Stepper name="servings" label="Servings" min={0.25} step={0.5} bind:value={servings} />
         {#if isWeightUnit}
-          <div class="w-32">
-            <label for="amount" class="text-xs leading-[18px] font-semibold text-surface-900">
-              Amount ({food.serving_unit})
-            </label>
-            <input
-              id="amount"
+          <div class="w-36">
+            <Input
               name="amount"
+              label={`Amount (${food.serving_unit})`}
               type="number"
               min={0}
               step={10}
               value={amount}
               oninput={handleAmountInput}
-              class="duration-micro h-11 w-full rounded-md border border-surface-300 bg-surface-50 px-3 py-2.5 text-sm text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
             />
           </div>
         {/if}
       </div>
 
       <div
-        class="rounded-lg border border-surface-100 bg-surface-50 px-3 py-2 text-xs text-surface-500"
+        class="border-surface-100 bg-surface-50 text-surface-500 rounded-lg border px-3 py-2 text-xs"
       >
         1 serving = {food.serving_size}
         {food.serving_unit} ·{' '}

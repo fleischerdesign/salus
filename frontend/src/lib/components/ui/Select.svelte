@@ -1,55 +1,119 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
 
-  interface Option {
-    value: string;
+  export interface SelectOptionItem {
+    value: string | number;
     label: string;
+    badge?: string;
+    disabled?: boolean;
   }
 
   interface Props {
-    name: string;
+    name?: string;
     label?: string;
-    options: Option[];
-    value?: string;
+    options: (SelectOptionItem | { value: string; label: string })[];
+    value?: string | number;
     required?: boolean;
+    disabled?: boolean;
+    icon?: string;
+    error?: string;
+    hint?: string;
+    id?: string;
     class?: string;
+    style?: string;
+    onchange?: (val: string | number) => void;
   }
 
   let {
-    name,
-    label,
-    options,
+    name = '',
+    label = '',
+    options = [],
     value = $bindable(''),
     required = false,
-    class: extraClass = ''
+    disabled = false,
+    icon = '',
+    error = '',
+    hint = '',
+    id = name || `select_${Math.random().toString(36).slice(2, 7)}`,
+    class: extraClass = '',
+    style,
+    onchange
   }: Props = $props();
+
+  let isFocused = $state(false);
+
+  function handleChange(e: Event) {
+    const val = (e.target as HTMLSelectElement).value;
+    value = val;
+    onchange?.(val);
+  }
 </script>
 
-<div class="flex flex-col gap-1.5 {extraClass}">
+<div class="space-y-1 text-xs {extraClass}" {style}>
   {#if label}
-    <label for={name} class="text-xs leading-[18px] font-semibold text-surface-900">
+    <label
+      for={id}
+      class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase select-none"
+    >
       {label}
-      {#if required}
-        <span class="ml-0.5 text-error-500">*</span>
-      {/if}
+      {#if required}<span class="ml-0.5 text-rose-500">*</span>{/if}
     </label>
   {/if}
-  <div class="relative flex items-center">
+
+  <div
+    class="relative flex items-center rounded-xl border bg-[var(--bg-surface-0)] transition-all duration-150 {isFocused
+      ? 'border-[var(--color-primary)] shadow-xs ring-2 ring-[var(--color-primary)]/15'
+      : error
+        ? 'border-rose-500 ring-2 ring-rose-500/15'
+        : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)]'} {disabled
+      ? 'cursor-not-allowed bg-[var(--bg-surface-100)] opacity-60'
+      : ''}"
+  >
+    {#if icon}
+      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-[var(--text-muted)]">
+        <Icon name={icon} size="sm" />
+      </div>
+    {/if}
+
     <select
-      {name}
-      id={name}
-      bind:value
+      {id}
+      name={name || id}
+      {value}
+      {disabled}
       {required}
-      class="duration-micro h-10 w-full appearance-none rounded-md border border-surface-300 bg-surface-50 pr-9 pl-3 text-sm font-normal text-surface-900 transition-colors hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+      onchange={handleChange}
+      onfocus={() => (isFocused = true)}
+      onblur={() => (isFocused = false)}
+      class="h-10 w-full cursor-pointer appearance-none bg-transparent pr-10 pl-3.5 text-xs font-semibold text-[var(--text-main)] outline-none [-moz-appearance:none] [-webkit-appearance:none] {icon
+        ? 'pl-10'
+        : ''}"
     >
       {#each options as opt}
-        <option value={opt.value}>{opt.label}</option>
+        <option
+          value={opt.value}
+          disabled={'disabled' in opt ? opt.disabled : false}
+          class="bg-[var(--bg-surface-0)] text-[var(--text-main)]"
+        >
+          {opt.label}
+          {#if 'badge' in opt && opt.badge}({opt.badge}){/if}
+        </option>
       {/each}
     </select>
-    <span
-      class="pointer-events-none absolute inset-y-0 right-0 flex w-9 items-center justify-center text-surface-400"
+
+    <!-- Sleek Custom Chevron with generous padding from the right border -->
+    <div
+      class="pointer-events-none absolute top-1/2 right-3.5 flex -translate-y-1/2 items-center justify-center text-[var(--text-muted)]"
     >
-      <Icon name="expand-more" size="sm" />
-    </span>
+      <Icon name="keyboard-arrow-down" size="sm" />
+    </div>
   </div>
+
+  {#if error}
+    <span class="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-500" role="alert">
+      <Icon name="error" size="sm" />
+      {error}
+    </span>
+  {:else if hint}
+    <span class="mt-1 block text-xs text-[var(--text-muted)]">{hint}</span>
+  {/if}
 </div>
