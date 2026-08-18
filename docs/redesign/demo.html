@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Salus 2.0 — State-of-the-Art Clinical Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ─── SALUS 2.0 CLEAN DESIGN SYSTEM ─── */
+    :root {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Light Theme */
+      --bg-canvas: #f8fafc;
+      --bg-surface-0: #ffffff;
+      --bg-surface-50: #f1f5f9;
+      --bg-surface-100: #e2e8f0;
+      --bg-surface-200: #cbd5e1;
+      --border-subtle: rgba(226, 232, 240, 0.9);
+      --border-strong: #cbd5e1;
+      --glass-dock-bg: rgba(255, 255, 255, 0.88);
+
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-soft: #94a3b8;
+
+      /* Semantic Clinical Colors */
+      --color-primary: #2563eb;
+      --color-primary-soft: rgba(37, 99, 235, 0.08);
+      --color-vital: #dc2626;
+      --color-vital-soft: rgba(220, 38, 38, 0.08);
+      --color-activity: #ea580c;
+      --color-activity-soft: rgba(234, 88, 12, 0.08);
+      --color-hydrate: #0284c7;
+      --color-hydrate-soft: rgba(2, 132, 199, 0.08);
+      --color-fasting: #7c3aed;
+      --color-fasting-soft: rgba(124, 58, 237, 0.08);
+      --color-circadian: #ca8a04;
+      --color-circadian-soft: rgba(202, 138, 4, 0.08);
+      --color-success: #059669;
+      --color-success-soft: rgba(5, 150, 105, 0.08);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      --shadow-dock: 0 16px 36px -4px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-lift: 0 12px 30px -4px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Dark Theme */
+    html.dark {
+      --bg-canvas: #080c14;
+      --bg-surface-0: #101624;
+      --bg-surface-50: #172033;
+      --bg-surface-100: #1f2b44;
+      --bg-surface-200: #2b3956;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --glass-dock-bg: rgba(16, 22, 36, 0.88);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-soft: #64748b;
+
+      --color-primary: #3b82f6;
+      --color-primary-soft: rgba(59, 130, 246, 0.14);
+      --color-vital: #ef4444;
+      --color-vital-soft: rgba(239, 68, 68, 0.14);
+      --color-hydrate: #38bdf8;
+      --color-hydrate-soft: rgba(56, 189, 248, 0.14);
+      --color-fasting: #c084fc;
+      --color-fasting-soft: rgba(192, 132, 252, 0.14);
+      --color-success: #10b981;
+      --color-success-soft: rgba(16, 185, 129, 0.14);
+
+      --shadow-dock: 0 20px 48px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+      --shadow-lift: 0 14px 40px -4px rgba(0, 0, 0, 0.75);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+
+    /* SVG Vector Icons */
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* ─── FLOATING CONTEXTUAL DOCK (NATIVELY RESPONSIVE) ─── */
+    .floating-dock-container {
+      position: sticky;
+      top: 24px;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      padding: 0 16px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .floating-dock-container {
+        position: fixed;
+        top: auto;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        left: 0;
+        right: 0;
+        padding: 0 16px;
+      }
+      .floating-dock {
+        width: 100%;
+        max-width: 480px;
+        justify-content: space-between;
+        padding: 6px 10px;
+      }
+      .brand-pill, .dock-actions .btn-icon, .dock-actions .btn span {
+        display: none !important;
+      }
+      .dock-nav {
+        flex: 1;
+        justify-content: space-around;
+      }
+      .dock-btn {
+        padding: 8px 12px;
+        font-size: 0.7rem;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .dock-btn .dock-chevron { display: none; }
+      .dock-actions .btn {
+        padding: 10px;
+        border-radius: 50%;
+      }
+    }
+
+    .floating-dock {
+      pointer-events: auto;
+      background: var(--glass-dock-bg);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-dock);
+    }
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      border-radius: var(--radius-full);
+    }
+    .brand-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 0.75rem;
+    }
+
+    .dock-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-surface-50);
+      padding: 3px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+    }
+    .dock-btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .dock-btn:hover { color: var(--text-main); }
+    .dock-btn.active {
+      background: var(--bg-surface-0);
+      color: var(--color-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .dock-btn .dock-chevron { width: 12px; height: 12px; opacity: 0.5; }
+
+    .dock-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 4px;
+    }
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface-50);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    /* ─── FLYOUT DECKS & BOTTOM SHEETS ─── */
+    .flyout-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 45;
+      display: none;
+    }
+    .flyout-backdrop.open { display: block; }
+
+    .flyout-deck {
+      pointer-events: auto;
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass-dock-bg);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-dock);
+      max-width: 820px;
+      width: 90%;
+      z-index: 46;
+      display: none;
+      animation: deckPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .flyout-deck.open { display: block; }
+    @keyframes deckPop {
+      0% { transform: translate(-50%, -8px) scale(0.98); opacity: 0; }
+      100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .flyout-deck {
+        position: fixed;
+        top: auto;
+        bottom: 80px;
+        left: 16px;
+        right: 16px;
+        transform: none;
+        max-width: none;
+        width: auto;
+        border-radius: 24px;
+        padding: 16px;
+        max-height: 70vh;
+        overflow-y: auto;
+        animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .deck-grid { grid-template-columns: 1fr !important; }
+    }
+    @keyframes sheetSlideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .deck-item {
+      background: var(--bg-surface-50);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .deck-item:hover {
+      background: var(--bg-surface-0);
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+    .deck-item-header { display: flex; align-items: center; justify-content: space-between; }
+    .deck-item-title { font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .deck-item-status { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* ─── MAIN CANVAS CONTAINER ─── */
+    main.app-main {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 100px 20px;
+      flex: 1;
+    }
+    @media (min-width: 769px) {
+      main.app-main {
+        padding: 32px 24px 48px 24px;
+      }
+    }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.18s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive Grid */
+    .grid-12 {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 1024px) {
+      .col-4, .col-6, .col-8 { grid-column: span 12; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface-0);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .badge-success { background: var(--color-success-soft); color: var(--color-success); }
+    .badge-vital { background: var(--color-vital-soft); color: var(--color-vital); }
+    .badge-hydrate { background: var(--color-hydrate-soft); color: var(--color-hydrate); }
+    .badge-fasting { background: var(--color-fasting-soft); color: var(--color-fasting); }
+    .badge-activity { background: var(--color-activity-soft); color: var(--color-activity); }
+
+    /* Tables */
+    .table-wrap { width: 100%; overflow-x: auto; }
+    .table-clean { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .table-clean th { text-align: left; padding: 10px; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); font-size: 0.75rem; text-transform: uppercase; white-space: nowrap; }
+    .table-clean td { padding: 12px 10px; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); white-space: nowrap; }
+
+    /* Sun Arc */
+    .circadian-sun-card { background: var(--bg-surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
+    .sun-arc-svg { width: 100%; height: 65px; margin-top: 4px; }
+
+    /* Wave Glass */
+    .glass-container { position: relative; width: 120px; height: 150px; border: 2px solid rgba(2, 132, 199, 0.35); border-top: none; border-radius: 0 0 16px 16px; background: rgba(2, 132, 199, 0.02); overflow: hidden; margin: 0 auto 12px; }
+    .wave-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(2, 132, 199, 0.4) 0%, rgba(2, 132, 199, 0.85) 100%); transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .wave-svg { position: absolute; top: -12px; left: 0; width: 200%; height: 14px; animation: waveFlow 4s linear infinite; }
+    @keyframes waveFlow { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* Modals */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal-panel { background: var(--bg-surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); max-width: 440px; width: 100%; padding: 20px; box-shadow: var(--shadow-lift); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.8125rem; cursor: pointer; border: 1px solid transparent; transition: all 0.12s ease; font-family: inherit; }
+    .btn-primary { background: var(--color-primary); color: white; }
+    .btn-secondary { background: var(--bg-surface-50); color: var(--text-main); border-color: var(--border-subtle); }
+  </style>
+</head>
+<body>
+
+  <!-- BACKDROP FOR DECKS -->
+  <div class="flyout-backdrop" id="flyout-backdrop" onclick="closeAllDecks()"></div>
+
+  <!-- ─── FLOATING DOCK (NATIVELY RESPONSIVE) ─── -->
+  <div class="floating-dock-container">
+    <div class="floating-dock">
+      <!-- BRAND (DESKTOP) -->
+      <div class="brand-pill" onclick="switchView('dashboard')">
+        <div class="brand-mark">S</div>
+        <span>salus</span>
+      </div>
+
+      <!-- PILLARS -->
+      <nav class="dock-nav">
+        <button class="dock-btn active" id="dock-heute" onclick="switchView('dashboard')">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <span>Heute</span>
+        </button>
+
+        <button class="dock-btn" id="dock-track" onclick="toggleDeck('track-deck')">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Track</span>
+          <svg class="icon dock-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <button class="dock-btn" id="dock-labs" onclick="toggleDeck('labs-deck')">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+          <span>Klinik</span>
+          <svg class="icon dock-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <button class="dock-btn" id="dock-insights" onclick="switchView('insights')">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <span>Insights</span>
+        </button>
+      </nav>
+
+      <!-- DOCK ACTIONS -->
+      <div class="dock-actions">
+        <button class="btn-icon" onclick="openCmdK()" title="Spotlight (Cmd+K)">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <button class="btn-icon" onclick="toggleTheme()" title="Theme wechseln">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button class="btn btn-primary" style="border-radius:var(--radius-full); padding:6px 14px;" onclick="openQuickLog()">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>1-Tap Log</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- FLYOUT DECK: TRACK -->
+    <div class="flyout-deck" id="track-deck">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; margin-bottom:8px;">Track & Erfassung</div>
+      <div class="deck-grid">
+        <div class="deck-item" onclick="switchView('workouts'); closeAllDecks();">
+          <div class="deck-item-header">
+            <span class="deck-item-title"><svg class="icon" style="color:var(--color-activity)" viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"></path></svg> Workouts</span>
+            <span class="badge badge-activity">Push Day A</span>
+          </div>
+          <div class="deck-item-status">Satz 2 von 5 • 4.280 kg Tonnage</div>
+        </div>
+        <div class="deck-item" onclick="switchView('food'); closeAllDecks();">
+          <div class="deck-item-header">
+            <span class="deck-item-title"><svg class="icon" style="color:var(--color-activity)" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg> Ernährung</span>
+            <span class="badge badge-activity">1.840 kcal</span>
+          </div>
+          <div class="deck-item-status">Noch 560 kcal • 140g Protein</div>
+        </div>
+        <div class="deck-item" onclick="switchView('dashboard'); closeAllDecks();">
+          <div class="deck-item-header">
+            <span class="deck-item-title"><svg class="icon" style="color:var(--color-fasting)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Fasten</span>
+            <span class="badge badge-fasting">14h 38m</span>
+          </div>
+          <div class="deck-item-status">Phase 3: Ketose • Essensfenster 12:30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLYOUT DECK: LABS -->
+    <div class="flyout-deck" id="labs-deck">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; margin-bottom:8px;">Klinische Parameter</div>
+      <div class="deck-grid">
+        <div class="deck-item" onclick="switchView('labs'); closeAllDecks();">
+          <div class="deck-item-header">
+            <span class="deck-item-title"><svg class="icon" style="color:var(--color-primary)" viewBox="0 0 24 24"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg> Labore</span>
+            <span class="badge badge-success">3 Befunde</span>
+          </div>
+          <div class="deck-item-status">LDL 68 mg/dL (Optimal) • Glukose 84 mg/dL</div>
+        </div>
+        <div class="deck-item" onclick="switchView('dashboard'); closeAllDecks();">
+          <div class="deck-item-header">
+            <span class="deck-item-title"><svg class="icon" style="color:var(--color-vital)" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Blutdruck</span>
+            <span class="badge badge-success">118/76 mmHg</span>
+          </div>
+          <div class="deck-item-status">Puls 64 bpm • 7T-EMA 119/77 mmHg</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MAIN APP CANVAS ─── -->
+  <main class="app-main">
+
+    <!-- ─── 1. HEUTE (DASHBOARD) ─── -->
+    <div class="view-section active" id="view-dashboard">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.5rem; font-weight:800; letter-spacing:-0.02em;">Guten Tag, Philipp</h1>
+        <p style="color:var(--text-muted); font-size:0.875rem; margin-top:2px;">Montag, 14. August 2026</p>
+      </div>
+
+      <!-- Sun Arc -->
+      <div class="circadian-sun-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:0.8125rem; font-weight:700; display:flex; align-items:center; gap:6px;">
+            <svg class="icon" style="color:var(--color-circadian)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            Zirkadianer 24h-Bogen
+          </div>
+          <span class="badge" style="background:var(--color-circadian-soft); color:var(--color-circadian);">Kognitiver Peak</span>
+        </div>
+        <svg class="sun-arc-svg" viewBox="0 0 800 85" preserveAspectRatio="none">
+          <line x1="40" y1="65" x2="760" y2="65" stroke="var(--border-subtle)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <path d="M 60 65 Q 400 -15 740 65" fill="none" stroke="var(--border-strong)" stroke-width="2"></path>
+          <path d="M 60 65 Q 280 18 460 22" fill="none" stroke="var(--color-circadian)" stroke-width="3"></path>
+          <circle cx="460" cy="22" r="9" fill="rgba(202, 138, 4, 0.2)"></circle>
+          <circle cx="460" cy="22" r="4.5" fill="var(--color-circadian)"></circle>
+          <text x="60" y="80" fill="var(--text-soft)" font-size="11" font-family="var(--font-mono)" text-anchor="middle">06:00 Licht</text>
+          <text x="320" y="80" fill="var(--color-circadian)" font-size="11" font-family="var(--font-mono)" text-anchor="middle">10:00 Peak</text>
+          <text x="490" y="80" fill="var(--color-activity)" font-size="11" font-family="var(--font-mono)" text-anchor="middle">14:30 Koffein-Cut</text>
+          <text x="740" y="80" fill="var(--text-soft)" font-size="11" font-family="var(--font-mono)" text-anchor="middle">22:30 Schlaf</text>
+        </svg>
+      </div>
+
+      <div class="grid-12" style="margin-bottom:16px;">
+        <!-- Hydration -->
+        <div class="card col-4">
+          <div class="card-header">
+            <div class="card-title"><svg class="icon" style="color:var(--color-hydrate)" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg> Wasserhaushalt</div>
+            <span class="badge badge-hydrate" id="water-badge">75% Soll</span>
+          </div>
+          <div class="glass-container">
+            <div class="wave-fill" id="wave-fill" style="height:75%;">
+              <svg class="wave-svg" viewBox="0 0 500 20" preserveAspectRatio="none"><path d="M0,10 C150,20 350,0 500,10 L500,20 L0,20 Z" fill="rgba(2, 132, 199, 0.4)"></path></svg>
+            </div>
+          </div>
+          <div style="text-align:center; margin-bottom:12px;">
+            <div style="font-size:1.35rem; font-weight:700; font-family:var(--font-mono);" class="tabular-nums" id="water-text">2.250 / 3.000 ml</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn btn-secondary" onclick="addWater(250)">+ 250 ml</button>
+            <button class="btn btn-secondary" onclick="addWater(500)">+ 500 ml</button>
+          </div>
+        </div>
+
+        <!-- Fasting -->
+        <div class="card col-4">
+          <div class="card-header">
+            <div class="card-title"><svg class="icon" style="color:var(--color-fasting)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Intervallfasten</div>
+            <span class="badge badge-fasting">Autophagie</span>
+          </div>
+          <div style="text-align:center; padding:12px 0;">
+            <div style="font-size:1.8rem; font-weight:800; font-family:var(--font-mono);">14:38:22</div>
+            <div style="font-size:0.75rem; color:var(--color-fasting); font-weight:600; text-transform:uppercase; margin-top:2px;">Zone 3: Ketose</div>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; margin-bottom:12px;">Essensfenster öffnet um <strong>12:30 Uhr</strong></div>
+          <button class="btn btn-secondary" style="width:100%;" onclick="switchView('food')">Mahlzeit erfassen</button>
+        </div>
+
+        <!-- Blood Pressure -->
+        <div class="card col-4">
+          <div class="card-header">
+            <div class="card-title"><svg class="icon" style="color:var(--color-vital)" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Kardiovaskulär</div>
+            <span class="badge badge-success">ESC: Optimal</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <div style="font-size:1.6rem; font-weight:700; font-family:var(--font-mono);">118 / 76 <span style="font-size:0.8rem; color:var(--text-muted);">mmHg</span></div>
+            <div style="font-size:1rem; font-weight:600; color:var(--color-vital); font-family:var(--font-mono);">64 bpm</div>
+          </div>
+          <div style="background:var(--bg-surface-50); border-radius:var(--radius-sm); padding:8px 10px; font-size:0.75rem; color:var(--text-muted); margin-top:16px;">
+            7-Tage EMA: 119/77 mmHg • Optimal
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 2. WORKOUTS ─── -->
+    <div class="view-section" id="view-workouts">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h1 style="font-size:1.5rem; font-weight:800;">Live-Training: Push Day A</h1>
+          <p style="color:var(--text-muted); font-size:0.875rem;">Aktive Einheit • Satz 2 von 5</p>
+        </div>
+        <button class="btn btn-primary" onclick="alert('Workout erfolgreich abgeschlossen!')">Beenden ✓</button>
+      </div>
+
+      <div class="grid-12">
+        <div class="card col-12">
+          <div class="card-header"><div class="card-title">Schrägbankdrücken (Kurzhanteln)</div><span class="badge badge-activity">Pause: 90s</span></div>
+          <div class="table-wrap">
+            <table class="table-clean">
+              <thead><tr><th>Satz</th><th>Vorwoche</th><th>Gewicht</th><th>Wdh.</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>32 kg × 10</td><td>34.0 kg</td><td>10</td><td><span class="badge badge-success">✓</span></td></tr>
+                <tr><td>2</td><td>32 kg × 8</td><td>34.0 kg</td><td>8</td><td><span class="badge badge-success">✓</span></td></tr>
+                <tr><td>3</td><td>32 kg × 8</td><td>34.0 kg</td><td>-</td><td><button class="btn btn-primary" style="padding:2px 8px; font-size:0.75rem;" onclick="alert('Satz erfasst!')">Abhaken</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 3. FOOD ─── -->
+    <div class="view-section" id="view-food">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.5rem; font-weight:800;">Ernährungstagebuch</h1>
+        <p style="color:var(--text-muted); font-size:0.875rem;">Ziel: 2.400 kcal (Erhaltung) • 180g Protein</p>
+      </div>
+      <div class="card col-12">
+        <div class="card-header"><div class="card-title">Frühstück (08:30 Uhr)</div><span class="badge badge-activity">540 kcal</span></div>
+        <div class="table-wrap">
+          <table class="table-clean">
+            <thead><tr><th>Zutat</th><th>Menge</th><th>Kalorien</th><th>Protein</th></tr></thead>
+            <tbody>
+              <tr><td>Bio-Eier (Größe L)</td><td>3 Stück</td><td>225 kcal</td><td>20.0g</td></tr>
+              <tr><td>Vollkorn-Sauerteigbrot</td><td>90g</td><td>210 kcal</td><td>7.5g</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 4. LABS ─── -->
+    <div class="view-section" id="view-labs">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.5rem; font-weight:800;">Klinische Labordaten</h1>
+        <p style="color:var(--text-muted); font-size:0.875rem;">Referenziert nach ESC/EAS & ADA Leitlinien</p>
+      </div>
+      <div class="card col-12">
+        <div class="table-wrap">
+          <table class="table-clean">
+            <thead><tr><th>Biomarker</th><th>Referenz</th><th>14.08.2026 (Aktuell)</th><th>1-Jahres Trend</th></tr></thead>
+            <tbody>
+              <tr><td><strong>LDL-Cholesterin</strong></td><td>&lt; 70 mg/dL</td><td><strong style="color:var(--color-success);">68 mg/dL</strong></td><td><span class="badge badge-success">↘ -10.5%</span></td></tr>
+              <tr><td><strong>Nüchternglukose</strong></td><td>70–99 mg/dL</td><td><strong style="color:var(--color-success);">84 mg/dL</strong></td><td><span class="badge badge-success">↘ -4.5%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 5. INSIGHTS ─── -->
+    <div class="view-section" id="view-insights">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.5rem; font-weight:800;">Korrelationen & Analytik</h1>
+        <p style="color:var(--text-muted); font-size:0.875rem;">Berechnet nach Pearson r (p &lt; 0.05)</p>
+      </div>
+      <div class="card col-12">
+        <div style="background:var(--bg-surface-50); padding:14px; border-radius:var(--radius-sm); font-size:0.8125rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span>Schlafqualität ↔ Blutdruck:</span>
+            <strong style="color:var(--color-success); font-family:var(--font-mono);">r = -0.74 (p &lt; 0.01)</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>Protein-Zufuhr ↔ Maximalkraft:</span>
+            <strong style="color:var(--color-primary); font-family:var(--font-mono);">r = +0.81 (p &lt; 0.001)</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- QUICK LOG MODAL -->
+  <div class="modal-backdrop" id="quick-log-modal" onclick="if(event.target === this) closeQuickLog()">
+    <div class="modal-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:1.05rem; font-weight:700;">Schnellerfassung [ Taste L ]</h2>
+        <button class="btn btn-secondary" style="padding:2px 6px; border-radius:50%;" onclick="closeQuickLog()">✕</button>
+      </div>
+      <div style="background:var(--bg-surface-50); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; font-family:var(--font-mono);">+250 ml</div>
+        <span style="color:var(--color-hydrate); font-weight:600; font-size:0.8125rem;">Wasser (ml)</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%; margin-top:12px;" onclick="addWater(250); closeQuickLog();">Speichern</button>
+    </div>
+  </div>
+
+  <script>
+    let currentWater = 2250;
+    const targetWater = 3000;
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.dock-btn').forEach(n => n.classList.remove('active'));
+
+      const target = document.getElementById('view-' + viewId);
+      if (target) target.classList.add('active');
+
+      const dockBtn = document.getElementById('dock-' + (viewId === 'dashboard' ? 'heute' : viewId));
+      if (dockBtn) dockBtn.classList.add('active');
+
+      closeAllDecks();
+    }
+
+    function toggleDeck(deckId) {
+      const deck = document.getElementById(deckId);
+      const isAlreadyOpen = deck.classList.contains('open');
+      closeAllDecks();
+      if (!isAlreadyOpen) {
+        deck.classList.add('open');
+        document.getElementById('flyout-backdrop').classList.add('open');
+      }
+    }
+
+    function closeAllDecks() {
+      document.querySelectorAll('.flyout-deck').forEach(d => d.classList.remove('open'));
+      document.getElementById('flyout-backdrop').classList.remove('open');
+    }
+
+    function addWater(amount) {
+      currentWater = Math.min(currentWater + amount, targetWater);
+      const percent = Math.round((currentWater / targetWater) * 100);
+      document.getElementById('wave-fill').style.height = percent + '%';
+      document.getElementById('water-text').innerText = `${currentWater.toLocaleString('de-DE')} / 3.000 ml`;
+      document.getElementById('water-badge').innerText = `${percent}% Soll`;
+    }
+
+    function openQuickLog() { document.getElementById('quick-log-modal').classList.add('open'); }
+    function closeQuickLog() { document.getElementById('quick-log-modal').classList.remove('open'); }
+    function openCmdK() { alert('Cmd+K Spotlight Suche geöffnet'); }
+    function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdK(); }
+      else if (e.key === 'l' || e.key === 'L') { if (!document.querySelector('.modal-backdrop.open')) { e.preventDefault(); openQuickLog(); } }
+      else if (e.key === 'Escape') { closeQuickLog(); closeAllDecks(); }
+    });
+  </script>
+</body>
+</html>
