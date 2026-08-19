@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Dexie from 'dexie';
   import Breadcrumb from '../ui/Breadcrumb.svelte';
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
@@ -24,16 +25,24 @@
   let group = $derived(METRIC_GROUPS.find((g) => g.key === groupKey) || METRIC_GROUPS[0]);
   let subCodes = $derived(group.subMetrics.map((m) => m.code));
 
-  // Reactive Dexie measurements for all submetrics in this group (Top 100)
+  // High-performance compound-index queries across submetrics
   const groupMeasurementsQuery = useQuery(
     async () => {
-      const items = await db.measurement
-        .where('metric_code')
-        .anyOf(subCodes)
-        .and((m) => !m.deleted_at)
-        .reverse()
-        .sortBy('start_time');
-      return items.slice(0, 100);
+      const results = await Promise.all(
+        subCodes.map((code) =>
+          db.measurement
+            .where('[metric_code+start_time]')
+            .between([code, Dexie.minKey], [code, Dexie.maxKey])
+            .and((m) => !m.deleted_at)
+            .reverse()
+            .limit(50)
+            .toArray()
+        )
+      );
+      return results
+        .flat()
+        .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+        .slice(0, 50);
     },
     () => groupKey
   );
