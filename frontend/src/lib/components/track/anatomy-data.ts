@@ -1,12 +1,108 @@
-import type { MuscleGroup } from '$lib/types/workouts';
+import type { DetailedMuscleKey, MuscleGroup } from '$lib/types/workouts';
 
 export interface AnatomicalMuscleDef {
   id: string;
   name: string;
   group: MuscleGroup;
+  detailedKey?: DetailedMuscleKey;
   view: 'anterior' | 'posterior';
   path: string;
 }
+
+export const ANATOMICAL_PATH_TO_DETAILED_KEY: Record<string, DetailedMuscleKey> = {
+  // Shoulders & Traps
+  'shoulder-front-left': 'deltoid_anterior',
+  'shoulder-front-right': 'deltoid_anterior',
+  'shoulder-side-left': 'deltoid_lateral',
+  'shoulder-side-right': 'deltoid_lateral',
+  'deltoid-rear-left': 'deltoid_posterior',
+  'deltoid-rear-right': 'deltoid_posterior',
+  'traps-upper-left': 'trapezius_upper',
+  'traps-upper-right': 'trapezius_upper',
+  'traps-mid-left': 'trapezius_mid_lower',
+  'traps-mid-right': 'trapezius_mid_lower',
+  'traps-lower-left': 'trapezius_mid_lower',
+  'traps-lower-right': 'trapezius_mid_lower',
+
+  // Chest
+  'chest-upper-left': 'chest_clavicular',
+  'chest-upper-right': 'chest_clavicular',
+  'chest-lower-left': 'chest_sternal',
+  'chest-lower-right': 'chest_sternal',
+
+  // Arms
+  'biceps-left': 'biceps_brachii',
+  'biceps-right': 'biceps_brachii',
+  'triceps-long-left': 'triceps_long',
+  'triceps-lateral-left': 'triceps_lateral',
+  'triceps-long-right': 'triceps_long',
+  'triceps-lateral-right': 'triceps_lateral',
+  'forearm-left': 'forearms',
+  'forearm-right': 'forearms',
+  'forearm-flexors-left': 'forearms',
+  'forearm-extensors-left': 'forearms',
+  'forearm-flexors-right': 'forearms',
+  'forearm-extensors-right': 'forearms',
+
+  // Back
+  'lats-upper-left': 'latissimus_dorsi',
+  'lats-mid-left': 'latissimus_dorsi',
+  'lats-lower-left': 'latissimus_dorsi',
+  'lats-upper-right': 'latissimus_dorsi',
+  'lats-mid-right': 'latissimus_dorsi',
+  'lats-lower-right': 'latissimus_dorsi',
+  'lower-back-erectors-left': 'erector_spinae',
+  'lower-back-ql-left': 'erector_spinae',
+  'lower-back-erectors-right': 'erector_spinae',
+  'lower-back-ql-right': 'erector_spinae',
+  spine: 'erector_spinae',
+
+  // Core / Abs
+  'abs-upper-left': 'rectus_abdominis',
+  'abs-upper-right': 'rectus_abdominis',
+  'abs-lower-left': 'rectus_abdominis',
+  'abs-lower-right': 'rectus_abdominis',
+  'serratus-anterior-left': 'serratus_anterior',
+  'serratus-anterior-right': 'serratus_anterior',
+  'obliques-left': 'obliques',
+  'obliques-right': 'obliques',
+
+  // Glutes
+  'gluteus-medius-left': 'gluteus_medius',
+  'gluteus-maximus-left': 'gluteus_maximus',
+  'gluteus-medius-right': 'gluteus_medius',
+  'gluteus-maximus-right': 'gluteus_maximus',
+
+  // Legs
+  'quads-left': 'quadriceps',
+  'quads-right': 'quadriceps',
+  'adductors-left': 'adductors',
+  'adductors-right': 'adductors',
+  'hip-flexor-left': 'quadriceps',
+  'hip-flexor-right': 'quadriceps',
+  'hamstrings-medial-left': 'hamstrings',
+  'hamstrings-lateral-left': 'hamstrings',
+  'hamstrings-medial-right': 'hamstrings',
+  'hamstrings-lateral-right': 'hamstrings',
+  'tibialis-anterior-left': 'tibialis_anterior',
+  'tibialis-anterior-right': 'tibialis_anterior',
+  'calves-gastroc-medial-left': 'gastrocnemius',
+  'calves-gastroc-lateral-left': 'gastrocnemius',
+  'calves-soleus-left': 'soleus',
+  'calves-gastroc-medial-right': 'gastrocnemius',
+  'calves-gastroc-lateral-right': 'gastrocnemius',
+  'calves-soleus-right': 'soleus',
+  'knee-left': 'quadriceps',
+  'knee-right': 'quadriceps',
+  'knee-back-left': 'hamstrings',
+  'knee-back-right': 'hamstrings',
+  'foot-left': 'gastrocnemius',
+  'foot-right': 'gastrocnemius',
+  'foot-back-left': 'soleus',
+  'foot-back-right': 'soleus',
+  'neck-right': 'trapezius_upper',
+  'neck-left': 'trapezius_upper'
+};
 
 export const ANATOMICAL_MUSCLE_MAPPING: Record<string, MuscleGroup> = {
   // Head & Neck

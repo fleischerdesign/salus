@@ -2,7 +2,16 @@
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
   import AnatomicalBodyVector from './AnatomicalBodyVector.svelte';
-  import type { MuscleGroup } from '../../types/workouts';
+  import {
+    DETAILED_MUSCLES,
+    DETAILED_MUSCLE_MAP,
+    MUSCLE_GROUPS,
+    parseMuscles,
+    resolveMuscleGroup,
+    type MuscleGroup,
+    type DetailedMuscleKey
+  } from '../../types/workouts';
+  import { ANATOMICAL_PATH_TO_DETAILED_KEY } from './anatomy-data';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
 
@@ -53,22 +62,62 @@
     const validLogs = logs.filter((l) => !l.deleted_at);
     const exMap = new Map(validExercises.map((e) => [e.id, e]));
 
-    const muscleMap = new Map<string, { sets: number; volume: number; exNames: Set<string> }>();
+    // High-level muscle map (12 groups)
+    const muscleMap = new Map<MuscleGroup, { sets: number; volume: number; exNames: Set<string> }>();
     for (const conf of muscleConfigs) {
       muscleMap.set(conf.name, { sets: 0, volume: 0, exNames: new Set() });
+    }
+
+    // Granular muscle map (28 detailed muscles)
+    const detailedMap = new Map<DetailedMuscleKey, { sets: number; volume: number }>();
+    for (const m of DETAILED_MUSCLES) {
+      detailedMap.set(m.key, { sets: 0, volume: 0 });
     }
 
     for (const log of validLogs) {
       const ex = exMap.get(log.exercise_id);
       if (!ex) continue;
-      const targetMuscle = (ex.primary_muscles as MuscleGroup) || 'Brust';
-      const current = muscleMap.get(targetMuscle) ?? { sets: 0, volume: 0, exNames: new Set() };
-      current.sets += 1;
-      current.volume += (log.weight || 0) * (log.reps || 0);
-      current.exNames.add(ex.name);
-      muscleMap.set(targetMuscle, current);
+
+      const logVol = (log.weight || 0) * (log.reps || 0);
+
+      // Primary muscles (1.0 volume credit)
+      const primaryTokens = parseMuscles(ex.primary_muscles);
+      for (const token of primaryTokens) {
+        const pGroup = resolveMuscleGroup(token);
+        const curGroup = muscleMap.get(pGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+        curGroup.sets += 1.0;
+        curGroup.volume += logVol;
+        curGroup.exNames.add(ex.name);
+        muscleMap.set(pGroup, curGroup);
+
+        if (token in DETAILED_MUSCLE_MAP) {
+          const curDet = detailedMap.get(token as DetailedMuscleKey) ?? { sets: 0, volume: 0 };
+          curDet.sets += 1.0;
+          curDet.volume += logVol;
+          detailedMap.set(token as DetailedMuscleKey, curDet);
+        }
+      }
+
+      // Secondary muscles (0.5 volume credit)
+      const secondaryTokens = parseMuscles(ex.secondary_muscles);
+      for (const token of secondaryTokens) {
+        const sGroup = resolveMuscleGroup(token);
+        const curGroup = muscleMap.get(sGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+        curGroup.sets += 0.5;
+        curGroup.volume += logVol * 0.5;
+        curGroup.exNames.add(ex.name);
+        muscleMap.set(sGroup, curGroup);
+
+        if (token in DETAILED_MUSCLE_MAP) {
+          const curDet = detailedMap.get(token as DetailedMuscleKey) ?? { sets: 0, volume: 0 };
+          curDet.sets += 0.5;
+          curDet.volume += logVol * 0.5;
+          detailedMap.set(token as DetailedMuscleKey, curDet);
+        }
+      }
     }
 
+    // Compute rolled-up Group stats
     const map: Partial<Record<MuscleGroup, MuscleVolumeData>> = {};
     for (const conf of muscleConfigs) {
       const data = muscleMap.get(conf.name)!;
@@ -106,10 +155,31 @@
       };
     }
 
-    return map;
+    // Compute granular SVG path colors
+    const pathColorMap: Record<string, string> = {};
+    for (const [key, dData] of detailedMap.entries()) {
+      const def = DETAILED_MUSCLE_MAP[key];
+      if (!def) continue;
+
+      let pColor = 'var(--bg-surface-200)';
+      if (dData.sets >= 6 && dData.sets <= 14) {
+        pColor = '#10b981'; // Optimal
+      } else if (dData.sets > 14) {
+        pColor = '#f43f5e'; // Overreaching
+      } else if (dData.sets > 0) {
+        pColor = '#0ea5e9'; // Low
+      }
+
+      for (const pid of def.svgPathIds) {
+        pathColorMap[pid] = pColor;
+      }
+    }
+
+    return { groups: map, pathColorMap };
   });
 
-  const muscleMap = $derived(volumeQuery.value ?? {});
+  const muscleMap = $derived(volumeQuery.value?.groups ?? {});
+  const pathColorMap = $derived(volumeQuery.value?.pathColorMap ?? {});
   const muscleList = $derived(Object.values(muscleMap) as MuscleVolumeData[]);
 
   const filteredMuscles = $derived(
@@ -130,237 +200,215 @@
     }
   );
 
-  const colorMap = $derived(
-    Object.fromEntries(
-      Object.entries(muscleMap).map(([k, v]) => [k, v?.color || 'var(--bg-surface-200)'])
-    ) as Partial<Record<MuscleGroup, string>>
-  );
-
-  const totalWeeklySets = $derived(muscleList.reduce((acc, m) => acc + m.setsWeekly, 0));
-  const totalVolumeKg = $derived(muscleList.reduce((acc, m) => acc + m.volumeKg, 0));
-
-  function handleVectorSelect(group: MuscleGroup, _id: string) {
+  function handleVectorSelect(group: MuscleGroup) {
     selectedMuscleGroup = group;
   }
 </script>
 
-<div
-  class="flex h-full flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
->
-  <div>
-    <!-- Card Header -->
-    <div class="flex items-start justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
-      <div>
-        <div class="flex items-center gap-1.5 text-sm font-extrabold text-[var(--text-main)]">
-          <Icon name="fitness_center" class="text-[var(--color-activity)]" />
-          <span>7-Tage Muskel-Volumen</span>
-        </div>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
-          Evidenzbasierte Hypertrophie-Zonen &amp; Regeneration
-        </p>
-      </div>
-
-      <!-- Mode Switcher (Visual vs List) -->
+<div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-sm">
+  <!-- Card Header with Visual / List Mode Switch -->
+  <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+    <div class="flex items-center gap-2">
       <div
-        class="flex gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1"
+        class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
       >
-        <button
-          type="button"
-          onclick={() => (activeDisplayMode = 'visual')}
-          class="flex cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all {activeDisplayMode ===
-          'visual'
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
-          title="Anatomischer 2D Körper"
-        >
-          <Icon name="accessibility" size="sm" />
-          <span>Körper</span>
-        </button>
-        <button
-          type="button"
-          onclick={() => (activeDisplayMode = 'list')}
-          class="flex cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all {activeDisplayMode ===
-          'list'
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
-          title="Listen-Matrix"
-        >
-          <Icon name="list" size="sm" />
-          <span>Matrix</span>
-        </button>
+        <Icon name="accessibility_new" class="text-base" />
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-[var(--text-main)]">Muskel-Heatmap & Belastung</h3>
+        <p class="text-[0.6875rem] text-[var(--text-muted)]">
+          Hypertrophie-Volumen der letzten 7 Tage
+        </p>
       </div>
     </div>
 
+    <!-- Toggle: 2D Visual vs Table List -->
+    <div class="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] p-0.5">
+      <button
+        type="button"
+        onclick={() => (activeDisplayMode = 'visual')}
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold transition-all {activeDisplayMode ===
+        'visual'
+          ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
+          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        title="2D Anatomie-Ansicht"
+      >
+        <Icon name="person" class="text-xs" />
+        <span class="hidden sm:inline">2D Body</span>
+      </button>
+      <button
+        type="button"
+        onclick={() => (activeDisplayMode = 'list')}
+        class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold transition-all {activeDisplayMode ===
+        'list'
+          ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
+          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        title="Matrix-Listenansicht"
+      >
+        <Icon name="view_list" class="text-xs" />
+        <span class="hidden sm:inline">Matrix</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Body Content -->
+  {#if activeDisplayMode === 'visual'}
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- VIEW A: ANATOMICAL PROPORTIONED 2D BODY VIEW                -->
+    <!-- VIEW A: 2D ANATOMICAL BODY MANNEQUIN VIEW                   -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    {#if activeDisplayMode === 'visual'}
-      <div class="my-3 space-y-3">
-        <!-- Anterior / Posterior Toggle -->
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-[var(--text-muted)]">
-            Ansicht: <strong class="text-[var(--text-main)]"
-              >{bodySide === 'anterior'
-                ? 'Vorderseite (Anterior)'
-                : 'Rückseite (Posterior)'}</strong
-            >
-          </span>
-          <div
-            class="flex gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-0.5 text-xs font-bold"
+    <div class="my-3 space-y-3">
+      <!-- Perspective Switch & Status Legend -->
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <!-- Anterior / Posterior Selector -->
+        <div
+          class="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-0.5"
+        >
+          <button
+            type="button"
+            onclick={() => (bodySide = 'anterior')}
+            class="rounded-md px-2.5 py-1 text-[0.6875rem] font-bold transition-all {bodySide ===
+            'anterior'
+              ? 'bg-[var(--color-primary)] text-white shadow-xs'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
           >
-            <button
-              type="button"
-              onclick={() => (bodySide = 'anterior')}
-              class="cursor-pointer rounded-md px-2 py-0.5 transition-all {bodySide === 'anterior'
-                ? 'bg-[var(--bg-surface-0)] text-[var(--text-main)] shadow-xs'
-                : 'text-[var(--text-muted)]'}"
-            >
-              Vorne
-            </button>
-            <button
-              type="button"
-              onclick={() => (bodySide = 'posterior')}
-              class="cursor-pointer rounded-md px-2 py-0.5 transition-all {bodySide === 'posterior'
-                ? 'bg-[var(--bg-surface-0)] text-[var(--text-main)] shadow-xs'
-                : 'text-[var(--text-muted)]'}"
-            >
-              Hinten
-            </button>
+            Vorderseite
+          </button>
+          <button
+            type="button"
+            onclick={() => (bodySide = 'posterior')}
+            class="rounded-md px-2.5 py-1 text-[0.6875rem] font-bold transition-all {bodySide ===
+            'posterior'
+              ? 'bg-[var(--color-primary)] text-white shadow-xs'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          >
+            Rückseite
+          </button>
+        </div>
+
+        <!-- Color Status Legend -->
+        <div class="flex items-center gap-2.5 text-[0.6875rem] text-[var(--text-muted)]">
+          <div class="flex items-center gap-1">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span>Optimal</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="h-2 w-2 rounded-full bg-sky-500"></span>
+            <span>Gering</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+            <span>Hoch</span>
           </div>
         </div>
+      </div>
 
-        <!-- Anatomical Body Vector Stage -->
-        <div
-          class="relative flex h-[240px] w-full items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2 shadow-inner"
-        >
-          <AnatomicalBodyVector
-            view={bodySide}
-            {colorMap}
-            selectedGroup={selectedMuscleGroup}
-            onselect={handleVectorSelect}
-          />
+      <!-- 2D SVG Mannequin Display -->
+      <div
+        class="flex h-[240px] w-full items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-surface-50)] to-[var(--bg-surface-100)] py-2"
+      >
+        <AnatomicalBodyVector
+          view={bodySide}
+          {pathColorMap}
+          selectedGroup={selectedMuscleGroup}
+          onselect={handleVectorSelect}
+        />
+      </div>
+
+      <!-- Selected Muscle Detail Card -->
+      <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <div class="flex items-center gap-1.5">
+            <span
+              class="h-2 w-2 rounded-full"
+              style="background-color: {selected.color === 'var(--bg-surface-200)'
+                ? 'var(--text-muted)'
+                : selected.color};"
+            ></span>
+            <span class="text-[var(--text-main)]">{selected.name}</span>
+          </div>
+          <Badge
+            variant={selected.status === 'optimal'
+              ? 'success'
+              : selected.status === 'overreaching'
+                ? 'vital'
+                : selected.status === 'low'
+                  ? 'primary'
+                  : 'default'}
+          >
+            {selected.statusLabel}
+          </Badge>
         </div>
+        <div
+          class="mt-1.5 flex items-center justify-between text-[0.6875rem] text-[var(--text-muted)]"
+        >
+          <span
+            >{selected.setsWeekly.toLocaleString('de-DE')} Sätze &bull; {selected.volumeKg.toLocaleString('de-DE')} kg</span
+          >
+          <span class="font-semibold text-emerald-500">
+            {selected.recoveryHoursLeft > 0
+              ? `~${selected.recoveryHoursLeft}h Regeneration`
+              : '✓ Vollständig erholt'}
+          </span>
+        </div>
+      </div>
+    </div>
+  {:else}
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- VIEW B: HYPERTROPHY MATRIX LIST VIEW                        -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div class="my-3 space-y-2.5">
+      <!-- Category Filter Pills -->
+      <div class="no-scrollbar flex gap-1 overflow-x-auto">
+        {#each [{ id: 'all', label: 'Alle' }, { id: 'push', label: 'Push' }, { id: 'pull', label: 'Pull' }, { id: 'legs', label: 'Beine' }, { id: 'core', label: 'Core' }] as const as tab}
+          <button
+            type="button"
+            onclick={() => (selectedCategory = tab.id)}
+            class="cursor-pointer rounded-lg px-2.5 py-1 text-[0.6875rem] font-bold whitespace-nowrap transition-all {selectedCategory ===
+            tab.id
+              ? 'bg-[var(--color-primary)] text-white shadow-xs'
+              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          >
+            {tab.label}
+          </button>
+        {/each}
+      </div>
 
-        <!-- Selected Muscle Detail Card -->
-        <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3">
-          <div class="flex items-center justify-between text-xs font-bold">
-            <div class="flex items-center gap-1.5">
+      <!-- Muscle Matrix Grid -->
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {#each filteredMuscles as m (m.name)}
+          <button
+            type="button"
+            onclick={() => (selectedMuscleGroup = m.name)}
+            class="flex items-center justify-between rounded-xl border p-2.5 text-left transition-all {selectedMuscleGroup ===
+            m.name
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] ring-1 ring-[var(--color-primary)]'
+              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
+          >
+            <div class="flex items-center gap-2.5">
               <span
                 class="h-2 w-2 rounded-full"
-                style="background-color: {selected.color === 'var(--bg-surface-200)'
+                style="background-color: {m.color === 'var(--bg-surface-200)'
                   ? 'var(--text-muted)'
-                  : selected.color};"
+                  : m.color};"
               ></span>
-              <span class="text-[var(--text-main)]">{selected.name}</span>
+              <div>
+                <p class="text-xs font-bold text-[var(--text-main)]">{m.name}</p>
+                <p class="text-[0.6875rem] text-[var(--text-muted)]">
+                  {m.setsWeekly.toLocaleString('de-DE')} Sätze &bull; {m.volumeKg.toLocaleString('de-DE')} kg
+                </p>
+              </div>
             </div>
-            <Badge
-              variant={selected.status === 'optimal'
-                ? 'success'
-                : selected.status === 'overreaching'
-                  ? 'vital'
-                  : selected.status === 'low'
-                    ? 'primary'
-                    : 'default'}
-            >
-              {selected.statusLabel}
-            </Badge>
-          </div>
-          <div
-            class="mt-1.5 flex items-center justify-between text-[0.6875rem] text-[var(--text-muted)]"
-          >
             <span
-              >{selected.setsWeekly} Sätze &bull; {selected.volumeKg.toLocaleString('de-DE')} kg</span
+              class="rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold"
+              style="background-color: {m.color}15; color: {m.color === 'var(--bg-surface-200)'
+                ? 'var(--text-muted)'
+                : m.color};"
             >
-            <span class="font-semibold text-emerald-500">
-              {selected.recoveryHoursLeft > 0
-                ? `~${selected.recoveryHoursLeft}h Regeneration`
-                : '✓ Vollständig erholt'}
+              {m.statusLabel}
             </span>
-          </div>
-        </div>
+          </button>
+        {/each}
       </div>
-    {:else}
-      <!-- ═══════════════════════════════════════════════════════════ -->
-      <!-- VIEW B: HYPERTROPHY MATRIX LIST VIEW                        -->
-      <!-- ═══════════════════════════════════════════════════════════ -->
-      <div class="my-3 space-y-2.5">
-        <!-- Category Filter Pills -->
-        <div class="no-scrollbar flex gap-1 overflow-x-auto">
-          {#each [{ id: 'all', label: 'Alle' }, { id: 'push', label: 'Push' }, { id: 'pull', label: 'Pull' }, { id: 'legs', label: 'Beine' }, { id: 'core', label: 'Core' }] as const as tab}
-            <button
-              type="button"
-              onclick={() => (selectedCategory = tab.id)}
-              class="cursor-pointer rounded-lg px-2.5 py-1 text-[0.6875rem] font-bold whitespace-nowrap transition-all {selectedCategory ===
-              tab.id
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
-            >
-              {tab.label}
-            </button>
-          {/each}
-        </div>
-
-        <!-- Muscle Volume Rows -->
-        <div class="max-h-[280px] space-y-2 overflow-y-auto pr-1">
-          {#each filteredMuscles as muscle (muscle.name)}
-            <div
-              class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5 transition-all hover:bg-[var(--bg-surface-100)]"
-            >
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-extrabold text-[var(--text-main)]">{muscle.name}</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="font-mono font-bold text-[var(--text-main)] tabular-nums">
-                    {muscle.setsWeekly}
-                    <span class="text-[0.6875rem] font-normal text-[var(--text-muted)]">/ 18</span>
-                  </span>
-                  <Badge
-                    variant={muscle.status === 'optimal'
-                      ? 'success'
-                      : muscle.status === 'overreaching'
-                        ? 'vital'
-                        : muscle.status === 'low'
-                          ? 'primary'
-                          : 'default'}
-                  >
-                    {muscle.statusLabel}
-                  </Badge>
-                </div>
-              </div>
-
-              <!-- Multi-Zone Progress Bar -->
-              <div
-                class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]/50"
-              >
-                <div
-                  class="h-full rounded-full transition-all duration-500"
-                  style="width: {Math.min(
-                    100,
-                    Math.max(0, (muscle.setsWeekly / 18) * 100)
-                  )}%; background-color: {muscle.color};"
-                ></div>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </div>
-    {/if}
-  </div>
-
-  <!-- Legend Footer -->
-  <div
-    class="mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-[0.625rem] text-[var(--text-muted)]"
-  >
-    <span class="flex items-center gap-1">
-      <span class="h-1.5 w-1.5 rounded-full bg-[#0ea5e9]"></span> MEV (&lt;10)
-    </span>
-    <span class="flex items-center gap-1">
-      <span class="h-1.5 w-1.5 rounded-full bg-[#10b981]"></span> MAV (10–18)
-    </span>
-    <span class="flex items-center gap-1">
-      <span class="h-1.5 w-1.5 rounded-full bg-[#f43f5e]"></span> MRV (&gt;18)
-    </span>
-    <span class="font-semibold text-[var(--text-main)] tabular-nums">
-      {totalWeeklySets} Sätze &bull; {totalVolumeKg.toLocaleString('de-DE')} kg Last
-    </span>
-  </div>
+    </div>
+  {/if}
 </div>

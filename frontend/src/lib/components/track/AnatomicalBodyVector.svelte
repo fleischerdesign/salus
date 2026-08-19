@@ -5,21 +5,36 @@
   interface Props {
     view?: 'anterior' | 'posterior';
     colorMap?: Partial<Record<MuscleGroup, string>>;
+    pathColorMap?: Record<string, string>;
+    highlightedPathIds?: string[];
     selectedGroup?: MuscleGroup;
     onselect?: (group: MuscleGroup, detailedId: string) => void;
   }
 
-  let { view = 'anterior', colorMap = {}, selectedGroup, onselect }: Props = $props();
+  let {
+    view = 'anterior',
+    colorMap = {},
+    pathColorMap = {},
+    highlightedPathIds = [],
+    selectedGroup,
+    onselect
+  }: Props = $props();
 
   const muscles = $derived(view === 'anterior' ? ANTERIOR_MUSCLES : POSTERIOR_MUSCLES);
   const currentViewBox = $derived(view === 'anterior' ? '0 0 35 94' : '37 0 35 94');
 
   function getFillColor(muscle: AnatomicalMuscleDef): string {
+    if (pathColorMap[muscle.id]) {
+      return pathColorMap[muscle.id];
+    }
+    if (highlightedPathIds.includes(muscle.id)) {
+      return 'var(--color-primary)';
+    }
     return colorMap[muscle.group] || 'var(--bg-surface-200)';
   }
 
   function isMuscleSelected(muscle: AnatomicalMuscleDef): boolean {
-    return selectedGroup === muscle.group;
+    return selectedGroup === muscle.group || highlightedPathIds.includes(muscle.id);
   }
 
   function handleMuscleClick(muscle: AnatomicalMuscleDef) {

@@ -14,7 +14,14 @@
   import type {
     WorkoutPlan,
     WorkoutHistorySession,
-    LiveWorkoutExercise
+    LiveWorkoutExercise,
+    DetailedMuscleKey
+  } from '../../types/workouts';
+  import {
+    MUSCLE_GROUPS,
+    DETAILED_MUSCLE_MAP,
+    parseMuscles,
+    resolveMuscleGroup
   } from '../../types/workouts';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
@@ -212,24 +219,23 @@
 
   const muscleFilterOptions = [
     { value: 'all', label: 'Alle Muskeln' },
-    { value: 'Brust', label: 'Brust' },
-    { value: 'Rücken', label: 'Rücken' },
-    { value: 'Quadrizeps', label: 'Quadrizeps' },
-    { value: 'Hamstrings', label: 'Hamstrings' },
-    { value: 'Schultern', label: 'Schultern' },
-    { value: 'Bizeps', label: 'Bizeps' },
-    { value: 'Trizeps', label: 'Trizeps' },
-    { value: 'Bauch', label: 'Bauch' },
-    { value: 'Waden', label: 'Waden' },
-    { value: 'Gesäß', label: 'Gesäß' }
+    ...MUSCLE_GROUPS.map((g) => ({ value: g, label: g }))
   ];
 
   let filteredExercises = $derived(
     dbExercises.filter((ex) => {
       const matchM =
         selectedMuscle === 'all' ||
-        (ex.primary_muscles &&
-          ex.primary_muscles.toLowerCase().includes(selectedMuscle.toLowerCase()));
+        parseMuscles(ex.primary_muscles).some(
+          (m) =>
+            resolveMuscleGroup(m) === selectedMuscle ||
+            m.toLowerCase() === selectedMuscle.toLowerCase()
+        ) ||
+        parseMuscles(ex.secondary_muscles).some(
+          (m) =>
+            resolveMuscleGroup(m) === selectedMuscle ||
+            m.toLowerCase() === selectedMuscle.toLowerCase()
+        );
       const matchQ =
         !exerciseSearch.trim() || ex.name.toLowerCase().includes(exerciseSearch.toLowerCase());
       return matchM && matchQ;
@@ -609,9 +615,12 @@
               >
                 <div>
                   <div class="mb-1.5 flex items-start justify-between gap-2">
-                    <h3 class="text-sm leading-snug font-extrabold text-[var(--text-main)]">
+                    <a
+                      href="/workouts/exercises/{ex.id}"
+                      class="text-sm leading-snug font-extrabold text-[var(--text-main)] hover:text-[var(--color-primary)] transition-colors"
+                    >
                       {ex.name}
-                    </h3>
+                    </a>
                     <Badge
                       variant={ex.user_id ? 'activity' : 'default'}
                       class="shrink-0 text-[0.625rem]"
@@ -620,13 +629,34 @@
                     </Badge>
                   </div>
 
-                  <div
-                    class="flex items-center gap-2 text-xs font-semibold text-[var(--color-primary)]"
-                  >
-                    <span>{ex.primary_muscles || 'Ganzkörper'}</span>
-                    <span class="text-[var(--text-muted)]">&bull;</span>
-                    <span class="text-[var(--text-muted)] capitalize">{ex.equipment || 'Frei'}</span
-                    >
+                  <!-- Muscle Badges & Equipment -->
+                  <div class="space-y-1.5 pt-0.5">
+                    <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                      {#each parseMuscles(ex.primary_muscles) as pKey}
+                        {@const pDef = DETAILED_MUSCLE_MAP[pKey as DetailedMuscleKey]}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-md bg-[var(--color-primary-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--color-primary)]"
+                          title={pDef?.latin}
+                        >
+                          {pDef?.name || pKey}
+                        </span>
+                      {/each}
+
+                      {#each parseMuscles(ex.secondary_muscles) as sKey}
+                        {@const sDef = DETAILED_MUSCLE_MAP[sKey as DetailedMuscleKey]}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-md bg-[#818cf8]/10 px-2 py-0.5 text-[11px] font-medium text-[#818cf8]"
+                          title={`Synergist: ${sDef?.latin || sKey}`}
+                        >
+                          {sDef?.name || sKey}
+                        </span>
+                      {/each}
+                    </div>
+
+                    <div class="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+                      <Icon name="fitness_center" class="text-xs" />
+                      <span class="capitalize">{ex.equipment || 'Frei'}</span>
+                    </div>
                   </div>
 
                   {#if ex.description || ex.instructions}
@@ -644,15 +674,23 @@
                   <span class="font-mono text-[0.6875rem] text-[var(--text-muted)]">
                     Pause: {ex.suggested_rest_seconds || 90}s
                   </span>
-                  {#if ex.user_id}
-                    <button
-                      type="button"
-                      onclick={() => handleDeleteCustomExercise(ex.id)}
-                      class="cursor-pointer text-xs font-bold text-[var(--text-muted)] hover:text-rose-500"
+                  <div class="flex items-center gap-2">
+                    <a
+                      href="/workouts/exercises/{ex.id}"
+                      class="text-xs font-bold text-[var(--color-primary)] hover:underline"
                     >
-                      Löschen
-                    </button>
-                  {/if}
+                      Details &rarr;
+                    </a>
+                    {#if ex.user_id}
+                      <button
+                        type="button"
+                        onclick={() => handleDeleteCustomExercise(ex.id)}
+                        class="cursor-pointer text-xs font-bold text-[var(--text-muted)] hover:text-rose-500"
+                      >
+                        Löschen
+                      </button>
+                    {/if}
+                  </div>
                 </div>
               </div>
             {/each}
