@@ -12,6 +12,7 @@
   import Table from '$components/ui/Table.svelte';
   import EmptyState from '$components/ui/EmptyState.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import AnatomicalBodyVector from '$components/track/AnatomicalBodyVector.svelte';
   import {
@@ -334,35 +335,19 @@
                 <Icon name="accessibility_new" size="sm" class="text-surface-400" />
                 <span class="text-surface-900 text-sm font-semibold">Zielmuskulatur (2D Body)</span>
               </div>
-              <div class="flex gap-1">
-                <button
-                  type="button"
-                  onclick={() => (mannequinView = 'anterior')}
-                  class={`rounded px-2 py-0.5 text-xs font-bold ${
-                    mannequinView === 'anterior'
-                      ? 'bg-[var(--color-heading)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:bg-[var(--bg-surface-200)]'
-                  }`}
-                >
-                  Front
-                </button>
-                <button
-                  type="button"
-                  onclick={() => (mannequinView = 'posterior')}
-                  class={`rounded px-2 py-0.5 text-xs font-bold ${
-                    mannequinView === 'posterior'
-                      ? 'bg-[var(--color-heading)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:bg-[var(--bg-surface-200)]'
-                  }`}
-                >
-                  Rück
-                </button>
-              </div>
+              <SegmentedControl
+                size="sm"
+                bind:value={mannequinView}
+                options={[
+                  { value: 'anterior', label: 'Front' },
+                  { value: 'posterior', label: 'Rück' }
+                ]}
+              />
             </div>
           {/snippet}
           <div class="p-4 flex flex-col items-center">
             <div class="h-[220px] w-full flex items-center justify-center">
-              <AnatomicalBodyVector view={mannequinView} {pathColorMap} />
+              <AnatomicalBodyVector view={mannequinView as 'anterior' | 'posterior'} {pathColorMap} />
             </div>
 
             <!-- Legend of targeted muscles -->

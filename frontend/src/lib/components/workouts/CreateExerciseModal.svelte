@@ -4,10 +4,10 @@
   import Input from '../ui/Input.svelte';
   import Select from '../ui/Select.svelte';
   import Textarea from '../ui/Textarea.svelte';
-  import Chip from '../ui/Chip.svelte';
-  import Icon from '../ui/Icon.svelte';
+  import SegmentedControl from '../ui/SegmentedControl.svelte';
+  import Badge from '../ui/Badge.svelte';
   import AnatomicalBodyVector from '../track/AnatomicalBodyVector.svelte';
-  import { ANATOMICAL_PATH_TO_DETAILED_KEY, ANATOMICAL_MUSCLE_MAPPING } from '../track/anatomy-data';
+  import { ANATOMICAL_PATH_TO_DETAILED_KEY } from '../track/anatomy-data';
   import { createExercise } from '$lib/mutations/exercise';
   import {
     DETAILED_MUSCLES,
@@ -38,8 +38,8 @@
   let isSaving = $state(false);
   let errorMsg = $state('');
 
-  let mannequinView = $state<'anterior' | 'posterior'>('anterior');
-  let selectionTarget = $state<'primary' | 'secondary'>('primary');
+  let mannequinView = $state<string>('anterior');
+  let selectionTarget = $state<string>('primary');
   let activeGroupTab = $state<MuscleGroup>('Brust');
 
   const equipmentOptions: { value: EquipmentType; label: string }[] = [
@@ -66,7 +66,7 @@
   const pathColorMap = $derived.by(() => {
     const map: Record<string, string> = {};
 
-    // Primary muscles -> Vivid Primary Color
+    // Primary muscles -> Vivid Primary Accent
     for (const key of selectedPrimaryMuscles) {
       const def = DETAILED_MUSCLE_MAP[key as DetailedMuscleKey];
       if (def) {
@@ -76,7 +76,7 @@
       }
     }
 
-    // Secondary muscles -> Subtle Indigo/Secondary Color
+    // Secondary muscles -> Subtle Indigo / Synergist Accent
     for (const key of selectedSecondaryMuscles) {
       const def = DETAILED_MUSCLE_MAP[key as DetailedMuscleKey];
       if (def) {
@@ -96,7 +96,6 @@
       selectedPrimaryMuscles = selectedPrimaryMuscles.filter((k) => k !== key);
     } else {
       selectedPrimaryMuscles = [...selectedPrimaryMuscles, key];
-      // Remove from secondary if present
       selectedSecondaryMuscles = selectedSecondaryMuscles.filter((k) => k !== key);
     }
   }
@@ -106,7 +105,6 @@
       selectedSecondaryMuscles = selectedSecondaryMuscles.filter((k) => k !== key);
     } else {
       selectedSecondaryMuscles = [...selectedSecondaryMuscles, key];
-      // Remove from primary if present
       selectedPrimaryMuscles = selectedPrimaryMuscles.filter((k) => k !== key);
     }
   }
@@ -151,9 +149,9 @@
       isSaving = true;
       errorMsg = '';
 
-      // Format canonical strings for storage
       const primaryStr = selectedPrimaryMuscles.join(', ');
-      const secondaryStr = selectedSecondaryMuscles.length > 0 ? selectedSecondaryMuscles.join(', ') : null;
+      const secondaryStr =
+        selectedSecondaryMuscles.length > 0 ? selectedSecondaryMuscles.join(', ') : null;
 
       await createExercise({
         name: name.trim(),
@@ -224,48 +222,30 @@
     <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--color-heading)]">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">
             Anatomische Zielmuskeln
           </h4>
-          <p class="text-[11px] text-[var(--color-text-muted)]">
+          <p class="text-[11px] text-[var(--text-muted)]">
             Wähle Primärmuskeln (100% Satzvolumen) und Synergisten (50% Satzvolumen).
           </p>
         </div>
 
-        <!-- Mode Toggle: Primär vs Sekundär -->
-        <div class="flex items-center gap-1 rounded-xl bg-[var(--bg-surface-200)] p-1">
-          <button
-            type="button"
-            onclick={() => (selectionTarget = 'primary')}
-            class={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-              selectionTarget === 'primary'
-                ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-heading)]'
-            }`}
-          >
-            <span class="h-2 w-2 rounded-full bg-white"></span>
-            Primär ({selectedPrimaryMuscles.length})
-          </button>
-          <button
-            type="button"
-            onclick={() => (selectionTarget = 'secondary')}
-            class={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-              selectionTarget === 'secondary'
-                ? 'bg-[#818cf8] text-white shadow-sm'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-heading)]'
-            }`}
-          >
-            <span class="h-2 w-2 rounded-full bg-white"></span>
-            Sekundär ({selectedSecondaryMuscles.length})
-          </button>
-        </div>
+        <!-- Mode Toggle using SegmentedControl -->
+        <SegmentedControl
+          size="sm"
+          bind:value={selectionTarget}
+          options={[
+            { value: 'primary', label: `Primär (${selectedPrimaryMuscles.length})` },
+            { value: 'secondary', label: `Sekundär (${selectedSecondaryMuscles.length})` }
+          ]}
+        />
       </div>
 
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <!-- Muscle Category Tabs & Chips (8 cols) -->
         <div class="space-y-3 lg:col-span-8">
           <!-- Muscle Group Horizontal Scroll Tabs -->
-          <div class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <div class="no-scrollbar flex gap-1.5 overflow-x-auto pb-1">
             {#each MUSCLE_GROUPS as group}
               {@const hasPrimary = selectedPrimaryMuscles.some(
                 (k) => DETAILED_MUSCLE_MAP[k as DetailedMuscleKey]?.group === group
@@ -276,17 +256,16 @@
               <button
                 type="button"
                 onclick={() => (activeGroupTab = group)}
-                class={`flex items-center gap-1 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all ${
-                  activeGroupTab === group
-                    ? 'bg-[var(--color-heading)] text-[var(--bg-surface-0)]'
-                    : 'bg-[var(--bg-surface-100)] text-[var(--color-text-muted)] hover:bg-[var(--bg-surface-200)]'
-                }`}
+                class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold transition-all {activeGroupTab ===
+                group
+                  ? 'bg-[var(--color-primary)] text-white shadow-xs'
+                  : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]'}"
               >
                 <span>{group}</span>
                 {#if hasPrimary}
-                  <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
                 {:else if hasSecondary}
-                  <span class="h-1.5 w-1.5 rounded-full bg-[#818cf8]"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-indigo-300"></span>
                 {/if}
               </button>
             {/each}
@@ -306,33 +285,31 @@
                     toggleSecondaryMuscle(muscle.key);
                   }
                 }}
-                class={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all ${
-                  isPrimary
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] ring-1 ring-[var(--color-primary)]'
-                    : isSecondary
-                      ? 'border-[#818cf8] bg-[#818cf8]/10 ring-1 ring-[#818cf8]'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] hover:border-[var(--color-heading)]'
-                }`}
+                class="flex cursor-pointer flex-col items-start rounded-xl border p-2.5 text-left transition-all {isPrimary
+                  ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] ring-1 ring-[var(--color-primary)]'
+                  : isSecondary
+                    ? 'border-indigo-400 bg-indigo-500/10 ring-1 ring-indigo-400'
+                    : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] hover:border-[var(--border-strong)]'}"
               >
                 <div class="flex w-full items-center justify-between gap-1">
                   <span
-                    class={`text-xs font-bold ${isPrimary ? 'text-[var(--color-primary)]' : isSecondary ? 'text-[#818cf8]' : 'text-[var(--color-heading)]'}`}
+                    class="text-xs font-bold {isPrimary
+                      ? 'text-[var(--color-primary)]'
+                      : isSecondary
+                        ? 'text-indigo-400'
+                        : 'text-[var(--text-main)]'}"
                   >
                     {muscle.name}
                   </span>
                   {#if isPrimary}
-                    <span
-                      class="rounded-md bg-[var(--color-primary)] px-1.5 py-0.5 text-[9px] font-black text-white"
-                    >
-                      1.0
-                    </span>
+                    <Badge variant="primary" class="text-[9px]">1.0</Badge>
                   {:else if isSecondary}
-                    <span class="rounded-md bg-[#818cf8] px-1.5 py-0.5 text-[9px] font-black text-white">
+                    <span class="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-bold text-indigo-400">
                       0.5
                     </span>
                   {/if}
                 </div>
-                <span class="text-[10px] italic text-[var(--color-text-muted)] line-clamp-1">
+                <span class="line-clamp-1 text-[10px] italic text-[var(--text-muted)]">
                   {muscle.latin}
                 </span>
               </button>
@@ -342,47 +319,31 @@
 
         <!-- 2D Mannequin Interactive Preview (4 cols) -->
         <div
-          class="flex flex-col items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2 lg:col-span-4"
+          class="flex flex-col items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2.5 lg:col-span-4"
         >
           <div class="flex w-full items-center justify-between px-1">
-            <span class="text-[10px] font-bold tracking-wider text-[var(--color-text-muted)] uppercase">
+            <span class="text-[10px] font-bold tracking-wider text-[var(--text-muted)] uppercase">
               2D Body Preview
             </span>
-            <div class="flex gap-1">
-              <button
-                type="button"
-                onclick={() => (mannequinView = 'anterior')}
-                class={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                  mannequinView === 'anterior'
-                    ? 'bg-[var(--color-heading)] text-white'
-                    : 'text-[var(--color-text-muted)] hover:bg-[var(--bg-surface-200)]'
-                }`}
-              >
-                Front
-              </button>
-              <button
-                type="button"
-                onclick={() => (mannequinView = 'posterior')}
-                class={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                  mannequinView === 'posterior'
-                    ? 'bg-[var(--color-heading)] text-white'
-                    : 'text-[var(--color-text-muted)] hover:bg-[var(--bg-surface-200)]'
-                }`}
-              >
-                Rück
-              </button>
-            </div>
+            <SegmentedControl
+              size="sm"
+              bind:value={mannequinView}
+              options={[
+                { value: 'anterior', label: 'Front' },
+                { value: 'posterior', label: 'Rück' }
+              ]}
+            />
           </div>
 
-          <div class="my-1 flex h-[180px] w-full items-center justify-center">
+          <div class="my-2 flex h-[180px] w-full items-center justify-center">
             <AnatomicalBodyVector
-              view={mannequinView}
+              view={mannequinView as 'anterior' | 'posterior'}
               {pathColorMap}
               onselect={handleBodyVectorClick}
             />
           </div>
 
-          <span class="text-[10px] text-[var(--color-text-muted)] text-center">
+          <span class="text-center text-[10px] text-[var(--text-muted)]">
             Klicke auf einen Muskel im Modell, um ihn als {selectionTarget === 'primary' ? 'Primär' : 'Sekundär'} zuzuweisen.
           </span>
         </div>

@@ -17,14 +17,16 @@
   let sizeClasses = $derived(size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm');
 </script>
 
-<div class="bg-surface-100 inline-flex gap-1 rounded-lg p-1 {extraClass}">
+<div
+  class="inline-flex gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1 {extraClass}"
+>
   {#each options as opt}
     <button
       type="button"
-      class="duration-micro flex items-center gap-1.5 rounded-md font-medium transition-colors {sizeClasses} {value ===
+      class="flex cursor-pointer items-center gap-1.5 rounded-lg font-bold transition-all {sizeClasses} {value ===
       opt.value
-        ? 'bg-surface-0 text-surface-900 shadow-sm'
-        : 'text-surface-500 hover:text-surface-700'}"
+        ? 'bg-[var(--color-primary)] text-white shadow-xs'
+        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
       onclick={() => (value = opt.value)}
       aria-pressed={value === opt.value}
     >
