@@ -23,11 +23,10 @@ export async function createHabit(data: {
   });
 }
 
-export async function toggleHabit(habitId: string) {
-  const today = todayString();
+export async function toggleHabit(habitId: string, logDate: string = todayString()) {
   const existing = await db.habit_log
     .where({ habit_id: habitId })
-    .filter((l) => l.log_date === today && !l.deleted_at)
+    .filter((l) => l.log_date === logDate && !l.deleted_at)
     .first();
 
   if (existing) {
@@ -35,7 +34,7 @@ export async function toggleHabit(habitId: string) {
       kind: 'command',
       command: 'toggle_habit_check',
       queueable: true,
-      payload: { habit_id: habitId },
+      payload: { habit_id: habitId, date: logDate },
       optimisticTable: 'habit_log',
       optimisticData: {
         id: existing.id,
@@ -51,13 +50,13 @@ export async function toggleHabit(habitId: string) {
     kind: 'command',
     command: 'toggle_habit_check',
     queueable: true,
-    payload: { habit_id: habitId },
+    payload: { habit_id: habitId, date: logDate },
     optimisticTable: 'habit_log',
     optimisticData: {
       id,
       habit_id: habitId,
       user_id: SELF_USER_ID,
-      log_date: today,
+      log_date: logDate,
       completed: true,
       completed_at: now,
       notes: null,

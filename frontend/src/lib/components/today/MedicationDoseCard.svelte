@@ -6,17 +6,21 @@
   import { todayString } from '$lib/utils/datetime';
   import { toggleMedicationLog } from '$lib/mutations/medication';
 
-  const today = todayString();
+  interface Props {
+    date?: string;
+  }
+
+  let { date = todayString() }: Props = $props();
 
   const medsQuery = useQuery(
     async () => {
+      const dayStart = date + 'T00:00:00';
+      const dayEnd = date + 'T23:59:59.999';
+
       const [allMeds, allSchedules, allLogs] = await Promise.all([
         db.medication.toArray(),
         db.medication_schedule.toArray(),
-        db.medication_log
-          .where('created_at')
-          .aboveOrEqual(today + 'T00:00:00')
-          .toArray()
+        db.medication_log.where('taken_at').between(dayStart, dayEnd).toArray()
       ]);
 
       const activeMeds = allMeds.filter((m) => !m.deleted_at && m.is_active);
@@ -39,7 +43,7 @@
         };
       });
     },
-    () => today
+    () => date
   );
 
   const meds = $derived(medsQuery.value ?? []);
@@ -51,62 +55,68 @@
 </script>
 
 <div
-  class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-[18px] shadow-[var(--shadow-card)]"
+  class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
   <div class="mb-3 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="medication" class="text-[var(--color-primary)]" />
-      <span>Tägliche Supplement- & Medikamenten-Dosen</span>
+    <div class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+      <div
+        class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-primary-soft)]/20 text-[var(--color-primary)]"
+      >
+        <Icon name="medication" size="sm" />
+      </div>
+      <span>Tägliche Supplement- &amp; Medikamenten-Dosen</span>
     </div>
     {#if meds.length > 0}
-      <Badge variant={takenCount === meds.length ? 'success' : 'default'}>
-        {takenCount} von {meds.length} eingenommen
-      </Badge>
+      <Badge variant="primary" class="text-xs font-bold"
+        >{takenCount} von {meds.length} eingenommen</Badge
+      >
     {/if}
   </div>
 
   {#if meds.length === 0}
-    <div class="py-4 text-center text-xs text-[var(--text-muted)]">
-      Keine aktiven Medikamente hinterlegt.
+    <div class="py-6 text-center text-xs text-[var(--text-muted)] italic">
+      Noch keine Medikamente oder Supplemente hinterlegt.
     </div>
   {:else}
-    <div class="space-y-2">
+    <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
       {#each meds as med (med.id)}
-        <div
-          class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 transition-all {med.taken
-            ? 'border-emerald-500/30 bg-emerald-500/10'
-            : ''}"
+        <button
+          type="button"
+          onclick={() => handleToggle(med.id, med.scheduleId, med.time)}
+          class="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left transition-all {med.taken
+            ? 'border-emerald-500/30 bg-emerald-500/10 shadow-xs'
+            : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
         >
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              onclick={() => handleToggle(med.id, med.scheduleId, med.time)}
-              class="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border-2 transition-all {med.taken
-                ? 'border-emerald-500 bg-emerald-500 text-white'
-                : 'border-[var(--border-strong)]'}"
-            >
-              {#if med.taken}
-                <Icon name="check" size={12} />
-              {/if}
-            </button>
-
-            <div>
-              <div class="flex items-center gap-2">
-                <span
-                  class="text-xs font-bold text-[var(--text-main)] {med.taken
-                    ? 'text-[var(--text-muted)] line-through'
-                    : ''}"
-                >
-                  {med.name}
-                </span>
-                <span class="font-mono text-[0.6875rem] text-[var(--text-soft)]">{med.dosage}</span>
-              </div>
-              <span class="text-[0.6875rem] text-[var(--text-muted)]">{med.instructions}</span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span
+                class="truncate text-xs font-bold {med.taken
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : 'text-[var(--text-main)]'}"
+              >
+                {med.name}
+              </span>
+              <span
+                class="rounded-md bg-[var(--bg-surface-100)] px-1.5 py-0.5 text-[0.625rem] font-bold text-[var(--text-muted)]"
+              >
+                {med.dosage}
+              </span>
             </div>
+            <span class="text-[0.6875rem] text-[var(--text-muted)]"
+              >{med.time} &bull; {med.instructions}</span
+            >
           </div>
 
-          <Badge variant="default" class="font-mono text-[0.625rem]">{med.time}</Badge>
-        </div>
+          <div
+            class="flex h-6 w-6 shrink-0 items-center justify-center rounded-xl border transition-all {med.taken
+              ? 'border-emerald-500 bg-emerald-500 text-white'
+              : 'border-[var(--border-strong)] bg-[var(--bg-surface-0)]'}"
+          >
+            {#if med.taken}
+              <Icon name="check" size="sm" />
+            {/if}
+          </div>
+        </button>
       {/each}
     </div>
   {/if}

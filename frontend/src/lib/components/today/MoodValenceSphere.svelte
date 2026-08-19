@@ -1,11 +1,36 @@
 <script lang="ts">
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
+  import { db } from '$lib/db/database';
+  import { useQuery } from '$lib/db/use-query.svelte';
   import { todayString } from '$lib/utils/datetime';
   import { createMoodEntry } from '$lib/mutations/wellness';
 
+  interface Props {
+    date?: string;
+  }
+
+  let { date = todayString() }: Props = $props();
+
   let valence = $state(0.7); // -1.0 (unangenehm) bis +1.0 (angenehm)
   let arousal = $state(0.5); // -1.0 (müde/passiv) bis +1.0 (energetisch)
+
+  const moodQuery = useQuery(
+    async () => {
+      const entry = await db.mood_entry.where('entry_date').equals(date).first();
+      return entry ?? null;
+    },
+    () => date
+  );
+
+  $effect(() => {
+    const entry = moodQuery.value;
+    if (entry) {
+      // Map 1-5 score back to coordinates
+      valence = ((entry.mood_score - 1) / 4) * 2 - 1;
+      arousal = (((entry.energy_level ?? 3) - 1) / 4) * 2 - 1;
+    }
+  });
 
   let label = $derived(
     valence > 0.3 && arousal > 0.3
@@ -20,11 +45,10 @@
   async function setCoord(v: number, a: number) {
     valence = v;
     arousal = a;
-    // Map valence/arousal to a 1-5 mood score and 1-5 energy level
     const moodScore = Math.min(5, Math.max(1, Math.round(((v + 1) / 2) * 4 + 1)));
     const energyLevel = Math.min(5, Math.max(1, Math.round(((a + 1) / 2) * 4 + 1)));
     await createMoodEntry({
-      entry_date: todayString(),
+      entry_date: date,
       mood_score: moodScore,
       energy_level: energyLevel
     });
@@ -32,16 +56,20 @@
 </script>
 
 <div
-  class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-[18px] shadow-[var(--shadow-card)]"
+  class="flex flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
   <div class="mb-2 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="insights" class="text-[var(--color-circadian)]" />
-      <span>Psychobiometrie (Valenz & Energie)</span>
+    <div class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+      <div
+        class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-circadian-soft)]/20 text-[var(--color-circadian)]"
+      >
+        <Icon name="insights" size="sm" />
+      </div>
+      <span>Psychobiometrie (Valenz &amp; Energie)</span>
     </div>
     <Badge
       variant="fasting"
-      class="!bg-[var(--color-circadian-soft)] !text-[var(--color-circadian)]"
+      class="!bg-[var(--color-circadian-soft)] text-xs font-bold !text-[var(--color-circadian)]"
     >
       {label}
     </Badge>
@@ -49,7 +77,7 @@
 
   <!-- 2D Russell Circumplex Grid -->
   <div
-    class="relative my-2 flex h-40 w-full items-center justify-center overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
+    class="relative my-2 flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
   >
     <!-- Axes -->
     <div class="absolute inset-x-0 top-1/2 h-[1px] bg-[var(--border-subtle)]"></div>
@@ -57,19 +85,19 @@
 
     <!-- Quadrant Labels -->
     <span
-      class="absolute top-2 right-3 font-mono text-[0.625rem] font-bold text-[var(--text-soft)] uppercase"
+      class="absolute top-2 right-3 font-mono text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
       >Fokus / Flow</span
     >
     <span
-      class="absolute right-3 bottom-2 font-mono text-[0.625rem] font-bold text-[var(--text-soft)] uppercase"
+      class="absolute right-3 bottom-2 font-mono text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
       >Entspannung</span
     >
     <span
-      class="absolute top-2 left-3 font-mono text-[0.625rem] font-bold text-[var(--text-soft)] uppercase"
+      class="absolute top-2 left-3 font-mono text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
       >Stress</span
     >
     <span
-      class="absolute bottom-2 left-3 font-mono text-[0.625rem] font-bold text-[var(--text-soft)] uppercase"
+      class="absolute bottom-2 left-3 font-mono text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
       >Erschöpfung</span
     >
 
@@ -80,25 +108,25 @@
     ></div>
   </div>
 
-  <div class="grid grid-cols-4 gap-1.5 pt-1 text-center">
+  <div class="grid grid-cols-4 gap-2 pt-1 text-center">
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
       onclick={() => setCoord(0.8, 0.7)}>Flow</button
     >
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
       onclick={() => setCoord(0.7, -0.4)}>Ruhe</button
     >
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
       onclick={() => setCoord(-0.5, 0.6)}>Stress</button
     >
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1.5 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
       onclick={() => setCoord(-0.6, -0.7)}>Müde</button
     >
   </div>

@@ -3,6 +3,9 @@
   import { goto } from '$app/navigation';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
+  import { mutate } from '$lib/mutate';
+  import { uuid7 } from '$lib/db/uuid';
+  import { SELF_USER_ID } from '$lib/constants';
   import DashboardDateBar from '$components/dashboard/DashboardDateBar.svelte';
   import DynamicWidgetGroup from '$components/dashboard/DynamicWidgetGroup.svelte';
   import WidgetRenderer from '$components/dashboard/WidgetRenderer.svelte';
@@ -15,49 +18,137 @@
     type DashboardWidget,
     type DashboardWidgetGroup
   } from '$lib/types/widget-groups';
-
-  const DASHBOARD_STORAGE_KEY = 'salus_dashboard_layout_v2';
+  import type { DashboardWidget as DbDashboardWidget } from '$lib/db/types';
 
   let selectedDate = $state(todayString());
   let isEditMode = $state(false);
 
-  // 1. Reactive Dexie Query for Selected Date (Bounded Time Window)
-  const dayQuery = useQuery(
+  // 1. Reactive Dexie Query for Synced Dashboard Widgets
+  const widgetsQuery = useQuery(
     async () => {
-      const dayStart = new Date(selectedDate + 'T00:00:00').toISOString();
-      const dayEnd = new Date(selectedDate + 'T23:59:59.999').toISOString();
-
-      const [allMeasurements, allHabits, allHabitLogs] = await Promise.all([
-        db.measurement.where('start_time').between(dayStart, dayEnd).toArray(),
-        db.habit.toArray(),
-        db.habit_log.where('log_date').equals(selectedDate).toArray()
-      ]);
-
-      const validM = allMeasurements.filter((m) => !m.deleted_at);
-      const metricsMap = new Map<string, number>();
-      for (const m of validM) {
-        if (m.metric_code && m.value_numeric != null) {
-          metricsMap.set(m.metric_code, m.value_numeric);
-        }
-      }
-
-      const activeHabits = allHabits.filter((h) => !h.deleted_at && !h.is_archived);
-      const doneHabits = allHabitLogs.filter((l) => !l.deleted_at && l.completed).length;
-
-      return {
-        metricsMap,
-        steps: metricsMap.get('steps') ?? 0,
-        hydration: metricsMap.get('hydration') ?? 0,
-        habitsDone: doneHabits,
-        habitsTotal: activeHabits.length
-      };
+      const rows = await db.dashboard_widget
+        .filter((w) => !w.deleted_at && (w.is_visible ?? true))
+        .sortBy('position');
+      return rows;
     },
-    () => selectedDate
+    () => true
   );
 
-  const liveData = $derived(dayQuery.value);
-  const liveMetrics = $derived(liveData?.metricsMap);
-  const waterAmount = $derived(liveData?.hydration ?? 0);
+  let hasSeeded = $state(false);
+
+  // Auto-seed default dashboard layout into db.dashboard_widget if empty
+  $effect(() => {
+    const rows = widgetsQuery.value;
+    if (rows && rows.length === 0 && !hasSeeded) {
+      hasSeeded = true;
+      void seedDefaultLayout();
+    }
+  });
+
+  async function seedDefaultLayout() {
+    const now = new Date().toISOString();
+    for (let pos = 0; pos < DEFAULT_DASHBOARD_ITEMS.length; pos++) {
+      const item = DEFAULT_DASHBOARD_ITEMS[pos];
+      const id = uuid7();
+      if (item.kind === 'group') {
+        const row: DbDashboardWidget = {
+          id,
+          user_id: SELF_USER_ID,
+          widget_type: 'group',
+          metric_code: null,
+          position: pos,
+          size: 'medium',
+          config_json: JSON.stringify({
+            title: item.group.title,
+            subtitle: item.group.subtitle,
+            columns: item.group.columns,
+            widgets: item.group.widgets
+          }),
+          is_visible: true,
+          created_at: now,
+          updated_at: now,
+          deleted_at: null
+        };
+        await mutate({
+          kind: 'crud',
+          op: 'create',
+          entity: 'dashboard_widget',
+          id,
+          optimistic: row as unknown as Record<string, unknown>
+        });
+      } else {
+        const row: DbDashboardWidget = {
+          id,
+          user_id: SELF_USER_ID,
+          widget_type: item.widget.type,
+          metric_code: null,
+          position: pos,
+          size: item.widget.size === 'full' ? 'large' : 'medium',
+          config_json: JSON.stringify({
+            title: item.widget.title,
+            size: item.widget.size
+          }),
+          is_visible: true,
+          created_at: now,
+          updated_at: now,
+          deleted_at: null
+        };
+        await mutate({
+          kind: 'crud',
+          op: 'create',
+          entity: 'dashboard_widget',
+          id,
+          optimistic: row as unknown as Record<string, unknown>
+        });
+      }
+    }
+  }
+
+  // 2. Derive items from synced Dexie table
+  let dashboardItems = $derived.by<DashboardItem[]>(() => {
+    const rows = widgetsQuery.value;
+    if (!rows || rows.length === 0) return [];
+
+    return rows.map((row) => {
+      if (row.widget_type === 'group') {
+        let groupData: Partial<DashboardWidgetGroup> = {};
+        try {
+          groupData = JSON.parse(row.config_json || '{}');
+        } catch {
+          // ignore malformed config json
+        }
+        return {
+          id: row.id,
+          kind: 'group',
+          group: {
+            id: row.id,
+            title: groupData.title || 'Gruppe',
+            subtitle: groupData.subtitle || '',
+            columns: groupData.columns || 2,
+            widgets: groupData.widgets || []
+          }
+        };
+      } else {
+        let widgetData: Partial<DashboardWidget> = {};
+        try {
+          widgetData = JSON.parse(row.config_json || '{}');
+        } catch {
+          // ignore malformed config json
+        }
+        return {
+          id: row.id,
+          kind: 'widget',
+          widget: {
+            id: row.id,
+            type: row.widget_type,
+            title: widgetData.title || row.widget_type,
+            size: widgetData.size || 'full',
+            config: widgetData.config
+          }
+        };
+      }
+    });
+  });
 
   // Modals State
   let isGalleryOpen = $state(false);
@@ -66,76 +157,123 @@
   let activeGroupForEdit = $state<DashboardWidgetGroup | null>(null);
   let isCreatingNewGroup = $state(false);
 
-  function loadInitialItems(): DashboardItem[] {
-    if (typeof localStorage === 'undefined') return DEFAULT_DASHBOARD_ITEMS;
-    try {
-      const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_DASHBOARD_ITEMS;
-  }
-
-  let dashboardItems = $state<DashboardItem[]>(loadInitialItems());
-
-  function persistDashboard(items: DashboardItem[]) {
-    if (typeof localStorage === 'undefined') return;
-    try {
-      localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // Silently ignore
-    }
-  }
-
-  $effect(() => {
-    persistDashboard(dashboardItems);
-  });
-
-  // Open Gallery for a specific Group
   function openGalleryForGroup(group: DashboardWidgetGroup) {
     activeGroupForGallery = group;
     isGalleryOpen = true;
   }
 
-  // Open Gallery for Dashboard Root
   function openRootGallery() {
     activeGroupForGallery = null;
     isGalleryOpen = true;
   }
 
-  function handleAddWidget(widget: DashboardWidget, targetGroupId: string | null) {
+  async function handleAddWidget(widget: DashboardWidget, targetGroupId: string | null) {
+    const rows = widgetsQuery.value ?? [];
+    const now = new Date().toISOString();
+
     if (targetGroupId) {
-      for (const item of dashboardItems) {
-        if (item.kind === 'group' && item.group.id === targetGroupId) {
-          item.group.widgets = [...item.group.widgets, widget];
-          dashboardItems = [...dashboardItems];
-          return;
+      const parentRow = rows.find((r) => r.id === targetGroupId);
+      if (parentRow) {
+        let groupData: Partial<DashboardWidgetGroup> = {};
+        try {
+          groupData = JSON.parse(parentRow.config_json || '{}');
+        } catch {
+          // ignore malformed config json
         }
+        const existingWidgets = groupData.widgets || [];
+        const updatedWidgets = [...existingWidgets, widget];
+        const updatedConfig = JSON.stringify({
+          ...groupData,
+          widgets: updatedWidgets
+        });
+
+        await mutate({
+          kind: 'crud',
+          op: 'update',
+          entity: 'dashboard_widget',
+          id: parentRow.id,
+          optimistic: {
+            ...parentRow,
+            config_json: updatedConfig,
+            updated_at: now
+          }
+        });
       }
     } else {
-      const newItem: DashboardItem = {
-        id: `item_${Date.now()}`,
-        kind: 'widget',
-        widget
+      const id = uuid7();
+      const pos = rows.length;
+      const newRow: DbDashboardWidget = {
+        id,
+        user_id: SELF_USER_ID,
+        widget_type: widget.type,
+        metric_code: null,
+        position: pos,
+        size: widget.size === 'full' ? 'large' : 'medium',
+        config_json: JSON.stringify({
+          title: widget.title,
+          size: widget.size
+        }),
+        is_visible: true,
+        created_at: now,
+        updated_at: now,
+        deleted_at: null
       };
-      dashboardItems = [...dashboardItems, newItem];
+
+      await mutate({
+        kind: 'crud',
+        op: 'create',
+        entity: 'dashboard_widget',
+        id,
+        optimistic: newRow as unknown as Record<string, unknown>
+      });
     }
   }
 
-  function handleRemoveRootItem(itemId: string) {
-    dashboardItems = dashboardItems.filter((item) => item.id !== itemId);
+  async function handleRemoveRootItem(itemId: string) {
+    const rows = widgetsQuery.value ?? [];
+    const row = rows.find((r) => r.id === itemId);
+    if (row) {
+      await mutate({
+        kind: 'crud',
+        op: 'delete',
+        entity: 'dashboard_widget',
+        id: row.id,
+        optimistic: {
+          ...row,
+          deleted_at: new Date().toISOString()
+        }
+      });
+    }
   }
 
-  function handleRemoveGroupWidget(groupId: string, widgetId: string) {
-    for (const item of dashboardItems) {
-      if (item.kind === 'group' && item.group.id === groupId) {
-        item.group.widgets = item.group.widgets.filter((w) => w.id !== widgetId);
-        dashboardItems = [...dashboardItems];
-        return;
+  async function handleRemoveGroupWidget(groupId: string, widgetId: string) {
+    const rows = widgetsQuery.value ?? [];
+    const parentRow = rows.find((r) => r.id === groupId);
+    if (parentRow) {
+      let groupData: Partial<DashboardWidgetGroup> = {};
+      try {
+        groupData = JSON.parse(parentRow.config_json || '{}');
+      } catch {
+        // ignore malformed config json
       }
+      const existingWidgets = groupData.widgets || [];
+      const updatedWidgets = existingWidgets.filter((w) => w.id !== widgetId);
+      const updatedConfig = JSON.stringify({
+        ...groupData,
+        widgets: updatedWidgets
+      });
+
+      await mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'dashboard_widget',
+        id: parentRow.id,
+        optimistic: {
+          ...parentRow,
+          config_json: updatedConfig,
+          updated_at: new Date().toISOString()
+        }
+      });
     }
   }
 
@@ -147,7 +285,7 @@
 
   function openCreateGroup() {
     activeGroupForEdit = {
-      id: `grp_${Date.now()}`,
+      id: uuid7(),
       title: 'Neue Gruppe',
       subtitle: '',
       columns: 2,
@@ -157,56 +295,135 @@
     isGroupEditorOpen = true;
   }
 
-  function handleSaveGroup(savedGroup: DashboardWidgetGroup) {
+  async function handleSaveGroup(savedGroup: DashboardWidgetGroup) {
+    const rows = widgetsQuery.value ?? [];
+    const now = new Date().toISOString();
+
     if (isCreatingNewGroup) {
-      const newItem: DashboardItem = {
-        id: `item_${savedGroup.id}`,
-        kind: 'group',
-        group: savedGroup
+      const id = savedGroup.id || uuid7();
+      const pos = rows.length;
+      const newRow: DbDashboardWidget = {
+        id,
+        user_id: SELF_USER_ID,
+        widget_type: 'group',
+        metric_code: null,
+        position: pos,
+        size: 'medium',
+        config_json: JSON.stringify({
+          title: savedGroup.title,
+          subtitle: savedGroup.subtitle,
+          columns: savedGroup.columns,
+          widgets: savedGroup.widgets
+        }),
+        is_visible: true,
+        created_at: now,
+        updated_at: now,
+        deleted_at: null
       };
-      dashboardItems = [...dashboardItems, newItem];
+
+      await mutate({
+        kind: 'crud',
+        op: 'create',
+        entity: 'dashboard_widget',
+        id,
+        optimistic: newRow as unknown as Record<string, unknown>
+      });
     } else {
-      const idx = dashboardItems.findIndex(
-        (item) => item.kind === 'group' && item.group.id === savedGroup.id
-      );
-      if (idx !== -1) {
-        dashboardItems[idx] = {
-          id: dashboardItems[idx].id,
-          kind: 'group',
-          group: savedGroup
-        };
-        dashboardItems = [...dashboardItems];
+      const existingRow = rows.find((r) => r.id === savedGroup.id);
+      if (existingRow) {
+        await mutate({
+          kind: 'crud',
+          op: 'update',
+          entity: 'dashboard_widget',
+          id: existingRow.id,
+          optimistic: {
+            ...existingRow,
+            config_json: JSON.stringify({
+              title: savedGroup.title,
+              subtitle: savedGroup.subtitle,
+              columns: savedGroup.columns,
+              widgets: savedGroup.widgets
+            }),
+            updated_at: now
+          }
+        });
       }
     }
   }
 
-  function handleDeleteGroup(groupId: string) {
-    dashboardItems = dashboardItems.filter(
-      (item) => !(item.kind === 'group' && item.group.id === groupId)
-    );
+  async function handleDeleteGroup(groupId: string) {
+    await handleRemoveRootItem(groupId);
   }
 
-  function moveItemUp(index: number) {
+  async function moveItemUp(index: number) {
     if (index <= 0) return;
-    const item = dashboardItems[index];
-    const newArr = [...dashboardItems];
-    newArr.splice(index, 1);
-    newArr.splice(index - 1, 0, item);
-    dashboardItems = newArr;
+    const rows = widgetsQuery.value ?? [];
+    if (index >= rows.length) return;
+
+    const cur = rows[index];
+    const prev = rows[index - 1];
+
+    const curPos = cur.position;
+    const prevPos = prev.position;
+
+    await Promise.all([
+      mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'dashboard_widget',
+        id: cur.id,
+        optimistic: { ...cur, position: prevPos }
+      }),
+      mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'dashboard_widget',
+        id: prev.id,
+        optimistic: { ...prev, position: curPos }
+      })
+    ]);
   }
 
-  function moveItemDown(index: number) {
-    if (index >= dashboardItems.length - 1) return;
-    const item = dashboardItems[index];
-    const newArr = [...dashboardItems];
-    newArr.splice(index, 1);
-    newArr.splice(index + 1, 0, item);
-    dashboardItems = newArr;
+  async function moveItemDown(index: number) {
+    const rows = widgetsQuery.value ?? [];
+    if (index >= rows.length - 1) return;
+
+    const cur = rows[index];
+    const next = rows[index + 1];
+
+    const curPos = cur.position;
+    const nextPos = next.position;
+
+    await Promise.all([
+      mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'dashboard_widget',
+        id: cur.id,
+        optimistic: { ...cur, position: nextPos }
+      }),
+      mutate({
+        kind: 'crud',
+        op: 'update',
+        entity: 'dashboard_widget',
+        id: next.id,
+        optimistic: { ...next, position: curPos }
+      })
+    ]);
   }
 
-  function resetDashboardLayout() {
-    dashboardItems = DEFAULT_DASHBOARD_ITEMS;
-    persistDashboard(DEFAULT_DASHBOARD_ITEMS);
+  async function resetDashboardLayout() {
+    const rows = widgetsQuery.value ?? [];
+    for (const r of rows) {
+      await mutate({
+        kind: 'crud',
+        op: 'delete',
+        entity: 'dashboard_widget',
+        id: r.id,
+        optimistic: { ...r, deleted_at: new Date().toISOString() }
+      });
+    }
+    await seedDefaultLayout();
     isEditMode = false;
   }
 </script>
@@ -247,8 +464,8 @@
 
           <WidgetRenderer
             widget={item.widget}
-            {waterAmount}
-            {liveMetrics}
+            date={selectedDate}
+            onopen={(r) => goto(r)}
             onopenfasting={() => goto('/fasting')}
           />
         </div>
@@ -257,9 +474,8 @@
       {:else if item.kind === 'group'}
         <DynamicWidgetGroup
           group={item.group}
+          date={selectedDate}
           {isEditMode}
-          {waterAmount}
-          {liveMetrics}
           onopenfasting={() => goto('/fasting')}
           oneditgroup={openEditGroup}
           onaddwidget={openGalleryForGroup}
@@ -286,7 +502,7 @@
         <span
           class="text-xs font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)]"
         >
-          Weiteres Widget oder neue Gruppe zum Dashboard hinzufügen
+          Weiteres Widget oder neuen Bereich zum Dashboard hinzufügen
         </span>
       </button>
     {/if}
@@ -307,6 +523,7 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <WidgetGalleryModal
   open={isGalleryOpen}
+  date={selectedDate}
   targetGroup={activeGroupForGallery}
   onclose={() => (isGalleryOpen = false)}
   onaddwidget={handleAddWidget}

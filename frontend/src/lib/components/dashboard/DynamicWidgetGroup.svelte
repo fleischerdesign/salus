@@ -3,12 +3,12 @@
   import WidgetRenderer from './WidgetRenderer.svelte';
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
+  import { todayString } from '$lib/utils/datetime';
 
   let {
     group,
+    date = todayString(),
     isEditMode = false,
-    waterAmount = 2250,
-    liveMetrics,
     onopenfasting,
     oneditgroup,
     onaddwidget,
@@ -18,6 +18,7 @@
     ondeletegroup
   } = $props<{
     group: DashboardWidgetGroup;
+    date?: string;
     isEditMode?: boolean;
     waterAmount?: number;
     liveMetrics?: Map<string, number>;
@@ -98,7 +99,7 @@
           class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)]"
           title="Gruppe nach oben verschieben"
         >
-          ▲
+          &uarr;
         </button>
         <button
           type="button"
@@ -106,27 +107,23 @@
           class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)]"
           title="Gruppe nach unten verschieben"
         >
-          ▼
+          &darr;
         </button>
 
-        <!-- Edit Group Settings Modal Trigger -->
+        <!-- Edit Group Settings -->
         <button
           type="button"
           onclick={() => oneditgroup?.(group)}
-          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]"
-          title="Gruppe bearbeiten"
+          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)]"
+          title="Gruppeneinstellungen bearbeiten"
         >
-          <Icon name="wb-sunny" size={14} />
+          <Icon name="settings" size={14} />
         </button>
 
         <!-- Delete Group -->
         <button
           type="button"
-          onclick={() => {
-            if (confirm(`Gruppe „${group.title}“ wirklich löschen?`)) {
-              ondeletegroup?.();
-            }
-          }}
+          onclick={ondeletegroup}
           class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-xs font-bold text-rose-500 transition-all hover:bg-rose-500 hover:text-white"
           title="Gruppe löschen"
         >
@@ -159,7 +156,7 @@
             </button>
           {/if}
 
-          <WidgetRenderer widget={w} {waterAmount} {liveMetrics} {onopenfasting} />
+          <WidgetRenderer widget={w} {date} {onopenfasting} />
         </div>
       {/each}
 
