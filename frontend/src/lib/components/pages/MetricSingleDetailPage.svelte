@@ -11,24 +11,43 @@
   import { useQuery } from '$lib/db/use-query.svelte';
   import { deleteGoal } from '$lib/mutations/goal';
   import { deleteMeasurement } from '$lib/mutations/measurement';
-  import { METRIC_GROUPS } from '../../data/metrics-data';
+  import { findMetricDefinition, findMetricGroup } from '../../data/metrics-data';
 
   let {
-    groupKey = 'blood_pressure',
-    metricCode = 'systolic_bp',
+    groupKey = '',
+    metricCode = 'heart_rate',
     onBack,
     onBackGroup,
     onBackAll
   } = $props<{
-    groupKey: string;
+    groupKey?: string;
     metricCode: string;
     onBack?: () => void;
     onBackGroup?: () => void;
     onBackAll?: () => void;
   }>();
 
-  let group = $derived(METRIC_GROUPS.find((g) => g.key === groupKey) || METRIC_GROUPS[0]);
-  let metric = $derived(group.subMetrics.find((m) => m.code === metricCode) || group.subMetrics[0]);
+  let metric = $derived(
+    findMetricDefinition(metricCode) || {
+      code: metricCode,
+      name: metricCode,
+      unit: '',
+      category: 'cardiovascular' as const,
+      dataType: 'number' as const,
+      groupKey: undefined as string | undefined,
+      currentValue: 0,
+      trend: 'stable' as const,
+      referenceRange: 'Normbereich',
+      sparklineData: []
+    }
+  );
+  let group = $derived(
+    groupKey
+      ? findMetricGroup(groupKey)
+      : metric.groupKey
+        ? findMetricGroup(metric.groupKey)
+        : undefined
+  );
 
   // Reactive Dexie Goal Query
   const goalQuery = useQuery(
@@ -154,9 +173,8 @@
   <!-- Tier-3 Breadcrumbs -->
   <Breadcrumb
     items={[
-      { label: 'Klinik', onclick: onBackAll || onBack },
-      { label: 'Metriken & Ziele', onclick: onBackAll || onBack },
-      { label: group.title, onclick: onBackGroup || onBack },
+      { label: 'Metriken', onclick: onBackAll || onBack },
+      ...(group ? [{ label: group.title, onclick: onBackGroup || onBack }] : []),
       { label: metric.name, active: true }
     ]}
   />

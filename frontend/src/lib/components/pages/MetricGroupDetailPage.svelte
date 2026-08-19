@@ -122,11 +122,10 @@
 </script>
 
 <div class="space-y-6">
-  <!-- Tier-3 Breadcrumbs -->
+  <!-- Breadcrumbs -->
   <Breadcrumb
     items={[
-      { label: 'Klinik', onclick: onBack },
-      { label: 'Metriken & Ziele', onclick: onBack },
+      { label: 'Metriken', onclick: onBack },
       { label: group.title, active: true }
     ]}
   />

@@ -1,11 +1,10 @@
 <script lang="ts">
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
-  import Btn from '../ui/Btn.svelte';
   import Input from '../ui/Input.svelte';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
-  import { METRIC_GROUPS } from '../../data/metrics-data';
+  import { METRIC_CATEGORIES, METRIC_GROUPS, STANDALONE_METRICS } from '../../data/metrics-data';
   import type { MetricGroup, MetricDefinition } from '../../types';
 
   let { onSelectGroup, onSelectMetric } = $props<{
@@ -21,176 +20,369 @@
   const goals = $derived(goalsQuery.value ?? []);
   const goalsMap = $derived(new Map(goals.map((g) => [g.metric_code, g])));
 
-  // Reactive Measurements from Dexie for real values
+  // Reactive Measurements from Dexie
   const measurementsQuery = useQuery(() => db.measurement.filter((m) => !m.deleted_at).toArray());
   const measurements = $derived(measurementsQuery.value ?? []);
 
   const latestMeasurementsMap = $derived.by(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { value: number; time: string }>();
     const sorted = [...measurements].sort(
       (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
     );
     for (const m of sorted) {
       if (m.metric_code && m.value_numeric != null && !map.has(m.metric_code)) {
-        map.set(m.metric_code, m.value_numeric);
+        map.set(m.metric_code, {
+          value: m.value_numeric,
+          time: m.start_time
+        });
       }
     }
     return map;
   });
 
   const categories = $derived([
-    { id: 'all', label: 'Alle Metriken' },
-    ...(goals.length > 0 ? [{ id: 'has_goal', label: `Mit Ziel (${goals.length})` }] : []),
-    { id: 'cardiovascular', label: 'Kardiovaskulär' },
-    { id: 'body', label: 'Körper & Gewicht' },
-    { id: 'metabolism', label: 'Stoffwechsel' },
-    { id: 'sleep', label: 'Schlaf' },
-    { id: 'labs', label: 'Klinische Labore' }
+    ...METRIC_CATEGORIES,
+    ...(goals.length > 0
+      ? [{ id: 'has_goal', label: `Mit Ziel (${goals.length})`, icon: 'target' }]
+      : [])
   ]);
 
-  let filteredGroups = $derived(
-    METRIC_GROUPS.map((g: MetricGroup) => {
-      let sub = g.subMetrics;
+  // Unified items list: combines Groups and Standalone Metrics seamlessly
+  type UnifiedItem =
+    { kind: 'group'; data: MetricGroup } | { kind: 'metric'; data: MetricDefinition };
+
+  const unifiedItems = $derived.by<UnifiedItem[]>(() => {
+    const q = searchQuery.trim().toLowerCase();
+
+    // 1. Filter Groups
+    const matchedGroups: UnifiedItem[] = METRIC_GROUPS.filter((g) => {
       if (selectedCategory === 'has_goal') {
-        sub = sub.filter((m) => goalsMap.has(m.code));
+        return g.subMetrics.some((m) => goalsMap.has(m.code));
       }
-      return { ...g, subMetrics: sub };
-    }).filter((g: MetricGroup) => {
-      if (selectedCategory === 'has_goal') {
-        if (g.subMetrics.length === 0) return false;
-      } else if (selectedCategory !== 'all' && g.category !== selectedCategory) {
+      if (selectedCategory !== 'all' && g.category !== selectedCategory) {
         return false;
       }
+      if (!q) return true;
+      return (
+        g.title.toLowerCase().includes(q) ||
+        g.description.toLowerCase().includes(q) ||
+        g.subMetrics.some(
+          (m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q)
+        )
+      );
+    }).map((g) => ({ kind: 'group', data: g }));
 
-      const matchQuery =
-        !searchQuery ||
-        g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        g.subMetrics.some((m: MetricDefinition) =>
-          m.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      return matchQuery;
-    })
-  );
+    // 2. Filter Standalone Metrics
+    const matchedMetrics: UnifiedItem[] = STANDALONE_METRICS.filter((m) => {
+      if (selectedCategory === 'has_goal') {
+        return goalsMap.has(m.code);
+      }
+      if (selectedCategory !== 'all' && m.category !== selectedCategory) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        m.name.toLowerCase().includes(q) ||
+        m.code.toLowerCase().includes(q) ||
+        (m.referenceRange?.toLowerCase().includes(q) ?? false)
+      );
+    }).map((m) => ({ kind: 'metric', data: m }));
+
+    return [...matchedGroups, ...matchedMetrics];
+  });
+
+  function getMetricIcon(code: string, category: string): string {
+    switch (code) {
+      case 'heart_rate':
+      case 'resting_heart_rate':
+        return 'favorite';
+      case 'hrv':
+      case 'hrv_rmssd':
+        return 'vital-signs';
+      case 'spo2':
+        return 'vital-signs';
+      case 'respiratory_rate':
+        return 'air';
+      case 'weight':
+      case 'body_fat':
+      case 'lean_body_mass':
+      case 'bone_mass':
+        return 'scale';
+      case 'body_temperature':
+        return 'thermostat';
+      case 'steps':
+      case 'floors_climbed':
+        return 'directions-run';
+      case 'active_calories':
+        return 'local-fire-department';
+      case 'distance':
+        return 'route';
+      case 'vo2_max':
+        return 'speed';
+      case 'blood_glucose':
+      case 'hba1c':
+      case 'ketones':
+      case 'lactate':
+        return 'science';
+      case 'water':
+        return 'water-drop';
+      case 'sleep_duration':
+      case 'sleep_score':
+        return 'bedtime';
+      default:
+        return category === 'cardiovascular'
+          ? 'vital-signs'
+          : category === 'activity'
+            ? 'directions-run'
+            : category === 'body'
+              ? 'scale'
+              : category === 'metabolism'
+                ? 'science'
+                : category === 'sleep'
+                  ? 'bedtime'
+                  : 'biotech';
+    }
+  }
+
+  function getGroupIcon(key: string, category: string): string {
+    if (key === 'blood_pressure') return 'vital-signs';
+    if (key === 'body_measurements') return 'straighten';
+    if (key === 'lipid_panel') return 'biotech';
+    return category === 'cardiovascular' ? 'vital-signs' : 'grid-view';
+  }
+
+  function getGoalProgress(
+    goal: { target_value?: number | string; direction?: string } | null | undefined,
+    currentVal?: number
+  ) {
+    if (!goal || currentVal == null) return null;
+    const target = Number(goal.target_value);
+    if (isNaN(target)) return null;
+
+    const isDecrease = goal.direction === 'decrease';
+    let percent = 0;
+    let isFulfilled = false;
+
+    if (isDecrease) {
+      isFulfilled = currentVal <= target;
+      percent = isFulfilled ? 100 : Math.max(0, Math.round((target / currentVal) * 100));
+    } else {
+      isFulfilled = currentVal >= target;
+      percent = isFulfilled ? 100 : Math.max(0, Math.round((currentVal / target) * 100));
+    }
+
+    return { percent, isFulfilled, target };
+  }
 </script>
 
 <div class="space-y-6">
   <!-- Page Header -->
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h1 class="text-2xl font-extrabold tracking-tight">Vitalparameter &amp; Metriken</h1>
+      <h1 class="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">
+        Vitalparameter &amp; Metriken
+      </h1>
       <p class="mt-0.5 text-sm text-[var(--text-muted)]">
-        Evidenzbasierte Definitionen mit Längsschnitt-Verläufen, Zielwerten und statistischen
-        Prognosen
+        Evidenzbasierte Gesundheitsdaten mit Verläufen, Zielwerten und statistischen Trendanalysen
       </p>
     </div>
-    <div class="w-64">
-      <Input icon="search" placeholder="Metrik suchen..." bind:value={searchQuery} />
+    <div class="w-full sm:w-72">
+      <Input icon="search" placeholder="Metrik oder Code suchen..." bind:value={searchQuery} />
     </div>
   </div>
 
   <!-- Category Filter Pills -->
-  <div class="flex gap-2 overflow-x-auto pb-1">
-    {#each categories as cat}
-      <button
-        type="button"
-        onclick={() => (selectedCategory = cat.id)}
-        class="cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all {selectedCategory ===
-        cat.id
-          ? 'bg-[var(--color-primary)] text-white shadow-sm'
-          : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
-      >
-        {cat.label}
-      </button>
-    {/each}
+  <div class="relative w-full overflow-hidden">
+    <div class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto pb-1 select-none">
+      {#each categories as cat}
+        <button
+          type="button"
+          onclick={() => (selectedCategory = cat.id)}
+          class="shrink-0 cursor-pointer rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all {selectedCategory ===
+          cat.id
+            ? 'bg-[var(--color-primary)] text-white shadow-xs'
+            : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        >
+          {cat.label}
+        </button>
+      {/each}
+    </div>
   </div>
 
-  <!-- Metric Groups Grid -->
-  <div class="space-y-5">
-    {#each filteredGroups as group}
-      <div
-        class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-      >
-        <!-- Group Header (Clickable to Group Detail) -->
-        <div
-          class="mb-3 flex items-center justify-between border-b border-[var(--border-subtle)] pb-3"
-        >
-          <div>
-            <button
-              type="button"
-              onclick={() => onSelectGroup(group.key)}
-              class="flex cursor-pointer items-center gap-2 text-base font-extrabold text-[var(--text-main)] transition-colors hover:text-[var(--color-primary)]"
-            >
-              <span>{group.title}</span>
-              <Icon name="expand-more" size={14} class="-rotate-90 text-[var(--text-soft)]" />
-            </button>
-            <p class="mt-0.5 text-xs text-[var(--text-muted)]">{group.description}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            {#if group.inputMode === 'combined'}
-              <Badge variant="primary">Kombinierte Erfassung</Badge>
-            {/if}
-            <Btn variant="secondary" size="sm" onclick={() => onSelectGroup(group.key)}>
-              Gruppe öffnen
-            </Btn>
-          </div>
-        </div>
+  <!-- UNIFIED HARMONIOUS METRICS GRID (Zero Clutter, Clean Minimalist Cards) -->
+  {#if unifiedItems.length > 0}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {#each unifiedItems as item}
+        {#if item.kind === 'group'}
+          {@const group = item.data}
 
-        <!-- Sub-Metrics Cards Grid -->
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {#each group.subMetrics as metric}
-            {@const goal = goalsMap.get(metric.code)}
-            {@const realVal = latestMeasurementsMap.get(metric.code)}
-            <button
-              type="button"
-              onclick={() => onSelectMetric(group.key, metric.code)}
-              class="group flex cursor-pointer flex-col justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5 text-left transition-all hover:bg-[var(--bg-surface-100)]"
-            >
-              <div>
-                <div class="mb-1 flex items-center justify-between">
-                  <span
-                    class="text-xs font-bold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
-                  >
-                    {metric.name}
-                  </span>
-                  <span class="text-[0.6875rem] font-medium text-[var(--text-soft)]"
-                    >{metric.unit}</span
-                  >
-                </div>
-                <div class="mt-1 flex items-baseline gap-2">
-                  <span class="text-xl font-extrabold text-[var(--text-main)] tabular-nums">
-                    {#if realVal != null}
-                      {realVal}
-                    {:else}
-                      <span class="text-base font-normal text-[var(--text-muted)]">—</span>
-                    {/if}
-                  </span>
-                </div>
-
-                <!-- Goal Badge if defined -->
-                {#if goal}
+          <!-- GROUP CARD -->
+          <button
+            type="button"
+            onclick={() => onSelectGroup(group.key)}
+            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-left shadow-[var(--shadow-card)] transition-all hover:border-[var(--color-primary)] hover:shadow-md {group
+              .subMetrics.length > 2
+              ? 'sm:col-span-2'
+              : ''}"
+          >
+            <div>
+              <!-- Header: Icon + Title + Group Badge -->
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex min-w-0 items-center gap-3">
                   <div
-                    class="mt-2 flex items-center justify-between rounded-md bg-[var(--color-primary-soft)]/20 px-2 py-1 text-[0.6875rem] font-semibold text-[var(--color-primary)]"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+                    style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);"
                   >
-                    <span>🎯 Ziel: {goal.target_value} {metric.unit}</span>
+                    <Icon name={getGroupIcon(group.key, group.category)} size="md" />
                   </div>
+                  <div class="min-w-0">
+                    <h3
+                      class="truncate text-sm font-extrabold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
+                    >
+                      {group.title}
+                    </h3>
+                    <p class="truncate text-[0.6875rem] text-[var(--text-muted)]">
+                      {group.description}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="primary" class="shrink-0 text-[0.5625rem] font-bold">
+                  {group.subMetrics.length} Werte
+                </Badge>
+              </div>
+
+              <!-- Main Group Body -->
+              {#if group.key === 'blood_pressure'}
+                <!-- Arterial Blood Pressure paired readout -->
+                {@const sys = latestMeasurementsMap.get('systolic_bp')}
+                {@const dia = latestMeasurementsMap.get('diastolic_bp')}
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span
+                    class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums"
+                  >
+                    {sys ? sys.value : '—'}
+                    <span class="text-2xl font-normal text-[var(--text-muted)]">/</span>
+                    {dia ? dia.value : '—'}
+                  </span>
+                  <span class="text-xs font-bold text-[var(--text-muted)]">mmHg</span>
+                </div>
+              {:else}
+                <!-- Multi-Metric Sub-values -->
+                <div class="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {#each group.subMetrics.slice(0, 4) as sub}
+                    {@const subData = latestMeasurementsMap.get(sub.code)}
+                    <div
+                      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
+                    >
+                      <span
+                        class="block truncate text-[0.625rem] font-semibold text-[var(--text-muted)]"
+                      >
+                        {sub.name}
+                      </span>
+                      <div class="mt-0.5 flex items-baseline gap-1">
+                        <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums">
+                          {subData ? subData.value : '—'}
+                        </span>
+                        <span class="text-[0.5625rem] text-[var(--text-muted)]">{sub.unit}</span>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </button>
+        {:else}
+          {@const metric = item.data}
+          {@const realData = latestMeasurementsMap.get(metric.code)}
+          {@const goal = goalsMap.get(metric.code)}
+          {@const goalProgress = getGoalProgress(goal, realData?.value)}
+
+          <!-- STANDALONE METRIC CARD -->
+          <button
+            type="button"
+            onclick={() => onSelectMetric(metric.groupKey || metric.code, metric.code)}
+            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-left shadow-[var(--shadow-card)] transition-all hover:border-[var(--color-primary)] hover:shadow-md"
+          >
+            <div>
+              <!-- Header: Icon + Name + Unit Badge -->
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex min-w-0 items-center gap-3">
+                  <div
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+                    style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);"
+                  >
+                    <Icon name={getMetricIcon(metric.code, metric.category)} size="md" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3
+                      class="truncate text-sm font-extrabold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
+                    >
+                      {metric.name}
+                    </h3>
+                    <p class="truncate text-[0.6875rem] text-[var(--text-muted)]">
+                      {metric.referenceRange || 'Biomarker'}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="default" class="shrink-0 text-[0.5625rem] font-bold">
+                  {metric.unit}
+                </Badge>
+              </div>
+
+              <!-- Main Value -->
+              <div class="mt-4 flex items-baseline gap-2">
+                <span
+                  class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums"
+                >
+                  {#if realData}
+                    {realData.value}
+                  {:else}
+                    <span class="text-2xl font-normal text-[var(--text-muted)]">—</span>
+                  {/if}
+                </span>
+                {#if realData}
+                  <span class="text-xs font-bold text-[var(--text-muted)]">{metric.unit}</span>
                 {/if}
               </div>
 
-              <!-- Footer -->
-              <div
-                class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-[0.6875rem] text-[var(--text-soft)]"
-              >
-                <span class="font-medium">
-                  {realVal != null ? 'Messwert erfasst' : 'Keine Messdaten'}
-                </span>
-                <span class="font-semibold text-[var(--color-primary)] group-hover:underline"
-                  >Detail &rarr;</span
-                >
-              </div>
-            </button>
-          {/each}
-        </div>
-      </div>
-    {/each}
-  </div>
+              <!-- Goal Progress (Sleek Clean Micro Bar, No Emojis) -->
+              {#if goal}
+                <div class="mt-3 space-y-1">
+                  <div
+                    class="flex justify-between text-[0.625rem] font-semibold text-[var(--text-muted)]"
+                  >
+                    <span>Ziel: {goal.target_value} {metric.unit}</span>
+                    {#if goalProgress}
+                      <span
+                        class={goalProgress.isFulfilled
+                          ? 'font-bold text-emerald-500'
+                          : 'text-[var(--text-muted)]'}
+                      >
+                        {goalProgress.percent}%
+                      </span>
+                    {/if}
+                  </div>
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                    <div
+                      class="h-full rounded-full transition-all duration-500 {goalProgress?.isFulfilled
+                        ? 'bg-emerald-500'
+                        : 'bg-[var(--color-primary)]'}"
+                      style="width: {Math.min(100, Math.max(0, goalProgress?.percent ?? 0))}%;"
+                    ></div>
+                  </div>
+                </div>
+              {/if}
+            </div>
+          </button>
+        {/if}
+      {/each}
+    </div>
+  {:else}
+    <!-- Clean Empty State -->
+    <div class="rounded-3xl border-2 border-dashed border-[var(--border-subtle)] p-12 text-center">
+      <p class="text-sm font-medium text-[var(--text-muted)]">
+        Keine Einträge für die Auswahl gefunden.
+      </p>
+    </div>
+  {/if}
 </div>

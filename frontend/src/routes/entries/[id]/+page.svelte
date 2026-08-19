@@ -22,7 +22,7 @@
   />
 {:else}
   <MetricSingleDetailPage
-    groupKey={parentGroup?.key || 'blood_pressure'}
+    groupKey={parentGroup?.key || ''}
     metricCode={id}
     onBack={() => goto(parentGroup ? `/entries/${parentGroup.key}` : '/entries')}
     onBackGroup={() => goto(parentGroup ? `/entries/${parentGroup.key}` : '/entries')}
