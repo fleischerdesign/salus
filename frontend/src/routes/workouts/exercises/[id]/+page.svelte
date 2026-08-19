@@ -205,21 +205,30 @@
 
     <!-- Hero Header -->
     <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="space-y-1.5">
+      <div class="space-y-2">
         <div class="flex flex-wrap items-center gap-2">
           <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{exercise.name}</h1>
-          <Badge variant={exercise.user_id ? 'activity' : 'default'} class="text-[0.6875rem]">
-            {exercise.user_id ? 'Benutzerdefiniert' : 'System-Übung'}
-          </Badge>
-          <div class="flex items-center gap-1 rounded-md border border-border-subtle bg-surface-50 px-2 py-0.5 text-xs font-semibold text-text-muted">
-            <Icon name="fitness_center" class="text-xs" />
-            <span class="capitalize">{exercise.equipment || 'Frei'}</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <Badge variant={exercise.user_id ? 'activity' : 'default'}>
+              {exercise.user_id ? 'Benutzerdefiniert' : 'System-Übung'}
+            </Badge>
+
+            <span
+              class="inline-flex items-center gap-1 rounded-full border border-border-subtle bg-surface-100 px-2 py-0.5 text-xs font-semibold text-text-muted select-none"
+            >
+              <Icon name="fitness_center" class="text-xs" />
+              <span class="capitalize">{exercise.equipment || 'Frei'}</span>
+            </span>
+
+            {#if exercise.suggested_rest_seconds}
+              <span
+                class="inline-flex items-center gap-1 rounded-full border border-border-subtle bg-surface-100 px-2 py-0.5 text-xs font-semibold text-text-muted tabular-nums select-none"
+              >
+                <Icon name="timer" class="text-xs" />
+                <span>{exercise.suggested_rest_seconds}s Pause</span>
+              </span>
+            {/if}
           </div>
-          {#if exercise.suggested_rest_seconds}
-            <div class="rounded-md border border-border-subtle bg-surface-50 px-2 py-0.5 font-mono text-xs text-text-muted">
-              {exercise.suggested_rest_seconds}s Pause
-            </div>
-          {/if}
         </div>
         {#if exercise.description}
           <p class="max-w-3xl text-xs leading-relaxed text-text-muted sm:text-sm">
