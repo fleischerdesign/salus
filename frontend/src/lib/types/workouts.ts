@@ -8,7 +8,56 @@ export type MuscleGroup =
   | 'Trizeps'
   | 'Waden'
   | 'Bauch'
-  | 'Gesäß';
+  | 'Gesäß'
+  | 'Nacken'
+  | 'Unterarme';
+
+export type DetailedMuscleKey =
+  | 'chest_clavicular'
+  | 'chest_sternal'
+  | 'deltoid_anterior'
+  | 'deltoid_lateral'
+  | 'deltoid_posterior'
+  | 'biceps_brachii'
+  | 'triceps_brachii'
+  | 'brachioradialis'
+  | 'trapezius_upper'
+  | 'trapezius_mid_lower'
+  | 'latissimus_dorsi'
+  | 'erector_spinae'
+  | 'rectus_abdominis'
+  | 'obliques'
+  | 'gluteus_maximus'
+  | 'gluteus_medius'
+  | 'quadriceps'
+  | 'hamstrings'
+  | 'gastrocnemius'
+  | 'soleus'
+  | 'adductors';
+
+export const TIER2_TO_TIER1: Record<DetailedMuscleKey, MuscleGroup> = {
+  chest_clavicular: 'Brust',
+  chest_sternal: 'Brust',
+  deltoid_anterior: 'Schultern',
+  deltoid_lateral: 'Schultern',
+  deltoid_posterior: 'Schultern',
+  biceps_brachii: 'Bizeps',
+  triceps_brachii: 'Trizeps',
+  brachioradialis: 'Unterarme',
+  trapezius_upper: 'Nacken',
+  trapezius_mid_lower: 'Rücken',
+  latissimus_dorsi: 'Rücken',
+  erector_spinae: 'Rücken',
+  rectus_abdominis: 'Bauch',
+  obliques: 'Bauch',
+  gluteus_maximus: 'Gesäß',
+  gluteus_medius: 'Gesäß',
+  quadriceps: 'Quadrizeps',
+  hamstrings: 'Hamstrings',
+  gastrocnemius: 'Waden',
+  soleus: 'Waden',
+  adductors: 'Quadrizeps'
+};
 
 export type ExerciseCategory = 'Grundübung' | 'Hypertrophie' | 'Isolationsübung' | 'Bodyweight';
 export type EquipmentType = 'Langhantel' | 'Kurzhantel' | 'Kabelzug' | 'Maschine' | 'Eigengewicht';
