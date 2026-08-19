@@ -291,7 +291,7 @@
         >Gesamt-Einträge</span
       >
       <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
-        {measurements.length}
+        {totalCount.toLocaleString('de-DE')}
       </div>
     </div>
   </div>
