@@ -75,7 +75,7 @@
 
   {#if step === 1}
     <Card title="Connect a Data Source">
-      <p class="text-surface-600 mb-4 text-sm">
+      <p class="mb-4 text-sm text-surface-600">
         Get an API token to push health data from apps and devices.
       </p>
       <Btn variant="primary" onclick={createToken}>
@@ -84,12 +84,12 @@
       {#if token}
         <div class="mt-4 space-y-3">
           <div>
-            <p class="text-surface-500 mb-1 text-xs font-medium">API Token</p>
+            <p class="mb-1 text-xs font-medium text-surface-500">API Token</p>
             <CopyToClipboard value={token} label="API Token" />
           </div>
           {#if webhookUrl}
             <div>
-              <p class="text-surface-500 mb-1 text-xs font-medium">Webhook URL</p>
+              <p class="mb-1 text-xs font-medium text-surface-500">Webhook URL</p>
               <CopyToClipboard value={webhookUrl} label="Webhook URL" />
             </div>
           {/if}
@@ -153,8 +153,8 @@
     <Card>
       <div class="py-8 text-center">
         <Icon name="celebration" size="2xl" class="text-success-500" />
-        <h1 class="text-surface-900 mt-4 text-xl font-semibold">You're all set!</h1>
-        <p class="text-surface-500 mt-2 text-sm">Start tracking your health data.</p>
+        <h1 class="mt-4 text-xl font-semibold text-surface-900">You're all set!</h1>
+        <p class="mt-2 text-sm text-surface-500">Start tracking your health data.</p>
         <div class="mt-6">
           <Btn variant="primary" onclick={dismiss}>Go to Dashboard</Btn>
         </div>

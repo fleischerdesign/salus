@@ -107,13 +107,13 @@
   <Card padding={false}>
     {#snippet header()}
       <div class="flex items-center justify-between">
-        <span class="text-surface-900 text-sm font-semibold">Developer Plugins</span>
+        <span class="text-sm font-semibold text-surface-900">Developer Plugins</span>
         <form onsubmit={uploadPlugin} class="flex items-center gap-2">
           <input
             bind:this={fileInput}
             type="file"
             accept=".zip"
-            class="text-surface-500 file:border-surface-300 file:bg-surface-50 file:text-surface-700 text-xs file:mr-2 file:rounded file:border file:px-2.5 file:py-1 file:text-xs file:font-medium"
+            class="text-xs text-surface-500 file:mr-2 file:rounded file:border file:border-surface-300 file:bg-surface-50 file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-surface-700"
           />
           <Btn variant="secondary" size="sm" type="submit">
             <Icon name="upload-file" size="sm" />Install
@@ -125,11 +125,11 @@
     {#if loading}
       <div class="flex justify-center py-12"><Spinner /></div>
     {:else if error && plugins.length === 0}
-      <div class="text-surface-400 px-5 py-10 text-center text-sm">
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
         Could not load plugins. Check your connection and try again.
       </div>
     {:else if plugins.length === 0}
-      <div class="text-surface-400 px-5 py-10 text-center text-sm">
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
         No plugins installed. Upload a .zip to get started.
       </div>
     {:else}
@@ -155,7 +155,7 @@
     </Badge>
     <button
       type="button"
-      class="duration-micro text-surface-600 hover:bg-surface-100 rounded px-2 py-1 text-xs font-medium transition-colors"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => togglePlugin(p)}
     >
       {p.enabled ? 'Disable' : 'Enable'}

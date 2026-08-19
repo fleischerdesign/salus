@@ -60,7 +60,7 @@
 
 <div class="relative" onmouseenter={show} onmouseleave={hide} role="presentation">
   <button
-    class="duration-micro text-surface-600 hover:bg-surface-200 hover:text-surface-900 relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors"
+    class="duration-micro relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-surface-600 transition-colors hover:bg-surface-200 hover:text-surface-900"
     aria-label="Notifications"
     aria-expanded={open}
     aria-haspopup="true"
@@ -71,17 +71,17 @@
       <StatusDot
         status={highestSeverity}
         size="sm"
-        class="ring-surface-0 absolute top-[2px] right-[2px] ring-2"
+        class="absolute top-[2px] right-[2px] ring-2 ring-surface-0"
       />
     {/if}
   </button>
   <div class={menuClass}>
-    <div class="border-surface-200 flex items-center justify-between border-b px-4 py-2.5">
+    <div class="flex items-center justify-between border-b border-surface-200 px-4 py-2.5">
       <div class="flex items-center gap-2">
-        <h3 class="text-surface-900 text-sm font-semibold">Notifications</h3>
+        <h3 class="text-sm font-semibold text-surface-900">Notifications</h3>
         {#if unreadCount > 0}
           <span
-            class="bg-surface-100 text-surface-600 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+            class="rounded-full bg-surface-100 px-1.5 py-0.5 text-[10px] font-bold text-surface-600"
           >
             {unreadCount}
           </span>
@@ -99,7 +99,7 @@
     </div>
     <div class="max-h-80 overflow-y-auto">
       {#if notifications.length === 0}
-        <div class="text-surface-400 px-4 py-8 text-center text-sm">No notifications</div>
+        <div class="px-4 py-8 text-center text-sm text-surface-400">No notifications</div>
       {:else}
         {#snippet row(n: Notification)}
           <div class="flex items-start gap-2.5">
@@ -111,10 +111,10 @@
               ></span>
             {/if}
             <div class="min-w-0 flex-1">
-              <p class="text-surface-900 text-sm font-semibold">{n.title}</p>
-              <p class="text-surface-600 mt-0.5 text-xs leading-relaxed">{n.message}</p>
+              <p class="text-sm font-semibold text-surface-900">{n.title}</p>
+              <p class="mt-0.5 text-xs leading-relaxed text-surface-600">{n.message}</p>
               {#if n.created_at}
-                <p class="text-surface-400 mt-1 font-mono text-[10px]">
+                <p class="mt-1 font-mono text-[10px] text-surface-400">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               {/if}
@@ -126,7 +126,7 @@
             <a
               href={n.link}
               onclick={() => (open = false)}
-              class="duration-micro border-surface-100 hover:bg-surface-50 block border-b px-4 py-3 no-underline transition-colors {n.is_read
+              class="duration-micro block border-b border-surface-100 px-4 py-3 no-underline transition-colors hover:bg-surface-50 {n.is_read
                 ? 'opacity-60'
                 : ''}"
             >
@@ -134,7 +134,7 @@
             </a>
           {:else}
             <div
-              class="duration-micro border-surface-100 hover:bg-surface-50 border-b px-4 py-3 transition-colors {n.is_read
+              class="duration-micro border-b border-surface-100 px-4 py-3 transition-colors hover:bg-surface-50 {n.is_read
                 ? 'opacity-60'
                 : ''}"
             >

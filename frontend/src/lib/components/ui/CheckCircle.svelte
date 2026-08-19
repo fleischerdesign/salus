@@ -29,7 +29,7 @@
   type="button"
   class="duration-micro flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all {checked
     ? 'border-primary-500 bg-primary-500'
-    : 'border-surface-300 hover:border-primary-400'} {disabled
+    : 'hover:border-primary-400 border-surface-300'} {disabled
     ? 'cursor-not-allowed opacity-50'
     : 'cursor-pointer'} {extraClass}"
   onclick={handleClick}

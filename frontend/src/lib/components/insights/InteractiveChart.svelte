@@ -72,16 +72,14 @@
   });
 </script>
 
-<div
-  class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
->
+<div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
   <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
     <div>
-      <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-        <Icon name="show-chart" class="text-[var(--color-primary)]" />
+      <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+        <Icon name="show-chart" class="text-primary" />
         <span>{metricName} Verlauf &amp; Trend</span>
       </div>
-      <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+      <p class="mt-0.5 text-xs text-text-muted">
         {#if hasData}
           {data.length} Messpunkte im gewählten Zeitraum ({selectedRange})
         {:else}
@@ -91,17 +89,15 @@
     </div>
 
     <!-- Time Range Selector -->
-    <div
-      class="flex gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1"
-    >
+    <div class="flex gap-1 rounded-lg border border-border-subtle bg-surface-50 p-1">
       {#each ['7D', '30D', '90D', '1Y'] as const as r}
         <button
           type="button"
           onclick={() => (selectedRange = r)}
           class="cursor-pointer rounded-md px-2.5 py-1 text-xs font-bold transition-all {selectedRange ===
           r
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-primary text-white shadow-xs'
+            : 'text-text-muted hover:text-text-main'}"
         >
           {r}
         </button>
@@ -158,7 +154,7 @@
             x="675"
             y={targetY - 5}
             text-anchor="end"
-            class="fill-[var(--color-primary)] text-[10px] font-bold"
+            class="fill-primary text-[10px] font-bold"
           >
             🎯 Ziel: {targetValue}
             {unit}
@@ -203,14 +199,12 @@
       <!-- Pristine Empty Chart State -->
       <div class="flex flex-col items-center justify-center p-6 text-center">
         <div
-          class="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+          class="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary"
         >
           <Icon name="monitoring" size="md" />
         </div>
-        <p class="text-xs font-bold text-[var(--text-main)]">
-          Noch kein Zeitreihen-Verlauf vorhanden
-        </p>
-        <p class="mt-0.5 max-w-xs text-[0.6875rem] text-[var(--text-muted)]">
+        <p class="text-xs font-bold text-text-main">Noch kein Zeitreihen-Verlauf vorhanden</p>
+        <p class="mt-0.5 max-w-xs text-[0.6875rem] text-text-muted">
           Sobald du Messwerte erfasst, zeichnet Salus hier deinen realen Längsschnitt-Trend und
           7-Tage-EMA ein.
         </p>
@@ -226,7 +220,7 @@
   <!-- X-Axis Labels -->
   {#if hasData}
     <div
-      class="mt-2 flex justify-between border-t border-[var(--border-subtle)] pt-2 text-[0.6875rem] text-[var(--text-muted)]"
+      class="mt-2 flex justify-between border-t border-border-subtle pt-2 text-[0.6875rem] text-text-muted"
     >
       {#each data as p}
         <span class="truncate px-1">{p.date}</span>

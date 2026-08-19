@@ -137,12 +137,12 @@
       </div>
     {/if}
 
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-4">
+    <div class="flex items-center justify-between border-t border-border-subtle pt-4">
       <div>
         {#if goal?.id}
           <button
             type="button"
-            class="cursor-pointer text-xs font-semibold text-[var(--color-vital)] hover:underline"
+            class="cursor-pointer text-xs font-semibold text-vital hover:underline"
             onclick={handleDelete}
             disabled={isSaving}
           >

@@ -60,11 +60,11 @@
         </div>
 
         <div class="min-w-0 flex-1 pt-0.5">
-          <div class="text-surface-900 font-semibold">{name}</div>
+          <div class="font-semibold text-surface-900">{name}</div>
           {#if description}
-            <div class="text-surface-500 truncate text-xs">{description}</div>
+            <div class="truncate text-xs text-surface-500">{description}</div>
           {/if}
-          <div class="text-surface-400 mt-1 text-xs">
+          <div class="mt-1 text-xs text-surface-400">
             {servings} serving{servings !== 1 ? 's' : ''}
             · {Math.round(perServing.calories)} kcal/serving
             {#if prepTimeMin || cookTimeMin}
@@ -80,16 +80,16 @@
         {/if}
       </div>
 
-      <div class="border-surface-100 mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2.5 text-xs">
+      <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-surface-100 pt-2.5 text-xs">
         <span class="text-primary-600">P {Math.round(perServing.protein)}g</span>
         <span class="text-warning-600">C {Math.round(perServing.carbs)}g</span>
         <span class="text-error-500">F {Math.round(perServing.fat)}g</span>
-        <span class="text-surface-400 ml-auto">{Math.round(totalCalories)} kcal total</span>
+        <span class="ml-auto text-surface-400">{Math.round(totalCalories)} kcal total</span>
       </div>
     </div>
 
-    <div class="border-surface-100 flex items-center justify-between border-t px-4 py-2.5">
-      <span class="text-surface-400 text-xs">per serving</span>
+    <div class="flex items-center justify-between border-t border-surface-100 px-4 py-2.5">
+      <span class="text-xs text-surface-400">per serving</span>
       <button
         onclick={(e) => {
           e.stopPropagation();

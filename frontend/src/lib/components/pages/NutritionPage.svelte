@@ -338,7 +338,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Ernährung und Makronährstoffe</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Tagesziel: 2.400 kcal &bull; 180g Protein (2.2 g/kg) &bull; Präzises Mahlzeitentagebuch
       </p>
     </div>
@@ -346,7 +346,7 @@
       <button
         type="button"
         onclick={() => (isCreateFoodModalOpen = true)}
-        class="flex cursor-pointer items-center gap-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-2 text-xs font-bold shadow-xs transition-all hover:bg-[var(--bg-surface-100)]"
+        class="flex cursor-pointer items-center gap-1.5 rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-2 text-xs font-bold shadow-xs transition-all hover:bg-surface-100"
       >
         <span>+ Lebensmittel</span>
       </button>
@@ -354,7 +354,7 @@
       <button
         type="button"
         onclick={() => (isRecipeEditorOpen = true)}
-        class="flex cursor-pointer items-center gap-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-2 text-xs font-bold shadow-xs transition-all hover:bg-[var(--bg-surface-100)]"
+        class="flex cursor-pointer items-center gap-1.5 rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-2 text-xs font-bold shadow-xs transition-all hover:bg-surface-100"
       >
         <span>+ Rezept erstellen</span>
       </button>
@@ -362,7 +362,7 @@
       <button
         type="button"
         onclick={() => (isBarcodeScannerOpen = true)}
-        class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
+        class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
       >
         <span>Barcode scannen</span>
       </button>
@@ -371,17 +371,17 @@
 
   <!-- Sub-Navigation Tabs -->
   <div
-    class="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5"
+    class="no-scrollbar flex gap-2 overflow-x-auto rounded-2xl border border-border-subtle bg-surface-50 p-1.5"
   >
     <button
       type="button"
       onclick={() => setTab('diary')}
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition-all {activeTab ===
       'diary'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="restaurant" class="text-[var(--color-activity)]" />
+      <Icon name="restaurant" class="text-activity" />
       <span>Tagebuch</span>
       <Badge variant="activity" class="text-[0.625rem] tabular-nums">{totalCalories} kcal</Badge>
     </button>
@@ -391,10 +391,10 @@
       onclick={() => setTab('recipes')}
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition-all {activeTab ===
       'recipes'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="wb_sunny" class="text-[var(--color-circadian)]" />
+      <Icon name="wb_sunny" class="text-circadian" />
       <span>Rezeptdatenbank</span>
       <Badge variant="default" class="text-[0.625rem]">{recipesList.length}</Badge>
     </button>
@@ -404,10 +404,10 @@
       onclick={() => setTab('database')}
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition-all {activeTab ===
       'database'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="labs" class="text-[var(--color-primary)]" />
+      <Icon name="labs" class="text-primary" />
       <span>Lebensmittelkatalog</span>
       <Badge variant="default" class="text-[0.625rem]">{foodCatalog.length}</Badge>
     </button>
@@ -429,7 +429,7 @@
 
       <!-- Quick Actions Bar -->
       <div class="flex flex-wrap items-center justify-between gap-2 px-1">
-        <h2 class="text-base font-extrabold text-[var(--text-main)]">Mahlzeitenfenster</h2>
+        <h2 class="text-base font-extrabold text-text-main">Mahlzeitenfenster</h2>
       </div>
 
       <!-- 4 Meal Slots Schedule -->
@@ -440,29 +440,25 @@
           {@const mealCarbs = Math.round(meal.items.reduce((sum, i) => sum + i.carbs, 0))}
           {@const mealFat = Math.round(meal.items.reduce((sum, i) => sum + i.fat, 0))}
 
-          <div
-            class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-          >
+          <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
             <!-- Meal Header -->
             <div
-              class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)]/60 pb-2"
+              class="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle/60 pb-2"
             >
               <div class="flex items-center gap-2.5">
-                <div class="h-2.5 w-2.5 rounded-full bg-[var(--color-activity)]"></div>
+                <div class="h-2.5 w-2.5 rounded-full bg-activity"></div>
                 <div>
-                  <h3 class="text-sm font-extrabold text-[var(--text-main)] sm:text-base">
+                  <h3 class="text-sm font-extrabold text-text-main sm:text-base">
                     {meal.title}
                   </h3>
-                  <span class="text-xs text-[var(--text-muted)]">{meal.time}</span>
+                  <span class="text-xs text-text-muted">{meal.time}</span>
                 </div>
               </div>
 
               <div class="flex items-center gap-3">
                 <div class="text-right">
-                  <span class="text-xs font-bold text-[var(--color-activity)] tabular-nums"
-                    >{mealKcal} kcal</span
-                  >
-                  <span class="block text-[0.6875rem] text-[var(--text-muted)] tabular-nums"
+                  <span class="text-xs font-bold text-activity tabular-nums">{mealKcal} kcal</span>
+                  <span class="block text-[0.6875rem] text-text-muted tabular-nums"
                     >{mealProtein}g P &bull; {mealCarbs}g C &bull; {mealFat}g F</span
                   >
                 </div>
@@ -470,7 +466,7 @@
                 <button
                   type="button"
                   onclick={() => openSearchForMeal(meal)}
-                  class="flex cursor-pointer items-center gap-1 rounded-xl bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+                  class="flex cursor-pointer items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
                 >
                   <span>+ Hinzufügen</span>
                 </button>
@@ -479,33 +475,33 @@
 
             <!-- Items Table in this Meal -->
             {#if meal.items.length === 0}
-              <div class="py-3 text-center text-xs text-[var(--text-muted)] italic">
+              <div class="py-3 text-center text-xs text-text-muted italic">
                 Noch keine Lebensmittel für {meal.title} eingetragen.
               </div>
             {:else}
               <div class="space-y-1.5">
                 {#each meal.items as item}
                   <div
-                    class="flex items-center justify-between gap-2 rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)] p-2.5 transition-all hover:border-[var(--border-strong)]"
+                    class="flex items-center justify-between gap-2 rounded-2xl border border-border-subtle/70 bg-surface-50 p-2.5 transition-all hover:border-border-strong"
                   >
                     <div class="overflow-hidden">
-                      <span class="block truncate text-xs font-bold text-[var(--text-main)]"
+                      <span class="block truncate text-xs font-bold text-text-main"
                         >{item.name}</span
                       >
-                      <span class="text-[0.6875rem] text-[var(--text-muted)] tabular-nums">
+                      <span class="text-[0.6875rem] text-text-muted tabular-nums">
                         {item.amountG}g &bull; {item.protein}g Protein &bull; {item.carbs}g Carbs
                         &bull; {item.fat}g Fett
                       </span>
                     </div>
 
                     <div class="flex shrink-0 items-center gap-2.5">
-                      <span class="text-xs font-bold text-[var(--text-main)] tabular-nums"
+                      <span class="text-xs font-bold text-text-main tabular-nums"
                         >{item.kcal} kcal</span
                       >
                       <button
                         type="button"
                         onclick={() => removeItemFromMeal(meal.type, item.id)}
-                        class="cursor-pointer p-1 text-xs font-bold text-[var(--text-muted)] hover:text-rose-500"
+                        class="cursor-pointer p-1 text-xs font-bold text-text-muted hover:text-rose-500"
                         title="Eintrag entfernen"
                       >
                         &times;
@@ -520,52 +516,40 @@
       </div>
 
       <!-- Advanced Micronutrient Analysis Card -->
-      <div
-        class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-      >
+      <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
         <div>
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+          <h3 class="text-sm font-extrabold text-text-main">
             Mikronährstoffe und Elektrolyt-Verteilung
           </h3>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Detaillierte Nährwertbilanz für die heutige Ernährung
           </p>
         </div>
 
         <div class="grid grid-cols-2 gap-3 text-center text-xs sm:grid-cols-5">
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-          >
-            <span class="block text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
+          <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+            <span class="block text-[0.625rem] font-bold text-text-muted uppercase"
               >Ballaststoffe</span
             >
-            <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
-              >{totalFiber} g</span
-            >
+            <span class="text-sm font-extrabold text-text-main tabular-nums">{totalFiber} g</span>
             <span class="mt-0.5 block text-[0.5625rem] font-bold text-emerald-500">Ziel: 38g</span>
           </div>
 
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-          >
-            <span class="block text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
+          <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+            <span class="block text-[0.625rem] font-bold text-text-muted uppercase"
               >davon Zucker</span
             >
-            <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
-              >{totalSugar} g</span
-            >
+            <span class="text-sm font-extrabold text-text-main tabular-nums">{totalSugar} g</span>
             <span class="mt-0.5 block text-[0.5625rem] font-bold text-emerald-500"
               >&lt; 45g Limit</span
             >
           </div>
 
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-          >
-            <span class="block text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
+          <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+            <span class="block text-[0.625rem] font-bold text-text-muted uppercase"
               >Gesätt. Fette</span
             >
-            <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
+            <span class="text-sm font-extrabold text-text-main tabular-nums"
               >{totalSaturatedFat} g</span
             >
             <span class="mt-0.5 block text-[0.5625rem] font-bold text-emerald-500"
@@ -573,25 +557,17 @@
             >
           </div>
 
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-          >
-            <span class="block text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
-              >Natrium</span
-            >
-            <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
-              >{totalSodiumG} g</span
-            >
+          <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+            <span class="block text-[0.625rem] font-bold text-text-muted uppercase">Natrium</span>
+            <span class="text-sm font-extrabold text-text-main tabular-nums">{totalSodiumG} g</span>
             <span class="mt-0.5 block text-[0.5625rem] font-bold text-emerald-500">Optimal</span>
           </div>
 
           <div
-            class="col-span-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 sm:col-span-1"
+            class="col-span-2 rounded-2xl border border-border-subtle bg-surface-50 p-3 sm:col-span-1"
           >
-            <span class="block text-[0.625rem] font-bold text-[var(--text-muted)] uppercase"
-              >Kalium</span
-            >
-            <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
+            <span class="block text-[0.625rem] font-bold text-text-muted uppercase">Kalium</span>
+            <span class="text-sm font-extrabold text-text-main tabular-nums"
               >{totalPotassiumG} g</span
             >
             <span class="mt-0.5 block text-[0.5625rem] font-bold text-emerald-500">Tagesbilanz</span
@@ -608,17 +584,17 @@
     <div class="space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 class="text-base font-extrabold text-[var(--text-main)]">
+          <h2 class="text-base font-extrabold text-text-main">
             Rezept-Katalog &amp; Portions-Skalierer
           </h2>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Gespeicherte Makronährstoff-Profile für automatisches Logging
           </p>
         </div>
         <button
           type="button"
           onclick={() => (isRecipeEditorOpen = true)}
-          class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+          class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
         >
           <span>+ Neues Rezept erstellen</span>
         </button>
@@ -626,24 +602,22 @@
 
       {#if recipesList.length === 0}
         <div
-          class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 text-center shadow-xs"
+          class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-8 text-center shadow-xs"
         >
           <div
-            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary"
           >
             <Icon name="restaurant" size="lg" />
           </div>
-          <h3 class="text-base font-bold text-[var(--text-main)]">
-            Keine eigenen Rezepte vorhanden
-          </h3>
-          <p class="mx-auto max-w-sm text-xs text-[var(--text-muted)]">
+          <h3 class="text-base font-bold text-text-main">Keine eigenen Rezepte vorhanden</h3>
+          <p class="mx-auto max-w-sm text-xs text-text-muted">
             Erstelle deine Lieblingsmahlzeiten als skalierbare Rezepte mit automatischer
             Makronährstoffberechnung.
           </p>
           <button
             type="button"
             onclick={() => (isRecipeEditorOpen = true)}
-            class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+            class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
           >
             + Erstes Rezept erstellen
           </button>
@@ -652,60 +626,54 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
           {#each recipesList as recipe}
             <div
-              class="flex flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs transition-all hover:border-[var(--color-primary)]"
+              class="flex flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs transition-all hover:border-primary"
             >
               <div>
                 <div class="mb-2 flex items-start justify-between">
-                  <span
-                    class="font-mono text-[0.6875rem] font-bold text-[var(--color-primary)] uppercase"
+                  <span class="font-mono text-[0.6875rem] font-bold text-primary uppercase"
                     >{recipe.category}</span
                   >
                   <Badge variant="activity">{recipe.prepTime}</Badge>
                 </div>
-                <h3 class="text-base leading-snug font-extrabold text-[var(--text-main)]">
+                <h3 class="text-base leading-snug font-extrabold text-text-main">
                   {recipe.title}
                 </h3>
 
                 <div
-                  class="my-3 grid grid-cols-4 gap-1.5 rounded-2xl bg-[var(--bg-surface-50)] p-2.5 text-center text-xs"
+                  class="my-3 grid grid-cols-4 gap-1.5 rounded-2xl bg-surface-50 p-2.5 text-center text-xs"
                 >
                   <div>
-                    <span class="block text-[0.625rem] text-[var(--text-muted)]">Kcal</span>
-                    <span class="font-bold text-[var(--color-activity)] tabular-nums"
-                      >{recipe.kcalPerPortion}</span
+                    <span class="block text-[0.625rem] text-text-muted">Kcal</span>
+                    <span class="font-bold text-activity tabular-nums">{recipe.kcalPerPortion}</span
                     >
                   </div>
                   <div>
-                    <span class="block text-[0.625rem] text-[var(--text-muted)]">Protein</span>
-                    <span class="font-bold text-[var(--text-main)] tabular-nums"
+                    <span class="block text-[0.625rem] text-text-muted">Protein</span>
+                    <span class="font-bold text-text-main tabular-nums"
                       >{recipe.proteinPerPortion}g</span
                     >
                   </div>
                   <div>
-                    <span class="block text-[0.625rem] text-[var(--text-muted)]">Carbs</span>
-                    <span class="font-bold text-[var(--text-main)] tabular-nums"
+                    <span class="block text-[0.625rem] text-text-muted">Carbs</span>
+                    <span class="font-bold text-text-main tabular-nums"
                       >{recipe.carbsPerPortion}g</span
                     >
                   </div>
                   <div>
-                    <span class="block text-[0.625rem] text-[var(--text-muted)]">Fett</span>
-                    <span class="font-bold text-[var(--text-main)] tabular-nums"
+                    <span class="block text-[0.625rem] text-text-muted">Fett</span>
+                    <span class="font-bold text-text-main tabular-nums"
                       >{recipe.fatPerPortion}g</span
                     >
                   </div>
                 </div>
               </div>
 
-              <div
-                class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3"
-              >
-                <span class="text-xs text-[var(--text-muted)]"
-                  >Basis: {recipe.basePortions} Port.</span
-                >
+              <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+                <span class="text-xs text-text-muted">Basis: {recipe.basePortions} Port.</span>
                 <button
                   type="button"
                   onclick={() => openRecipeModal(recipe)}
-                  class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-1.5 text-xs font-bold text-[var(--color-primary)] shadow-xs transition-all hover:bg-[var(--bg-surface-100)]"
+                  class="cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-3.5 py-1.5 text-xs font-bold text-primary shadow-xs transition-all hover:bg-surface-100"
                 >
                   Kochen &amp; Loggen &rarr;
                 </button>
@@ -723,17 +691,17 @@
     <div class="space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-base font-extrabold text-[var(--text-main)]">
+          <h2 class="text-base font-extrabold text-text-main">
             Lebensmittel- und Nährwert-Katalog
           </h2>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Offiziell verifizierte Nährwertprofile und eigene Kreationen
           </p>
         </div>
         <button
           type="button"
           onclick={() => (isCreateFoodModalOpen = true)}
-          class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+          class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
         >
           <span>+ Eigenes Lebensmittel anlegen</span>
         </button>
@@ -741,7 +709,7 @@
 
       <!-- Search & Filters -->
       <div
-        class="flex flex-col items-center justify-between gap-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs md:flex-row"
+        class="flex flex-col items-center justify-between gap-3 rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs md:flex-row"
       >
         <div class="w-full md:w-80">
           <Input icon="search" placeholder="Lebensmittel durchsuchen..." bind:value={dbSearch} />
@@ -754,8 +722,8 @@
               onclick={() => (dbCategory = cat)}
               class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all {dbCategory ===
               cat
-                ? 'bg-[var(--color-primary)] font-bold text-white'
-                : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+                ? 'bg-primary font-bold text-white'
+                : 'border border-border-subtle bg-surface-50 text-text-muted hover:text-text-main'}"
             >
               {cat}
             </button>
@@ -766,33 +734,33 @@
       <!-- Food Table -->
       {#if filteredCatalog.length === 0}
         <div
-          class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 text-center shadow-xs"
+          class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-8 text-center shadow-xs"
         >
           <div
-            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary"
           >
             <Icon name="search" size="lg" />
           </div>
-          <h3 class="text-base font-bold text-[var(--text-main)]">Keine Lebensmittel gefunden</h3>
-          <p class="mx-auto max-w-sm text-xs text-[var(--text-muted)]">
+          <h3 class="text-base font-bold text-text-main">Keine Lebensmittel gefunden</h3>
+          <p class="mx-auto max-w-sm text-xs text-text-muted">
             Füge ein neues Lebensmittel manuell hinzu oder scanne einen Barcode mit deiner Kamera.
           </p>
           <button
             type="button"
             onclick={() => (isCreateFoodModalOpen = true)}
-            class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+            class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
           >
             + Eigenes Lebensmittel anlegen
           </button>
         </div>
       {:else}
         <div
-          class="overflow-x-auto rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
+          class="overflow-x-auto rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs"
         >
           <table class="w-full border-collapse text-left text-xs">
             <thead>
               <tr
-                class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
+                class="border-b border-border-subtle text-[0.6875rem] tracking-wider text-text-muted uppercase"
               >
                 <th class="px-3 py-2.5">Lebensmittel</th>
                 <th class="px-3 py-2.5">Kategorie / Quelle</th>
@@ -804,17 +772,13 @@
                 <th class="px-3 py-2.5">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[var(--border-subtle)]">
+            <tbody class="divide-y divide-border-subtle">
               {#each filteredCatalog as f}
-                <tr class="transition-colors hover:bg-[var(--bg-surface-50)]">
-                  <td class="px-3 py-3 font-bold text-[var(--text-main)]">{f.name}</td>
-                  <td class="px-3 py-3 font-mono text-[var(--text-muted)]"
-                    >{f.category} ({f.source})</td
-                  >
+                <tr class="transition-colors hover:bg-surface-50">
+                  <td class="px-3 py-3 font-bold text-text-main">{f.name}</td>
+                  <td class="px-3 py-3 font-mono text-text-muted">{f.category} ({f.source})</td>
                   <td class="px-3 py-3 font-mono">{f.servingSizeG} g</td>
-                  <td class="px-3 py-3 font-mono font-bold text-[var(--color-activity)]"
-                    >{f.kcalPer100g}</td
-                  >
+                  <td class="px-3 py-3 font-mono font-bold text-activity">{f.kcalPer100g}</td>
                   <td class="px-3 py-3 font-mono">{f.proteinPer100g} g</td>
                   <td class="px-3 py-3 font-mono">{f.carbsPer100g} g</td>
                   <td class="px-3 py-3 font-mono">{f.fatPer100g} g</td>

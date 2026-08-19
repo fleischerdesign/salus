@@ -27,7 +27,7 @@
 <div>
   <button
     type="button"
-    class="duration-micro text-surface-900 hover:bg-surface-50 flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold transition-colors"
+    class="duration-micro flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-surface-900 transition-colors hover:bg-surface-50"
     aria-expanded={isOpen}
     onclick={() => accordion.toggle(id)}
   >
@@ -40,7 +40,7 @@
   </button>
   {#if isOpen}
     <div class="overflow-hidden" transition:slide={motionParams(DURATIONS.fast)}>
-      <div class="text-surface-600 px-4 py-3 text-sm">
+      <div class="px-4 py-3 text-sm text-surface-600">
         {@render children()}
       </div>
     </div>

@@ -22,17 +22,16 @@
   let { variant = 'default', children, class: extraClass = '' }: Props = $props();
 
   const variantClasses: Record<BadgeVariant, string> = {
-    default:
-      'bg-[var(--bg-surface-100)] text-[var(--text-muted)] border border-[var(--border-subtle)]',
-    primary: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)] font-bold',
-    success: 'bg-[var(--color-success-soft)] text-[var(--color-success)] font-bold',
+    default: 'bg-surface-100 text-text-muted border border-border-subtle',
+    primary: 'bg-primary-soft text-primary font-bold',
+    success: 'bg-success-soft text-success font-bold',
     warning: 'bg-amber-500/10 text-amber-600 font-bold',
     error: 'bg-rose-500/10 text-rose-600 font-bold',
-    vital: 'bg-[var(--color-vital-soft)] text-[var(--color-vital)] font-bold',
-    activity: 'bg-[var(--color-activity-soft)] text-[var(--color-activity)] font-bold',
-    hydrate: 'bg-[var(--color-hydrate-soft)] text-[var(--color-hydrate)] font-bold',
-    fasting: 'bg-[var(--color-fasting-soft)] text-[var(--color-fasting)] font-bold',
-    circadian: 'bg-[var(--color-circadian-soft)] text-[var(--color-circadian)] font-bold'
+    vital: 'bg-vital-soft text-vital font-bold',
+    activity: 'bg-activity-soft text-activity font-bold',
+    hydrate: 'bg-hydrate-soft text-hydrate font-bold',
+    fasting: 'bg-fasting-soft text-fasting font-bold',
+    circadian: 'bg-circadian-soft text-circadian font-bold'
   };
 </script>
 

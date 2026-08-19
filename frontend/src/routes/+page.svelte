@@ -454,7 +454,7 @@
             <button
               type="button"
               onclick={() => handleRemoveRootItem(item.id)}
-              class="animate-fade-in absolute -top-2 -right-2 z-30 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-[var(--bg-canvas)] bg-rose-500 text-sm font-extrabold text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
+              class="animate-fade-in absolute -top-2 -right-2 z-30 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-canvas bg-rose-500 text-sm font-extrabold text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
               title="Widget entfernen"
               aria-label="Widget entfernen"
             >
@@ -492,16 +492,14 @@
       <button
         type="button"
         onclick={openRootGallery}
-        class="group flex min-h-[90px] w-full cursor-pointer items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-0)]/20 p-4 text-[var(--text-muted)] shadow-xs transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)]"
+        class="group flex min-h-[90px] w-full cursor-pointer items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-border-subtle bg-surface-0/20 p-4 text-text-muted shadow-xs transition-all hover:border-primary hover:bg-primary-soft hover:text-primary"
       >
         <div
-          class="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-base font-bold transition-all group-hover:bg-[var(--color-primary)] group-hover:text-white"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-border-subtle bg-surface-50 text-base font-bold transition-all group-hover:bg-primary group-hover:text-white"
         >
           +
         </div>
-        <span
-          class="text-xs font-bold text-[var(--text-main)] group-hover:text-[var(--color-primary)]"
-        >
+        <span class="text-xs font-bold text-text-main group-hover:text-primary">
           Weiteres Widget oder neuen Bereich zum Dashboard hinzufügen
         </span>
       </button>
@@ -509,10 +507,8 @@
   </div>
 
   {#if dashboardItems.length === 0}
-    <div
-      class="space-y-3 rounded-3xl border-2 border-dashed border-[var(--border-subtle)] p-12 text-center"
-    >
-      <p class="text-sm text-[var(--text-muted)]">Dein Dashboard ist leer.</p>
+    <div class="space-y-3 rounded-3xl border-2 border-dashed border-border-subtle p-12 text-center">
+      <p class="text-sm text-text-muted">Dein Dashboard ist leer.</p>
       <Btn variant="primary" onclick={openRootGallery}>+ Erstes Element hinzufügen</Btn>
     </div>
   {/if}

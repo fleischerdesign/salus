@@ -105,7 +105,7 @@
 {#if running && remainingSeconds > 0}
   <!-- Centered Floating Rest Timer Bar (Above Mobile Nav Dock on mobile, Centered bottom on desktop) -->
   <div
-    class="fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 animate-[slideUp_0.2s_ease-out] items-center justify-between gap-3 rounded-3xl border border-[var(--color-primary)]/40 bg-[var(--glass-dock-bg)] p-3 shadow-2xl ring-2 ring-[var(--color-primary)]/20 backdrop-blur-2xl sm:max-w-md sm:gap-4 sm:p-3.5 md:bottom-6"
+    class="fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 animate-[slideUp_0.2s_ease-out] items-center justify-between gap-3 rounded-3xl border border-primary/40 bg-glass-dock p-3 shadow-2xl ring-2 ring-primary/20 backdrop-blur-2xl sm:max-w-md sm:gap-4 sm:p-3.5 md:bottom-6"
   >
     <!-- Left: Dial Ring + Single Clear Countdown Display -->
     <div class="flex items-center gap-3">
@@ -133,20 +133,17 @@
             class="transition-all duration-300"
           />
         </svg>
-        <span class="absolute flex items-center justify-center text-[var(--color-primary)]">
+        <span class="absolute flex items-center justify-center text-primary">
           <Icon name="timer" size="sm" />
         </span>
       </div>
 
       <!-- Single Primary Countdown Display -->
       <div>
-        <span
-          class="block text-[0.625rem] font-extrabold tracking-wider text-[var(--text-muted)] uppercase"
+        <span class="block text-[0.625rem] font-extrabold tracking-wider text-text-muted uppercase"
           >Satzpause</span
         >
-        <div
-          class="text-base leading-tight font-black text-[var(--text-main)] tabular-nums sm:text-lg"
-        >
+        <div class="text-base leading-tight font-black text-text-main tabular-nums sm:text-lg">
           {formattedTime}
         </div>
       </div>
@@ -157,7 +154,7 @@
       <button
         type="button"
         onclick={() => adjustTime(-15)}
-        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-2 py-1 text-[0.6875rem] font-bold text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+        class="cursor-pointer rounded-xl border border-border-subtle bg-surface-0 px-2 py-1 text-[0.6875rem] font-bold text-text-muted transition-colors hover:bg-surface-50 hover:text-text-main"
         title="-15 Sekunden"
       >
         -15s
@@ -165,7 +162,7 @@
       <button
         type="button"
         onclick={() => adjustTime(30)}
-        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-2 py-1 text-[0.6875rem] font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)]"
+        class="cursor-pointer rounded-xl border border-border-subtle bg-surface-0 px-2 py-1 text-[0.6875rem] font-bold text-text-main transition-colors hover:bg-surface-50"
         title="+30 Sekunden"
       >
         +30s
@@ -173,7 +170,7 @@
       <button
         type="button"
         onclick={skip}
-        class="cursor-pointer rounded-xl bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:opacity-90"
+        class="cursor-pointer rounded-xl bg-primary px-3 py-1.5 text-xs font-bold whitespace-nowrap text-white shadow-xs transition-all hover:opacity-90"
       >
         Fertig
       </button>

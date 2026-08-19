@@ -30,12 +30,12 @@
   {#if label || description}
     <div class="flex-1 space-y-0.5 select-none">
       {#if label}
-        <label for={id} class="block cursor-pointer font-bold text-[var(--text-main)]">
+        <label for={id} class="block cursor-pointer font-bold text-text-main">
           {label}
         </label>
       {/if}
       {#if description}
-        <span class="block text-[0.6875rem] leading-snug text-[var(--text-muted)]">
+        <span class="block text-[0.6875rem] leading-snug text-text-muted">
           {description}
         </span>
       {/if}
@@ -51,9 +51,9 @@
     aria-label={label || 'Umschalten'}
     {disabled}
     onclick={toggle}
-    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:outline-none {checked
-      ? 'bg-[var(--color-primary)]'
-      : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-100)]'} {disabled
+    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-primary/20 focus:outline-none {checked
+      ? 'bg-primary'
+      : 'border border-border-subtle bg-surface-100'} {disabled
       ? 'cursor-not-allowed opacity-50'
       : ''}"
   >

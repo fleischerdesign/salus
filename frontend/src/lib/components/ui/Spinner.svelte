@@ -13,7 +13,7 @@
 </script>
 
 <div
-  class={`border-surface-200 border-t-primary-600 animate-spin rounded-full ${sizeClasses[size]}`}
+  class={`border-t-primary-600 animate-spin rounded-full border-surface-200 ${sizeClasses[size]}`}
   role="status"
   aria-label="Loading"
 ></div>

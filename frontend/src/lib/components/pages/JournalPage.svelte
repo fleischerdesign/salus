@@ -34,7 +34,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Journal & Psychobiometrische Reflexion</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Ablenkungsfreier Zen-Modus mit integrierter Stimmungs- und Biometrie-Verknüpfung
       </p>
     </div>
@@ -52,24 +52,18 @@
 
     <!-- Timeline History & Mood Trends (4-Col) -->
     <div class="space-y-4 lg:col-span-4">
-      <div
-        class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-      >
+      <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
         <div class="mb-3 flex items-center justify-between">
-          <span class="text-sm font-bold text-[var(--text-main)]">Vergangene Einträge</span>
+          <span class="text-sm font-bold text-text-main">Vergangene Einträge</span>
           {#if pastEntries.length > 0}
-            <span class="font-mono text-xs text-[var(--text-muted)]"
-              >{pastEntries.length} Einträge</span
-            >
+            <span class="font-mono text-xs text-text-muted">{pastEntries.length} Einträge</span>
           {/if}
         </div>
 
         {#if loading}
-          <div class="py-8 text-center text-xs text-[var(--text-muted)]">
-            Einträge werden geladen...
-          </div>
+          <div class="py-8 text-center text-xs text-text-muted">Einträge werden geladen...</div>
         {:else if pastEntries.length === 0}
-          <div class="py-8 text-center text-xs text-[var(--text-muted)]">
+          <div class="py-8 text-center text-xs text-text-muted">
             Noch keine Tagebuch-Einträge vorhanden. Nutze den Editor links, um deine Gedanken
             festzuhalten.
           </div>
@@ -77,19 +71,17 @@
           <div class="space-y-3">
             {#each pastEntries as entry (entry.id)}
               <div
-                class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 transition-colors hover:bg-[var(--bg-surface-100)]"
+                class="cursor-pointer rounded-xl border border-border-subtle bg-surface-50 p-3 transition-colors hover:bg-surface-100"
               >
                 <div class="mb-1 flex items-center justify-between">
-                  <span class="text-xs font-bold text-[var(--text-main)]">{entry.title}</span>
-                  <span class="font-mono text-[0.6875rem] text-[var(--text-soft)]"
-                    >{entry.date}</span
-                  >
+                  <span class="text-xs font-bold text-text-main">{entry.title}</span>
+                  <span class="font-mono text-[0.6875rem] text-text-soft">{entry.date}</span>
                 </div>
-                <p class="line-clamp-2 text-[0.6875rem] leading-relaxed text-[var(--text-muted)]">
+                <p class="line-clamp-2 text-[0.6875rem] leading-relaxed text-text-muted">
                   {entry.preview}
                 </p>
                 <div
-                  class="mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-1.5 text-[0.6875rem] text-[var(--text-soft)]"
+                  class="mt-2 flex items-center justify-between border-t border-border-subtle pt-1.5 text-[0.6875rem] text-text-soft"
                 >
                   <Badge variant="default" class="text-[0.625rem]">Tagebuch</Badge>
                   <span class="font-mono">{entry.words} Wörter</span>

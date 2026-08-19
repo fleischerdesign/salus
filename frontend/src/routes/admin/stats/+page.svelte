@@ -15,23 +15,23 @@
   <div class="space-y-6">
     <Card>
       {#snippet header()}
-        <span class="text-surface-900 text-sm font-semibold">System Statistics</span>
+        <span class="text-sm font-semibold text-surface-900">System Statistics</span>
       {/snippet}
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div class="border-surface-200 bg-surface-50 rounded-lg border p-5">
+        <div class="rounded-lg border border-surface-200 bg-surface-50 p-5">
           <Stat value={stats.total_users ?? 0} label="Total Users" />
         </div>
-        <div class="border-surface-200 bg-surface-50 rounded-lg border p-5">
+        <div class="rounded-lg border border-surface-200 bg-surface-50 p-5">
           <Stat value={stats.total_measurements ?? 0} label="Total Measurements" />
         </div>
-        <div class="border-surface-200 bg-surface-50 rounded-lg border p-5">
+        <div class="rounded-lg border border-surface-200 bg-surface-50 p-5">
           <Stat value={stats.total_metric_types ?? 0} label="Metric Types" />
         </div>
-        <div class="border-surface-200 bg-surface-50 rounded-lg border p-5">
+        <div class="rounded-lg border border-surface-200 bg-surface-50 p-5">
           <Stat value={stats.total_goals ?? 0} label="Total Goals" />
         </div>
         {#if stats.db_size}
-          <div class="border-surface-200 bg-surface-50 rounded-lg border p-5">
+          <div class="rounded-lg border border-surface-200 bg-surface-50 p-5">
             <Stat value={stats.db_size} label="Database Size" />
           </div>
         {/if}

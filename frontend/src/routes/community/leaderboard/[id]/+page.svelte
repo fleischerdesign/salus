@@ -134,13 +134,13 @@
     >
       {#snippet actions()}
         <div
-          class="border-surface-200 bg-surface-50 flex items-center gap-3 rounded-lg border px-4 py-2"
+          class="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-2"
         >
           <div>
-            <p class="text-surface-400 text-[10px] font-semibold tracking-wider uppercase">
+            <p class="text-[10px] font-semibold tracking-wider text-surface-400 uppercase">
               Invite Code
             </p>
-            <code class="text-surface-700 text-sm font-bold tracking-wide"
+            <code class="text-sm font-bold tracking-wide text-surface-700"
               >{detail.invite_code}</code
             >
           </div>
@@ -155,7 +155,7 @@
       {#snippet header()}
         {#if detail}
           <div class="flex items-center justify-between">
-            <span class="text-surface-900 text-sm font-semibold">Standings</span>
+            <span class="text-sm font-semibold text-surface-900">Standings</span>
             <span class="text-primary-500 text-xs font-semibold tracking-wider uppercase"
               >{detail.source_data_type}</span
             >
@@ -172,7 +172,7 @@
           />
         </div>
       {:else}
-        <div class="divide-surface-100 divide-y">
+        <div class="divide-y divide-surface-100">
           {#each detail.rankings as r, i (r.rank)}
             <div
               in:fade={{ ...staggerFade(i) }}
@@ -183,19 +183,19 @@
                   {#if rankIcon(r.rank)}
                     <Icon name="workspace-premium" size="md" style="color: {rankColor(r.rank)}" />
                   {:else}
-                    <span class="text-surface-400 text-sm font-semibold">#{r.rank}</span>
+                    <span class="text-sm font-semibold text-surface-400">#{r.rank}</span>
                   {/if}
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-surface-900 text-sm font-semibold">{r.username}</span>
+                  <span class="text-sm font-semibold text-surface-900">{r.username}</span>
                   {#if r.is_me}
                     <Badge variant="primary">You</Badge>
                   {/if}
                 </div>
               </div>
-              <span class="text-surface-700 text-sm font-semibold">
+              <span class="text-sm font-semibold text-surface-700">
                 {r.score}
-                <span class="text-surface-500 ml-1 text-xs font-medium"
+                <span class="ml-1 text-xs font-medium text-surface-500"
                   >{scoreUnit[detail.source_data_type] ?? ''}</span
                 >
               </span>
@@ -206,7 +206,7 @@
     </Card>
 
     <div class="flex items-center justify-between">
-      <p class="text-surface-400 text-sm">Created by <strong>@{detail.created_by}</strong></p>
+      <p class="text-sm text-surface-400">Created by <strong>@{detail.created_by}</strong></p>
       {#if detail.is_creator}
         <Btn variant="danger" size="sm" onclick={disband}>Disband Challenge</Btn>
       {:else}

@@ -288,7 +288,7 @@
 
     <div class="relative">
       <span
-        class="text-surface-400 pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center"
+        class="pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-surface-400"
       >
         <Icon name="search" size="sm" />
       </span>
@@ -303,21 +303,21 @@
     </div>
 
     {#if showSearch}
-      <div class="border-surface-200 max-h-56 space-y-2 overflow-y-auto rounded-lg border p-1">
+      <div class="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-surface-200 p-1">
         {#if filteredItems.length > 0}
           <p
-            class="text-surface-400 px-2 pt-1.5 text-[10px] font-semibold tracking-wider uppercase"
+            class="px-2 pt-1.5 text-[10px] font-semibold tracking-wider text-surface-400 uppercase"
           >
             Foods
           </p>
           {#each filteredItems.slice(0, 8) as food (food.id)}
             <button
               onclick={() => (pickerFood = food)}
-              class="hover:bg-surface-50 flex w-full items-center justify-between rounded-md px-2 py-2 text-left"
+              class="flex w-full items-center justify-between rounded-md px-2 py-2 text-left hover:bg-surface-50"
             >
               <div class="min-w-0">
-                <div class="text-surface-800 truncate text-sm font-medium">{food.name}</div>
-                <div class="text-surface-400 text-xs">
+                <div class="truncate text-sm font-medium text-surface-800">{food.name}</div>
+                <div class="text-xs text-surface-400">
                   {Math.round(food.calories_per_serving)} kcal · {Math.round(food.protein_g)}P ·{' '}
                   {Math.round(food.carbs_g)}C · {Math.round(food.fat_g)}F
                 </div>
@@ -329,18 +329,18 @@
 
         {#if filteredRecipes.length > 0}
           <p
-            class="text-surface-400 px-2 pt-1.5 text-[10px] font-semibold tracking-wider uppercase"
+            class="px-2 pt-1.5 text-[10px] font-semibold tracking-wider text-surface-400 uppercase"
           >
             Recipes
           </p>
           {#each filteredRecipes.slice(0, 6) as recipe (recipe.id)}
             <button
               onclick={() => openCook(recipe)}
-              class="hover:bg-surface-50 flex w-full items-center justify-between rounded-md px-2 py-2 text-left"
+              class="flex w-full items-center justify-between rounded-md px-2 py-2 text-left hover:bg-surface-50"
             >
               <div class="min-w-0">
-                <div class="text-surface-800 truncate text-sm font-medium">{recipe.name}</div>
-                <div class="text-surface-400 text-xs">
+                <div class="truncate text-sm font-medium text-surface-800">{recipe.name}</div>
+                <div class="text-xs text-surface-400">
                   {recipe.servings} serving{recipe.servings !== 1 ? 's' : ''}
                 </div>
               </div>
@@ -351,9 +351,9 @@
       </div>
     {:else if noResults}
       <div
-        class="border-surface-300 flex flex-col items-center gap-3 rounded-lg border border-dashed py-5 text-center"
+        class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-surface-300 py-5 text-center"
       >
-        <p class="text-surface-700 text-sm font-medium">No "{search}" in the database</p>
+        <p class="text-sm font-medium text-surface-700">No "{search}" in the database</p>
         <Btn variant="secondary" size="sm" onclick={() => (createOpen = true)}>
           <Icon name="add" size="sm" />
           Create food
@@ -377,7 +377,7 @@
             <button
               type="button"
               onclick={() => (pickerFood = food)}
-              class="border-surface-200 bg-surface-50 text-surface-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
+              class="hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 inline-flex items-center gap-1 rounded-full border border-surface-200 bg-surface-50 px-2.5 py-1 text-xs font-medium text-surface-700 transition-colors"
             >
               <Icon name="add" size="sm" />
               {food.name}
@@ -388,13 +388,13 @@
     </div>
 
     {#if selections.length > 0}
-      <div class="border-surface-200 rounded-lg border p-3">
+      <div class="rounded-lg border border-surface-200 p-3">
         <div class="mb-2 flex items-center justify-between">
-          <h3 class="text-surface-400 text-xs font-semibold tracking-wider uppercase">Items</h3>
+          <h3 class="text-xs font-semibold tracking-wider text-surface-400 uppercase">Items</h3>
           <button
             type="button"
             onclick={() => (showDetails = !showDetails)}
-            class="text-surface-500 hover:text-surface-700 flex items-center gap-1 text-xs font-medium"
+            class="flex items-center gap-1 text-xs font-medium text-surface-500 hover:text-surface-700"
           >
             {showDetails ? 'Hide' : 'Show'} details
             <Icon name={showDetails ? 'keyboard-arrow-up' : 'expand-more'} size="sm" />
@@ -419,7 +419,7 @@
         </div>
 
         {#if showDetails}
-          <div class="border-surface-100 mt-3 space-y-3 border-t pt-3">
+          <div class="mt-3 space-y-3 border-t border-surface-100 pt-3">
             <Input
               name="meal_name"
               label="Name (optional — groups items into a meal)"
@@ -439,10 +439,10 @@
 
     {#if selections.length > 0}
       <div
-        class="border-surface-200 bg-surface-0 sticky bottom-0 flex items-center justify-between rounded-lg border px-4 py-3 shadow-md"
+        class="sticky bottom-0 flex items-center justify-between rounded-lg border border-surface-200 bg-surface-0 px-4 py-3 shadow-md"
       >
         <div class="text-xs">
-          <div class="text-surface-900 text-lg font-bold tabular-nums">
+          <div class="text-lg font-bold text-surface-900 tabular-nums">
             {Math.round(totalCalories).toLocaleString()} kcal
           </div>
           <div class="text-surface-400">

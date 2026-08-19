@@ -88,7 +88,7 @@
           $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + '/')}
         <a
           href={item.href}
-          class="duration-micro tracking-label hover:bg-surface-50 flex items-center gap-3 px-4 py-2.5 text-xs font-semibold no-underline transition-colors {item.highlight
+          class="duration-micro tracking-label flex items-center gap-3 px-4 py-2.5 text-xs font-semibold no-underline transition-colors hover:bg-surface-50 {item.highlight
             ? 'text-success-600'
             : active
               ? 'text-primary-600'

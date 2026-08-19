@@ -51,7 +51,7 @@
 <Modal bind:open size="sm" {title} onclose={close}>
   <div class="flex flex-col items-center text-center">
     <Icon name={icons[variant]} size="2xl" class="mb-3 {iconColors[variant]}" />
-    <p class="text-surface-500 mt-2 text-sm">{message}</p>
+    <p class="mt-2 text-sm text-surface-500">{message}</p>
   </div>
   <div class="mt-6 flex justify-center gap-3">
     <Btn variant="ghost" onclick={close}>{cancelLabel}</Btn>

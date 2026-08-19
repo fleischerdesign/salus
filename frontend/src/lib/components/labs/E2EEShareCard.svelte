@@ -23,19 +23,15 @@
   }
 </script>
 
-<div
-  class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
->
+<div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
   <div class="mb-3 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <div
-        class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-      >
+      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
         <Icon name="key" size="sm" />
       </div>
       <div>
-        <h4 class="text-sm font-bold text-[var(--text-main)]">Arzt-Direktfreigabe (E2EE)</h4>
-        <span class="text-[0.6875rem] text-[var(--text-soft)]"
+        <h4 class="text-sm font-bold text-text-main">Arzt-Direktfreigabe (E2EE)</h4>
+        <span class="text-[0.6875rem] text-text-soft"
           >Client-seitige ECDH End-to-End Verschlüsselung</span
         >
       </div>
@@ -43,7 +39,7 @@
     <Badge variant="default">AES-256 GCM Zero-Knowledge</Badge>
   </div>
 
-  <p class="mb-4 text-xs text-[var(--text-muted)]">
+  <p class="mb-4 text-xs text-text-muted">
     Erzeuge einen kryptographisch gesicherten Einmallink für deinen behandelnden Arzt. Die
     Entschlüsselung erfolgt rein clientseitig im Browser des Arztes – der Server sieht niemals
     Klartextdaten.
@@ -61,11 +57,11 @@
         </div>
         <Btn variant="secondary" size="md" onclick={copyLink} class="h-10 shrink-0">Kopieren</Btn>
       </div>
-      <div class="flex items-center justify-between px-1 text-[0.6875rem] text-[var(--text-soft)]">
+      <div class="flex items-center justify-between px-1 text-[0.6875rem] text-text-soft">
         <span>Gültigkeit: 24 Stunden</span>
         <button
           type="button"
-          class="cursor-pointer text-[var(--color-vital)] hover:underline"
+          class="cursor-pointer text-vital hover:underline"
           onclick={() => (shareLink = null)}
         >
           Link widerrufen

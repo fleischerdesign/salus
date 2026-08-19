@@ -249,8 +249,8 @@
           <Badge variant="primary">Trend: Berechnet aus {totalCount} Messungen</Badge>
         {/if}
       </div>
-      <p class="mt-0.5 text-xs text-[var(--text-muted)] sm:text-sm">
-        Canonical Metric Code: <span class="font-bold text-[var(--text-main)]">{metric.code}</span>
+      <p class="mt-0.5 text-xs text-text-muted sm:text-sm">
+        Canonical Metric Code: <span class="font-bold text-text-main">{metric.code}</span>
       </p>
     </div>
 
@@ -264,65 +264,53 @@
 
   <!-- 4 Statistical KPI Tiles (Calculated from Real Measurements) -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-    <div
-      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3.5 shadow-xs"
-    >
-      <span
-        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+    <div class="rounded-xl border border-border-subtle bg-surface-0 p-3.5 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase"
         >Aktueller Wert</span
       >
-      <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
+      <div class="mt-0.5 text-xl font-extrabold text-text-main tabular-nums">
         {#if currentVal != null}
           {currentVal}
-          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+          <span class="text-xs font-normal text-text-soft">{metric.unit}</span>
         {:else}
-          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+          <span class="text-base font-normal text-text-muted">—</span>
         {/if}
       </div>
     </div>
 
-    <div
-      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3.5 shadow-xs"
-    >
-      <span
-        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+    <div class="rounded-xl border border-border-subtle bg-surface-0 p-3.5 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase"
         >7-Tage EMA</span
       >
-      <div class="mt-0.5 text-xl font-extrabold text-[var(--color-primary)] tabular-nums">
+      <div class="mt-0.5 text-xl font-extrabold text-primary tabular-nums">
         {#if ema7d != null}
           {ema7d}
-          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+          <span class="text-xs font-normal text-text-soft">{metric.unit}</span>
         {:else}
-          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+          <span class="text-base font-normal text-text-muted">—</span>
         {/if}
       </div>
     </div>
 
-    <div
-      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3.5 shadow-xs"
-    >
-      <span
-        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+    <div class="rounded-xl border border-border-subtle bg-surface-0 p-3.5 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase"
         >Standardabweichung (σ)</span
       >
-      <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
+      <div class="mt-0.5 text-xl font-extrabold text-text-main tabular-nums">
         {#if stdDev != null}
           &plusmn; {stdDev}
-          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+          <span class="text-xs font-normal text-text-soft">{metric.unit}</span>
         {:else}
-          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+          <span class="text-base font-normal text-text-muted">—</span>
         {/if}
       </div>
     </div>
 
-    <div
-      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3.5 shadow-xs"
-    >
-      <span
-        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+    <div class="rounded-xl border border-border-subtle bg-surface-0 p-3.5 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase"
         >Gesamt-Einträge</span
       >
-      <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
+      <div class="mt-0.5 text-xl font-extrabold text-text-main tabular-nums">
         {totalCount.toLocaleString('de-DE')}
       </div>
     </div>
@@ -333,20 +321,20 @@
   <!-- ═══════════════════════════════════════════════════════════ -->
   {#if goal}
     <div
-      class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] transition-all"
+      class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card transition-all"
     >
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <div
-            class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+            class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft text-primary"
           >
             <Icon name="flag" size="sm" />
           </div>
           <div>
-            <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+            <h3 class="text-sm font-extrabold text-text-main">
               Persönliches Ziel &amp; Trend-Prognose
             </h3>
-            <span class="text-xs text-[var(--text-muted)]">
+            <span class="text-xs text-text-muted">
               {goal.frequency === 'milestone'
                 ? 'Stichtags-Ziel'
                 : goal.frequency === 'weekly'
@@ -378,7 +366,7 @@
           </Btn>
           <button
             type="button"
-            class="cursor-pointer p-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--color-vital)]"
+            class="cursor-pointer p-1 text-xs font-semibold text-text-muted transition-colors hover:text-vital"
             title="Ziel entfernen"
             onclick={handleRemoveGoal}
           >
@@ -391,15 +379,12 @@
       {#if currentVal != null && goalProgress}
         <div class="my-3 space-y-1.5">
           <div class="flex items-baseline justify-between text-xs">
-            <span class="font-semibold text-[var(--text-main)]">
-              Aktuell: <strong class="text-base text-[var(--color-primary)]"
-                >{currentVal} {metric.unit}</strong
-              >
-              <span class="ml-1 font-normal text-[var(--text-muted)]"
-                >/ Ziel: {targetVal} {metric.unit}</span
+            <span class="font-semibold text-text-main">
+              Aktuell: <strong class="text-base text-primary">{currentVal} {metric.unit}</strong>
+              <span class="ml-1 font-normal text-text-muted">/ Ziel: {targetVal} {metric.unit}</span
               >
             </span>
-            <span class="font-bold text-[var(--text-main)]">
+            <span class="font-bold text-text-main">
               {goalProgress.percent}% {goalProgress.isFulfilled
                 ? 'erfüllt'
                 : `(${goalProgress.delta} ${metric.unit} verbleibend)`}
@@ -407,40 +392,38 @@
           </div>
 
           <div
-            class="h-2 w-full overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
+            class="h-2 w-full overflow-hidden rounded-full border border-border-subtle bg-surface-50"
           >
             <div
               class="h-full rounded-full transition-all duration-500 {goalProgress.status ===
               'achieved'
-                ? 'bg-[var(--color-success)]'
-                : 'bg-[var(--color-primary)]'}"
+                ? 'bg-success'
+                : 'bg-primary'}"
               style="width: {goalProgress.percent}%"
             ></div>
           </div>
         </div>
       {:else}
-        <p class="my-2 text-xs text-[var(--text-muted)]">
-          Ziel: <strong class="text-[var(--text-main)]">{targetVal} {metric.unit}</strong> • Erfasse deinen
-          ersten Messwert, um den Zielfortschritt zu berechnen.
+        <p class="my-2 text-xs text-text-muted">
+          Ziel: <strong class="text-text-main">{targetVal} {metric.unit}</strong> • Erfasse deinen ersten
+          Messwert, um den Zielfortschritt zu berechnen.
         </p>
       {/if}
     </div>
   {:else}
     <!-- No Goal Defined (Clean Standard Card) -->
     <div
-      class="flex flex-col items-start justify-between gap-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] transition-all sm:flex-row sm:items-center"
+      class="flex flex-col items-start justify-between gap-4 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card transition-all sm:flex-row sm:items-center"
     >
       <div class="flex items-center gap-3.5">
         <div
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"
         >
           <Icon name="flag" size="sm" />
         </div>
         <div>
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">
-            Persönliches Ziel festlegen
-          </h3>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <h3 class="text-sm font-extrabold text-text-main">Persönliches Ziel festlegen</h3>
+          <p class="mt-0.5 text-xs text-text-muted">
             Definiere einen Zielwert für {metric.name}, um automatisierte Fortschritts- und
             Trend-Prognosen zu aktivieren.
           </p>
@@ -464,28 +447,26 @@
   <!-- 2-Column: Clinical Target Zones & Pearson Correlations -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <!-- Clinical Range Bands -->
-    <div
-      class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-    >
-      <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-        <Icon name="labs" class="text-[var(--color-primary)]" />
+    <div class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+      <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+        <Icon name="labs" class="text-primary" />
         <span>Klinische Referenz- und Zielkorridore</span>
       </div>
       <div class="space-y-2 text-xs">
         <div
-          class="flex justify-between rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success-soft)]/20 p-2.5"
+          class="flex justify-between rounded-xl border border-success/30 bg-success-soft/20 p-2.5"
         >
-          <span class="font-bold text-[var(--color-success)]">Optimal / Zielkorridor</span>
+          <span class="font-bold text-success">Optimal / Zielkorridor</span>
           <span class="font-bold">105 – 120 {metric.unit}</span>
         </div>
         <div
-          class="flex justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5 text-[var(--text-muted)]"
+          class="flex justify-between rounded-xl border border-border-subtle bg-surface-50 p-2.5 text-text-muted"
         >
           <span>Normwert / Grenzwertig</span>
           <span>120 – 139 {metric.unit}</span>
         </div>
         <div
-          class="flex justify-between rounded-xl border border-[var(--color-vital)]/30 bg-[var(--color-vital-soft)]/20 p-2.5 text-[var(--color-vital)]"
+          class="flex justify-between rounded-xl border border-vital/30 bg-vital-soft/20 p-2.5 text-vital"
         >
           <span>Erhöhtes Risiko</span>
           <span class="font-bold">&ge; 140 {metric.unit}</span>
@@ -494,30 +475,28 @@
     </div>
 
     <!-- Biometric Correlations -->
-    <div
-      class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-    >
-      <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-        <Icon name="insights" class="text-[var(--color-circadian)]" />
+    <div class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+      <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+        <Icon name="insights" class="text-circadian" />
         <span>Evidenzbasierte Einflussfaktoren</span>
       </div>
       <div class="space-y-2 text-xs">
         <div
-          class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
+          class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 p-2.5"
         >
-          <span class="font-semibold text-[var(--text-main)]">Schlafdauer (&gt; 7.5h)</span>
+          <span class="font-semibold text-text-main">Schlafdauer (&gt; 7.5h)</span>
           <span class="font-bold text-emerald-500">Stabilisierender Effekt</span>
         </div>
         <div
-          class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
+          class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 p-2.5"
         >
-          <span class="font-semibold text-[var(--text-main)]">Ausdauertraining</span>
-          <span class="font-bold text-[var(--color-primary)]">Senkt Ruhewerte</span>
+          <span class="font-semibold text-text-main">Ausdauertraining</span>
+          <span class="font-bold text-primary">Senkt Ruhewerte</span>
         </div>
         <div
-          class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
+          class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 p-2.5"
         >
-          <span class="font-semibold text-[var(--text-main)]">Koffein / Stress</span>
+          <span class="font-semibold text-text-main">Koffein / Stress</span>
           <span class="font-bold text-rose-500">Kurzzeitiger Anstieg</span>
         </div>
       </div>
@@ -525,15 +504,13 @@
   </div>
 
   <!-- Complete Real Entries History Table -->
-  <div
-    class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-  >
+  <div class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h2 class="text-sm font-bold text-[var(--text-main)]">
+        <h2 class="text-sm font-bold text-text-main">
           Lückenlose Messwert-Historie ({totalCount} Einträge)
         </h2>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+        <p class="mt-0.5 text-xs text-text-muted">
           Lokal in Dexie IndexedDB gespeichert und Ende-zu-Ende synchronisiert
         </p>
       </div>
@@ -558,7 +535,7 @@
         <table class="w-full border-collapse text-left text-xs">
           <thead>
             <tr
-              class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
+              class="border-b border-border-subtle text-[0.6875rem] tracking-wider text-text-muted uppercase"
             >
               <th class="px-3 py-2.5">Zeitpunkt</th>
               <th class="px-3 py-2.5">Messwert</th>
@@ -567,13 +544,13 @@
               <th class="px-3 py-2.5 text-right">Aktion</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[var(--border-subtle)]">
+          <tbody class="divide-y divide-border-subtle">
             {#each measurements as entry (entry.id)}
               <tr>
-                <td class="px-3 py-2.5 text-[var(--text-soft)]">
+                <td class="px-3 py-2.5 text-text-soft">
                   {formatTimestamp(entry.start_time)}
                 </td>
-                <td class="px-3 py-2.5 text-sm font-bold text-[var(--text-main)] tabular-nums">
+                <td class="px-3 py-2.5 text-sm font-bold text-text-main tabular-nums">
                   {entry.value_numeric ?? '—'}
                   {metric.unit}
                 </td>
@@ -582,13 +559,13 @@
                     {entry.source || 'Manuell'}
                   </Badge>
                 </td>
-                <td class="px-3 py-2.5 text-[var(--text-muted)]">
+                <td class="px-3 py-2.5 text-text-muted">
                   {entry.notes || '—'}
                 </td>
                 <td class="px-3 py-2.5 text-right">
                   <button
                     type="button"
-                    class="cursor-pointer p-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--color-vital)]"
+                    class="cursor-pointer p-1 text-xs font-semibold text-text-muted transition-colors hover:text-vital"
                     title="Messwert löschen"
                     onclick={() => handleDeleteEntry(entry.id)}
                   >
@@ -604,18 +581,18 @@
       <!-- Pagination Controls -->
       {#if totalPages > 1}
         <div
-          class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-muted)]"
+          class="flex items-center justify-between border-t border-border-subtle pt-3 text-xs text-text-muted"
         >
           <span class="text-[0.6875rem]">
-            Seite <span class="font-bold text-[var(--text-main)]">{currentPage}</span> von{' '}
-            <span class="font-bold text-[var(--text-main)]">{totalPages}</span> ({totalCount} Messwerte)
+            Seite <span class="font-bold text-text-main">{currentPage}</span> von{' '}
+            <span class="font-bold text-text-main">{totalPages}</span> ({totalCount} Messwerte)
           </span>
           <div class="flex items-center gap-1.5">
             <button
               type="button"
               onclick={() => (currentPage = Math.max(1, currentPage - 1))}
               disabled={currentPage <= 1}
-              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1 text-xs font-semibold text-text-main transition-all hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Icon name="chevron-left" size="sm" />
               <span>Zurück</span>
@@ -624,7 +601,7 @@
               type="button"
               onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
               disabled={currentPage >= totalPages}
-              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1 text-xs font-semibold text-text-main transition-all hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>Weiter</span>
               <Icon name="chevron-right" size="sm" />

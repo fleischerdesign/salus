@@ -178,13 +178,7 @@
   }
 </script>
 
-<Modal
-  {open}
-  title="Neue Übung anlegen"
-  icon="fitness_center"
-  size="lg"
-  {onclose}
->
+<Modal {open} title="Neue Übung anlegen" icon="fitness_center" size="lg" {onclose}>
   {#if errorMsg}
     <div
       class="mb-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs font-bold text-rose-500"
@@ -211,12 +205,7 @@
         />
       </div>
       <div class="sm:col-span-3">
-        <Select
-          label="Equipment"
-          required
-          bind:value={equipment}
-          options={equipmentOptions}
-        />
+        <Select label="Equipment" required bind:value={equipment} options={equipmentOptions} />
       </div>
       <div class="sm:col-span-3">
         <Input
@@ -233,15 +222,15 @@
     <!-- ═════════════════════════════════════════════════════════════ -->
     <!-- MAIN INTERACTIVE SECTION: 7/5 SPLIT (Picker + 2D Body)        -->
     <!-- ═════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 gap-3.5 md:grid-cols-12 items-stretch">
+    <div class="grid grid-cols-1 items-stretch gap-3.5 md:grid-cols-12">
       <!-- Left Column: Muscle Selector & Active Tags (7 cols) -->
       <div
-        class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5 md:col-span-7 space-y-3"
+        class="flex flex-col justify-between space-y-3 rounded-2xl border border-border-subtle bg-surface-50 p-3.5 md:col-span-7"
       >
         <div class="space-y-2.5">
           <!-- Mode Switch: Primär vs Sekundär -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">
+            <span class="text-xs font-bold tracking-wider text-text-main uppercase">
               Zielmuskeln
             </span>
             <SegmentedControl
@@ -255,20 +244,24 @@
           </div>
 
           <!-- Active Selected Tags Summary for Active Mode -->
-          <div class="flex flex-wrap gap-1.5 min-h-[30px] items-center">
-            <span class="text-[11px] font-bold {targetMode === 'primary' ? 'text-[var(--color-primary)]' : 'text-indigo-400'}">
+          <div class="flex min-h-[30px] flex-wrap items-center gap-1.5">
+            <span
+              class="text-[11px] font-bold {targetMode === 'primary'
+                ? 'text-primary'
+                : 'text-indigo-400'}"
+            >
               {targetMode === 'primary' ? 'Primär:' : 'Sekundär:'}
             </span>
             {#if targetMode === 'primary'}
               {#each selectedPrimaryMuscles as key (key)}
                 <span
-                  class="inline-flex items-center gap-1 rounded-lg border border-[var(--color-primary)]/40 bg-[var(--color-primary-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--color-primary)] shadow-2xs"
+                  class="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary shadow-2xs"
                 >
                   <span>{getMuscleDisplayName(key)}</span>
                   <button
                     type="button"
                     onclick={() => removePrimary(key)}
-                    class="cursor-pointer hover:opacity-70 text-[var(--color-primary)]"
+                    class="cursor-pointer text-primary hover:opacity-70"
                     aria-label="Entfernen"
                   >
                     &times;
@@ -276,7 +269,7 @@
                 </span>
               {/each}
               {#if selectedPrimaryMuscles.length === 0}
-                <span class="text-xs italic text-[var(--text-muted)]">
+                <span class="text-xs text-text-muted italic">
                   Keine Primärmuskeln gewählt (wähle unten)
                 </span>
               {/if}
@@ -289,7 +282,7 @@
                   <button
                     type="button"
                     onclick={() => removeSecondary(key)}
-                    class="cursor-pointer hover:opacity-70 text-indigo-400"
+                    class="cursor-pointer text-indigo-400 hover:opacity-70"
                     aria-label="Entfernen"
                   >
                     &times;
@@ -297,7 +290,7 @@
                 </span>
               {/each}
               {#if selectedSecondaryMuscles.length === 0}
-                <span class="text-xs italic text-[var(--text-muted)]">
+                <span class="text-xs text-text-muted italic">
                   Keine Synergisten gewählt (optional)
                 </span>
               {/if}
@@ -305,7 +298,7 @@
           </div>
 
           <!-- Muscle Group Horizontal Scroll Tabs -->
-          <div class="no-scrollbar flex gap-1 overflow-x-auto border-t border-[var(--border-subtle)] pt-2.5">
+          <div class="no-scrollbar flex gap-1 overflow-x-auto border-t border-border-subtle pt-2.5">
             {#each MUSCLE_GROUPS as group}
               {@const hasP = selectedPrimaryMuscles.some(
                 (k) => DETAILED_MUSCLE_MAP[k as DetailedMuscleKey]?.group === group
@@ -316,18 +309,26 @@
               <button
                 type="button"
                 onclick={() => (activeGroup = group)}
-                class="cursor-pointer flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold whitespace-nowrap transition-all {activeGroup ===
+                class="flex cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold whitespace-nowrap transition-all {activeGroup ===
                 group
                   ? targetMode === 'primary'
-                    ? 'bg-[var(--color-primary)] text-white shadow-2xs'
+                    ? 'bg-primary text-white shadow-2xs'
                     : 'bg-indigo-500 text-white shadow-2xs'
-                  : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+                  : 'border border-border-subtle bg-surface-0 text-text-muted hover:text-text-main'}"
               >
                 <span>{group}</span>
                 {#if hasP}
-                  <span class="h-1.5 w-1.5 rounded-full {activeGroup === group ? 'bg-white' : 'bg-[var(--color-primary)]'}"></span>
+                  <span
+                    class="h-1.5 w-1.5 rounded-full {activeGroup === group
+                      ? 'bg-white'
+                      : 'bg-primary'}"
+                  ></span>
                 {:else if hasS}
-                  <span class="h-1.5 w-1.5 rounded-full {activeGroup === group ? 'bg-white' : 'bg-indigo-400'}"></span>
+                  <span
+                    class="h-1.5 w-1.5 rounded-full {activeGroup === group
+                      ? 'bg-white'
+                      : 'bg-indigo-400'}"
+                  ></span>
                 {/if}
               </button>
             {/each}
@@ -342,14 +343,14 @@
                 type="button"
                 onclick={() => toggleMuscle(muscle.key)}
                 class="cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all {isPrimary
-                  ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)] font-bold ring-1 ring-[var(--color-primary)]'
+                  ? 'border-primary bg-primary-soft font-bold text-primary ring-1 ring-primary'
                   : isSecondary
-                    ? 'border-indigo-400 bg-indigo-500/10 text-indigo-400 font-bold ring-1 ring-indigo-400'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-main)] hover:border-[var(--border-strong)]'}"
+                    ? 'border-indigo-400 bg-indigo-500/10 font-bold text-indigo-400 ring-1 ring-indigo-400'
+                    : 'border-border-subtle bg-surface-0 text-text-main hover:border-border-strong'}"
               >
                 <span>{muscle.name}</span>
                 {#if isPrimary}
-                  <span class="ml-1 text-[10px] font-bold text-[var(--color-primary)]">(P)</span>
+                  <span class="ml-1 text-[10px] font-bold text-primary">(P)</span>
                 {:else if isSecondary}
                   <span class="ml-1 text-[10px] font-bold text-indigo-400">(S)</span>
                 {/if}
@@ -361,10 +362,10 @@
 
       <!-- Right Column: Integrated 2D Anatomical Vector (5 cols) -->
       <div
-        class="flex flex-col items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-surface-50)] to-[var(--bg-surface-100)] p-3 md:col-span-5"
+        class="flex flex-col items-center justify-between rounded-2xl border border-border-subtle bg-gradient-to-b from-surface-50 to-surface-100 p-3 md:col-span-5"
       >
         <div class="flex w-full items-center justify-between">
-          <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+          <span class="text-[10px] font-bold tracking-wider text-text-muted uppercase">
             2D-Modell
           </span>
           <SegmentedControl
@@ -385,9 +386,9 @@
           />
         </div>
 
-        <div class="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
+        <div class="flex items-center gap-3 text-[10px] text-text-muted">
           <div class="flex items-center gap-1">
-            <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]"></span>
+            <span class="h-2 w-2 rounded-full bg-primary"></span>
             <span>Primär</span>
           </div>
           <div class="flex items-center gap-1">
@@ -399,11 +400,13 @@
     </div>
 
     <!-- Optional Ausführungshinweise (Collapsible) -->
-    <details class="group rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2.5">
-      <summary class="flex cursor-pointer items-center justify-between text-xs font-semibold text-[var(--text-muted)] select-none hover:text-[var(--text-main)]">
+    <details class="group rounded-xl border border-border-subtle bg-surface-0 p-2.5">
+      <summary
+        class="flex cursor-pointer items-center justify-between text-xs font-semibold text-text-muted select-none hover:text-text-main"
+      >
         <span>▸ Ausführungshinweise & Form-Tipps (Optional)</span>
       </summary>
-      <div class="mt-2.5 pt-2 border-t border-[var(--border-subtle)]">
+      <div class="mt-2.5 border-t border-border-subtle pt-2">
         <Textarea
           rows={2}
           placeholder="z. B. Standbein leicht nach vorne versetzen, Rumpf aufrecht halten..."
@@ -413,7 +416,7 @@
     </details>
 
     <!-- Modal Actions -->
-    <div class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" type="submit" loading={isSaving}>Übung anlegen</Btn>
     </div>

@@ -92,7 +92,7 @@
       />
     </div>
 
-    <div class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-4">
+    <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-4">
       <Btn variant="secondary" size="md" onclick={onclose} disabled={isSaving}>Abbrechen</Btn>
       <Btn variant="primary" size="md" type="submit" disabled={isSaving || !value}>
         {isSaving ? 'Wird gespeichert...' : 'Messwert speichern'}

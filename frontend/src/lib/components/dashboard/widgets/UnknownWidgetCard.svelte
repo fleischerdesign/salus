@@ -10,13 +10,13 @@
 </script>
 
 <div
-  class="flex h-full min-h-[140px] flex-col items-center justify-center space-y-1.5 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-center text-xs text-[var(--text-muted)] shadow-[var(--shadow-card)]"
+  class="flex h-full min-h-[140px] flex-col items-center justify-center space-y-1.5 rounded-3xl border border-border-subtle bg-surface-0 p-5 text-center text-xs text-text-muted shadow-card"
 >
   <div
-    class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--bg-surface-100)] text-[var(--text-muted)]"
+    class="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-100 text-text-muted"
   >
     <Icon name="dashboard" size="md" />
   </div>
-  <span class="font-bold text-[var(--text-main)]">{widget.title || 'Unbekanntes Widget'}</span>
-  <span class="font-mono text-[0.625rem] text-[var(--text-muted)]">{widget.type}</span>
+  <span class="font-bold text-text-main">{widget.title || 'Unbekanntes Widget'}</span>
+  <span class="font-mono text-[0.625rem] text-text-muted">{widget.type}</span>
 </div>

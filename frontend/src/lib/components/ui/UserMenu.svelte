@@ -44,7 +44,7 @@
 
 <div class="relative" onmouseenter={show} onmouseleave={hide} role="presentation">
   <button
-    class="duration-micro hover:bg-surface-200 flex items-center gap-2 rounded-full p-1 transition-colors"
+    class="duration-micro flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-surface-200"
     aria-expanded={open}
     aria-haspopup="true"
     type="button"
@@ -57,28 +57,28 @@
         <StatusDot
           status={dotStatus}
           size="sm"
-          class="ring-surface-0 absolute top-[1px] right-[1px] ring-2"
+          class="absolute top-[1px] right-[1px] ring-2 ring-surface-0"
         />
       {/if}
     </span>
   </button>
   <div class={menuClass}>
-    <div class="border-surface-200 border-b px-4 py-3">
+    <div class="border-b border-surface-200 px-4 py-3">
       <span
         class="bg-primary-500 text-on-primary inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold uppercase"
       >
         {(auth.user?.display_name || auth.user?.username || 'U')[0]}
       </span>
-      <div class="text-surface-900 mt-2 font-semibold">
+      <div class="mt-2 font-semibold text-surface-900">
         {auth.user?.display_name || auth.user?.username}
       </div>
       {#if auth.user?.email}
-        <div class="text-surface-500 text-[10px]">{auth.user?.email}</div>
+        <div class="text-[10px] text-surface-500">{auth.user?.email}</div>
       {/if}
     </div>
     <a
       href="/settings"
-      class="duration-micro tracking-label text-surface-700 hover:bg-surface-50 flex items-center gap-3 px-4 py-2.5 text-xs font-semibold no-underline transition-colors"
+      class="duration-micro tracking-label flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-surface-700 no-underline transition-colors hover:bg-surface-50"
     >
       <Icon name="settings" size="md" />
       Settings
@@ -86,15 +86,15 @@
     {#if auth.isAdmin}
       <a
         href="/admin"
-        class="duration-micro tracking-label text-surface-700 hover:bg-surface-50 flex items-center gap-3 px-4 py-2.5 text-xs font-semibold no-underline transition-colors"
+        class="duration-micro tracking-label flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-surface-700 no-underline transition-colors hover:bg-surface-50"
       >
         <Icon name="admin-panel-settings" size="md" />
         Admin
       </a>
     {/if}
-    <hr class="border-surface-200 my-1" />
+    <hr class="my-1 border-surface-200" />
     <button
-      class="duration-micro tracking-label text-error-600 hover:bg-surface-50 flex w-full items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-colors"
+      class="duration-micro tracking-label text-error-600 flex w-full items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-surface-50"
       onclick={handleLogout}
     >
       <Icon name="logout" size="md" />

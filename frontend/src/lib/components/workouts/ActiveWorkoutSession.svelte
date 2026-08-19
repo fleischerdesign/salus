@@ -321,40 +321,34 @@
 <div class="space-y-5">
   <!-- Active Workout HUD Bar (Without blinking dot & without finish button) -->
   <div
-    class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-dock-bg)] p-5 shadow-lg backdrop-blur-2xl sm:flex-row sm:items-center"
+    class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-border-subtle bg-glass-dock p-5 shadow-lg backdrop-blur-2xl sm:flex-row sm:items-center"
   >
     <div>
-      <h2 class="text-lg font-extrabold text-[var(--text-main)]">{planName}</h2>
+      <h2 class="text-lg font-extrabold text-text-main">{planName}</h2>
     </div>
 
     <!-- Live Performance Counters & Add Action -->
     <div class="flex flex-wrap items-center gap-4 sm:gap-6">
       <!-- Live Duration -->
       <div>
-        <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-          >Dauer</span
-        >
-        <span class="text-base font-extrabold text-[var(--color-primary)] tabular-nums sm:text-lg">
+        <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">Dauer</span>
+        <span class="text-base font-extrabold text-primary tabular-nums sm:text-lg">
           {formattedDuration}
         </span>
       </div>
 
       <!-- Live Volume Tonnage -->
       <div>
-        <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-          >Tonnage</span
-        >
-        <span class="text-base font-extrabold text-[var(--color-activity)] tabular-nums sm:text-lg">
+        <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">Tonnage</span>
+        <span class="text-base font-extrabold text-activity tabular-nums sm:text-lg">
           {totalTonnageKg.toLocaleString('de-DE')} kg
         </span>
       </div>
 
       <!-- Sets Progress -->
       <div>
-        <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-          >Sätze</span
-        >
-        <span class="text-base font-extrabold text-[var(--text-main)] tabular-nums sm:text-lg">
+        <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">Sätze</span>
+        <span class="text-base font-extrabold text-text-main tabular-nums sm:text-lg">
           {completedSetsCount} / {totalSetsCount}
         </span>
       </div>
@@ -364,7 +358,7 @@
         <button
           type="button"
           onclick={() => (isAddExerciseOpen = true)}
-          class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-2xl bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+          class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
           title="Übung zum Training hinzufügen"
         >
           <Icon name="add" size="sm" />
@@ -384,23 +378,21 @@
   <!-- List of Exercises in Active Session -->
   {#if exercises.length === 0}
     <div
-      class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 text-center shadow-xs"
+      class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-8 text-center shadow-xs"
     >
       <div
-        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary"
       >
         <Icon name="fitness_center" size="lg" />
       </div>
-      <h3 class="text-base font-bold text-[var(--text-main)]">
-        Noch keine Übungen in dieser Einheit
-      </h3>
-      <p class="mx-auto max-w-sm text-xs text-[var(--text-muted)]">
+      <h3 class="text-base font-bold text-text-main">Noch keine Übungen in dieser Einheit</h3>
+      <p class="mx-auto max-w-sm text-xs text-text-muted">
         Füge deine erste Übung hinzu, um Sätze, Gewichte und Pausen live zu protokollieren.
       </p>
       <button
         type="button"
         onclick={() => (isAddExerciseOpen = true)}
-        class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+        class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
       >
         + Übung auswählen
       </button>
@@ -409,26 +401,24 @@
     <div class="space-y-5">
       {#each exercises as ex, exIdx (ex.id)}
         <div
-          class="group relative space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs transition-colors hover:border-[var(--border-strong)] sm:p-5"
+          class="group relative space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs transition-colors hover:border-border-strong sm:p-5"
         >
           <!-- Exercise Header with Scheibenrechner, Reorder & Remove Actions -->
           <div
-            class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)]/60 pb-3"
+            class="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle/60 pb-3"
           >
             <div class="flex items-center gap-3">
               <span
-                class="flex h-8 w-8 items-center justify-center rounded-2xl bg-[var(--color-activity)]/10 text-xs font-extrabold text-[var(--color-activity)] tabular-nums"
+                class="flex h-8 w-8 items-center justify-center rounded-2xl bg-activity/10 text-xs font-extrabold text-activity tabular-nums"
               >
                 #{exIdx + 1}
               </span>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="text-base font-extrabold text-[var(--text-main)]">{ex.name}</h3>
+                  <h3 class="text-base font-extrabold text-text-main">{ex.name}</h3>
                   <Badge variant="default" class="text-[0.625rem]">{ex.muscleGroup}</Badge>
                 </div>
-                <span class="text-xs text-[var(--text-muted)]"
-                  >{ex.category} &bull; {ex.equipment}</span
-                >
+                <span class="text-xs text-text-muted">{ex.category} &bull; {ex.equipment}</span>
               </div>
             </div>
 
@@ -437,7 +427,7 @@
               <button
                 type="button"
                 onclick={() => (activeMenuExId = activeMenuExId === ex.id ? null : ex.id)}
-                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] shadow-2xs transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-border-subtle bg-surface-50 text-text-muted shadow-2xs transition-colors hover:bg-surface-100 hover:text-text-main"
                 title="Übungsoptionen"
               >
                 <Icon name="more-vert" size="sm" />
@@ -453,7 +443,7 @@
                 ></div>
 
                 <div
-                  class="glass-panel absolute top-10 right-0 z-50 w-56 animate-[slideDown_0.15s_ease-out] space-y-0.5 rounded-2xl border border-[var(--border-subtle)] p-1.5 text-xs shadow-2xl"
+                  class="glass-panel absolute top-10 right-0 z-50 w-56 animate-[slideDown_0.15s_ease-out] space-y-0.5 rounded-2xl border border-border-subtle p-1.5 text-xs shadow-2xl"
                 >
                   <!-- 1. Plate Calculator -->
                   <button
@@ -462,9 +452,9 @@
                       openPlateCalcForExercise(ex);
                       activeMenuExId = null;
                     }}
-                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)]"
+                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-text-main transition-colors hover:bg-surface-50"
                   >
-                    <Icon name="calculate" size="sm" class="text-[var(--color-primary)]" />
+                    <Icon name="calculate" size="sm" class="text-primary" />
                     <span>Scheibenrechner</span>
                   </button>
 
@@ -476,9 +466,9 @@
                       moveExercise(exIdx, 'up');
                       activeMenuExId = null;
                     }}
-                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)] disabled:pointer-events-none disabled:opacity-30"
+                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-text-main transition-colors hover:bg-surface-50 disabled:pointer-events-none disabled:opacity-30"
                   >
-                    <Icon name="arrow-upward" size="sm" class="text-[var(--text-muted)]" />
+                    <Icon name="arrow-upward" size="sm" class="text-text-muted" />
                     <span>Nach oben verschieben</span>
                   </button>
 
@@ -490,13 +480,13 @@
                       moveExercise(exIdx, 'down');
                       activeMenuExId = null;
                     }}
-                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)] disabled:pointer-events-none disabled:opacity-30"
+                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left font-semibold text-text-main transition-colors hover:bg-surface-50 disabled:pointer-events-none disabled:opacity-30"
                   >
-                    <Icon name="arrow-downward" size="sm" class="text-[var(--text-muted)]" />
+                    <Icon name="arrow-downward" size="sm" class="text-text-muted" />
                     <span>Nach unten verschieben</span>
                   </button>
 
-                  <div class="my-1 h-px bg-[var(--border-subtle)]"></div>
+                  <div class="my-1 h-px bg-border-subtle"></div>
 
                   <!-- 4. Delete Exercise -->
                   <button
@@ -519,7 +509,7 @@
           <div class="space-y-2.5">
             <!-- Column Headers (Desktop Only) -->
             <div
-              class="hidden grid-cols-12 gap-3 px-3 text-[0.6875rem] font-extrabold tracking-wider text-[var(--text-muted)] uppercase md:grid"
+              class="hidden grid-cols-12 gap-3 px-3 text-[0.6875rem] font-extrabold tracking-wider text-text-muted uppercase md:grid"
             >
               <div class="col-span-2">Satz / Typ</div>
               <div class="col-span-2">Vorherig</div>
@@ -540,12 +530,12 @@
               <div
                 class="block rounded-2xl border p-3.5 transition-all md:hidden {set.completed
                   ? 'border-emerald-500/30 bg-emerald-500/10'
-                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'} space-y-3"
+                  : 'border-border-subtle bg-surface-50'} space-y-3"
               >
                 <!-- Mobile Header: Satz #, Type, Ziel, Delete -->
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="font-mono text-sm font-black text-[var(--text-main)] tabular-nums"
+                    <span class="font-mono text-sm font-black text-text-main tabular-nums"
                       >Satz {set.setNumber}</span
                     >
                     <button
@@ -558,7 +548,7 @@
                           ? 'bg-purple-400/20 text-purple-600'
                           : set.type === 'failure'
                             ? 'bg-rose-400/20 text-rose-600'
-                            : 'bg-[var(--bg-surface-100)] text-[var(--text-muted)]'}"
+                            : 'bg-surface-100 text-text-muted'}"
                     >
                       {set.type}
                     </button>
@@ -575,7 +565,7 @@
                   <div class="flex items-center gap-2">
                     {#if set.previous.weightKg > 0}
                       <span
-                        class="rounded-lg bg-[var(--bg-surface-100)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]"
+                        class="rounded-lg bg-surface-100 px-2 py-0.5 font-mono text-xs text-text-muted"
                       >
                         Ziel: {set.previous.weightKg}kg × {set.previous.reps}
                       </span>
@@ -583,7 +573,7 @@
                     <button
                       type="button"
                       onclick={() => removeSet(ex, set.id)}
-                      class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                      class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                       title="Satz löschen"
                     >
                       <Icon name="delete" size="sm" />
@@ -596,17 +586,17 @@
                   <!-- Weight Stepper (Col 1-5) -->
                   <div class="col-span-5 space-y-1">
                     <span
-                      class="block text-[0.6875rem] font-extrabold tracking-wider text-[var(--text-muted)] uppercase"
+                      class="block text-[0.6875rem] font-extrabold tracking-wider text-text-muted uppercase"
                     >
                       Gewicht (kg)
                     </span>
                     <div
-                      class="flex items-center overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] shadow-2xs focus-within:border-[var(--color-primary)]"
+                      class="flex items-center overflow-hidden rounded-xl border border-border-subtle bg-surface-0 shadow-2xs focus-within:border-primary"
                     >
                       <button
                         type="button"
                         onclick={() => adjustWeight(set, -2.5)}
-                        class="flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center text-base font-black text-[var(--text-muted)] transition-transform select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] active:scale-95"
+                        class="flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center text-base font-black text-text-muted transition-transform select-none hover:bg-surface-100 hover:text-text-main active:scale-95"
                       >
                         -
                       </button>
@@ -614,12 +604,12 @@
                         type="number"
                         step="0.5"
                         bind:value={set.weightKg}
-                        class="h-11 w-full bg-transparent p-0 text-center font-mono text-sm font-extrabold text-[var(--text-main)] outline-none"
+                        class="h-11 w-full bg-transparent p-0 text-center font-mono text-sm font-extrabold text-text-main outline-none"
                       />
                       <button
                         type="button"
                         onclick={() => adjustWeight(set, 2.5)}
-                        class="flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center text-base font-black text-[var(--text-muted)] transition-transform select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] active:scale-95"
+                        class="flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center text-base font-black text-text-muted transition-transform select-none hover:bg-surface-100 hover:text-text-main active:scale-95"
                       >
                         +
                       </button>
@@ -629,29 +619,29 @@
                   <!-- Reps Stepper (Col 6-9) -->
                   <div class="col-span-4 space-y-1">
                     <span
-                      class="block text-[0.6875rem] font-extrabold tracking-wider text-[var(--text-muted)] uppercase"
+                      class="block text-[0.6875rem] font-extrabold tracking-wider text-text-muted uppercase"
                     >
                       Wdh
                     </span>
                     <div
-                      class="flex items-center overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] shadow-2xs focus-within:border-[var(--color-primary)]"
+                      class="flex items-center overflow-hidden rounded-xl border border-border-subtle bg-surface-0 shadow-2xs focus-within:border-primary"
                     >
                       <button
                         type="button"
                         onclick={() => adjustReps(set, -1)}
-                        class="flex h-11 w-8 shrink-0 cursor-pointer items-center justify-center text-base font-black text-[var(--text-muted)] transition-transform select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] active:scale-95"
+                        class="flex h-11 w-8 shrink-0 cursor-pointer items-center justify-center text-base font-black text-text-muted transition-transform select-none hover:bg-surface-100 hover:text-text-main active:scale-95"
                       >
                         -
                       </button>
                       <input
                         type="number"
                         bind:value={set.reps}
-                        class="h-11 w-full bg-transparent p-0 text-center font-mono text-sm font-extrabold text-[var(--text-main)] outline-none"
+                        class="h-11 w-full bg-transparent p-0 text-center font-mono text-sm font-extrabold text-text-main outline-none"
                       />
                       <button
                         type="button"
                         onclick={() => adjustReps(set, 1)}
-                        class="flex h-11 w-8 shrink-0 cursor-pointer items-center justify-center text-base font-black text-[var(--text-muted)] transition-transform select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] active:scale-95"
+                        class="flex h-11 w-8 shrink-0 cursor-pointer items-center justify-center text-base font-black text-text-muted transition-transform select-none hover:bg-surface-100 hover:text-text-main active:scale-95"
                       >
                         +
                       </button>
@@ -661,7 +651,7 @@
                   <!-- RPE (Col 10-12) -->
                   <div class="col-span-3 space-y-1">
                     <span
-                      class="block text-[0.6875rem] font-extrabold tracking-wider text-[var(--text-muted)] uppercase"
+                      class="block text-[0.6875rem] font-extrabold tracking-wider text-text-muted uppercase"
                     >
                       RPE
                     </span>
@@ -672,7 +662,7 @@
                       max="10"
                       placeholder="8.0"
                       bind:value={set.rpe}
-                      class="h-11 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-center font-mono text-sm font-bold text-[var(--text-main)] shadow-2xs outline-none focus:border-[var(--color-primary)]"
+                      class="h-11 w-full rounded-xl border border-border-subtle bg-surface-0 text-center font-mono text-sm font-bold text-text-main shadow-2xs outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -683,7 +673,7 @@
                   onclick={() => toggleSetCompletion(ex, set)}
                   class="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-xs font-extrabold shadow-sm transition-all {set.completed
                     ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-                    : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] text-[var(--text-main)] hover:bg-emerald-500/20 hover:text-emerald-600'}"
+                    : 'border border-border-subtle bg-surface-100 text-text-main hover:bg-emerald-500/20 hover:text-emerald-600'}"
                 >
                   <Icon name={set.completed ? 'check_circle' : 'check'} size="sm" />
                   <span>{set.completed ? 'Erledigt' : 'Abhaken'}</span>
@@ -694,11 +684,11 @@
               <div
                 class="group/set hidden grid-cols-12 items-center gap-3 rounded-2xl border p-2.5 transition-all md:grid {set.completed
                   ? 'border-emerald-500/30 bg-emerald-500/10'
-                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                  : 'border-border-subtle bg-surface-50'}"
               >
                 <!-- Col 1-2: Set Number & Cycle Type -->
                 <div class="col-span-2 flex items-center gap-2">
-                  <span class="font-mono text-xs font-black text-[var(--text-main)] tabular-nums"
+                  <span class="font-mono text-xs font-black text-text-main tabular-nums"
                     >#{set.setNumber}</span
                   >
                   <button
@@ -711,7 +701,7 @@
                         ? 'bg-purple-400/20 text-purple-600'
                         : set.type === 'failure'
                           ? 'bg-rose-400/20 text-rose-600'
-                          : 'bg-[var(--bg-surface-100)] text-[var(--text-muted)]'}"
+                          : 'bg-surface-100 text-text-muted'}"
                   >
                     {set.type}
                   </button>
@@ -726,7 +716,7 @@
                 </div>
 
                 <!-- Col 3-4: Previous Target -->
-                <div class="col-span-2 font-mono text-xs text-[var(--text-muted)]">
+                <div class="col-span-2 font-mono text-xs text-text-muted">
                   {set.previous.weightKg > 0
                     ? `${set.previous.weightKg}kg × ${set.previous.reps}`
                     : '—'}
@@ -734,12 +724,12 @@
 
                 <!-- Col 5-7: Weight Stepper -->
                 <div
-                  class="col-span-3 flex items-center overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] shadow-2xs focus-within:border-[var(--color-primary)]"
+                  class="col-span-3 flex items-center overflow-hidden rounded-xl border border-border-subtle bg-surface-0 shadow-2xs focus-within:border-primary"
                 >
                   <button
                     type="button"
                     onclick={() => adjustWeight(set, -2.5)}
-                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-[var(--text-muted)] select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-text-muted select-none hover:bg-surface-100 hover:text-text-main"
                     title="-2.5 kg"
                   >
                     -
@@ -748,12 +738,12 @@
                     type="number"
                     step="0.5"
                     bind:value={set.weightKg}
-                    class="h-9 w-full bg-transparent p-0 text-center font-mono text-xs font-bold text-[var(--text-main)] outline-none"
+                    class="h-9 w-full bg-transparent p-0 text-center font-mono text-xs font-bold text-text-main outline-none"
                   />
                   <button
                     type="button"
                     onclick={() => adjustWeight(set, 2.5)}
-                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-[var(--text-muted)] select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-text-muted select-none hover:bg-surface-100 hover:text-text-main"
                     title="+2.5 kg"
                   >
                     +
@@ -762,12 +752,12 @@
 
                 <!-- Col 8-9: Reps Stepper -->
                 <div
-                  class="col-span-2 flex items-center overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] shadow-2xs focus-within:border-[var(--color-primary)]"
+                  class="col-span-2 flex items-center overflow-hidden rounded-xl border border-border-subtle bg-surface-0 shadow-2xs focus-within:border-primary"
                 >
                   <button
                     type="button"
                     onclick={() => adjustReps(set, -1)}
-                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-[var(--text-muted)] select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-text-muted select-none hover:bg-surface-100 hover:text-text-main"
                     title="-1 Wdh"
                   >
                     -
@@ -775,12 +765,12 @@
                   <input
                     type="number"
                     bind:value={set.reps}
-                    class="h-9 w-full bg-transparent p-0 text-center font-mono text-xs font-bold text-[var(--text-main)] outline-none"
+                    class="h-9 w-full bg-transparent p-0 text-center font-mono text-xs font-bold text-text-main outline-none"
                   />
                   <button
                     type="button"
                     onclick={() => adjustReps(set, 1)}
-                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-[var(--text-muted)] select-none hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+                    class="flex h-9 w-8 shrink-0 cursor-pointer items-center justify-center text-sm font-black text-text-muted select-none hover:bg-surface-100 hover:text-text-main"
                     title="+1 Wdh"
                   >
                     +
@@ -796,7 +786,7 @@
                     max="10"
                     placeholder="RPE"
                     bind:value={set.rpe}
-                    class="h-9 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-center font-mono text-xs text-[var(--text-main)] shadow-2xs outline-none focus:border-[var(--color-primary)]"
+                    class="h-9 w-full rounded-xl border border-border-subtle bg-surface-0 text-center font-mono text-xs text-text-main shadow-2xs outline-none focus:border-primary"
                   />
                 </div>
 
@@ -807,7 +797,7 @@
                     onclick={() => toggleSetCompletion(ex, set)}
                     class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border-2 transition-all {set.completed
                       ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs'
-                      : 'border-[var(--border-strong)] hover:border-emerald-500'}"
+                      : 'border-border-strong hover:border-emerald-500'}"
                     title={set.completed ? 'Satz als erledigt markiert' : 'Satz abhaken'}
                   >
                     {#if set.completed}
@@ -818,7 +808,7 @@
                   <button
                     type="button"
                     onclick={() => removeSet(ex, set.id)}
-                    class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-[var(--text-muted)] opacity-0 transition-opacity duration-150 group-hover/set:opacity-100 focus-within:opacity-100 hover:bg-rose-500/10 hover:text-rose-500"
+                    class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-text-muted opacity-0 transition-opacity duration-150 group-hover/set:opacity-100 focus-within:opacity-100 hover:bg-rose-500/10 hover:text-rose-500"
                     title="Satz löschen"
                   >
                     <Icon name="delete" size="sm" />
@@ -833,7 +823,7 @@
             <button
               type="button"
               onclick={() => addSet(ex)}
-              class="flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-1.5 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+              class="flex cursor-pointer items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-50 px-3 py-1.5 text-xs font-bold text-text-main transition-colors hover:bg-surface-100"
             >
               <Icon name="add" size="sm" />
               <span>Satz</span>
@@ -845,13 +835,11 @@
 
     <!-- Bottom Finish Workout Section -->
     <div
-      class="mt-8 flex flex-col items-center justify-between gap-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-6 shadow-xs sm:flex-row"
+      class="mt-8 flex flex-col items-center justify-between gap-4 rounded-3xl border border-border-subtle bg-surface-0 p-6 shadow-xs sm:flex-row"
     >
       <div>
-        <h3 class="text-base font-extrabold text-[var(--text-main)]">
-          Workout bereit zum Abschluss?
-        </h3>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+        <h3 class="text-base font-extrabold text-text-main">Workout bereit zum Abschluss?</h3>
+        <p class="mt-0.5 text-xs text-text-muted">
           {completedSetsCount} von {totalSetsCount} Sätzen absolviert &bull; {totalTonnageKg.toLocaleString(
             'de-DE'
           )} kg Gesamttonnage
@@ -875,21 +863,21 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
     >
       <div
-        class="w-full max-w-lg animate-[zoomIn_0.15s_ease-out] space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-6 shadow-2xl"
+        class="w-full max-w-lg animate-[zoomIn_0.15s_ease-out] space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-6 shadow-2xl"
       >
-        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2">
+        <div class="flex items-center justify-between border-b border-border-subtle pb-2">
           <div class="flex items-center gap-2.5">
             <div
-              class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+              class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft text-primary"
             >
               <Icon name="fitness_center" size="sm" />
             </div>
-            <h3 class="text-base font-extrabold text-[var(--text-main)]">Übung auswählen</h3>
+            <h3 class="text-base font-extrabold text-text-main">Übung auswählen</h3>
           </div>
           <button
             type="button"
             onclick={() => (isAddExerciseOpen = false)}
-            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]"
+            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-surface-50 text-text-muted hover:text-text-main"
           >
             &times;
           </button>
@@ -900,9 +888,9 @@
             type="text"
             placeholder="Übung durchsuchen..."
             bind:value={exerciseSearch}
-            class="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] py-2.5 pr-3.5 pl-9 text-xs font-semibold text-[var(--text-main)] outline-none focus:border-[var(--color-primary)]"
+            class="w-full rounded-2xl border border-border-subtle bg-surface-50 py-2.5 pr-3.5 pl-9 text-xs font-semibold text-text-main outline-none focus:border-primary"
           />
-          <span class="absolute top-3 left-3 text-[var(--text-muted)]">
+          <span class="absolute top-3 left-3 text-text-muted">
             <Icon name="search" size="sm" />
           </span>
         </div>
@@ -913,20 +901,20 @@
             <button
               type="button"
               onclick={() => handleSelectExercise(ex)}
-              class="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-left transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]/20"
+              class="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3 text-left transition-all hover:border-primary hover:bg-primary-soft/20"
             >
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-bold text-[var(--text-main)]">{ex.name}</span>
+                  <span class="text-xs font-bold text-text-main">{ex.name}</span>
                   {#if isAlreadyInSession}
                     <Badge variant="default" class="text-[0.5625rem]">Im Workout</Badge>
                   {/if}
                 </div>
-                <span class="text-[0.6875rem] text-[var(--text-muted)]"
+                <span class="text-[0.6875rem] text-text-muted"
                   >{ex.primary_muscles || 'Ganzkörper'} &bull; {ex.equipment || 'Frei'}</span
                 >
               </div>
-              <span class="text-xs font-bold text-[var(--color-primary)]">+ Wählen</span>
+              <span class="text-xs font-bold text-primary">+ Wählen</span>
             </button>
           {/each}
         </div>

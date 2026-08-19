@@ -31,7 +31,7 @@
 
 <div class="relative flex items-center {extraClass}">
   <span
-    class="text-surface-400 pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center"
+    class="pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center text-surface-400"
   >
     <Icon name="search" size="sm" />
   </span>
@@ -40,12 +40,12 @@
     type="search"
     {placeholder}
     bind:value
-    class="duration-micro border-surface-300 bg-surface-50 text-surface-900 placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-500 focus:bg-surface-0 focus:ring-primary-200 h-10 w-full rounded-md border pr-9 pl-9 text-sm font-normal transition-colors focus:ring-2 focus:outline-none"
+    class="duration-micro focus:border-primary-500 focus:ring-primary-200 h-10 w-full rounded-md border border-surface-300 bg-surface-50 pr-9 pl-9 text-sm font-normal text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:bg-surface-0 focus:ring-2 focus:outline-none"
   />
   {#if value}
     <button
       type="button"
-      class="duration-micro text-surface-400 hover:text-surface-600 absolute inset-y-0 right-0 flex w-9 items-center justify-center transition-colors"
+      class="duration-micro absolute inset-y-0 right-0 flex w-9 items-center justify-center text-surface-400 transition-colors hover:text-surface-600"
       aria-label="Clear search"
       onclick={clear}
     >

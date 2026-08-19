@@ -18,15 +18,15 @@
 </script>
 
 <div
-  class="inline-flex gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1 {extraClass}"
+  class="inline-flex gap-1 rounded-xl border border-border-subtle bg-surface-50 p-1 {extraClass}"
 >
   {#each options as opt}
     <button
       type="button"
       class="flex cursor-pointer items-center gap-1.5 rounded-lg font-bold transition-all {sizeClasses} {value ===
       opt.value
-        ? 'bg-[var(--color-primary)] text-white shadow-xs'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-primary text-white shadow-xs'
+        : 'text-text-muted hover:text-text-main'}"
       onclick={() => (value = opt.value)}
       aria-pressed={value === opt.value}
     >

@@ -77,9 +77,9 @@
         </div>
 
         <div class="min-w-0 flex-1 pt-0.5">
-          <div class="text-surface-900 font-semibold">{habit.name}</div>
+          <div class="font-semibold text-surface-900">{habit.name}</div>
           {#if habit.description}
-            <div class="text-surface-500 truncate text-xs">{habit.description}</div>
+            <div class="truncate text-xs text-surface-500">{habit.description}</div>
           {/if}
         </div>
 
@@ -89,13 +89,13 @@
       </div>
     </div>
 
-    <div class="border-surface-100 border-t"></div>
+    <div class="border-t border-surface-100"></div>
 
     <div class="flex items-center justify-between px-4 py-2.5">
-      <div class="text-surface-500 flex items-center gap-1.5 text-xs">
+      <div class="flex items-center gap-1.5 text-xs text-surface-500">
         {#if streak > 0}
           <span class="text-warning-500">🔥</span>
-          <span class="text-surface-600 font-medium">{streak}-day streak</span>
+          <span class="font-medium text-surface-600">{streak}-day streak</span>
         {:else}
           <span class="text-surface-400">No streak yet</span>
         {/if}

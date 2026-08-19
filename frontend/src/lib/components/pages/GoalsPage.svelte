@@ -41,7 +41,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Gesundheitsziele und Prognosen</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Mathematische Zielverfolgung mit statistischen Prognosen bis zur Deadline
       </p>
     </div>
@@ -54,19 +54,19 @@
 
   <!-- Goals Grid -->
   {#if loading}
-    <div class="py-12 text-center text-sm text-[var(--text-muted)]">Ziele werden geladen...</div>
+    <div class="py-12 text-center text-sm text-text-muted">Ziele werden geladen...</div>
   {:else if goalViews.length === 0}
     <div
-      class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 text-center shadow-[var(--shadow-card)]"
+      class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-8 text-center shadow-card"
     >
       <div
-        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary"
       >
         <Icon name="flag" size="lg" />
       </div>
       <div>
-        <h3 class="text-base font-bold text-[var(--text-main)]">Keine aktiven Ziele definiert</h3>
-        <p class="mx-auto mt-1 max-w-sm text-xs text-[var(--text-muted)]">
+        <h3 class="text-base font-bold text-text-main">Keine aktiven Ziele definiert</h3>
+        <p class="mx-auto mt-1 max-w-sm text-xs text-text-muted">
           Setze dir messbare Gesundheitsziele für Körpergewicht, Blutdruck, Schritte oder Schlaf, um
           Fortschritt und Projektionen zu verfolgen.
         </p>
@@ -84,19 +84,19 @@
             ? 'on_track'
             : 'off_track'}
         <div
-          class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+          class="flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card"
         >
           <div>
             <div class="mb-3 flex items-start justify-between">
               <div class="flex items-center gap-3">
                 <div
-                  class="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-primary-soft)]/20 text-[var(--color-primary)]"
+                  class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft/20 text-primary"
                 >
                   <Icon name={g.metric_icon || 'flag'} size={18} />
                 </div>
                 <div>
-                  <h2 class="text-sm font-bold text-[var(--text-main)]">{g.metric_name}</h2>
-                  <span class="text-xs text-[var(--text-muted)]"
+                  <h2 class="text-sm font-bold text-text-main">{g.metric_name}</h2>
+                  <span class="text-xs text-text-muted"
                     >{g.frequency} {g.deadline ? `• Frist: ${g.deadline}` : ''}</span
                   >
                 </div>
@@ -119,22 +119,20 @@
 
             <!-- Progress Numbers -->
             <div class="my-2 flex items-baseline gap-2 font-mono">
-              <span class="text-2xl font-extrabold text-[var(--text-main)]">
+              <span class="text-2xl font-extrabold text-text-main">
                 {g.progress.current_value !== null ? g.progress.current_value : '—'}
               </span>
-              <span class="text-xs text-[var(--text-muted)]"
-                >/ {g.target_value} {g.metric_unit}</span
-              >
+              <span class="text-xs text-text-muted">/ {g.target_value} {g.metric_unit}</span>
             </div>
 
             <!-- Progress Bar -->
             <div
-              class="my-2 h-2 w-full overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
+              class="my-2 h-2 w-full overflow-hidden rounded-full border border-border-subtle bg-surface-50"
             >
               <div
                 class="h-full rounded-full transition-all duration-500 {status === 'achieved'
-                  ? 'bg-[var(--color-success)]'
-                  : 'bg-[var(--color-primary)]'}"
+                  ? 'bg-success'
+                  : 'bg-primary'}"
                 style="width: {g.progress.percent}%"
               ></div>
             </div>
@@ -143,10 +141,10 @@
           <!-- Statistical Projection Footer -->
           {#if g.forecast}
             <div
-              class="mt-4 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 font-mono text-xs text-[var(--text-soft)]"
+              class="mt-4 flex items-center justify-between border-t border-border-subtle pt-3 font-mono text-xs text-text-soft"
             >
               <span
-                >Projektion: <strong class="text-[var(--text-main)]"
+                >Projektion: <strong class="text-text-main"
                   >{g.forecast.predicted.toFixed(1)} {g.metric_unit}</strong
                 ></span
               >
@@ -192,7 +190,7 @@
         bind:value={direction}
       />
 
-      <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
         <Btn variant="secondary" size="md" onclick={() => (isCreateOpen = false)}>Abbrechen</Btn>
         <Btn variant="primary" size="md" type="submit" disabled={!targetVal}>Ziel speichern</Btn>
       </div>

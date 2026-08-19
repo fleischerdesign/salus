@@ -22,7 +22,7 @@
 </script>
 
 <div
-  class="flex flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="flex flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card"
 >
   <div class="flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
@@ -33,10 +33,10 @@
         <Icon name="water-drop" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Wasserhaushalt
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">Tägliche Flüssigkeitszufuhr</p>
+        <p class="truncate text-xs text-text-muted">Tägliche Flüssigkeitszufuhr</p>
       </div>
     </div>
     <Badge variant="hydrate" class="text-[0.625rem] font-bold">{percentage}% Soll</Badge>
@@ -61,7 +61,7 @@
   </div>
 
   <div class="mb-3 text-center">
-    <div class="font-mono text-[1.35rem] font-bold text-[var(--text-main)] tabular-nums">
+    <div class="font-mono text-[1.35rem] font-bold text-text-main tabular-nums">
       {currentMl.toLocaleString('de-DE')} / {targetMl.toLocaleString('de-DE')} ml
     </div>
   </div>
@@ -69,14 +69,14 @@
   <div class="grid grid-cols-2 gap-2">
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-3 py-2 text-xs font-bold text-text-main transition-colors hover:bg-surface-100"
       onclick={() => addAmount(250)}
     >
       + 250 ml
     </button>
     <button
       type="button"
-      class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-3 py-2 text-xs font-bold text-text-main transition-colors hover:bg-surface-100"
       onclick={() => addAmount(500)}
     >
       + 500 ml

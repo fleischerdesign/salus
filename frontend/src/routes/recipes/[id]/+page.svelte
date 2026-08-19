@@ -130,25 +130,25 @@
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     <div class="flex flex-col gap-4 lg:col-span-2">
       <Card>
-        <h3 class="text-surface-700 mb-4 text-sm font-semibold">Ingredients</h3>
-        <div class="divide-surface-100 divide-y">
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">Ingredients</h3>
+        <div class="divide-y divide-surface-100">
           {#each ingredients as ing (ing.id)}
             {@const food = foodMap[ing.food_item_id]}
             <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <div class="flex items-center gap-3">
                 <div
-                  class="bg-surface-100 text-surface-500 flex h-8 w-8 items-center justify-center rounded-lg"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-100 text-surface-500"
                 >
                   <Icon name="restaurant" size="sm" />
                 </div>
                 <div>
-                  <div class="text-surface-700 text-sm font-medium">{food?.name ?? 'Unknown'}</div>
-                  <div class="text-surface-400 text-xs">
+                  <div class="text-sm font-medium text-surface-700">{food?.name ?? 'Unknown'}</div>
+                  <div class="text-xs text-surface-400">
                     {ing.amount_g}g{ing.notes ? ` · ${ing.notes}` : ''}
                   </div>
                 </div>
               </div>
-              <div class="text-surface-500 text-xs">
+              <div class="text-xs text-surface-500">
                 {food
                   ? Math.round((food.calories_per_serving / food.serving_size) * ing.amount_g)
                   : '—'} kcal
@@ -160,8 +160,8 @@
 
       {#if recipe.instructions}
         <Card>
-          <h3 class="text-surface-700 mb-4 text-sm font-semibold">Instructions</h3>
-          <div class="prose prose-sm text-surface-600 whitespace-pre-line">
+          <h3 class="mb-4 text-sm font-semibold text-surface-700">Instructions</h3>
+          <div class="prose prose-sm whitespace-pre-line text-surface-600">
             {recipe.instructions}
           </div>
         </Card>
@@ -170,15 +170,15 @@
 
     <div class="flex flex-col gap-4">
       <Card>
-        <h3 class="text-surface-700 mb-2 text-sm font-semibold">Nutrition</h3>
+        <h3 class="mb-2 text-sm font-semibold text-surface-700">Nutrition</h3>
         <div class="space-y-1 text-sm">
           <div class="flex justify-between">
             <span class="text-surface-400">Total</span>
-            <span class="text-surface-700 font-medium">{Math.round(macros.calories)} kcal</span>
+            <span class="font-medium text-surface-700">{Math.round(macros.calories)} kcal</span>
           </div>
           <div class="flex justify-between">
             <span class="text-surface-400">Per serving</span>
-            <span class="text-surface-700 font-medium"
+            <span class="font-medium text-surface-700"
               >{Math.round(macros.calories / recipe.servings)} kcal</span
             >
           </div>
@@ -201,8 +201,8 @@
 
       {#if recipe.description}
         <Card>
-          <h3 class="text-surface-700 mb-2 text-sm font-semibold">About</h3>
-          <p class="text-surface-600 text-sm">{recipe.description}</p>
+          <h3 class="mb-2 text-sm font-semibold text-surface-700">About</h3>
+          <p class="text-sm text-surface-600">{recipe.description}</p>
         </Card>
       {/if}
 

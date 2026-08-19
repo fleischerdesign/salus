@@ -26,7 +26,7 @@
     critical: { solid: 'bg-rose-500', ping: 'bg-rose-400' },
     info: { solid: 'bg-sky-500', ping: 'bg-sky-400' },
     unknown: { solid: 'bg-slate-400', ping: 'bg-slate-300' },
-    syncing: { solid: 'bg-[var(--color-primary)]', ping: 'bg-blue-400' }
+    syncing: { solid: 'bg-primary', ping: 'bg-blue-400' }
   };
 
   const sizes: Record<string, string> = {

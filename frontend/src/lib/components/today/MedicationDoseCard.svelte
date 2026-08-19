@@ -54,9 +54,7 @@
   }
 </script>
 
-<div
-  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
->
+<div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card">
   <div class="mb-1 flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
       <div
@@ -66,10 +64,10 @@
         <Icon name="medication" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Supplement- &amp; Medikamentenplan
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">Tägliche Dosen &amp; Einnahme</p>
+        <p class="truncate text-xs text-text-muted">Tägliche Dosen &amp; Einnahme</p>
       </div>
     </div>
     {#if meds.length > 0}
@@ -80,7 +78,7 @@
   </div>
 
   {#if meds.length === 0}
-    <div class="py-6 text-center text-xs text-[var(--text-muted)] italic">
+    <div class="py-6 text-center text-xs text-text-muted italic">
       Noch keine Medikamente oder Supplemente hinterlegt.
     </div>
   {:else}
@@ -91,24 +89,24 @@
           onclick={() => handleToggle(med.id, med.scheduleId, med.time)}
           class="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left transition-all {med.taken
             ? 'border-emerald-500/30 bg-emerald-500/10 shadow-xs'
-            : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
+            : 'border-border-subtle bg-surface-50 hover:border-border-strong'}"
         >
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <span
                 class="truncate text-xs font-bold {med.taken
                   ? 'text-emerald-700 dark:text-emerald-300'
-                  : 'text-[var(--text-main)]'}"
+                  : 'text-text-main'}"
               >
                 {med.name}
               </span>
               <span
-                class="rounded-md bg-[var(--bg-surface-100)] px-1.5 py-0.5 text-[0.625rem] font-bold text-[var(--text-muted)]"
+                class="rounded-md bg-surface-100 px-1.5 py-0.5 text-[0.625rem] font-bold text-text-muted"
               >
                 {med.dosage}
               </span>
             </div>
-            <span class="text-[0.6875rem] text-[var(--text-muted)]"
+            <span class="text-[0.6875rem] text-text-muted"
               >{med.time} &bull; {med.instructions}</span
             >
           </div>
@@ -116,7 +114,7 @@
           <div
             class="flex h-6 w-6 shrink-0 items-center justify-center rounded-xl border transition-all {med.taken
               ? 'border-emerald-500 bg-emerald-500 text-white'
-              : 'border-[var(--border-strong)] bg-[var(--bg-surface-0)]'}"
+              : 'border-border-strong bg-surface-0'}"
           >
             {#if med.taken}
               <Icon name="check" size="sm" />

@@ -77,17 +77,17 @@
 >
   <div class="space-y-4 pt-1">
     <div class="flex items-baseline gap-2">
-      <span class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums">
+      <span class="text-3xl font-extrabold tracking-tight text-text-main tabular-nums">
         {systolic}
       </span>
-      <span class="text-xl font-bold text-[var(--text-muted)] tabular-nums">
+      <span class="text-xl font-bold text-text-muted tabular-nums">
         / {diastolic}
       </span>
-      <span class="text-xs font-semibold text-[var(--text-muted)]">mmHg</span>
+      <span class="text-xs font-semibold text-text-muted">mmHg</span>
     </div>
 
     <div class="space-y-1.5 pt-1">
-      <div class="relative flex h-2.5 overflow-hidden rounded-full bg-[var(--bg-surface-200)]">
+      <div class="relative flex h-2.5 overflow-hidden rounded-full bg-surface-200">
         <div class="h-full w-[42%] bg-emerald-500"></div>
         <div class="h-full w-[15%] bg-teal-400"></div>
         <div class="h-full w-[15%] bg-amber-400"></div>
@@ -97,9 +97,7 @@
           style="left: {pressurePercent}%;"
         ></div>
       </div>
-      <div
-        class="flex justify-between px-0.5 text-[0.625rem] font-semibold text-[var(--text-muted)]"
-      >
+      <div class="flex justify-between px-0.5 text-[0.625rem] font-semibold text-text-muted">
         <span>90</span>
         <span class="font-bold text-emerald-500">120 (Optimal)</span>
         <span class="font-bold text-amber-500">130</span>

@@ -109,8 +109,8 @@
               onclick={() => (selectedCategory = cat.id)}
               class="shrink-0 cursor-pointer rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all {selectedCategory ===
               cat.id
-                ? 'bg-[var(--color-primary)] text-white shadow-xs'
-                : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+                ? 'bg-primary text-white shadow-xs'
+                : 'border border-border-subtle bg-surface-0 text-text-muted hover:text-text-main'}"
             >
               {cat.label}
             </button>
@@ -124,16 +124,16 @@
       <!-- 1. GROUP TEMPLATE CARD (if applicable) -->
       {#if showGroupTemplate}
         <div
-          class="group flex flex-col justify-between space-y-3 rounded-3xl border-2 border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5 p-4.5 transition-all hover:border-[var(--color-primary)] hover:shadow-md"
+          class="group flex flex-col justify-between space-y-3 rounded-3xl border-2 border-dashed border-primary/40 bg-primary/5 p-4.5 transition-all hover:border-primary hover:shadow-md"
         >
           <div>
             <div class="mb-1.5 flex items-center justify-between gap-2">
-              <span class="text-xs font-extrabold text-[var(--color-primary)]">
+              <span class="text-xs font-extrabold text-primary">
                 Neuer visueller Abschnitt (Gruppe)
               </span>
               <Badge variant="primary" class="text-[0.5625rem]">Layout</Badge>
             </div>
-            <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
+            <p class="text-[0.6875rem] leading-tight text-text-muted">
               Erstelle einen zusammenhängenden Bereich mit 1, 2 oder 3 Spalten zur thematischen
               Bündelung von Widgets.
             </p>
@@ -141,29 +141,27 @@
 
           <!-- Mini Layout Visual Preview -->
           <div
-            class="flex h-24 items-center justify-center rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--bg-surface-0)]/80 p-3"
+            class="flex h-24 items-center justify-center rounded-2xl border border-primary/20 bg-surface-0/80 p-3"
           >
             <div class="grid w-full grid-cols-3 gap-1.5">
               <div
-                class="h-14 rounded-xl border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary-soft)]/20"
+                class="h-14 rounded-xl border border-dashed border-primary/40 bg-primary-soft/20"
               ></div>
               <div
-                class="h-14 rounded-xl border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary-soft)]/20"
+                class="h-14 rounded-xl border border-dashed border-primary/40 bg-primary-soft/20"
               ></div>
               <div
-                class="h-14 rounded-xl border border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary-soft)]/20"
+                class="h-14 rounded-xl border border-dashed border-primary/40 bg-primary-soft/20"
               ></div>
             </div>
           </div>
 
-          <div
-            class="flex items-center justify-between border-t border-[var(--border-subtle)]/60 pt-2"
-          >
-            <span class="text-[0.625rem] text-[var(--text-muted)]">Raster-Container</span>
+          <div class="flex items-center justify-between border-t border-border-subtle/60 pt-2">
+            <span class="text-[0.625rem] text-text-muted">Raster-Container</span>
             <button
               type="button"
               onclick={handleSelectGroupTemplate}
-              class="cursor-pointer rounded-xl bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 active:scale-95"
+              class="cursor-pointer rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 active:scale-95"
             >
               + Gruppe erstellen
             </button>
@@ -174,7 +172,7 @@
       <!-- 2. DYNAMIC REGISTRY WIDGETS WITH LIVE PREVIEW -->
       {#each filteredManifests as m}
         <div
-          class="group flex flex-col justify-between space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4.5 transition-all hover:border-[var(--color-primary)] hover:shadow-md"
+          class="group flex flex-col justify-between space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-4.5 transition-all hover:border-primary hover:shadow-md"
         >
           <div>
             <div class="mb-1 flex items-center justify-between gap-2">
@@ -185,9 +183,7 @@
                 >
                   <Icon name={m.icon} size="sm" />
                 </div>
-                <span
-                  class="text-xs font-extrabold text-[var(--text-main)] group-hover:text-[var(--color-primary)]"
-                >
+                <span class="text-xs font-extrabold text-text-main group-hover:text-primary">
                   {m.title}
                 </span>
               </div>
@@ -195,14 +191,14 @@
                 {m.category}
               </Badge>
             </div>
-            <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
+            <p class="text-[0.6875rem] leading-tight text-text-muted">
               {m.description}
             </p>
           </div>
 
           <!-- LIVE EMBEDDED WIDGET PREVIEW (Interactive Safe) -->
           <div
-            class="pointer-events-none overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]/40 p-1 shadow-2xs select-none"
+            class="pointer-events-none overflow-hidden rounded-2xl border border-border-subtle bg-surface-50/40 p-1 shadow-2xs select-none"
           >
             <div class="w-full">
               <m.component {date} preview={true} />
@@ -210,10 +206,8 @@
           </div>
 
           <!-- Card Action Footer -->
-          <div
-            class="flex items-center justify-between border-t border-[var(--border-subtle)]/60 pt-2"
-          >
-            <span class="text-[0.625rem] text-[var(--text-muted)]">
+          <div class="flex items-center justify-between border-t border-border-subtle/60 pt-2">
+            <span class="text-[0.625rem] text-text-muted">
               {m.defaultSize === 'large'
                 ? 'Volle Breite'
                 : m.defaultSize === 'small'
@@ -223,7 +217,7 @@
             <button
               type="button"
               onclick={() => handleSelectWidget(m)}
-              class="cursor-pointer rounded-xl bg-[var(--color-primary)] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 active:scale-95"
+              class="cursor-pointer rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 active:scale-95"
             >
               {targetGroup ? `+ Zu „${targetGroup.title}“` : '+ Auf Dashboard'}
             </button>
@@ -233,8 +227,8 @@
     </div>
 
     <!-- Footer -->
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-      <span class="text-xs text-[var(--text-muted)]">
+    <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+      <span class="text-xs text-text-muted">
         {filteredManifests.length + (showGroupTemplate ? 1 : 0)} Module verfügbar
       </span>
       <Btn variant="secondary" size="md" onclick={onclose}>Schließen</Btn>

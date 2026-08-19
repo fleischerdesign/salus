@@ -52,20 +52,20 @@
   <div class="w-full max-w-md space-y-6">
     <!-- Brand Card Container -->
     <div
-      class="space-y-6 rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-dock-bg)] p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
+      class="space-y-6 rounded-3xl border border-border-subtle bg-glass-dock p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
     >
       <!-- Brand Header -->
       <div class="space-y-2 text-center">
         <div
-          class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] shadow-xs"
+          class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs"
         >
           <Icon name="health-and-safety" size="lg" />
         </div>
         <div>
-          <h1 class="text-xl font-black tracking-tight text-[var(--text-main)] sm:text-2xl">
+          <h1 class="text-xl font-black tracking-tight text-text-main sm:text-2xl">
             Konto erstellen
           </h1>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Erstelle dein persönliches Salus-Konto für verschlüsselte Synchronisation.
           </p>
         </div>
@@ -120,7 +120,7 @@
             <button
               type="button"
               onclick={() => (showPassword = !showPassword)}
-              class="cursor-pointer p-1 text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)]"
+              class="cursor-pointer p-1 text-text-muted transition-colors hover:text-text-main"
               title={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
               aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
             >
@@ -135,9 +135,9 @@
 
         <!-- Privacy / Data Sovereignty Note -->
         <div
-          class="flex items-start gap-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-[0.6875rem] text-[var(--text-muted)]"
+          class="flex items-start gap-2.5 rounded-2xl border border-border-subtle bg-surface-50 p-3 text-[0.6875rem] text-text-muted"
         >
-          <Icon name="shield" size="sm" class="mt-0.5 shrink-0 text-[var(--color-primary)]" />
+          <Icon name="shield" size="sm" class="mt-0.5 shrink-0 text-primary" />
           <span
             >Deine Gesundheits- und Trainingsdaten bleiben privat und werden lokal im Browser
             verschlüsselt verarbeitet.</span
@@ -148,7 +148,7 @@
         <button
           type="submit"
           disabled={loading}
-          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] py-3 text-sm font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.99] disabled:opacity-50"
+          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.99] disabled:opacity-50"
         >
           {#if loading}
             <Icon name="progress-activity" size="sm" class="animate-spin" />
@@ -160,12 +160,10 @@
       </form>
 
       <!-- Footer Login Link -->
-      <div class="border-t border-[var(--border-subtle)] pt-2 text-center">
-        <p class="text-xs text-[var(--text-muted)]">
+      <div class="border-t border-border-subtle pt-2 text-center">
+        <p class="text-xs text-text-muted">
           Bereits ein Konto vorhanden?
-          <a href="/auth/login" class="ml-1 font-bold text-[var(--color-primary)] hover:underline">
-            Anmelden
-          </a>
+          <a href="/auth/login" class="ml-1 font-bold text-primary hover:underline"> Anmelden </a>
         </p>
       </div>
     </div>

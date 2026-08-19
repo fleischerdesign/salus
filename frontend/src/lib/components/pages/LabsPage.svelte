@@ -36,7 +36,7 @@
         <h1 class="text-2xl font-extrabold tracking-tight">Klinische Labordiagnostik</h1>
         <Badge variant="success">Nüchternblut (14h Fasten)</Badge>
       </div>
-      <p class="mt-0.5 text-xs text-[var(--text-muted)] sm:text-sm">
+      <p class="mt-0.5 text-xs text-text-muted sm:text-sm">
         Multi-Draw Zeitreihen, Organprofile nach ESC/EAS 2024 Leitlinien und ECDH-Arztfreigaben
       </p>
     </div>
@@ -51,16 +51,16 @@
 
   <!-- Sub-Navigation Tabs -->
   <div
-    class="flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5"
+    class="flex gap-2 overflow-x-auto rounded-2xl border border-border-subtle bg-surface-50 p-1.5"
   >
     <a
       href="/labs/matrix"
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
       'matrix'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="show-chart" class="text-[var(--color-primary)]" />
+      <Icon name="show-chart" class="text-primary" />
       <span>Verlaufsmatrix</span>
       <Badge variant="success" class="text-[0.625rem]">Optimal</Badge>
     </a>
@@ -69,10 +69,10 @@
       href="/labs/panels"
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
       'panels'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="labs" class="text-[var(--color-vital)]" />
+      <Icon name="labs" class="text-vital" />
       <span>Organprofile</span>
       <Badge variant="default" class="text-[0.625rem]">3 Panels</Badge>
     </a>
@@ -81,10 +81,10 @@
       href="/labs/share"
       class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
       'share'
-        ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-        : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="insights" class="text-[var(--color-circadian)]" />
+      <Icon name="insights" class="text-circadian" />
       <span>Arztfreigabe</span>
       <Badge variant="default" class="text-[0.625rem]">ECDH</Badge>
     </a>

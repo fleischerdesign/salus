@@ -207,13 +207,11 @@
 />
 
 {#if isPublic}
-  <div class="flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] p-4">
+  <div class="flex min-h-screen items-center justify-center bg-canvas p-4">
     <PageTransition>{@render children()}</PageTransition>
   </div>
 {:else if auth.isAuthenticated}
-  <div
-    class="relative flex min-h-screen flex-col bg-[var(--bg-canvas)] pb-32 text-[var(--text-main)] md:pb-16"
-  >
+  <div class="relative flex min-h-screen flex-col bg-canvas pb-32 text-text-main md:pb-16">
     <!-- Floating Glass Navigation Dock (Desktop Sticky Capsule + Mobile Bottom Dock & Center Hub) -->
     <FloatingGlassDock
       onopenquicklog={() => (isQuickLogOpen = true)}
@@ -252,15 +250,15 @@
   {#if biometricLock.locked}
     <!-- Biometric lock overlay -->
     <div
-      class="bg-surface-0/85 fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-0/85 backdrop-blur-sm"
     >
       <div class="flex flex-col items-center gap-4 text-center">
-        <div class="bg-surface-100 flex h-14 w-14 items-center justify-center rounded-2xl">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100">
           <Icon name="lock" size="2xl" class="text-surface-400" />
         </div>
         <div>
-          <p class="text-surface-900 text-sm font-semibold">App entsperren</p>
-          <p class="text-surface-500 mt-0.5 text-xs">Bestätige deine Identität per Biometrie.</p>
+          <p class="text-sm font-semibold text-surface-900">App entsperren</p>
+          <p class="mt-0.5 text-xs text-surface-500">Bestätige deine Identität per Biometrie.</p>
         </div>
         <Btn variant="primary" onclick={() => biometricLock.unlock()}>Entsperren</Btn>
       </div>

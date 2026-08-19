@@ -58,8 +58,7 @@
         ? { text: 'Fisher 1915; Benjamini & Hochberg 1995' }
         : { text: 'Spearman 1904; Benjamini & Hochberg 1995' }}
     />
-    <span class="text-[10px] text-[var(--text-soft)]">{nComparisons} Vergleiche · {correction}</span
-    >
+    <span class="text-[10px] text-text-soft">{nComparisons} Vergleiche · {correction}</span>
   </div>
 
   <div class="overflow-x-auto">
@@ -69,7 +68,7 @@
           <th class="p-1"></th>
           {#each metrics as m}
             <th
-              class="rotate-180 p-1 text-[0.6875rem] font-bold text-[var(--text-muted)] [writing-mode:vertical-lr]"
+              class="rotate-180 p-1 text-[0.6875rem] font-bold text-text-muted [writing-mode:vertical-lr]"
               >{m}</th
             >
           {/each}
@@ -78,12 +77,11 @@
       <tbody>
         {#each metrics as ma}
           <tr>
-            <td class="pr-2 text-right text-[0.6875rem] font-bold text-[var(--text-muted)]">{ma}</td
-            >
+            <td class="pr-2 text-right text-[0.6875rem] font-bold text-text-muted">{ma}</td>
             {#each metrics as mb}
               {@const p = pair(ma, mb)}
               <td
-                class="cursor-pointer rounded-lg border border-[var(--border-subtle)] p-1 text-center tabular-nums transition-colors hover:ring-2 hover:ring-[var(--color-primary)]"
+                class="cursor-pointer rounded-lg border border-border-subtle p-1 text-center tabular-nums transition-colors hover:ring-2 hover:ring-primary"
                 class:opacity-40={!p || p.pearson_p >= 0.05}
                 class:font-bold={p != null}
                 style="background-color:{p ? color(p.pearson_r) : 'var(--bg-surface-50)'}"
@@ -91,11 +89,11 @@
                 role="gridcell"
               >
                 {#if ma === mb}
-                  <span class="text-[var(--text-soft)]">—</span>
+                  <span class="text-text-soft">—</span>
                 {:else if p}
                   {p.pearson_r.toFixed(2)}
                 {:else}
-                  <span class="text-[var(--text-soft)]">·</span>
+                  <span class="text-text-soft">·</span>
                 {/if}
               </td>
             {/each}
@@ -107,54 +105,51 @@
 
   {#if selected}
     <div
-      class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 shadow-sm"
+      class="rounded-2xl border border-border-subtle bg-surface-50 p-4 shadow-sm"
       transition:slide
     >
       <div class="mb-2 flex items-center justify-between">
-        <span class="text-xs font-extrabold text-[var(--text-main)]">
+        <span class="text-xs font-extrabold text-text-main">
           {selected.metric_a} ↔ {selected.metric_b}
         </span>
         <button
-          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-[var(--text-soft)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-text-soft transition-colors hover:bg-surface-100 hover:text-text-main"
           onclick={() => (selected = null)}
           aria-label="Schließen"
         >
           <Icon name="close" size="sm" />
         </button>
       </div>
-      <div class="grid grid-cols-2 gap-2 text-xs text-[var(--text-muted)] sm:grid-cols-4">
+      <div class="grid grid-cols-2 gap-2 text-xs text-text-muted sm:grid-cols-4">
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">Pearson r</span>
-          <span class="font-mono font-bold text-[var(--text-main)]"
-            >{selected.pearson_r.toFixed(4)}</span
-          >
+          <span class="block text-[0.6875rem] text-text-soft">Pearson r</span>
+          <span class="font-mono font-bold text-text-main">{selected.pearson_r.toFixed(4)}</span>
         </div>
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">p-Wert</span>
-          <span class="font-mono font-bold text-[var(--text-main)]"
+          <span class="block text-[0.6875rem] text-text-soft">p-Wert</span>
+          <span class="font-mono font-bold text-text-main"
             >{selected.pearson_p < 0.001 ? '<0.001' : selected.pearson_p.toFixed(4)}</span
           >
         </div>
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">p (adj BH)</span>
-          <span class="font-mono font-bold text-[var(--text-main)]"
+          <span class="block text-[0.6875rem] text-text-soft">p (adj BH)</span>
+          <span class="font-mono font-bold text-text-main"
             >{selected.p_adjusted_bh < 0.001 ? '<0.001*' : selected.p_adjusted_bh.toFixed(4)}</span
           >
         </div>
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">95% CI</span>
-          <span class="font-mono font-bold text-[var(--text-main)]"
+          <span class="block text-[0.6875rem] text-text-soft">95% CI</span>
+          <span class="font-mono font-bold text-text-main"
             >[{selected.ci_lower.toFixed(2)}, {selected.ci_upper.toFixed(2)}]</span
           >
         </div>
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">Effektstärke</span>
-          <span class="font-bold text-[var(--text-main)] capitalize">{selected.interpretation}</span
-          >
+          <span class="block text-[0.6875rem] text-text-soft">Effektstärke</span>
+          <span class="font-bold text-text-main capitalize">{selected.interpretation}</span>
         </div>
         <div>
-          <span class="block text-[0.6875rem] text-[var(--text-soft)]">Stichprobe</span>
-          <span class="font-bold text-[var(--text-main)]">n = {selected.n}</span>
+          <span class="block text-[0.6875rem] text-text-soft">Stichprobe</span>
+          <span class="font-bold text-text-main">n = {selected.n}</span>
         </div>
       </div>
     </div>

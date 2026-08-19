@@ -58,12 +58,10 @@
   }
 </script>
 
-<div
-  class="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-[var(--shadow-card)]"
->
+<div class="rounded-lg border border-border-subtle bg-surface-0 p-4 shadow-card">
   <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="labs" class="text-[var(--color-primary)]" />
+    <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+      <Icon name="labs" class="text-primary" />
       <span>Klinische Biomarker-Verlaufsmatrix (Multi-Draw)</span>
     </div>
     <div class="flex items-center gap-2">
@@ -81,13 +79,11 @@
   </div>
 
   {#if loading}
-    <div class="py-8 text-center text-xs text-[var(--text-muted)]">
-      Laborwerte werden geladen...
-    </div>
+    <div class="py-8 text-center text-xs text-text-muted">Laborwerte werden geladen...</div>
   {:else if rows.length === 0}
-    <div class="space-y-2 py-8 text-center text-xs text-[var(--text-muted)]">
-      <Icon name="science" size="lg" class="mx-auto text-[var(--text-muted)] opacity-60" />
-      <p class="text-xs font-bold text-[var(--text-main)]">Keine Laborwerte hinterlegt</p>
+    <div class="space-y-2 py-8 text-center text-xs text-text-muted">
+      <Icon name="science" size="lg" class="mx-auto text-text-muted opacity-60" />
+      <p class="text-xs font-bold text-text-main">Keine Laborwerte hinterlegt</p>
       <p class="mx-auto max-w-sm text-[0.6875rem]">
         Erfasse deine Blut- und Laborergebnisse manuell oder importiere deinen Arztbericht.
       </p>
@@ -97,7 +93,7 @@
       <table class="w-full border-collapse text-left text-xs">
         <thead>
           <tr
-            class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider whitespace-nowrap text-[var(--text-muted)] uppercase"
+            class="border-b border-border-subtle text-[0.6875rem] tracking-wider whitespace-nowrap text-text-muted uppercase"
           >
             <th class="px-3 py-2.5">Biomarker</th>
             <th class="px-3 py-2.5">Referenzbereich</th>
@@ -107,12 +103,12 @@
             <th class="px-3 py-2.5">Status</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[var(--border-subtle)] whitespace-nowrap">
+        <tbody class="divide-y divide-border-subtle whitespace-nowrap">
           {#each rows as row}
-            <tr class="text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)]">
+            <tr class="text-text-main transition-colors hover:bg-surface-50">
               <td class="px-3 py-3 font-bold">{row.name}</td>
-              <td class="px-3 py-3 font-mono text-[var(--text-muted)]">{row.reference}</td>
-              <td class="px-3 py-3 font-mono font-bold text-[var(--color-success)]">
+              <td class="px-3 py-3 font-mono text-text-muted">{row.reference}</td>
+              <td class="px-3 py-3 font-mono font-bold text-success">
                 {row.valCurrent.val}
                 {row.valCurrent.unit}
               </td>

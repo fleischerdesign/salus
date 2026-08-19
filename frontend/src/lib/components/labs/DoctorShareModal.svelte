@@ -49,7 +49,7 @@
 
     <!-- Ephemeral QR Code Display -->
     <div
-      class="flex flex-col items-center justify-center space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-center"
+      class="flex flex-col items-center justify-center space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-5 text-center"
     >
       <!-- SVG Generated QR Code -->
       <div
@@ -70,7 +70,7 @@
         </svg>
         <div class="absolute inset-0 flex items-center justify-center">
           <div
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-extrabold text-white shadow-md"
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white shadow-md"
           >
             S
           </div>
@@ -78,17 +78,17 @@
       </div>
 
       <div>
-        <span class="block text-xs font-bold text-[var(--text-main)]">Arzt-Scan QR-Code</span>
-        <span class="text-[0.6875rem] text-[var(--text-muted)]"
+        <span class="block text-xs font-bold text-text-main">Arzt-Scan QR-Code</span>
+        <span class="text-[0.6875rem] text-text-muted"
           >Der Arzt kann den Code mit jedem Tablet oder Smartphone scannen</span
         >
       </div>
 
       <!-- PIN Code -->
       <div class="flex items-center gap-2 pt-1">
-        <span class="text-xs text-[var(--text-soft)]">Sicherheits-PIN:</span>
+        <span class="text-xs text-text-soft">Sicherheits-PIN:</span>
         <span
-          class="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-1 font-bold tracking-widest text-[var(--color-primary)]"
+          class="rounded-lg border border-border-subtle bg-surface-50 px-3 py-1 font-bold tracking-widest text-primary"
         >
           {pinCode}
         </span>
@@ -98,7 +98,7 @@
     <!-- Validity & Scope Selection -->
     <div class="space-y-3">
       <div class="flex items-center justify-between">
-        <span class="font-semibold text-[var(--text-muted)]">Gültigkeitsdauer</span>
+        <span class="font-semibold text-text-muted">Gültigkeitsdauer</span>
         <div class="flex gap-1.5">
           {#each [24, 72, 168] as h}
             <button
@@ -106,8 +106,8 @@
               onclick={() => (validityHours = h)}
               class="cursor-pointer rounded-xl px-2.5 py-1 font-bold transition-all {validityHours ===
               h
-                ? 'bg-[var(--color-primary)] text-white'
-                : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)]'}"
+                ? 'bg-primary text-white'
+                : 'border border-border-subtle bg-surface-50 text-text-muted'}"
             >
               {h === 24 ? '24h' : h === 72 ? '3 Tage' : '7 Tage'}
             </button>
@@ -117,9 +117,7 @@
 
       <!-- Included Panels -->
       <div>
-        <span class="mb-1.5 block font-semibold text-[var(--text-muted)]"
-          >Freigegebene Laborprofile</span
-        >
+        <span class="mb-1.5 block font-semibold text-text-muted">Freigegebene Laborprofile</span>
         <div class="grid grid-cols-2 gap-2">
           {#each [{ id: 'lipids', label: 'Lipidprofil und ApoB', count: '5 Marker' }, { id: 'metabolic', label: 'Glukosestoffwechsel', count: '4 Marker' }, { id: 'inflammation', label: 'hs-CRP und Entzündung', count: '3 Marker' }, { id: 'hormones', label: 'Hormone und Schilddrüse', count: '6 Marker' }] as p}
             <button
@@ -128,11 +126,11 @@
               class="cursor-pointer rounded-xl border p-2.5 text-left transition-all {selectedPanels.includes(
                 p.id
               )
-                ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)]'}"
+                ? 'border-primary bg-primary/10'
+                : 'border-border-subtle bg-surface-50 text-text-muted'}"
             >
-              <div class="font-bold text-[var(--text-main)]">{p.label}</div>
-              <div class="text-[0.625rem] text-[var(--text-soft)]">{p.count}</div>
+              <div class="font-bold text-text-main">{p.label}</div>
+              <div class="text-[0.625rem] text-text-soft">{p.count}</div>
             </button>
           {/each}
         </div>
@@ -140,7 +138,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex items-center justify-between border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={copyLink}>Link kopieren</Btn>
       <Btn variant="primary" size="md" onclick={onclose}>Fertig</Btn>
     </div>

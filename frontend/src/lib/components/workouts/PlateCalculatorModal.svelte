@@ -132,7 +132,7 @@
       <div class="space-y-1 sm:col-span-7">
         <label
           for="plate-target-weight"
-          class="text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+          class="text-[0.6875rem] font-bold text-text-muted uppercase"
         >
           Zielgewicht (gesamt)
         </label>
@@ -140,7 +140,7 @@
           <button
             type="button"
             onclick={() => adjustTargetWeight(-2.5)}
-            class="h-10 w-10 shrink-0 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-sm font-black text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)] active:scale-95"
+            class="h-10 w-10 shrink-0 cursor-pointer rounded-xl border border-border-subtle bg-surface-0 text-sm font-black text-text-muted transition-all hover:bg-surface-50 hover:text-text-main active:scale-95"
             title="-2.5 kg"
           >
             -2.5
@@ -151,7 +151,7 @@
           <button
             type="button"
             onclick={() => adjustTargetWeight(2.5)}
-            class="h-10 w-10 shrink-0 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-sm font-black text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)] active:scale-95"
+            class="h-10 w-10 shrink-0 cursor-pointer rounded-xl border border-border-subtle bg-surface-0 text-sm font-black text-text-muted transition-all hover:bg-surface-50 hover:text-text-main active:scale-95"
             title="+2.5 kg"
           >
             +2.5
@@ -167,35 +167,31 @@
 
     <!-- VISUAL BARBELL SLEEVE GRAPHIC & BREAKDOWN -->
     <div
-      class="flex flex-col items-center justify-center space-y-3.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 sm:p-5"
+      class="flex flex-col items-center justify-center space-y-3.5 rounded-2xl border border-border-subtle bg-surface-50 p-4 sm:p-5"
     >
       <!-- Summary Numbers -->
-      <div
-        class="flex w-full items-center justify-between border-b border-[var(--border-subtle)]/60 pb-3"
-      >
+      <div class="flex w-full items-center justify-between border-b border-border-subtle/60 pb-3">
         <div>
-          <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-            >Stange</span
-          >
-          <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
+          <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">Stange</span>
+          <span class="text-sm font-extrabold text-text-main tabular-nums"
             >{barWeight.toFixed(1)} kg</span
           >
         </div>
 
         <div class="text-center">
-          <span class="block text-[0.6875rem] font-bold text-[var(--color-primary)] uppercase"
+          <span class="block text-[0.6875rem] font-bold text-primary uppercase"
             >Beladung pro Seite</span
           >
-          <span class="text-2xl font-black text-[var(--color-primary)] tabular-nums">
+          <span class="text-2xl font-black text-primary tabular-nums">
             {calculation.weightPerSide.toFixed(2)} kg
           </span>
         </div>
 
         <div class="text-right">
-          <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+          <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
             >Gesamtgewicht</span
           >
-          <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
+          <span class="text-sm font-extrabold text-text-main tabular-nums"
             >{targetWeight.toFixed(1)} kg</span
           >
         </div>
@@ -373,9 +369,9 @@
 
       <!-- Explanatory Legend / Hint -->
       <div
-        class="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-0)]/80 px-3 py-1 text-[0.6875rem] font-bold text-[var(--text-muted)]"
+        class="flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-0/80 px-3 py-1 text-[0.6875rem] font-bold text-text-muted"
       >
-        <Icon name="tune" size="sm" class="text-[var(--color-primary)]" />
+        <Icon name="tune" size="sm" class="text-primary" />
         <span>Auf beiden Seiten der Hantelstange identisch aufstecken</span>
       </div>
 
@@ -384,13 +380,13 @@
         <div class="flex flex-wrap justify-center gap-2 pt-1">
           {#each calculation.platesGrouped as p}
             <div
-              class="flex items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-2.5 py-1 shadow-2xs"
+              class="flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-0 px-2.5 py-1 shadow-2xs"
             >
               <span
                 class="h-3 w-3 shrink-0 rounded-full border border-black/20"
                 style="background-color: {p.plate.color};"
               ></span>
-              <span class="text-xs font-black text-[var(--text-main)] tabular-nums"
+              <span class="text-xs font-black text-text-main tabular-nums"
                 >{p.count} &times; {p.plate.weight} kg</span
               >
             </div>
@@ -400,7 +396,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
       <Btn
         variant="primary"

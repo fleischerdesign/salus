@@ -58,8 +58,8 @@
         </div>
 
         <div class="min-w-0 flex-1 pt-0.5">
-          <div class="text-surface-900 font-semibold">{medication.name}</div>
-          <div class="text-surface-500 truncate text-xs">
+          <div class="font-semibold text-surface-900">{medication.name}</div>
+          <div class="truncate text-xs text-surface-500">
             {#if medication.strength}
               {medication.strength}
             {/if}
@@ -76,13 +76,13 @@
       </div>
     </div>
 
-    <div class="border-surface-100 border-t"></div>
+    <div class="border-t border-surface-100"></div>
 
     <div class="flex items-center justify-between px-4 py-2.5">
-      <div class="text-surface-500 flex items-center gap-1.5 text-xs">
+      <div class="flex items-center gap-1.5 text-xs text-surface-500">
         {#if nextDose}
           <Icon name="schedule" size="sm" />
-          <span class="text-surface-600 font-medium">{nextDose}</span>
+          <span class="font-medium text-surface-600">{nextDose}</span>
         {:else}
           <span class="text-surface-400">As needed</span>
         {/if}

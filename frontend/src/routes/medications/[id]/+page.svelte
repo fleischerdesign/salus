@@ -195,30 +195,30 @@
     <div class="flex flex-col gap-6 lg:col-span-2">
       <!-- Info Card -->
       <Card>
-        <h3 class="text-surface-700 mb-4 text-sm font-semibold">Details</h3>
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">Details</h3>
         <div class="grid grid-cols-2 gap-4 text-sm">
           {#if medication.active_ingredient}
             <div>
               <span class="text-surface-400">Active Ingredient</span>
-              <div class="text-surface-700 font-medium">{medication.active_ingredient}</div>
+              <div class="font-medium text-surface-700">{medication.active_ingredient}</div>
             </div>
           {/if}
           {#if medication.strength}
             <div>
               <span class="text-surface-400">Strength</span>
-              <div class="text-surface-700 font-medium">{medication.strength}</div>
+              <div class="font-medium text-surface-700">{medication.strength}</div>
             </div>
           {/if}
           <div>
             <span class="text-surface-400">Form</span>
-            <div class="text-surface-700 font-medium">
+            <div class="font-medium text-surface-700">
               {medication.form.charAt(0).toUpperCase() + medication.form.slice(1)}
             </div>
           </div>
           {#if medication.instructions}
             <div class="col-span-2">
               <span class="text-surface-400">Instructions</span>
-              <div class="text-surface-700 font-medium">{medication.instructions}</div>
+              <div class="font-medium text-surface-700">{medication.instructions}</div>
             </div>
           {/if}
         </div>
@@ -227,12 +227,12 @@
       <!-- Today's Schedule -->
       {#if todayScheduleItems.length > 0}
         <Card>
-          <h3 class="text-surface-700 mb-4 text-sm font-semibold">Today's Doses</h3>
-          <div class="divide-surface-100 divide-y">
+          <h3 class="mb-4 text-sm font-semibold text-surface-700">Today's Doses</h3>
+          <div class="divide-y divide-surface-100">
             {#each todayScheduleItems as item (item.schedule.id + item.time)}
               <div class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <span class="text-surface-600 w-12 font-mono text-sm font-medium">{item.time}</span>
-                <span class="text-surface-500 flex-1 text-sm">{item.schedule.dosage}</span>
+                <span class="w-12 font-mono text-sm font-medium text-surface-600">{item.time}</span>
+                <span class="flex-1 text-sm text-surface-500">{item.schedule.dosage}</span>
                 {#if item.taken}
                   <Badge variant="success">Taken</Badge>
                 {:else if item.skipped}
@@ -261,7 +261,7 @@
         </Card>
       {:else if medication.is_active}
         <Card>
-          <div class="text-surface-400 py-4 text-center">
+          <div class="py-4 text-center text-surface-400">
             <Icon name="event_busy" size="lg" />
             <p class="mt-2">No doses scheduled for today</p>
           </div>
@@ -270,16 +270,16 @@
 
       <!-- Schedule Management -->
       <Card>
-        <h3 class="text-surface-700 mb-4 text-sm font-semibold">Schedules</h3>
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">Schedules</h3>
         {#if (schedules ?? []).length > 0}
           <div class="flex flex-col gap-3">
             {#each schedules as sched (sched.id)}
               <div
-                class="border-surface-200 flex items-start justify-between rounded-lg border p-3"
+                class="flex items-start justify-between rounded-lg border border-surface-200 p-3"
               >
                 <div>
-                  <div class="text-surface-700 text-sm font-medium">{sched.dosage}</div>
-                  <div class="text-surface-400 mt-1 text-xs">
+                  <div class="text-sm font-medium text-surface-700">{sched.dosage}</div>
+                  <div class="mt-1 text-xs text-surface-400">
                     {sched.times.join(', ')}
                     {#if sched.days_of_week}
                       · {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -292,7 +292,7 @@
                 </div>
                 <button
                   onclick={() => handleDeleteSchedule(sched.id || '')}
-                  class="text-surface-400 hover:text-error-500"
+                  class="hover:text-error-500 text-surface-400"
                 >
                   <Icon name="delete" size="sm" />
                 </button>
@@ -300,7 +300,7 @@
             {/each}
           </div>
         {:else}
-          <p class="text-surface-400 py-4 text-center text-sm">
+          <p class="py-4 text-center text-sm text-surface-400">
             No schedules yet. Add one below or use as-needed.
           </p>
         {/if}
@@ -319,25 +319,25 @@
 
       <!-- Recent Logs -->
       <Card>
-        <h3 class="text-surface-700 mb-4 text-sm font-semibold">Recent Logs</h3>
+        <h3 class="mb-4 text-sm font-semibold text-surface-700">Recent Logs</h3>
         {#if recentLogs.length > 0}
-          <div class="divide-surface-100 divide-y">
+          <div class="divide-y divide-surface-100">
             {#each recentLogs as log (log.id)}
               <div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
                 <Badge variant={log.skipped ? 'error' : 'success'}>
                   {log.skipped ? 'Skipped' : 'Taken'}
                 </Badge>
-                <span class="text-surface-500 flex-1 text-sm">
+                <span class="flex-1 text-sm text-surface-500">
                   {log.dosage_taken || '-'}
                 </span>
-                <span class="text-surface-400 text-xs">
+                <span class="text-xs text-surface-400">
                   {log.taken_at ? new Date(log.taken_at).toLocaleString() : ''}
                 </span>
               </div>
             {/each}
           </div>
         {:else}
-          <p class="text-surface-400 py-4 text-center text-sm">No logs recorded yet.</p>
+          <p class="py-4 text-center text-sm text-surface-400">No logs recorded yet.</p>
         {/if}
       </Card>
     </div>

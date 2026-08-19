@@ -218,7 +218,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Benutzer- und Systemeinstellungen</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Biometrisches Profil, Zero-Knowledge E2EE, Sensoren, Freigaben und Datensicherung
       </p>
     </div>
@@ -230,15 +230,15 @@
   <!-- Primary Sub-Navigation Tabs with Soft Mask Fades -->
   <div class="relative w-full overflow-hidden">
     <div
-      class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 px-1 py-1.5 select-none"
+      class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto rounded-2xl border border-border-subtle bg-surface-50 p-1.5 px-1 py-1.5 select-none"
     >
       {#each navigationTabs as tab}
         <a
           href={tab.path}
           class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
           tab.id
-            ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <span>{tab.label}</span>
           {#if tab.badge}
@@ -256,10 +256,8 @@
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <!-- Stammdaten & Zeitzone -->
-        <div
-          class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="flex items-center gap-2 text-sm font-extrabold text-text-main">
             <span>Biometrisches Profil und Zeitzone</span>
           </h3>
 
@@ -275,12 +273,12 @@
 
             <div>
               <div class="mb-1 flex items-center justify-between">
-                <span class="font-bold text-[var(--text-muted)]">Zeitzone</span>
+                <span class="font-bold text-text-muted">Zeitzone</span>
                 <button
                   type="button"
                   onclick={() =>
                     (selectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone)}
-                  class="cursor-pointer text-[0.6875rem] font-bold text-[var(--color-primary)] hover:underline"
+                  class="cursor-pointer text-[0.6875rem] font-bold text-primary hover:underline"
                 >
                   Geräte-Zeitzone übernehmen
                 </button>
@@ -292,7 +290,7 @@
               <button
                 type="button"
                 onclick={() => alert('Profil gespeichert')}
-                class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+                class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
               >
                 Profil speichern
               </button>
@@ -303,10 +301,8 @@
         <!-- Passwort & OIDC Identity Providers -->
         <div class="space-y-5">
           <!-- Passwort ändern -->
-          <div
-            class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-          >
-            <h3 class="text-sm font-extrabold text-[var(--text-main)]">Passwort ändern</h3>
+          <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+            <h3 class="text-sm font-extrabold text-text-main">Passwort ändern</h3>
             <div class="space-y-2.5 text-xs">
               <Input
                 type="password"
@@ -326,7 +322,7 @@
               <button
                 type="button"
                 onclick={() => alert('Passwort geändert')}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-4 py-2 text-xs font-bold transition-all hover:bg-[var(--bg-surface-100)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-4 py-2 text-xs font-bold transition-all hover:bg-surface-100"
               >
                 Passwort aktualisieren
               </button>
@@ -334,20 +330,18 @@
           </div>
 
           <!-- OAuth / OIDC Identity Providers -->
-          <div
-            class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-          >
-            <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+          <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+            <h3 class="text-sm font-extrabold text-text-main">
               Verknüpfte Identitätsanbieter (SSO)
             </h3>
             <div class="space-y-2 text-xs">
               {#each oidcProviders as p}
                 <div
-                  class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
+                  class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3"
                 >
                   <div>
-                    <span class="block font-extrabold text-[var(--text-main)]">{p.name}</span>
-                    <span class="text-[0.625rem] text-[var(--text-soft)]"
+                    <span class="block font-extrabold text-text-main">{p.name}</span>
+                    <span class="text-[0.625rem] text-text-soft"
                       >{p.email || 'Nicht verknüpft'}</span
                     >
                   </div>
@@ -356,7 +350,7 @@
                     onclick={() => (p.connected = !p.connected)}
                     class="cursor-pointer text-xs font-bold {p.connected
                       ? 'text-rose-500 hover:underline'
-                      : 'text-[var(--color-primary)] hover:underline'}"
+                      : 'text-primary hover:underline'}"
                   >
                     {p.connected ? 'Trennen' : 'Verknüpfen'}
                   </button>
@@ -375,22 +369,20 @@
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <!-- Design & Farbmodi -->
-        <div
-          class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">Design und Farbpaletten</h3>
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Design und Farbpaletten</h3>
 
           <div class="space-y-3 text-xs">
             <div>
-              <span class="mb-1 block font-bold text-[var(--text-muted)]">Farbmodus</span>
+              <span class="mb-1 block font-bold text-text-muted">Farbmodus</span>
               <div class="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onclick={() => (themeMode = 'light')}
                   class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
                   'light'
-                    ? 'border-transparent bg-[var(--color-primary)] text-white'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)]'}"
+                    ? 'border-transparent bg-primary text-white'
+                    : 'border-border-subtle bg-surface-50 text-text-muted'}"
                 >
                   Hell
                 </button>
@@ -399,8 +391,8 @@
                   onclick={() => (themeMode = 'dark')}
                   class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
                   'dark'
-                    ? 'border-transparent bg-[var(--color-primary)] text-white'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)]'}"
+                    ? 'border-transparent bg-primary text-white'
+                    : 'border-border-subtle bg-surface-50 text-text-muted'}"
                 >
                   Dunkel
                 </button>
@@ -409,8 +401,8 @@
                   onclick={() => (themeMode = 'system')}
                   class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
                   'system'
-                    ? 'border-transparent bg-[var(--color-primary)] text-white'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)]'}"
+                    ? 'border-transparent bg-primary text-white'
+                    : 'border-border-subtle bg-surface-50 text-text-muted'}"
                 >
                   System
                 </button>
@@ -433,10 +425,8 @@
 
         <!-- OpenFoodFacts & Updates -->
         <div class="space-y-5">
-          <div
-            class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-          >
-            <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+          <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+            <h3 class="text-sm font-extrabold text-text-main">
               OpenFoodFacts Barcode-Schnittstelle
             </h3>
             <div class="space-y-3 text-xs">
@@ -451,19 +441,17 @@
           </div>
 
           <!-- App Version & Update Checker -->
-          <div
-            class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-          >
+          <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 class="text-sm font-extrabold text-[var(--text-main)]">Salus Core Version</h3>
-                <span class="text-xs text-[var(--text-muted)]">{updateStatus.version}</span>
+                <h3 class="text-sm font-extrabold text-text-main">Salus Core Version</h3>
+                <span class="text-xs text-text-muted">{updateStatus.version}</span>
               </div>
               <button
                 type="button"
                 onclick={checkUpdates}
                 disabled={isCheckingUpdate}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-1.5 text-xs font-bold transition-all hover:bg-[var(--bg-surface-100)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-1.5 text-xs font-bold transition-all hover:bg-surface-100"
               >
                 {isCheckingUpdate ? 'Prüfe...' : 'Auf Updates prüfen'}
               </button>
@@ -486,46 +474,40 @@
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <!-- E2EE Cryptographic Identity -->
-        <div
-          class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
           <div class="flex items-center justify-between">
-            <h3 class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+            <h3 class="flex items-center gap-2 text-sm font-extrabold text-text-main">
               <span>Asymmetrisches E2EE-Schlüsselpaar</span>
             </h3>
             <Badge variant="success">ECDH Curve25519</Badge>
           </div>
-          <p class="text-xs text-[var(--text-muted)]">
+          <p class="text-xs text-text-muted">
             Ende-zu-Ende-Verschlüsselung nach Zero-Knowledge-Standard. Dein privater Schlüssel
             verlässt niemals dieses Gerät.
           </p>
 
           <div class="space-y-3 text-xs">
             <div>
-              <span class="mb-1 block font-bold text-[var(--text-muted)]"
+              <span class="mb-1 block font-bold text-text-muted"
                 >Öffentlicher Schlüssel (Public Key)</span
               >
               <div
-                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-[0.6875rem] break-all text-[var(--text-soft)] tabular-nums"
+                class="rounded-2xl border border-border-subtle bg-surface-50 p-3 text-[0.6875rem] break-all text-text-soft tabular-nums"
               >
                 {e2eePublicKey}
               </div>
             </div>
 
             <div>
-              <span class="mb-1 block font-bold text-[var(--text-muted)]"
-                >Schlüssel-Fingerabdruck</span
-              >
-              <span class="font-bold text-[var(--text-main)] tabular-nums"
-                >{e2eeKeyFingerprint}</span
-              >
+              <span class="mb-1 block font-bold text-text-muted">Schlüssel-Fingerabdruck</span>
+              <span class="font-bold text-text-main tabular-nums">{e2eeKeyFingerprint}</span>
             </div>
 
             <div class="flex gap-2 pt-1">
               <button
                 type="button"
                 onclick={() => alert('Neues Schlüsselpaar lokal im Browser generiert.')}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-1.5 text-xs font-bold hover:bg-[var(--bg-surface-100)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-1.5 text-xs font-bold hover:bg-surface-100"
               >
                 Schlüsselpaar erneuern
               </button>
@@ -534,12 +516,8 @@
         </div>
 
         <!-- Privacy & Federation Switches -->
-        <div
-          class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">
-            Föderation und Privatsphäre
-          </h3>
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Föderation und Privatsphäre</h3>
 
           <div class="space-y-4 text-xs">
             <Toggle
@@ -569,22 +547,20 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
   {:else if activeTab === 'shares'}
     <div class="space-y-5">
-      <div
-        class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-      >
+      <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 class="text-base font-extrabold text-[var(--text-main)]">
+            <h3 class="text-base font-extrabold text-text-main">
               Aktive Arzt- und Forschungsfreigaben
             </h3>
-            <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+            <p class="mt-0.5 text-xs text-text-muted">
               Asymmetrisch verschlüsselte Freigaben mit granularer Berechtigungssteuerung
             </p>
           </div>
           <button
             type="button"
             onclick={() => alert('Neue Arzt-Freigabe erstellen')}
-            class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+            class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
           >
             + Neue Freigabe erstellen
           </button>
@@ -593,13 +569,11 @@
         <div class="space-y-3">
           {#each activeShares as share}
             <div
-              class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
+              class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border-subtle bg-surface-50 p-4"
             >
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-extrabold text-[var(--text-main)]"
-                    >{share.recipientName}</span
-                  >
+                  <span class="text-sm font-extrabold text-text-main">{share.recipientName}</span>
                   <Badge
                     variant={share.status === 'active' ? 'success' : 'default'}
                     class="text-[0.625rem]"
@@ -607,11 +581,11 @@
                     {share.status === 'active' ? 'Aktiv' : 'Abgelaufen'}
                   </Badge>
                 </div>
-                <p class="text-xs text-[var(--text-muted)]">
+                <p class="text-xs text-text-muted">
                   {share.role} &bull; Gültig bis: {share.expiresAt}
                 </p>
                 <div
-                  class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2 text-[0.6875rem] text-[var(--text-soft)]"
+                  class="rounded-xl border border-border-subtle bg-surface-0 p-2 text-[0.6875rem] text-text-soft"
                 >
                   Umfang: {share.scope} &bull; {share.accessCount} Zugriffe protokolliert
                 </div>
@@ -637,15 +611,13 @@
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <!-- Data Quality Sweeper -->
-        <div
-          class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+              <h3 class="text-sm font-extrabold text-text-main">
                 Automatischer Daten-Plausibilitäts-Sweep
               </h3>
-              <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+              <p class="mt-0.5 text-xs text-text-muted">
                 Erkennt Messfehler, Sensor-Artefakte und unplausible Spikes
               </p>
             </div>
@@ -653,36 +625,28 @@
               type="button"
               onclick={runQualitySweep}
               disabled={isSweeping}
-              class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+              class="cursor-pointer rounded-2xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
             >
               {isSweeping ? 'Prüfe...' : 'Jetzt prüfen'}
             </button>
           </div>
 
           <div class="grid grid-cols-3 gap-2 text-center text-xs">
-            <div
-              class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-            >
-              <span class="block text-[0.625rem] text-[var(--text-muted)]">Geprüfte Werte</span>
-              <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums"
+            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+              <span class="block text-[0.625rem] text-text-muted">Geprüfte Werte</span>
+              <span class="text-sm font-extrabold text-text-main tabular-nums"
                 >{lastSweepResult.checkedRecords}</span
               >
             </div>
-            <div
-              class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-            >
-              <span class="block text-[0.625rem] text-[var(--text-muted)]">Anomalien</span>
+            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+              <span class="block text-[0.625rem] text-text-muted">Anomalien</span>
               <span class="text-sm font-extrabold text-emerald-500 tabular-nums"
                 >{lastSweepResult.anomaliesFound}</span
               >
             </div>
-            <div
-              class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-            >
-              <span class="block text-[0.625rem] text-[var(--text-muted)]"
-                >Bereinigte Duplikate</span
-              >
-              <span class="text-sm font-extrabold text-[var(--color-primary)] tabular-nums"
+            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
+              <span class="block text-[0.625rem] text-text-muted">Bereinigte Duplikate</span>
+              <span class="text-sm font-extrabold text-primary tabular-nums"
                 >{lastSweepResult.duplicatesResolved}</span
               >
             </div>
@@ -690,21 +654,16 @@
         </div>
 
         <!-- Validation Rules Matrix -->
-        <div
-          class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">
-            Physiologische Validierungsregeln
-          </h3>
+        <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Physiologische Validierungsregeln</h3>
           <div class="space-y-2 text-xs">
             {#each qualityRules as rule}
               <div
-                class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
+                class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-2.5"
               >
                 <div>
-                  <span class="block font-bold text-[var(--text-main)]">{rule.name}</span>
-                  <span class="text-[0.625rem] text-[var(--text-muted)]">Bereich: {rule.range}</span
-                  >
+                  <span class="block font-bold text-text-main">{rule.name}</span>
+                  <span class="text-[0.625rem] text-text-muted">Bereich: {rule.range}</span>
                 </div>
                 <Badge variant="default" class="text-[0.5625rem]">{rule.action}</Badge>
               </div>
@@ -720,13 +679,9 @@
   {:else if activeTab === 'backup'}
     <div class="space-y-6">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <div
-          class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">
-            Vollständiger Datenbank-Export
-          </h3>
-          <p class="text-xs text-[var(--text-muted)]">
+        <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Vollständiger Datenbank-Export</h3>
+          <p class="text-xs text-text-muted">
             Exportiere alle deine biometrischen Daten, Workouts, Labore und Mahlzeiten als
             verschlüsseltes JSON-Archiv oder tabellarische CSV.
           </p>
@@ -734,25 +689,23 @@
             <button
               type="button"
               onclick={() => alert('JSON Export')}
-              class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+              class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
             >
               JSON-Komplettarchiv exportieren
             </button>
             <button
               type="button"
               onclick={() => alert('CSV Export')}
-              class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-4 py-2 text-xs font-bold transition-all hover:bg-[var(--bg-surface-100)]"
+              class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-4 py-2 text-xs font-bold transition-all hover:bg-surface-100"
             >
               CSV Messwerte exportieren
             </button>
           </div>
         </div>
 
-        <div
-          class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-        >
-          <h3 class="text-sm font-extrabold text-[var(--text-main)]">Backup wiederherstellen</h3>
-          <p class="text-xs text-[var(--text-muted)]">
+        <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Backup wiederherstellen</h3>
+          <p class="text-xs text-text-muted">
             Importiere ein zuvor exportiertes Salus JSON-Backup. Vorhandene Daten werden mit der
             Server-Datenbank zusammengeführt.
           </p>
@@ -760,7 +713,7 @@
             <button
               type="button"
               onclick={() => alert('JSON Import')}
-              class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-4 py-2 text-xs font-bold transition-all hover:bg-[var(--bg-surface-100)]"
+              class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-4 py-2 text-xs font-bold transition-all hover:bg-surface-100"
             >
               JSON-Backup importieren
             </button>
@@ -769,15 +722,13 @@
       </div>
 
       <!-- IndexedDB Stats -->
-      <div
-        class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-      >
+      <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-sm font-extrabold text-[var(--text-main)]">
+            <h2 class="text-sm font-extrabold text-text-main">
               Lokaler Speicher- und Synchronisationsstatus
             </h2>
-            <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+            <p class="mt-0.5 text-xs text-text-muted">
               Vollständige verschlüsselte Offline-Verfügbarkeit aller deiner Gesundheitsdaten
             </p>
           </div>
@@ -788,7 +739,7 @@
           <table class="w-full border-collapse text-left text-xs">
             <thead>
               <tr
-                class="border-b border-[var(--border-subtle)] text-[0.625rem] tracking-wider text-[var(--text-muted)] uppercase"
+                class="border-b border-border-subtle text-[0.625rem] tracking-wider text-text-muted uppercase"
               >
                 <th class="px-3 py-2.5">Tabelle</th>
                 <th class="px-3 py-2.5">Datensätze</th>
@@ -796,14 +747,12 @@
                 <th class="px-3 py-2.5 text-right">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[var(--border-subtle)]">
+            <tbody class="divide-y divide-border-subtle">
               {#each dexieTables as t}
                 <tr>
-                  <td class="px-3 py-2.5 font-bold text-[var(--text-main)]">{t.name}</td>
-                  <td class="px-3 py-2.5 font-bold text-[var(--color-primary)] tabular-nums"
-                    >{t.rows}</td
-                  >
-                  <td class="px-3 py-2.5 text-[var(--text-muted)] tabular-nums">{t.size}</td>
+                  <td class="px-3 py-2.5 font-bold text-text-main">{t.name}</td>
+                  <td class="px-3 py-2.5 font-bold text-primary tabular-nums">{t.rows}</td>
+                  <td class="px-3 py-2.5 text-text-muted tabular-nums">{t.size}</td>
                   <td class="px-3 py-2.5 text-right">
                     <Badge variant="default" class="text-[0.5625rem]"
                       >{t.status || 'Lokal gecacht'}</Badge

@@ -36,7 +36,7 @@
       <div class="flex items-center justify-between">
         <div class="min-w-0">
           {#if food.brand}
-            <p class="text-surface-400 text-sm">{food.brand}</p>
+            <p class="text-sm text-surface-400">{food.brand}</p>
           {/if}
           <div class="mt-1 flex items-center gap-2">
             {#if food.is_verified}
@@ -45,7 +45,7 @@
               <Badge variant="default">Custom</Badge>
             {/if}
             {#if food.barcode}
-              <span class="text-surface-400 font-mono text-xs">{food.barcode}</span>
+              <span class="font-mono text-xs text-surface-400">{food.barcode}</span>
             {/if}
           </div>
         </div>
@@ -53,7 +53,7 @@
           {#if isOwn && onEdit}
             <button
               type="button"
-              class="text-surface-400 hover:bg-surface-100 hover:text-primary-600 flex h-8 w-8 items-center justify-center rounded-lg"
+              class="hover:text-primary-600 flex h-8 w-8 items-center justify-center rounded-lg text-surface-400 hover:bg-surface-100"
               aria-label="Edit food"
               onclick={() => onEdit(food)}
             >
@@ -63,7 +63,7 @@
           {#if isOwn && onDelete}
             <button
               type="button"
-              class="text-surface-400 hover:bg-surface-100 hover:text-error-500 flex h-8 w-8 items-center justify-center rounded-lg"
+              class="hover:text-error-500 flex h-8 w-8 items-center justify-center rounded-lg text-surface-400 hover:bg-surface-100"
               aria-label="Delete food"
               onclick={() => onDelete(food)}
             >
@@ -73,15 +73,15 @@
         </div>
       </div>
 
-      <div class="bg-surface-50 flex items-end justify-between rounded-xl px-4 py-3">
+      <div class="flex items-end justify-between rounded-xl bg-surface-50 px-4 py-3">
         <div>
-          <div class="text-surface-900 text-3xl font-bold tabular-nums">
+          <div class="text-3xl font-bold text-surface-900 tabular-nums">
             {Math.round(food.calories_per_serving)}
           </div>
-          <div class="text-surface-400 text-xs">kcal per serving</div>
+          <div class="text-xs text-surface-400">kcal per serving</div>
         </div>
-        <div class="text-surface-500 text-right text-xs">
-          <span class="text-surface-800 text-sm font-semibold tabular-nums">
+        <div class="text-right text-xs text-surface-500">
+          <span class="text-sm font-semibold text-surface-800 tabular-nums">
             {food.serving_size}
           </span>
           {food.serving_unit}
@@ -89,15 +89,15 @@
       </div>
 
       <div>
-        <h3 class="text-surface-400 mb-2 text-xs font-semibold tracking-wider uppercase">Macros</h3>
+        <h3 class="mb-2 text-xs font-semibold tracking-wider text-surface-400 uppercase">Macros</h3>
         <div class="grid grid-cols-2 gap-2">
           {#each macroRows as row}
             {#if !row.optional || row.value != null}
               <div
-                class="border-surface-100 bg-surface-50 flex items-center justify-between rounded-lg border px-3 py-2"
+                class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 px-3 py-2"
               >
-                <span class="text-surface-500 text-xs">{row.label}</span>
-                <span class="text-surface-800 text-sm font-semibold tabular-nums">
+                <span class="text-xs text-surface-500">{row.label}</span>
+                <span class="text-sm font-semibold text-surface-800 tabular-nums">
                   {row.value != null ? Math.round(row.value) : '—'}{row.value != null
                     ? row.unit
                     : ''}
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <div class="border-surface-100 flex justify-end gap-3 border-t pt-4">
+      <div class="flex justify-end gap-3 border-t border-surface-100 pt-4">
         <Btn variant="ghost" onclick={onClose}>Close</Btn>
         {#if onAddToMeal}
           <Btn variant="primary" onclick={() => onAddToMeal(food)}>

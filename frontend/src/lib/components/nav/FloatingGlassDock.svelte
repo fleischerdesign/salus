@@ -80,16 +80,16 @@
   <div class="pointer-events-auto relative flex w-auto justify-center">
     <!-- ─── THE DOCK PILL (has its own glass-panel) ─── -->
     <div
-      class="glass-panel flex items-center gap-2 rounded-full px-3 py-1.5 shadow-[var(--shadow-dock)] transition-all"
+      class="glass-panel flex items-center gap-2 rounded-full px-3 py-1.5 shadow-dock transition-all"
     >
       <!-- Brand -->
       <button
         type="button"
         onclick={() => navigateTo('/')}
-        class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-base font-extrabold tracking-tight text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-50)]"
+        class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-base font-extrabold tracking-tight text-text-main transition-colors hover:bg-surface-50"
       >
         <div
-          class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-extrabold text-white"
+          class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white"
         >
           S
         </div>
@@ -98,7 +98,7 @@
 
       <!-- 5 Primary Navigation Pillars -->
       <nav
-        class="flex items-center gap-1 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-[3px]"
+        class="flex items-center gap-1 rounded-full border border-border-subtle bg-surface-50 p-[3px]"
       >
         <!-- 1. Dashboard -->
         <button
@@ -106,8 +106,8 @@
           onclick={() => navigateTo('/')}
           class="flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[0.8125rem] font-semibold transition-all {currentPath ===
           '/'
-            ? 'bg-[var(--bg-surface-0)] font-bold text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 font-bold text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <Icon name="dashboard" size="sm" />
           <span>Dashboard</span>
@@ -125,8 +125,8 @@
           currentPath.startsWith('/habits') ||
           currentPath.startsWith('/journal') ||
           openDeck === 'track'
-            ? 'bg-[var(--bg-surface-0)] font-bold text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 font-bold text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <Icon name="fitness-center" size="sm" />
           <span>Track</span>
@@ -150,8 +150,8 @@
           currentPath.startsWith('/medications') ||
           currentPath.startsWith('/goals') ||
           openDeck === 'labs'
-            ? 'bg-[var(--bg-surface-0)] font-bold text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 font-bold text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <Icon name="science" size="sm" />
           <span>Klinik</span>
@@ -171,8 +171,8 @@
           class="flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[0.8125rem] font-semibold transition-all {currentPath.startsWith(
             '/community'
           ) || openDeck === 'community'
-            ? 'bg-[var(--bg-surface-0)] font-bold text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 font-bold text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <Icon name="groups" size="sm" />
           <span>Community</span>
@@ -195,8 +195,8 @@
           currentPath.startsWith('/coach') ||
           currentPath.startsWith('/achievements') ||
           openDeck === 'insights'
-            ? 'bg-[var(--bg-surface-0)] font-bold text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 font-bold text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <Icon name="insights" size="sm" />
           <span>Insights</span>
@@ -215,7 +215,7 @@
         <button
           type="button"
           onclick={onopencmdk}
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)]"
+          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-50 text-text-muted transition-colors hover:text-text-main"
           title="Spotlight (Cmd+K)"
         >
           <Icon name="search" size="sm" />
@@ -224,7 +224,7 @@
         <button
           type="button"
           onclick={onopennotifications}
-          class="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)]"
+          class="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-50 text-text-muted transition-colors hover:text-text-main"
           title="Mitteilungen"
         >
           <Icon name="notifications" size="sm" />
@@ -233,7 +233,7 @@
         <button
           type="button"
           onclick={toggleTheme}
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)]"
+          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-50 text-text-muted transition-colors hover:text-text-main"
           title="Theme wechseln"
         >
           <Icon name="dark-mode" size="sm" />
@@ -242,7 +242,7 @@
         <button
           type="button"
           onclick={onopenquicklog}
-          class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-sm transition-all hover:scale-105 hover:opacity-90 active:scale-95"
+          class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all hover:scale-105 hover:opacity-90 active:scale-95"
           title="Schnellerfassung (1-Tap Log)"
           aria-label="Schnellerfassung (1-Tap Log)"
         >
@@ -253,12 +253,12 @@
         <button
           type="button"
           onclick={toggleProfile}
-          class="relative ml-0.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-activity)] text-xs font-black text-white shadow-xs transition-all hover:scale-105"
+          class="relative ml-0.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-gradient-to-tr from-primary to-activity text-xs font-black text-white shadow-xs transition-all hover:scale-105"
           title="Profil und Kontoverwaltung"
         >
           <span>{initial}</span>
           <span
-            class="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--bg-canvas)] bg-emerald-500"
+            class="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-canvas bg-emerald-500"
           ></span>
         </button>
       </div>
@@ -282,7 +282,7 @@
       <div class="fixed inset-0 z-45 bg-transparent" onclick={closeAll} role="presentation"></div>
 
       <div
-        class="glass-panel animate-modal-pop pointer-events-auto absolute top-14 left-1/2 z-46 w-[860px] -translate-x-1/2 rounded-2xl p-5 shadow-[var(--shadow-dock)] transition-all duration-300"
+        class="glass-panel animate-modal-pop pointer-events-auto absolute top-14 left-1/2 z-46 w-[860px] -translate-x-1/2 rounded-2xl p-5 shadow-dock transition-all duration-300"
       >
         {#if openDeck === 'track'}
           <FlyoutTrackDeck onselect={navigateTo} />
@@ -303,7 +303,7 @@
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div class="pointer-events-none fixed inset-x-3 bottom-3 z-45 flex justify-center md:hidden">
   <div
-    class="glass-panel pointer-events-auto mx-auto flex w-full max-w-sm items-center justify-around rounded-full px-2.5 py-1.5 shadow-[var(--shadow-dock)]"
+    class="glass-panel pointer-events-auto mx-auto flex w-full max-w-sm items-center justify-around rounded-full px-2.5 py-1.5 shadow-dock"
   >
     <!-- 1. Dashboard -->
     <button
@@ -311,8 +311,8 @@
       onclick={() => navigateTo('/')}
       class="flex h-12 w-12 cursor-pointer flex-col items-center justify-center rounded-full transition-all {currentPath ===
       '/'
-        ? 'bg-[var(--color-primary-soft)] font-bold text-[var(--color-primary)]'
-        : 'text-[var(--text-muted)] active:text-[var(--text-main)]'}"
+        ? 'bg-primary-soft font-bold text-primary'
+        : 'text-text-muted active:text-text-main'}"
       title="Dashboard"
       aria-label="Dashboard"
     >
@@ -332,8 +332,8 @@
       currentPath.startsWith('/habits') ||
       currentPath.startsWith('/journal') ||
       openDeck === 'track'
-        ? 'bg-[var(--color-primary-soft)] font-bold text-[var(--color-primary)]'
-        : 'text-[var(--text-muted)] active:text-[var(--text-main)]'}"
+        ? 'bg-primary-soft font-bold text-primary'
+        : 'text-text-muted active:text-text-main'}"
       title="Track"
       aria-label="Track Übersicht"
     >
@@ -345,7 +345,7 @@
     <button
       type="button"
       onclick={toggleMobileActionHub}
-      class="-my-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 border-white/30 bg-gradient-to-tr from-[var(--color-primary)] to-blue-600 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
+      class="-my-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 border-white/30 bg-gradient-to-tr from-primary to-blue-600 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
       title={isMobileActionHubOpen ? 'Schließen' : 'Aktionszentrale öffnen'}
       aria-label={isMobileActionHubOpen ? 'Schließen' : 'Aktionszentrale öffnen'}
     >
@@ -367,8 +367,8 @@
       currentPath.startsWith('/medications') ||
       currentPath.startsWith('/goals') ||
       openDeck === 'labs'
-        ? 'bg-[var(--color-primary-soft)] font-bold text-[var(--color-primary)]'
-        : 'text-[var(--text-muted)] active:text-[var(--text-main)]'}"
+        ? 'bg-primary-soft font-bold text-primary'
+        : 'text-text-muted active:text-text-main'}"
       title="Klinik"
       aria-label="Klinik & Labor"
     >
@@ -387,8 +387,8 @@
       currentPath.startsWith('/achievements') ||
       currentPath.startsWith('/community') ||
       openDeck === 'insights'
-        ? 'bg-[var(--color-primary-soft)] font-bold text-[var(--color-primary)]'
-        : 'text-[var(--text-muted)] active:text-[var(--text-main)]'}"
+        ? 'bg-primary-soft font-bold text-primary'
+        : 'text-text-muted active:text-text-main'}"
       title="Insights"
       aria-label="Insights & Analytik"
     >
@@ -411,23 +411,21 @@
 
   <!-- Action Hub Floating Frosted Glass Card -->
   <div
-    class="glass-panel animate-modal-pop pointer-events-auto fixed inset-x-4 bottom-20 z-50 mx-auto max-w-sm space-y-3.5 rounded-3xl p-4 text-[var(--text-main)] shadow-2xl md:hidden"
+    class="glass-panel animate-modal-pop pointer-events-auto fixed inset-x-4 bottom-20 z-50 mx-auto max-w-sm space-y-3.5 rounded-3xl p-4 text-text-main shadow-2xl md:hidden"
   >
     <!-- Header: User Profile Card -->
     <div
-      class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)]/60 p-3"
+      class="flex items-center justify-between rounded-2xl border border-border-subtle/70 bg-surface-50/60 p-3"
     >
       <div class="flex items-center gap-3">
         <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-activity)] text-sm font-extrabold text-white shadow-xs"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-activity text-sm font-extrabold text-white shadow-xs"
         >
           {initial}
         </div>
         <div class="overflow-hidden">
-          <span class="block truncate text-sm font-extrabold text-[var(--text-main)]"
-            >{displayName}</span
-          >
-          <span class="block truncate text-[0.6875rem] text-[var(--text-muted)]">{email}</span>
+          <span class="block truncate text-sm font-extrabold text-text-main">{displayName}</span>
+          <span class="block truncate text-[0.6875rem] text-text-muted">{email}</span>
         </div>
       </div>
 
@@ -436,7 +434,7 @@
         <button
           type="button"
           onclick={() => navigateTo('/settings')}
-          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] transition-colors hover:text-[var(--color-primary)]"
+          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-0 text-text-muted transition-colors hover:text-primary"
           title="Einstellungen"
         >
           <Icon name="settings" size="sm" />
@@ -445,7 +443,7 @@
           <button
             type="button"
             onclick={() => navigateTo('/admin')}
-            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] transition-colors hover:text-[var(--color-vital)]"
+            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-0 text-text-muted transition-colors hover:text-vital"
             title="Administration"
           >
             <Icon name="admin-panel-settings" size="sm" />
@@ -461,7 +459,7 @@
         onopenquicklog?.();
         isMobileActionHubOpen = false;
       }}
-      class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all active:scale-98"
+      class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all active:scale-98"
     >
       <Icon name="add" size="md" />
       <span>1-Tap Schnell erfassen</span>
@@ -476,9 +474,9 @@
           onopencmdk?.();
           isMobileActionHubOpen = false;
         }}
-        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)]/50 p-2.5 text-xs text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-border-subtle/70 bg-surface-50/50 p-2.5 text-xs text-text-muted transition-all hover:bg-surface-50 hover:text-text-main"
       >
-        <Icon name="search" size="md" class="mb-1 text-[var(--color-primary)]" />
+        <Icon name="search" size="md" class="mb-1 text-primary" />
         <span class="text-[0.625rem] font-medium">Suche</span>
       </button>
 
@@ -489,9 +487,9 @@
           onopennotifications?.();
           isMobileActionHubOpen = false;
         }}
-        class="relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)]/50 p-2.5 text-xs text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+        class="relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-border-subtle/70 bg-surface-50/50 p-2.5 text-xs text-text-muted transition-all hover:bg-surface-50 hover:text-text-main"
       >
-        <Icon name="notifications" size="md" class="mb-1 text-[var(--color-vital)]" />
+        <Icon name="notifications" size="md" class="mb-1 text-vital" />
         <span class="text-[0.625rem] font-medium">Mitteilungen</span>
       </button>
 
@@ -501,9 +499,9 @@
         onclick={() => {
           toggleTheme();
         }}
-        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)]/50 p-2.5 text-xs text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-border-subtle/70 bg-surface-50/50 p-2.5 text-xs text-text-muted transition-all hover:bg-surface-50 hover:text-text-main"
       >
-        <Icon name="dark-mode" size="md" class="mb-1 text-[var(--color-circadian)]" />
+        <Icon name="dark-mode" size="md" class="mb-1 text-circadian" />
         <span class="text-[0.625rem] font-medium">Theme</span>
       </button>
 
@@ -514,9 +512,9 @@
           onopenonboarding?.();
           isMobileActionHubOpen = false;
         }}
-        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-[var(--border-subtle)]/70 bg-[var(--bg-surface-50)]/50 p-2.5 text-xs text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+        class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-border-subtle/70 bg-surface-50/50 p-2.5 text-xs text-text-muted transition-all hover:bg-surface-50 hover:text-text-main"
       >
-        <Icon name="auto-awesome" size="md" class="mb-1 text-[var(--color-activity)]" />
+        <Icon name="auto-awesome" size="md" class="mb-1 text-activity" />
         <span class="text-[0.625rem] font-medium">Tour</span>
       </button>
     </div>
@@ -534,7 +532,7 @@
   ></div>
 
   <div
-    class="glass-panel animate-modal-pop pointer-events-auto fixed inset-x-3 bottom-20 z-46 max-h-[72vh] overflow-y-auto rounded-3xl p-4 shadow-[var(--shadow-dock)] transition-all sm:p-5 md:hidden"
+    class="glass-panel animate-modal-pop pointer-events-auto fixed inset-x-3 bottom-20 z-46 max-h-[72vh] overflow-y-auto rounded-3xl p-4 shadow-dock transition-all sm:p-5 md:hidden"
   >
     {#if openDeck === 'track'}
       <FlyoutTrackDeck onselect={navigateTo} />

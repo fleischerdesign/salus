@@ -96,8 +96,8 @@
   {:else if advice}
     <Card>
       {#snippet header()}
-        <h3 class="text-surface-900 text-lg font-semibold">24-Hour Circadian Alignment Timeline</h3>
-        <p class="text-surface-500 mt-1 text-xs">
+        <h3 class="text-lg font-semibold text-surface-900">24-Hour Circadian Alignment Timeline</h3>
+        <p class="mt-1 text-xs text-surface-500">
           Visualizing solar phases alongside your actual habits.
         </p>
       {/snippet}
@@ -109,7 +109,7 @@
 
       <div class="space-y-3">
         <div
-          class="bg-surface-100 relative h-8 overflow-hidden rounded-2xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+          class="relative h-8 overflow-hidden rounded-2xl bg-surface-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
         >
           <div
             class="bg-primary-900 absolute inset-y-0"
@@ -130,7 +130,7 @@
           <div class="bg-primary-900 absolute inset-y-0" style="left: {duskPct}%; right: 0%"></div>
         </div>
 
-        <div class="text-surface-500 flex justify-between px-2 text-xs font-semibold">
+        <div class="flex justify-between px-2 text-xs font-semibold text-surface-500">
           <span>00:00</span>
           <span>Dawn: {advice.solar_times.dawn}</span>
           <span>Sunrise: {advice.solar_times.sunrise}</span>
@@ -146,7 +146,7 @@
       <div class="space-y-6">
         <Card>
           <div class="flex flex-col items-center text-center">
-            <h3 class="text-surface-900 text-lg font-semibold">Circadian Alignment</h3>
+            <h3 class="text-lg font-semibold text-surface-900">Circadian Alignment</h3>
             <div class="relative my-4 flex h-[120px] w-[120px] items-center justify-center">
               <svg viewBox="0 0 120 120" class="h-full w-full -rotate-90">
                 <circle
@@ -169,11 +169,11 @@
                   stroke-dashoffset={(2 * Math.PI * 44 * (100 - advice.alignment_score)) / 100}
                 />
               </svg>
-              <span class="text-surface-900 absolute text-2xl font-extrabold">
+              <span class="absolute text-2xl font-extrabold text-surface-900">
                 {advice.alignment_score}%
               </span>
             </div>
-            <p class="text-surface-700 text-sm font-medium">
+            <p class="text-sm font-medium text-surface-700">
               {alignmentLabel(advice.alignment_score)}
             </p>
           </div>
@@ -181,7 +181,7 @@
 
         <Card>
           {#snippet header()}
-            <h3 class="text-surface-900 text-lg font-semibold">Location & Chronotype</h3>
+            <h3 class="text-lg font-semibold text-surface-900">Location & Chronotype</h3>
           {/snippet}
           <form onsubmit={save} class="flex flex-col gap-4">
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -227,7 +227,7 @@
       <div class="space-y-6">
         <Card>
           {#snippet header()}
-            <h3 class="text-surface-900 text-lg font-semibold">Optimal Sleep Window</h3>
+            <h3 class="text-lg font-semibold text-surface-900">Optimal Sleep Window</h3>
           {/snippet}
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
@@ -238,15 +238,15 @@
                   {advice.sleep_window.target_offset}
                 </p>
               </div>
-              <div class="border-surface-200 bg-surface-50 rounded-lg border p-3 text-center">
-                <p class="text-surface-500 text-xs font-medium">Actual Window (Recent)</p>
-                <p class="text-surface-700 mt-1 text-base font-semibold">
+              <div class="rounded-lg border border-surface-200 bg-surface-50 p-3 text-center">
+                <p class="text-xs font-medium text-surface-500">Actual Window (Recent)</p>
+                <p class="mt-1 text-base font-semibold text-surface-700">
                   {advice.sleep_window.actual_onset} -
                   {advice.sleep_window.actual_offset}
                 </p>
               </div>
             </div>
-            <p class="text-surface-600 text-sm leading-relaxed">
+            <p class="text-sm leading-relaxed text-surface-600">
               {advice.sleep_window.advice}
             </p>
           </div>
@@ -254,9 +254,9 @@
 
         <Card>
           {#snippet header()}
-            <h3 class="text-surface-900 text-lg font-semibold">Light Exposure Scheduling</h3>
+            <h3 class="text-lg font-semibold text-surface-900">Light Exposure Scheduling</h3>
           {/snippet}
-          <div class="divide-surface-100 -mx-4 divide-y">
+          <div class="-mx-4 divide-y divide-surface-100">
             {#each advice.light_advice as la, i}
               <div class="flex gap-3 px-4 py-3">
                 <Icon
@@ -265,11 +265,11 @@
                   class="text-primary-500 mt-0.5 shrink-0"
                 />
                 <div class="min-w-0">
-                  <p class="text-surface-900 text-sm font-medium">
+                  <p class="text-sm font-medium text-surface-900">
                     {la.action}
                     <span class="text-primary-600">{la.time_window}</span>
                   </p>
-                  <p class="text-surface-500 mt-1 text-xs leading-relaxed">
+                  <p class="mt-1 text-xs leading-relaxed text-surface-500">
                     {la.description}
                   </p>
                 </div>
@@ -280,7 +280,7 @@
 
         <Card>
           {#snippet header()}
-            <h3 class="text-surface-900 text-lg font-semibold">Metabolic Window (Eating)</h3>
+            <h3 class="text-lg font-semibold text-surface-900">Metabolic Window (Eating)</h3>
           {/snippet}
           <div class="space-y-3">
             <div class="w-fit rounded-lg border border-teal-200 bg-teal-50 p-3">
@@ -290,7 +290,7 @@
                 {advice.eating_window.end}
               </p>
             </div>
-            <p class="text-surface-600 text-sm leading-relaxed">
+            <p class="text-sm leading-relaxed text-surface-600">
               {advice.eating_window.advice}
             </p>
           </div>

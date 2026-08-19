@@ -58,14 +58,14 @@
 >
   <div class="space-y-3 pt-1">
     <div class="flex items-baseline gap-2">
-      <span class="text-4xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums">
+      <span class="text-4xl font-extrabold tracking-tight text-text-main tabular-nums">
         {vo2max}
       </span>
-      <span class="text-xs font-bold text-[var(--text-muted)]">mL/kg/min</span>
+      <span class="text-xs font-bold text-text-muted">mL/kg/min</span>
     </div>
 
     <div class="flex items-center gap-2 pt-2 text-xs">
-      <div class="flex h-2 flex-1 overflow-hidden rounded-full bg-[var(--bg-surface-200)]">
+      <div class="flex h-2 flex-1 overflow-hidden rounded-full bg-surface-200">
         <div
           class="h-full rounded-full transition-all duration-500 {vo2max! >= 50
             ? 'bg-emerald-500'
@@ -75,7 +75,7 @@
           style="width: {Math.min(100, Math.max(10, ((vo2max! - 30) / (65 - 30)) * 100))}%;"
         ></div>
       </div>
-      <span class="font-mono text-[0.625rem] text-[var(--text-muted)]">Perzentil &gt; 85%</span>
+      <span class="font-mono text-[0.625rem] text-text-muted">Perzentil &gt; 85%</span>
     </div>
   </div>
 

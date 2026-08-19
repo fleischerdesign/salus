@@ -230,40 +230,40 @@
 
     {#if search.trim() && filteredItems.length > 0}
       <div
-        class="max-h-40 divide-y divide-[var(--border-subtle)] overflow-y-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)]"
+        class="max-h-40 divide-y divide-border-subtle overflow-y-auto rounded-2xl border border-border-subtle bg-surface-0"
       >
         {#each filteredItems.slice(0, 10) as food (food.id)}
           <button
             type="button"
             onclick={() => addIngredient(food)}
-            class="flex w-full cursor-pointer items-center justify-between px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--bg-surface-50)]"
+            class="flex w-full cursor-pointer items-center justify-between px-3.5 py-2.5 text-left transition-colors hover:bg-surface-50"
           >
             <div>
-              <div class="text-xs font-bold text-[var(--text-main)]">{food.name}</div>
-              <div class="text-[0.6875rem] text-[var(--text-muted)]">
+              <div class="text-xs font-bold text-text-main">{food.name}</div>
+              <div class="text-[0.6875rem] text-text-muted">
                 {food.calories_per_serving} kcal pro {food.serving_size}
                 {food.serving_unit}
               </div>
             </div>
-            <Icon name="add-circle" size="sm" class="text-[var(--color-primary)]" />
+            <Icon name="add-circle" size="sm" class="text-primary" />
           </button>
         {/each}
       </div>
     {/if}
 
     {#if ingredients.length > 0}
-      <div class="space-y-2 rounded-2xl border border-[var(--border-subtle)] p-3">
-        <h3 class="text-xs font-bold tracking-wider text-[var(--text-muted)] uppercase">
+      <div class="space-y-2 rounded-2xl border border-border-subtle p-3">
+        <h3 class="text-xs font-bold tracking-wider text-text-muted uppercase">
           Enthaltene Zutaten ({ingredients.length})
         </h3>
         <div class="flex flex-col gap-2">
           {#each ingredients as ing (ing.foodItemId)}
             <div
-              class="flex items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2"
+              class="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-50 px-3 py-2"
             >
               <div class="min-w-0 flex-1">
-                <div class="truncate text-xs font-bold text-[var(--text-main)]">{ing.name}</div>
-                <div class="text-[0.6875rem] text-[var(--text-muted)]">
+                <div class="truncate text-xs font-bold text-text-main">{ing.name}</div>
+                <div class="text-[0.6875rem] text-text-muted">
                   {Math.round(ing.calories * (ing.amountG / 100))} kcal
                 </div>
               </div>
@@ -282,7 +282,7 @@
                 <button
                   type="button"
                   onclick={() => removeIngredient(ing.foodItemId)}
-                  class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                  class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                 >
                   <Icon name="close" size="sm" />
                 </button>
@@ -301,7 +301,7 @@
       rows={4}
     />
 
-    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" type="submit" disabled={!isValid || saving} loading={saving}>
         {recipe ? 'Speichern' : 'Rezept anlegen'}

@@ -61,12 +61,12 @@
   {:else}
     <Card padding={false}>
       {#snippet header()}
-        <span class="text-surface-900 text-sm font-semibold">Users</span>
+        <span class="text-sm font-semibold text-surface-900">Users</span>
       {/snippet}
       {#if (users ?? []).length > 0}
         <Table columns={userColumns} rows={userRows} {actions} />
       {:else}
-        <div class="text-surface-400 px-5 py-8 text-center text-sm">No users found.</div>
+        <div class="px-5 py-8 text-center text-sm text-surface-400">No users found.</div>
       {/if}
     </Card>
   {/if}
@@ -77,14 +77,14 @@
   <div class="flex gap-1.5">
     <button
       type="button"
-      class="duration-micro text-surface-600 hover:bg-surface-100 rounded px-2 py-1 text-xs font-medium transition-colors"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => toggleAdmin(u)}
     >
       {u.is_admin ? 'Demote' : 'Promote'}
     </button>
     <button
       type="button"
-      class="duration-micro text-surface-600 hover:bg-surface-100 rounded px-2 py-1 text-xs font-medium transition-colors"
+      class="duration-micro rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => toggleActive(u)}
     >
       {u.is_active ? 'Deactivate' : 'Activate'}

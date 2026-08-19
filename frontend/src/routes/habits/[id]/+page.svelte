@@ -164,7 +164,7 @@
     >
       {#snippet stats()}
         <div
-          class="divide-surface-100 grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
             <Stat value={currentStreak} unit="days" label="Current Streak" />
@@ -187,10 +187,10 @@
         </div>
       {/snippet}
       {#snippet actions()}
-        <div class="divide-surface-200 flex h-full items-stretch divide-x select-none">
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
           <button
             type="button"
-            class="duration-micro text-surface-600 hover:bg-surface-100 hover:text-surface-900 flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold whitespace-nowrap transition-colors"
+            class="duration-micro flex h-full items-center justify-center gap-2 px-6 text-sm font-semibold whitespace-nowrap text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
             onclick={() => (editOpen = true)}
           >
             <Icon name="edit" size="sm" />
@@ -213,12 +213,12 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="checklist" size="sm" class="text-surface-500" />
-            <span class="text-surface-700 text-sm font-semibold">Completion History</span>
+            <span class="text-sm font-semibold text-surface-700">Completion History</span>
           </div>
         {/snippet}
         <div class="p-4">
           {#if calendarCells.length === 0}
-            <div class="text-surface-400 flex justify-center py-8 text-xs">No data yet.</div>
+            <div class="flex justify-center py-8 text-xs text-surface-400">No data yet.</div>
           {:else}
             <div
               class="inline-grid grid-flow-col gap-1"
@@ -233,7 +233,7 @@
                 ></div>
               {/each}
             </div>
-            <div class="text-surface-400 mt-3 flex items-center justify-between text-[10px]">
+            <div class="mt-3 flex items-center justify-between text-[10px] text-surface-400">
               <span>{calendarCells[0]?.date ?? ''}</span>
               <span>today</span>
               <span>{calendarCells[calendarCells.length - 1]?.date ?? ''}</span>
@@ -246,7 +246,7 @@
         <Card>
           <div class="flex items-center gap-2">
             <CheckCircle checked={todayCompleted} onchange={handleToggle} />
-            <span class="text-surface-700 text-sm font-medium">
+            <span class="text-sm font-medium text-surface-700">
               {todayCompleted ? 'Done today' : 'Mark today as done'}
             </span>
           </div>
@@ -254,7 +254,7 @@
 
         {#if habit.description}
           <Card>
-            <p class="text-surface-600 text-sm">{habit.description}</p>
+            <p class="text-sm text-surface-600">{habit.description}</p>
           </Card>
         {/if}
 
@@ -282,17 +282,17 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="history" size="sm" class="text-surface-500" />
-            <span class="text-surface-700 text-sm font-semibold">Recent Logs</span>
+            <span class="text-sm font-semibold text-surface-700">Recent Logs</span>
           </div>
         {/snippet}
-        <div class="divide-surface-100 divide-y">
+        <div class="divide-y divide-surface-100">
           {#if (logs ?? []).length === 0}
-            <div class="text-surface-400 px-6 py-8 text-center text-sm">No logs yet.</div>
+            <div class="px-6 py-8 text-center text-sm text-surface-400">No logs yet.</div>
           {:else}
             {#each (logs ?? []).filter((l) => l.completed).slice(0, 20) as log}
               <div class="flex items-center justify-between px-6 py-2.5">
-                <span class="text-surface-700 text-sm">{log.log_date}</span>
-                <span class="text-surface-400 text-xs">
+                <span class="text-sm text-surface-700">{log.log_date}</span>
+                <span class="text-xs text-surface-400">
                   {new Date(log.completed_at ?? log.created_at).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit'

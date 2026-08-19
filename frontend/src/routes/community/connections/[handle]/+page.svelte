@@ -197,10 +197,10 @@
         <div class="grid gap-6 px-6 py-6 md:grid-cols-2">
           {#if peer.last_sync}
             <div class="space-y-1">
-              <span class="text-surface-400 text-xs font-medium tracking-wider uppercase"
+              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
                 >Last Synced</span
               >
-              <div class="text-surface-700 text-sm font-semibold">
+              <div class="text-sm font-semibold text-surface-700">
                 {new Date(peer.last_sync).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
@@ -214,10 +214,10 @@
 
           {#if peer.expiration}
             <div class="space-y-1">
-              <span class="text-surface-400 text-xs font-medium tracking-wider uppercase"
+              <span class="text-xs font-medium tracking-wider text-surface-400 uppercase"
                 >Expires On</span
               >
-              <div class="text-surface-700 text-sm font-semibold">
+              <div class="text-sm font-semibold text-surface-700">
                 {new Date(peer.expiration).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
@@ -238,23 +238,23 @@
       <!-- Shared Metrics Card -->
       <Card padding={false} class="lg:col-span-4">
         {#snippet header()}
-          <span class="text-surface-900 text-sm font-semibold">Shared Metrics</span>
+          <span class="text-sm font-semibold text-surface-900">Shared Metrics</span>
         {/snippet}
         <div class="space-y-4 p-6">
           {#if peer.metrics.length === 0}
-            <p class="text-surface-400 text-xs">No active metrics sharing setup.</p>
+            <p class="text-xs text-surface-400">No active metrics sharing setup.</p>
           {:else}
             <div class="space-y-3">
               {#each peer.metrics as m}
                 <div
-                  class="border-surface-100 bg-surface-50 flex items-center justify-between rounded-lg border p-3"
+                  class="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 p-3"
                 >
                   <div class="flex items-center gap-2">
                     <Icon name={m.icon} size="sm" style="color: {m.color}" />
-                    <span class="text-surface-700 text-sm font-medium">{m.metric_name}</span>
+                    <span class="text-sm font-medium text-surface-700">{m.metric_name}</span>
                   </div>
                   <span
-                    class="bg-surface-150 text-surface-500 rounded px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
+                    class="bg-surface-150 rounded px-2 py-0.5 text-[10px] font-semibold tracking-wider text-surface-500 uppercase"
                   >
                     {m.direction}
                   </span>
@@ -262,7 +262,7 @@
               {/each}
             </div>
           {/if}
-          <div class="border-surface-100 border-t pt-4">
+          <div class="border-t border-surface-100 pt-4">
             <Btn
               variant="danger"
               class="w-full justify-center"
@@ -278,9 +278,9 @@
       <!-- Friend's Activity Feed -->
       <Card padding={false} class="lg:col-span-8">
         {#snippet header()}
-          <span class="text-surface-900 text-sm font-semibold">Recent Activities</span>
+          <span class="text-sm font-semibold text-surface-900">Recent Activities</span>
         {/snippet}
-        <div class="divide-surface-100 divide-y">
+        <div class="divide-y divide-surface-100">
           {#if (activities ?? []).length === 0}
             <div class="p-8">
               <EmptyState
@@ -293,7 +293,7 @@
             {#each activities ?? [] as act, i (act.id)}
               <div
                 in:fade={{ ...staggerFade(i) }}
-                class="hover:bg-surface-50 p-5 transition-colors"
+                class="p-5 transition-colors hover:bg-surface-50"
               >
                 <div class="flex items-center gap-3">
                   <div
@@ -302,27 +302,27 @@
                     <Icon name={activityIcon[act.activity_type] ?? 'fitness-center'} size="sm" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-surface-900 text-sm font-semibold">
+                    <p class="text-sm font-semibold text-surface-900">
                       {activityLabel[act.activity_type] ?? act.activity_description}
                     </p>
-                    <p class="text-surface-500 text-xs">{act.time}</p>
+                    <p class="text-xs text-surface-500">{act.time}</p>
                   </div>
                 </div>
 
                 <div class="pt-3 pl-13">
                   {#if act.activity_type === 'steps' && act.value}
                     <div class="flex items-baseline gap-2">
-                      <span class="text-surface-900 text-2xl font-bold"
+                      <span class="text-2xl font-bold text-surface-900"
                         >{act.value.toLocaleString()}</span
                       >
-                      <span class="text-surface-500 text-sm">steps</span>
+                      <span class="text-sm text-surface-500">steps</span>
                     </div>
                     <ProgressBar value={act.value} max={10000} height="sm" class="mt-2 max-w-sm" />
                   {:else if act.value}
-                    <span class="text-surface-900 text-2xl font-bold">{act.value}</span>
+                    <span class="text-2xl font-bold text-surface-900">{act.value}</span>
                   {/if}
                   {#if act.notes}
-                    <p class="text-surface-500 mt-2 text-sm italic">"{act.notes}"</p>
+                    <p class="mt-2 text-sm text-surface-500 italic">"{act.notes}"</p>
                   {/if}
                 </div>
               </div>

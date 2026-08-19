@@ -329,18 +329,16 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- SECTION 1: WEARABLES & HARDWARE SENSORS                     -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <div
-      class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-    >
+    <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
       <div
-        class="flex flex-col gap-3 border-b border-[var(--border-subtle)]/60 pb-3 md:flex-row md:items-end md:justify-between"
+        class="flex flex-col gap-3 border-b border-border-subtle/60 pb-3 md:flex-row md:items-end md:justify-between"
       >
         <div>
-          <div class="flex items-center gap-2 text-base font-extrabold text-[var(--text-main)]">
-            <Icon name="sensors" class="text-[var(--color-primary)]" />
+          <div class="flex items-center gap-2 text-base font-extrabold text-text-main">
+            <Icon name="sensors" class="text-primary" />
             <h2>Sensoren &amp; Hardware-Quellen</h2>
           </div>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Direkte Schnittstellen für Wearables, Smartwatches, Labor-Importe und Umgebungssensoren
           </p>
         </div>
@@ -370,7 +368,7 @@
               onkeydown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') openSourceModal(src);
               }}
-              class="group cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--bg-surface-100)]"
+              class="group cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-4 transition-all hover:border-primary/50 hover:bg-surface-100"
             >
               <div class="flex items-start justify-between">
                 <div class="flex items-center gap-3">
@@ -383,20 +381,16 @@
                     <Icon name={src.icon} size="md" />
                   </div>
                   <div>
-                    <h3
-                      class="text-xs font-bold {isActive
-                        ? 'text-[var(--text-main)]'
-                        : 'text-[var(--text-muted)]'}"
-                    >
+                    <h3 class="text-xs font-bold {isActive ? 'text-text-main' : 'text-text-muted'}">
                       {src.name}
                     </h3>
-                    <span class="font-mono text-[0.625rem] text-[var(--text-muted)]">{src.id}</span>
+                    <span class="font-mono text-[0.625rem] text-text-muted">{src.id}</span>
                   </div>
                 </div>
 
                 {#if statusesLoading}
                   <span
-                    class="inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] px-2 py-0.5 text-[0.625rem] font-medium text-[var(--text-muted)]"
+                    class="inline-flex items-center rounded-full border border-border-subtle bg-surface-100 px-2 py-0.5 text-[0.625rem] font-medium text-text-muted"
                   >
                     …
                   </span>
@@ -415,13 +409,13 @@
               </div>
 
               <div
-                class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)]/60 pt-2 text-[0.6875rem]"
+                class="mt-3 flex items-center justify-between border-t border-border-subtle/60 pt-2 text-[0.6875rem]"
               >
-                <span class="text-[var(--text-muted)]">Erfasste Messwerte</span>
+                <span class="text-text-muted">Erfasste Messwerte</span>
                 <span
                   class="font-bold {isActive
-                    ? 'text-[var(--text-main)]'
-                    : 'font-normal text-[var(--text-muted)]'} tabular-nums"
+                    ? 'text-text-main'
+                    : 'font-normal text-text-muted'} tabular-nums"
                 >
                   {count > 0 ? count.toLocaleString('de-DE') : '—'}
                 </span>
@@ -435,18 +429,16 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- SECTION 2: MULTI-SOURCE PRIORITY MATRIX                     -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <div
-      class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-    >
+    <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
       <div
-        class="flex flex-col gap-3 border-b border-[var(--border-subtle)]/60 pb-3 md:flex-row md:items-end md:justify-between"
+        class="flex flex-col gap-3 border-b border-border-subtle/60 pb-3 md:flex-row md:items-end md:justify-between"
       >
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 text-base font-extrabold text-[var(--text-main)]">
-            <Icon name="tune" class="text-[var(--color-primary)]" />
+          <div class="flex items-center gap-2 text-base font-extrabold text-text-main">
+            <Icon name="tune" class="text-primary" />
             <h2>Quellen-Prioritäts-Matrix</h2>
           </div>
-          <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+          <p class="mt-0.5 text-xs text-text-muted">
             Automatische Konfliktlösung und Rangfolge bei Metriken mit mehreren aktiven Geräten
           </p>
         </div>
@@ -488,22 +480,20 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- SECTION 3: PERSONAL API TOKENS & WEBHOOKS                   -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <div
-      class="space-y-5 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
-    >
-      <div class="border-b border-[var(--border-subtle)]/60 pb-3">
-        <div class="flex items-center gap-2 text-base font-extrabold text-[var(--text-main)]">
-          <Icon name="key" class="text-[var(--color-primary)]" />
+    <div class="space-y-5 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+      <div class="border-b border-border-subtle/60 pb-3">
+        <div class="flex items-center gap-2 text-base font-extrabold text-text-main">
+          <Icon name="key" class="text-primary" />
           <h2>Persönliche API-Tokens &amp; Webhook-Ingestion</h2>
         </div>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+        <p class="mt-0.5 text-xs text-text-muted">
           Automatisierter Datenimport für Home Assistant, iOS Kurzbefehle, cURL und externe Skripte
         </p>
       </div>
 
       <!-- Token Generator Form -->
-      <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4">
-        <h3 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+      <div class="rounded-2xl border border-border-subtle bg-surface-50 p-4">
+        <h3 class="text-xs font-extrabold tracking-wider text-text-main uppercase">
           Neuen API-Token erstellen
         </h3>
         <div class="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-12">
@@ -556,11 +546,11 @@
               </button>
             </div>
             <div
-              class="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2 font-mono text-xs break-all text-[var(--text-main)] select-all"
+              class="rounded-lg border border-border-subtle bg-surface-0 p-2 font-mono text-xs break-all text-text-main select-all"
             >
               {newlyGeneratedToken}
             </div>
-            <p class="text-[0.6875rem] text-[var(--text-muted)]">
+            <p class="text-[0.6875rem] text-text-muted">
               &excl; Bitte kopiere diesen Token jetzt. Er wird aus Sicherheitsgründen nie wieder im
               Klartext angezeigt.
             </p>
@@ -570,24 +560,23 @@
 
       <!-- Active Tokens List -->
       <div class="space-y-3">
-        <h3 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+        <h3 class="text-xs font-extrabold tracking-wider text-text-main uppercase">
           Aktive API-Tokens
         </h3>
 
         {#if tokensLoading}
           <div class="flex justify-center py-6"><Spinner size="md" /></div>
         {:else if serverTokens.length === 0}
-          <p class="text-xs text-[var(--text-muted)] italic">Noch keine API-Tokens generiert.</p>
+          <p class="text-xs text-text-muted italic">Noch keine API-Tokens generiert.</p>
         {:else}
           <div class="space-y-2.5">
             {#each serverTokens as token (token.id)}
               <div
-                class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+                class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-50 p-3.5"
               >
                 <div class="space-y-1">
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-extrabold text-[var(--text-main)]">{token.label}</span
-                    >
+                    <span class="text-xs font-extrabold text-text-main">{token.label}</span>
                     <Badge
                       variant={token.is_active ? 'success' : 'default'}
                       class="text-[0.625rem]"
@@ -596,9 +585,9 @@
                     </Badge>
                   </div>
                   <div
-                    class="flex flex-wrap items-center gap-2 font-mono text-[0.6875rem] text-[var(--text-muted)]"
+                    class="flex flex-wrap items-center gap-2 font-mono text-[0.6875rem] text-text-muted"
                   >
-                    <span class="rounded-md bg-[var(--bg-surface-100)] px-1.5 py-0.5"
+                    <span class="rounded-md bg-surface-100 px-1.5 py-0.5"
                       >{token.token_prefix}••••</span
                     >
                     <span>&bull;</span>
@@ -629,18 +618,16 @@
       </div>
 
       <!-- Webhook Ingestion Guide -->
-      <div
-        class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
-      >
+      <div class="space-y-3 rounded-2xl border border-border-subtle bg-surface-50 p-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-1.5 text-xs font-extrabold text-[var(--text-main)]">
-            <Icon name="webhook" size="sm" class="text-[var(--color-primary)]" />
+          <div class="flex items-center gap-1.5 text-xs font-extrabold text-text-main">
+            <Icon name="webhook" size="sm" class="text-primary" />
             <span>Webhook-Endpunkt &amp; Ingestion-Format</span>
           </div>
           <button
             type="button"
             onclick={() => copyToClipboard(webhookUrl)}
-            class="flex cursor-pointer items-center gap-1 text-xs font-bold text-[var(--color-primary)] hover:underline"
+            class="flex cursor-pointer items-center gap-1 text-xs font-bold text-primary hover:underline"
           >
             <Icon name="content-copy" size="sm" />
             <span>Endpunkt-URL kopieren</span>
@@ -648,15 +635,15 @@
         </div>
 
         <div
-          class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3 font-mono text-[0.6875rem] break-all text-[var(--text-main)] select-all"
+          class="rounded-xl border border-border-subtle bg-surface-0 p-3 font-mono text-[0.6875rem] break-all text-text-main select-all"
         >
           POST {webhookUrl}
         </div>
 
-        <div class="space-y-1 text-xs text-[var(--text-muted)]">
-          <p class="font-semibold text-[var(--text-main)]">Header zur Authentifizierung:</p>
+        <div class="space-y-1 text-xs text-text-muted">
+          <p class="font-semibold text-text-main">Header zur Authentifizierung:</p>
           <code
-            class="block rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2 font-mono text-[0.6875rem] text-[var(--text-soft)]"
+            class="block rounded-lg border border-border-subtle bg-surface-0 p-2 font-mono text-[0.6875rem] text-text-soft"
           >
             X-API-Token: salus_pat_DEIN_TOKEN_HIER
           </code>

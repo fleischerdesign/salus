@@ -51,23 +51,23 @@
     class="fixed inset-0 z-70 flex items-center justify-center overflow-y-auto bg-black/75 p-3 backdrop-blur-md sm:p-5"
   >
     <div
-      class="glass-panel animate-modal-pop w-full max-w-xl space-y-6 rounded-3xl p-6 text-[var(--text-main)] shadow-2xl sm:p-8"
+      class="glass-panel animate-modal-pop w-full max-w-xl space-y-6 rounded-3xl p-6 text-text-main shadow-2xl sm:p-8"
     >
       <!-- Top Navigation & Flow-Mode Switcher -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-2"
+        class="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle pb-2"
       >
         <div class="flex items-center gap-2.5">
           <div
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-sm font-extrabold text-white shadow-xs"
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-extrabold text-white shadow-xs"
           >
             S
           </div>
           <div>
-            <h1 class="text-sm font-extrabold text-[var(--text-main)]">
+            <h1 class="text-sm font-extrabold text-text-main">
               {mode === 'user' ? 'Persönliches Onboarding' : 'Instanz-Initialisierung'}
             </h1>
-            <span class="text-[0.625rem] text-[var(--text-soft)]">
+            <span class="text-[0.625rem] text-text-soft">
               {mode === 'user'
                 ? 'Schritt ' + currentStep + ' von 4 • Biometrisches Profil'
                 : 'Schritt ' + currentStep + ' von 4 • Server-Setup'}
@@ -78,7 +78,7 @@
         <button
           type="button"
           onclick={onclose}
-          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-50 hover:text-text-main"
         >
           <Icon name="close" size="sm" />
         </button>
@@ -89,8 +89,8 @@
         {#each [1, 2, 3, 4] as step}
           <div
             class="h-1.5 flex-1 rounded-full transition-all duration-300 {step <= currentStep
-              ? 'bg-[var(--color-primary)]'
-              : 'bg-[var(--bg-surface-100)]'}"
+              ? 'bg-primary'
+              : 'bg-surface-100'}"
           ></div>
         {/each}
       </div>
@@ -98,9 +98,7 @@
       <!-- Step Content -->
       {#if currentStep === 1}
         <div class="space-y-4">
-          <h2 class="text-base font-bold text-[var(--text-main)]">
-            1. Basis-Identität &amp; Biometrie
-          </h2>
+          <h2 class="text-base font-bold text-text-main">1. Basis-Identität &amp; Biometrie</h2>
           <Input
             bind:value={uName}
             label="Vollständiger Name / Anzeigename"
@@ -113,17 +111,15 @@
           </div>
 
           <div
-            class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-xs"
+            class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 p-3 text-xs"
           >
-            <span class="text-[var(--text-muted)]">Berechneter Grundumsatz (BMR)</span>
-            <span class="font-extrabold text-[var(--color-primary)] tabular-nums"
-              >{bmrCalculated} kcal/Tag</span
-            >
+            <span class="text-text-muted">Berechneter Grundumsatz (BMR)</span>
+            <span class="font-extrabold text-primary tabular-nums">{bmrCalculated} kcal/Tag</span>
           </div>
         </div>
       {:else if currentStep === 2}
         <div class="space-y-4">
-          <h2 class="text-base font-bold text-[var(--text-main)]">
+          <h2 class="text-base font-bold text-text-main">
             2. Primäre Gesundheits- &amp; Therapieziele
           </h2>
           <div class="grid grid-cols-2 gap-2.5">
@@ -133,15 +129,13 @@
               class="cursor-pointer rounded-2xl border p-3 text-left transition-all {uGoals.includes(
                 'strength'
               )
-                ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] shadow-xs'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                ? 'border-primary bg-primary-soft shadow-xs'
+                : 'border-border-subtle bg-surface-50'}"
             >
-              <span class="block text-xs font-bold text-[var(--text-main)]"
+              <span class="block text-xs font-bold text-text-main"
                 >Kraftaufbau &amp; Hypertrophie</span
               >
-              <span class="text-[0.625rem] text-[var(--text-muted)]"
-                >Progressive Overload &amp; 1RM</span
-              >
+              <span class="text-[0.625rem] text-text-muted">Progressive Overload &amp; 1RM</span>
             </button>
 
             <button
@@ -150,15 +144,13 @@
               class="cursor-pointer rounded-2xl border p-3 text-left transition-all {uGoals.includes(
                 'longevity'
               )
-                ? 'border-[var(--color-vital)] bg-[var(--color-vital-soft)] shadow-xs'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                ? 'border-vital bg-vital-soft shadow-xs'
+                : 'border-border-subtle bg-surface-50'}"
             >
-              <span class="block text-xs font-bold text-[var(--text-main)]"
+              <span class="block text-xs font-bold text-text-main"
                 >Langlebigkeit &amp; Prävention</span
               >
-              <span class="text-[0.625rem] text-[var(--text-muted)]"
-                >ESC 2024 &amp; ApoB-Optimierung</span
-              >
+              <span class="text-[0.625rem] text-text-muted">ESC 2024 &amp; ApoB-Optimierung</span>
             </button>
 
             <button
@@ -167,15 +159,11 @@
               class="cursor-pointer rounded-2xl border p-3 text-left transition-all {uGoals.includes(
                 'cardio'
               )
-                ? 'border-[var(--color-hydrate)] bg-[var(--color-hydrate-soft)] shadow-xs'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                ? 'border-hydrate bg-hydrate-soft shadow-xs'
+                : 'border-border-subtle bg-surface-50'}"
             >
-              <span class="block text-xs font-bold text-[var(--text-main)]"
-                >Kardiovaskuläre Ausdauer</span
-              >
-              <span class="text-[0.625rem] text-[var(--text-muted)]"
-                >VO2max &amp; Ruhepuls-Senkung</span
-              >
+              <span class="block text-xs font-bold text-text-main">Kardiovaskuläre Ausdauer</span>
+              <span class="text-[0.625rem] text-text-muted">VO2max &amp; Ruhepuls-Senkung</span>
             </button>
 
             <button
@@ -184,29 +172,23 @@
               class="cursor-pointer rounded-2xl border p-3 text-left transition-all {uGoals.includes(
                 'fasting'
               )
-                ? 'border-[var(--color-circadian)] bg-[var(--color-circadian-soft)] shadow-xs'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                ? 'border-circadian bg-circadian-soft shadow-xs'
+                : 'border-border-subtle bg-surface-50'}"
             >
-              <span class="block text-xs font-bold text-[var(--text-main)]"
-                >Stoffwechsel &amp; Fasten</span
-              >
-              <span class="text-[0.625rem] text-[var(--text-muted)]"
-                >16:8 &amp; Glukosestabilität</span
-              >
+              <span class="block text-xs font-bold text-text-main">Stoffwechsel &amp; Fasten</span>
+              <span class="text-[0.625rem] text-text-muted">16:8 &amp; Glukosestabilität</span>
             </button>
           </div>
         </div>
       {:else if currentStep === 3}
         <div class="space-y-4">
-          <h2 class="text-base font-bold text-[var(--text-main)]">
-            3. Zeitzone &amp; Tagesrhythmus
-          </h2>
+          <h2 class="text-base font-bold text-text-main">3. Zeitzone &amp; Tagesrhythmus</h2>
           <Input
             bind:value={uTimezone}
             label="Standort-Zeitzone (IANA)"
             placeholder="Europe/Berlin"
           />
-          <p class="text-xs leading-relaxed text-[var(--text-muted)]">
+          <p class="text-xs leading-relaxed text-text-muted">
             Deine Tagesgrenzen und zirkadianen Sonnenbögen werden millimetergenau auf Basis dieser
             Zeitzone berechnet.
           </p>
@@ -218,10 +200,8 @@
           >
             <Icon name="check_circle" size="lg" />
           </div>
-          <h2 class="text-lg font-extrabold text-[var(--text-main)]">
-            Profil erfolgreich eingerichtet!
-          </h2>
-          <p class="mx-auto max-w-sm text-xs text-[var(--text-muted)]">
+          <h2 class="text-lg font-extrabold text-text-main">Profil erfolgreich eingerichtet!</h2>
+          <p class="mx-auto max-w-sm text-xs text-text-muted">
             Salus ist nun personalisiert und synchronisiert alle biometrischen Daten lokal und
             verschlüsselt.
           </p>
@@ -229,7 +209,7 @@
       {/if}
 
       <!-- Bottom Navigation Controls -->
-      <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-4">
+      <div class="flex items-center justify-between border-t border-border-subtle pt-4">
         {#if currentStep > 1}
           <Btn variant="secondary" onclick={() => (currentStep -= 1)}>
             <Icon name="arrow_back" size="sm" />

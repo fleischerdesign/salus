@@ -85,9 +85,7 @@
   }
 </script>
 
-<div
-  class="flex flex-col gap-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 text-xs"
->
+<div class="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface-50 p-4 text-xs">
   <Input
     label="Dosierung"
     name="dosage"
@@ -97,7 +95,7 @@
   />
 
   <div>
-    <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Uhrzeiten</span>
+    <span class="mb-1.5 block text-xs font-bold text-text-main">Uhrzeiten</span>
     <div class="flex flex-col gap-2">
       {#each times as _time, i}
         <div class="flex items-center gap-2">
@@ -106,7 +104,7 @@
             <button
               type="button"
               onclick={() => removeTime(i)}
-              class="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+              class="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-500"
             >
               <Icon name="close" size="sm" />
             </button>
@@ -116,7 +114,7 @@
       <button
         type="button"
         onclick={addTime}
-        class="cursor-pointer self-start pt-1 text-xs font-bold text-[var(--color-primary)] hover:underline"
+        class="cursor-pointer self-start pt-1 text-xs font-bold text-primary hover:underline"
       >
         + Weitere Uhrzeit hinzufügen
       </button>
@@ -124,7 +122,7 @@
   </div>
 
   <div>
-    <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Wochentage</span>
+    <span class="mb-1.5 block text-xs font-bold text-text-main">Wochentage</span>
     <div class="flex gap-1.5">
       {#each dayLabels as label, i}
         {@const dayNum = i + 1}
@@ -134,8 +132,8 @@
           class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-xs font-bold transition-all {daysOfWeek.includes(
             dayNum
           )
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)]'}"
+            ? 'bg-primary text-white shadow-xs'
+            : 'border border-border-subtle bg-surface-0 text-text-muted'}"
         >
           {label}
         </button>

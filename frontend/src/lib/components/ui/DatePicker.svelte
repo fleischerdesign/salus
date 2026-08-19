@@ -40,7 +40,7 @@
   {#if label}
     <label
       for="{name ?? 'datepicker'}-input"
-      class="tracking-label text-surface-900 mb-1 block text-xs font-semibold"
+      class="tracking-label mb-1 block text-xs font-semibold text-surface-900"
     >
       {label}{#if required}<span class="text-error-500"> *</span>{/if}
     </label>
@@ -61,6 +61,6 @@
     </span>
   {/if}
   {#if hint && !error}
-    <span class="text-surface-500 mt-1 text-sm">{hint}</span>
+    <span class="mt-1 text-sm text-surface-500">{hint}</span>
   {/if}
 </div>

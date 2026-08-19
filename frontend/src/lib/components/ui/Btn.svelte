@@ -3,10 +3,10 @@
   import Icon from '$components/ui/Icon.svelte';
 
   const variantClasses = {
-    primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 active:scale-95 shadow-sm',
+    primary: 'bg-primary text-white hover:opacity-90 active:scale-95 shadow-sm',
     secondary:
-      'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-main)] hover:bg-[var(--bg-surface-100)] active:scale-95',
-    ghost: 'bg-transparent text-[var(--text-main)] hover:bg-[var(--bg-surface-50)] active:scale-95',
+      'border border-border-subtle bg-surface-50 text-text-main hover:bg-surface-100 active:scale-95',
+    ghost: 'bg-transparent text-text-main hover:bg-surface-50 active:scale-95',
     danger:
       'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 active:scale-95'
   };
@@ -43,7 +43,7 @@
   }: Props = $props();
 
   let classes = $derived(
-    'relative inline-flex items-center justify-center font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] cursor-pointer ' +
+    'relative inline-flex items-center justify-center font-semibold leading-none no-underline transition-all duration-micro select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] cursor-pointer ' +
       (fullWidth ? 'w-full ' : '') +
       variantClasses[variant] +
       ' ' +

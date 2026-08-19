@@ -85,7 +85,7 @@
       backUrl="/workouts/sessions"
     >
       {#snippet actions()}
-        <div class="divide-surface-200 flex h-full items-stretch divide-x select-none">
+        <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
           {#if session.recovery_score}
             <div
               class="bg-success-50 text-success-800 flex h-full items-center justify-center gap-2 px-6 text-xs font-semibold whitespace-nowrap"
@@ -99,7 +99,7 @@
 
       {#snippet stats()}
         <div
-          class="divide-surface-100 grid grid-cols-1 divide-y sm:grid-cols-4 sm:divide-x sm:divide-y-0"
+          class="grid grid-cols-1 divide-y divide-surface-100 sm:grid-cols-4 sm:divide-x sm:divide-y-0"
         >
           <div class="px-6 py-4">
             <Stat value={totalVolume.toFixed(0)} unit="kg" label="Total Volume" />
@@ -119,12 +119,12 @@
 
     {#if session.notes}
       <Card>
-        <p class="text-surface-600 text-sm italic">"{session.notes}"</p>
+        <p class="text-sm text-surface-600 italic">"{session.notes}"</p>
       </Card>
     {/if}
 
     <div class="space-y-4">
-      <h2 class="text-surface-900 text-lg font-semibold">Exercise Log</h2>
+      <h2 class="text-lg font-semibold text-surface-900">Exercise Log</h2>
       {#if !logs || groupedLogs.size === 0}
         <EmptyState
           title="No exercises logged"
@@ -135,7 +135,7 @@
         {#each groupedLogs as [name, entryLogs] (name)}
           <Card padding={false}>
             {#snippet header()}
-              <span class="text-surface-900 text-sm font-semibold">{name}</span>
+              <span class="text-sm font-semibold text-surface-900">{name}</span>
             {/snippet}
             <div class="p-2">
               <Table

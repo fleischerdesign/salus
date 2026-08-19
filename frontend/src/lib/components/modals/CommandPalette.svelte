@@ -157,18 +157,18 @@
     role="presentation"
   >
     <div
-      class="glass-panel animate-modal-pop w-full max-w-xl overflow-hidden rounded-3xl text-[var(--text-main)] shadow-2xl"
+      class="glass-panel animate-modal-pop w-full max-w-xl overflow-hidden rounded-3xl text-text-main shadow-2xl"
     >
       <!-- Search Input -->
-      <div class="flex items-center gap-3 border-b border-[var(--border-subtle)]/70 px-4 py-3.5">
-        <Icon name="search" size="md" class="text-[var(--text-soft)]" />
+      <div class="flex items-center gap-3 border-b border-border-subtle/70 px-4 py-3.5">
+        <Icon name="search" size="md" class="text-text-soft" />
         <input
           type="text"
           bind:value={search}
           placeholder="Wohin möchtest du springen? (z.B. 'Workouts', 'Ernährung', 'Labor', 'Analytik')..."
-          class="w-full border-none bg-transparent font-sans text-sm text-[var(--text-main)] outline-none"
+          class="w-full border-none bg-transparent font-sans text-sm text-text-main outline-none"
         />
-        <span class="font-mono text-[0.6875rem] text-[var(--text-soft)]">[ESC]</span>
+        <span class="font-mono text-[0.6875rem] text-text-soft">[ESC]</span>
       </div>
 
       <!-- Results List -->
@@ -177,13 +177,11 @@
           <button
             type="button"
             onclick={() => selectItem(item)}
-            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl p-2.5 text-left text-xs transition-colors hover:bg-[var(--bg-surface-50)]"
+            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl p-2.5 text-left text-xs transition-colors hover:bg-surface-50"
           >
             <div>
-              <span class="block text-xs font-bold text-[var(--text-main)]">{item.title}</span>
-              <span class="text-[0.625rem] font-medium text-[var(--text-soft)]"
-                >{item.category}</span
-              >
+              <span class="block text-xs font-bold text-text-main">{item.title}</span>
+              <span class="text-[0.625rem] font-medium text-text-soft">{item.category}</span>
             </div>
             {#if item.badge}
               <Badge variant="default">{item.badge}</Badge>

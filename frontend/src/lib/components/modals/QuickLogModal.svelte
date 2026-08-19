@@ -224,35 +224,33 @@
   >
     <!-- Modal Card -->
     <div
-      class="glass-panel animate-modal-pop relative my-auto w-full max-w-lg overflow-hidden rounded-3xl text-[var(--text-main)] shadow-2xl"
+      class="glass-panel animate-modal-pop relative my-auto w-full max-w-lg overflow-hidden rounded-3xl text-text-main shadow-2xl"
     >
       <!-- Success Toast Overlay -->
       {#if successToast}
         <div
-          class="animate-fade-in absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-[var(--bg-canvas)]/95 p-6 text-center backdrop-blur-md"
+          class="animate-fade-in absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-canvas/95 p-6 text-center backdrop-blur-md"
         >
           <div
             class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-emerald-500/30 bg-emerald-500/15 text-2xl font-black text-emerald-500"
           >
             <Icon name="check_circle" size="lg" />
           </div>
-          <p class="text-base font-extrabold text-[var(--text-main)]">{successToast}</p>
+          <p class="text-base font-extrabold text-text-main">{successToast}</p>
         </div>
       {/if}
 
       <!-- Modal Header -->
-      <div
-        class="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-4"
-      >
+      <div class="flex items-center justify-between border-b border-border-subtle px-5 py-4">
         <div class="flex items-center gap-2">
           <div
-            class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] font-bold text-[var(--color-primary)]"
+            class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-soft font-bold text-primary"
           >
             <Icon name="add" size="md" />
           </div>
           <div>
-            <h2 class="text-sm font-extrabold text-[var(--text-main)]">1-Tap Schnell erfassen</h2>
-            <p class="text-[0.6875rem] text-[var(--text-muted)]">
+            <h2 class="text-sm font-extrabold text-text-main">1-Tap Schnell erfassen</h2>
+            <p class="text-[0.6875rem] text-text-muted">
               Biometrische Parameter, Mahlzeiten &amp; Vitaldaten
             </p>
           </div>
@@ -261,7 +259,7 @@
         <button
           type="button"
           onclick={onclose}
-          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-50 hover:text-text-main"
         >
           <Icon name="close" size="sm" />
         </button>
@@ -269,15 +267,15 @@
 
       <!-- Category Filter Tabs -->
       <div
-        class="no-scrollbar flex items-center gap-1.5 overflow-x-auto border-b border-[var(--border-subtle)] bg-[var(--bg-surface-50)]/40 px-4 pt-3 pb-2"
+        class="no-scrollbar flex items-center gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-50/40 px-4 pt-3 pb-2"
       >
         <button
           type="button"
           onclick={() => (activeCategory = 'water')}
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'water'
-            ? 'bg-[var(--color-hydrate)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            ? 'bg-hydrate text-white shadow-xs'
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="water_drop" size="sm" />
           <span>Wasser</span>
@@ -288,8 +286,8 @@
           onclick={() => (activeCategory = 'food')}
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'food'
-            ? 'bg-[var(--color-activity)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            ? 'bg-activity text-white shadow-xs'
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="restaurant" size="sm" />
           <span>Ernährung</span>
@@ -300,8 +298,8 @@
           onclick={() => (activeCategory = 'blood_pressure')}
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'blood_pressure'
-            ? 'bg-[var(--color-vital)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            ? 'bg-vital text-white shadow-xs'
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="favorite" size="sm" />
           <span>Blutdruck</span>
@@ -312,8 +310,8 @@
           onclick={() => (activeCategory = 'weight')}
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'weight'
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            ? 'bg-primary text-white shadow-xs'
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="fitness_center" size="sm" />
           <span>Gewicht</span>
@@ -324,8 +322,8 @@
           onclick={() => (activeCategory = 'glucose')}
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'glucose'
-            ? 'bg-[var(--color-circadian)] text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            ? 'bg-circadian text-white shadow-xs'
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="science" size="sm" />
           <span>Glukose</span>
@@ -337,7 +335,7 @@
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'caffeine'
             ? 'bg-amber-600 text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="local_cafe" size="sm" />
           <span>Koffein</span>
@@ -349,7 +347,7 @@
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'sleep'
             ? 'bg-indigo-600 text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="bedtime" size="sm" />
           <span>Schlaf</span>
@@ -361,7 +359,7 @@
           class="flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {activeCategory ===
           'mood'
             ? 'bg-emerald-600 text-white shadow-xs'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]'}"
+            : 'text-text-muted hover:bg-surface-50 hover:text-text-main'}"
         >
           <Icon name="sentiment_satisfied" size="sm" />
           <span>Stimmung</span>
@@ -374,7 +372,7 @@
         {#if activeCategory === 'water'}
           <div class="space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-[var(--text-muted)]">Schnell-Portionen</span>
+              <span class="text-xs font-bold text-text-muted">Schnell-Portionen</span>
               <Badge variant="hydrate">Ziel: 3.000 ml</Badge>
             </div>
 
@@ -382,37 +380,37 @@
               <button
                 type="button"
                 onclick={() => addWaterQuick(250)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--color-hydrate-soft)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:border-hydrate hover:bg-hydrate-soft"
               >
-                <span class="block text-sm font-black text-[var(--color-hydrate)]">+250</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]">Glas</span>
+                <span class="block text-sm font-black text-hydrate">+250</span>
+                <span class="text-[0.625rem] font-semibold text-text-muted">Glas</span>
               </button>
 
               <button
                 type="button"
                 onclick={() => addWaterQuick(350)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--color-hydrate-soft)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:border-hydrate hover:bg-hydrate-soft"
               >
-                <span class="block text-sm font-black text-[var(--color-hydrate)]">+350</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]">Becher</span>
+                <span class="block text-sm font-black text-hydrate">+350</span>
+                <span class="text-[0.625rem] font-semibold text-text-muted">Becher</span>
               </button>
 
               <button
                 type="button"
                 onclick={() => addWaterQuick(500)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--color-hydrate-soft)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:border-hydrate hover:bg-hydrate-soft"
               >
-                <span class="block text-sm font-black text-[var(--color-hydrate)]">+500</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]">Flasche</span>
+                <span class="block text-sm font-black text-hydrate">+500</span>
+                <span class="text-[0.625rem] font-semibold text-text-muted">Flasche</span>
               </button>
 
               <button
                 type="button"
                 onclick={() => addWaterQuick(750)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:border-[var(--color-hydrate)] hover:bg-[var(--color-hydrate-soft)]"
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:border-hydrate hover:bg-hydrate-soft"
               >
-                <span class="block text-sm font-black text-[var(--color-hydrate)]">+750</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]">Shaker</span>
+                <span class="block text-sm font-black text-hydrate">+750</span>
+                <span class="text-[0.625rem] font-semibold text-text-muted">Shaker</span>
               </button>
             </div>
 
@@ -430,7 +428,7 @@
             <button
               type="button"
               onclick={() => addWaterQuick(waterCurrentInput)}
-              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-hydrate)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
+              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-hydrate py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
             >
               <Icon name="water_drop" size="sm" />
               <span>+{waterCurrentInput} ml Wasser eintragen</span>
@@ -441,7 +439,7 @@
         {:else if activeCategory === 'food'}
           <div class="space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-[var(--text-muted)]">Häufige Favoriten</span>
+              <span class="text-xs font-bold text-text-muted">Häufige Favoriten</span>
               {#if onopenbarcode}
                 <button
                   type="button"
@@ -449,7 +447,7 @@
                     onclose();
                     onopenbarcode();
                   }}
-                  class="flex cursor-pointer items-center gap-1 text-[0.6875rem] font-bold text-[var(--color-primary)] hover:underline"
+                  class="flex cursor-pointer items-center gap-1 text-[0.6875rem] font-bold text-primary hover:underline"
                 >
                   <Icon name="qr_code_scanner" size="sm" />
                   <span>Barcode scannen</span>
@@ -462,13 +460,11 @@
                 <button
                   type="button"
                   onclick={() => submitQuickMeal(meal)}
-                  class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-left transition-all hover:border-[var(--color-primary)] hover:bg-[var(--bg-surface-0)]"
+                  class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-50 p-3 text-left transition-all hover:border-primary hover:bg-surface-0"
                 >
                   <div>
-                    <span class="block text-xs font-extrabold text-[var(--text-main)]"
-                      >{meal.name}</span
-                    >
-                    <span class="text-[0.6875rem] text-[var(--text-muted)]"
+                    <span class="block text-xs font-extrabold text-text-main">{meal.name}</span>
+                    <span class="text-[0.6875rem] text-text-muted"
                       >P: {meal.protein}g &bull; C: {meal.carbs}g &bull; F: {meal.fat}g</span
                     >
                   </div>
@@ -478,10 +474,8 @@
             </div>
 
             <!-- Custom Quick Macro Input -->
-            <div class="space-y-3 border-t border-[var(--border-subtle)] pt-2">
-              <span class="block text-xs font-bold text-[var(--text-muted)]"
-                >Eigene Schnellmahlzeit</span
-              >
+            <div class="space-y-3 border-t border-border-subtle pt-2">
+              <span class="block text-xs font-bold text-text-muted">Eigene Schnellmahlzeit</span>
               <div class="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4">
                 <Input bind:value={foodKcal} label="Kalorien" type="number" unit="kcal" />
                 <Input bind:value={foodProtein} label="Protein" type="number" unit="g" />
@@ -491,7 +485,7 @@
               <button
                 type="button"
                 onclick={submitCustomFood}
-                class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-activity)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
+                class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-activity py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
               >
                 <Icon name="restaurant" size="sm" />
                 <span>Mahlzeit erfassen</span>
@@ -529,17 +523,17 @@
 
             <div class="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <span class="mb-1 block text-xs font-bold text-[var(--text-muted)]">Messarm</span>
+                <span class="mb-1 block text-xs font-bold text-text-muted">Messarm</span>
                 <div
-                  class="grid grid-cols-2 gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1"
+                  class="grid grid-cols-2 gap-1 rounded-xl border border-border-subtle bg-surface-50 p-1"
                 >
                   <button
                     type="button"
                     onclick={() => (bpArm = 'left')}
                     class="cursor-pointer rounded-lg py-1 text-center text-xs font-bold transition-all {bpArm ===
                     'left'
-                      ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
-                      : 'text-[var(--text-muted)]'}"
+                      ? 'bg-surface-0 text-primary shadow-xs'
+                      : 'text-text-muted'}"
                   >
                     Links
                   </button>
@@ -548,8 +542,8 @@
                     onclick={() => (bpArm = 'right')}
                     class="cursor-pointer rounded-lg py-1 text-center text-xs font-bold transition-all {bpArm ===
                     'right'
-                      ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
-                      : 'text-[var(--text-muted)]'}"
+                      ? 'bg-surface-0 text-primary shadow-xs'
+                      : 'text-text-muted'}"
                   >
                     Rechts
                   </button>
@@ -557,17 +551,17 @@
               </div>
 
               <div>
-                <span class="mb-1 block text-xs font-bold text-[var(--text-muted)]">Zustand</span>
+                <span class="mb-1 block text-xs font-bold text-text-muted">Zustand</span>
                 <div
-                  class="grid grid-cols-3 gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1"
+                  class="grid grid-cols-3 gap-1 rounded-xl border border-border-subtle bg-surface-50 p-1"
                 >
                   <button
                     type="button"
                     onclick={() => (bpState = 'resting')}
                     class="cursor-pointer rounded-lg py-1 text-center text-[0.625rem] font-bold transition-all {bpState ===
                     'resting'
-                      ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
-                      : 'text-[var(--text-muted)]'}"
+                      ? 'bg-surface-0 text-primary shadow-xs'
+                      : 'text-text-muted'}"
                   >
                     Ruhe
                   </button>
@@ -576,8 +570,8 @@
                     onclick={() => (bpState = 'stress')}
                     class="cursor-pointer rounded-lg py-1 text-center text-[0.625rem] font-bold transition-all {bpState ===
                     'stress'
-                      ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
-                      : 'text-[var(--text-muted)]'}"
+                      ? 'bg-surface-0 text-primary shadow-xs'
+                      : 'text-text-muted'}"
                   >
                     Stress
                   </button>
@@ -586,8 +580,8 @@
                     onclick={() => (bpState = 'post_exercise')}
                     class="cursor-pointer rounded-lg py-1 text-center text-[0.625rem] font-bold transition-all {bpState ===
                     'post_exercise'
-                      ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-xs'
-                      : 'text-[var(--text-muted)]'}"
+                      ? 'bg-surface-0 text-primary shadow-xs'
+                      : 'text-text-muted'}"
                   >
                     Sport
                   </button>
@@ -598,7 +592,7 @@
             <button
               type="button"
               onclick={submitBloodPressure}
-              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-vital)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
+              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-vital py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
             >
               <Icon name="favorite" size="sm" />
               <span>Blutdruckmessung speichern</span>
@@ -632,7 +626,7 @@
             <button
               type="button"
               onclick={submitWeight}
-              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-primary)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
+              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-primary py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
             >
               <Icon name="fitness_center" size="sm" />
               <span>Gewicht speichern</span>
@@ -654,19 +648,17 @@
             />
 
             <div>
-              <span class="mb-1 block text-xs font-bold text-[var(--text-muted)]"
-                >Messzeitpunkt</span
-              >
+              <span class="mb-1 block text-xs font-bold text-text-muted">Messzeitpunkt</span>
               <div
-                class="grid grid-cols-3 gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1 text-[0.6875rem] font-bold"
+                class="grid grid-cols-3 gap-1.5 rounded-xl border border-border-subtle bg-surface-50 p-1 text-[0.6875rem] font-bold"
               >
                 <button
                   type="button"
                   onclick={() => (glucoseTiming = 'fasting')}
                   class="cursor-pointer rounded-lg py-1.5 text-center transition-all {glucoseTiming ===
                   'fasting'
-                    ? 'bg-[var(--bg-surface-0)] text-[var(--color-circadian)] shadow-xs'
-                    : 'text-[var(--text-muted)]'}"
+                    ? 'bg-surface-0 text-circadian shadow-xs'
+                    : 'text-text-muted'}"
                 >
                   Nüchtern
                 </button>
@@ -675,8 +667,8 @@
                   onclick={() => (glucoseTiming = 'pre_meal')}
                   class="cursor-pointer rounded-lg py-1.5 text-center transition-all {glucoseTiming ===
                   'pre_meal'
-                    ? 'bg-[var(--bg-surface-0)] text-[var(--color-circadian)] shadow-xs'
-                    : 'text-[var(--text-muted)]'}"
+                    ? 'bg-surface-0 text-circadian shadow-xs'
+                    : 'text-text-muted'}"
                 >
                   Vor Mahlzeit
                 </button>
@@ -685,8 +677,8 @@
                   onclick={() => (glucoseTiming = 'post_meal_2h')}
                   class="cursor-pointer rounded-lg py-1.5 text-center transition-all {glucoseTiming ===
                   'post_meal_2h'
-                    ? 'bg-[var(--bg-surface-0)] text-[var(--color-circadian)] shadow-xs'
-                    : 'text-[var(--text-muted)]'}"
+                    ? 'bg-surface-0 text-circadian shadow-xs'
+                    : 'text-text-muted'}"
                 >
                   2h nach Essen
                 </button>
@@ -696,7 +688,7 @@
             <button
               type="button"
               onclick={submitGlucose}
-              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-circadian)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
+              class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-circadian py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-95"
             >
               <Icon name="science" size="sm" />
               <span>Glukosewert speichern</span>
@@ -710,41 +702,37 @@
               <button
                 type="button"
                 onclick={() => (caffeineDose = 80)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
                 80
                   ? 'border-amber-500 ring-2 ring-amber-500/20'
                   : ''}"
               >
                 <span class="block text-sm font-black text-amber-600">80 mg</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]">Espresso</span>
+                <span class="text-[0.625rem] font-semibold text-text-muted">Espresso</span>
               </button>
 
               <button
                 type="button"
                 onclick={() => (caffeineDose = 140)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
                 140
                   ? 'border-amber-500 ring-2 ring-amber-500/20'
                   : ''}"
               >
                 <span class="block text-sm font-black text-amber-600">140 mg</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]"
-                  >Filterkaffee</span
-                >
+                <span class="text-[0.625rem] font-semibold text-text-muted">Filterkaffee</span>
               </button>
 
               <button
                 type="button"
                 onclick={() => (caffeineDose = 200)}
-                class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
+                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 p-3 text-center transition-all hover:bg-amber-500/10 {caffeineDose ===
                 200
                   ? 'border-amber-500 ring-2 ring-amber-500/20'
                   : ''}"
               >
                 <span class="block text-sm font-black text-amber-600">200 mg</span>
-                <span class="text-[0.625rem] font-semibold text-[var(--text-muted)]"
-                  >Pre-Workout</span
-                >
+                <span class="text-[0.625rem] font-semibold text-text-muted">Pre-Workout</span>
               </button>
             </div>
 

@@ -205,7 +205,7 @@
       <div class="space-y-5">
         <!-- Header Info Card -->
         <div
-          class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
+          class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-4"
         >
           <div class="flex items-center gap-3">
             <div
@@ -215,10 +215,10 @@
               <Icon name={source.icon} size="md" />
             </div>
             <div>
-              <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+              <h3 class="text-sm font-extrabold text-text-main">
                 {source.name}
               </h3>
-              <span class="font-mono text-xs text-[var(--text-muted)]">ID: {source.id}</span>
+              <span class="font-mono text-xs text-text-muted">ID: {source.id}</span>
             </div>
           </div>
 
@@ -239,7 +239,7 @@
 
         {#if sourceStatus?.detail}
           <p
-            class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-2.5 text-xs text-[var(--text-muted)]"
+            class="rounded-xl border border-border-subtle bg-surface-50 px-3.5 py-2.5 text-xs text-text-muted"
           >
             {sourceStatus.detail}
           </p>
@@ -257,15 +257,13 @@
 
         <!-- NATIVE HEALTH CONNECT CONTROLS -->
         {#if source.id === 'health_connect' && isNativeAndroid}
-          <div
-            class="space-y-3 rounded-2xl border border-[var(--color-primary)]/30 bg-[var(--color-primary-soft)]/10 p-4"
-          >
+          <div class="space-y-3 rounded-2xl border border-primary/30 bg-primary-soft/10 p-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h4 class="text-xs font-extrabold text-[var(--text-main)]">
+                <h4 class="text-xs font-extrabold text-text-main">
                   Android Health Connect Schnittstelle
                 </h4>
-                <p class="mt-0.5 text-[0.6875rem] text-[var(--text-muted)]">
+                <p class="mt-0.5 text-[0.6875rem] text-text-muted">
                   Direkte native Verbindung zu Google Health Connect &amp; Samsung Health
                 </p>
               </div>
@@ -289,11 +287,9 @@
             </div>
 
             {#if permissionState && permissionState.missingLabels.length > 0}
-              <div
-                class="space-y-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3"
-              >
+              <div class="space-y-2 rounded-xl border border-border-subtle bg-surface-0 p-3">
                 <div class="flex items-center justify-between gap-2">
-                  <h5 class="text-xs font-bold text-[var(--text-main)]">
+                  <h5 class="text-xs font-bold text-text-main">
                     Datenzugriff &bull; {permissionState.granted} Kategorien lesbar
                   </h5>
                   <Btn variant="secondary" size="sm" onclick={handleOpenSettings}>
@@ -301,20 +297,20 @@
                     System-Einstellungen
                   </Btn>
                 </div>
-                <p class="text-[0.6875rem] leading-relaxed text-[var(--text-muted)]">
+                <p class="text-[0.6875rem] leading-relaxed text-text-muted">
                   Kategorien, die auf diesem Smartphone nicht verfügbar sind, werden automatisch
                   übersprungen.
                 </p>
                 <details class="mt-1">
                   <summary
-                    class="cursor-pointer text-[0.6875rem] font-bold text-[var(--color-primary)] select-none hover:underline"
+                    class="cursor-pointer text-[0.6875rem] font-bold text-primary select-none hover:underline"
                   >
                     {permissionState.missingLabels.length} übersprungene Kategorien anzeigen
                   </summary>
                   <div class="mt-2 flex flex-wrap gap-1.5">
                     {#each permissionState.missingLabels as label (label)}
                       <span
-                        class="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] px-2 py-0.5 text-[0.625rem] font-medium text-[var(--text-muted)]"
+                        class="rounded-lg border border-border-subtle bg-surface-100 px-2 py-0.5 text-[0.625rem] font-medium text-text-muted"
                       >
                         {label}
                       </span>
@@ -327,24 +323,22 @@
         {/if}
 
         {#if healthSyncUi.seedProgress}
-          <div
-            class="space-y-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
-          >
+          <div class="space-y-2 rounded-2xl border border-border-subtle bg-surface-50 p-3.5">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <Spinner size="sm" />
-                <h5 class="text-xs font-bold text-[var(--text-main)]">
+                <h5 class="text-xs font-bold text-text-main">
                   Health Connect Verlauf wird importiert…
                 </h5>
               </div>
               {#if (healthSyncUi.seedProgress?.done ?? 0) > 0}
-                <span class="font-mono text-xs font-bold text-[var(--text-main)] tabular-nums">
+                <span class="font-mono text-xs font-bold text-text-main tabular-nums">
                   {(healthSyncUi.seedProgress?.done ?? 0).toLocaleString('de-DE')} Messwerte
                 </span>
               {/if}
             </div>
-            <div class="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-200)]">
-              <div class="h-1.5 w-full animate-pulse rounded-full bg-[var(--color-primary)]"></div>
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
+              <div class="h-1.5 w-full animate-pulse rounded-full bg-primary"></div>
             </div>
           </div>
         {/if}
@@ -353,46 +347,34 @@
           <!-- ACTIVE SOURCE DIAGNOSTICS -->
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
-              <div
-                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
-              >
-                <span class="text-[0.6875rem] font-bold text-[var(--text-muted)]"
-                  >Gesamtzahl Messwerte</span
-                >
-                <div class="mt-1 text-base font-extrabold text-[var(--text-main)] tabular-nums">
+              <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3.5">
+                <span class="text-[0.6875rem] font-bold text-text-muted">Gesamtzahl Messwerte</span>
+                <div class="mt-1 text-base font-extrabold text-text-main tabular-nums">
                   {count.toLocaleString('de-DE')}
                 </div>
               </div>
-              <div
-                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
-              >
-                <span class="text-[0.6875rem] font-bold text-[var(--text-muted)]"
-                  >Letzter Datenimport</span
-                >
-                <div class="mt-1 truncate text-xs font-semibold text-[var(--text-main)]">
+              <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3.5">
+                <span class="text-[0.6875rem] font-bold text-text-muted">Letzter Datenimport</span>
+                <div class="mt-1 truncate text-xs font-semibold text-text-main">
                   {lastSyncTime ? new Date(lastSyncTime).toLocaleString('de-DE') : 'Kürzlich'}
                 </div>
               </div>
             </div>
 
             <div class="space-y-2">
-              <h4 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+              <h4 class="text-xs font-extrabold tracking-wider text-text-main uppercase">
                 Bereitgestellte Metriken ({metricsSupplied.length})
               </h4>
               <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                 {#each metricsSupplied as item (item.code)}
                   <div
-                    class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2 text-xs"
+                    class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 px-3 py-2 text-xs"
                   >
                     <div class="flex items-center gap-2">
-                      <Icon
-                        name="monitoring"
-                        size="sm"
-                        class="shrink-0 text-[var(--color-primary)]"
-                      />
-                      <span class="font-semibold text-[var(--text-main)]">{item.name}</span>
+                      <Icon name="monitoring" size="sm" class="shrink-0 text-primary" />
+                      <span class="font-semibold text-text-main">{item.name}</span>
                     </div>
-                    <span class="font-mono text-[0.6875rem] text-[var(--text-muted)] tabular-nums">
+                    <span class="font-mono text-[0.6875rem] text-text-muted tabular-nums">
                       {item.count.toLocaleString('de-DE')} Einträge
                     </span>
                   </div>
@@ -403,24 +385,22 @@
         {:else}
           <!-- INACTIVE SOURCE DIAGNOSTICS & SETUP GUIDE -->
           <div class="space-y-4">
-            <div
-              class="space-y-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
-            >
-              <div class="flex items-center gap-2 text-xs font-bold text-[var(--text-main)]">
-                <Icon name="info" size="sm" class="text-[var(--color-primary)]" />
+            <div class="space-y-1.5 rounded-2xl border border-border-subtle bg-surface-50 p-4">
+              <div class="flex items-center gap-2 text-xs font-bold text-text-main">
+                <Icon name="info" size="sm" class="text-primary" />
                 <span>Verbindungsstatus</span>
               </div>
-              <p class="text-xs leading-relaxed text-[var(--text-muted)]">
+              <p class="text-xs leading-relaxed text-text-muted">
                 Bisher wurden noch keine Messdaten von {source.name} empfangen.
               </p>
             </div>
 
             <div class="space-y-1.5">
-              <h4 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+              <h4 class="text-xs font-extrabold tracking-wider text-text-main uppercase">
                 Einrichtungs-Hinweise
               </h4>
               <div
-                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 text-xs leading-relaxed text-[var(--text-main)]"
+                class="rounded-2xl border border-border-subtle bg-surface-50 p-4 text-xs leading-relaxed text-text-main"
               >
                 {INACTIVE_GUIDES[source.id] ??
                   'Verbinde diese Quelle in den Geräteeinstellungen deines Systems.'}
@@ -429,7 +409,7 @@
           </div>
         {/if}
 
-        <div class="flex items-center justify-end border-t border-[var(--border-subtle)]/60 pt-4">
+        <div class="flex items-center justify-end border-t border-border-subtle/60 pt-4">
           <Btn variant="secondary" onclick={() => (open = false)}>Schließen</Btn>
         </div>
       </div>

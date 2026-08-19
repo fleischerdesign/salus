@@ -38,7 +38,7 @@
 </script>
 
 <div
-  class="flex h-full flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] transition-all hover:border-[var(--border-strong)] {className}"
+  class="flex h-full flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card transition-all hover:border-border-strong {className}"
 >
   <!-- Header -->
   <div class="flex items-start justify-between gap-3">
@@ -52,11 +52,11 @@
         </div>
       {/if}
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           {title}
         </h3>
         {#if subtitle}
-          <p class="truncate text-xs text-[var(--text-muted)]">{subtitle}</p>
+          <p class="truncate text-xs text-text-muted">{subtitle}</p>
         {/if}
       </div>
     </div>
@@ -81,9 +81,9 @@
       </div>
     {:else if empty}
       <div
-        class="flex h-28 flex-col items-center justify-center space-y-1 text-center text-xs text-[var(--text-muted)]"
+        class="flex h-28 flex-col items-center justify-center space-y-1 text-center text-xs text-text-muted"
       >
-        <Icon name="info" size="sm" class="text-[var(--text-muted)] opacity-60" />
+        <Icon name="info" size="sm" class="text-text-muted opacity-60" />
         <span>{emptyText}</span>
       </div>
     {:else}
@@ -93,9 +93,7 @@
 
   <!-- Footer -->
   {#if footer}
-    <div
-      class="border-t border-[var(--border-subtle)]/60 pt-2.5 text-[0.6875rem] text-[var(--text-muted)]"
-    >
+    <div class="border-t border-border-subtle/60 pt-2.5 text-[0.6875rem] text-text-muted">
       {@render footer()}
     </div>
   {/if}

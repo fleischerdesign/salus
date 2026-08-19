@@ -140,7 +140,7 @@
 </script>
 
 <div
-  class="flex flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="flex flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card"
 >
   <div class="flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
@@ -151,10 +151,10 @@
         <Icon name="emoji-events" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Hero Ziel-Ringe
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">Tages-Status der Hauptziele</p>
+        <p class="truncate text-xs text-text-muted">Tages-Status der Hauptziele</p>
       </div>
     </div>
     <Badge variant={avgPercent >= 70 ? 'success' : 'default'} class="text-[0.625rem] font-bold">
@@ -191,40 +191,38 @@
       {/each}
     </svg>
     <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-      <span class="text-2xl font-extrabold text-[var(--text-main)] tabular-nums">
+      <span class="text-2xl font-extrabold text-text-main tabular-nums">
         {avgPercent}%
       </span>
-      <span class="text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase">
+      <span class="text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase">
         Erfüllt
       </span>
     </div>
   </div>
 
-  <div
-    class="grid grid-cols-3 gap-2 border-t border-[var(--border-subtle)] pt-3 text-center text-xs"
-  >
+  <div class="grid grid-cols-3 gap-2 border-t border-border-subtle pt-3 text-center text-xs">
     <div>
-      <span class="block font-extrabold text-[var(--color-activity)] tabular-nums">
+      <span class="block font-extrabold text-activity tabular-nums">
         {activity.current.toLocaleString('de-DE')}
       </span>
-      <span class="text-[0.6875rem] text-[var(--text-muted)]">
+      <span class="text-[0.6875rem] text-text-muted">
         / {activity.target.toLocaleString('de-DE')}
         {activity.label}
       </span>
     </div>
     <div>
-      <span class="block font-extrabold text-[var(--color-hydrate)] tabular-nums">
+      <span class="block font-extrabold text-hydrate tabular-nums">
         {hydration.current.toLocaleString('de-DE')} ml
       </span>
-      <span class="text-[0.6875rem] text-[var(--text-muted)]">
+      <span class="text-[0.6875rem] text-text-muted">
         / {hydration.target.toLocaleString('de-DE')} ml {hydration.label}
       </span>
     </div>
     <div>
-      <span class="block font-extrabold text-[var(--color-circadian)] tabular-nums">
+      <span class="block font-extrabold text-circadian tabular-nums">
         {habits.current}/{habits.target}
       </span>
-      <span class="text-[0.6875rem] text-[var(--text-muted)]">{habits.label}</span>
+      <span class="text-[0.6875rem] text-text-muted">{habits.label}</span>
     </div>
   </div>
 </div>

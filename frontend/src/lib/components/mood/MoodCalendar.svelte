@@ -53,15 +53,15 @@
   <div class="flex items-center justify-between">
     <button
       type="button"
-      class="text-surface-500 hover:bg-surface-100 hover:text-surface-700 rounded-lg p-1.5"
+      class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
       onclick={prevMonth}
     >
       <Icon name="chevron-left" size="lg" class="text-surface-500" />
     </button>
-    <span class="text-surface-800 text-sm font-semibold">{monthLabel}</span>
+    <span class="text-sm font-semibold text-surface-800">{monthLabel}</span>
     <button
       type="button"
-      class="text-surface-500 hover:bg-surface-100 hover:text-surface-700 rounded-lg p-1.5"
+      class="rounded-lg p-1.5 text-surface-500 hover:bg-surface-100 hover:text-surface-700"
       onclick={nextMonth}
     >
       <Icon name="chevron-right" size="lg" class="text-surface-500" />
@@ -70,7 +70,7 @@
 
   <div class="grid grid-cols-7 gap-1 text-center">
     {#each ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as day}
-      <span class="text-surface-400 text-[10px] font-medium">{day}</span>
+      <span class="text-[10px] font-medium text-surface-400">{day}</span>
     {/each}
 
     {#each Array(startOffset) as _}

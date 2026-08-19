@@ -27,9 +27,7 @@
   let hasSleepData = $derived(duration !== null && score !== null);
 </script>
 
-<div
-  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
->
+<div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card">
   <div class="flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
       <div
@@ -39,10 +37,10 @@
         <Icon name="bedtime" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Schlafarchitektur und Erholung
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">
+        <p class="truncate text-xs text-text-muted">
           {hasSleepData ? 'Schlaf-Tracking aktiv' : 'Noch keine Schlafaufzeichnung für diese Nacht'}
         </p>
       </div>
@@ -63,7 +61,7 @@
 
   {#if hasSleepData}
     <!-- Hypnogram Stage Wave Canvas -->
-    <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5">
+    <div class="rounded-xl border border-border-subtle bg-surface-50 p-3.5">
       <svg class="h-24 w-full" viewBox="0 0 600 100" preserveAspectRatio="none">
         <!-- Grid guide lines -->
         <line
@@ -116,9 +114,7 @@
           fill="var(--color-primary-soft)"
         />
       </svg>
-      <div
-        class="mt-1.5 flex justify-between px-1 text-[0.6875rem] font-semibold text-[var(--text-soft)]"
-      >
+      <div class="mt-1.5 flex justify-between px-1 text-[0.6875rem] font-semibold text-text-soft">
         <span>23:00 Einschlafen</span>
         <span>01:30 (Tief)</span>
         <span>03:45 (REM)</span>
@@ -129,26 +125,26 @@
 
     <!-- Stages Grid -->
     <div class="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-      <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2">
-        <span class="block text-[0.6875rem] text-[var(--text-soft)]">Tiefschlaf</span>
-        <span class="font-bold text-[var(--text-main)]">{deepSleep || '—'}</span>
+      <div class="rounded-xl border border-border-subtle bg-surface-50 p-2">
+        <span class="block text-[0.6875rem] text-text-soft">Tiefschlaf</span>
+        <span class="font-bold text-text-main">{deepSleep || '—'}</span>
       </div>
-      <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2">
-        <span class="block text-[0.6875rem] text-[var(--text-soft)]">REM-Schlaf</span>
-        <span class="font-bold text-[var(--text-main)]">{remSleep || '—'}</span>
+      <div class="rounded-xl border border-border-subtle bg-surface-50 p-2">
+        <span class="block text-[0.6875rem] text-text-soft">REM-Schlaf</span>
+        <span class="font-bold text-text-main">{remSleep || '—'}</span>
       </div>
-      <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2">
-        <span class="block text-[0.6875rem] text-[var(--text-soft)]">Leichtschlaf</span>
-        <span class="font-bold text-[var(--text-main)]">{lightSleep || '—'}</span>
+      <div class="rounded-xl border border-border-subtle bg-surface-50 p-2">
+        <span class="block text-[0.6875rem] text-text-soft">Leichtschlaf</span>
+        <span class="font-bold text-text-main">{lightSleep || '—'}</span>
       </div>
-      <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2">
-        <span class="block text-[0.6875rem] text-[var(--text-soft)]">Wachphasen</span>
-        <span class="font-bold text-[var(--text-main)]">{awake || '—'}</span>
+      <div class="rounded-xl border border-border-subtle bg-surface-50 p-2">
+        <span class="block text-[0.6875rem] text-text-soft">Wachphasen</span>
+        <span class="font-bold text-text-main">{awake || '—'}</span>
       </div>
     </div>
   {:else}
     <div
-      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] py-6 text-center text-xs text-[var(--text-muted)]"
+      class="rounded-xl border border-border-subtle bg-surface-50 py-6 text-center text-xs text-text-muted"
     >
       Keine Schlafphasen für diese Nacht vorhanden. Synchronisiere deine Smartwatch oder erfasse die
       Schlafdauer manuell.
@@ -157,11 +153,11 @@
 
   <!-- Cumulative Sleep Debt Banner (from services/analytics/stats.py) -->
   <div
-    class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-xs"
+    class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-subtle bg-surface-50 p-3 text-xs"
   >
     <div class="flex items-center gap-2">
-      <span class="font-bold text-[var(--text-main)]">Schlafschuld:</span>
-      <span class="font-bold text-[var(--color-primary)]">
+      <span class="font-bold text-text-main">Schlafschuld:</span>
+      <span class="font-bold text-primary">
         {sleepDebtHours !== 0
           ? sleepDebtHours > 0
             ? `+${sleepDebtHours}h Überschuss`
@@ -170,9 +166,7 @@
       </span>
     </div>
     <div class="flex items-center gap-2">
-      <span class="text-[0.6875rem] text-[var(--text-muted)]"
-        >Biologische Baseline: {baselineHours}h</span
-      >
+      <span class="text-[0.6875rem] text-text-muted">Biologische Baseline: {baselineHours}h</span>
       <Badge variant="default">Baseline</Badge>
     </div>
   </div>

@@ -29,7 +29,7 @@
 </script>
 
 {#if variant === 'sidebar'}
-  <nav class="border-surface-200 flex w-60 shrink-0 flex-col border-r py-2 {extraClass}">
+  <nav class="flex w-60 shrink-0 flex-col border-r border-surface-200 py-2 {extraClass}">
     {#each tabs as tab}
       {@const isActive = activeTab === tab.key}
       <button
@@ -37,7 +37,7 @@
         aria-selected={isActive}
         class="duration-micro tracking-label flex cursor-pointer items-center gap-3 border-l-[3px] px-4 py-3 text-left text-xs font-semibold transition-colors {isActive
           ? 'border-primary-500 bg-primary-50 text-primary-600 hover:bg-primary-100'
-          : 'text-surface-600 hover:bg-surface-100 border-transparent'}"
+          : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         onclick={() => selectTab(tab.key)}
       >
         {#if tab.icon}
@@ -48,7 +48,7 @@
     {/each}
   </nav>
 {:else}
-  <div class="border-surface-200 flex overflow-x-auto border-b {extraClass}" role="tablist">
+  <div class="flex overflow-x-auto border-b border-surface-200 {extraClass}" role="tablist">
     {#each tabs as tab}
       {@const isActive = activeTab === tab.key}
       <button
@@ -56,7 +56,7 @@
         aria-selected={isActive}
         class="duration-micro tracking-label flex min-w-[90px] cursor-pointer items-center justify-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold transition-colors {isActive
           ? 'border-primary-500 text-primary-600'
-          : 'text-surface-600 hover:bg-surface-100 border-transparent'}"
+          : 'border-transparent text-surface-600 hover:bg-surface-100'}"
         onclick={() => selectTab(tab.key)}
       >
         {#if tab.icon}

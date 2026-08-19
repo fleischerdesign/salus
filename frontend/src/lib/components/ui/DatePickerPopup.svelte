@@ -150,14 +150,14 @@
 
   <!-- Glassmorphism Calendar Popover -->
   <div
-    class="glass-panel animate-modal-pop fixed top-24 left-1/2 z-56 w-[330px] -translate-x-1/2 space-y-3.5 rounded-3xl p-4 text-[var(--text-main)] shadow-[var(--shadow-dock)] sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0"
+    class="glass-panel animate-modal-pop fixed top-24 left-1/2 z-56 w-[330px] -translate-x-1/2 space-y-3.5 rounded-3xl p-4 text-text-main shadow-dock sm:absolute sm:top-14 sm:right-0 sm:left-auto sm:translate-x-0"
   >
     <!-- Header: Month / Year Navigation -->
     <div class="flex items-center justify-between px-1">
       <div>
-        <h3 class="text-sm font-extrabold text-[var(--text-main)]">
+        <h3 class="text-sm font-extrabold text-text-main">
           {monthNames[viewMonth]}
-          <span class="font-semibold text-[var(--text-muted)]">{viewYear}</span>
+          <span class="font-semibold text-text-muted">{viewYear}</span>
         </h3>
       </div>
 
@@ -165,7 +165,7 @@
         <button
           type="button"
           onclick={prevMonth}
-          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-50 hover:text-text-main"
           title="Vorheriger Monat"
         >
           <Icon name="chevron-left" size={16} />
@@ -174,7 +174,7 @@
         <button
           type="button"
           onclick={nextMonth}
-          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)]"
+          class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-50 hover:text-text-main"
           title="Nächster Monat"
         >
           <Icon name="chevron-right" size={16} />
@@ -184,7 +184,7 @@
 
     <!-- Weekday Labels Header -->
     <div
-      class="grid grid-cols-7 gap-1 text-center text-[0.625rem] font-bold text-[var(--text-soft)] select-none"
+      class="grid grid-cols-7 gap-1 text-center text-[0.625rem] font-bold text-text-soft select-none"
     >
       {#each weekdayNames as wd}
         <div>{wd}</div>
@@ -199,12 +199,12 @@
           onclick={() => pickDay(day.dateStr)}
           class="relative flex h-8 cursor-pointer items-center justify-center rounded-xl font-semibold transition-all select-none
             {day.isSelected
-            ? 'z-10 scale-105 bg-[var(--color-primary)] font-extrabold text-white shadow-sm'
+            ? 'z-10 scale-105 bg-primary font-extrabold text-white shadow-sm'
             : day.isToday
-              ? 'border-2 border-[var(--color-primary)] font-bold text-[var(--color-primary)]'
+              ? 'border-2 border-primary font-bold text-primary'
               : day.isCurrentMonth
-                ? 'text-[var(--text-main)] hover:bg-[var(--bg-surface-50)]'
-                : 'text-[var(--text-soft)]/60 hover:bg-[var(--bg-surface-50)]/40 hover:text-[var(--text-soft)]'}"
+                ? 'text-text-main hover:bg-surface-50'
+                : 'text-text-soft/60 hover:bg-surface-50/40 hover:text-text-soft'}"
         >
           <span>{day.dayNum}</span>
         </button>
@@ -212,13 +212,11 @@
     </div>
 
     <!-- Quick Date Shortcuts Row -->
-    <div
-      class="flex items-center justify-between gap-1.5 border-t border-[var(--border-subtle)] pt-2"
-    >
+    <div class="flex items-center justify-between gap-1.5 border-t border-border-subtle pt-2">
       <button
         type="button"
         onclick={() => setRelative(0)}
-        class="flex-1 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1 text-center text-[0.6875rem] font-bold text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+        class="flex-1 cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-2 py-1 text-center text-[0.6875rem] font-bold text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
       >
         Heute
       </button>
@@ -226,7 +224,7 @@
       <button
         type="button"
         onclick={() => setRelative(-1)}
-        class="flex-1 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1 text-center text-[0.6875rem] font-bold text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+        class="flex-1 cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-2 py-1 text-center text-[0.6875rem] font-bold text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
       >
         Gestern
       </button>
@@ -234,7 +232,7 @@
       <button
         type="button"
         onclick={() => setRelative(-7)}
-        class="flex-1 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1 text-center text-[0.6875rem] font-bold text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+        class="flex-1 cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-2 py-1 text-center text-[0.6875rem] font-bold text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
       >
         -7 Tage
       </button>

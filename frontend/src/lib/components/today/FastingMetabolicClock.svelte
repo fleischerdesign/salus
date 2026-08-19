@@ -54,7 +54,7 @@
 </script>
 
 <div
-  class="flex h-full flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="flex h-full flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card"
 >
   <div class="flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
@@ -65,10 +65,10 @@
         <Icon name="schedule" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Intervallfasten &amp; Autophagie
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">Metabolische Fastenuhr</p>
+        <p class="truncate text-xs text-text-muted">Metabolische Fastenuhr</p>
       </div>
     </div>
     <Badge variant={activeSession ? 'fasting' : 'default'} class="text-[0.625rem] font-bold">
@@ -77,17 +77,15 @@
   </div>
 
   <div class="py-3 text-center">
-    <div class="font-mono text-[1.8rem] font-extrabold text-[var(--text-main)] tabular-nums">
+    <div class="font-mono text-[1.8rem] font-extrabold text-text-main tabular-nums">
       {formattedTimer}
     </div>
-    <div
-      class="mt-0.5 text-[0.75rem] font-semibold tracking-wider text-[var(--color-fasting)] uppercase"
-    >
+    <div class="mt-0.5 text-[0.75rem] font-semibold tracking-wider text-fasting uppercase">
       {metabolicZone}
     </div>
   </div>
 
-  <div class="mb-3 text-center text-[0.75rem] text-[var(--text-muted)]">
+  <div class="mb-3 text-center text-[0.75rem] text-text-muted">
     {#if activeSession}
       Ziel: <strong>{activeSession.target_hours || 16} Stunden</strong>
     {:else}
@@ -98,7 +96,7 @@
   {#if activeSession}
     <button
       type="button"
-      class="w-full cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] py-2 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-100)]"
+      class="w-full cursor-pointer rounded-xl border border-border-subtle bg-surface-50 py-2 text-xs font-bold text-text-main transition-colors hover:bg-surface-100"
       onclick={onopenfood}
     >
       Mahlzeit erfassen

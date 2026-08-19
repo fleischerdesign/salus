@@ -82,43 +82,27 @@
 <div class="space-y-6">
   <!-- Server Metrics Grid -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-    <div
-      class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs"
-    >
-      <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-        >Server Uptime</span
-      >
-      <span class="mt-1 block text-sm font-extrabold text-[var(--text-main)]"
-        >{serverStats.uptime}</span
-      >
+    <div class="rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">Server Uptime</span>
+      <span class="mt-1 block text-sm font-extrabold text-text-main">{serverStats.uptime}</span>
     </div>
 
-    <div
-      class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs"
-    >
-      <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+    <div class="rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
         >Datenbank-Engine</span
       >
-      <span class="mt-1 block text-sm font-extrabold text-[var(--color-primary)]"
-        >{serverStats.dbEngine}</span
-      >
+      <span class="mt-1 block text-sm font-extrabold text-primary">{serverStats.dbEngine}</span>
     </div>
 
-    <div
-      class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs"
-    >
-      <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
-        >DB-Dateigröße</span
-      >
+    <div class="rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold text-text-muted uppercase">DB-Dateigröße</span>
       <span class="mt-1 block text-sm font-extrabold text-emerald-500 tabular-nums"
         >{serverStats.dbSize}</span
       >
     </div>
 
-    <div
-      class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs"
-    >
-      <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+    <div class="rounded-3xl border border-border-subtle bg-surface-0 p-4 shadow-xs">
+      <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
         >SSE EventBus Live</span
       >
       <span class="mt-1 block text-sm font-extrabold text-amber-500 tabular-nums"
@@ -128,15 +112,13 @@
   </div>
 
   <!-- AppScheduler Periodic Background Jobs (ADR-009) -->
-  <div
-    class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs sm:p-6"
-  >
+  <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs sm:p-6">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h2 class="text-base font-extrabold text-[var(--text-main)]">
+        <h2 class="text-base font-extrabold text-text-main">
           Hintergrund-Scheduler Jobs (AppScheduler)
         </h2>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+        <p class="mt-0.5 text-xs text-text-muted">
           Asynchrone periodische Aufgaben für Datenplausibilität, Zirkadian-Scores und
           Sync-Push-Pruning
         </p>
@@ -148,7 +130,7 @@
       <table class="w-full border-collapse text-left text-xs">
         <thead>
           <tr
-            class="border-b border-[var(--border-subtle)] text-[0.625rem] tracking-wider text-[var(--text-muted)] uppercase"
+            class="border-b border-border-subtle text-[0.625rem] tracking-wider text-text-muted uppercase"
           >
             <th class="px-3 py-2.5">Job Name</th>
             <th class="px-3 py-2.5">Cron-Intervall</th>
@@ -158,13 +140,13 @@
             <th class="px-3 py-2.5 text-right">Manuelle Ausführung</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[var(--border-subtle)]">
+        <tbody class="divide-y divide-border-subtle">
           {#each schedulerJobsList as job}
-            <tr class="transition-colors hover:bg-[var(--bg-surface-50)]">
-              <td class="px-3 py-3 font-bold text-[var(--text-main)]">{job.name}</td>
-              <td class="px-3 py-3 text-[var(--text-muted)] tabular-nums">{job.cron}</td>
-              <td class="px-3 py-3 text-[var(--text-main)] tabular-nums">{job.nextRun}</td>
-              <td class="px-3 py-3 text-[var(--text-soft)] tabular-nums">{job.lastDuration}</td>
+            <tr class="transition-colors hover:bg-surface-50">
+              <td class="px-3 py-3 font-bold text-text-main">{job.name}</td>
+              <td class="px-3 py-3 text-text-muted tabular-nums">{job.cron}</td>
+              <td class="px-3 py-3 text-text-main tabular-nums">{job.nextRun}</td>
+              <td class="px-3 py-3 text-text-soft tabular-nums">{job.lastDuration}</td>
               <td class="px-3 py-3">
                 <Badge variant="success" class="text-[0.5625rem]">{job.status}</Badge>
               </td>
@@ -173,7 +155,7 @@
                   type="button"
                   onclick={() => triggerJob(job.name)}
                   disabled={isTriggeringJob === job.name}
-                  class="cursor-pointer rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-bold text-[var(--color-primary)] shadow-2xs transition-all hover:bg-[var(--color-primary)] hover:text-white"
+                  class="cursor-pointer rounded-lg border border-border-subtle bg-surface-50 px-2.5 py-1 text-xs font-bold text-primary shadow-2xs transition-all hover:bg-primary hover:text-white"
                 >
                   {isTriggeringJob === job.name ? 'Läuft...' : '▶ Ausführen'}
                 </button>
@@ -186,20 +168,18 @@
   </div>
 
   <!-- User Management Table -->
-  <div
-    class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs sm:p-6"
-  >
+  <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs sm:p-6">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h2 class="text-base font-extrabold text-[var(--text-main)]">Benutzerverwaltung</h2>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+        <h2 class="text-base font-extrabold text-text-main">Benutzerverwaltung</h2>
+        <p class="mt-0.5 text-xs text-text-muted">
           Registrierte Benutzerkonten und Berechtigungsrollen
         </p>
       </div>
       <button
         type="button"
         onclick={() => alert('Neuen Benutzer anlegen')}
-        class="cursor-pointer rounded-2xl bg-[var(--color-primary)] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:opacity-90"
+        class="cursor-pointer rounded-2xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:opacity-90"
       >
         + Neuer Benutzer
       </button>
@@ -209,7 +189,7 @@
       <table class="w-full border-collapse text-left text-xs">
         <thead>
           <tr
-            class="border-b border-[var(--border-subtle)] text-[0.625rem] tracking-wider text-[var(--text-muted)] uppercase"
+            class="border-b border-border-subtle text-[0.625rem] tracking-wider text-text-muted uppercase"
           >
             <th class="px-3 py-2.5">Benutzername</th>
             <th class="px-3 py-2.5">Anzeigename</th>
@@ -219,19 +199,19 @@
             <th class="px-3 py-2.5 text-right">Aktionen</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-[var(--border-subtle)]">
+        <tbody class="divide-y divide-border-subtle">
           {#each usersList as u}
-            <tr class="transition-colors hover:bg-[var(--bg-surface-50)]">
-              <td class="px-3 py-3 font-bold text-[var(--text-main)]">{u.username}</td>
-              <td class="px-3 py-3 text-[var(--text-main)]">{u.displayName}</td>
-              <td class="px-3 py-3 text-[var(--text-muted)]">{u.email}</td>
+            <tr class="transition-colors hover:bg-surface-50">
+              <td class="px-3 py-3 font-bold text-text-main">{u.username}</td>
+              <td class="px-3 py-3 text-text-main">{u.displayName}</td>
+              <td class="px-3 py-3 text-text-muted">{u.email}</td>
               <td class="px-3 py-3"><Badge variant="primary">{u.role}</Badge></td>
               <td class="px-3 py-3"><Badge variant="success">Aktiv</Badge></td>
               <td class="px-3 py-3 text-right">
                 <button
                   type="button"
                   onclick={() => alert('Benutzer bearbeiten')}
-                  class="cursor-pointer font-bold text-[var(--color-primary)] hover:underline"
+                  class="cursor-pointer font-bold text-primary hover:underline"
                 >
                   Bearbeiten
                 </button>

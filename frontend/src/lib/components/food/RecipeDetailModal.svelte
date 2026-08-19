@@ -103,20 +103,17 @@
 >
   <div class="space-y-5">
     <!-- Macro Summary Hero Banner (Scales dynamically) -->
-    <div
-      class="space-y-3 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
-    >
+    <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-50 p-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="text-xs font-bold text-[var(--text-muted)] uppercase">Portionen anpassen:</span
-        >
+        <span class="text-xs font-bold text-text-muted uppercase">Portionen anpassen:</span>
 
         <div
-          class="flex items-center gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-1 shadow-2xs"
+          class="flex items-center gap-2 rounded-2xl border border-border-subtle bg-surface-0 p-1 shadow-2xs"
         >
           <button
             type="button"
             onclick={() => (portions = Math.max(1, portions - 1))}
-            class="h-7 w-7 cursor-pointer rounded-xl bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-main)] hover:bg-[var(--bg-surface-100)]"
+            class="h-7 w-7 cursor-pointer rounded-xl bg-surface-50 text-xs font-bold text-text-main hover:bg-surface-100"
           >
             -
           </button>
@@ -126,7 +123,7 @@
           <button
             type="button"
             onclick={() => (portions = Math.min(10, portions + 1))}
-            class="h-7 w-7 cursor-pointer rounded-xl bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-main)] hover:bg-[var(--bg-surface-100)]"
+            class="h-7 w-7 cursor-pointer rounded-xl bg-surface-50 text-xs font-bold text-text-main hover:bg-surface-100"
           >
             +
           </button>
@@ -135,22 +132,22 @@
 
       <!-- Macro Stats (Total & Per Portion) -->
       <div class="grid grid-cols-4 gap-2 text-center text-xs">
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-          <span class="block text-[0.625rem] text-[var(--text-muted)]">Kalorien / Port.</span>
-          <span class="text-sm font-extrabold text-[var(--color-activity)] tabular-nums"
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-2">
+          <span class="block text-[0.625rem] text-text-muted">Kalorien / Port.</span>
+          <span class="text-sm font-extrabold text-activity tabular-nums"
             >{perPortionKcal} kcal</span
           >
         </div>
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-          <span class="block text-[0.625rem] text-[var(--text-muted)]">Protein / Port.</span>
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-2">
+          <span class="block text-[0.625rem] text-text-muted">Protein / Port.</span>
           <span class="text-sm font-extrabold text-emerald-500 tabular-nums">{perPortionP}g</span>
         </div>
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-          <span class="block text-[0.625rem] text-[var(--text-muted)]">Carbs / Port.</span>
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-2">
+          <span class="block text-[0.625rem] text-text-muted">Carbs / Port.</span>
           <span class="text-sm font-extrabold text-amber-500 tabular-nums">{perPortionC}g</span>
         </div>
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-          <span class="block text-[0.625rem] text-[var(--text-muted)]">Fett / Port.</span>
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-2">
+          <span class="block text-[0.625rem] text-text-muted">Fett / Port.</span>
           <span class="text-sm font-extrabold text-purple-500 tabular-nums">{perPortionF}g</span>
         </div>
       </div>
@@ -158,16 +155,14 @@
 
     <!-- Scaled Ingredients Table -->
     <div class="space-y-1.5">
-      <span class="block text-xs font-extrabold text-[var(--text-main)]"
+      <span class="block text-xs font-extrabold text-text-main"
         >Zutaten ({portions} Portionen):</span
       >
-      <div
-        class="overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)]"
-      >
+      <div class="overflow-hidden rounded-2xl border border-border-subtle bg-surface-0">
         <table class="w-full border-collapse text-left text-xs">
           <thead>
             <tr
-              class="border-b border-[var(--border-subtle)] bg-[var(--bg-surface-50)]/50 text-[0.625rem] tracking-wider text-[var(--text-muted)] uppercase"
+              class="border-b border-border-subtle bg-surface-50/50 text-[0.625rem] tracking-wider text-text-muted uppercase"
             >
               <th class="px-3 py-2">Zutat</th>
               <th class="px-3 py-2">Menge</th>
@@ -175,14 +170,12 @@
               <th class="px-3 py-2 text-right">Protein</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[var(--border-subtle)]/50">
+          <tbody class="divide-y divide-border-subtle/50">
             {#each scaledIngredients as ing}
               <tr>
-                <td class="px-3 py-2.5 font-bold text-[var(--text-main)]">{ing.name}</td>
-                <td class="px-3 py-2.5 text-[var(--text-muted)] tabular-nums"
-                  >{ing.amount} {ing.unit}</td
-                >
-                <td class="px-3 py-2.5 text-[var(--text-muted)] tabular-nums">{ing.kcal} kcal</td>
+                <td class="px-3 py-2.5 font-bold text-text-main">{ing.name}</td>
+                <td class="px-3 py-2.5 text-text-muted tabular-nums">{ing.amount} {ing.unit}</td>
+                <td class="px-3 py-2.5 text-text-muted tabular-nums">{ing.kcal} kcal</td>
                 <td class="px-3 py-2.5 text-right font-bold text-emerald-500 tabular-nums"
                   >{ing.protein}g</td
                 >
@@ -195,15 +188,14 @@
 
     <!-- Step-by-Step Cooking Instructions -->
     <div class="space-y-1.5">
-      <span class="block text-xs font-extrabold text-[var(--text-main)]">Zubereitungsschritte:</span
-      >
+      <span class="block text-xs font-extrabold text-text-main">Zubereitungsschritte:</span>
       <div class="space-y-2">
         {#each recipe.instructions as step, sIdx}
           <div
-            class="flex items-start gap-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5 text-xs text-[var(--text-main)]"
+            class="flex items-start gap-2.5 rounded-2xl border border-border-subtle bg-surface-50 p-2.5 text-xs text-text-main"
           >
             <span
-              class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[0.6875rem] font-bold text-[var(--color-primary)]"
+              class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[0.6875rem] font-bold text-primary"
             >
               {sIdx + 1}
             </span>
@@ -215,10 +207,10 @@
 
     <!-- Log to Diary Bar -->
     <div
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
+      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-50 p-3"
     >
       <div class="flex min-w-[200px] items-center gap-2">
-        <span class="shrink-0 text-xs font-bold text-[var(--text-muted)]">Eintragen in:</span>
+        <span class="shrink-0 text-xs font-bold text-text-muted">Eintragen in:</span>
         <div class="flex-1">
           <Select bind:value={targetMealType} options={mealTypeOptions} />
         </div>
@@ -227,7 +219,7 @@
       <button
         type="button"
         onclick={handleLogPortion}
-        class="cursor-pointer rounded-xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+        class="cursor-pointer rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
       >
         1 Portion ins Tagebuch loggen
       </button>

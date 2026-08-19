@@ -38,9 +38,9 @@
     bind:checked
     {disabled}
     onchange={handleChange}
-    class="h-4 w-4 cursor-pointer rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] accent-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
+    class="h-4 w-4 cursor-pointer rounded-md border border-border-subtle bg-surface-0 accent-primary focus:ring-1 focus:ring-primary"
   />
   {#if label}
-    <span class="text-xs font-semibold text-[var(--text-main)]">{label}</span>
+    <span class="text-xs font-semibold text-text-main">{label}</span>
   {/if}
 </label>

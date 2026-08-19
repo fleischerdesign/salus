@@ -50,22 +50,22 @@
 <div class="w-full space-y-2 text-xs">
   {#if label}
     <div class="flex items-center justify-between">
-      <span class="font-bold text-[var(--text-muted)] select-none">{label}</span>
+      <span class="font-bold text-text-muted select-none">{label}</span>
       {#if unit}
-        <span class="text-[0.625rem] font-bold text-[var(--text-soft)] tabular-nums">{unit}</span>
+        <span class="text-[0.625rem] font-bold text-text-soft tabular-nums">{unit}</span>
       {/if}
     </div>
   {/if}
 
   <!-- Main Stepper Row -->
   <div
-    class="flex items-center justify-between gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5"
+    class="flex items-center justify-between gap-2 rounded-2xl border border-border-subtle bg-surface-50 p-1.5"
   >
     <button
       type="button"
       onclick={() => decrement(step)}
       disabled={disabled || value <= min}
-      class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-base font-extrabold text-[var(--text-main)] shadow-xs transition-all select-none hover:bg-[var(--bg-surface-100)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+      class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-0 text-base font-extrabold text-text-main shadow-xs transition-all select-none hover:bg-surface-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Verringern"
     >
       &minus;
@@ -80,10 +80,10 @@
         {disabled}
         value={Number(value.toFixed(precision))}
         oninput={handleDirectInput}
-        class="w-full bg-transparent text-center text-lg font-extrabold text-[var(--text-main)] tabular-nums outline-none select-all sm:text-xl"
+        class="w-full bg-transparent text-center text-lg font-extrabold text-text-main tabular-nums outline-none select-all sm:text-xl"
       />
       {#if unit}
-        <span class="-mt-1 block text-[0.625rem] font-bold text-[var(--text-soft)]">{unit}</span>
+        <span class="-mt-1 block text-[0.625rem] font-bold text-text-soft">{unit}</span>
       {/if}
     </div>
 
@@ -91,7 +91,7 @@
       type="button"
       onclick={() => increment(step)}
       disabled={disabled || value >= max}
-      class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-base font-extrabold text-[var(--text-main)] shadow-xs transition-all select-none hover:bg-[var(--bg-surface-100)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+      class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-0 text-base font-extrabold text-text-main shadow-xs transition-all select-none hover:bg-surface-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Erhöhen"
     >
       +
@@ -106,7 +106,7 @@
           type="button"
           onclick={() => (qs > 0 ? increment(qs) : decrement(Math.abs(qs)))}
           {disabled}
-          class="flex-1 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-2 py-1 text-center text-[0.6875rem] font-bold whitespace-nowrap text-[var(--text-muted)] tabular-nums transition-all hover:border-[var(--border-strong)] hover:text-[var(--text-main)] active:scale-95"
+          class="flex-1 cursor-pointer rounded-xl border border-border-subtle bg-surface-0 px-2 py-1 text-center text-[0.6875rem] font-bold whitespace-nowrap text-text-muted tabular-nums transition-all hover:border-border-strong hover:text-text-main active:scale-95"
         >
           {qs > 0 ? `+${qs}` : `${qs}`}
         </button>

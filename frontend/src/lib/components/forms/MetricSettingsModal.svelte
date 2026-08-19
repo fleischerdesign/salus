@@ -149,19 +149,19 @@
     <div class="space-y-5 text-xs">
       <div>
         <div class="mb-1 flex items-center justify-between">
-          <h3 class="text-xs font-bold tracking-wider text-[var(--text-main)] uppercase">
+          <h3 class="text-xs font-bold tracking-wider text-text-main uppercase">
             Datenquellen-Priorität
           </h3>
-          <span class="text-xs text-[var(--text-muted)]">{preferences.length} Quellen erkannt</span>
+          <span class="text-xs text-text-muted">{preferences.length} Quellen erkannt</span>
         </div>
-        <p class="mb-4 text-xs text-[var(--text-muted)]">
+        <p class="mb-4 text-xs text-text-muted">
           Wenn mehrere Quellen gleichzeitig Daten für diese Metrik liefern, hat die oberste Quelle
           Vorrang.
         </p>
 
         {#if preferences.length === 0}
           <div
-            class="rounded-2xl border border-dashed border-[var(--border-subtle)] p-6 text-center text-xs text-[var(--text-muted)]"
+            class="rounded-2xl border border-dashed border-border-subtle p-6 text-center text-xs text-text-muted"
           >
             Noch keine externen Datenquellen für {metricName} registriert.
           </div>
@@ -169,19 +169,19 @@
           <div class="space-y-2">
             {#each preferences as item, idx (item.source)}
               <div
-                class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-4 py-3 shadow-xs transition-colors hover:border-[var(--color-primary)]"
+                class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-0 px-4 py-3 shadow-xs transition-colors hover:border-primary"
               >
                 <div class="flex items-center gap-3">
                   <span
-                    class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-muted)]"
+                    class="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle bg-surface-50 text-xs font-bold text-text-muted"
                   >
                     {idx + 1}
                   </span>
                   <div>
-                    <div class="text-xs font-bold text-[var(--text-main)]">
+                    <div class="text-xs font-bold text-text-main">
                       {formatSourceLabel(item.source)}
                     </div>
-                    <div class="font-mono text-[10px] text-[var(--text-muted)]">
+                    <div class="font-mono text-[10px] text-text-muted">
                       {item.source}
                     </div>
                   </div>
@@ -190,7 +190,7 @@
                 <div class="flex items-center gap-1.5">
                   <button
                     type="button"
-                    class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)] disabled:opacity-30"
+                    class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-text-muted hover:bg-surface-50 hover:text-text-main disabled:opacity-30"
                     disabled={idx === 0}
                     onclick={() => moveUp(idx)}
                     title="Priorität nach oben"
@@ -199,14 +199,14 @@
                   </button>
                   <button
                     type="button"
-                    class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface-50)] hover:text-[var(--text-main)] disabled:opacity-30"
+                    class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-text-muted hover:bg-surface-50 hover:text-text-main disabled:opacity-30"
                     disabled={idx === preferences.length - 1}
                     onclick={() => moveDown(idx)}
                     title="Priorität nach unten"
                   >
                     <Icon name="arrow-downward" size="sm" />
                   </button>
-                  <div class="ml-1.5 border-l border-[var(--border-subtle)] pl-2.5">
+                  <div class="ml-1.5 border-l border-border-subtle pl-2.5">
                     <Toggle checked={item.is_enabled} onchange={() => toggleEnabled(idx)} />
                   </div>
                 </div>
@@ -216,7 +216,7 @@
         {/if}
       </div>
 
-      <div class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
         <Btn variant="secondary" size="md" onclick={() => (open = false)}>Abbrechen</Btn>
         <Btn variant="primary" size="md" onclick={handleSave} disabled={saving} loading={saving}>
           Einstellungen speichern

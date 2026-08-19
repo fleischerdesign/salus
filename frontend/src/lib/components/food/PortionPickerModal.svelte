@@ -45,20 +45,20 @@
 <Modal open={Boolean(food)} onclose={onClose} title={food?.name ?? ''} size="sm">
   {#if food}
     <div class="flex flex-col gap-5">
-      <div class="bg-surface-50 flex items-end justify-between rounded-xl px-4 py-3">
+      <div class="flex items-end justify-between rounded-xl bg-surface-50 px-4 py-3">
         <div>
-          <div class="text-surface-900 text-3xl font-bold tabular-nums">
+          <div class="text-3xl font-bold text-surface-900 tabular-nums">
             {macros ? macros.calories.toLocaleString() : '—'}
-            <span class="text-surface-400 text-base font-medium"> kcal</span>
+            <span class="text-base font-medium text-surface-400"> kcal</span>
           </div>
-          <div class="text-surface-500 mt-1 text-xs">
+          <div class="mt-1 text-xs text-surface-500">
             {#if macros}
               {macros.protein}P · {macros.carbs}C · {macros.fat}F
             {/if}
           </div>
         </div>
-        <div class="text-surface-400 text-right text-xs">
-          <span class="text-surface-700 text-sm font-semibold tabular-nums">{amount}</span>
+        <div class="text-right text-xs text-surface-400">
+          <span class="text-sm font-semibold text-surface-700 tabular-nums">{amount}</span>
           {food.serving_unit}
         </div>
       </div>
@@ -81,7 +81,7 @@
       </div>
 
       <div
-        class="border-surface-100 bg-surface-50 text-surface-500 rounded-lg border px-3 py-2 text-xs"
+        class="rounded-lg border border-surface-100 bg-surface-50 px-3 py-2 text-xs text-surface-500"
       >
         1 serving = {food.serving_size}
         {food.serving_unit} ·{' '}

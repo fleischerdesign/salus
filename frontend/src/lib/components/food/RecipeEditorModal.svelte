@@ -206,13 +206,13 @@
       <!-- Ingredients Section -->
       <div class="space-y-2 pt-1">
         <div class="flex items-center justify-between">
-          <span class="font-bold text-[var(--text-main)]"
+          <span class="font-bold text-text-main"
             >Enthaltene Zutaten ({selectedIngredients.length})</span
           >
           <button
             type="button"
             onclick={() => (isAddingIngredient = !isAddingIngredient)}
-            class="cursor-pointer rounded-xl bg-[var(--color-primary)]/10 px-3 py-1 font-bold text-[var(--color-primary)] transition-all hover:bg-[var(--color-primary)]/20"
+            class="cursor-pointer rounded-xl bg-primary/10 px-3 py-1 font-bold text-primary transition-all hover:bg-primary/20"
           >
             + Zutat hinzufügen
           </button>
@@ -221,26 +221,26 @@
         <!-- Add Ingredient Dropdown / Search -->
         {#if isAddingIngredient}
           <div
-            class="animate-[fadeIn_0.15s_ease-out] space-y-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
+            class="animate-[fadeIn_0.15s_ease-out] space-y-2 rounded-2xl border border-border-subtle bg-surface-50 p-3"
           >
             <Input
               icon="search"
               bind:value={searchFoodQuery}
               placeholder="Lebensmittel aus Katalog suchen..."
             />
-            <div class="max-h-36 divide-y divide-[var(--border-subtle)] overflow-y-auto">
+            <div class="max-h-36 divide-y divide-border-subtle overflow-y-auto">
               {#each filteredFoods as f}
                 <div class="flex items-center justify-between gap-2 py-2">
                   <div>
-                    <span class="block font-bold text-[var(--text-main)]">{f.name}</span>
-                    <span class="text-[0.625rem] text-[var(--text-muted)] tabular-nums"
+                    <span class="block font-bold text-text-main">{f.name}</span>
+                    <span class="text-[0.625rem] text-text-muted tabular-nums"
                       >{f.kcalPer100g} kcal/100g &bull; {f.proteinPer100g}g P</span
                     >
                   </div>
                   <button
                     type="button"
                     onclick={() => addFoodToRecipe(f)}
-                    class="cursor-pointer rounded-lg bg-[var(--color-primary)] px-2.5 py-1 text-[0.6875rem] font-bold text-white hover:opacity-90"
+                    class="cursor-pointer rounded-lg bg-primary px-2.5 py-1 text-[0.6875rem] font-bold text-white hover:opacity-90"
                   >
                     Hinzufügen
                   </button>
@@ -254,11 +254,11 @@
         <div class="space-y-2">
           {#each selectedIngredients as ing, idx}
             <div
-              class="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2.5"
+              class="flex items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-0 p-2.5"
             >
               <div class="flex-1">
-                <span class="block font-bold text-[var(--text-main)]">{ing.name}</span>
-                <span class="text-[0.625rem] text-[var(--text-muted)] tabular-nums"
+                <span class="block font-bold text-text-main">{ing.name}</span>
+                <span class="text-[0.625rem] text-text-muted tabular-nums"
                   >{ing.kcal} kcal &bull; {ing.protein}g P &bull; {ing.carbs}g C &bull; {ing.fat}g F</span
                 >
               </div>
@@ -271,9 +271,9 @@
                   value={ing.amount}
                   oninput={(e) =>
                     updateIngredientAmount(idx, Number((e.target as HTMLInputElement).value))}
-                  class="w-16 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 text-center font-bold text-[var(--text-main)] tabular-nums outline-none"
+                  class="w-16 rounded-xl border border-border-subtle bg-surface-50 p-1.5 text-center font-bold text-text-main tabular-nums outline-none"
                 />
-                <span class="font-bold text-[var(--text-muted)]">{ing.unit}</span>
+                <span class="font-bold text-text-muted">{ing.unit}</span>
                 <button
                   type="button"
                   onclick={() => removeIngredient(idx)}
@@ -289,20 +289,20 @@
       </div>
 
       <!-- Instructions Step by Step -->
-      <div class="space-y-2 border-t border-[var(--border-subtle)] pt-2">
-        <span class="block font-bold text-[var(--text-main)]">Zubereitungsschritte</span>
+      <div class="space-y-2 border-t border-border-subtle pt-2">
+        <span class="block font-bold text-text-main">Zubereitungsschritte</span>
 
         <div class="space-y-1.5">
           {#each instructions as step, sIdx}
             <div
-              class="flex items-start gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2"
+              class="flex items-start gap-2 rounded-xl border border-border-subtle bg-surface-50 p-2"
             >
               <span
-                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[0.625rem] font-bold tabular-nums"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface-0 text-[0.625rem] font-bold tabular-nums"
               >
                 {sIdx + 1}
               </span>
-              <span class="flex-1 leading-relaxed text-[var(--text-main)]">{step}</span>
+              <span class="flex-1 leading-relaxed text-text-main">{step}</span>
               <button
                 type="button"
                 onclick={() => removeStep(sIdx)}
@@ -327,7 +327,7 @@
           <button
             type="button"
             onclick={addStep}
-            class="h-10 shrink-0 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 font-bold hover:bg-[var(--bg-surface-100)]"
+            class="h-10 shrink-0 cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-3.5 font-bold hover:bg-surface-100"
           >
             + Schritt
           </button>
@@ -335,11 +335,9 @@
       </div>
 
       <!-- Live Total & Per Portion Calculation Banner -->
-      <div
-        class="space-y-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
-      >
+      <div class="space-y-2 rounded-2xl border border-border-subtle bg-surface-50 p-4">
         <div class="flex items-center justify-between text-xs">
-          <span class="font-extrabold text-[var(--text-main)]"
+          <span class="font-extrabold text-text-main"
             >Nährwerte pro Portion (bei {portions} Portionen):</span
           >
           <Badge variant="primary" class="text-xs font-extrabold tabular-nums"
@@ -347,16 +345,16 @@
           >
         </div>
         <div class="grid grid-cols-3 gap-2 text-center text-xs">
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Protein</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Protein</span>
             <span class="font-bold text-emerald-500 tabular-nums">{portionProtein} g</span>
           </div>
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Carbs</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Carbs</span>
             <span class="font-bold text-amber-500 tabular-nums">{portionCarbs} g</span>
           </div>
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Fett</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Fett</span>
             <span class="font-bold text-purple-500 tabular-nums">{portionFat} g</span>
           </div>
         </div>
@@ -364,7 +362,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
       <Btn
         variant="primary"

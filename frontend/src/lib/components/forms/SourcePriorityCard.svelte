@@ -67,19 +67,19 @@
 </script>
 
 <div
-  class="group relative space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 shadow-xs transition-all hover:border-[var(--border-strong)]"
+  class="group relative space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-4 shadow-xs transition-all hover:border-border-strong"
 >
   <!-- Header -->
   <div class="flex items-start justify-between gap-2">
     <div class="flex min-w-0 items-center gap-2.5">
       <div
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary-soft)]/20 text-[var(--color-primary)]"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft/20 text-primary"
       >
         <Icon name="monitoring" size="sm" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-xs font-extrabold text-[var(--text-main)]">{metric.name}</h3>
-        <span class="font-mono text-[0.625rem] text-[var(--text-muted)]">{metric.code}</span>
+        <h3 class="truncate text-xs font-extrabold text-text-main">{metric.name}</h3>
+        <span class="font-mono text-[0.625rem] text-text-muted">{metric.code}</span>
       </div>
     </div>
 
@@ -101,35 +101,31 @@
   <!-- Interactive Pill List -->
   {#if items.length <= 1}
     <div
-      class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2 text-xs"
+      class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 px-3 py-2 text-xs"
     >
       <div class="flex items-center gap-2">
-        <span class="font-bold text-[var(--text-muted)]">1.</span>
-        <span class="font-bold text-[var(--text-main)]"
+        <span class="font-bold text-text-muted">1.</span>
+        <span class="font-bold text-text-main"
           >{formatSourceLabel(items[0]?.source ?? 'manual')}</span
         >
       </div>
-      <span class="text-[0.625rem] text-[var(--text-muted)]">Einzige Quelle</span>
+      <span class="text-[0.625rem] text-text-muted">Einzige Quelle</span>
     </div>
   {:else}
     <div class="space-y-1.5">
       {#each items as item, idx (item.source)}
         <div
           class="flex items-center justify-between rounded-xl border px-3 py-2 text-xs transition-colors {item.is_enabled
-            ? 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-main)]'
-            : 'border-[var(--border-subtle)]/60 bg-[var(--bg-surface-50)]/40 text-[var(--text-muted)] opacity-60'}"
+            ? 'border-border-subtle bg-surface-50 text-text-main'
+            : 'border-border-subtle/60 bg-surface-50/40 text-text-muted opacity-60'}"
         >
           <div class="flex min-w-0 items-center gap-2">
-            <Icon
-              name="drag-indicator"
-              size="sm"
-              class="shrink-0 cursor-grab text-[var(--text-muted)]"
-            />
-            <span class="w-4 shrink-0 font-bold text-[var(--text-muted)]">{idx + 1}.</span>
+            <Icon name="drag-indicator" size="sm" class="shrink-0 cursor-grab text-text-muted" />
+            <span class="w-4 shrink-0 font-bold text-text-muted">{idx + 1}.</span>
             <span
               class="truncate font-semibold {item.is_enabled
-                ? 'text-[var(--text-main)]'
-                : 'text-[var(--text-muted)] line-through'}"
+                ? 'text-text-main'
+                : 'text-text-muted line-through'}"
             >
               {formatSourceLabel(item.source)}
             </span>
@@ -138,7 +134,7 @@
           <div class="ml-2 flex shrink-0 items-center gap-1">
             <button
               type="button"
-              class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] disabled:opacity-20"
+              class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main disabled:opacity-20"
               disabled={idx === 0}
               onclick={() => moveUp(idx)}
               title="Nach oben verschieben"
@@ -147,14 +143,14 @@
             </button>
             <button
               type="button"
-              class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)] disabled:opacity-20"
+              class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main disabled:opacity-20"
               disabled={idx === items.length - 1}
               onclick={() => moveDown(idx)}
               title="Nach unten verschieben"
             >
               <Icon name="arrow-downward" size="sm" />
             </button>
-            <div class="ml-1 border-l border-[var(--border-subtle)] pl-1.5">
+            <div class="ml-1 border-l border-border-subtle pl-1.5">
               <Toggle checked={item.is_enabled} onchange={() => toggleEnabled(idx)} />
             </div>
           </div>
@@ -166,12 +162,12 @@
   <!-- Action Footer -->
   {#if items.length > 1 && onApplyToCategory}
     <div
-      class="flex items-center justify-between border-t border-[var(--border-subtle)]/60 pt-2 text-[0.6875rem]"
+      class="flex items-center justify-between border-t border-border-subtle/60 pt-2 text-[0.6875rem]"
     >
-      <span class="text-[var(--text-muted)]">{items.length} Quellen konfiguriert</span>
+      <span class="text-text-muted">{items.length} Quellen konfiguriert</span>
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-1 font-bold text-[var(--color-primary)] hover:underline disabled:opacity-50"
+        class="flex cursor-pointer items-center gap-1 font-bold text-primary hover:underline disabled:opacity-50"
         onclick={onApplyToCategory}
         disabled={saving}
       >

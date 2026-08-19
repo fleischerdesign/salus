@@ -24,11 +24,11 @@
   }
 </script>
 
-<div class="bg-surface-100 flex items-center gap-2 rounded-md px-3 py-2 {extraClass}">
-  <code class="text-surface-700 flex-1 truncate text-sm">{value}</code>
+<div class="flex items-center gap-2 rounded-md bg-surface-100 px-3 py-2 {extraClass}">
+  <code class="flex-1 truncate text-sm text-surface-700">{value}</code>
   <button
     type="button"
-    class="duration-micro text-surface-400 hover:bg-surface-200 hover:text-surface-600 flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+    class="duration-micro flex h-7 w-7 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-200 hover:text-surface-600"
     aria-label={copied ? 'Copied' : (label ?? 'Copy')}
     onclick={copy}
   >

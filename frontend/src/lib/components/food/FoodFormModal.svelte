@@ -108,11 +108,11 @@
   >
     {#if !food && initialBarcode}
       <div
-        class="flex items-center gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2"
+        class="flex items-center gap-2 rounded-2xl border border-border-subtle bg-surface-50 px-3 py-2"
       >
-        <Icon name="barcode_scanner" size="sm" class="text-[var(--color-primary)]" />
-        <span class="text-xs text-[var(--text-muted)]">Barcode:</span>
-        <span class="font-mono text-xs font-bold text-[var(--text-main)]">{initialBarcode}</span>
+        <Icon name="barcode_scanner" size="sm" class="text-primary" />
+        <span class="text-xs text-text-muted">Barcode:</span>
+        <span class="font-mono text-xs font-bold text-text-main">{initialBarcode}</span>
       </div>
     {/if}
 
@@ -156,7 +156,7 @@
       <Input label="Fett (g)" name="fat" type="number" bind:value={fat} step={0.1} />
     </div>
 
-    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" type="submit" disabled={!canSave || saving} loading={saving}>
         {food ? 'Speichern' : 'Lebensmittel anlegen'}

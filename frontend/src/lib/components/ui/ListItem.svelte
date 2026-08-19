@@ -46,9 +46,9 @@
     {#if children}
       {@render children()}
     {:else}
-      <p class="text-surface-900 truncate text-sm font-medium">{primary}</p>
+      <p class="truncate text-sm font-medium text-surface-900">{primary}</p>
       {#if secondary}
-        <p class="text-surface-500 mt-0.5 truncate text-xs">{secondary}</p>
+        <p class="mt-0.5 truncate text-xs text-surface-500">{secondary}</p>
       {/if}
     {/if}
   </div>
@@ -57,8 +57,8 @@
 {#if tag === 'a'}
   <a
     {href}
-    class="group duration-micro hover:bg-surface-50 flex items-center gap-3 px-4 py-3 transition-colors {divider
-      ? 'border-surface-100 border-b last:border-b-0'
+    class="group duration-micro flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-50 {divider
+      ? 'border-b border-surface-100 last:border-b-0'
       : ''} {extraClass}"
   >
     {@render defaultBody()}
@@ -72,8 +72,8 @@
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
     class="group duration-micro flex items-center gap-3 px-4 py-3 transition-colors {interactive
-      ? 'hover:bg-surface-50 cursor-pointer'
-      : ''} {divider ? 'border-surface-100 border-b last:border-b-0' : ''} {extraClass}"
+      ? 'cursor-pointer hover:bg-surface-50'
+      : ''} {divider ? 'border-b border-surface-100 last:border-b-0' : ''} {extraClass}"
     role={interactive ? 'button' : undefined}
     tabindex={interactive ? 0 : undefined}
     onkeydown={interactive

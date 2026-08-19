@@ -33,12 +33,12 @@
 </script>
 
 <div
-  class="bg-surface-100 flex items-center gap-2 rounded-lg px-3 py-2 {extraClass}"
+  class="flex items-center gap-2 rounded-lg bg-surface-100 px-3 py-2 {extraClass}"
   role="navigation"
   aria-label="Date navigation"
 >
   <button
-    class="duration-micro text-surface-600 hover:bg-primary-50 hover:text-primary-600 flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+    class="duration-micro hover:bg-primary-50 hover:text-primary-600 flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors"
     onclick={onPrev}
     aria-label="Previous day"
     type="button"
@@ -47,7 +47,7 @@
   </button>
 
   <span
-    class="duration-micro tracking-label text-surface-900 hover:text-primary-600 cursor-pointer text-xs font-semibold transition-colors"
+    class="duration-micro tracking-label hover:text-primary-600 cursor-pointer text-xs font-semibold text-surface-900 transition-colors"
     role="button"
     tabindex="0"
     onclick={() => {
@@ -65,7 +65,7 @@
   <input bind:this={dateInput} type="date" class="sr-only" onchange={handleDateInput} />
 
   <button
-    class="duration-micro text-surface-600 hover:bg-primary-50 hover:text-primary-600 flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+    class="duration-micro hover:bg-primary-50 hover:text-primary-600 flex h-9 w-9 items-center justify-center rounded-full text-surface-600 transition-colors"
     onclick={onNext}
     aria-label="Next day"
     type="button"

@@ -64,7 +64,7 @@
     role="presentation"
   >
     <div
-      class="relative z-10 max-h-[92vh] w-full space-y-5 overflow-y-auto rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-dock-bg)] p-6 shadow-2xl backdrop-blur-2xl {sizeVariants[
+      class="relative z-10 max-h-[92vh] w-full space-y-5 overflow-y-auto rounded-3xl border border-border-subtle bg-glass-dock p-6 shadow-2xl backdrop-blur-2xl {sizeVariants[
         size
       ] || sizeVariants.md} {extraClass}"
       transition:scale={{ duration: 150, start: 0.96, easing: cubicOut }}
@@ -75,23 +75,23 @@
     >
       <!-- Header -->
       {#if title || icon || subtitle}
-        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+        <div class="flex items-center justify-between border-b border-border-subtle pb-3">
           <div class="flex items-center gap-3">
             {#if icon}
               <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"
               >
                 <Icon name={icon} size="sm" />
               </div>
             {/if}
             <div>
               {#if title}
-                <h3 class="text-base leading-tight font-extrabold text-[var(--text-main)]">
+                <h3 class="text-base leading-tight font-extrabold text-text-main">
                   {title}
                 </h3>
               {/if}
               {#if subtitle}
-                <p class="mt-0.5 text-xs text-[var(--text-muted)]">{subtitle}</p>
+                <p class="mt-0.5 text-xs text-text-muted">{subtitle}</p>
               {/if}
             </div>
           </div>
@@ -99,7 +99,7 @@
           <button
             type="button"
             onclick={close}
-            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[var(--bg-surface-50)] text-base text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-surface-50 text-base text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
             title="Schließen"
             aria-label="Schließen"
           >
@@ -109,15 +109,13 @@
       {/if}
 
       <!-- Body Content -->
-      <div class="text-xs text-[var(--text-main)]">
+      <div class="text-xs text-text-main">
         {@render children?.()}
       </div>
 
       <!-- Actions Footer -->
       {#if actions}
-        <div
-          class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-3"
-        >
+        <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
           {@render actions()}
         </div>
       {/if}

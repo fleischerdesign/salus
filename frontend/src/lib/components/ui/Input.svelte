@@ -5,10 +5,10 @@
   const baseInput =
     'h-10 w-full rounded-xl border px-3.5 py-2 text-sm font-semibold transition-colors duration-micro outline-none';
   const normalInput =
-    'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:border-[var(--color-primary)]';
-  const errorInput = 'border-rose-500 bg-rose-500/5 text-[var(--text-main)] focus:border-rose-500';
+    'border-border-subtle bg-surface-0 text-text-main placeholder:text-text-muted/50 focus:border-primary';
+  const errorInput = 'border-rose-500 bg-rose-500/5 text-text-main focus:border-rose-500';
   const disabledInput =
-    'border-[var(--border-subtle)] bg-[var(--bg-surface-100)] text-[var(--text-muted)] cursor-not-allowed opacity-60';
+    'border-border-subtle bg-surface-100 text-text-muted cursor-not-allowed opacity-60';
 
   interface Props {
     name?: string;
@@ -80,20 +80,20 @@
     <div class="flex items-center justify-between">
       <label
         for={id}
-        class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase select-none"
+        class="block text-[0.6875rem] font-bold tracking-wider text-text-muted uppercase select-none"
       >
         {label}
         {#if required}<span class="ml-0.5 text-rose-500">*</span>{/if}
       </label>
       {#if unit}
-        <span class="text-[0.625rem] font-bold text-[var(--text-muted)] tabular-nums">{unit}</span>
+        <span class="text-[0.625rem] font-bold text-text-muted tabular-nums">{unit}</span>
       {/if}
     </div>
   {/if}
 
   <div class="relative flex items-center">
     {#if icon}
-      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-[var(--text-muted)]">
+      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-text-muted">
         <Icon name={icon} size="sm" />
       </div>
     {/if}
@@ -129,7 +129,7 @@
 
     {#if unit && !trailing}
       <div
-        class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--text-muted)] tabular-nums select-none"
+        class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded-lg border border-border-subtle bg-surface-100 px-2 py-0.5 text-[0.625rem] font-bold text-text-muted tabular-nums select-none"
       >
         {unit}
       </div>
@@ -148,6 +148,6 @@
       {error}
     </span>
   {:else if hint}
-    <span class="mt-1 block text-xs text-[var(--text-muted)]">{hint}</span>
+    <span class="mt-1 block text-xs text-text-muted">{hint}</span>
   {/if}
 </div>

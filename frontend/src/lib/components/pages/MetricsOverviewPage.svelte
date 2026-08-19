@@ -190,10 +190,10 @@
   <!-- Page Header -->
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h1 class="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">
+      <h1 class="text-2xl font-extrabold tracking-tight text-text-main">
         Vitalparameter &amp; Metriken
       </h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Evidenzbasierte Gesundheitsdaten mit Verläufen, Zielwerten und statistischen Trendanalysen
       </p>
     </div>
@@ -211,8 +211,8 @@
           onclick={() => (selectedCategory = cat.id)}
           class="shrink-0 cursor-pointer rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all {selectedCategory ===
           cat.id
-            ? 'bg-[var(--color-primary)] text-white shadow-xs'
-            : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-primary text-white shadow-xs'
+            : 'border border-border-subtle bg-surface-0 text-text-muted hover:text-text-main'}"
         >
           {cat.label}
         </button>
@@ -231,7 +231,7 @@
           <button
             type="button"
             onclick={() => onSelectGroup(group.key)}
-            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-left shadow-[var(--shadow-card)] transition-all hover:border-[var(--color-primary)] hover:shadow-md {group
+            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-border-subtle bg-surface-0 p-5 text-left shadow-card transition-all hover:border-primary hover:shadow-md {group
               .subMetrics.length > 2
               ? 'sm:col-span-2'
               : ''}"
@@ -248,11 +248,11 @@
                   </div>
                   <div class="min-w-0">
                     <h3
-                      class="truncate text-sm font-extrabold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
+                      class="truncate text-sm font-extrabold text-text-main transition-colors group-hover:text-primary"
                     >
                       {group.title}
                     </h3>
-                    <p class="truncate text-[0.6875rem] text-[var(--text-muted)]">
+                    <p class="truncate text-[0.6875rem] text-text-muted">
                       {group.description}
                     </p>
                   </div>
@@ -268,33 +268,27 @@
                 {@const sys = latestMeasurementsMap.get('systolic_bp')}
                 {@const dia = latestMeasurementsMap.get('diastolic_bp')}
                 <div class="mt-4 flex items-baseline gap-2">
-                  <span
-                    class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums"
-                  >
+                  <span class="text-3xl font-extrabold tracking-tight text-text-main tabular-nums">
                     {sys ? sys.value : '—'}
-                    <span class="text-2xl font-normal text-[var(--text-muted)]">/</span>
+                    <span class="text-2xl font-normal text-text-muted">/</span>
                     {dia ? dia.value : '—'}
                   </span>
-                  <span class="text-xs font-bold text-[var(--text-muted)]">mmHg</span>
+                  <span class="text-xs font-bold text-text-muted">mmHg</span>
                 </div>
               {:else}
                 <!-- Multi-Metric Sub-values -->
                 <div class="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {#each group.subMetrics.slice(0, 4) as sub}
                     {@const subData = latestMeasurementsMap.get(sub.code)}
-                    <div
-                      class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
-                    >
-                      <span
-                        class="block truncate text-[0.625rem] font-semibold text-[var(--text-muted)]"
-                      >
+                    <div class="rounded-xl border border-border-subtle bg-surface-50 p-2.5">
+                      <span class="block truncate text-[0.625rem] font-semibold text-text-muted">
                         {sub.name}
                       </span>
                       <div class="mt-0.5 flex items-baseline gap-1">
-                        <span class="text-sm font-extrabold text-[var(--text-main)] tabular-nums">
+                        <span class="text-sm font-extrabold text-text-main tabular-nums">
                           {subData ? subData.value : '—'}
                         </span>
-                        <span class="text-[0.5625rem] text-[var(--text-muted)]">{sub.unit}</span>
+                        <span class="text-[0.5625rem] text-text-muted">{sub.unit}</span>
                       </div>
                     </div>
                   {/each}
@@ -312,7 +306,7 @@
           <button
             type="button"
             onclick={() => onSelectMetric(metric.groupKey || metric.code, metric.code)}
-            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 text-left shadow-[var(--shadow-card)] transition-all hover:border-[var(--color-primary)] hover:shadow-md"
+            class="group flex cursor-pointer flex-col justify-between rounded-3xl border border-border-subtle bg-surface-0 p-5 text-left shadow-card transition-all hover:border-primary hover:shadow-md"
           >
             <div>
               <!-- Header: Icon + Name + Unit Badge -->
@@ -326,11 +320,11 @@
                   </div>
                   <div class="min-w-0">
                     <h3
-                      class="truncate text-sm font-extrabold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
+                      class="truncate text-sm font-extrabold text-text-main transition-colors group-hover:text-primary"
                     >
                       {metric.name}
                     </h3>
-                    <p class="truncate text-[0.6875rem] text-[var(--text-muted)]">
+                    <p class="truncate text-[0.6875rem] text-text-muted">
                       {metric.referenceRange || 'Biomarker'}
                     </p>
                   </div>
@@ -342,42 +336,38 @@
 
               <!-- Main Value -->
               <div class="mt-4 flex items-baseline gap-2">
-                <span
-                  class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums"
-                >
+                <span class="text-3xl font-extrabold tracking-tight text-text-main tabular-nums">
                   {#if realData}
                     {realData.value}
                   {:else}
-                    <span class="text-2xl font-normal text-[var(--text-muted)]">—</span>
+                    <span class="text-2xl font-normal text-text-muted">—</span>
                   {/if}
                 </span>
                 {#if realData}
-                  <span class="text-xs font-bold text-[var(--text-muted)]">{metric.unit}</span>
+                  <span class="text-xs font-bold text-text-muted">{metric.unit}</span>
                 {/if}
               </div>
 
               <!-- Goal Progress (Sleek Clean Micro Bar, No Emojis) -->
               {#if goal}
                 <div class="mt-3 space-y-1">
-                  <div
-                    class="flex justify-between text-[0.625rem] font-semibold text-[var(--text-muted)]"
-                  >
+                  <div class="flex justify-between text-[0.625rem] font-semibold text-text-muted">
                     <span>Ziel: {goal.target_value} {metric.unit}</span>
                     {#if goalProgress}
                       <span
                         class={goalProgress.isFulfilled
                           ? 'font-bold text-emerald-500'
-                          : 'text-[var(--text-muted)]'}
+                          : 'text-text-muted'}
                       >
                         {goalProgress.percent}%
                       </span>
                     {/if}
                   </div>
-                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-border-subtle">
                     <div
                       class="h-full rounded-full transition-all duration-500 {goalProgress?.isFulfilled
                         ? 'bg-emerald-500'
-                        : 'bg-[var(--color-primary)]'}"
+                        : 'bg-primary'}"
                       style="width: {Math.min(100, Math.max(0, goalProgress?.percent ?? 0))}%;"
                     ></div>
                   </div>
@@ -390,10 +380,8 @@
     </div>
   {:else}
     <!-- Clean Empty State -->
-    <div class="rounded-3xl border-2 border-dashed border-[var(--border-subtle)] p-12 text-center">
-      <p class="text-sm font-medium text-[var(--text-muted)]">
-        Keine Einträge für die Auswahl gefunden.
-      </p>
+    <div class="rounded-3xl border-2 border-dashed border-border-subtle p-12 text-center">
+      <p class="text-sm font-medium text-text-muted">Keine Einträge für die Auswahl gefunden.</p>
     </div>
   {/if}
 </div>

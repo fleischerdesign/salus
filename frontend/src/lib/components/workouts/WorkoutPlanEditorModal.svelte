@@ -183,42 +183,42 @@
 
     <!-- Calculated Metrics Overview -->
     <div
-      class="flex items-center justify-around rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3 text-xs"
+      class="flex items-center justify-around rounded-2xl border border-border-subtle bg-surface-50 p-3 text-xs"
     >
       <div class="text-center">
-        <span class="block text-[0.6875rem] text-[var(--text-muted)]">Übungen</span>
-        <span class="font-extrabold text-[var(--text-main)]">{exercises.length}</span>
+        <span class="block text-[0.6875rem] text-text-muted">Übungen</span>
+        <span class="font-extrabold text-text-main">{exercises.length}</span>
       </div>
-      <div class="h-6 w-px bg-[var(--border-subtle)]"></div>
+      <div class="h-6 w-px bg-border-subtle"></div>
       <div class="text-center">
-        <span class="block text-[0.6875rem] text-[var(--text-muted)]">Gesamtsätze</span>
-        <span class="font-extrabold text-[var(--text-main)]">{totalSets} Sätze</span>
+        <span class="block text-[0.6875rem] text-text-muted">Gesamtsätze</span>
+        <span class="font-extrabold text-text-main">{totalSets} Sätze</span>
       </div>
-      <div class="h-6 w-px bg-[var(--border-subtle)]"></div>
+      <div class="h-6 w-px bg-border-subtle"></div>
       <div class="text-center">
-        <span class="block text-[0.6875rem] text-[var(--text-muted)]">Geschätzte Dauer</span>
-        <span class="font-extrabold text-[var(--color-activity)]">{estimatedDuration}</span>
+        <span class="block text-[0.6875rem] text-text-muted">Geschätzte Dauer</span>
+        <span class="font-extrabold text-activity">{estimatedDuration}</span>
       </div>
     </div>
 
     <!-- Exercises List in Plan -->
     <div class="max-h-[36vh] space-y-2.5 overflow-y-auto pr-1">
-      <span class="block text-xs font-extrabold text-[var(--text-main)]"
+      <span class="block text-xs font-extrabold text-text-main"
         >Übungs-Reihenfolge & Belastungs-Parameter:</span
       >
 
       {#each exercises as ex, idx}
         <div
-          class="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3"
+          class="flex items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-0 p-3"
         >
           <div class="flex items-center gap-2.5">
             <span
-              class="flex h-6 w-6 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-xs font-bold text-[var(--text-muted)] tabular-nums"
+              class="flex h-6 w-6 items-center justify-center rounded-lg border border-border-subtle bg-surface-50 text-xs font-bold text-text-muted tabular-nums"
             >
               {idx + 1}
             </span>
             <div>
-              <span class="block text-xs font-bold text-[var(--text-main)]">{ex.name}</span>
+              <span class="block text-xs font-bold text-text-main">{ex.name}</span>
               <Badge variant="default" class="text-[0.5625rem]">{ex.muscle}</Badge>
             </div>
           </div>
@@ -234,11 +234,11 @@
             </div>
 
             <!-- Move Up / Down / Remove -->
-            <div class="flex items-center gap-1 border-l border-[var(--border-subtle)] pl-2">
+            <div class="flex items-center gap-1 border-l border-border-subtle pl-2">
               <button
                 type="button"
                 onclick={() => moveUp(idx)}
-                class="h-6 w-6 cursor-pointer rounded-lg bg-[var(--bg-surface-50)] text-[0.625rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                class="h-6 w-6 cursor-pointer rounded-lg bg-surface-50 text-[0.625rem] font-bold text-text-muted hover:text-text-main"
                 title="Nach oben verschieben"
               >
                 ▲
@@ -246,7 +246,7 @@
               <button
                 type="button"
                 onclick={() => moveDown(idx)}
-                class="h-6 w-6 cursor-pointer rounded-lg bg-[var(--bg-surface-50)] text-[0.625rem] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                class="h-6 w-6 cursor-pointer rounded-lg bg-surface-50 text-[0.625rem] font-bold text-text-muted hover:text-text-main"
                 title="Nach unten verschieben"
               >
                 ▼
@@ -280,7 +280,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" onclick={handleSave}>Plan speichern</Btn>
     </div>

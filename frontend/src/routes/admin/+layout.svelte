@@ -37,7 +37,7 @@
         <h1 class="text-2xl font-extrabold tracking-tight">System- und Server-Administration</h1>
         <Badge variant="primary" class="font-bold">Admin-Modus</Badge>
       </div>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Server-Ressourcen, AppScheduler Hintergrundjobs (ADR-009), Datenbank-Statistiken und
         Systemverwaltung
       </p>
@@ -50,15 +50,15 @@
   <!-- Primary Horizontal Sub-Navigation Tabs -->
   <div class="relative w-full overflow-hidden">
     <div
-      class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 px-1 py-1.5 select-none"
+      class="no-scrollbar scroll-mask-x flex gap-2 overflow-x-auto rounded-2xl border border-border-subtle bg-surface-50 p-1.5 px-1 py-1.5 select-none"
     >
       {#each navigationTabs as tab}
         <a
           href={tab.path}
           class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
           tab.id
-            ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+            ? 'bg-surface-0 text-primary shadow-sm'
+            : 'text-text-muted hover:text-text-main'}"
         >
           <span>{tab.label}</span>
         </a>

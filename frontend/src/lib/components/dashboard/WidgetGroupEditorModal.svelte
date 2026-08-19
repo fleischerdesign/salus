@@ -100,7 +100,7 @@
     />
 
     <div>
-      <span class="mb-1 block font-bold text-[var(--text-main)]">Spalten-Layout</span>
+      <span class="mb-1 block font-bold text-text-main">Spalten-Layout</span>
       <div class="grid grid-cols-3 gap-2">
         {#each [1, 2, 3] as cols}
           <button
@@ -108,8 +108,8 @@
             onclick={() => (editedColumns = cols as 1 | 2 | 3)}
             class="cursor-pointer rounded-xl border px-3 py-2 text-center font-bold transition-all {editedColumns ===
             cols
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
-              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)]'}"
+              ? 'border-primary bg-primary text-white'
+              : 'border-border-subtle bg-surface-0 text-text-muted'}"
           >
             {cols === 1 ? '1 Spalte' : cols === 2 ? '2 Spalten' : '3 Spalten'}
           </button>
@@ -120,22 +120,22 @@
     <!-- Widgets in this group -->
     {#if !isNew}
       <div class="pt-2">
-        <span class="mb-1.5 block font-bold text-[var(--text-main)]">
+        <span class="mb-1.5 block font-bold text-text-main">
           Enthaltene Widgets ({editedWidgets.length})
         </span>
         <div class="max-h-44 space-y-1.5 overflow-y-auto pr-1">
           {#each editedWidgets as w, idx}
             <div
-              class="flex items-center justify-between gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2.5"
+              class="flex items-center justify-between gap-2 rounded-xl border border-border-subtle bg-surface-0 p-2.5"
             >
-              <span class="truncate text-xs font-semibold text-[var(--text-main)]">{w.title}</span>
+              <span class="truncate text-xs font-semibold text-text-main">{w.title}</span>
 
               <div class="flex items-center gap-1">
                 <button
                   type="button"
                   onclick={() => moveWidgetUp(idx)}
                   disabled={idx === 0}
-                  class="h-6 w-6 cursor-pointer rounded bg-[var(--bg-surface-50)] text-[0.625rem] text-[var(--text-muted)] hover:text-[var(--text-main)] disabled:opacity-30"
+                  class="h-6 w-6 cursor-pointer rounded bg-surface-50 text-[0.625rem] text-text-muted hover:text-text-main disabled:opacity-30"
                 >
                   ▲
                 </button>
@@ -143,7 +143,7 @@
                   type="button"
                   onclick={() => moveWidgetDown(idx)}
                   disabled={idx === editedWidgets.length - 1}
-                  class="h-6 w-6 cursor-pointer rounded bg-[var(--bg-surface-50)] text-[0.625rem] text-[var(--text-muted)] hover:text-[var(--text-main)] disabled:opacity-30"
+                  class="h-6 w-6 cursor-pointer rounded bg-surface-50 text-[0.625rem] text-text-muted hover:text-text-main disabled:opacity-30"
                 >
                   ▼
                 </button>
@@ -164,7 +164,7 @@
   </div>
 
   <!-- Action Footer -->
-  <div class="mt-4 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
+  <div class="mt-4 flex items-center justify-between border-t border-border-subtle pt-3">
     {#if !isNew && ondelete && group}
       <button
         type="button"

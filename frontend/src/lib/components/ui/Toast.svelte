@@ -35,7 +35,7 @@
 >
   {#each toasts as t (t.id)}
     <div
-      class="bg-surface-0 relative flex max-w-[420px] min-w-[280px] items-center gap-3 overflow-hidden rounded-lg border-l-4 px-4 py-3 shadow-lg {colorMap[
+      class="relative flex max-w-[420px] min-w-[280px] items-center gap-3 overflow-hidden rounded-lg border-l-4 bg-surface-0 px-4 py-3 shadow-lg {colorMap[
         t.type
       ]}"
       role="alert"
@@ -52,16 +52,16 @@
       <Icon
         name={iconMap[t.type]}
         size="md"
-        class="text-surface-600 relative z-10 shrink-0 {t.type === 'loading' || t.progress
+        class="relative z-10 shrink-0 text-surface-600 {t.type === 'loading' || t.progress
           ? 'animate-spin'
           : ''}"
       />
 
-      <span class="text-surface-900 relative z-10 flex-1 text-sm">{t.message}</span>
+      <span class="relative z-10 flex-1 text-sm text-surface-900">{t.message}</span>
 
       {#if !t.progress}
         <button
-          class="text-surface-400 hover:bg-surface-100 hover:text-surface-600 relative z-10 ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded"
+          class="relative z-10 ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded text-surface-400 hover:bg-surface-100 hover:text-surface-600"
           onclick={() => dismissToast(t.id)}
           aria-label="Dismiss"
         >

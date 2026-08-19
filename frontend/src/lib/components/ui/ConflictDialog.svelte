@@ -51,19 +51,19 @@
     />
 
     {#if diff.length > 0}
-      <div class="border-surface-200 overflow-x-auto rounded-lg border">
+      <div class="overflow-x-auto rounded-lg border border-surface-200">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="border-surface-200 bg-surface-50 border-b">
-              <th class="text-surface-500 px-4 py-2 font-medium">Field</th>
-              <th class="text-surface-500 px-4 py-2 font-medium">Server</th>
-              <th class="text-surface-500 px-4 py-2 font-medium">Yours</th>
+            <tr class="border-b border-surface-200 bg-surface-50">
+              <th class="px-4 py-2 font-medium text-surface-500">Field</th>
+              <th class="px-4 py-2 font-medium text-surface-500">Server</th>
+              <th class="px-4 py-2 font-medium text-surface-500">Yours</th>
             </tr>
           </thead>
           <tbody>
             {#each diff as row (row.field)}
-              <tr class="border-surface-100 border-b last:border-b-0">
-                <td class="text-surface-700 px-4 py-2">{row.field}</td>
+              <tr class="border-b border-surface-100 last:border-b-0">
+                <td class="px-4 py-2 text-surface-700">{row.field}</td>
                 <td class="px-4 py-2">
                   <label class="flex cursor-pointer items-center gap-2">
                     <input
@@ -96,7 +96,7 @@
         </table>
       </div>
     {:else}
-      <p class="text-surface-500 text-sm">
+      <p class="text-sm text-surface-500">
         No field differences detected. The server version will be used.
       </p>
     {/if}

@@ -149,16 +149,16 @@
     />
 
     <div>
-      <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Farbe</span>
+      <span class="mb-1.5 block text-xs font-bold text-text-main">Farbe</span>
       <div class="flex flex-wrap gap-2">
         {#each colors as c}
           <button
             type="button"
             class="h-8 w-8 cursor-pointer rounded-full border-2 transition-all"
             class:border-transparent={color !== c}
-            class:border-[var(--text-main)]={color === c}
+            class:border-text-main={color === c}
             class:ring-2={color === c}
-            class:ring-[var(--color-primary)]={color === c}
+            class:ring-primary={color === c}
             style="background-color: {resolveColor(c)}"
             aria-label={c}
             onclick={() => (color = c)}
@@ -168,15 +168,15 @@
     </div>
 
     <div>
-      <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Icon</span>
+      <span class="mb-1.5 block text-xs font-bold text-text-main">Icon</span>
       <div class="flex flex-wrap gap-1.5">
         {#each icons as ico}
           <button
             type="button"
             class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border transition-all {icon ===
             ico
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)]'}"
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border-subtle bg-surface-0 text-text-muted'}"
             onclick={() => (icon = ico)}
           >
             <Icon name={ico} size="sm" />
@@ -200,18 +200,18 @@
 
     {#if frequency === 'custom_days'}
       <div>
-        <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Aktive Tage</span>
+        <span class="mb-1.5 block text-xs font-bold text-text-main">Aktive Tage</span>
         <div class="flex gap-1.5">
           {#each dayLabels as label, i}
             <button
               type="button"
               class="h-9 w-9 cursor-pointer rounded-xl text-xs font-bold transition-all"
-              class:bg-[var(--color-primary)]={((daysMask >> i) & 1) === 1}
+              class:bg-primary={((daysMask >> i) & 1) === 1}
               class:text-white={((daysMask >> i) & 1) === 1}
-              class:bg-[var(--bg-surface-50)]={((daysMask >> i) & 1) === 0}
-              class:text-[var(--text-muted)]={((daysMask >> i) & 1) === 0}
+              class:bg-surface-50={((daysMask >> i) & 1) === 0}
+              class:text-text-muted={((daysMask >> i) & 1) === 0}
               class:border={((daysMask >> i) & 1) === 0}
-              class:border-[var(--border-subtle)]={((daysMask >> i) & 1) === 0}
+              class:border-border-subtle={((daysMask >> i) & 1) === 0}
               onclick={() => toggleDay(i)}>{label}</button
             >
           {/each}
@@ -226,7 +226,7 @@
       placeholder="z. B. Direkt nach dem Zähneputzen"
     />
 
-    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" loading={saving} type="submit" disabled={!name.trim()}>
         {habit ? 'Speichern' : 'Gewohnheit anlegen'}

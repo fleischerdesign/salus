@@ -34,10 +34,10 @@
 </script>
 
 {#if label}
-  <div class="text-surface-500 mb-1 text-xs font-medium">{label}</div>
+  <div class="mb-1 text-xs font-medium text-surface-500">{label}</div>
 {/if}
 <div
-  class="{heightClasses[height]} bg-surface-100 w-full overflow-hidden rounded-full {extraClass}"
+  class="{heightClasses[height]} w-full overflow-hidden rounded-full bg-surface-100 {extraClass}"
 >
   <div
     class="{heightClasses[

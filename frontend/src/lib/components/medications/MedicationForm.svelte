@@ -114,7 +114,7 @@
     </div>
 
     <div>
-      <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Darreichungsform</span>
+      <span class="mb-1.5 block text-xs font-bold text-text-main">Darreichungsform</span>
       <div class="flex flex-wrap gap-1.5">
         {#each forms as f}
           <button
@@ -122,8 +122,8 @@
             onclick={() => (form = f)}
             class="cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-bold transition-all {form ===
             f
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-xs'
-              : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:border-[var(--color-primary)]'}"
+              ? 'border-primary bg-primary text-white shadow-xs'
+              : 'border-border-subtle bg-surface-0 text-text-muted hover:border-primary'}"
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
@@ -140,16 +140,16 @@
 
     <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2">
       <div>
-        <span class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Farbe</span>
+        <span class="mb-1.5 block text-xs font-bold text-text-main">Farbe</span>
         <div
-          class="flex h-10 items-center gap-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-3"
+          class="flex h-10 items-center gap-2.5 rounded-2xl border border-border-subtle bg-surface-0 px-3"
         >
           <input
             type="color"
             bind:value={colorHex}
             class="h-6 w-8 cursor-pointer rounded-lg border-0 bg-transparent"
           />
-          <span class="font-mono text-xs font-semibold text-[var(--text-muted)]">{colorHex}</span>
+          <span class="font-mono text-xs font-semibold text-text-muted">{colorHex}</span>
         </div>
       </div>
 
@@ -161,7 +161,7 @@
       />
     </div>
 
-    <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+    <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onClose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" type="submit" disabled={!isValid || saving} loading={saving}>
         {medication ? 'Speichern' : 'Medikament anlegen'}

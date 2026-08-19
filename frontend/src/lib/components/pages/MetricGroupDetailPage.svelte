@@ -172,7 +172,7 @@
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">{group.title}</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">{group.description}</p>
+      <p class="mt-0.5 text-sm text-text-muted">{group.description}</p>
     </div>
     <div class="flex items-center gap-2">
       <Badge variant="success">Status: Optimal (ESC Leitlinie)</Badge>
@@ -181,15 +181,13 @@
 
   <!-- Combined Entry Card (if inputMode === 'combined') -->
   {#if group.inputMode === 'combined'}
-    <div
-      class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-    >
+    <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
       <div class="mb-4 flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-          <Icon name="vitals" class="text-[var(--color-vital)]" />
+        <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+          <Icon name="vitals" class="text-vital" />
           <span>Kombinierte Messwerterfassung</span>
         </div>
-        <span class="text-xs text-[var(--text-muted)]">Erzeugt synchrone Messpunkte</span>
+        <span class="text-xs text-text-muted">Erzeugt synchrone Messpunkte</span>
       </div>
 
       <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -200,7 +198,7 @@
 
       {#if saveSuccess}
         <div
-          class="mb-3 flex items-center gap-2 rounded-xl bg-[var(--color-success-soft)] p-3 text-xs font-semibold text-[var(--color-success)]"
+          class="mb-3 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs font-semibold text-success"
         >
           <Icon name="check" size="sm" />
           Messwerte (Blutdruck &amp; Puls) erfolgreich synchron in Dexie gespeichert.
@@ -215,7 +213,7 @@
 
   <!-- Multi-Metric Overview Cards -->
   <div>
-    <h2 class="mb-3 text-sm font-bold tracking-wider text-[var(--text-muted)] uppercase">
+    <h2 class="mb-3 text-sm font-bold tracking-wider text-text-muted uppercase">
       Enthaltene Einzel-Metriken
     </h2>
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -224,22 +222,22 @@
         <button
           type="button"
           onclick={() => onSelectMetric(group.key, metric.code)}
-          class="cursor-pointer rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-4 text-left shadow-[var(--shadow-card)] transition-all hover:border-[var(--color-primary)]"
+          class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-0 p-4 text-left shadow-card transition-all hover:border-primary"
         >
-          <div class="text-xs font-bold text-[var(--text-muted)]">{metric.name}</div>
-          <div class="mt-1 text-2xl font-extrabold text-[var(--text-main)] tabular-nums">
+          <div class="text-xs font-bold text-text-muted">{metric.name}</div>
+          <div class="mt-1 text-2xl font-extrabold text-text-main tabular-nums">
             {#if realVal != null}
               {realVal}
-              <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+              <span class="text-xs font-normal text-text-soft">{metric.unit}</span>
             {:else}
-              <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+              <span class="text-base font-normal text-text-muted">—</span>
             {/if}
           </div>
-          <div class="mt-2 text-[0.6875rem] text-[var(--text-soft)]">
+          <div class="mt-2 text-[0.6875rem] text-text-soft">
             Ziel: {metric.referenceRange}
           </div>
           <div
-            class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs font-semibold text-[var(--color-primary)]"
+            class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2 text-xs font-semibold text-primary"
           >
             <span>Metrik-Details &amp; Historie</span>
             <span>&rarr;</span>
@@ -250,12 +248,10 @@
   </div>
 
   <!-- Real Entries Table -->
-  <div
-    class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-  >
+  <div class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
     <div class="mb-3 flex items-center justify-between">
       <span class="text-sm font-bold">Historie der Messungen ({totalCount})</span>
-      <span class="text-xs text-[var(--text-muted)]">Aus Dexie IndexedDB</span>
+      <span class="text-xs text-text-muted">Aus Dexie IndexedDB</span>
     </div>
 
     {#if totalCount === 0}
@@ -270,7 +266,7 @@
         <table class="w-full border-collapse text-left text-xs">
           <thead>
             <tr
-              class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
+              class="border-b border-border-subtle text-[0.6875rem] tracking-wider text-text-muted uppercase"
             >
               <th class="px-3 py-2.5">Zeitpunkt</th>
               <th class="px-3 py-2.5">Metrik</th>
@@ -280,27 +276,27 @@
               <th class="px-3 py-2.5 text-right">Aktion</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[var(--border-subtle)]">
+          <tbody class="divide-y divide-border-subtle">
             {#each groupMeasurements as entry (entry.id)}
               <tr>
-                <td class="px-3 py-2.5 text-[var(--text-soft)]">
+                <td class="px-3 py-2.5 text-text-soft">
                   {formatTimestamp(entry.start_time)}
                 </td>
-                <td class="px-3 py-2.5 font-semibold text-[var(--text-main)]">
+                <td class="px-3 py-2.5 font-semibold text-text-main">
                   {getMetricName(entry.metric_code)}
                 </td>
-                <td class="px-3 py-2.5 font-bold text-[var(--color-primary)] tabular-nums">
+                <td class="px-3 py-2.5 font-bold text-primary tabular-nums">
                   {entry.value_numeric ?? '—'}
                   {getMetricUnit(entry.metric_code)}
                 </td>
                 <td class="px-3 py-2.5">
                   <Badge variant="default">{entry.source || 'Manuell'}</Badge>
                 </td>
-                <td class="px-3 py-2.5 text-[var(--text-muted)]">{entry.notes || '—'}</td>
+                <td class="px-3 py-2.5 text-text-muted">{entry.notes || '—'}</td>
                 <td class="px-3 py-2.5 text-right">
                   <button
                     type="button"
-                    class="cursor-pointer p-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--color-vital)]"
+                    class="cursor-pointer p-1 text-xs font-semibold text-text-muted transition-colors hover:text-vital"
                     title="Messwert löschen"
                     onclick={() => handleDeleteEntry(entry.id)}
                   >
@@ -316,18 +312,18 @@
       <!-- Pagination Controls -->
       {#if totalPages > 1}
         <div
-          class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-muted)]"
+          class="flex items-center justify-between border-t border-border-subtle pt-3 text-xs text-text-muted"
         >
           <span class="text-[0.6875rem]">
-            Seite <span class="font-bold text-[var(--text-main)]">{currentPage}</span> von{' '}
-            <span class="font-bold text-[var(--text-main)]">{totalPages}</span> ({totalCount} Messwerte)
+            Seite <span class="font-bold text-text-main">{currentPage}</span> von{' '}
+            <span class="font-bold text-text-main">{totalPages}</span> ({totalCount} Messwerte)
           </span>
           <div class="flex items-center gap-1.5">
             <button
               type="button"
               onclick={() => (currentPage = Math.max(1, currentPage - 1))}
               disabled={currentPage <= 1}
-              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1 text-xs font-semibold text-text-main transition-all hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Icon name="chevron-left" size="sm" />
               <span>Zurück</span>
@@ -336,7 +332,7 @@
               type="button"
               onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
               disabled={currentPage >= totalPages}
-              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1 text-xs font-semibold text-text-main transition-all hover:bg-surface-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>Weiter</span>
               <Icon name="chevron-right" size="sm" />

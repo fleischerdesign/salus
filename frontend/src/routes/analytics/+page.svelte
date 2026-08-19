@@ -143,13 +143,13 @@
     icon="analytics"
   >
     {#snippet actions()}
-      <div class="divide-surface-200 flex h-full items-stretch divide-x select-none">
+      <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
         <!-- Tab Selector Segment -->
-        <div class="divide-surface-200 flex h-full items-stretch divide-x">
+        <div class="flex h-full items-stretch divide-x divide-surface-200">
           {#each tabs as t}
             <button
               type="button"
-              class="duration-micro hover:bg-surface-100 flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors"
+              class="duration-micro flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors hover:bg-surface-100"
               class:bg-primary-50={tab === t.value}
               class:text-primary-600={tab === t.value}
               class:text-surface-600={tab !== t.value}
@@ -161,11 +161,11 @@
         </div>
 
         <!-- Range Selector Segment -->
-        <div class="divide-surface-200 flex h-full items-stretch divide-x">
+        <div class="flex h-full items-stretch divide-x divide-surface-200">
           {#each ranges as r}
             <button
               type="button"
-              class="duration-micro hover:bg-surface-100 flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors"
+              class="duration-micro flex h-full items-center justify-center px-4 text-xs font-semibold transition-colors hover:bg-surface-100"
               class:bg-primary-50={range === r.value}
               class:text-primary-600={range === r.value}
               class:text-surface-600={range !== r.value}
@@ -187,7 +187,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="monitoring" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Weight & Activity Trends</span>
+            <span class="text-sm font-semibold text-surface-900">Weight & Activity Trends</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -211,7 +211,7 @@
             />
           {:else}
             <div class="flex h-[280px] items-center justify-center">
-              <p class="text-surface-400 text-sm">No trend data available.</p>
+              <p class="text-sm text-surface-400">No trend data available.</p>
             </div>
           {/if}
         </div>
@@ -221,7 +221,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="whatshot" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Metabolic Baseline</span>
+            <span class="text-sm font-semibold text-surface-900">Metabolic Baseline</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -234,34 +234,34 @@
               />
             </div>
             <Stat value={data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
-            <div class="text-surface-500 mt-4 space-y-1.5 text-sm">
+            <div class="mt-4 space-y-1.5 text-sm text-surface-500">
               <div class="flex justify-between">
-                <span>BMR (Cunningham)</span><span class="text-surface-700 font-medium"
+                <span>BMR (Cunningham)</span><span class="font-medium text-surface-700"
                   >{data.tdee.bmr_kcal.toFixed(0)} kcal</span
                 >
               </div>
               <div class="flex justify-between">
-                <span>Activity Factor</span><span class="text-surface-700 font-medium"
+                <span>Activity Factor</span><span class="font-medium text-surface-700"
                   >{data.tdee.pal_factor.toFixed(2)}x</span
                 >
               </div>
               <div class="flex justify-between">
-                <span>HRR Utilisation</span><span class="text-surface-700 font-medium"
+                <span>HRR Utilisation</span><span class="font-medium text-surface-700"
                   >{(data.tdee.hrr_pct * 100).toFixed(0)}%</span
                 >
               </div>
             </div>
             {#if data.weight_trend.current}
               <div
-                class="border-surface-100 text-surface-500 mt-3 flex justify-between border-t pt-3 text-sm"
+                class="mt-3 flex justify-between border-t border-surface-100 pt-3 text-sm text-surface-500"
               >
-                <span>Current Weight</span><span class="text-surface-700 font-medium"
+                <span>Current Weight</span><span class="font-medium text-surface-700"
                   >{data.weight_trend.current.toFixed(1)} kg</span
                 >
               </div>
             {/if}
           {:else}
-            <p class="text-surface-400 text-sm">No weight data available for TDEE calculation.</p>
+            <p class="text-sm text-surface-400">No weight data available for TDEE calculation.</p>
           {/if}
         </div>
       </Card>
@@ -270,7 +270,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="ecg_heart" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Resting Heart Rate Trend</span>
+            <span class="text-sm font-semibold text-surface-900">Resting Heart Rate Trend</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -299,7 +299,7 @@
             />
           {:else}
             <div class="flex h-[220px] items-center justify-center">
-              <p class="text-surface-400 text-sm">
+              <p class="text-sm text-surface-400">
                 Insufficient heart rate data for trend analysis.
               </p>
             </div>
@@ -311,7 +311,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="bedtime" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Sleep Duration Trend</span>
+            <span class="text-sm font-semibold text-surface-900">Sleep Duration Trend</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -330,7 +330,7 @@
             />
           {:else}
             <div class="flex h-[220px] items-center justify-center">
-              <p class="text-surface-400 text-sm">Insufficient sleep data.</p>
+              <p class="text-sm text-surface-400">Insufficient sleep data.</p>
             </div>
           {/if}
         </div>
@@ -340,12 +340,12 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="exercise" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Exercise History</span>
+            <span class="text-sm font-semibold text-surface-900">Exercise History</span>
           </div>
         {/snippet}
         <div class="p-2">
           {#if data.exercise_sessions.length > 0}
-            <div class="divide-surface-100 divide-y">
+            <div class="divide-y divide-surface-100">
               {#each data.exercise_sessions as session, i}
                 <div in:fade={{ ...staggerFade(i) }}>
                   <ListItem
@@ -355,10 +355,10 @@
                     {#snippet children()}
                       <div class="flex min-w-0 flex-1 items-center justify-between gap-3">
                         <div class="min-w-0">
-                          <p class="text-surface-900 truncate text-sm font-medium">
+                          <p class="truncate text-sm font-medium text-surface-900">
                             {session.type_name}
                           </p>
-                          <p class="text-surface-500 mt-0.5 truncate text-xs">
+                          <p class="mt-0.5 truncate text-xs text-surface-500">
                             {session.date}
                             {session.time}
                             {#if session.distance_meters > 0}
@@ -367,7 +367,7 @@
                               · {session.calories.toFixed(0)} kcal{/if}
                           </p>
                         </div>
-                        <span class="text-surface-500 flex-shrink-0 text-sm"
+                        <span class="flex-shrink-0 text-sm text-surface-500"
                           >{formatDuration(session.duration_seconds)}</span
                         >
                       </div>
@@ -378,7 +378,7 @@
             </div>
           {:else}
             <div class="px-4 py-8">
-              <p class="text-surface-400 text-sm">No exercise sessions recorded.</p>
+              <p class="text-sm text-surface-400">No exercise sessions recorded.</p>
             </div>
           {/if}
         </div>
@@ -390,7 +390,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="trending_up" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Weight Forecast</span>
+            <span class="text-sm font-semibold text-surface-900">Weight Forecast</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -409,13 +409,13 @@
               regressionLine={weightTrend.regression.points}
               regressionCI={weightTrend.regression.ci}
             />
-            <div class="text-surface-400 mt-2 text-center text-xs">
+            <div class="mt-2 text-center text-xs text-surface-400">
               r² = {weightTrend.regression.r_squared.toFixed(3)} · n = {weightTrend.regression.n}
             </div>
 
-            <div class="border-surface-100 mt-6 border-t pt-4">
+            <div class="mt-6 border-t border-surface-100 pt-4">
               <div class="mb-3 flex items-center justify-between">
-                <span class="text-surface-900 text-sm font-semibold">What-If Calorie Scenario</span>
+                <span class="text-sm font-semibold text-surface-900">What-If Calorie Scenario</span>
                 <span
                   class="font-mono text-sm font-bold"
                   class:text-success-600={dailyDeficit > 0}
@@ -432,7 +432,7 @@
                 step={50}
                 bind:value={dailyDeficit}
               />
-              <p class="text-surface-400 mt-2 text-xs leading-relaxed">
+              <p class="mt-2 text-xs leading-relaxed text-surface-400">
                 Adjust the slider to simulate the effect of a daily calorie deficit (green) or
                 surplus (orange) on your projected weight trajectory over this period. (Assumes
                 7,700 kcal ≈ 1 kg weight change).
@@ -440,7 +440,7 @@
             </div>
           {:else}
             <div class="flex h-[280px] items-center justify-center">
-              <p class="text-surface-400 text-sm">
+              <p class="text-sm text-surface-400">
                 Insufficient data for weight forecasting (need ≥3 points).
               </p>
             </div>
@@ -452,31 +452,31 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="whatshot" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Metabolic Baseline</span>
+            <span class="text-sm font-semibold text-surface-900">Metabolic Baseline</span>
           </div>
         {/snippet}
         <div class="p-6">
           {#if data.tdee}
             <Stat value={data.tdee.tdee_kcal.toFixed(0)} unit="kcal/day" label="TDEE" />
-            <div class="text-surface-500 mt-4 space-y-1.5 text-sm">
+            <div class="mt-4 space-y-1.5 text-sm text-surface-500">
               <div class="flex justify-between">
-                <span>BMR</span><span class="text-surface-700 font-medium"
+                <span>BMR</span><span class="font-medium text-surface-700"
                   >{data.tdee.bmr_kcal.toFixed(0)} kcal</span
                 >
               </div>
               <div class="flex justify-between">
-                <span>Activity Factor</span><span class="text-surface-700 font-medium"
+                <span>Activity Factor</span><span class="font-medium text-surface-700"
                   >{data.tdee.pal_factor.toFixed(2)}x</span
                 >
               </div>
               <div class="flex justify-between">
-                <span>HRR</span><span class="text-surface-700 font-medium"
+                <span>HRR</span><span class="font-medium text-surface-700"
                   >{(data.tdee.hrr_pct * 100).toFixed(0)}%</span
                 >
               </div>
             </div>
           {:else}
-            <p class="text-surface-400 text-sm">No TDEE data.</p>
+            <p class="text-sm text-surface-400">No TDEE data.</p>
           {/if}
         </div>
       </Card>
@@ -485,7 +485,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="hotel" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Sleep Debt</span>
+            <span class="text-sm font-semibold text-surface-900">Sleep Debt</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -519,7 +519,7 @@
               />
             </div>
           {:else}
-            <p class="text-surface-400 text-sm">Insufficient sleep data for debt calculation.</p>
+            <p class="text-sm text-surface-400">Insufficient sleep data for debt calculation.</p>
           {/if}
         </div>
       </Card>
@@ -528,7 +528,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="vital_signs" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Recovery Score</span>
+            <span class="text-sm font-semibold text-surface-900">Recovery Score</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -553,35 +553,35 @@
                       ? 'var(--color-warning-400)'
                       : 'var(--color-error-400)'}"
                 >
-                  <span class="text-surface-900 text-2xl font-bold"
+                  <span class="text-2xl font-bold text-surface-900"
                     >{wellness.score.toFixed(0)}</span
                   >
                 </div>
-                <p class="text-surface-600 mt-1 text-xs font-medium capitalize">
+                <p class="mt-1 text-xs font-medium text-surface-600 capitalize">
                   {wellness.interpretation}
                 </p>
               </div>
               <div class="grid flex-1 grid-cols-4 gap-3 text-center text-xs">
                 <div>
-                  <div class="text-surface-800 font-mono">{wellness.sleep_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.sleep_z.toFixed(1)}</div>
                   <div class="text-surface-400">Sleep z</div>
                 </div>
                 <div>
-                  <div class="text-surface-800 font-mono">{wellness.hrv_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.hrv_z.toFixed(1)}</div>
                   <div class="text-surface-400">HRV z</div>
                 </div>
                 <div>
-                  <div class="text-surface-800 font-mono">{wellness.hr_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.hr_z.toFixed(1)}</div>
                   <div class="text-surface-400">HR z</div>
                 </div>
                 <div>
-                  <div class="text-surface-800 font-mono">{wellness.steps_z.toFixed(1)}</div>
+                  <div class="font-mono text-surface-800">{wellness.steps_z.toFixed(1)}</div>
                   <div class="text-surface-400">Steps z</div>
                 </div>
               </div>
             </div>
           {:else}
-            <p class="text-surface-400 text-sm">
+            <p class="text-sm text-surface-400">
               Insufficient data for recovery scoring (need 28 days).
             </p>
           {/if}
@@ -592,7 +592,7 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="ecg_heart" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">Resting HR Forecast</span>
+            <span class="text-sm font-semibold text-surface-900">Resting HR Forecast</span>
           </div>
         {/snippet}
         <div class="p-6">
@@ -611,12 +611,12 @@
               regressionLine={hrTrend.regression.points}
               regressionCI={hrTrend.regression.ci}
             />
-            <div class="text-surface-400 mt-2 text-center text-xs">
+            <div class="mt-2 text-center text-xs text-surface-400">
               r² = {hrTrend.regression.r_squared.toFixed(3)} · n = {hrTrend.regression.n}
             </div>
           {:else}
             <div class="flex h-[220px] items-center justify-center">
-              <p class="text-surface-400 text-sm">Insufficient heart rate data.</p>
+              <p class="text-sm text-surface-400">Insufficient heart rate data.</p>
             </div>
           {/if}
         </div>
@@ -629,7 +629,7 @@
           <div class="flex w-full items-center justify-between pr-2">
             <div class="flex items-center gap-2">
               <Icon name="calendar_month" size="sm" class="text-surface-400" />
-              <span class="text-surface-900 text-sm font-semibold">Activity Calendar</span>
+              <span class="text-sm font-semibold text-surface-900">Activity Calendar</span>
             </div>
             <div class="w-48">
               <Select bind:value={heatmapMetric} options={heatmapMetrics} />
@@ -645,7 +645,7 @@
             <div class="flex w-full items-center justify-between pr-2">
               <div class="flex items-center gap-2">
                 <Icon name="hub" size="sm" class="text-surface-400" />
-                <span class="text-surface-900 text-sm font-semibold">Cross-Metric Correlations</span
+                <span class="text-sm font-semibold text-surface-900">Cross-Metric Correlations</span
                 >
               </div>
               <div class="flex gap-1">

@@ -23,23 +23,20 @@
             <button
               type="button"
               onclick={item.onclick}
-              class="cursor-pointer text-[var(--text-muted)] transition-colors hover:text-[var(--color-primary)]"
+              class="cursor-pointer text-text-muted transition-colors hover:text-primary"
             >
               {item.label}
             </button>
           {:else if item.href}
-            <a
-              href={item.href}
-              class="text-[var(--text-muted)] transition-colors hover:text-[var(--color-primary)]"
-            >
+            <a href={item.href} class="text-text-muted transition-colors hover:text-primary">
               {item.label}
             </a>
           {:else}
-            <span class="text-[var(--text-muted)]">{item.label}</span>
+            <span class="text-text-muted">{item.label}</span>
           {/if}
-          <span class="text-[var(--border-strong)] select-none">/</span>
+          <span class="text-border-strong select-none">/</span>
         {:else}
-          <span class="font-bold text-[var(--text-main)]" aria-current="page">
+          <span class="font-bold text-text-main" aria-current="page">
             {item.label}
           </span>
         {/if}

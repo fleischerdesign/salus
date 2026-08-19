@@ -161,9 +161,7 @@
   <Card padding={false}>
     {#snippet header()}
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold tracking-wider text-[var(--text-main)] uppercase"
-          >Backups</span
-        >
+        <span class="text-xs font-bold tracking-wider text-text-main uppercase">Backups</span>
         <div class="flex items-center gap-2">
           {#if passwordConfigured}
             <input
@@ -187,11 +185,11 @@
     {#if loading}
       <div class="flex justify-center py-12"><Spinner /></div>
     {:else if error && backups.length === 0}
-      <div class="text-surface-400 px-5 py-10 text-center text-sm">
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
         Could not load backups. Check your connection and try again.
       </div>
     {:else if backups.length === 0}
-      <div class="text-surface-400 px-5 py-10 text-center text-sm">
+      <div class="px-5 py-10 text-center text-sm text-surface-400">
         No backups yet. Create one to get started.
       </div>
     {:else}
@@ -215,7 +213,7 @@
   <div class="flex items-center gap-1.5">
     <button
       type="button"
-      class="duration-micro text-surface-600 hover:bg-surface-100 hover:text-primary-600 rounded px-2 py-1 text-xs font-medium transition-colors"
+      class="duration-micro hover:text-primary-600 rounded px-2 py-1 text-xs font-medium text-surface-600 transition-colors hover:bg-surface-100"
       onclick={() => (restoreTarget = b.filename)}
     >
       Restore

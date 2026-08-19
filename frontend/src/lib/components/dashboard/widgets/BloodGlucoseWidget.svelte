@@ -70,15 +70,15 @@
 >
   <div class="space-y-3 pt-1">
     <div class="flex items-baseline gap-2">
-      <span class="text-4xl font-extrabold tracking-tight text-[var(--text-main)] tabular-nums">
+      <span class="text-4xl font-extrabold tracking-tight text-text-main tabular-nums">
         {glucose}
       </span>
-      <span class="text-xs font-bold text-[var(--text-muted)]">mg/dL</span>
+      <span class="text-xs font-bold text-text-muted">mg/dL</span>
     </div>
 
     <!-- Glucose range bar -->
     <div class="flex items-center gap-2 pt-2 text-xs">
-      <div class="flex h-2 flex-1 overflow-hidden rounded-full bg-[var(--bg-surface-200)]">
+      <div class="flex h-2 flex-1 overflow-hidden rounded-full bg-surface-200">
         <div
           class="h-full rounded-full transition-all duration-500 {glucose! <= 100
             ? 'bg-emerald-500'
@@ -88,7 +88,7 @@
           style="width: {Math.min(100, Math.max(10, ((glucose! - 50) / (200 - 50)) * 100))}%;"
         ></div>
       </div>
-      <span class="font-mono text-[0.625rem] text-[var(--text-muted)]">70–100 Ziel</span>
+      <span class="font-mono text-[0.625rem] text-text-muted">70–100 Ziel</span>
     </div>
   </div>
 

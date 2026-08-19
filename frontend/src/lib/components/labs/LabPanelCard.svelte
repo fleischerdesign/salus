@@ -49,13 +49,13 @@
 
 <div class="space-y-4">
   {#if loading}
-    <div class="py-8 text-center text-xs text-[var(--text-muted)]">Panels werden geladen...</div>
+    <div class="py-8 text-center text-xs text-text-muted">Panels werden geladen...</div>
   {:else if panels.length === 0}
     <div
-      class="space-y-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 py-8 text-center text-xs text-[var(--text-muted)] shadow-[var(--shadow-card)]"
+      class="space-y-2 rounded-2xl border border-border-subtle bg-surface-0 p-5 py-8 text-center text-xs text-text-muted shadow-card"
     >
-      <Icon name="science" size="lg" class="mx-auto text-[var(--text-muted)] opacity-60" />
-      <p class="text-xs font-bold text-[var(--text-main)]">Keine Labor-Panels hinterlegt</p>
+      <Icon name="science" size="lg" class="mx-auto text-text-muted opacity-60" />
+      <p class="text-xs font-bold text-text-main">Keine Labor-Panels hinterlegt</p>
       <p class="mx-auto max-w-sm text-[0.6875rem]">
         Hier werden deine strukturierten Laborpanels (z. B. Großes Blutbild, Lipidprofil,
         Schilddrüsenwerte) übersichtlich aufbereitet.
@@ -63,16 +63,14 @@
     </div>
   {:else}
     {#each panels as panel (panel.id)}
-      <div
-        class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-      >
+      <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
         <div class="mb-3 flex items-center justify-between">
           <div>
-            <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-              <Icon name="labs" class="text-[var(--color-primary)]" />
+            <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+              <Icon name="labs" class="text-primary" />
               <span>{panel.title}</span>
             </div>
-            <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+            <p class="mt-0.5 text-xs text-text-muted">
               Befund vom {panel.date} • {panel.labName}
             </p>
           </div>
@@ -81,14 +79,12 @@
 
         <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
           {#each panel.markers as m}
-            <div
-              class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3"
-            >
-              <div class="text-xs text-[var(--text-muted)]">{m.name}</div>
-              <div class="mt-0.5 font-mono text-base font-bold text-[var(--color-success)]">
+            <div class="rounded-xl border border-border-subtle bg-surface-50 p-3">
+              <div class="text-xs text-text-muted">{m.name}</div>
+              <div class="mt-0.5 font-mono text-base font-bold text-success">
                 {m.value}
               </div>
-              <div class="mt-0.5 font-mono text-[0.6875rem] text-[var(--text-soft)]">
+              <div class="mt-0.5 font-mono text-[0.6875rem] text-text-soft">
                 Ziel: {m.ref}
               </div>
             </div>

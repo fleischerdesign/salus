@@ -138,12 +138,7 @@ export const DETAILED_MUSCLES: DetailedMuscleDef[] = [
     latin: 'M. trapezius (pars transversa & ascendens)',
     group: 'Rücken',
     category: 'pull',
-    svgPathIds: [
-      'traps-mid-left',
-      'traps-mid-right',
-      'traps-lower-left',
-      'traps-lower-right'
-    ]
+    svgPathIds: ['traps-mid-left', 'traps-mid-right', 'traps-lower-left', 'traps-lower-right']
   },
   {
     key: 'erector_spinae',
@@ -218,7 +213,12 @@ export const DETAILED_MUSCLES: DetailedMuscleDef[] = [
     latin: 'Mm. ischiocrurales',
     group: 'Hamstrings',
     category: 'legs',
-    svgPathIds: ['hamstrings-medial-left', 'hamstrings-lateral-left', 'hamstrings-medial-right', 'hamstrings-lateral-right']
+    svgPathIds: [
+      'hamstrings-medial-left',
+      'hamstrings-lateral-left',
+      'hamstrings-medial-right',
+      'hamstrings-lateral-right'
+    ]
   },
   {
     key: 'gluteus_maximus',
@@ -250,7 +250,12 @@ export const DETAILED_MUSCLES: DetailedMuscleDef[] = [
     latin: 'M. gastrocnemius',
     group: 'Waden',
     category: 'legs',
-    svgPathIds: ['calves-gastroc-medial-left', 'calves-gastroc-lateral-left', 'calves-gastroc-medial-right', 'calves-gastroc-lateral-right']
+    svgPathIds: [
+      'calves-gastroc-medial-left',
+      'calves-gastroc-lateral-left',
+      'calves-gastroc-medial-right',
+      'calves-gastroc-lateral-right'
+    ]
   },
   {
     key: 'soleus',
@@ -324,7 +329,9 @@ export function resolveMuscleGroup(muscleKeyOrName: string): MuscleGroup {
     return DETAILED_MUSCLE_MAP[trimmed as DetailedMuscleKey].group;
   }
   const byName = DETAILED_MUSCLES.find(
-    (m) => m.name.toLowerCase() === trimmed.toLowerCase() || m.latin.toLowerCase() === trimmed.toLowerCase()
+    (m) =>
+      m.name.toLowerCase() === trimmed.toLowerCase() ||
+      m.latin.toLowerCase() === trimmed.toLowerCase()
   );
   if (byName) return byName.group;
 
@@ -339,7 +346,8 @@ export function resolveMuscleGroup(muscleKeyOrName: string): MuscleGroup {
   if (lower.includes('schulter') || lower.includes('delt')) return 'Schultern';
   if (lower.includes('bizeps') || lower.includes('bicep')) return 'Bizeps';
   if (lower.includes('trizeps') || lower.includes('tricep')) return 'Trizeps';
-  if (lower.includes('quad') || lower.includes('bein') || lower.includes('schenkel')) return 'Quadrizeps';
+  if (lower.includes('quad') || lower.includes('bein') || lower.includes('schenkel'))
+    return 'Quadrizeps';
   if (lower.includes('hamstring') || lower.includes('beuger')) return 'Hamstrings';
   if (lower.includes('wade') || lower.includes('calf')) return 'Waden';
   if (lower.includes('bauch') || lower.includes('ab') || lower.includes('core')) return 'Bauch';

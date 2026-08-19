@@ -143,7 +143,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Intervallfasten & Autophagie-Zentrale</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Protokolle, zelluläre Stoffwechselphasen & mitochondriale Regeneration
       </p>
     </div>
@@ -160,12 +160,12 @@
   <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
     <!-- Left: Clock & Timer (6-Col) -->
     <div
-      class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-6 shadow-[var(--shadow-card)] lg:col-span-6"
+      class="flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-0 p-6 shadow-card lg:col-span-6"
     >
       <div>
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-[var(--text-main)]">
+            <span class="text-sm font-bold text-text-main">
               {isFastingActive ? 'Aktives Fastenfenster' : 'Kein aktives Fasten'}
             </span>
             {#if isFastingActive}
@@ -180,7 +180,7 @@
               <Badge variant="default">Bereit</Badge>
             {/if}
           </div>
-          <span class="font-mono text-xs text-[var(--text-muted)]">{protocol}</span>
+          <span class="font-mono text-xs text-text-muted">{protocol}</span>
         </div>
 
         <!-- Visual Ring / Metric Counter -->
@@ -209,21 +209,15 @@
               />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span class="font-mono text-xs text-[var(--text-soft)]">Fortschritt</span>
-              <span class="font-mono text-lg font-extrabold text-[var(--color-primary)]"
-                >{progressPercent}%</span
-              >
+              <span class="font-mono text-xs text-text-soft">Fortschritt</span>
+              <span class="font-mono text-lg font-extrabold text-primary">{progressPercent}%</span>
             </div>
           </div>
 
           <div>
-            <span class="block font-mono text-xs text-[var(--text-muted)] uppercase"
-              >Vergangene Zeit:</span
-            >
-            <span class="font-mono text-3xl font-extrabold text-[var(--text-main)]"
-              >{elapsedDisplay}</span
-            >
-            <p class="mt-1 font-mono text-xs text-[var(--text-soft)]">
+            <span class="block font-mono text-xs text-text-muted uppercase">Vergangene Zeit:</span>
+            <span class="font-mono text-3xl font-extrabold text-text-main">{elapsedDisplay}</span>
+            <p class="mt-1 font-mono text-xs text-text-soft">
               Ziel: {targetHours}h ({remainingDisplay})
             </p>
           </div>
@@ -231,10 +225,8 @@
       </div>
 
       <!-- Quick Fasting Actions -->
-      <div
-        class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-4 text-xs"
-      >
-        <span class="text-[var(--text-soft)]">
+      <div class="flex items-center justify-between border-t border-border-subtle pt-4 text-xs">
+        <span class="text-text-soft">
           {#if activeSession}
             Gestartet: {new Date(activeSession.started_at).toLocaleTimeString('de-DE', {
               hour: '2-digit',
@@ -247,7 +239,7 @@
         {#if !isFastingActive}
           <button
             type="button"
-            class="cursor-pointer font-semibold text-[var(--color-primary)] hover:underline"
+            class="cursor-pointer font-semibold text-primary hover:underline"
             onclick={handleStart}
           >
             Jetzt starten (16:8) &rarr;
@@ -257,25 +249,23 @@
     </div>
 
     <!-- Right: Metabolic Stages Timeline (6-Col) -->
-    <div
-      class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-6 shadow-[var(--shadow-card)] lg:col-span-6"
-    >
-      <h2 class="mb-3 text-sm font-bold text-[var(--text-main)]">Zelluläre Stoffwechselphasen</h2>
+    <div class="rounded-2xl border border-border-subtle bg-surface-0 p-6 shadow-card lg:col-span-6">
+      <h2 class="mb-3 text-sm font-bold text-text-main">Zelluläre Stoffwechselphasen</h2>
       <div class="space-y-3">
         {#each metabolicStages as stage}
           <div
             class="rounded-xl border p-3 transition-all {stage.active && !stage.passed
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]/20 ring-1 ring-[var(--color-primary)]/30'
+              ? 'border-primary bg-primary-soft/20 ring-1 ring-primary/30'
               : stage.passed
-                ? 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] opacity-85'
-                : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] opacity-50'}"
+                ? 'border-border-subtle bg-surface-50 opacity-85'
+                : 'border-border-subtle bg-surface-50 opacity-50'}"
           >
             <div class="mb-1 flex items-center justify-between">
-              <span class="flex items-center gap-1.5 text-xs font-bold text-[var(--text-main)]">
+              <span class="flex items-center gap-1.5 text-xs font-bold text-text-main">
                 {#if stage.passed}
-                  <span class="text-xs font-bold text-[var(--color-success)]">✓</span>
+                  <span class="text-xs font-bold text-success">✓</span>
                 {:else if stage.active}
-                  <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--color-primary)]"></span>
+                  <span class="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
                 {/if}
                 <span>{stage.title}</span>
               </span>
@@ -284,7 +274,7 @@
                 class="font-mono text-[0.625rem]">{stage.range}</Badge
               >
             </div>
-            <p class="text-[0.6875rem] leading-relaxed text-[var(--text-muted)]">{stage.desc}</p>
+            <p class="text-[0.6875rem] leading-relaxed text-text-muted">{stage.desc}</p>
           </div>
         {/each}
       </div>
@@ -292,19 +282,15 @@
   </div>
 
   <!-- Fasting History -->
-  <div
-    class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-  >
+  <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-base font-extrabold text-[var(--text-main)]">
-        Fasten-Historie & Autophagie-Ausbeute
-      </h2>
+      <h2 class="text-base font-extrabold text-text-main">Fasten-Historie & Autophagie-Ausbeute</h2>
       {#if fastingHistory.length > 0}
         <Badge variant="success">{fastingHistory.length} Sessions</Badge>
       {/if}
     </div>
     {#if fastingHistory.length === 0}
-      <div class="py-12 text-center text-sm text-[var(--text-muted)]">
+      <div class="py-12 text-center text-sm text-text-muted">
         Noch keine abgeschlossenen Fasten-Sessions vorhanden. Klicke oben auf "Fasten starten", um
         dein erstes Zeitfenster zu protokollieren.
       </div>
@@ -313,7 +299,7 @@
         <table class="w-full border-collapse text-left text-xs">
           <thead>
             <tr
-              class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
+              class="border-b border-border-subtle text-[0.6875rem] tracking-wider text-text-muted uppercase"
             >
               <th class="px-3 py-2.5">Datum</th>
               <th class="px-3 py-2.5">Dauer</th>
@@ -322,13 +308,13 @@
               <th class="px-3 py-2.5 text-right">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[var(--border-subtle)] font-mono">
+          <tbody class="divide-y divide-border-subtle font-mono">
             {#each fastingHistory as h (h.id)}
               <tr>
-                <td class="px-3 py-3 font-sans font-semibold text-[var(--text-main)]">{h.date}</td>
-                <td class="px-3 py-3 font-bold text-[var(--color-primary)]">{h.duration}</td>
-                <td class="px-3 py-3 font-sans text-[var(--text-muted)]">{h.type}</td>
-                <td class="px-3 py-3 font-bold text-[var(--color-success)]">{h.autophagyHours}</td>
+                <td class="px-3 py-3 font-sans font-semibold text-text-main">{h.date}</td>
+                <td class="px-3 py-3 font-bold text-primary">{h.duration}</td>
+                <td class="px-3 py-3 font-sans text-text-muted">{h.type}</td>
+                <td class="px-3 py-3 font-bold text-success">{h.autophagyHours}</td>
                 <td class="px-3 py-3 text-right font-sans">
                   <Badge variant={h.success ? 'success' : 'default'}
                     >{h.success ? 'Erreicht' : 'Vorzeitig'}</Badge

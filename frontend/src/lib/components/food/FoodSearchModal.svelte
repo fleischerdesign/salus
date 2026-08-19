@@ -196,7 +196,7 @@
             onclose();
             onopenbarcode?.();
           }}
-          class="flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 px-3 text-xs font-bold text-[var(--color-primary)] shadow-2xs transition-all hover:bg-[var(--color-primary)]/15"
+          class="flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 text-xs font-bold text-primary shadow-2xs transition-all hover:bg-primary/15"
         >
           <span>Barcode scannen</span>
         </button>
@@ -212,8 +212,8 @@
             onclick={() => (selectedCategory = cat)}
             class="shrink-0 cursor-pointer rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all {selectedCategory ===
             cat
-              ? 'bg-[var(--color-primary)] text-white shadow-xs'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+              ? 'bg-primary text-white shadow-xs'
+              : 'border border-border-subtle bg-surface-0 text-text-muted hover:text-text-main'}"
           >
             {cat}
           </button>
@@ -235,18 +235,16 @@
       {@const calcC = Number((per100.carbs * ratio).toFixed(1))}
       {@const calcF = Number((per100.fat * ratio).toFixed(1))}
 
-      <div
-        class="animate-fade-in space-y-3 rounded-3xl border-2 border-[var(--color-primary)] bg-[var(--bg-surface-50)] p-4"
-      >
+      <div class="animate-fade-in space-y-3 rounded-3xl border-2 border-primary bg-surface-50 p-4">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-extrabold text-[var(--text-main)]">{selectedFood.name}</h3>
-            <span class="text-xs text-[var(--text-muted)]">{selectedFood.brand}</span>
+            <h3 class="text-sm font-extrabold text-text-main">{selectedFood.name}</h3>
+            <span class="text-xs text-text-muted">{selectedFood.brand}</span>
           </div>
           <button
             type="button"
             onclick={() => (selectedFood = null)}
-            class="cursor-pointer text-xs text-[var(--text-muted)] hover:text-rose-500"
+            class="cursor-pointer text-xs text-text-muted hover:text-rose-500"
           >
             Abwählen &times;
           </button>
@@ -254,10 +252,10 @@
 
         <!-- Quantity Stepper -->
         <div
-          class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3"
+          class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-0 p-3"
         >
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-[var(--text-muted)]">Menge:</span>
+            <span class="text-xs font-bold text-text-muted">Menge:</span>
             <div class="w-28">
               <Input
                 type="number"
@@ -275,14 +273,14 @@
             <button
               type="button"
               onclick={() => (selectedServingG = 100)}
-              class="cursor-pointer rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1 text-[0.6875rem] font-bold text-[var(--text-muted)] hover:bg-[var(--bg-surface-100)]"
+              class="cursor-pointer rounded-lg border border-border-subtle bg-surface-50 px-2 py-1 text-[0.6875rem] font-bold text-text-muted hover:bg-surface-100"
             >
               100g
             </button>
             <button
               type="button"
               onclick={() => (selectedServingG = selectedFood?.defaultServingG || 150)}
-              class="cursor-pointer rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2 py-1 text-[0.6875rem] font-bold text-[var(--color-primary)] hover:bg-[var(--bg-surface-100)]"
+              class="cursor-pointer rounded-lg border border-border-subtle bg-surface-50 px-2 py-1 text-[0.6875rem] font-bold text-primary hover:bg-surface-100"
             >
               {selectedFood.servingName}
             </button>
@@ -291,22 +289,20 @@
 
         <!-- Calculated Live Macros -->
         <div class="grid grid-cols-4 gap-2 text-center text-xs">
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Kalorien</span>
-            <span class="text-sm font-extrabold text-[var(--color-activity)] tabular-nums"
-              >{calcKcal} kcal</span
-            >
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Kalorien</span>
+            <span class="text-sm font-extrabold text-activity tabular-nums">{calcKcal} kcal</span>
           </div>
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Protein</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Protein</span>
             <span class="text-sm font-extrabold text-emerald-500 tabular-nums">{calcP}g</span>
           </div>
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Carbs</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Carbs</span>
             <span class="text-sm font-extrabold text-amber-500 tabular-nums">{calcC}g</span>
           </div>
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="block text-[0.625rem] text-[var(--text-muted)]">Fett</span>
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="block text-[0.625rem] text-text-muted">Fett</span>
             <span class="text-sm font-extrabold text-purple-500 tabular-nums">{calcF}g</span>
           </div>
         </div>
@@ -314,7 +310,7 @@
         <button
           type="button"
           onclick={handleAdd}
-          class="w-full cursor-pointer rounded-2xl bg-[var(--color-primary)] py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
+          class="w-full cursor-pointer rounded-2xl bg-primary py-2.5 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
         >
           + Zu „{targetMeal.title}“ hinzufügen ({calcKcal} kcal)
         </button>
@@ -331,18 +327,16 @@
           fat: item.fatPer100g || 0
         }}
         <div
-          class="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3 transition-all hover:border-[var(--color-primary)]"
+          class="group flex items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-surface-0 p-3 transition-all hover:border-primary"
         >
           <div>
             <div class="flex items-center gap-2">
-              <span
-                class="text-xs font-extrabold text-[var(--text-main)] group-hover:text-[var(--color-primary)]"
-              >
+              <span class="text-xs font-extrabold text-text-main group-hover:text-primary">
                 {item.name}
               </span>
               <Badge variant="default" class="text-[0.5625rem]">{item.category}</Badge>
             </div>
-            <span class="mt-0.5 block text-[0.6875rem] text-[var(--text-muted)]">
+            <span class="mt-0.5 block text-[0.6875rem] text-text-muted">
               {item.brand} &bull; 100g: {per100.kcal} kcal, {per100.protein}g P, {per100.carbs}g C, {per100.fat}g
               F
             </span>
@@ -351,7 +345,7 @@
           <button
             type="button"
             onclick={() => handleSelect(item)}
-            class="shrink-0 cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-1.5 text-xs font-bold text-[var(--color-primary)] transition-all hover:bg-[var(--color-primary)] hover:text-white"
+            class="shrink-0 cursor-pointer rounded-xl border border-border-subtle bg-surface-50 px-3 py-1.5 text-xs font-bold text-primary transition-all hover:bg-primary hover:text-white"
           >
             Auswählen &rarr;
           </button>
@@ -360,10 +354,8 @@
     </div>
 
     <!-- Footer -->
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-      <span class="text-xs text-[var(--text-muted)]"
-        >{filteredCatalog.length} Lebensmittel verfügbar</span
-      >
+    <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+      <span class="text-xs text-text-muted">{filteredCatalog.length} Lebensmittel verfügbar</span>
       <Btn variant="secondary" size="md" onclick={onclose}>Schließen</Btn>
     </div>
   </div>

@@ -122,7 +122,7 @@
   <div class="space-y-4">
     <!-- Camera Viewport Container -->
     <div
-      class="relative flex h-64 w-full items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-black shadow-inner"
+      class="relative flex h-64 w-full items-center justify-center overflow-hidden rounded-2xl border border-border-subtle bg-black shadow-inner"
     >
       <video bind:this={videoEl} class="h-full w-full object-cover" muted playsinline autoplay
       ></video>
@@ -132,11 +132,11 @@
         <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
           <!-- Target Frame -->
           <div
-            class="relative h-36 w-60 rounded-xl border-2 border-[var(--color-primary)]/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
+            class="relative h-36 w-60 rounded-xl border-2 border-primary/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
           >
             <!-- Animated Center Laser Line -->
             <div
-              class="absolute inset-x-2 h-0.5 animate-pulse bg-[var(--color-primary)] shadow-[0_0_8px_var(--color-primary)]"
+              class="absolute inset-x-2 h-0.5 animate-pulse bg-primary shadow-[0_0_8px_var(--color-primary)]"
               style="top: 50%;"
             ></div>
           </div>
@@ -146,15 +146,15 @@
       <!-- Fallback when camera is disabled or errored -->
       {#if cameraError}
         <div
-          class="absolute inset-0 flex flex-col items-center justify-center bg-[var(--bg-surface-50)] p-4 text-center"
+          class="absolute inset-0 flex flex-col items-center justify-center bg-surface-50 p-4 text-center"
         >
           <div
             class="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500"
           >
             <Icon name="videocam_off" size="md" />
           </div>
-          <p class="text-xs font-bold text-[var(--text-main)]">Kein Kamerabild verfügbar</p>
-          <p class="mt-1 max-w-xs text-[0.6875rem] text-[var(--text-muted)]">
+          <p class="text-xs font-bold text-text-main">Kein Kamerabild verfügbar</p>
+          <p class="mt-1 max-w-xs text-[0.6875rem] text-text-muted">
             Der Kamerazugriff wurde im Browser blockiert oder es ist keine Webcam angeschlossen.
           </p>
         </div>
@@ -162,7 +162,7 @@
     </div>
 
     <!-- Manual Barcode Input Fallback -->
-    <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4">
+    <div class="rounded-2xl border border-border-subtle bg-surface-50 p-4">
       <form
         onsubmit={(e) => {
           e.preventDefault();
@@ -170,9 +170,7 @@
         }}
         class="space-y-3"
       >
-        <div class="text-xs font-bold text-[var(--text-main)]">
-          Barcode manuell eingeben oder simulieren
-        </div>
+        <div class="text-xs font-bold text-text-main">Barcode manuell eingeben oder simulieren</div>
         <div class="flex gap-2">
           <div class="flex-1">
             <Input type="text" placeholder="z. B. 4008400404127 (EAN)" bind:value={manualBarcode} />
@@ -185,8 +183,8 @@
     </div>
 
     <!-- Modal Actions -->
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-      <span class="text-[0.6875rem] text-[var(--text-muted)]">
+    <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+      <span class="text-[0.6875rem] text-text-muted">
         Unterstützt EAN-13, EAN-8, UPC-A, UPC-E
       </span>
       <Btn

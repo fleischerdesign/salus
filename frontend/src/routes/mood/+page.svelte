@@ -40,13 +40,13 @@
   <PageHeader title="Mood" subtitle="Log how you're feeling each day" icon="sentiment-satisfied" />
 
   {#if loading}
-    <div class="bg-surface-100 h-32 animate-pulse rounded-xl"></div>
+    <div class="h-32 animate-pulse rounded-xl bg-surface-100"></div>
   {:else}
     <Card>
-      <h3 class="text-surface-700 mb-3 text-sm font-semibold">How are you today?</h3>
+      <h3 class="mb-3 text-sm font-semibold text-surface-700">How are you today?</h3>
       <MoodPicker {score} onSelect={handleSelect} />
       {#if saving}
-        <p class="text-surface-400 mt-2 text-xs">Saving...</p>
+        <p class="mt-2 text-xs text-surface-400">Saving...</p>
       {/if}
     </Card>
 

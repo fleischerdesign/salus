@@ -111,12 +111,12 @@
 
       <div>
         <div class="mb-1 flex items-center justify-between">
-          <span class="font-bold text-[var(--text-muted)]">Barcode / EAN</span>
+          <span class="font-bold text-text-muted">Barcode / EAN</span>
           {#if onopenbarcode}
             <button
               type="button"
               onclick={onopenbarcode}
-              class="cursor-pointer text-[0.6875rem] font-bold text-[var(--color-primary)] hover:underline"
+              class="cursor-pointer text-[0.6875rem] font-bold text-primary hover:underline"
             >
               Scanner öffnen
             </button>
@@ -139,22 +139,21 @@
 
     <!-- Macros Grid (per 100g) -->
     <div>
-      <span class="mb-2 block font-bold text-[var(--text-main)]">Makronährstoffe pro 100 g:</span>
+      <span class="mb-2 block font-bold text-text-main">Makronährstoffe pro 100 g:</span>
       <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3">
-          <span class="block text-[0.625rem] font-bold text-[var(--color-activity)] uppercase"
-            >Energie (kcal)</span
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-3">
+          <span class="block text-[0.625rem] font-bold text-activity uppercase">Energie (kcal)</span
           >
           <input
             type="number"
             min="0"
             max="900"
             bind:value={kcal}
-            class="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 text-center text-sm font-extrabold text-[var(--color-activity)] tabular-nums outline-none"
+            class="mt-1 w-full rounded-xl border border-border-subtle bg-surface-50 p-1.5 text-center text-sm font-extrabold text-activity tabular-nums outline-none"
           />
         </div>
 
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3">
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-3">
           <span class="block text-[0.625rem] font-bold text-emerald-500 uppercase">Protein (g)</span
           >
           <input
@@ -163,11 +162,11 @@
             max="100"
             step="0.5"
             bind:value={protein}
-            class="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 text-center text-sm font-extrabold text-emerald-500 tabular-nums outline-none"
+            class="mt-1 w-full rounded-xl border border-border-subtle bg-surface-50 p-1.5 text-center text-sm font-extrabold text-emerald-500 tabular-nums outline-none"
           />
         </div>
 
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3">
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-3">
           <span class="block text-[0.625rem] font-bold text-amber-500 uppercase"
             >Kohlenhydrate (g)</span
           >
@@ -177,11 +176,11 @@
             max="100"
             step="0.5"
             bind:value={carbs}
-            class="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 text-center text-sm font-extrabold text-amber-500 tabular-nums outline-none"
+            class="mt-1 w-full rounded-xl border border-border-subtle bg-surface-50 p-1.5 text-center text-sm font-extrabold text-amber-500 tabular-nums outline-none"
           />
         </div>
 
-        <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3">
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-3">
           <span class="block text-[0.625rem] font-bold text-purple-500 uppercase">Fett (g)</span>
           <input
             type="number"
@@ -189,7 +188,7 @@
             max="100"
             step="0.5"
             bind:value={fat}
-            class="mt-1 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5 text-center text-sm font-extrabold text-purple-500 tabular-nums outline-none"
+            class="mt-1 w-full rounded-xl border border-border-subtle bg-surface-50 p-1.5 text-center text-sm font-extrabold text-purple-500 tabular-nums outline-none"
           />
         </div>
       </div>
@@ -197,31 +196,31 @@
 
     <!-- Micronutrients Optional Row -->
     <div class="grid grid-cols-3 gap-2 text-center">
-      <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5">
-        <span class="block text-[0.625rem] text-[var(--text-muted)]">Ballaststoffe (g)</span>
+      <div class="rounded-2xl border border-border-subtle bg-surface-50 p-2.5">
+        <span class="block text-[0.625rem] text-text-muted">Ballaststoffe (g)</span>
         <input
           type="number"
           step="0.5"
           bind:value={fiber}
-          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-[var(--text-main)] tabular-nums outline-none"
+          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-text-main tabular-nums outline-none"
         />
       </div>
-      <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5">
-        <span class="block text-[0.625rem] text-[var(--text-muted)]">davon Zucker (g)</span>
+      <div class="rounded-2xl border border-border-subtle bg-surface-50 p-2.5">
+        <span class="block text-[0.625rem] text-text-muted">davon Zucker (g)</span>
         <input
           type="number"
           step="0.5"
           bind:value={sugar}
-          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-[var(--text-main)] tabular-nums outline-none"
+          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-text-main tabular-nums outline-none"
         />
       </div>
-      <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5">
-        <span class="block text-[0.625rem] text-[var(--text-muted)]">Natrium (g)</span>
+      <div class="rounded-2xl border border-border-subtle bg-surface-50 p-2.5">
+        <span class="block text-[0.625rem] text-text-muted">Natrium (g)</span>
         <input
           type="number"
           step="0.01"
           bind:value={sodium}
-          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-[var(--text-main)] tabular-nums outline-none"
+          class="mt-0.5 w-full bg-transparent text-center text-xs font-bold text-text-main tabular-nums outline-none"
         />
       </div>
     </div>
@@ -234,7 +233,7 @@
         <span class="block font-bold text-emerald-500"
           >Berechnung für 1 Portion ({servingSizeG} g):</span
         >
-        <span class="text-[0.6875rem] text-[var(--text-muted)] tabular-nums"
+        <span class="text-[0.6875rem] text-text-muted tabular-nums"
           >{servingProtein}g P &bull; {servingCarbs}g C &bull; {servingFat}g F &bull; {servingFiber}g
           Fiber</span
         >
@@ -244,7 +243,7 @@
   </div>
 
   <!-- Action Buttons -->
-  <div class="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+  <div class="flex justify-end gap-2 border-t border-border-subtle pt-3">
     <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
     <Btn variant="primary" size="md" onclick={handleSave} disabled={!name.trim()}>
       Lebensmittel speichern

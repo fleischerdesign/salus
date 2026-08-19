@@ -26,7 +26,7 @@
 </script>
 
 <div
-  class="bg-surface-200 animate-pulse rounded-sm opacity-60 {variant === 'avatar'
+  class="animate-pulse rounded-sm bg-surface-200 opacity-60 {variant === 'avatar'
     ? 'rounded-full'
     : ''}"
   style="width: {w}; height: {h};"

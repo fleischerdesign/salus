@@ -79,7 +79,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Medikamente & Supplement-Zentrale</h1>
-      <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+      <p class="mt-0.5 text-sm text-text-muted">
         Präzise Dosierungs-Zeitpläne, Restbestands-Tracking und klinische Adhärenz
       </p>
     </div>
@@ -97,23 +97,21 @@
 
   <!-- Medication Schedule Grid -->
   {#if loading}
-    <div class="py-12 text-center text-sm text-[var(--text-muted)]">
-      Medikamente werden geladen...
-    </div>
+    <div class="py-12 text-center text-sm text-text-muted">Medikamente werden geladen...</div>
   {:else if meds.length === 0}
     <div
-      class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 text-center shadow-[var(--shadow-card)]"
+      class="space-y-3 rounded-2xl border border-border-subtle bg-surface-0 p-8 text-center shadow-card"
     >
       <div
-        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary"
       >
         <Icon name="medication" size="lg" />
       </div>
       <div>
-        <h3 class="text-base font-bold text-[var(--text-main)]">
+        <h3 class="text-base font-bold text-text-main">
           Keine Medikamente oder Supplemente hinterlegt
         </h3>
-        <p class="mx-auto mt-1 max-w-sm text-xs text-[var(--text-muted)]">
+        <p class="mx-auto mt-1 max-w-sm text-xs text-text-muted">
           Füge deine täglichen Medikamente, Vitamine oder Mikronährstoffe hinzu, um
           Einnahme-Erinnerungen und Adhärenzstatistiken zu erhalten.
         </p>
@@ -126,11 +124,11 @@
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
       <!-- Schedule (8-Col) -->
       <div
-        class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] lg:col-span-8"
+        class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card lg:col-span-8"
       >
         <div class="mb-4 flex items-center justify-between">
-          <span class="text-sm font-bold text-[var(--text-main)]">Heutiger Einnahme-Plan</span>
-          <span class="text-xs text-[var(--text-muted)]"
+          <span class="text-sm font-bold text-text-main">Heutiger Einnahme-Plan</span>
+          <span class="text-xs text-text-muted"
             >{meds.filter((m) => m.takenToday).length} von {meds.length} eingenommen</span
           >
         </div>
@@ -138,7 +136,7 @@
         <div class="space-y-3">
           {#each meds as med (med.id)}
             <div
-              class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 transition-all {med.takenToday
+              class="flex items-center justify-between rounded-xl border border-border-subtle bg-surface-50 p-4 transition-all {med.takenToday
                 ? 'border-emerald-500/30 bg-emerald-500/5'
                 : ''}"
             >
@@ -148,7 +146,7 @@
                   onclick={() => toggleDose(med.id, med.scheduleId, med.timing)}
                   class="mt-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 transition-all {med.takenToday
                     ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-0)] hover:border-emerald-500'}"
+                    : 'border-border-subtle bg-surface-0 hover:border-emerald-500'}"
                   title={med.takenToday
                     ? 'Als nicht eingenommen markieren'
                     : 'Als eingenommen markieren'}
@@ -161,8 +159,8 @@
                 <div>
                   <div class="flex items-center gap-2">
                     <span
-                      class="text-sm font-bold text-[var(--text-main)] {med.takenToday
-                        ? 'text-[var(--text-muted)] line-through'
+                      class="text-sm font-bold text-text-main {med.takenToday
+                        ? 'text-text-muted line-through'
                         : ''}"
                     >
                       {med.name}
@@ -173,9 +171,9 @@
                       </Badge>
                     {/if}
                   </div>
-                  <p class="mt-0.5 text-xs text-[var(--text-muted)]">{med.instructions}</p>
+                  <p class="mt-0.5 text-xs text-text-muted">{med.instructions}</p>
                   <div
-                    class="mt-1 flex items-center gap-3 font-mono text-[0.6875rem] text-[var(--text-soft)]"
+                    class="mt-1 flex items-center gap-3 font-mono text-[0.6875rem] text-text-soft"
                   >
                     <span>Timing: {med.timing}</span>
                   </div>
@@ -193,23 +191,17 @@
       <!-- Adherence Stats & Inventory (4-Col) -->
       <div class="space-y-4 lg:col-span-4">
         <!-- Monthly Adherence Card -->
-        <div
-          class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-        >
-          <span class="mb-2 block text-sm font-bold text-[var(--text-main)]"
-            >Adhärenz-Statistik</span
-          >
-          <div class="my-1 font-mono text-3xl font-extrabold text-[var(--color-success)]">
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+          <span class="mb-2 block text-sm font-bold text-text-main">Adhärenz-Statistik</span>
+          <div class="my-1 font-mono text-3xl font-extrabold text-success">
             {meds.length > 0
               ? Math.round((meds.filter((m) => m.takenToday).length / meds.length) * 100)
               : 100} %
           </div>
-          <p class="mb-3 text-xs text-[var(--text-muted)]">
-            Therapietreue für den heutigen Kalendertag.
-          </p>
-          <div class="h-2 overflow-hidden rounded-full bg-[var(--bg-surface-100)]">
+          <p class="mb-3 text-xs text-text-muted">Therapietreue für den heutigen Kalendertag.</p>
+          <div class="h-2 overflow-hidden rounded-full bg-surface-100">
             <div
-              class="h-full bg-[var(--color-success)] transition-all"
+              class="h-full bg-success transition-all"
               style="width: {meds.length > 0
                 ? (meds.filter((m) => m.takenToday).length / meds.length) * 100
                 : 100}%"
@@ -218,14 +210,12 @@
         </div>
 
         <!-- Interaction Safety Check -->
-        <div
-          class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-        >
-          <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-            <Icon name="science" class="text-[var(--color-primary)]" />
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+          <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-text-main">
+            <Icon name="science" class="text-primary" />
             <span>Interaktions-Prüfung</span>
           </div>
-          <p class="text-xs text-[var(--text-muted)]">
+          <p class="text-xs text-text-muted">
             Keine bekannten pharmakologischen Wechselwirkungen zwischen den erfassten Präparaten.
           </p>
           <Badge variant="success" class="mt-3">Sicherheitsprüfung aktiv</Badge>
@@ -244,19 +234,19 @@
       class="space-y-4"
     >
       <div>
-        <label for="med-name" class="mb-1 block text-xs font-bold text-[var(--text-main)]"
+        <label for="med-name" class="mb-1 block text-xs font-bold text-text-main"
           >Präparatname / Wirkstoff</label
         >
         <Input id="med-name" bind:value={newName} placeholder="z. B. Vitamin D3" />
       </div>
       <div>
-        <label for="med-strength" class="mb-1 block text-xs font-bold text-[var(--text-main)]"
+        <label for="med-strength" class="mb-1 block text-xs font-bold text-text-main"
           >Dosierung / Stärke</label
         >
         <Input id="med-strength" bind:value={newStrength} placeholder="z. B. 5.000 I.E." />
       </div>
       <div>
-        <label for="med-inst" class="mb-1 block text-xs font-bold text-[var(--text-main)]"
+        <label for="med-inst" class="mb-1 block text-xs font-bold text-text-main"
           >Einnahmehinweis</label
         >
         <Input

@@ -76,13 +76,13 @@
     icon="psychology"
   >
     {#snippet actions()}
-      <div class="flex h-full items-stretch divide-x divide-[var(--border-subtle)] select-none">
+      <div class="flex h-full items-stretch divide-x divide-border-subtle select-none">
         <!-- Date Selector Segment -->
-        <div class="relative flex h-full items-center bg-[var(--bg-surface-50)]/40 px-3">
+        <div class="relative flex h-full items-center bg-surface-50/40 px-3">
           <input
             type="date"
             bind:value={date}
-            class="h-full w-full cursor-pointer border-0 bg-transparent text-xs font-bold text-[var(--text-main)] focus:outline-none"
+            class="h-full w-full cursor-pointer border-0 bg-transparent text-xs font-bold text-text-main focus:outline-none"
           />
         </div>
 
@@ -107,20 +107,20 @@
                 <Icon name="psychology" size="sm" />
               </div>
               <div>
-                <p class="text-surface-900 text-sm font-semibold">AI Coach Health Insight</p>
-                <p class="text-surface-400 text-xs">Analyzing health telemetry...</p>
+                <p class="text-sm font-semibold text-surface-900">AI Coach Health Insight</p>
+                <p class="text-xs text-surface-400">Analyzing health telemetry...</p>
               </div>
             </div>
             <div class="animate-pulse space-y-3">
-              <div class="bg-surface-200 h-3 w-1/2 rounded"></div>
-              <div class="bg-surface-100 h-3 w-full rounded"></div>
-              <div class="bg-surface-100 h-3 w-4/5 rounded"></div>
-              <div class="bg-surface-100 h-3 w-3/4 rounded"></div>
+              <div class="h-3 w-1/2 rounded bg-surface-200"></div>
+              <div class="h-3 w-full rounded bg-surface-100"></div>
+              <div class="h-3 w-4/5 rounded bg-surface-100"></div>
+              <div class="h-3 w-3/4 rounded bg-surface-100"></div>
             </div>
             <div class="animate-pulse space-y-3 pt-2">
-              <div class="bg-surface-200 h-3 w-2/5 rounded"></div>
-              <div class="bg-surface-100 h-3 w-full rounded"></div>
-              <div class="bg-surface-100 h-3 w-5/6 rounded"></div>
+              <div class="h-3 w-2/5 rounded bg-surface-200"></div>
+              <div class="h-3 w-full rounded bg-surface-100"></div>
+              <div class="h-3 w-5/6 rounded bg-surface-100"></div>
             </div>
           </div>
         </Card>
@@ -136,28 +136,28 @@
                   <Icon name="psychology" size="sm" />
                 </div>
                 <div>
-                  <p class="text-surface-900 text-sm font-semibold">AI Coach Health Insight</p>
-                  <p class="text-surface-400 text-xs">Daily telemetry evaluation</p>
+                  <p class="text-sm font-semibold text-surface-900">AI Coach Health Insight</p>
+                  <p class="text-xs text-surface-400">Daily telemetry evaluation</p>
                 </div>
               </div>
               <span
-                class="bg-surface-100 text-surface-500 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                class="rounded-full bg-surface-100 px-2.5 py-0.5 text-xs font-medium text-surface-500"
               >
                 {insight.query_date}
               </span>
             </div>
           </div>
           <div class="px-6 py-4">
-            <div class="text-surface-700 text-sm leading-relaxed">
+            <div class="text-sm leading-relaxed text-surface-700">
               <!-- renderMarkdown escapes the content before wrapping it in static tags -->
               <!-- eslint-disable-next-line svelte/no-at-html-tags -->
               {@html renderMarkdown(insight.content)}
             </div>
           </div>
-          <div class="border-surface-100 flex items-center justify-between border-t px-6 py-3">
-            <span class="text-surface-400 text-xs">
+          <div class="flex items-center justify-between border-t border-surface-100 px-6 py-3">
+            <span class="text-xs text-surface-400">
               Model:
-              <code class="bg-surface-50 text-surface-500 rounded px-1 py-0.5 text-[10px]">
+              <code class="rounded bg-surface-50 px-1 py-0.5 text-[10px] text-surface-500">
                 {insight.model_used}
               </code>
             </span>
@@ -170,12 +170,12 @@
         <Card padding={false}>
           <div class="flex flex-col items-center py-16 text-center">
             <div
-              class="bg-surface-100 text-surface-400 flex h-14 w-14 items-center justify-center rounded-full"
+              class="flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-surface-400"
             >
               <Icon name="psychology" size="xl" />
             </div>
-            <h3 class="text-surface-900 mt-4 text-sm font-semibold">No insight for this date</h3>
-            <p class="text-surface-500 mt-1 text-xs">
+            <h3 class="mt-4 text-sm font-semibold text-surface-900">No insight for this date</h3>
+            <p class="mt-1 text-xs text-surface-500">
               Click Generate to create an AI-powered health insight.
             </p>
             <div class="mt-6">
@@ -193,16 +193,16 @@
         {#snippet header()}
           <div class="flex items-center gap-2">
             <Icon name="history" size="sm" class="text-surface-400" />
-            <span class="text-surface-900 text-sm font-semibold">History</span>
+            <span class="text-sm font-semibold text-surface-900">History</span>
           </div>
         {/snippet}
 
         {#if !history}
           <div class="px-4 py-8 text-center">
-            <p class="text-surface-400 text-sm">Loading...</p>
+            <p class="text-sm text-surface-400">Loading...</p>
           </div>
         {:else if (history ?? []).length > 0}
-          <div class="divide-surface-100 divide-y">
+          <div class="divide-y divide-surface-100">
             {#each history ?? [] as item (item.id)}
               {@const preview = item.content.slice(0, 80)}
               <ListItem
@@ -218,16 +218,16 @@
                     onclick={() => (date = item.query_date)}
                   >
                     <div class="flex items-center justify-between gap-2">
-                      <span class="text-surface-700 text-xs font-semibold">
+                      <span class="text-xs font-semibold text-surface-700">
                         {item.query_date}
                       </span>
                       <span
-                        class="bg-surface-100 text-surface-500 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium"
+                        class="shrink-0 rounded bg-surface-100 px-1.5 py-0.5 text-[10px] font-medium text-surface-500"
                       >
                         {(item.model_used ?? '').split('/').pop()}
                       </span>
                     </div>
-                    <span class="text-surface-400 mt-0.5 truncate text-xs">
+                    <span class="mt-0.5 truncate text-xs text-surface-400">
                       {preview}
                     </span>
                   </button>
@@ -237,7 +237,7 @@
           </div>
         {:else}
           <div class="px-4 py-8 text-center">
-            <p class="text-surface-400 text-sm">No history yet.</p>
+            <p class="text-sm text-surface-400">No history yet.</p>
           </div>
         {/if}
       </Card>

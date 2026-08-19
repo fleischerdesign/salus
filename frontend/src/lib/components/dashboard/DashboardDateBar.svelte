@@ -90,7 +90,7 @@
 </script>
 
 <div
-  class="relative flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2 shadow-xs sm:p-2.5"
+  class="relative flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border-subtle bg-surface-0 p-2 shadow-xs sm:p-2.5"
 >
   <!-- Left: Date Navigator Pill -->
   <div class="flex min-w-0 flex-1 items-center gap-1 sm:gap-1.5">
@@ -98,7 +98,7 @@
     <button
       type="button"
       onclick={() => changeDay(-1)}
-      class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+      class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-50 text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
       title="Vorheriger Tag"
       aria-label="Vorheriger Tag"
     >
@@ -109,24 +109,24 @@
     <button
       type="button"
       onclick={() => (isDatePickerOpen = !isDatePickerOpen)}
-      class="group flex min-w-0 flex-1 cursor-pointer items-center justify-between overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1.5 text-left transition-all hover:bg-[var(--bg-surface-100)] sm:px-3"
+      class="group flex min-w-0 flex-1 cursor-pointer items-center justify-between overflow-hidden rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1.5 text-left transition-all hover:bg-surface-100 sm:px-3"
     >
       <div class="flex min-w-0 items-center gap-1.5 truncate sm:gap-2">
-        <Icon name="wb-sunny" size={16} class="shrink-0 text-[var(--color-primary)]" />
+        <Icon name="wb-sunny" size={16} class="shrink-0 text-primary" />
 
         <!-- Responsive date string based on viewport width -->
         <span
-          class="hidden truncate text-xs font-extrabold tracking-tight text-[var(--text-main)] sm:text-sm lg:inline"
+          class="hidden truncate text-xs font-extrabold tracking-tight text-text-main sm:text-sm lg:inline"
         >
           {fullFormattedDate}
         </span>
         <span
-          class="hidden truncate text-xs font-extrabold tracking-tight text-[var(--text-main)] sm:inline sm:text-sm lg:hidden"
+          class="hidden truncate text-xs font-extrabold tracking-tight text-text-main sm:inline sm:text-sm lg:hidden"
         >
           {mediumFormattedDate}
         </span>
         <span
-          class="inline truncate text-xs font-extrabold tracking-tight text-[var(--text-main)] sm:hidden"
+          class="inline truncate text-xs font-extrabold tracking-tight text-text-main sm:hidden"
         >
           {shortFormattedDate}
         </span>
@@ -142,7 +142,7 @@
       <Icon
         name="expand-more"
         size={14}
-        class="ml-1 shrink-0 text-[var(--text-soft)] transition-transform group-hover:text-[var(--text-main)] {isDatePickerOpen
+        class="ml-1 shrink-0 text-text-soft transition-transform group-hover:text-text-main {isDatePickerOpen
           ? 'rotate-180'
           : ''}"
       />
@@ -152,7 +152,7 @@
     <button
       type="button"
       onclick={() => changeDay(1)}
-      class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-100)] hover:text-[var(--text-main)]"
+      class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border-subtle bg-surface-50 text-text-muted transition-colors hover:bg-surface-100 hover:text-text-main"
       title="Nächster Tag"
       aria-label="Nächster Tag"
     >
@@ -168,7 +168,7 @@
           <button
             type="button"
             onclick={onaddwidget}
-            class="flex cursor-pointer items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-2.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 sm:px-3"
+            class="flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-2.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 sm:px-3"
             title="Widget oder Gruppe hinzufügen"
           >
             <Icon name="add" size="sm" />
@@ -180,7 +180,7 @@
           <button
             type="button"
             onclick={onreset}
-            class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1.5 text-xs font-semibold text-rose-500 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10"
+            class="flex cursor-pointer items-center gap-1 rounded-xl border border-border-subtle bg-surface-50 px-2.5 py-1.5 text-xs font-semibold text-rose-500 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10"
             title="Auf Standard zurücksetzen"
           >
             <span>Reset</span>
@@ -192,8 +192,8 @@
         type="button"
         onclick={ontoggleedit}
         class="flex cursor-pointer items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-all sm:px-3 {isEditMode
-          ? 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-main)] hover:bg-[var(--bg-surface-100)]'
-          : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          ? 'border-border-subtle bg-surface-50 text-text-main hover:bg-surface-100'
+          : 'border-border-subtle bg-surface-50 text-text-muted hover:text-text-main'}"
       >
         <Icon name={isEditMode ? 'check' : 'tune'} size="sm" />
         <span class="hidden sm:inline">{isEditMode ? 'Fertig' : 'Layout'}</span>

@@ -6,12 +6,10 @@
   import {
     DETAILED_MUSCLES,
     DETAILED_MUSCLE_MAP,
-    MUSCLE_GROUPS,
     parseMuscles,
     resolveMuscleGroup,
     type MuscleGroup,
-    type DetailedMuscleKey,
-    type DetailedMuscleDef
+    type DetailedMuscleKey
   } from '../../types/workouts';
   import { ANATOMICAL_PATH_TO_DETAILED_KEY } from './anatomy-data';
   import { db } from '$lib/db/database';
@@ -307,21 +305,21 @@
 </script>
 
 <div
-  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs flex flex-col justify-between"
+  class="flex flex-col justify-between space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs"
 >
   <!-- ═════════════════════════════════════════════════════════════ -->
   <!-- 1. COMPACT HEADER                                             -->
   <!-- ═════════════════════════════════════════════════════════════ -->
-  <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+  <div class="flex items-center justify-between border-b border-border-subtle pb-3">
     <div class="flex items-center gap-2">
       <div
-        class="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] shadow-2xs"
+        class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-soft text-primary shadow-2xs"
       >
         <Icon name="accessibility_new" class="text-sm" />
       </div>
       <div>
-        <h3 class="text-sm font-extrabold text-[var(--text-main)]">Muskel-Heatmap</h3>
-        <p class="text-[10px] text-[var(--text-muted)]">7-Tage-Volumen</p>
+        <h3 class="text-sm font-extrabold text-text-main">Muskel-Heatmap</h3>
+        <p class="text-[10px] text-text-muted">7-Tage-Volumen</p>
       </div>
     </div>
 
@@ -358,8 +356,8 @@
             onclick={() => (selectedCategory = tab.id)}
             class="cursor-pointer rounded-lg px-2 py-0.5 text-[10px] font-bold whitespace-nowrap transition-all {selectedCategory ===
             tab.id
-              ? 'bg-[var(--color-primary)] text-white shadow-2xs'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+              ? 'bg-primary text-white shadow-2xs'
+              : 'border border-border-subtle bg-surface-50 text-text-muted hover:text-text-main'}"
           >
             {tab.label}
           </button>
@@ -385,7 +383,7 @@
     <div class="space-y-3">
       <!-- 2D Anatomical Vector Mannequin Display -->
       <div
-        class="flex h-[200px] w-full items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-surface-50)] to-[var(--bg-surface-100)] py-1.5 shadow-2xs"
+        class="flex h-[200px] w-full items-center justify-center rounded-2xl border border-border-subtle bg-gradient-to-b from-surface-50 to-surface-100 py-1.5 shadow-2xs"
       >
         <AnatomicalBodyVector
           view={bodySide as 'anterior' | 'posterior'}
@@ -398,25 +396,27 @@
 
       <!-- Selected Muscle Info Card -->
       <div
-        class="space-y-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5 shadow-2xs"
+        class="space-y-2.5 rounded-2xl border border-border-subtle bg-surface-50 p-3.5 shadow-2xs"
       >
         <!-- Muscle Header & Badge -->
-        <div class="flex items-start justify-between gap-1.5 border-b border-[var(--border-subtle)] pb-2">
+        <div class="flex items-start justify-between gap-1.5 border-b border-border-subtle pb-2">
           <div>
             <div class="flex items-center gap-1.5">
               <span
-                class="h-2 w-2 rounded-full shrink-0"
+                class="h-2 w-2 shrink-0 rounded-full"
                 style="background-color: {selected.color === 'var(--bg-surface-200)'
                   ? 'var(--text-muted)'
                   : selected.color};"
               ></span>
-              <h4 class="text-xs font-bold text-[var(--text-main)]">{selected.name}</h4>
-              <span class="rounded bg-[var(--bg-surface-200)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--text-muted)]">
+              <h4 class="text-xs font-bold text-text-main">{selected.name}</h4>
+              <span
+                class="rounded bg-surface-200 px-1.5 py-0.5 text-[9px] font-bold text-text-muted"
+              >
                 {selected.group}
               </span>
             </div>
             {#if selected.latin}
-              <p class="mt-0.5 text-[10px] italic text-[var(--text-muted)] line-clamp-1">{selected.latin}</p>
+              <p class="mt-0.5 line-clamp-1 text-[10px] text-text-muted italic">{selected.latin}</p>
             {/if}
           </div>
 
@@ -436,28 +436,31 @@
 
         <!-- Volume & Sets Metrics -->
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="text-[9px] font-semibold tracking-wider text-text-muted uppercase">
               Volumen
             </span>
-            <p class="mt-0.5 text-sm font-extrabold text-[var(--text-main)]">
-              {selected.setsWeekly.toLocaleString('de-DE')} <span class="text-[10px] font-medium text-[var(--text-muted)]">Sätze</span>
+            <p class="mt-0.5 text-sm font-extrabold text-text-main">
+              {selected.setsWeekly.toLocaleString('de-DE')}
+              <span class="text-[10px] font-medium text-text-muted">Sätze</span>
             </p>
-            <p class="text-[9px] text-[var(--text-muted)]">
+            <p class="text-[9px] text-text-muted">
               {selected.volumeKg.toLocaleString('de-DE')} kg
             </p>
           </div>
 
-          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2">
-            <span class="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+          <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
+            <span class="text-[9px] font-semibold tracking-wider text-text-muted uppercase">
               Erholung
             </span>
-            <p class="mt-0.5 text-xs font-bold {selected.recoveryHoursLeft > 0 ? 'text-amber-500' : 'text-emerald-500'}">
-              {selected.recoveryHoursLeft > 0
-                ? `~${selected.recoveryHoursLeft}h Rest`
-                : '✓ Erholt'}
+            <p
+              class="mt-0.5 text-xs font-bold {selected.recoveryHoursLeft > 0
+                ? 'text-amber-500'
+                : 'text-emerald-500'}"
+            >
+              {selected.recoveryHoursLeft > 0 ? `~${selected.recoveryHoursLeft}h Rest` : '✓ Erholt'}
             </p>
-            <p class="text-[9px] text-[var(--text-muted)]">
+            <p class="text-[9px] text-text-muted">
               {selected.setsWeekly > 0 ? 'Hypertrophie' : 'Inaktiv'}
             </p>
           </div>
@@ -465,13 +468,15 @@
 
         <!-- Targeted Exercises List -->
         {#if selected.exercises.length > 0}
-          <div class="border-t border-[var(--border-subtle)] pt-1.5">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+          <div class="border-t border-border-subtle pt-1.5">
+            <span class="mb-1 block text-[9px] font-bold tracking-wider text-text-muted uppercase">
               Beteiligte Übungen:
             </span>
-            <div class="flex flex-wrap gap-1 max-h-[50px] overflow-y-auto">
+            <div class="flex max-h-[50px] flex-wrap gap-1 overflow-y-auto">
               {#each selected.exercises as exName}
-                <span class="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-main)] shadow-2xs">
+                <span
+                  class="rounded border border-border-subtle bg-surface-0 px-1.5 py-0.5 text-[10px] font-medium text-text-main shadow-2xs"
+                >
                   {exName}
                 </span>
               {/each}
@@ -484,7 +489,7 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- 4. MATRIX LIST VIEW                                           -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 gap-1.5 max-h-[290px] overflow-y-auto pr-1">
+    <div class="grid max-h-[290px] grid-cols-1 gap-1.5 overflow-y-auto pr-1">
       {#if granularity === 'detailed'}
         {#each filteredDetailedMuscles as m (m.key)}
           <button
@@ -495,19 +500,19 @@
             }}
             class="flex cursor-pointer items-center justify-between rounded-xl border p-2 text-left transition-all {selectedDetailedKey ===
             m.key
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] ring-1 ring-[var(--color-primary)]'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
+              ? 'border-primary bg-primary-soft ring-1 ring-primary'
+              : 'border border-border-subtle bg-surface-50 hover:border-border-strong'}"
           >
             <div class="flex items-center gap-2">
               <span
-                class="h-2 w-2 rounded-full shrink-0"
+                class="h-2 w-2 shrink-0 rounded-full"
                 style="background-color: {m.color === 'var(--bg-surface-200)'
                   ? 'var(--text-muted)'
                   : m.color};"
               ></span>
               <div>
-                <p class="text-xs font-bold text-[var(--text-main)]">{m.name}</p>
-                <p class="text-[9px] italic text-[var(--text-muted)] line-clamp-1">{m.latin}</p>
+                <p class="text-xs font-bold text-text-main">{m.name}</p>
+                <p class="line-clamp-1 text-[9px] text-text-muted italic">{m.latin}</p>
               </div>
             </div>
             <span
@@ -530,20 +535,22 @@
             }}
             class="flex cursor-pointer items-center justify-between rounded-xl border p-2 text-left transition-all {selectedMuscleGroup ===
               m.group && !selectedDetailedKey
-              ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] ring-1 ring-[var(--color-primary)]'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
+              ? 'border-primary bg-primary-soft ring-1 ring-primary'
+              : 'border border-border-subtle bg-surface-50 hover:border-border-strong'}"
           >
             <div class="flex items-center gap-2">
               <span
-                class="h-2 w-2 rounded-full shrink-0"
+                class="h-2 w-2 shrink-0 rounded-full"
                 style="background-color: {m.color === 'var(--bg-surface-200)'
                   ? 'var(--text-muted)'
                   : m.color};"
               ></span>
               <div>
-                <p class="text-xs font-bold text-[var(--text-main)]">{m.name}</p>
-                <p class="text-[10px] text-[var(--text-muted)]">
-                  {m.setsWeekly.toLocaleString('de-DE')} Sätze &bull; {m.volumeKg.toLocaleString('de-DE')} kg
+                <p class="text-xs font-bold text-text-main">{m.name}</p>
+                <p class="text-[10px] text-text-muted">
+                  {m.setsWeekly.toLocaleString('de-DE')} Sätze &bull; {m.volumeKg.toLocaleString(
+                    'de-DE'
+                  )} kg
                 </p>
               </div>
             </div>

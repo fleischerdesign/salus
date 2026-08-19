@@ -99,17 +99,15 @@
   );
 </script>
 
-<div
-  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-xs"
->
+<div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
   <!-- Header with Exercise Pills -->
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <div class="flex items-center gap-1.5 text-sm font-extrabold text-[var(--text-main)]">
-        <Icon name="fitness_center" class="text-[var(--color-activity)]" />
+      <div class="flex items-center gap-1.5 text-sm font-extrabold text-text-main">
+        <Icon name="fitness_center" class="text-activity" />
         <span>1RM Maximalkraft-Entwicklung und Relativkraft</span>
       </div>
-      <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+      <p class="mt-0.5 text-xs text-text-muted">
         Berechnet nach Brzycki &amp; Epley aus deinen absolvierten Trainingssätzen
       </p>
     </div>
@@ -123,8 +121,8 @@
             onclick={() => (selectedId = p.id)}
             class="cursor-pointer rounded-xl px-3 py-1 text-xs font-bold whitespace-nowrap transition-all {selectedId ===
             p.id
-              ? 'bg-[var(--color-primary)] text-white shadow-xs'
-              : 'border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+              ? 'bg-primary text-white shadow-xs'
+              : 'border border-border-subtle bg-surface-50 text-text-muted hover:text-text-main'}"
           >
             {p.name}
           </button>
@@ -134,9 +132,9 @@
   </div>
 
   {#if profiles.length === 0 || !selectedProfile}
-    <div class="space-y-2 py-8 text-center text-xs text-[var(--text-muted)]">
-      <Icon name="fitness_center" size="lg" class="mx-auto text-[var(--text-muted)] opacity-60" />
-      <p class="text-xs font-bold text-[var(--text-main)]">Keine 1RM-Historie vorhanden</p>
+    <div class="space-y-2 py-8 text-center text-xs text-text-muted">
+      <Icon name="fitness_center" size="lg" class="mx-auto text-text-muted opacity-60" />
+      <p class="text-xs font-bold text-text-main">Keine 1RM-Historie vorhanden</p>
       <p class="mx-auto max-w-sm text-[0.6875rem]">
         Sobald du Sätze mit Gewichten und Wiederholungen protokollierst, werden hier deine
         Kraftkurven und IPF-Einstufungen visualisiert.
@@ -147,13 +145,13 @@
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <!-- 1RM Max -->
       <div
-        class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+        class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3.5"
       >
         <div>
-          <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+          <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
             >Geschätztes 1RM</span
           >
-          <span class="text-2xl font-extrabold text-[var(--color-activity)] tabular-nums">
+          <span class="text-2xl font-extrabold text-activity tabular-nums">
             {selectedProfile.e1RM} kg
           </span>
         </div>
@@ -162,29 +160,29 @@
 
       <!-- Relative Strength Ratio -->
       <div
-        class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+        class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3.5"
       >
         <div>
-          <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+          <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
             >Relativkraft-Koeffizient</span
           >
-          <span class="text-2xl font-extrabold text-[var(--color-primary)] tabular-nums">
+          <span class="text-2xl font-extrabold text-primary tabular-nums">
             {selectedProfile.bwRatio.toFixed(2)}&times;
           </span>
         </div>
-        <span class="text-xs font-bold text-[var(--text-muted)]">des Körpergewichts</span>
+        <span class="text-xs font-bold text-text-muted">des Körpergewichts</span>
       </div>
 
       <!-- Strength Tier -->
       <div
-        class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+        class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3.5"
       >
         <div>
-          <span class="block text-[0.6875rem] font-bold text-[var(--text-muted)] uppercase"
+          <span class="block text-[0.6875rem] font-bold text-text-muted uppercase"
             >IPF / Wilks Einstufung</span
           >
           <span
-            class="block text-xl font-extrabold text-[var(--text-main)]"
+            class="block text-xl font-extrabold text-text-main"
             style="color: {selectedProfile.tierColor};"
           >
             {selectedProfile.tier}

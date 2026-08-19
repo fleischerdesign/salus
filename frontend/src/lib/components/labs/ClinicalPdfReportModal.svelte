@@ -87,10 +87,8 @@
     </div>
 
     <!-- Action Footer -->
-    <div class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-      <span class="font-mono text-xs text-[var(--text-muted)]"
-        >Format: PDF/A-1b (Langzeitarchiv)</span
-      >
+    <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+      <span class="font-mono text-xs text-text-muted">Format: PDF/A-1b (Langzeitarchiv)</span>
       <div class="flex gap-2">
         <Btn variant="secondary" size="md" onclick={onclose}>Schließen</Btn>
         <Btn

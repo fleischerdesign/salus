@@ -282,7 +282,7 @@
   <!-- Page Header -->
   <div>
     <h1 class="text-2xl font-extrabold tracking-tight">Community &amp; Föderation</h1>
-    <p class="mt-0.5 text-sm text-[var(--text-muted)]">
+    <p class="mt-0.5 text-sm text-text-muted">
       Datenschutzkonforme Peer-Freigaben, dezentrale Gruppen-Challenges und Aktivitätsfeed via
       ActivityPub
     </p>
@@ -290,9 +290,7 @@
 
   {#if localMode.active}
     <!-- Dedicated Local / Offline Mode Empty State -->
-    <div
-      class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-8 shadow-[var(--shadow-card)]"
-    >
+    <div class="rounded-2xl border border-border-subtle bg-surface-0 p-8 shadow-card">
       <EmptyState
         icon="cloud-off"
         title="Community im lokalen Modus nicht verfügbar"
@@ -304,16 +302,16 @@
   {:else}
     <!-- Primary Sub-Navigation Tabs (Only when server mode) -->
     <div
-      class="flex gap-2 overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-1.5"
+      class="flex gap-2 overflow-x-auto rounded-2xl border border-border-subtle bg-surface-50 p-1.5"
     >
       <a
         href="/community/leaderboard"
         class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
         'leaderboard'
-          ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          ? 'bg-surface-0 text-primary shadow-sm'
+          : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="wb-sunny" class="text-[var(--color-circadian)]" />
+        <Icon name="wb-sunny" class="text-circadian" />
         <span>Challenges &amp; Ranglisten</span>
       </a>
 
@@ -321,10 +319,10 @@
         href="/community/connections"
         class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
         'connections'
-          ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          ? 'bg-surface-0 text-primary shadow-sm'
+          : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="groups" class="text-[var(--color-primary)]" />
+        <Icon name="groups" class="text-primary" />
         <span>Freunde &amp; Verbindungen</span>
       </a>
 
@@ -332,10 +330,10 @@
         href="/community/feed"
         class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
         'feed'
-          ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
-          : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
+          ? 'bg-surface-0 text-primary shadow-sm'
+          : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="insights" class="text-[var(--color-activity)]" />
+        <Icon name="insights" class="text-activity" />
         <span>Aktivitätsfeed</span>
       </a>
     </div>
@@ -353,29 +351,27 @@
               <button
                 type="button"
                 onclick={() => (selectedChallenge = c)}
-                class="cursor-pointer rounded-2xl border bg-[var(--bg-surface-0)] p-4 text-left shadow-[var(--shadow-card)] transition-all {selectedChallenge.id ===
+                class="cursor-pointer rounded-2xl border bg-surface-0 p-4 text-left shadow-card transition-all {selectedChallenge.id ===
                 c.id
-                  ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20'
-                  : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)]'}"
+                  ? 'border-primary ring-2 ring-primary/20'
+                  : 'border-border-subtle hover:border-border-strong'}"
               >
                 <div class="mb-1 flex items-center justify-between">
-                  <span class="text-xs font-bold text-[var(--text-main)]">{c.name}</span>
+                  <span class="text-xs font-bold text-text-main">{c.name}</span>
                   <Badge variant="default" class="text-[0.625rem]">{c.timeFrame}</Badge>
                 </div>
-                <p class="text-[0.6875rem] text-[var(--text-muted)]">
+                <p class="text-[0.6875rem] text-text-muted">
                   {c.participants} Teilnehmer • {c.sourceDataType}
                 </p>
 
                 <div
-                  class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs"
+                  class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2 text-xs"
                 >
                   <span
-                    >Dein Rang: <strong class="font-bold text-[var(--color-primary)]"
-                      >#{c.userRank}</strong
-                    ></span
+                    >Dein Rang: <strong class="font-bold text-primary">#{c.userRank}</strong></span
                   >
                   <span
-                    >Score: <strong class="font-semibold text-[var(--text-main)]"
+                    >Score: <strong class="font-semibold text-text-main"
                       >{c.userScore} {c.unit}</strong
                     ></span
                   >
@@ -385,21 +381,19 @@
           </div>
 
           <!-- Selected Challenge Leaderboard Table -->
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-          >
+          <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-base font-extrabold text-[var(--text-main)]">
+                  <h2 class="text-base font-extrabold text-text-main">
                     {selectedChallenge.name}
                   </h2>
                   <Badge variant="success">Aktiv</Badge>
                 </div>
-                <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+                <p class="mt-0.5 text-xs text-text-muted">
                   {selectedChallenge.timeFrame} • Einladungscode:
                   <span
-                    class="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-1.5 py-0.5 font-semibold text-[var(--color-primary)]"
+                    class="rounded-md border border-border-subtle bg-surface-50 px-1.5 py-0.5 font-semibold text-primary"
                     >SALUS-{selectedChallenge.id.toUpperCase()}-2026</span
                   >
                 </p>
@@ -418,8 +412,8 @@
               {#each selectedChallenge.members as m}
                 <div
                   class="flex items-center justify-between rounded-xl border p-3.5 transition-all {m.isYou
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]/20 shadow-xs'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)]'}"
+                    ? 'border-primary bg-primary-soft/20 shadow-xs'
+                    : 'border-border-subtle bg-surface-50'}"
                 >
                   <div class="flex items-center gap-3">
                     <span
@@ -430,24 +424,22 @@
                           ? 'bg-slate-300 text-black'
                           : m.rank === 3
                             ? 'bg-amber-700 text-white'
-                            : 'bg-[var(--bg-surface-100)] font-bold text-[var(--text-muted)]'}"
+                            : 'bg-surface-100 font-bold text-text-muted'}"
                     >
                       {m.rank === 1 ? '1' : m.rank === 2 ? '2' : m.rank === 3 ? '3' : `#${m.rank}`}
                     </span>
                     <div>
                       <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-[var(--text-main)]">{m.name}</span>
+                        <span class="text-xs font-bold text-text-main">{m.name}</span>
                         {#if m.isYou}
                           <Badge variant="primary" class="text-[0.5625rem]">Du</Badge>
                         {/if}
                       </div>
-                      <span class="text-[0.6875rem] text-[var(--text-soft)]"
-                        >{m.handle}@{m.instance}</span
-                      >
+                      <span class="text-[0.6875rem] text-text-soft">{m.handle}@{m.instance}</span>
                     </div>
                   </div>
 
-                  <div class="text-sm font-extrabold text-[var(--text-main)]">
+                  <div class="text-sm font-extrabold text-text-main">
                     {m.score}
                   </div>
                 </div>
@@ -459,14 +451,12 @@
         <!-- Right: Join Code & Create Challenge Forms (4-Col) -->
         <div class="space-y-4 lg:col-span-4">
           <!-- Join via Code Card -->
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-          >
-            <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-              <Icon name="wb-sunny" class="text-[var(--color-primary)]" />
+          <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+            <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-text-main">
+              <Icon name="wb-sunny" class="text-primary" />
               <span>Challenge beitreten</span>
             </div>
-            <p class="mb-3 text-xs text-[var(--text-muted)]">
+            <p class="mb-3 text-xs text-text-muted">
               Gib den 8-stelligen Einladungscode eines Freundes ein:
             </p>
             <div class="space-y-3">
@@ -478,11 +468,9 @@
           </div>
 
           <!-- Create Challenge Card -->
-          <div
-            class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-          >
-            <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-              <Icon name="add" class="text-[var(--color-activity)]" />
+          <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
+            <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-text-main">
+              <Icon name="add" class="text-activity" />
               <span>Neue Challenge erstellen</span>
             </div>
             <div class="space-y-3">
@@ -516,21 +504,19 @@
     {#if activeTab === 'connections'}
       <div class="space-y-5">
         <!-- Peer Invite Card -->
-        <div
-          class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
-        >
+        <div class="rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-                <Icon name="groups" class="text-[var(--color-primary)]" />
+              <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
+                <Icon name="groups" class="text-primary" />
                 <span>Neuen Peer einladen (P2P Data Sharing)</span>
               </div>
-              <p class="mt-0.5 text-xs text-[var(--text-muted)]">
+              <p class="mt-0.5 text-xs text-text-muted">
                 Gib das Handle deines Freundes oder Arztes ein (z. B. <span
-                  class="font-medium text-[var(--text-main)]">@name</span
+                  class="font-medium text-text-main">@name</span
                 >
                 oder föderiert
-                <span class="font-medium text-[var(--text-main)]">@name@klinik.de</span>)
+                <span class="font-medium text-text-main">@name@klinik.de</span>)
               </p>
             </div>
           </div>
@@ -550,13 +536,13 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
           {#each peers as p}
             <div
-              class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+              class="flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card"
             >
               <div>
                 <div class="mb-2 flex items-start justify-between">
                   <div>
-                    <h3 class="text-sm font-bold text-[var(--text-main)]">{p.displayName}</h3>
-                    <span class="text-xs text-[var(--text-muted)]">{p.handle}@{p.instance}</span>
+                    <h3 class="text-sm font-bold text-text-main">{p.displayName}</h3>
+                    <span class="text-xs text-text-muted">{p.handle}@{p.instance}</span>
                   </div>
                   <Badge
                     variant={p.status === 'mutual'
@@ -576,31 +562,27 @@
                 <!-- Shared Metrics Pills -->
                 <div class="my-3 space-y-1.5">
                   <span
-                    class="block text-[0.6875rem] font-semibold tracking-wider text-[var(--text-soft)] uppercase"
+                    class="block text-[0.6875rem] font-semibold tracking-wider text-text-soft uppercase"
                     >Geteilte Metriken:</span
                   >
                   {#each p.sharedMetrics as m}
                     <div
-                      class="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2 text-xs"
+                      class="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-50 p-2 text-xs"
                     >
-                      <span class="font-semibold text-[var(--text-main)]">{m.name}</span>
-                      <span class="text-[0.6875rem] font-medium text-[var(--text-muted)]"
-                        >{m.level}</span
-                      >
+                      <span class="font-semibold text-text-main">{m.name}</span>
+                      <span class="text-[0.6875rem] font-medium text-text-muted">{m.level}</span>
                     </div>
                   {/each}
                 </div>
               </div>
 
               <div
-                class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs"
+                class="flex items-center justify-between border-t border-border-subtle pt-3 text-xs"
               >
-                <span class="text-[0.6875rem] font-medium text-[var(--text-soft)]"
-                  >{p.lastSync}</span
-                >
+                <span class="text-[0.6875rem] font-medium text-text-soft">{p.lastSync}</span>
                 <button
                   type="button"
-                  class="cursor-pointer text-xs font-semibold text-[var(--color-vital)] hover:underline"
+                  class="cursor-pointer text-xs font-semibold text-vital hover:underline"
                   onclick={() => alert('Freigabe widerrufen')}
                 >
                   Widerrufen
@@ -617,28 +599,26 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     {#if activeTab === 'feed'}
       <div
-        class="mx-auto max-w-2xl space-y-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+        class="mx-auto max-w-2xl space-y-4 rounded-2xl border border-border-subtle bg-surface-0 p-5 shadow-card"
       >
-        <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+        <div class="flex items-center justify-between border-b border-border-subtle pb-3">
           <span class="text-sm font-bold">Aktivitäts-Feed deiner Verbindungen</span>
-          <span class="text-xs font-medium text-[var(--text-muted)]">Live via ActivityPub</span>
+          <span class="text-xs font-medium text-text-muted">Live via ActivityPub</span>
         </div>
 
         <div class="space-y-4">
           {#each feedItems as item}
-            <div
-              class="space-y-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
-            >
+            <div class="space-y-2 rounded-xl border border-border-subtle bg-surface-50 p-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <span class="text-xs font-bold text-[var(--color-primary)]">{item.user}</span>
-                  <span class="ml-1 text-[0.6875rem] text-[var(--text-soft)]">{item.handle}</span>
+                  <span class="text-xs font-bold text-primary">{item.user}</span>
+                  <span class="ml-1 text-[0.6875rem] text-text-soft">{item.handle}</span>
                 </div>
-                <span class="text-[0.6875rem] text-[var(--text-soft)]">{item.time}</span>
+                <span class="text-[0.6875rem] text-text-soft">{item.time}</span>
               </div>
-              <p class="text-xs font-semibold text-[var(--text-main)]">{item.action}</p>
+              <p class="text-xs font-semibold text-text-main">{item.action}</p>
               <div
-                class="inline-block rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] px-2.5 py-1 text-xs font-bold text-[var(--color-success)]"
+                class="inline-block rounded-lg border border-border-subtle bg-surface-0 px-2.5 py-1 text-xs font-bold text-success"
               >
                 {item.metric}
               </div>

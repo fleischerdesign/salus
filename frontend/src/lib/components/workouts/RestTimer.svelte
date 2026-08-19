@@ -72,7 +72,7 @@
 
 {#if active}
   <div
-    class="border-surface-200 bg-surface-0 text-surface-900 fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-lg {extraClass}"
+    class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-surface-200 bg-surface-0 px-4 py-2 text-sm font-semibold text-surface-900 shadow-lg {extraClass}"
     in:fly={{ y: 16, ...motionParams(DURATIONS.normal) }}
     out:fade={motionParams(DURATIONS.fast)}
     role="timer"
@@ -82,12 +82,12 @@
     <span class="tabular-nums">{display}</span>
     <button
       type="button"
-      class="bg-surface-100 text-surface-600 hover:bg-surface-200 ml-1 rounded-full px-2 py-0.5 text-xs font-medium"
+      class="ml-1 rounded-full bg-surface-100 px-2 py-0.5 text-xs font-medium text-surface-600 hover:bg-surface-200"
       onclick={addTime}>+{addIncrement}s</button
     >
     <button
       type="button"
-      class="text-surface-400 hover:bg-surface-100 hover:text-surface-600 ml-1 flex h-6 w-6 items-center justify-center rounded-full"
+      class="ml-1 flex h-6 w-6 items-center justify-center rounded-full text-surface-400 hover:bg-surface-100 hover:text-surface-600"
       aria-label="Dismiss timer"
       onclick={dismiss}
     >

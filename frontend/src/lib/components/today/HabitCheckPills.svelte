@@ -41,9 +41,7 @@
   }
 </script>
 
-<div
-  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
->
+<div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-card">
   <div class="mb-1 flex items-start justify-between gap-3">
     <div class="flex min-w-0 items-center gap-3">
       <div
@@ -53,10 +51,10 @@
         <Icon name="check" size="md" />
       </div>
       <div class="min-w-0">
-        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-text-main">
           Tägliche Gewohnheiten (Habits)
         </h3>
-        <p class="truncate text-xs text-[var(--text-muted)]">Routinen &amp; Check-ins</p>
+        <p class="truncate text-xs text-text-muted">Routinen &amp; Check-ins</p>
       </div>
     </div>
     {#if habits.length > 0}
@@ -67,7 +65,7 @@
   </div>
 
   {#if habits.length === 0}
-    <div class="py-6 text-center text-xs text-[var(--text-muted)] italic">
+    <div class="py-6 text-center text-xs text-text-muted italic">
       Noch keine Gewohnheiten hinterlegt.
     </div>
   {:else}
@@ -78,19 +76,19 @@
           onclick={() => handleToggle(habit.id)}
           class="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 text-left transition-all {habit.completed
             ? 'border-emerald-500/30 bg-emerald-500/10 shadow-xs'
-            : 'border-[var(--border-subtle)] bg-[var(--bg-surface-50)] hover:border-[var(--border-strong)]'}"
+            : 'border-border-subtle bg-surface-50 hover:border-border-strong'}"
         >
           <span
             class="text-xs font-bold {habit.completed
               ? 'text-emerald-700 dark:text-emerald-300'
-              : 'text-[var(--text-main)]'}"
+              : 'text-text-main'}"
           >
             {habit.title}
           </span>
           <div
             class="flex h-6 w-6 shrink-0 items-center justify-center rounded-xl border transition-all {habit.completed
               ? 'border-emerald-500 bg-emerald-500 text-white'
-              : 'border-[var(--border-strong)] bg-[var(--bg-surface-0)]'}"
+              : 'border-border-strong bg-surface-0'}"
           >
             {#if habit.completed}
               <Icon name="check" size="sm" />
