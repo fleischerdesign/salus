@@ -1,5 +1,9 @@
 <script lang="ts">
-  import type { MuscleGroup } from '$lib/types/workouts';
+  import {
+    DETAILED_MUSCLE_MAP,
+    type MuscleGroup,
+    type DetailedMuscleKey
+  } from '$lib/types/workouts';
   import { ANTERIOR_MUSCLES, POSTERIOR_MUSCLES, type AnatomicalMuscleDef } from './anatomy-data';
 
   interface Props {
@@ -7,7 +11,8 @@
     colorMap?: Partial<Record<MuscleGroup, string>>;
     pathColorMap?: Record<string, string>;
     highlightedPathIds?: string[];
-    selectedGroup?: MuscleGroup;
+    selectedDetailedKey?: DetailedMuscleKey | null;
+    selectedGroup?: MuscleGroup | null;
     onselect?: (group: MuscleGroup, detailedId: string) => void;
   }
 
@@ -16,7 +21,8 @@
     colorMap = {},
     pathColorMap = {},
     highlightedPathIds = [],
-    selectedGroup,
+    selectedDetailedKey = null,
+    selectedGroup = null,
     onselect
   }: Props = $props();
 
@@ -30,11 +36,26 @@
     if (highlightedPathIds.includes(muscle.id)) {
       return 'var(--color-primary)';
     }
-    return colorMap[muscle.group] || 'var(--bg-surface-200)';
+    if (muscle.group && colorMap[muscle.group]) {
+      return colorMap[muscle.group]!;
+    }
+    return 'var(--bg-surface-200)';
   }
 
   function isMuscleSelected(muscle: AnatomicalMuscleDef): boolean {
-    return selectedGroup === muscle.group || highlightedPathIds.includes(muscle.id);
+    if (highlightedPathIds.length > 0 && highlightedPathIds.includes(muscle.id)) {
+      return true;
+    }
+    if (selectedDetailedKey) {
+      const def = DETAILED_MUSCLE_MAP[selectedDetailedKey];
+      if (def && def.svgPathIds.includes(muscle.id)) {
+        return true;
+      }
+    }
+    if (selectedGroup && !selectedDetailedKey) {
+      return selectedGroup === muscle.group;
+    }
+    return false;
   }
 
   function handleMuscleClick(muscle: AnatomicalMuscleDef) {

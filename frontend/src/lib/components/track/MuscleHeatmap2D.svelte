@@ -387,7 +387,8 @@
         <AnatomicalBodyVector
           view={bodySide as 'anterior' | 'posterior'}
           pathColorMap={activePathColorMap}
-          selectedGroup={selectedMuscleGroup}
+          selectedDetailedKey={granularity === 'detailed' ? selectedDetailedKey : null}
+          selectedGroup={granularity === 'groups' ? selectedMuscleGroup : null}
           onselect={handleVectorSelect}
         />
       </div>
