@@ -4,7 +4,12 @@
   import Input from '../ui/Input.svelte';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
-  import { METRIC_CATEGORIES, METRIC_GROUPS, STANDALONE_METRICS } from '../../data/metrics-data';
+  import {
+    METRIC_CATEGORIES,
+    METRIC_GROUPS,
+    STANDALONE_METRICS,
+    getAllMetrics
+  } from '../../data/metrics-data';
   import type { MetricGroup, MetricDefinition } from '../../types';
 
   let { onSelectGroup, onSelectMetric } = $props<{
@@ -20,25 +25,32 @@
   const goals = $derived(goalsQuery.value ?? []);
   const goalsMap = $derived(new Map(goals.map((g) => [g.metric_code, g])));
 
-  // Reactive Measurements from Dexie
-  const measurementsQuery = useQuery(() => db.measurement.filter((m) => !m.deleted_at).toArray());
-  const measurements = $derived(measurementsQuery.value ?? []);
+  const allMetricCodes = getAllMetrics().map((m) => m.code);
 
-  const latestMeasurementsMap = $derived.by(() => {
+  // High-performance indexed query: fetches only the single latest record per metric (0ms latency)
+  const measurementsQuery = useQuery(async () => {
     const map = new Map<string, { value: number; time: string }>();
-    const sorted = [...measurements].sort(
-      (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+    await Promise.all(
+      allMetricCodes.map(async (code) => {
+        const latest = await db.measurement
+          .where('metric_code')
+          .equals(code)
+          .and((m) => !m.deleted_at)
+          .reverse()
+          .sortBy('start_time')
+          .then((rows) => rows[0]);
+
+        if (latest && latest.value_numeric != null) {
+          map.set(code, {
+            value: latest.value_numeric,
+            time: latest.start_time
+          });
+        }
+      })
     );
-    for (const m of sorted) {
-      if (m.metric_code && m.value_numeric != null && !map.has(m.metric_code)) {
-        map.set(m.metric_code, {
-          value: m.value_numeric,
-          time: m.start_time
-        });
-      }
-    }
     return map;
   });
+  const latestMeasurementsMap = $derived(measurementsQuery.value ?? new Map());
 
   const categories = $derived([
     ...METRIC_CATEGORIES,

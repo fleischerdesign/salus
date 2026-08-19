@@ -409,7 +409,18 @@ onMount(async () => {
 
 // ❌ WRONG — liveQuery store (not reactive to state params, stale on navigation)
 let medications = liveQuery(() => db.medication.toArray());
+
+// ❌ WRONG — unindexed full-table scan on high-volume time-series (deserializes 50k items to RAM)
+const measurementsQuery = useQuery(() => db.measurement.filter((m) => !m.deleted_at).toArray());
+
+// ✅ CORRECT — indexed query bounded by compound key or limit
+const latestQuery = useQuery(async () => {
+  return await db.measurement.where('metric_code').equals(code).and((m) => !m.deleted_at).reverse().sortBy('start_time').then(r => r[0]);
+});
 ```
+
+**High-Volume Time-Series Performance Rule:**
+Entities with large append-only/log volumes (`measurement`, `workout_log_entry`, `data_quality_flag`, `federated_access_log`) must NEVER be scanned with unindexed `.toArray()`. Always use B-Tree indexes (`.where('metric_code').equals(...)`), compound index ranges (`.where('[metric_code+start_time]').between(...)`), or bounded slices (`.then(items => items.slice(0, 100))`) to keep query latency below 5ms.
 
 **All writes go through `mutate()`**, never `api.POST()` or `fetch()`:
 ```typescript

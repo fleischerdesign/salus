@@ -24,15 +24,17 @@
   let group = $derived(METRIC_GROUPS.find((g) => g.key === groupKey) || METRIC_GROUPS[0]);
   let subCodes = $derived(group.subMetrics.map((m) => m.code));
 
-  // Reactive Dexie measurements for all submetrics in this group
+  // Reactive Dexie measurements for all submetrics in this group (Top 100)
   const groupMeasurementsQuery = useQuery(
-    () =>
-      db.measurement
+    async () => {
+      const items = await db.measurement
         .where('metric_code')
         .anyOf(subCodes)
         .and((m) => !m.deleted_at)
         .reverse()
-        .sortBy('start_time'),
+        .sortBy('start_time');
+      return items.slice(0, 100);
+    },
     () => groupKey
   );
   const groupMeasurements = $derived(groupMeasurementsQuery.value ?? []);

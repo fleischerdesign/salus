@@ -61,15 +61,17 @@
   );
   const goal = $derived(goalQuery.value);
 
-  // Reactive Dexie Real Measurements Query (Chronological reverse)
+  // Reactive Dexie Real Measurements Query (Chronological reverse, top 100)
   const measurementsQuery = useQuery(
-    () =>
-      db.measurement
+    async () => {
+      const items = await db.measurement
         .where('metric_code')
         .equals(metricCode)
         .and((m) => !m.deleted_at)
         .reverse()
-        .sortBy('start_time'),
+        .sortBy('start_time');
+      return items.slice(0, 100);
+    },
     () => metricCode
   );
   const measurements = $derived(measurementsQuery.value ?? []);
