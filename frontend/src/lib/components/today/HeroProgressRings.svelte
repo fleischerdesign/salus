@@ -140,14 +140,26 @@
 </script>
 
 <div
-  class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="flex flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-2 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="show-chart" class="text-[var(--color-primary)]" />
-      <span>Tages-Status Ringe</span>
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);"
+      >
+        <Icon name="emoji-events" size="md" />
+      </div>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Hero Ziel-Ringe
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">Tages-Status der Hauptziele</p>
+      </div>
     </div>
-    <Badge variant={avgPercent >= 70 ? 'success' : 'default'}>{avgPercent}% Schnitt</Badge>
+    <Badge variant={avgPercent >= 70 ? 'success' : 'default'} class="text-[0.625rem] font-bold">
+      {avgPercent}% Schnitt
+    </Badge>
   </div>
 
   <div class="relative mx-auto my-2 flex h-[180px] w-[180px] items-center justify-center">

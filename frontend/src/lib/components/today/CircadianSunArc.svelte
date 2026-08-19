@@ -38,49 +38,40 @@
 </script>
 
 <div
-  class="mb-5 space-y-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] transition-all"
 >
-  <!-- Header with Alignment Score & Phase Status -->
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-3">
+  <!-- Standardized Header -->
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
       <div
-        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-circadian)]/15 text-[var(--color-circadian)]"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-circadian) 12%, transparent); color: var(--color-circadian);"
       >
-        <Icon name="wb-sunny" size={20} />
+        <Icon name="wb-sunny" size="md" />
       </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h2 class="text-sm font-extrabold text-[var(--text-main)]">
-            Zirkadianer 24h-Sonnenbogen
-          </h2>
-          <Badge variant="success" class="!bg-emerald-500/10 font-bold !text-emerald-500">
-            {alignmentScore}% Alignment • Exzellent
-          </Badge>
-        </div>
-        <p class="mt-0.5 text-xs text-[var(--text-muted)]">
-          NOAA Solar Engine • Sonnenaufgang {solar.sunrise} • Sonnenuntergang {solar.sunset}
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Zirkadianer 24h-Sonnenbogen
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">
+          Aufgang {solar.sunrise} &bull; Untergang {solar.sunset} &bull; {alignmentScore}% Alignment
         </p>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2">
       <Badge
         variant="fasting"
-        class="!bg-[var(--color-circadian-soft)] !text-[var(--color-circadian)]"
+        class="hidden text-[0.625rem] font-bold !text-[var(--color-circadian)] sm:inline-flex"
       >
         {activePhase}
       </Badge>
       <button
         type="button"
         onclick={() => (showWindows = !showWindows)}
-        class="ml-1 flex cursor-pointer items-center gap-1 text-xs font-bold text-[var(--color-primary)] hover:underline"
+        class="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-[0.6875rem] font-bold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)]"
       >
-        <span>{showWindows ? 'Details schließen' : 'Physiologische Zeitfenster'}</span>
-        <Icon
-          name="expand-more"
-          size={12}
-          class="transition-transform {showWindows ? 'rotate-180' : ''}"
-        />
+        {showWindows ? 'Schließen' : 'Zeitfenster'}
       </button>
     </div>
   </div>
@@ -96,27 +87,27 @@
       >
         <div class="flex items-center justify-between">
           <span class="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
-            <Icon name="wb-sunny" size={14} class="text-[var(--color-circadian)]" /> Morgenlicht
+            <Icon name="wb-sunny" size="sm" class="text-[var(--color-circadian)]" /> Morgenlicht
           </span>
-          <span class="font-bold text-[var(--color-circadian)]">{solar.sunrise} - 08:30</span>
+          <span class="font-bold text-[var(--color-circadian)]">{solar.sunrise}</span>
         </div>
         <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
-          10.000+ Lux Tageslicht unterdrückt Rest-Melatonin und startet den 16h Wach-Timer.
+          10–15 Min. direktes Sonnenlicht stoppt Melatonin und startet den 14h-Timer.
         </p>
       </div>
 
-      <!-- 2. Essensfenster -->
+      <!-- 2. Peak Fokus -->
       <div
         class="space-y-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-2.5"
       >
         <div class="flex items-center justify-between">
           <span class="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
-            <Icon name="restaurant" size={14} class="text-[var(--color-primary)]" /> Essensfenster (TRF)
+            <Icon name="psychology" size="sm" class="text-[var(--color-primary)]" /> Fokus-Fenster
           </span>
-          <span class="font-bold text-[var(--color-primary)]">08:00 - 18:30</span>
+          <span class="font-bold text-[var(--color-primary)]">10:00–12:30</span>
         </div>
         <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
-          Ende 4h vor Schlaf schont die zelluläre Autophagie und Schlafarchitektur.
+          Cortisol-Plateau &amp; maximale neuronale Signalübertragung für Tiefenarbeit.
         </p>
       </div>
 
@@ -126,12 +117,12 @@
       >
         <div class="flex items-center justify-between">
           <span class="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
-            <Icon name="wb-sunny" size={14} class="text-[var(--color-activity)]" /> Koffein-Cutoff
+            <Icon name="coffee" size="sm" class="text-[var(--color-activity)]" /> Koffein-Cutoff
           </span>
           <span class="font-bold text-[var(--color-activity)]">14:30</span>
         </div>
         <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
-          5.5h Halbwertszeit zur Vermeidung von Adenosin-Rezeptor Blockaden im Tiefschlaf.
+          5.5h Halbwertszeit zur Vermeidung von Rezeptorblockaden im Tiefschlaf.
         </p>
       </div>
 
@@ -141,21 +132,25 @@
       >
         <div class="flex items-center justify-between">
           <span class="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
-            <Icon name="bedtime" size={14} class="text-[var(--color-vital)]" /> Melatonin Onset
+            <Icon name="bedtime" size="sm" class="text-[var(--color-vital)]" /> Melatonin Onset
           </span>
-          <span class="font-bold text-[var(--color-vital)]">22:30</span>
+          <span class="font-bold text-[var(--color-vital)]">{solar.sunset}</span>
         </div>
         <p class="text-[0.6875rem] leading-tight text-[var(--text-muted)]">
-          Natürlicher Peak 4h nach Sonnenuntergang. Blaulichtfilter ab 21:00 empfohlen.
+          Natürlicher Peak nach Sonnenuntergang. Blaulichtreduktion ab 21:00 empfohlen.
         </p>
       </div>
     </div>
   {/if}
 
-  <!-- Responsive Arc Stage (Zero SVG Distortion) -->
-  <div class="relative h-[120px] w-full pt-1 select-none sm:h-[135px]">
-    <!-- Background SVG Curve (Pure Geometry with non-scaling-stroke) -->
-    <svg class="h-[90px] w-full overflow-visible" viewBox="0 0 1000 100" preserveAspectRatio="none">
+  <!-- Responsive Arc Stage (Zero SVG Distortion, Mobile Optimized) -->
+  <div class="relative h-[110px] w-full pt-1 select-none sm:h-[125px]">
+    <!-- Background SVG Curve -->
+    <svg
+      class="h-[75px] w-full overflow-visible sm:h-[85px]"
+      viewBox="0 0 1000 100"
+      preserveAspectRatio="none"
+    >
       <defs>
         <!-- Warm Solar Daylight Gradient -->
         <linearGradient id="circadianDayGlow" x1="0" y1="0" x2="0" y2="1">
@@ -183,7 +178,7 @@
         stroke="var(--border-strong)"
         stroke-width="2"
         stroke-linecap="round"
-        opacity="0.5"
+        opacity="0.4"
       />
 
       <!-- Daylight Area Fill under Curve -->
@@ -206,45 +201,49 @@
     >
       <div class="relative flex items-center justify-center">
         <div
-          class="absolute h-10 w-10 animate-ping rounded-full bg-[var(--color-circadian)] opacity-25"
+          class="absolute h-9 w-9 animate-ping rounded-full bg-[var(--color-circadian)] opacity-25"
         ></div>
-        <div class="h-7 w-7 rounded-full bg-[var(--color-circadian)] opacity-35 blur-xs"></div>
+        <div class="h-6 w-6 rounded-full bg-[var(--color-circadian)] opacity-35 blur-xs"></div>
         <div
           class="absolute h-3.5 w-3.5 rounded-full border-2 border-[var(--color-circadian)] bg-white shadow-sm"
         ></div>
       </div>
     </div>
 
-    <!-- RESPONSIVE TYPOGRAPHIC LABELS -->
+    <!-- RESPONSIVE TYPOGRAPHIC LABELS (Never Overflows) -->
     <div
-      class="absolute inset-x-0 bottom-0 flex justify-between px-2 text-xs font-semibold select-none"
+      class="absolute inset-x-0 bottom-0 flex items-end justify-between px-1 text-xs font-semibold select-none"
     >
-      <div class="flex -translate-x-2 flex-col items-center">
-        <span class="mb-1 h-2 w-1 rounded-full bg-[var(--border-strong)]"></span>
-        <span class="text-[0.6875rem] whitespace-nowrap text-[var(--text-muted)]"
-          >{solar.sunrise} Morgenlicht</span
-        >
+      <!-- Sunrise (Left-aligned) -->
+      <div class="flex flex-col items-start text-left">
+        <span class="mb-1 h-1.5 w-1.5 rounded-full bg-[var(--border-strong)]"></span>
+        <span class="text-[0.625rem] font-medium text-[var(--text-muted)] sm:text-[0.6875rem]">
+          {solar.sunrise} <span class="hidden sm:inline">Morgenlicht</span>
+        </span>
       </div>
 
-      <div class="flex flex-col items-center">
+      <!-- Peak Focus (Center) -->
+      <div class="hidden flex-col items-center sm:flex">
         <span class="mb-1 h-1.5 w-1.5 rounded-full bg-[var(--color-circadian)]"></span>
-        <span class="text-[0.6875rem] font-bold whitespace-nowrap text-[var(--color-circadian)]"
-          >10:00 Peak Fokus</span
-        >
+        <span class="text-[0.6875rem] font-bold text-[var(--color-circadian)]">
+          10:00 Peak Fokus
+        </span>
       </div>
 
+      <!-- Caffeine Cutoff (Center-Right) -->
       <div class="flex flex-col items-center">
         <span class="mb-1 h-1.5 w-1.5 rounded-full bg-[var(--color-activity)]"></span>
-        <span class="text-[0.6875rem] font-bold whitespace-nowrap text-[var(--color-activity)]"
-          >14:30 Koffein-Cutoff</span
-        >
+        <span class="text-[0.625rem] font-bold text-[var(--color-activity)] sm:text-[0.6875rem]">
+          14:30 <span class="hidden sm:inline">Koffein-Stop</span>
+        </span>
       </div>
 
-      <div class="flex translate-x-2 flex-col items-center">
-        <span class="mb-1 h-2 w-1 rounded-full bg-[var(--border-strong)]"></span>
-        <span class="text-[0.6875rem] whitespace-nowrap text-[var(--text-muted)]"
-          >{solar.sunset} Sonnenuntergang</span
-        >
+      <!-- Sunset (Right-aligned, zero translation) -->
+      <div class="flex flex-col items-end text-right">
+        <span class="mb-1 h-1.5 w-1.5 rounded-full bg-[var(--border-strong)]"></span>
+        <span class="text-[0.625rem] font-medium text-[var(--text-muted)] sm:text-[0.6875rem]">
+          {solar.sunset} <span class="hidden sm:inline">Sonnenuntergang</span>
+        </span>
       </div>
     </div>
   </div>
