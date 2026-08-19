@@ -22,14 +22,24 @@
 </script>
 
 <div
-  class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-[16px_20px] shadow-[var(--shadow-card)]"
+  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-3 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-[0.8125rem] font-bold text-[var(--text-main)]">
-      <Icon name="check" class="text-[var(--color-success)]" />
-      <span>Jahres-Konsistenz & Habit-Matrix (52 Wochen)</span>
+  <div class="mb-3 flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success);"
+      >
+        <Icon name="calendar-month" size="md" />
+      </div>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Jahres-Konsistenz &amp; Habit-Matrix
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">52-Wochen Aktivitäts-Heatmap</p>
+      </div>
     </div>
-    <Badge variant="success">384 Check-ins</Badge>
+    <Badge variant="success" class="text-[0.625rem] font-bold">384 Check-ins</Badge>
   </div>
 
   <!-- Heatmap Matrix Grid -->

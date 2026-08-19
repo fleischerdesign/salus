@@ -54,14 +54,24 @@
 </script>
 
 <div
-  class="flex h-full flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-[18px] shadow-[var(--shadow-card)]"
+  class="flex h-full flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-3 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="timer" class="text-[var(--color-fasting)]" />
-      <span>Intervallfasten</span>
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-fasting) 12%, transparent); color: var(--color-fasting);"
+      >
+        <Icon name="schedule" size="md" />
+      </div>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Intervallfasten &amp; Autophagie
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">Metabolische Fastenuhr</p>
+      </div>
     </div>
-    <Badge variant={activeSession ? 'fasting' : 'default'}>
+    <Badge variant={activeSession ? 'fasting' : 'default'} class="text-[0.625rem] font-bold">
       {activeSession ? (elapsedHours >= 18 ? 'Autophagie' : 'Fasten aktiv') : 'Inaktiv'}
     </Badge>
   </div>

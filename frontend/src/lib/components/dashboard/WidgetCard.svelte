@@ -52,13 +52,11 @@
         </div>
       {/if}
       <div class="min-w-0">
-        <h3
-          class="truncate text-xs font-extrabold tracking-tight text-[var(--text-main)] uppercase"
-        >
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
           {title}
         </h3>
         {#if subtitle}
-          <p class="truncate text-[0.6875rem] text-[var(--text-muted)]">{subtitle}</p>
+          <p class="truncate text-xs text-[var(--text-muted)]">{subtitle}</p>
         {/if}
       </div>
     </div>

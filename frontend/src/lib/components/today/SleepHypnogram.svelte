@@ -28,28 +28,35 @@
 </script>
 
 <div
-  class="space-y-3.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-2 text-sm font-bold text-[var(--text-main)]">
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
       <div
-        class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-sleep) 12%, transparent); color: var(--color-sleep);"
       >
-        <Icon name="bedtime" size={16} />
+        <Icon name="bedtime" size="md" />
       </div>
-      <div>
-        <span class="block">Schlafarchitektur und Erholung</span>
-        <span class="text-xs font-normal text-[var(--text-muted)]">
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Schlafarchitektur und Erholung
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">
           {hasSleepData ? 'Schlaf-Tracking aktiv' : 'Noch keine Schlafaufzeichnung für diese Nacht'}
-        </span>
+        </p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2">
       {#if hasSleepData}
-        {#if hrv !== null}<Badge variant="success">HRV: {hrv} ms</Badge>{/if}
-        <Badge variant="primary">{duration} ({score}% Score)</Badge>
+        {#if hrv !== null}<Badge variant="success" class="text-[0.625rem] font-bold"
+            >HRV: {hrv} ms</Badge
+          >{/if}
+        <Badge variant="primary" class="text-[0.625rem] font-bold"
+          >{duration} ({score}% Score)</Badge
+        >
       {:else}
-        <Badge variant="default">Keine Schlafdaten</Badge>
+        <Badge variant="default" class="text-[0.625rem] font-bold">Keine Schlafdaten</Badge>
       {/if}
     </div>
   </div>

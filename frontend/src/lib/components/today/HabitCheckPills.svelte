@@ -42,21 +42,27 @@
 </script>
 
 <div
-  class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
+  class="space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-3 flex items-center justify-between">
-    <div class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+  <div class="mb-1 flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
       <div
-        class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success);"
       >
-        <Icon name="check" size="sm" />
+        <Icon name="check" size="md" />
       </div>
-      <span>Tägliche Gewohnheiten (Habits)</span>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Tägliche Gewohnheiten (Habits)
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">Routinen &amp; Check-ins</p>
+      </div>
     </div>
     {#if habits.length > 0}
-      <Badge variant="success" class="text-xs font-bold"
-        >{doneCount} von {habits.length} erledigt</Badge
-      >
+      <Badge variant="success" class="text-[0.625rem] font-bold">
+        {doneCount} von {habits.length} erledigt
+      </Badge>
     {/if}
   </div>
 

@@ -22,14 +22,24 @@
 </script>
 
 <div
-  class="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-[18px] shadow-[var(--shadow-card)]"
+  class="flex flex-col justify-between space-y-4 rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-3 flex items-center justify-between">
-    <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-      <Icon name="water-drop" class="text-[var(--color-hydrate)]" />
-      <span>Wasserhaushalt</span>
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-hydrate) 12%, transparent); color: var(--color-hydrate);"
+      >
+        <Icon name="water-drop" size="md" />
+      </div>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Wasserhaushalt
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">Tägliche Flüssigkeitszufuhr</p>
+      </div>
     </div>
-    <Badge variant="hydrate">{percentage}% Soll</Badge>
+    <Badge variant="hydrate" class="text-[0.625rem] font-bold">{percentage}% Soll</Badge>
   </div>
 
   <!-- Physical Glass Container with Sine Wave -->

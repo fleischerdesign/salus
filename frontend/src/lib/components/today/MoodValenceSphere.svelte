@@ -58,18 +58,24 @@
 <div
   class="flex flex-col justify-between rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
 >
-  <div class="mb-2 flex items-center justify-between">
-    <div class="flex items-center gap-2 text-sm font-extrabold text-[var(--text-main)]">
+  <div class="mb-2 flex items-start justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
       <div
-        class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-circadian-soft)]/20 text-[var(--color-circadian)]"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl shadow-2xs"
+        style="background-color: color-mix(in srgb, var(--color-circadian) 12%, transparent); color: var(--color-circadian);"
       >
-        <Icon name="insights" size="sm" />
+        <Icon name="insights" size="md" />
       </div>
-      <span>Psychobiometrie (Valenz &amp; Energie)</span>
+      <div class="min-w-0">
+        <h3 class="truncate text-sm font-extrabold tracking-tight text-[var(--text-main)]">
+          Psychobiometrie (Stimmung)
+        </h3>
+        <p class="truncate text-xs text-[var(--text-muted)]">Valenz &amp; Erregung</p>
+      </div>
     </div>
     <Badge
       variant="fasting"
-      class="!bg-[var(--color-circadian-soft)] text-xs font-bold !text-[var(--color-circadian)]"
+      class="!bg-[var(--color-circadian-soft)] text-[0.625rem] font-bold !text-[var(--color-circadian)]"
     >
       {label}
     </Badge>
