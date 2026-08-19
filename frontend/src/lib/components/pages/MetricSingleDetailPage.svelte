@@ -50,6 +50,9 @@
         : undefined
   );
 
+  const PAGE_SIZE = 25;
+  let currentPage = $state(1);
+
   // Reactive Dexie Goal Query
   const goalQuery = useQuery(
     () =>
@@ -62,7 +65,33 @@
   );
   const goal = $derived(goalQuery.value);
 
-  // High-performance compound-index query (exact top 50 entries in 1ms)
+  // Instant O(1) query for absolute latest measurement
+  const latestQuery = useQuery(
+    () =>
+      db.measurement
+        .where('[metric_code+start_time]')
+        .between([metricCode, Dexie.minKey], [metricCode, Dexie.maxKey])
+        .and((m) => !m.deleted_at)
+        .last(),
+    () => metricCode
+  );
+  const latestMeasurement = $derived(latestQuery.value);
+  const currentVal = $derived(latestMeasurement?.value_numeric ?? null);
+
+  // Total count for pagination
+  const countQuery = useQuery(
+    () =>
+      db.measurement
+        .where('[metric_code+start_time]')
+        .between([metricCode, Dexie.minKey], [metricCode, Dexie.maxKey])
+        .and((m) => !m.deleted_at)
+        .count(),
+    () => metricCode
+  );
+  const totalCount = $derived(countQuery.value ?? 0);
+  const totalPages = $derived(Math.max(1, Math.ceil(totalCount / PAGE_SIZE)));
+
+  // High-performance compound-index paginated query (25 entries per page in 1ms)
   const measurementsQuery = useQuery(
     () =>
       db.measurement
@@ -70,18 +99,15 @@
         .between([metricCode, Dexie.minKey], [metricCode, Dexie.maxKey])
         .and((m) => !m.deleted_at)
         .reverse()
-        .limit(50)
+        .offset((currentPage - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
         .toArray(),
-    () => metricCode
+    () => `${metricCode}:${currentPage}`
   );
   const measurements = $derived(measurementsQuery.value ?? []);
 
   let isGoalModalOpen = $state(false);
   let isAddEntryModalOpen = $state(false);
-
-  // Derived KPIs from Real Data
-  const latestMeasurement = $derived(measurements[0]);
-  const currentVal = $derived(latestMeasurement?.value_numeric ?? null);
 
   const ema7d = $derived.by(() => {
     if (measurements.length === 0) return null;
@@ -542,6 +568,38 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      {#if totalPages > 1}
+        <div
+          class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-muted)]"
+        >
+          <span class="text-[0.6875rem]">
+            Seite <span class="font-bold text-[var(--text-main)]">{currentPage}</span> von{' '}
+            <span class="font-bold text-[var(--text-main)]">{totalPages}</span> ({totalCount} Messwerte)
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              onclick={() => (currentPage = Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Icon name="chevron-left" size="sm" />
+              <span>Zurück</span>
+            </button>
+            <button
+              type="button"
+              onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span>Weiter</span>
+              <Icon name="chevron-right" size="sm" />
+            </button>
+          </div>
+        </div>
+      {/if}
     {/if}
   </div>
 </div>

@@ -25,7 +25,51 @@
   let group = $derived(METRIC_GROUPS.find((g) => g.key === groupKey) || METRIC_GROUPS[0]);
   let subCodes = $derived(group.subMetrics.map((m) => m.code));
 
-  // High-performance compound-index queries across submetrics
+  const PAGE_SIZE = 25;
+  let currentPage = $state(1);
+
+  // Total count across all submetrics in this group
+  const countQuery = useQuery(
+    async () => {
+      const counts = await Promise.all(
+        subCodes.map((code) =>
+          db.measurement
+            .where('[metric_code+start_time]')
+            .between([code, Dexie.minKey], [code, Dexie.maxKey])
+            .and((m) => !m.deleted_at)
+            .count()
+        )
+      );
+      return counts.reduce((a, b) => a + b, 0);
+    },
+    () => groupKey
+  );
+  const totalCount = $derived(countQuery.value ?? 0);
+  const totalPages = $derived(Math.max(1, Math.ceil(totalCount / PAGE_SIZE)));
+
+  // Instant latest measurements for the summary cards
+  const latestByCodeQuery = useQuery(
+    async () => {
+      const map = new Map<string, number>();
+      await Promise.all(
+        subCodes.map(async (code) => {
+          const latest = await db.measurement
+            .where('[metric_code+start_time]')
+            .between([code, Dexie.minKey], [code, Dexie.maxKey])
+            .and((m) => !m.deleted_at)
+            .last();
+          if (latest && latest.value_numeric != null) {
+            map.set(code, latest.value_numeric);
+          }
+        })
+      );
+      return map;
+    },
+    () => groupKey
+  );
+  const latestByCode = $derived(latestByCodeQuery.value ?? new Map());
+
+  // High-performance compound-index paginated queries across submetrics
   const groupMeasurementsQuery = useQuery(
     async () => {
       const results = await Promise.all(
@@ -35,29 +79,18 @@
             .between([code, Dexie.minKey], [code, Dexie.maxKey])
             .and((m) => !m.deleted_at)
             .reverse()
-            .limit(50)
+            .limit(currentPage * PAGE_SIZE)
             .toArray()
         )
       );
       return results
         .flat()
         .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-        .slice(0, 50);
+        .slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
     },
-    () => groupKey
+    () => `${groupKey}:${currentPage}`
   );
   const groupMeasurements = $derived(groupMeasurementsQuery.value ?? []);
-
-  // Map of latest measurements by metric code
-  const latestByCode = $derived.by(() => {
-    const map = new Map<string, number>();
-    for (const m of groupMeasurements) {
-      if (m.metric_code && m.value_numeric != null && !map.has(m.metric_code)) {
-        map.set(m.metric_code, m.value_numeric);
-      }
-    }
-    return map;
-  });
 
   // Combined Form Inputs
   let val1 = $state(120);
@@ -285,6 +318,38 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      {#if totalPages > 1}
+        <div
+          class="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-muted)]"
+        >
+          <span class="text-[0.6875rem]">
+            Seite <span class="font-bold text-[var(--text-main)]">{currentPage}</span> von{' '}
+            <span class="font-bold text-[var(--text-main)]">{totalPages}</span> ({totalCount} Messwerte)
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              onclick={() => (currentPage = Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Icon name="chevron-left" size="sm" />
+              <span>Zurück</span>
+            </button>
+            <button
+              type="button"
+              onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              class="flex cursor-pointer items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-2.5 py-1 text-xs font-semibold text-[var(--text-main)] transition-all hover:bg-[var(--bg-surface-100)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span>Weiter</span>
+              <Icon name="chevron-right" size="sm" />
+            </button>
+          </div>
+        </div>
+      {/if}
     {/if}
   </div>
 </div>
