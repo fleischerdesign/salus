@@ -44,7 +44,7 @@ src/salus/
 ├── repositories/    ← Data access — Repository[T] base for SQLModel
 │   ├── entity_meta.py   ← Single source of truth: ENTITY_META → all registries + validators
 │   ├── unit_of_work.py  ← IUnitOfWork / SqlUnitOfWork (auto-commit Generator)
-│   └── ...              ← Entity-specific repositories
+├── reference_data/  ← Master data single source of truth (definitions/ + engine.py)
 ├── services/        ← Business logic — receives repos via constructor injection
 │   ├── sync.py          ← Full sync (cursor paginated) + delta sync (per-strategy security)
 │   ├── write_pipeline.py ← Sync push: create/update/delete, dedup, ownership, PK protection

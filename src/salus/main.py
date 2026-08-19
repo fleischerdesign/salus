@@ -57,12 +57,7 @@ from salus.services.background_ingestion import BackgroundIngestionService
 from salus.services.parser import FlexiblePayloadParser
 from salus.services.sharing import SharingService
 from salus.services.webhook_ingestion import WebhookIngestionService
-from salus.services.achievement.service import AchievementService
-from salus.services.metric_definition import MetricDefinitionService
-from salus.services.mood import MoodService
-from salus.services.lab import LabService
-from salus.services.food_item import FoodItemService
-from salus.services.exercise import ExerciseService
+from salus.reference_data.engine import ReferenceDataEngine
 from salus.services.scheduler import AppScheduler
 from salus.services.data_quality import (
     DataQualityCleanupJob,
@@ -219,17 +214,10 @@ async def lifespan(app: FastAPI):
             fatal=True,
         )
         _run_seeder(
-            "metric definitions",
-            lambda: MetricDefinitionService(uow).seed_definitions(),
+            "reference data",
+            lambda: ReferenceDataEngine().seed_all(startup_session),
+            fatal=True,
         )
-        _run_seeder(
-            "achievement definitions",
-            lambda: AchievementService(uow).seed_definitions(),
-        )
-        _run_seeder("mood tags", lambda: MoodService(uow).seed_tags())
-        _run_seeder("lab markers", lambda: LabService(uow).seed_markers())
-        _run_seeder("common foods", lambda: FoodItemService(uow).seed_common_foods())
-        _run_seeder("common exercises", lambda: ExerciseService(uow).seed_common_exercises())
         startup_session.commit()
     finally:
         session.close()

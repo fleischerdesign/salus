@@ -79,6 +79,17 @@ interface ReferenceFoodItem {
   sodium_mg: number | null;
 }
 
+interface ReferenceExercise {
+  id: string;
+  name: string;
+  equipment: string;
+  primary_muscles: string;
+  secondary_muscles: string | null;
+  description: string | null;
+  instructions: string | null;
+  suggested_rest_seconds: number;
+}
+
 interface ReferenceData {
   version: number;
   metric_group: ReferenceMetricGroup[];
@@ -87,6 +98,7 @@ interface ReferenceData {
   mood_tag: ReferenceMoodTag[];
   lab_marker: ReferenceLabMarker[];
   food_item: ReferenceFoodItem[];
+  exercise?: ReferenceExercise[];
   metric_preference_defaults: ReferenceMetricPreferenceDefault[];
 }
 
@@ -125,6 +137,20 @@ export async function seedReferenceData(): Promise<void> {
         is_verified: true,
         user_id: null,
         source: 'system',
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
+  }
+  if (data.exercise && (await db.exercise.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.exercise.bulkPut(
+      data.exercise.map((e) => ({
+        ...e,
+        video_url: null,
+        image_url: null,
+        user_id: null,
         created_at: now,
         updated_at: null,
         deleted_at: null

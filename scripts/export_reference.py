@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Export code-defined reference data to a JSON bundle for the frontend.
 
-The Python seed constants (metric_type_mapping.py, achievement/definitions.py,
-mood.py) are the canonical source of truth. This script projects them into a
+The Python reference definitions (src/salus/reference_data/definitions/)
+are the canonical single source of truth. This script projects them into a
 single versioned JSON that the SPA bundles and seeds into Dexie on first launch
-(empty store), so the app renders its metric/achievement structure without a
-first full sync — required for Local Mode and a faster first paint.
+(empty store), so the app renders its complete reference structure without a
+first full sync — required for Local Mode and instant offline cold start.
 
 Usage:
     uv run python scripts/export_reference.py [output_path]
@@ -17,16 +17,25 @@ import sys
 from pathlib import Path
 
 from salus.models import DataType
-from salus.services.achievement.definitions import ACHIEVEMENT_DEFINITIONS
-from salus.services.lab_reference import LAB_MARKERS
-from salus.services.metric_type_mapping import (
+from salus.reference_data.definitions.achievements import ACHIEVEMENT_DEFINITIONS
+from salus.reference_data.definitions.exercises import COMMON_EXERCISES
+from salus.reference_data.definitions.foods import COMMON_FOODS
+from salus.reference_data.definitions.lab_markers import LAB_MARKERS
+from salus.reference_data.definitions.metrics import (
     DEFAULT_METRIC_PREFERENCES,
     METRIC_DEFINITIONS,
     METRIC_GROUPS,
 )
-from salus.services.mood import DEFAULT_MOOD_TAGS
+from salus.reference_data.definitions.mood_tags import DEFAULT_MOOD_TAGS
 
-DEFAULT_OUTPUT = Path(__file__).resolve().parent.parent / "frontend" / "src" / "lib" / "reference" / "reference.json"
+DEFAULT_OUTPUT = (
+    Path(__file__).resolve().parent.parent
+    / "frontend"
+    / "src"
+    / "lib"
+    / "reference"
+    / "reference.json"
+)
 
 
 def _metric_groups() -> list[dict]:
@@ -46,18 +55,24 @@ def _metric_definitions() -> list[dict]:
     out = []
     for md in METRIC_DEFINITIONS:
         data_type = md["data_type"]
-        out.append({
-            "code": md["code"],
-            "name": md["name"],
-            "unit": md.get("unit", ""),
-            "data_type": data_type.value if isinstance(data_type, DataType) else str(data_type),
-            "source_data_type": md.get("source_data_type"),
-            "group_key": md.get("group_key"),
-            "description": None,
-            "sort_order": md.get("sort_order", 0),
-            "min_value": md.get("min_value"),
-            "max_value": md.get("max_value"),
-        })
+        out.append(
+            {
+                "code": md["code"],
+                "name": md["name"],
+                "unit": md.get("unit", ""),
+                "data_type": (
+                    data_type.value
+                    if isinstance(data_type, DataType)
+                    else str(data_type)
+                ),
+                "source_data_type": md.get("source_data_type"),
+                "group_key": md.get("group_key"),
+                "description": None,
+                "sort_order": md.get("sort_order", 0),
+                "min_value": md.get("min_value"),
+                "max_value": md.get("max_value"),
+            }
+        )
     return out
 
 
@@ -107,6 +122,41 @@ def _lab_markers() -> list[dict]:
     ]
 
 
+def _common_foods() -> list[dict]:
+    return [
+        {
+            "id": f["id"],
+            "name": f["name"],
+            "serving_size": f.get("serving_size", 100),
+            "calories_per_serving": f.get("calories_per_serving", 0),
+            "protein_g": f.get("protein_g", 0),
+            "carbs_g": f.get("carbs_g", 0),
+            "fat_g": f.get("fat_g", 0),
+            "fiber_g": f.get("fiber_g"),
+            "sugar_g": f.get("sugar_g"),
+            "saturated_fat_g": f.get("saturated_fat_g"),
+            "sodium_mg": f.get("sodium_mg"),
+        }
+        for f in COMMON_FOODS
+    ]
+
+
+def _common_exercises() -> list[dict]:
+    return [
+        {
+            "id": e["id"],
+            "name": e["name"],
+            "equipment": e.get("equipment", "barbell"),
+            "primary_muscles": e["primary_muscles"],
+            "secondary_muscles": e.get("secondary_muscles"),
+            "description": e.get("description"),
+            "instructions": e.get("instructions"),
+            "suggested_rest_seconds": e.get("suggested_rest_seconds", 120),
+        }
+        for e in COMMON_EXERCISES
+    ]
+
+
 def _metric_preference_defaults() -> list[dict]:
     return [
         {
@@ -130,6 +180,8 @@ def build_reference() -> dict:
         "achievement_definition": _achievement_definitions(),
         "mood_tag": _mood_tags(),
         "lab_marker": _lab_markers(),
+        "food_item": _common_foods(),
+        "exercise": _common_exercises(),
         "metric_preference_defaults": _metric_preference_defaults(),
     }
 
@@ -137,7 +189,10 @@ def build_reference() -> dict:
 def main() -> None:
     output = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUTPUT
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(build_reference(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(build_reference(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"Reference data written to {output}", file=sys.stderr)
 
 
