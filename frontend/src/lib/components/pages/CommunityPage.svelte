@@ -313,7 +313,7 @@
           ? 'bg-[var(--bg-surface-0)] text-[var(--color-primary)] shadow-sm'
           : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}"
       >
-        <Icon name="sun" class="text-[var(--color-circadian)]" />
+        <Icon name="wb-sunny" class="text-[var(--color-circadian)]" />
         <span>Challenges &amp; Ranglisten</span>
       </a>
 
@@ -463,7 +463,7 @@
             class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
           >
             <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-              <Icon name="sun" class="text-[var(--color-primary)]" />
+              <Icon name="wb-sunny" class="text-[var(--color-primary)]" />
               <span>Challenge beitreten</span>
             </div>
             <p class="mb-3 text-xs text-[var(--text-muted)]">
@@ -482,7 +482,7 @@
             class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
           >
             <div class="mb-2 flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
-              <Icon name="plus" class="text-[var(--color-activity)]" />
+              <Icon name="add" class="text-[var(--color-activity)]" />
               <span>Neue Challenge erstellen</span>
             </div>
             <div class="space-y-3">

@@ -8,9 +8,10 @@
   import Modal from '$components/ui/Modal.svelte';
   import Icon from '$components/ui/Icon.svelte';
   import Btn from '$components/ui/Btn.svelte';
+  import Badge from '$components/ui/Badge.svelte';
   import Spinner from '$components/ui/Spinner.svelte';
-  import StatusDot from '$components/ui/StatusDot.svelte';
-  import { resolveColor } from '$lib/theme/colors';
+  import { toast } from '$components/ui/toast-state.svelte';
+  import { toastSettings } from '$stores/toast-settings.svelte';
 
   interface KnownSource {
     id: string;
@@ -87,8 +88,6 @@
     };
   }
 
-  // Permissions are granted in the system Health Connect screen; refresh when the modal
-  // (re)gains focus so the status reflects the latest grant state.
   $effect(() => {
     if (!open || source?.id !== 'health_connect' || !isNativeAndroid) return;
     const refresh = () => void loadPermissionState();
@@ -100,38 +99,12 @@
     };
   });
 
-  async function handleOpenSettings() {
-    const ok = await healthSyncService.openHealthConnectSettings();
-    await loadPermissionState();
-    if (!ok) {
-      syncFeedback = {
-        type: 'error',
-        text: 'Could not open Health Connect settings on this device.'
-      };
-    }
-  }
-
   $effect(() => {
     const val = sourceData;
     if (val) {
       metricsSupplied = val.supplied;
-      lastSyncTime = val.lastTime ? new Date(val.lastTime).toLocaleString() : null;
+      lastSyncTime = val.lastTime;
     }
-  });
-
-  $effect(() => {
-    if (!open || !source) return;
-    isSourceEnabled(source.id).then((s) => (sourceStatus = s));
-  });
-
-  // When a background history import finishes, re-run the diagnostics query with fresh stats.
-  let wasSeeding = $state(false);
-  $effect(() => {
-    const isSeeding = healthSyncUi.seedProgress !== null;
-    if (wasSeeding && !isSeeding) {
-      refreshTick += 1;
-    }
-    wasSeeding = isSeeding;
   });
 
   async function refreshStatus() {
@@ -140,13 +113,30 @@
     onStatusChange?.();
   }
 
+  $effect(() => {
+    if (open && source) {
+      refreshStatus();
+    }
+  });
+
+  async function handleOpenSettings() {
+    await healthSyncService.openHealthConnectSettings();
+  }
+
   async function handleRequestPermissions() {
     requestingPerms = true;
     syncFeedback = null;
     try {
-      await healthSyncService.requestPermissions();
+      const granted = await healthSyncService.requestPermissions();
+      healthConnectGranted = granted;
       await loadPermissionState();
       await reportDeviceSourceStatus();
+      syncFeedback = {
+        type: granted ? 'success' : 'error',
+        text: granted
+          ? 'Health Connect Berechtigungen erfolgreich erteilt.'
+          : 'Einige oder alle Health Connect Berechtigungen wurden abgelehnt.'
+      };
       await refreshStatus();
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
@@ -155,9 +145,6 @@
       requestingPerms = false;
     }
   }
-
-  import { toast } from '$components/ui/toast-state.svelte';
-  import { toastSettings } from '$stores/toast-settings.svelte';
 
   async function handleSyncNow() {
     syncing = true;
@@ -172,8 +159,6 @@
         toast(res.message, res.success ? (res.count > 0 ? 'success' : 'info') : 'error');
       }
       if (res.success) {
-        // Refresh diagnostics once the background stats recompute lands; the button itself
-        // must not block on it.
         void scheduleStatsRefresh().then(() => {
           refreshTick += 1;
         });
@@ -185,7 +170,7 @@
       const err = e instanceof Error ? e.message : String(e);
       syncFeedback = { type: 'error', text: err };
       if (toastSettings.healthConnect) {
-        toast(`Health Connect sync failed: ${err}`, 'error');
+        toast(`Health Connect Synchronisation fehlgeschlagen: ${err}`, 'error');
       }
     } finally {
       syncing = false;
@@ -194,65 +179,67 @@
 
   const INACTIVE_GUIDES: Record<string, string> = {
     health_connect:
-      'Open Android Settings -> Privacy -> Health Connect -> Grant Salus read permissions for Health & Fitness data.',
+      'Öffne Android-Einstellungen -> Datenschutz -> Health Connect -> Gewähre Salus Lese- und Schreibzugriff für Gesundheits- und Fitnessdaten.',
     apple_health:
-      'Open Apple Health app on iOS -> Tapping Sharing -> Apps & Services -> Salus -> Enable All Categories.',
+      'Öffne die Apple Health App auf iOS -> Tippe auf Teilen -> Apps & Dienste -> Salus -> Alle Kategorien aktivieren.',
     samsung_health:
-      'Ensure Samsung Health is connected to Health Connect on Android to sync steps and sleep automatically.',
-    oura: 'Connect your Oura Ring Personal Access Token or OAuth2 account in Salus Integrations.',
-    garmin: 'Authorize Salus Garmin Connect API bridge in settings.',
-    manual: 'Log entries manually via the "+ New Entry" button on any Metric detail page.',
-    seed: 'Use "just seed-dev" CLI command to populate dev sample data.'
+      'Stelle sicher, dass Samsung Health mit Health Connect auf Android verbunden ist, um Schritte und Schlafdaten automatisch zu übertragen.',
+    oura: 'Hinterlege deinen Oura Ring Personal Access Token oder richte den Webhook-Push in den Salus Einstellungen ein.',
+    garmin:
+      'Verbinde deine Garmin Connect Schnittstelle oder nutze den automatischen Health Connect Datenabgleich.',
+    manual:
+      'Erfasse Messwerte manuell über den Button „+ Neuer Eintrag“ auf jeder Metrik-Detailseite.',
+    seed: 'Verwende den Befehl „just seed-dev“ im Terminal, um Entwicklungs-Testdaten zu generieren.',
+    webhook:
+      'Sende JSON-Payloads via POST /api/v1/webhook mit dem Header X-API-Token: salus_pat_...'
   };
 </script>
 
 {#if source}
-  <Modal bind:open title="{source.name} — Source Diagnostics" onclose={onClose} size="md">
+  <Modal bind:open title="{source.name} — Quellen-Diagnose" onclose={onClose} size="md">
     {#if loading}
       <div class="flex items-center justify-center py-12">
         <Spinner size="lg" />
       </div>
     {:else}
-      <div class="space-y-6">
+      <div class="space-y-5">
         <!-- Header Info Card -->
         <div
-          class="border-surface-200 bg-surface-50 flex items-center justify-between rounded-lg border p-4"
+          class="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
         >
           <div class="flex items-center gap-3">
             <div
-              class="flex h-11 w-11 items-center justify-center rounded-lg text-white shadow-2xs"
-              style="background-color: {count > 0 ? resolveColor(source.color) : '#9ca3af'}"
+              class="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-xs"
+              style="background-color: {count > 0 ? source.color : 'var(--text-muted)'};"
             >
               <Icon name={source.icon} size="md" />
             </div>
             <div>
-              <h3 class="text-surface-900 text-sm font-bold">
+              <h3 class="text-sm font-extrabold text-[var(--text-main)]">
                 {source.name}
               </h3>
-              <span class="text-surface-400 font-mono text-xs">ID: {source.id}</span>
+              <span class="font-mono text-xs text-[var(--text-muted)]">ID: {source.id}</span>
             </div>
           </div>
 
           <div>
             {#if sourceStatus?.enabled}
-              <span
-                class="border-success-200 bg-success-50 text-success-700 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold"
-              >
-                <span class="bg-success-500 h-2 w-2 rounded-full"></span> Connected
-              </span>
+              <Badge variant="success" class="text-xs">
+                <span class="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Verbunden
+              </Badge>
             {:else}
-              <span
-                class="bg-surface-200 text-surface-600 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-              >
-                Not connected
-              </span>
+              <Badge variant="default" class="text-xs">
+                {sourceStatus?.reason === 'missing_permissions'
+                  ? 'Berechtigung fehlt'
+                  : 'Nicht verbunden'}
+              </Badge>
             {/if}
           </div>
         </div>
 
         {#if sourceStatus?.detail}
           <p
-            class="border-surface-200 bg-surface-50 text-surface-600 rounded-lg border px-3 py-2 text-xs"
+            class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3.5 py-2.5 text-xs text-[var(--text-muted)]"
           >
             {sourceStatus.detail}
           </p>
@@ -260,22 +247,26 @@
 
         {#if syncFeedback}
           <div
-            class="rounded-lg p-3 text-xs font-medium {syncFeedback.type === 'success'
-              ? 'border-success-200 bg-success-50 text-success-800 border'
-              : 'border-error-200 bg-error-50 text-error-800 border'}"
+            class="rounded-xl border p-3.5 text-xs font-semibold {syncFeedback.type === 'success'
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400'}"
           >
             {syncFeedback.text}
           </div>
         {/if}
 
-        <!-- NATIVE HEALTH CONNECT QUICK ACTION CONTROLS -->
+        <!-- NATIVE HEALTH CONNECT CONTROLS -->
         {#if source.id === 'health_connect' && isNativeAndroid}
-          <div class=" border-primary-200 bg-primary-50/50 rounded-lg border p-4">
-            <div class="flex items-center justify-between">
+          <div
+            class="space-y-3 rounded-2xl border border-[var(--color-primary)]/30 bg-[var(--color-primary-soft)]/10 p-4"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h4 class="text-primary-900 text-xs font-bold">Android Health Connect Bridge</h4>
-                <p class="text-primary-700 mt-0.5 text-[10px]">
-                  Direct native link to Google Health Connect & Samsung Health
+                <h4 class="text-xs font-extrabold text-[var(--text-main)]">
+                  Android Health Connect Schnittstelle
+                </h4>
+                <p class="mt-0.5 text-[0.6875rem] text-[var(--text-muted)]">
+                  Direkte native Verbindung zu Google Health Connect &amp; Samsung Health
                 </p>
               </div>
               <div class="flex items-center gap-2">
@@ -287,44 +278,43 @@
                     onclick={handleRequestPermissions}
                   >
                     <Icon name="key" size="sm" class="mr-1" />
-                    Authorize
+                    Autorisieren
                   </Btn>
                 {/if}
                 <Btn variant="primary" size="sm" loading={syncing} onclick={handleSyncNow}>
                   <Icon name="sync" size="sm" class="mr-1" />
-                  Sync Now
+                  Jetzt synchronisieren
                 </Btn>
               </div>
             </div>
 
             {#if permissionState && permissionState.missingLabels.length > 0}
-              <div class="border-surface-200 bg-surface-50 mt-3 rounded-lg border p-3">
+              <div
+                class="space-y-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3"
+              >
                 <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2">
-                    <StatusDot status="warning" size="sm" />
-                    <h5 class="text-surface-900 text-xs font-bold">
-                      Data access · {permissionState.granted} categories readable
-                    </h5>
-                  </div>
+                  <h5 class="text-xs font-bold text-[var(--text-main)]">
+                    Datenzugriff &bull; {permissionState.granted} Kategorien lesbar
+                  </h5>
                   <Btn variant="secondary" size="sm" onclick={handleOpenSettings}>
                     <Icon name="settings" size="sm" class="mr-1" />
-                    Open settings
+                    System-Einstellungen
                   </Btn>
                 </div>
-                <p class="text-surface-600 mt-1.5 text-[10px] leading-relaxed">
-                  Categories not offered by Health Connect on this device are skipped automatically.
-                  Grant everything Health Connect offers to enable all possible data.
+                <p class="text-[0.6875rem] leading-relaxed text-[var(--text-muted)]">
+                  Kategorien, die auf diesem Smartphone nicht verfügbar sind, werden automatisch
+                  übersprungen.
                 </p>
-                <details class="mt-2">
+                <details class="mt-1">
                   <summary
-                    class="text-surface-500 cursor-pointer text-[10px] font-medium select-none"
+                    class="cursor-pointer text-[0.6875rem] font-bold text-[var(--color-primary)] select-none hover:underline"
                   >
-                    Show {permissionState.missingLabels.length} skipped categories
+                    {permissionState.missingLabels.length} übersprungene Kategorien anzeigen
                   </summary>
-                  <div class="mt-2 flex flex-wrap gap-1">
+                  <div class="mt-2 flex flex-wrap gap-1.5">
                     {#each permissionState.missingLabels as label (label)}
                       <span
-                        class="border-surface-200 bg-surface-100 text-surface-600 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                        class="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-100)] px-2 py-0.5 text-[0.625rem] font-medium text-[var(--text-muted)]"
                       >
                         {label}
                       </span>
@@ -337,23 +327,24 @@
         {/if}
 
         {#if healthSyncUi.seedProgress}
-          <div class="border-surface-200 bg-surface-50 rounded-lg border p-3">
+          <div
+            class="space-y-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+          >
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <Spinner size="sm" />
-                <h5 class="text-surface-900 text-xs font-bold">Importing Health Connect history</h5>
+                <h5 class="text-xs font-bold text-[var(--text-main)]">
+                  Health Connect Verlauf wird importiert…
+                </h5>
               </div>
               {#if (healthSyncUi.seedProgress?.done ?? 0) > 0}
-                <span class="text-surface-500 font-mono text-xs">
-                  {(healthSyncUi.seedProgress?.done ?? 0).toLocaleString()} measurements
+                <span class="font-mono text-xs font-bold text-[var(--text-main)] tabular-nums">
+                  {(healthSyncUi.seedProgress?.done ?? 0).toLocaleString('de-DE')} Messwerte
                 </span>
               {/if}
             </div>
-            <p class="text-surface-600 mt-1 text-[10px]">
-              First sync imports your full history. Later syncs are instant.
-            </p>
-            <div class="bg-surface-100 mt-2 h-1 w-full overflow-hidden rounded-full">
-              <div class="bg-primary-400 h-1 w-full animate-pulse rounded-full"></div>
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-200)]">
+              <div class="h-1.5 w-full animate-pulse rounded-full bg-[var(--color-primary)]"></div>
             </div>
           </div>
         {/if}
@@ -362,36 +353,48 @@
           <!-- ACTIVE SOURCE DIAGNOSTICS -->
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
-              <div class="border-surface-200 bg-surface-0 rounded-lg border p-3">
-                <span class="text-surface-500 text-[10px]">Total Measurements</span>
-                <div class="text-surface-900 mt-0.5 text-base font-bold">
-                  {count.toLocaleString()}
+              <div
+                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+              >
+                <span class="text-[0.6875rem] font-bold text-[var(--text-muted)]"
+                  >Gesamtzahl Messwerte</span
+                >
+                <div class="mt-1 text-base font-extrabold text-[var(--text-main)] tabular-nums">
+                  {count.toLocaleString('de-DE')}
                 </div>
               </div>
-              <div class="border-surface-200 bg-surface-0 rounded-lg border p-3">
-                <span class="text-surface-500 text-[10px]">Last Data Ingest</span>
-                <div class="text-surface-900 mt-1 truncate text-xs font-semibold">
-                  {lastSyncTime ?? 'Recent'}
+              <div
+                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-3.5"
+              >
+                <span class="text-[0.6875rem] font-bold text-[var(--text-muted)]"
+                  >Letzter Datenimport</span
+                >
+                <div class="mt-1 truncate text-xs font-semibold text-[var(--text-main)]">
+                  {lastSyncTime ? new Date(lastSyncTime).toLocaleString('de-DE') : 'Kürzlich'}
                 </div>
               </div>
             </div>
 
-            <div>
-              <h4 class="text-surface-700 mb-2 text-xs font-bold tracking-wider uppercase">
-                Metrics Supplied ({metricsSupplied.length})
+            <div class="space-y-2">
+              <h4 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+                Bereitgestellte Metriken ({metricsSupplied.length})
               </h4>
               <div class="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                 {#each metricsSupplied as item (item.code)}
                   <div
-                    class="border-surface-200/70 bg-surface-0 flex items-center justify-between rounded-md border px-3 py-2 text-xs"
+                    class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] px-3 py-2 text-xs"
                   >
                     <div class="flex items-center gap-2">
-                      <Icon name="monitoring" size="sm" class="text-primary-600" />
-                      <span class="text-surface-900 font-semibold">{item.name}</span>
+                      <Icon
+                        name="monitoring"
+                        size="sm"
+                        class="shrink-0 text-[var(--color-primary)]"
+                      />
+                      <span class="font-semibold text-[var(--text-main)]">{item.name}</span>
                     </div>
-                    <span class="text-surface-500 font-mono"
-                      >{item.count.toLocaleString()} entries</span
-                    >
+                    <span class="font-mono text-[0.6875rem] text-[var(--text-muted)] tabular-nums">
+                      {item.count.toLocaleString('de-DE')} Einträge
+                    </span>
                   </div>
                 {/each}
               </div>
@@ -400,33 +403,34 @@
         {:else}
           <!-- INACTIVE SOURCE DIAGNOSTICS & SETUP GUIDE -->
           <div class="space-y-4">
-            <div class="border-surface-200 bg-surface-50 rounded-lg border p-4">
-              <div class="text-surface-800 mb-1 flex items-center gap-2 text-xs font-semibold">
-                <Icon name="info" size="sm" class="text-surface-500" />
-                Connection Status
+            <div
+              class="space-y-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4"
+            >
+              <div class="flex items-center gap-2 text-xs font-bold text-[var(--text-main)]">
+                <Icon name="info" size="sm" class="text-[var(--color-primary)]" />
+                <span>Verbindungsstatus</span>
               </div>
-              <p class="text-surface-600 text-xs leading-relaxed">
-                No measurement data received from {source.name} yet. Tap Authorize / Sync Now above or
-                grant permissions in system settings to start syncing.
+              <p class="text-xs leading-relaxed text-[var(--text-muted)]">
+                Bisher wurden noch keine Messdaten von {source.name} empfangen.
               </p>
             </div>
 
-            <div>
-              <h4 class="text-surface-700 mb-2 text-xs font-bold tracking-wider uppercase">
-                Setup Instructions
+            <div class="space-y-1.5">
+              <h4 class="text-xs font-extrabold tracking-wider text-[var(--text-main)] uppercase">
+                Einrichtungs-Hinweise
               </h4>
               <div
-                class="border-surface-200 bg-surface-0 text-surface-700 rounded-lg border p-4 text-xs leading-relaxed"
+                class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-4 text-xs leading-relaxed text-[var(--text-main)]"
               >
                 {INACTIVE_GUIDES[source.id] ??
-                  'Connect this source in system integration settings.'}
+                  'Verbinde diese Quelle in den Geräteeinstellungen deines Systems.'}
               </div>
             </div>
           </div>
         {/if}
 
-        <div class="border-surface-200 flex items-center justify-end gap-3 border-t pt-4">
-          <Btn variant="secondary" onclick={() => (open = false)}>Close</Btn>
+        <div class="flex items-center justify-end border-t border-[var(--border-subtle)]/60 pt-4">
+          <Btn variant="secondary" onclick={() => (open = false)}>Schließen</Btn>
         </div>
       </div>
     {/if}

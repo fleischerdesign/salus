@@ -22,7 +22,7 @@
       <span
         class="flex items-center gap-1.5 text-xs font-bold text-[var(--text-main)] transition-colors group-hover:text-[var(--color-primary)]"
       >
-        <Icon name="sun" class="text-[var(--color-circadian)]" /> Challenges &amp; Ranglisten
+        <Icon name="wb-sunny" class="text-[var(--color-circadian)]" /> Challenges &amp; Ranglisten
       </span>
       <span class="text-[0.6875rem] text-[var(--text-muted)]">Wettbewerbe, Medaillen, Codes</span>
     </button>
