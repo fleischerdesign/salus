@@ -213,8 +213,8 @@
       <div class="flex flex-wrap items-center gap-2">
         <h1 class="text-2xl font-extrabold tracking-tight">{metric.name}</h1>
         <Badge variant="success">{metric.referenceRange}</Badge>
-        {#if measurements.length >= 5}
-          <Badge variant="primary">Trend: Berechnet aus {measurements.length} Messungen</Badge>
+        {#if totalCount >= 5}
+          <Badge variant="primary">Trend: Berechnet aus {totalCount} Messungen</Badge>
         {/if}
       </div>
       <p class="mt-0.5 text-xs text-[var(--text-muted)] sm:text-sm">
@@ -499,18 +499,18 @@
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
         <h2 class="text-sm font-bold text-[var(--text-main)]">
-          Lückenlose Messwert-Historie ({measurements.length} Einträge)
+          Lückenlose Messwert-Historie ({totalCount} Einträge)
         </h2>
         <p class="mt-0.5 text-xs text-[var(--text-muted)]">
           Lokal in Dexie IndexedDB gespeichert und Ende-zu-Ende synchronisiert
         </p>
       </div>
-      {#if measurements.length > 0}
+      {#if totalCount > 0}
         <Badge variant="success">Sync Aktiv</Badge>
       {/if}
     </div>
 
-    {#if measurements.length === 0}
+    {#if totalCount === 0}
       <div class="py-6">
         <EmptyState
           title="Noch keine Messungen erfasst"

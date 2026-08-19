@@ -260,11 +260,11 @@
     class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
   >
     <div class="mb-3 flex items-center justify-between">
-      <span class="text-sm font-bold">Historie der Messungen ({groupMeasurements.length})</span>
+      <span class="text-sm font-bold">Historie der Messungen ({totalCount})</span>
       <span class="text-xs text-[var(--text-muted)]">Aus Dexie IndexedDB</span>
     </div>
 
-    {#if groupMeasurements.length === 0}
+    {#if totalCount === 0}
       <div class="py-6">
         <EmptyState
           title="Noch keine Messungen in dieser Gruppe"
