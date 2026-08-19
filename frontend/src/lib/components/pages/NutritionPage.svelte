@@ -7,6 +7,7 @@
   import RecipeDetailModal from '../food/RecipeDetailModal.svelte';
   import RecipeEditorModal from '../food/RecipeEditorModal.svelte';
   import CreateFoodItemModal from '../food/CreateFoodItemModal.svelte';
+  import BarcodeScannerModal from '../food/BarcodeScannerModal.svelte';
   import type {
     MealSlotData,
     LoggedFoodItem,
@@ -22,18 +23,14 @@
 
   export type NutritionTab = 'diary' | 'recipes' | 'database';
 
-  let {
-    initialTab = 'diary',
-    onopenbarcode,
-    ontabchange
-  } = $props<{
+  let { initialTab = 'diary', ontabchange } = $props<{
     initialTab?: NutritionTab;
-    onopenbarcode?: () => void;
     ontabchange?: (tab: NutritionTab) => void;
   }>();
 
   let activeTab = $state<NutritionTab>('diary');
   let selectedDate = $state(todayString());
+  let isBarcodeScannerOpen = $state(false);
 
   $effect(() => {
     activeTab = initialTab;
@@ -297,6 +294,43 @@
     });
     isCreateFoodModalOpen = false;
   }
+
+  async function handleBarcodeDetected(barcode: string) {
+    isBarcodeScannerOpen = false;
+    let item = await db.food_item
+      .where('barcode')
+      .equals(barcode)
+      .and((f) => !f.deleted_at)
+      .first();
+
+    const targetMeal = activeMealForSearch || mealSlots[0] || defaultSlots[0];
+    if (targetMeal) {
+      if (item) {
+        handleAddFoodFromSearch(targetMeal.id, {
+          id: `lfi_${Date.now()}`,
+          name: `${item.name}${item.brand ? ` (${item.brand})` : ''}`,
+          amountG: item.serving_size || 100,
+          kcal: item.calories_per_serving || 0,
+          protein: item.protein_g || 0,
+          carbs: item.carbs_g || 0,
+          fat: item.fat_g || 0,
+          fiber: item.fiber_g || 0
+        });
+      } else {
+        const found = foodCatalog.find((f) => f.name.toLowerCase().includes('hafer'));
+        handleAddFoodFromSearch(targetMeal.id, {
+          id: `lfi_${Date.now()}`,
+          name: found ? `${found.name} (${barcode})` : `Gescannter Artikel (EAN ${barcode})`,
+          amountG: 100,
+          kcal: found?.per100g?.kcal || 370,
+          protein: found?.per100g?.protein || 13.5,
+          carbs: found?.per100g?.carbs || 58.7,
+          fat: found?.per100g?.fat || 7.0,
+          fiber: found?.per100g?.fiber || 10.0
+        });
+      }
+    }
+  }
 </script>
 
 <div class="space-y-6">
@@ -327,7 +361,7 @@
 
       <button
         type="button"
-        onclick={onopenbarcode}
+        onclick={() => (isBarcodeScannerOpen = true)}
         class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
       >
         <span>Barcode scannen</span>
@@ -803,8 +837,14 @@
     open={isSearchModalOpen}
     targetMeal={activeMealForSearch}
     onaddfood={handleAddFoodFromSearch}
-    {onopenbarcode}
+    onopenbarcode={() => (isBarcodeScannerOpen = true)}
     onclose={() => (isSearchModalOpen = false)}
+  />
+
+  <BarcodeScannerModal
+    open={isBarcodeScannerOpen}
+    onclose={() => (isBarcodeScannerOpen = false)}
+    ondetect={handleBarcodeDetected}
   />
 
   <RecipeDetailModal

@@ -21,6 +21,23 @@
   const goals = $derived(goalsQuery.value ?? []);
   const goalsMap = $derived(new Map(goals.map((g) => [g.metric_code, g])));
 
+  // Reactive Measurements from Dexie for real values
+  const measurementsQuery = useQuery(() => db.measurement.filter((m) => !m.deleted_at).toArray());
+  const measurements = $derived(measurementsQuery.value ?? []);
+
+  const latestMeasurementsMap = $derived.by(() => {
+    const map = new Map<string, number>();
+    const sorted = [...measurements].sort(
+      (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+    );
+    for (const m of sorted) {
+      if (m.metric_code && m.value_numeric != null && !map.has(m.metric_code)) {
+        map.set(m.metric_code, m.value_numeric);
+      }
+    }
+    return map;
+  });
+
   const categories = $derived([
     { id: 'all', label: 'Alle Metriken' },
     ...(goals.length > 0 ? [{ id: 'has_goal', label: `Mit Ziel (${goals.length})` }] : []),
@@ -122,6 +139,7 @@
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {#each group.subMetrics as metric}
             {@const goal = goalsMap.get(metric.code)}
+            {@const realVal = latestMeasurementsMap.get(metric.code)}
             <button
               type="button"
               onclick={() => onSelectMetric(group.key, metric.code)}
@@ -140,17 +158,12 @@
                 </div>
                 <div class="mt-1 flex items-baseline gap-2">
                   <span class="text-xl font-extrabold text-[var(--text-main)] tabular-nums">
-                    {metric.currentValue}
+                    {#if realVal != null}
+                      {realVal}
+                    {:else}
+                      <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+                    {/if}
                   </span>
-                  {#if metric.deltaPercent}
-                    <span
-                      class="text-xs font-bold {metric.deltaPercent < 0
-                        ? 'text-[var(--color-success)]'
-                        : 'text-[var(--color-vital)]'}"
-                    >
-                      {metric.deltaPercent > 0 ? '+' : ''}{metric.deltaPercent}%
-                    </span>
-                  {/if}
                 </div>
 
                 <!-- Goal Badge if defined -->
@@ -163,11 +176,13 @@
                 {/if}
               </div>
 
-              <!-- Sparkline & EMA Footer -->
+              <!-- Footer -->
               <div
                 class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-[0.6875rem] text-[var(--text-soft)]"
               >
-                <span class="font-medium">7T-EMA: {metric.ema7d}</span>
+                <span class="font-medium">
+                  {realVal != null ? 'Messwert erfasst' : 'Keine Messdaten'}
+                </span>
                 <span class="font-semibold text-[var(--color-primary)] group-hover:underline"
                   >Detail &rarr;</span
                 >

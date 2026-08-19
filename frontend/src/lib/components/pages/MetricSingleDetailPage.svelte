@@ -3,13 +3,15 @@
   import Icon from '../ui/Icon.svelte';
   import Badge from '../ui/Badge.svelte';
   import Btn from '../ui/Btn.svelte';
+  import EmptyState from '../ui/EmptyState.svelte';
   import InteractiveChart from '../insights/InteractiveChart.svelte';
   import GoalModal from '../modals/GoalModal.svelte';
   import AddMeasurementModal from '../modals/AddMeasurementModal.svelte';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { deleteGoal } from '$lib/mutations/goal';
-  import { METRIC_GROUPS, MOCK_MEASUREMENTS } from '../../data/metrics-data';
+  import { deleteMeasurement } from '$lib/mutations/measurement';
+  import { METRIC_GROUPS } from '../../data/metrics-data';
 
   let {
     groupKey = 'blood_pressure',
@@ -40,31 +42,66 @@
   );
   const goal = $derived(goalQuery.value);
 
+  // Reactive Dexie Real Measurements Query (Chronological reverse)
+  const measurementsQuery = useQuery(
+    () =>
+      db.measurement
+        .where('metric_code')
+        .equals(metricCode)
+        .and((m) => !m.deleted_at)
+        .reverse()
+        .sortBy('start_time'),
+    () => metricCode
+  );
+  const measurements = $derived(measurementsQuery.value ?? []);
+
   let isGoalModalOpen = $state(false);
   let isAddEntryModalOpen = $state(false);
 
-  let entries = $derived(
-    MOCK_MEASUREMENTS[metricCode] || [
-      {
-        id: '1',
-        metricCode,
-        value: Number(metric.currentValue) || 100,
-        unit: metric.unit,
-        timestamp: '2026-08-17 08:15',
-        source: 'Withings Body Scan',
-        note: 'Nüchtern nach dem Aufstehen',
-        priority: 'Rang 1 Primär'
-      }
-    ]
+  // Derived KPIs from Real Data
+  const latestMeasurement = $derived(measurements[0]);
+  const currentVal = $derived(latestMeasurement?.value_numeric ?? null);
+
+  const ema7d = $derived.by(() => {
+    if (measurements.length === 0) return null;
+    const nums = measurements
+      .slice(0, 7)
+      .map((m) => m.value_numeric)
+      .filter((v): v is number => v != null);
+    if (nums.length === 0) return null;
+    const k = 2 / (nums.length + 1);
+    return nums.reduce((acc, v) => v * k + acc * (1 - k), nums[0]).toFixed(1);
+  });
+
+  const stdDev = $derived.by(() => {
+    const nums = measurements.map((m) => m.value_numeric).filter((v): v is number => v != null);
+    if (nums.length < 2) return null;
+    const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+    const variance = nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (nums.length - 1);
+    return Math.sqrt(variance).toFixed(1);
+  });
+
+  const chartPoints = $derived(
+    measurements
+      .slice(0, 14)
+      .reverse()
+      .map((m) => ({
+        date: m.start_time
+          ? new Date(m.start_time).toLocaleDateString('de-DE', {
+              day: '2-digit',
+              month: 'short'
+            })
+          : '',
+        val: m.value_numeric || 0
+      }))
   );
 
   // Derived Goal Progress
-  const currentVal = $derived(Number(metric.currentValue) || 0);
   const targetVal = $derived(goal?.target_value ? Number(goal.target_value) : null);
   const isDecrease = $derived(goal?.direction === 'decrease');
 
   const goalProgress = $derived.by(() => {
-    if (!targetVal) return null;
+    if (!targetVal || currentVal == null) return null;
     let percent = 0;
     let isFulfilled = false;
 
@@ -91,6 +128,26 @@
     if (!confirm('Möchtest du dieses persönliche Ziel wirklich entfernen?')) return;
     await deleteGoal(goal.id);
   }
+
+  async function handleDeleteEntry(id: string) {
+    if (!confirm('Möchtest du diesen Messwert wirklich löschen?')) return;
+    await deleteMeasurement(id);
+  }
+
+  function formatTimestamp(iso: string): string {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return iso;
+    }
+  }
 </script>
 
 <div class="space-y-6">
@@ -110,11 +167,12 @@
       <div class="flex flex-wrap items-center gap-2">
         <h1 class="text-2xl font-extrabold tracking-tight">{metric.name}</h1>
         <Badge variant="success">{metric.referenceRange}</Badge>
-        <Badge variant="primary">Mann-Kendall: p = 0.004 (Signifikant)</Badge>
+        {#if measurements.length >= 5}
+          <Badge variant="primary">Trend: Berechnet aus {measurements.length} Messungen</Badge>
+        {/if}
       </div>
       <p class="mt-0.5 text-xs text-[var(--text-muted)] sm:text-sm">
-        Canonical Metric Code: <span class="font-bold text-[var(--text-main)]">{metric.code}</span> •
-        PELT-Wendepunkt am 04. Aug erkannt
+        Canonical Metric Code: <span class="font-bold text-[var(--text-main)]">{metric.code}</span>
       </p>
     </div>
 
@@ -126,7 +184,7 @@
     </div>
   </div>
 
-  <!-- 4 Statistical KPI Tiles (Calculated via services/analytics/stats.py) -->
+  <!-- 4 Statistical KPI Tiles (Calculated from Real Measurements) -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
     <div
       class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-3.5 shadow-xs"
@@ -136,8 +194,12 @@
         >Aktueller Wert</span
       >
       <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
-        {metric.currentValue}
-        <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {#if currentVal != null}
+          {currentVal}
+          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {:else}
+          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+        {/if}
       </div>
     </div>
 
@@ -146,11 +208,15 @@
     >
       <span
         class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
-        >7-Tage EMA (Glättung)</span
+        >7-Tage EMA</span
       >
       <div class="mt-0.5 text-xl font-extrabold text-[var(--color-primary)] tabular-nums">
-        {metric.ema7d}
-        <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {#if ema7d != null}
+          {ema7d}
+          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {:else}
+          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+        {/if}
       </div>
     </div>
 
@@ -162,7 +228,12 @@
         >Standardabweichung (σ)</span
       >
       <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
-        &plusmn; 2.1 <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {#if stdDev != null}
+          &plusmn; {stdDev}
+          <span class="text-xs font-normal text-[var(--text-soft)]">{metric.unit}</span>
+        {:else}
+          <span class="text-base font-normal text-[var(--text-muted)]">—</span>
+        {/if}
       </div>
     </div>
 
@@ -171,10 +242,10 @@
     >
       <span
         class="block text-[0.6875rem] font-bold tracking-wider text-[var(--text-muted)] uppercase"
-        >Mann-Kendall Trend (τ)</span
+        >Gesamt-Einträge</span
       >
-      <div class="mt-0.5 text-xl font-extrabold text-emerald-500 tabular-nums">
-        ↘ -0.38 (p &lt; 0.01)
+      <div class="mt-0.5 text-xl font-extrabold text-[var(--text-main)] tabular-nums">
+        {measurements.length}
       </div>
     </div>
   </div>
@@ -182,7 +253,7 @@
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- METRIC-CENTRIC GOAL & FORECAST SECTION                      -->
   <!-- ═══════════════════════════════════════════════════════════ -->
-  {#if goal && goalProgress}
+  {#if goal}
     <div
       class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)] transition-all"
     >
@@ -209,19 +280,21 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <Badge
-            variant={goalProgress.status === 'achieved'
-              ? 'success'
-              : goalProgress.status === 'on_track'
-                ? 'primary'
-                : 'vital'}
-          >
-            {goalProgress.status === 'achieved'
-              ? '🎯 Ziel erreicht'
-              : goalProgress.status === 'on_track'
-                ? 'Auf Kurs'
-                : 'Verzögert'}
-          </Badge>
+          {#if goalProgress}
+            <Badge
+              variant={goalProgress.status === 'achieved'
+                ? 'success'
+                : goalProgress.status === 'on_track'
+                  ? 'primary'
+                  : 'vital'}
+            >
+              {goalProgress.status === 'achieved'
+                ? '🎯 Ziel erreicht'
+                : goalProgress.status === 'on_track'
+                  ? 'Auf Kurs'
+                  : 'Verzögert'}
+            </Badge>
+          {/if}
           <Btn variant="secondary" size="sm" onclick={() => (isGoalModalOpen = true)}>
             Ziel anpassen
           </Btn>
@@ -237,50 +310,42 @@
       </div>
 
       <!-- Numbers & Progress Bar -->
-      <div class="my-3 space-y-1.5">
-        <div class="flex items-baseline justify-between text-xs">
-          <span class="font-semibold text-[var(--text-main)]">
-            Aktuell: <strong class="text-base text-[var(--color-primary)]"
-              >{currentVal} {metric.unit}</strong
-            >
-            <span class="ml-1 font-normal text-[var(--text-muted)]"
-              >/ Ziel: {targetVal} {metric.unit}</span
-            >
-          </span>
-          <span class="font-bold text-[var(--text-main)]">
-            {goalProgress.percent}% {goalProgress.isFulfilled
-              ? 'erfüllt'
-              : `(${goalProgress.delta} ${metric.unit} verbleibend)`}
-          </span>
-        </div>
+      {#if currentVal != null && goalProgress}
+        <div class="my-3 space-y-1.5">
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="font-semibold text-[var(--text-main)]">
+              Aktuell: <strong class="text-base text-[var(--color-primary)]"
+                >{currentVal} {metric.unit}</strong
+              >
+              <span class="ml-1 font-normal text-[var(--text-muted)]"
+                >/ Ziel: {targetVal} {metric.unit}</span
+              >
+            </span>
+            <span class="font-bold text-[var(--text-main)]">
+              {goalProgress.percent}% {goalProgress.isFulfilled
+                ? 'erfüllt'
+                : `(${goalProgress.delta} ${metric.unit} verbleibend)`}
+            </span>
+          </div>
 
-        <div
-          class="h-2 w-full overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
-        >
           <div
-            class="h-full rounded-full transition-all duration-500 {goalProgress.status ===
-            'achieved'
-              ? 'bg-[var(--color-success)]'
-              : 'bg-[var(--color-primary)]'}"
-            style="width: {goalProgress.percent}%"
-          ></div>
+            class="h-2 w-full overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-50)]"
+          >
+            <div
+              class="h-full rounded-full transition-all duration-500 {goalProgress.status ===
+              'achieved'
+                ? 'bg-[var(--color-success)]'
+                : 'bg-[var(--color-primary)]'}"
+              style="width: {goalProgress.percent}%"
+            ></div>
+          </div>
         </div>
-      </div>
-
-      <!-- Statistical Projection -->
-      <div
-        class="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2.5 text-xs text-[var(--text-muted)]"
-      >
-        <span>
-          Statistische Projektion:
-          <strong class="font-semibold text-[var(--text-main)]">
-            {goalProgress.isFulfilled
-              ? 'Ziel bereits stabil erreicht'
-              : `Zielerreichung bei aktuellem Trend voraussichtlich in ca. 4 Wochen`}
-          </strong>
-        </span>
-        <span class="text-[var(--text-soft)]">Konfidenz: 80% CI</span>
-      </div>
+      {:else}
+        <p class="my-2 text-xs text-[var(--text-muted)]">
+          Ziel: <strong class="text-[var(--text-main)]">{targetVal} {metric.unit}</strong> • Erfasse deinen
+          ersten Messwert, um den Zielfortschritt zu berechnen.
+        </p>
+      {/if}
     </div>
   {:else}
     <!-- No Goal Defined (Clean Standard Card) -->
@@ -309,8 +374,14 @@
     </div>
   {/if}
 
-  <!-- Full-Width Interactive Spline Chart -->
-  <InteractiveChart data={[]} metricCode={metric.code} unit={metric.unit} />
+  <!-- Full-Width Interactive Spline Chart (Real Data or Clean Empty State) -->
+  <InteractiveChart
+    data={chartPoints}
+    metricName={metric.name}
+    unit={metric.unit}
+    targetValue={targetVal}
+    onaddclick={() => (isAddEntryModalOpen = true)}
+  />
 
   <!-- 2-Column: Clinical Target Zones & Pearson Correlations -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -350,79 +421,108 @@
     >
       <div class="flex items-center gap-1.5 text-sm font-bold text-[var(--text-main)]">
         <Icon name="insights" class="text-[var(--color-circadian)]" />
-        <span>Statistische Korrelationen (Pearson r)</span>
+        <span>Evidenzbasierte Einflussfaktoren</span>
       </div>
       <div class="space-y-2 text-xs">
         <div
           class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
         >
           <span class="font-semibold text-[var(--text-main)]">Schlafdauer (&gt; 7.5h)</span>
-          <span class="font-bold text-emerald-500">r = -0.62 (Starke Senkung)</span>
+          <span class="font-bold text-emerald-500">Stabilisierender Effekt</span>
         </div>
         <div
           class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
         >
-          <span class="font-semibold text-[var(--text-main)]">Körpergewicht</span>
-          <span class="font-bold text-[var(--color-primary)]">r = +0.58 (Positiver Trend)</span>
+          <span class="font-semibold text-[var(--text-main)]">Ausdauertraining</span>
+          <span class="font-bold text-[var(--color-primary)]">Senkt Ruhewerte</span>
         </div>
         <div
           class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-50)] p-2.5"
         >
-          <span class="font-semibold text-[var(--text-main)]">Koffein nach 15:00 Uhr</span>
-          <span class="font-bold text-rose-500">r = +0.44 (Spike am Abend)</span>
+          <span class="font-semibold text-[var(--text-main)]">Koffein / Stress</span>
+          <span class="font-bold text-rose-500">Kurzzeitiger Anstieg</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Complete Entries History Table with Source Resolution Provenance -->
+  <!-- Complete Real Entries History Table -->
   <div
     class="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface-0)] p-5 shadow-[var(--shadow-card)]"
   >
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
         <h2 class="text-sm font-bold text-[var(--text-main)]">
-          Lückenlose Messwert-Historie ({entries.length} Einträge)
+          Lückenlose Messwert-Historie ({measurements.length} Einträge)
         </h2>
         <p class="mt-0.5 text-xs text-[var(--text-muted)]">
-          Multi-Source Prioritätsprüfung (services/source_resolution.py)
+          Lokal in Dexie IndexedDB gespeichert und Ende-zu-Ende synchronisiert
         </p>
       </div>
-      <Badge variant="success">0 Duplikate • Dedup Aktiv</Badge>
+      {#if measurements.length > 0}
+        <Badge variant="success">Sync Aktiv</Badge>
+      {/if}
     </div>
 
-    <div class="w-full overflow-x-auto">
-      <table class="w-full border-collapse text-left text-xs">
-        <thead>
-          <tr
-            class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
-          >
-            <th class="px-3 py-2.5">Zeitpunkt</th>
-            <th class="px-3 py-2.5">Messwert</th>
-            <th class="px-3 py-2.5">Abweichung zum EMA</th>
-            <th class="px-3 py-2.5">Quelle und Priorität</th>
-            <th class="px-3 py-2.5">Notiz</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-[var(--border-subtle)]">
-          {#each entries as e}
-            <tr>
-              <td class="px-3 py-2.5 text-[var(--text-soft)]">{e.timestamp}</td>
-              <td class="px-3 py-2.5 text-sm font-bold text-[var(--text-main)] tabular-nums"
-                >{e.value} {e.unit}</td
-              >
-              <td class="px-3 py-2.5 font-semibold text-emerald-500 tabular-nums">-0.2 {e.unit}</td>
-              <td class="px-3 py-2.5">
-                <Badge variant="default" class="font-bold"
-                  >{e.source || 'Withings Body Scan'} (Rang 1 Primär)</Badge
-                >
-              </td>
-              <td class="px-3 py-2.5 text-[var(--text-muted)]">{e.note || 'Nüchtern gemessen'}</td>
+    {#if measurements.length === 0}
+      <div class="py-6">
+        <EmptyState
+          title="Noch keine Messungen erfasst"
+          description={`Erfasse deinen ersten Messwert für ${metric.name} über den Button oben.`}
+        >
+          <Btn variant="primary" size="sm" onclick={() => (isAddEntryModalOpen = true)}>
+            + Jetzt Messwert erfassen
+          </Btn>
+        </EmptyState>
+      </div>
+    {:else}
+      <div class="w-full overflow-x-auto">
+        <table class="w-full border-collapse text-left text-xs">
+          <thead>
+            <tr
+              class="border-b border-[var(--border-subtle)] text-[0.6875rem] tracking-wider text-[var(--text-muted)] uppercase"
+            >
+              <th class="px-3 py-2.5">Zeitpunkt</th>
+              <th class="px-3 py-2.5">Messwert</th>
+              <th class="px-3 py-2.5">Quelle</th>
+              <th class="px-3 py-2.5">Notiz</th>
+              <th class="px-3 py-2.5 text-right">Aktion</th>
             </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-subtle)]">
+            {#each measurements as entry (entry.id)}
+              <tr>
+                <td class="px-3 py-2.5 text-[var(--text-soft)]">
+                  {formatTimestamp(entry.start_time)}
+                </td>
+                <td class="px-3 py-2.5 text-sm font-bold text-[var(--text-main)] tabular-nums">
+                  {entry.value_numeric ?? '—'}
+                  {metric.unit}
+                </td>
+                <td class="px-3 py-2.5">
+                  <Badge variant="default" class="font-bold">
+                    {entry.source || 'Manuell'}
+                  </Badge>
+                </td>
+                <td class="px-3 py-2.5 text-[var(--text-muted)]">
+                  {entry.notes || '—'}
+                </td>
+                <td class="px-3 py-2.5 text-right">
+                  <button
+                    type="button"
+                    class="cursor-pointer p-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--color-vital)]"
+                    title="Messwert löschen"
+                    onclick={() => handleDeleteEntry(entry.id)}
+                  >
+                    <Icon name="delete" size="sm" />
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </div>
 </div>
 
