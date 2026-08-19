@@ -58,10 +58,15 @@ function wallParts(tz: string, d: Date) {
 }
 
 /** Offset (ms) of a timezone at a given instant. */
-function offsetMsAt(tz: string, at: Date): number {
+export function offsetMsAt(tz: string, at: Date): number {
   const p = wallParts(tz, at);
   const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
   return asUTC - Math.floor(at.getTime() / 1000) * 1000;
+}
+
+/** Offset in decimal hours (e.g. +2 for CEST) of a timezone at a given instant. */
+export function getTimezoneOffsetHours(tz: string, at: Date = new Date()): number {
+  return offsetMsAt(tz, at) / (1000 * 60 * 60);
 }
 
 /**

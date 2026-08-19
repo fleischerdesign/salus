@@ -18,72 +18,71 @@ export function calculateSolarTimes(
   lng: number,
   tzOffset: number
 ): SolarTimes {
-  const d = new Date(date + 'T12:00:00');
-  const jd = toJulian(d, tzOffset);
+  const d = new Date(date + 'T00:00:00Z');
+  const start = new Date(Date.UTC(d.getUTCFullYear(), 0, 0));
+  const diff = d.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  const n = jd - 2451545.0;
-  const ls = (280.46 + 0.9856474 * n) % 360;
-  const g = (357.528 + 0.9856003 * n) % 360;
-  const lam = (ls + 1.915 * Math.sin(deg2rad(g)) + 0.02 * Math.sin(deg2rad(2 * g))) % 360;
-  const eps = 23.44 - 0.0000004 * n;
-  const ra = Math.atan2(Math.cos(deg2rad(eps)) * Math.sin(deg2rad(lam)), Math.cos(deg2rad(lam)));
-  const dec = Math.asin(Math.sin(deg2rad(eps)) * Math.sin(deg2rad(lam)));
+  // Fractional year in radians
+  const gamma = ((2 * Math.PI) / 365) * (dayOfYear - 1);
 
-  const ha = Math.acos(
-    (Math.sin(deg2rad(-0.833)) - Math.sin(deg2rad(lat)) * Math.sin(dec)) /
-      (Math.cos(deg2rad(lat)) * Math.cos(dec))
-  );
+  // Equation of time in minutes (NOAA standard)
+  const eqtime =
+    229.18 *
+    (0.000075 +
+      0.001868 * Math.cos(gamma) -
+      0.032077 * Math.sin(gamma) -
+      0.014615 * Math.cos(2 * gamma) -
+      0.040849 * Math.sin(2 * gamma));
 
-  const jdTransit = 2451545.0 + n + (rad2deg(ra) - rad2deg(ls)) / 360.0;
-  const jdSet = jdTransit + rad2deg(ha) / 360.0;
-  const jdRise = jdTransit - rad2deg(ha) / 360.0;
+  // Solar declination angle in radians (NOAA)
+  const decl =
+    0.006918 -
+    0.399912 * Math.cos(gamma) +
+    0.070257 * Math.sin(gamma) -
+    0.006758 * Math.cos(2 * gamma) +
+    0.000907 * Math.sin(2 * gamma) -
+    0.002697 * Math.cos(3 * gamma) +
+    0.00148 * Math.sin(3 * gamma);
 
-  const haCivil = Math.acos(
-    (Math.sin(deg2rad(-6)) - Math.sin(deg2rad(lat)) * Math.sin(dec)) /
-      (Math.cos(deg2rad(lat)) * Math.cos(dec))
-  );
-  const jdDawn = jdTransit - rad2deg(haCivil) / 360.0;
-  const jdDusk = jdTransit + rad2deg(haCivil) / 360.0;
+  // Hour angle for sunrise/sunset (90.833° zenith)
+  const latRad = (lat * Math.PI) / 180;
+  const cosHa =
+    Math.cos((90.833 * Math.PI) / 180) / (Math.cos(latRad) * Math.cos(decl)) -
+    Math.tan(latRad) * Math.tan(decl);
 
-  const sunrise_mins = jdToMins(jdRise, tzOffset);
-  const sunset_mins = jdToMins(jdSet, tzOffset);
-  const solar_noon_mins = jdToMins(jdTransit, tzOffset);
+  const haDeg = Math.acos(Math.max(-1, Math.min(1, cosHa))) * (180 / Math.PI);
+
+  // Solar noon and sunrise/sunset in minutes from local midnight
+  const solar_noon_mins = 720 - 4 * lng - eqtime + tzOffset * 60;
+  const sunrise_mins = solar_noon_mins - haDeg * 4;
+  const sunset_mins = solar_noon_mins + haDeg * 4;
+
+  // Civil Twilight (96° zenith)
+  const cosHaCivil =
+    Math.cos((96 * Math.PI) / 180) / (Math.cos(latRad) * Math.cos(decl)) -
+    Math.tan(latRad) * Math.tan(decl);
+  const haCivilDeg = Math.acos(Math.max(-1, Math.min(1, cosHaCivil))) * (180 / Math.PI);
+  const dawn_mins = solar_noon_mins - haCivilDeg * 4;
+  const dusk_mins = solar_noon_mins + haCivilDeg * 4;
+
+  function minsToStr(mins: number): string {
+    const total = ((Math.round(mins) % 1440) + 1440) % 1440;
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
 
   return {
-    sunrise: jdToTime(jdRise, tzOffset),
-    sunset: jdToTime(jdSet, tzOffset),
-    solar_noon: jdToTime(jdTransit, tzOffset),
-    dawn: jdToTime(jdDawn, tzOffset),
-    dusk: jdToTime(jdDusk, tzOffset),
-    sunrise_mins,
-    sunset_mins,
-    solar_noon_mins
+    sunrise: minsToStr(sunrise_mins),
+    sunset: minsToStr(sunset_mins),
+    solar_noon: minsToStr(solar_noon_mins),
+    dawn: minsToStr(dawn_mins),
+    dusk: minsToStr(dusk_mins),
+    sunrise_mins: ((Math.round(sunrise_mins) % 1440) + 1440) % 1440,
+    sunset_mins: ((Math.round(sunset_mins) % 1440) + 1440) % 1440,
+    solar_noon_mins: ((Math.round(solar_noon_mins) % 1440) + 1440) % 1440
   };
-}
-
-function deg2rad(d: number): number {
-  return (d * Math.PI) / 180;
-}
-function rad2deg(r: number): number {
-  return (r * 180) / Math.PI;
-}
-
-function toJulian(d: Date, tzOffset: number): number {
-  return d.getTime() / MS_PER_DAY + 2440587.5 - tzOffset / 24;
-}
-
-function jdToTime(jd: number, tzOffset: number): string {
-  const frac = jd - Math.floor(jd);
-  const totalHours = frac * 24 + tzOffset;
-  const h = Math.floor(((totalHours % 24) + 24) % 24);
-  const m = Math.floor(((totalHours % 1) * 60 + 60) % 60);
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-function jdToMins(jd: number, tzOffset: number): number {
-  const frac = jd - Math.floor(jd);
-  const totalHours = frac * 24 + tzOffset;
-  return Math.round((((totalHours % 24) + 24) % 24) * 60 + (((totalHours % 1) * 60 + 60) % 60));
 }
 
 function timeToMins(t: string): number {
