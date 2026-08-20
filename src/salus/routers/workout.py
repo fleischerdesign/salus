@@ -31,6 +31,7 @@ class WorkoutTargetResponse(BaseModel):
     suggested_reps: int
     suggested_rpe: float
     weight_multiplier: float
+    suggested_weight: Optional[float] = None
     is_autoreg_exempt: bool
     reason: str
 

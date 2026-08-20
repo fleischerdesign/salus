@@ -634,3 +634,41 @@ def test_create_program_with_slots_and_scheme(authenticated_client):
     assert start.status_code == 200
     assert start.json()["progression_scheme"] == "linear"
     assert start.json()["program_id"] == program_id
+
+
+def test_linear_progression_targets(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise, Workout, WorkoutExercise
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as db:
+        alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        ex = Exercise(name="Squat", equipment="barbell", primary_muscles="quadriceps")
+        db.add(ex)
+        db.commit()
+        workout = Workout(name="Leg Day", user_id=alice.id)
+        db.add(workout)
+        db.commit()
+        db.add(WorkoutExercise(
+            workout_id=workout.id, exercise_id=ex.id, sequence=0,
+            target_sets=3, target_reps=8, target_rpe=8.0,
+        ))
+        db.commit()
+        workout_id, ex_id = workout.id, ex.id
+
+    start = authenticated_client.post(f"/api/v1/workouts/sessions/start?workout_id={workout_id}")
+    session_id = start.json()["id"]
+    authenticated_client.post(
+        f"/api/v1/workouts/sessions/log?session_id={session_id}",
+        json={"exercise_id": ex_id, "set_number": 1, "weight": 60.0, "reps": 8, "rpe": 7.0},
+    )
+    authenticated_client.post(f"/api/v1/workouts/sessions/complete?session_id={session_id}")
+
+    resp = authenticated_client.get(
+        f"/api/v1/workouts/{workout_id}/targets?progression_scheme=linear"
+    )
+    assert resp.status_code == 200
+    target = next(t for t in resp.json() if t["exercise_id"] == ex_id)
+    assert target["suggested_weight"] == 62.5

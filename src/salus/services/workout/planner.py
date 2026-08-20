@@ -1,10 +1,15 @@
 from typing import Optional
 
 from salus.exceptions import NotFoundError
-from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
+from salus.services.constants import (
+    DEFAULT_LINEAR_INCREMENT,
+    DEFAULT_REST_SECONDS,
+    DEFAULT_RPE,
+)
 from salus.models.workout import Exercise, Program, Workout, WorkoutSet, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.workout.autoregulation import AutoregulationService
+from salus.services.workout.progression import suggest_linear_weight
 
 
 class WorkoutService:
@@ -99,12 +104,15 @@ class WorkoutService:
                     exercises_with_targets.append((workout_ex, ex))
 
             last_sess = self.uow.workout_sessions.get_last_session_for_workout(user_id, workout_id)
-            last_weights = {}
+            last_weights: dict[str, float] = {}
+            last_reps: dict[str, int] = {}
+            last_rpes: dict[str, float | None] = {}
             if last_sess:
                 for entry in last_sess.sets:
-                    last_weights[entry.exercise_id] = max(
-                        last_weights.get(entry.exercise_id, 0.0), entry.weight
-                    )
+                    if entry.weight >= last_weights.get(entry.exercise_id, 0.0):
+                        last_weights[entry.exercise_id] = entry.weight
+                        last_reps[entry.exercise_id] = entry.reps
+                        last_rpes[entry.exercise_id] = entry.rpe
 
             if progression_scheme == "none":
                 # Return standard targets directly
@@ -118,6 +126,28 @@ class WorkoutService:
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
                         "reason": "Progression disabled for this program.",
+                    }
+                    for workout_ex, ex in exercises_with_targets
+                ]
+            elif progression_scheme == "linear":
+                targets = [
+                    {
+                        "exercise_id": ex.id,
+                        "name": ex.name,
+                        "suggested_sets": workout_ex.target_sets,
+                        "suggested_reps": workout_ex.target_reps,
+                        "suggested_rpe": workout_ex.target_rpe or DEFAULT_RPE,
+                        "weight_multiplier": 1.0,
+                        "is_autoreg_exempt": workout_ex.is_autoreg_exempt,
+                        "suggested_weight": suggest_linear_weight(
+                            last_weight=last_weights.get(ex.id),
+                            target_reps=workout_ex.target_reps,
+                            target_rpe=workout_ex.target_rpe,
+                            last_reps=last_reps.get(ex.id),
+                            last_rpe=last_rpes.get(ex.id),
+                            increment=DEFAULT_LINEAR_INCREMENT,
+                        ),
+                        "reason": "Linear progression from last performance.",
                     }
                     for workout_ex, ex in exercises_with_targets
                 ]

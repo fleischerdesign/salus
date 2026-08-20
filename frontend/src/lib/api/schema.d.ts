@@ -5816,6 +5816,8 @@ export interface components {
             suggested_rpe: number;
             /** Suggested Sets */
             suggested_sets: number;
+            /** Suggested Weight */
+            suggested_weight?: number | null;
             /** Weight Multiplier */
             weight_multiplier: number;
         };
