@@ -10,6 +10,7 @@
   import Exercise1RMChart from '../track/Exercise1RMChart.svelte';
   import WorkoutSplitCard from '../track/WorkoutSplitCard.svelte';
   import WorkoutPlanEditorModal from '../workouts/WorkoutPlanEditorModal.svelte';
+  import ProgramEditorModal, { type ProgramDraft } from '../workouts/ProgramEditorModal.svelte';
   import CreateExerciseModal from '../workouts/CreateExerciseModal.svelte';
   import type {
     WorkoutPlan,
@@ -26,8 +27,9 @@
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { startWorkout, completeWorkout } from '$lib/mutations/workout';
+  import { createProgram, deleteProgram } from '$lib/mutations/program';
 
-  export type WorkoutTab = 'active' | 'plans' | 'sessions' | 'exercises';
+  export type WorkoutTab = 'active' | 'plans' | 'programs' | 'sessions' | 'exercises';
 
   let { initialTab = 'plans' } = $props<{
     initialTab?: WorkoutTab;
@@ -45,13 +47,16 @@
 
   // 1. Reactive Query for Plans, Active Session & Past Sessions
   const workoutsQuery = useQuery(async () => {
-    const [plans, planExercises, sessions, logs, exercises] = await Promise.all([
-      db.workout.toArray(),
-      db.workout_exercise.toArray(),
-      db.workout_session.toArray(),
-      db.workout_set.toArray(),
-      db.exercise.toArray()
-    ]);
+    const [plans, planExercises, sessions, logs, exercises, programs, programSlots] =
+      await Promise.all([
+        db.workout.toArray(),
+        db.workout_exercise.toArray(),
+        db.workout_session.toArray(),
+        db.workout_set.toArray(),
+        db.exercise.toArray(),
+        db.program.toArray(),
+        db.program_workout.toArray()
+      ]);
 
     const validPlans = plans.filter((p) => !p.deleted_at);
     const validSessions = sessions.filter((s) => !s.deleted_at && s.completed_at);
@@ -154,8 +159,26 @@
       };
     });
 
+    // Format programs
+    const workoutMap = new Map(validPlans.map((w) => [w.id, w]));
+    const formattedPrograms = programs
+      .filter((p) => !p.deleted_at)
+      .map((p) => {
+        const slots = programSlots
+          .filter((s) => s.program_id === p.id && !s.deleted_at)
+          .sort((a, b) => a.sequence - b.sequence);
+        return {
+          ...p,
+          slots: slots.map((s) => ({
+            ...s,
+            workoutName: workoutMap.get(s.workout_id)?.name ?? 'Trainingstag'
+          }))
+        };
+      });
+
     return {
       plans: formattedPlans,
+      programs: formattedPrograms,
       sessions: formattedSessions,
       allExercises: validExercises,
       activeSession,
@@ -171,6 +194,7 @@
   const activeSession = $derived(workoutData?.activeSession ?? null);
   const activePlanName = $derived(workoutData?.activePlanName ?? 'Freies Training');
   const activeExercises = $derived(workoutData?.activeExercises ?? []);
+  const savedPrograms = $derived(workoutData?.programs ?? []);
 
   // Plan Editor Modal State
   let isPlanEditorOpen = $state(false);
@@ -195,6 +219,39 @@
 
   async function handleStartPlan(planId?: string) {
     await startWorkout(planId ?? null);
+    goto('/workouts/active');
+  }
+
+  // Program Editor Modal State
+  let isProgramEditorOpen = $state(false);
+
+  function openCreateProgram() {
+    isProgramEditorOpen = true;
+  }
+
+  function handleSaveProgram(draft: ProgramDraft) {
+    createProgram(
+      draft.name,
+      draft.description,
+      draft.progression_scheme,
+      draft.slots.map((s, i) => ({
+        workout_id: s.workout_id,
+        sequence: i,
+        day_of_week: s.day_of_week,
+        scheduled_date: s.scheduled_date
+      }))
+    );
+    isProgramEditorOpen = false;
+  }
+
+  async function handleDeleteProgram(id: string) {
+    await deleteProgram(id);
+  }
+
+  async function handleStartProgram(programId: string) {
+    const program = savedPrograms.find((p) => p.id === programId);
+    const firstSlot = program?.slots[0];
+    await startWorkout(firstSlot?.workout_id ?? null, programId);
     goto('/workouts/active');
   }
 
@@ -276,8 +333,20 @@
         : 'text-text-muted hover:text-text-main'}"
     >
       <Icon name="show_chart" class="text-primary" />
-      <span>Trainingspläne</span>
+      <span>Trainingstage</span>
       <Badge variant="default" class="text-[0.625rem]">{savedPlans.length}</Badge>
+    </a>
+
+    <a
+      href="/workouts/programs"
+      class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
+      'programs'
+        ? 'bg-surface-0 text-primary shadow-sm'
+        : 'text-text-muted hover:text-text-main'}"
+    >
+      <Icon name="calendar-view-week" class="text-primary" />
+      <span>Programme</span>
+      <Badge variant="default" class="text-[0.625rem]">{savedPrograms.length}</Badge>
     </a>
 
     {#if activeSession}
@@ -433,6 +502,100 @@
                     class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
                   >
                     Plan starten &rarr;
+                  </button>
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </div>
+  {:else if activeTab === 'programs'}
+    <div class="space-y-6">
+      <div class="rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-extrabold text-text-main">Deine Programme</h2>
+            <p class="mt-0.5 text-xs text-text-muted">
+              Mehr-Tage-Programme mit Zeitplan und Progression
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick={openCreateProgram}
+            class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+          >
+            <span>+ Neues Programm erstellen</span>
+          </button>
+        </div>
+
+        {#if savedPrograms.length === 0}
+          <div class="space-y-2 py-8 text-center text-xs text-text-muted">
+            <Icon name="calendar-view-week" size="lg" class="mx-auto text-text-muted opacity-60" />
+            <p class="text-xs font-bold text-text-main">Keine Programme vorhanden</p>
+            <p class="mx-auto max-w-sm text-[0.6875rem]">
+              Kombiniere Trainingstage zu einem Programm und lege die Progression fest.
+            </p>
+          </div>
+        {:else}
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {#each savedPrograms as program}
+              <div
+                class="flex flex-col justify-between space-y-4 rounded-2xl border border-border-subtle bg-surface-50 p-4 transition-all hover:border-primary"
+              >
+                <div>
+                  <div class="mb-2 flex items-start justify-between">
+                    <div>
+                      <h3 class="text-sm font-extrabold text-text-main">{program.name}</h3>
+                      <span class="text-xs text-text-muted"
+                        >{program.description || 'Kein Fokus definiert'}</span
+                      >
+                    </div>
+                    <Badge
+                      variant={program.progression_scheme === 'linear' ? 'primary' : 'default'}
+                    >
+                      {program.progression_scheme}
+                    </Badge>
+                  </div>
+
+                  <div class="my-3 space-y-1.5">
+                    <span class="block text-[0.6875rem] font-bold text-text-soft uppercase">
+                      Trainingstage ({program.slots.length}):
+                    </span>
+                    {#each program.slots as slot}
+                      <div class="flex items-center justify-between text-xs text-text-main">
+                        <div class="flex items-center gap-1.5">
+                          <span class="h-1.5 w-1.5 rounded-full bg-activity"></span>
+                          <span class="font-semibold">{slot.workoutName}</span>
+                        </div>
+                        <span class="text-[0.6875rem] text-text-muted">
+                          {#if slot.day_of_week !== null}
+                            {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][slot.day_of_week] ?? ''}
+                          {:else if slot.scheduled_date}
+                            {slot.scheduled_date}
+                          {:else}
+                            Rotation
+                          {/if}
+                        </span>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-border-subtle pt-3">
+                  <button
+                    type="button"
+                    onclick={() => handleDeleteProgram(program.id)}
+                    class="hover:text-danger cursor-pointer text-xs font-bold text-text-muted"
+                  >
+                    Löschen
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => handleStartProgram(program.id)}
+                    class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+                  >
+                    Starten &rarr;
                   </button>
                 </div>
               </div>
@@ -656,6 +819,14 @@
     plan={planToEdit}
     onsave={handleSavePlan}
     onclose={() => (isPlanEditorOpen = false)}
+  />
+
+  <!-- Program Editor Modal -->
+  <ProgramEditorModal
+    open={isProgramEditorOpen}
+    workouts={savedPlans.map((p) => ({ id: p.id, name: p.name }))}
+    onsave={handleSaveProgram}
+    onclose={() => (isProgramEditorOpen = false)}
   />
 
   <!-- Create Exercise Modal -->
