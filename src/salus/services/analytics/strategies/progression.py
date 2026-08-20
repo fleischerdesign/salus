@@ -19,7 +19,7 @@ class WorkoutProgressionStrategy:
         range_days: int = 180,
     ) -> WorkoutProgressionResponse | None:
         since = datetime.now(timezone.utc) - timedelta(days=range_days)
-        repo = ctx.uow.workout_log_entries
+        repo = ctx.uow.workout_sets
         rows = repo.get_exercise_progression(user_id, exercise_id, since=since)
         if not rows:
             return None

@@ -21,7 +21,7 @@ from salus.models.sharing import (
     LeaderboardMember,
     SharingRelationship,
 )
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutPlanExercise, WorkoutLogEntry
+from salus.models.workout import Exercise, Workout, WorkoutSession, WorkoutExercise, WorkoutSet
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.notification import Notification
@@ -273,8 +273,8 @@ class IExerciseRepository(IRepository[Exercise], Protocol):
 
 
 @runtime_checkable
-class IWorkoutPlanRepository(IRepository[WorkoutPlan], Protocol):
-    def find_by_user(self, user_id: str) -> list[WorkoutPlan]: ...
+class IWorkoutRepository(IRepository[Workout], Protocol):
+    def find_by_user(self, user_id: str) -> list[Workout]: ...
 
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None: ...
 
@@ -285,8 +285,8 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
         self, user_id: str, limit: int = 10
     ) -> list[WorkoutSession]: ...
 
-    def get_last_session_for_plan(
-        self, user_id: str, plan_id: str
+    def get_last_session_for_workout(
+        self, user_id: str, workout_id: str
     ) -> WorkoutSession | None: ...
 
     def get_personal_records(
@@ -311,29 +311,29 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
         self, session_id: str, user_id: str
     ) -> WorkoutSession | None: ...
 
-    def find_completed_by_plan(
-        self, user_id: str, plan_id: str
+    def find_completed_by_workout(
+        self, user_id: str, workout_id: str
     ) -> list[WorkoutSession]: ...
 
 
 @runtime_checkable
-class IWorkoutPlanExerciseRepository(IRepository[WorkoutPlanExercise], Protocol):
-    def find_by_plan(self, plan_id: str) -> list[WorkoutPlanExercise]: ...
+class IWorkoutExerciseRepository(IRepository[WorkoutExercise], Protocol):
+    def find_by_workout(self, workout_id: str) -> list[WorkoutExercise]: ...
 
-    def replace_exercises_for_plan(
-        self, plan_id: str, exercises: list[WorkoutPlanExercise]
+    def replace_exercises_for_workout(
+        self, workout_id: str, exercises: list[WorkoutExercise]
     ) -> None: ...
 
 
 @runtime_checkable
-class IWorkoutLogEntryRepository(IRepository[WorkoutLogEntry], Protocol):
+class IWorkoutSetRepository(IRepository[WorkoutSet], Protocol):
     def find_by_session_exercise_set(
         self, session_id: str, exercise_id: str, set_number: int
-    ) -> WorkoutLogEntry | None: ...
+    ) -> WorkoutSet | None: ...
 
     def find_exercise_history(
         self, user_id: str, exercise_id: str
-    ) -> list[WorkoutLogEntry]: ...
+    ) -> list[WorkoutSet]: ...
 
     def get_exercise_progression(
         self,

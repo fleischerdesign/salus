@@ -2846,44 +2846,6 @@ export interface paths {
         patch: operations["patch_one_api_v1_user_source_statuses__item_id__patch"];
         trace?: never;
     };
-    "/api/v1/workout-plans": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["list_all_api_v1_workout_plans_get"];
-        put?: never;
-        /** Create One */
-        post: operations["create_one_api_v1_workout_plans_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workout-plans/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_v1_workout_plans__item_id__get"];
-        /** Patch One */
-        put: operations["patch_one_api_v1_workout_plans__item_id__put"];
-        post?: never;
-        /** Delete One */
-        delete: operations["delete_one_api_v1_workout_plans__item_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch One */
-        patch: operations["patch_one_api_v1_workout_plans__item_id__patch"];
-        trace?: never;
-    };
     "/api/v1/workout-sessions": {
         parameters: {
             query?: never;
@@ -2922,6 +2884,59 @@ export interface paths {
         patch: operations["patch_one_api_v1_workout_sessions__item_id__patch"];
         trace?: never;
     };
+    "/api/v1/workouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workouts */
+        get: operations["list_workouts_api_v1_workouts_get"];
+        put?: never;
+        /** Create Workout */
+        post: operations["create_workout_api_v1_workouts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workouts/{workout_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workout */
+        get: operations["get_workout_api_v1_workouts__workout_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Workout */
+        delete: operations["delete_workout_api_v1_workouts__workout_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workouts/{workout_id}/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workout Targets */
+        get: operations["get_workout_targets_api_v1_workouts__workout_id__targets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workouts/exercises": {
         parameters: {
             query?: never;
@@ -2948,59 +2963,6 @@ export interface paths {
         };
         /** Get Exercise */
         get: operations["get_exercise_api_v1_workouts_exercises__exercise_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workouts/plans": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Plans */
-        get: operations["list_plans_api_v1_workouts_plans_get"];
-        put?: never;
-        /** Create Plan */
-        post: operations["create_plan_api_v1_workouts_plans_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workouts/plans/{plan_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Plan */
-        get: operations["get_plan_api_v1_workouts_plans__plan_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Plan */
-        delete: operations["delete_plan_api_v1_workouts_plans__plan_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/workouts/plans/{plan_id}/targets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Plan Targets */
-        get: operations["get_plan_targets_api_v1_workouts_plans__plan_id__targets_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5529,75 +5491,8 @@ export interface components {
          * @enum {string}
          */
         WidgetSize: "small" | "medium" | "large";
-        /** WorkoutLogEntryCreate */
-        WorkoutLogEntryCreate: {
-            /** Exercise Id */
-            exercise_id: string;
-            /** Reps */
-            reps: number;
-            /** Rpe */
-            rpe?: number | null;
-            /** Set Number */
-            set_number: number;
-            /** Weight */
-            weight: number;
-        };
-        /** WorkoutLogEntryResponse */
-        WorkoutLogEntryResponse: {
-            exercise: components["schemas"]["ExerciseResponse"];
-            /** Exercise Id */
-            exercise_id: string;
-            /** Id */
-            id: string;
-            /** Reps */
-            reps: number;
-            /** Rpe */
-            rpe: number | null;
-            /** Session Id */
-            session_id: string;
-            /** Set Number */
-            set_number: number;
-            /** Weight */
-            weight: number;
-        };
-        /**
-         * WorkoutPlan
-         * @description User-created training programs.
-         */
-        WorkoutPlan: {
-            /**
-             * Autoreg Mode
-             * @default advisory
-             */
-            autoreg_mode: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /** Deleted At */
-            deleted_at?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Position
-             * @default 0
-             */
-            position: number;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** User Id */
-            user_id: string;
-        };
-        /** WorkoutPlanCreate */
-        WorkoutPlanCreate: {
+        /** WorkoutCreate */
+        WorkoutCreate: {
             /**
              * Autoreg Mode
              * @default advisory
@@ -5606,7 +5501,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Exercises */
-            exercises?: components["schemas"]["WorkoutPlanExerciseCreate"][];
+            exercises?: components["schemas"]["WorkoutExerciseCreate"][];
             /** Name */
             name: string;
             /**
@@ -5615,8 +5510,8 @@ export interface components {
              */
             position: number;
         };
-        /** WorkoutPlanExerciseCreate */
-        WorkoutPlanExerciseCreate: {
+        /** WorkoutExerciseCreate */
+        WorkoutExerciseCreate: {
             /** Exercise Id */
             exercise_id: string;
             /**
@@ -5647,8 +5542,8 @@ export interface components {
              */
             target_sets: number;
         };
-        /** WorkoutPlanExerciseResponse */
-        WorkoutPlanExerciseResponse: {
+        /** WorkoutExerciseResponse */
+        WorkoutExerciseResponse: {
             exercise: components["schemas"]["ExerciseResponse"];
             /** Exercise Id */
             exercise_id: string;
@@ -5656,8 +5551,6 @@ export interface components {
             id: string;
             /** Is Autoreg Exempt */
             is_autoreg_exempt: boolean;
-            /** Plan Id */
-            plan_id: string;
             /** Rest Seconds */
             rest_seconds?: number | null;
             /** Sequence */
@@ -5668,26 +5561,8 @@ export interface components {
             target_rpe: number | null;
             /** Target Sets */
             target_sets: number;
-        };
-        /** WorkoutPlanResponse */
-        WorkoutPlanResponse: {
-            /** Autoreg Mode */
-            autoreg_mode: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Description */
-            description?: string | null;
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Plan Exercises */
-            plan_exercises: components["schemas"]["WorkoutPlanExerciseResponse"][];
-            /** Position */
-            position: number;
+            /** Workout Id */
+            workout_id: string;
         };
         /** WorkoutProgressionResponse */
         WorkoutProgressionResponse: {
@@ -5702,6 +5577,26 @@ export interface components {
             sessions: components["schemas"]["WorkoutSessionItem"][];
             /** Slope Kg Per Week */
             slope_kg_per_week: number;
+        };
+        /** WorkoutResponse */
+        WorkoutResponse: {
+            /** Autoreg Mode */
+            autoreg_mode: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            /** Exercises */
+            exercises: components["schemas"]["WorkoutExerciseResponse"][];
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
         };
         /**
          * WorkoutSession
@@ -5723,8 +5618,6 @@ export interface components {
             id?: string | null;
             /** Notes */
             notes?: string | null;
-            /** Plan Id */
-            plan_id?: string | null;
             /** Recovery Score */
             recovery_score?: number | null;
             /**
@@ -5736,6 +5629,8 @@ export interface components {
             updated_at?: string | null;
             /** User Id */
             user_id: string;
+            /** Workout Id */
+            workout_id?: string | null;
         };
         /** WorkoutSessionItem */
         WorkoutSessionItem: {
@@ -5756,14 +5651,12 @@ export interface components {
             completed_at: string | null;
             /** Id */
             id: string;
-            /** Logs */
-            logs: components["schemas"]["WorkoutLogEntryResponse"][];
             /** Notes */
             notes?: string | null;
-            /** Plan Id */
-            plan_id: string | null;
             /** Recovery Score */
             recovery_score: number | null;
+            /** Sets */
+            sets: components["schemas"]["WorkoutSetResponse"][];
             /**
              * Started At
              * Format: date-time
@@ -5771,6 +5664,39 @@ export interface components {
             started_at: string;
             /** User Id */
             user_id: string;
+            /** Workout Id */
+            workout_id: string | null;
+        };
+        /** WorkoutSetCreate */
+        WorkoutSetCreate: {
+            /** Exercise Id */
+            exercise_id: string;
+            /** Reps */
+            reps: number;
+            /** Rpe */
+            rpe?: number | null;
+            /** Set Number */
+            set_number: number;
+            /** Weight */
+            weight: number;
+        };
+        /** WorkoutSetResponse */
+        WorkoutSetResponse: {
+            exercise: components["schemas"]["ExerciseResponse"];
+            /** Exercise Id */
+            exercise_id: string;
+            /** Id */
+            id: string;
+            /** Reps */
+            reps: number;
+            /** Rpe */
+            rpe: number | null;
+            /** Session Id */
+            session_id: string;
+            /** Set Number */
+            set_number: number;
+            /** Weight */
+            weight: number;
         };
         /** WorkoutTargetResponse */
         WorkoutTargetResponse: {
@@ -14105,207 +14031,6 @@ export interface operations {
             };
         };
     };
-    list_all_api_v1_workout_plans_get: {
-        parameters: {
-            query?: {
-                limit?: number | null;
-                offset?: number;
-            };
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlan"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_one_api_v1_workout_plans_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlan"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_v1_workout_plans__item_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlan"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_workout_plans__item_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlan"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_one_api_v1_workout_plans__item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_one_api_v1_workout_plans__item_id__patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlan"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_all_api_v1_workout_sessions_get: {
         parameters: {
             query?: {
@@ -14507,6 +14232,158 @@ export interface operations {
             };
         };
     };
+    list_workouts_api_v1_workouts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutResponse"][];
+                };
+            };
+        };
+    };
+    create_workout_api_v1_workouts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkoutCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_workout_api_v1_workouts__workout_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workout_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_workout_api_v1_workouts__workout_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                workout_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_workout_targets_api_v1_workouts__workout_id__targets_get: {
+        parameters: {
+            query?: {
+                date_str?: string | null;
+            };
+            header?: never;
+            path: {
+                workout_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkoutTargetResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_exercises_api_v1_workouts_exercises_get: {
         parameters: {
             query?: never;
@@ -14545,158 +14422,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExerciseResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_plans_api_v1_workouts_plans_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlanResponse"][];
-                };
-            };
-        };
-    };
-    create_plan_api_v1_workouts_plans_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkoutPlanCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlanResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_plan_api_v1_workouts_plans__plan_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                plan_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutPlanResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_plan_api_v1_workouts_plans__plan_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-                "X-API-Key"?: string | null;
-            };
-            path: {
-                plan_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_plan_targets_api_v1_workouts_plans__plan_id__targets_get: {
-        parameters: {
-            query?: {
-                date_str?: string | null;
-            };
-            header?: never;
-            path: {
-                plan_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WorkoutTargetResponse"][];
                 };
             };
             /** @description Validation Error */
@@ -14779,7 +14504,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["WorkoutLogEntryCreate"];
+                "application/json": components["schemas"]["WorkoutSetCreate"];
             };
         };
         responses: {
@@ -14789,7 +14514,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkoutLogEntryResponse"];
+                    "application/json": components["schemas"]["WorkoutSetResponse"];
                 };
             };
             /** @description Validation Error */
@@ -14871,7 +14596,7 @@ export interface operations {
     start_session_api_v1_workouts_sessions_start_post: {
         parameters: {
             query?: {
-                plan_id?: string | null;
+                workout_id?: string | null;
             };
             header?: {
                 authorization?: string | null;

@@ -24,7 +24,7 @@ from salus.repositories.protocols import (
     IUserRepository,
     ISharingRepository,
     IExerciseRepository,
-    IWorkoutPlanRepository,
+    IWorkoutRepository,
     IWorkoutSessionRepository,
     IShareRecipientRepository,
     IAsymmetricShareRepository,
@@ -35,8 +35,8 @@ from salus.repositories.protocols import (
     ISyncPushLogRepository,
     IFederatedMeasurementCacheRepository,
     IFederatedAccessLogRepository,
-    IWorkoutPlanExerciseRepository,
-    IWorkoutLogEntryRepository,
+    IWorkoutExerciseRepository,
+    IWorkoutSetRepository,
     IHabitRepository,
     IHabitLogRepository,
     IMoodTagRepository,
@@ -68,7 +68,7 @@ from salus.repositories.user_identity import UserIdentityRepository
 from salus.repositories.sharing import SharingRepository
 from salus.repositories.workout import (
     ExerciseRepository,
-    WorkoutPlanRepository,
+    WorkoutRepository,
     WorkoutSessionRepository,
 )
 from salus.repositories.asymmetric_share import (
@@ -84,8 +84,8 @@ from salus.repositories.notification import NotificationRepository
 from salus.repositories.sync_push_log import SyncPushLogRepository
 from salus.repositories.federated_measurement_cache import FederatedMeasurementCacheRepository
 from salus.repositories.federated_access_log import FederatedAccessLogRepository
-from salus.repositories.workout_plan_exercise import WorkoutPlanExerciseRepository
-from salus.repositories.workout_log_entry import WorkoutLogEntryRepository
+from salus.repositories.workout_exercise import WorkoutExerciseRepository
+from salus.repositories.workout_set import WorkoutSetRepository
 from salus.repositories.habit import HabitRepository, HabitLogRepository
 from salus.repositories.mood import MoodTagRepository, MoodEntryRepository
 from salus.repositories.journal import JournalEntryRepository
@@ -130,7 +130,7 @@ class IUnitOfWork(Protocol):
     insights: IInsightRepository
     sharing_relationships: ISharingRepository
     exercises: IExerciseRepository
-    workout_plans: IWorkoutPlanRepository
+    workouts: IWorkoutRepository
     workout_sessions: IWorkoutSessionRepository
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
@@ -141,8 +141,8 @@ class IUnitOfWork(Protocol):
     sync_push_logs: ISyncPushLogRepository
     federated_measurement_cache: IFederatedMeasurementCacheRepository
     federated_access_logs: IFederatedAccessLogRepository
-    workout_plan_exercises: IWorkoutPlanExerciseRepository
-    workout_log_entries: IWorkoutLogEntryRepository
+    workout_exercises: IWorkoutExerciseRepository
+    workout_sets: IWorkoutSetRepository
 
     habits: IHabitRepository
     habit_logs: IHabitLogRepository
@@ -193,7 +193,7 @@ class SqlUnitOfWork:
     insights: IInsightRepository
     sharing_relationships: ISharingRepository
     exercises: IExerciseRepository
-    workout_plans: IWorkoutPlanRepository
+    workouts: IWorkoutRepository
     workout_sessions: IWorkoutSessionRepository
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
@@ -204,8 +204,8 @@ class SqlUnitOfWork:
     sync_push_logs: ISyncPushLogRepository
     federated_measurement_cache: IFederatedMeasurementCacheRepository
     federated_access_logs: IFederatedAccessLogRepository
-    workout_plan_exercises: IWorkoutPlanExerciseRepository
-    workout_log_entries: IWorkoutLogEntryRepository
+    workout_exercises: IWorkoutExerciseRepository
+    workout_sets: IWorkoutSetRepository
     habits: IHabitRepository
     habit_logs: IHabitLogRepository
     mood_tags: IMoodTagRepository
@@ -246,7 +246,7 @@ class SqlUnitOfWork:
         self.insights = InsightRepository(session)
         self.sharing_relationships = SharingRepository(session)
         self.exercises = ExerciseRepository(session)
-        self.workout_plans = WorkoutPlanRepository(session)
+        self.workouts = WorkoutRepository(session)
         self.workout_sessions = WorkoutSessionRepository(session)
         self.share_recipients = ShareRecipientRepository(session)
         self.asymmetric_shares = AsymmetricShareRepository(session)
@@ -257,8 +257,8 @@ class SqlUnitOfWork:
         self.sync_push_logs = SyncPushLogRepository(session)
         self.federated_measurement_cache = FederatedMeasurementCacheRepository(session)
         self.federated_access_logs = FederatedAccessLogRepository(session)
-        self.workout_plan_exercises = WorkoutPlanExerciseRepository(session)
-        self.workout_log_entries = WorkoutLogEntryRepository(session)
+        self.workout_exercises = WorkoutExerciseRepository(session)
+        self.workout_sets = WorkoutSetRepository(session)
         self.habits = HabitRepository(session)
         self.habit_logs = HabitLogRepository(session)
         self.mood_tags = MoodTagRepository(session)

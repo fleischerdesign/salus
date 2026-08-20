@@ -33,7 +33,6 @@ _PLURAL_MAP: dict[str, str] = {
     "goal": "goals",
     "circadian_profile": "circadian-profiles",
     "exercise": "exercises",
-    "workout_plan": "workout-plans",
     "workout_session": "workout-sessions",
     "insight": "insights",
     "notification": "notifications",
@@ -58,9 +57,12 @@ _PLURAL_MAP: dict[str, str] = {
 # Entities whose CRUD is owned by a dedicated typed router, an auth/admin flow,
 # or an internal pipeline — never by the generic CRUD generator.
 _SKIP_AUTO_CRUD: set[str] = {
+    # composed-aggregate: workout CRUD is owned by the dedicated typed router
+    # (nested exercises via create_workout command; autoregulated targets)
+    "workout",
     # relational children with dedicated domain workflows
-    "workout_plan_exercise",
-    "workout_log_entry",
+    "workout_exercise",
+    "workout_set",
     # internal infrastructure tables
     "sync_push_log",
     "federated_access_log",

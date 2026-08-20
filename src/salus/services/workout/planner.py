@@ -2,7 +2,7 @@ from typing import Optional
 
 from salus.exceptions import NotFoundError
 from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutLogEntry, WorkoutSession
+from salus.models.workout import Exercise, Workout, WorkoutSet, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.workout.autoregulation import AutoregulationService
 
@@ -33,16 +33,16 @@ class WorkoutService:
     # Plan reads
     # --------------------------------------------------------------------------
 
-    def get_plan(self, user_id: str, plan_id: str) -> WorkoutPlan:
+    def get_workout(self, user_id: str, workout_id: str) -> Workout:
         with self.uow:
-            plan = self.uow.workout_plans.get_by_id(plan_id)
-            if not plan or plan.user_id != user_id:
-                raise NotFoundError("Workout plan not found.")
-            return plan
+            workout = self.uow.workouts.get_by_id(workout_id)
+            if not workout or workout.user_id != user_id:
+                raise NotFoundError("Workout not found.")
+            return workout
 
-    def list_plans(self, user_id: str) -> list[WorkoutPlan]:
+    def list_workouts(self, user_id: str) -> list[Workout]:
         with self.uow:
-            return self.uow.workout_plans.find_by_user(user_id)
+            return self.uow.workouts.find_by_user(user_id)
 
     # --------------------------------------------------------------------------
     # Session reads
@@ -65,29 +65,29 @@ class WorkoutService:
             )
 
     def get_session_targets(
-        self, user_id: str, plan_id: str, date_str: Optional[str] = None
+        self, user_id: str, workout_id: str, date_str: Optional[str] = None
     ) -> list[dict]:
         with self.uow:
-            plan = self.uow.workout_plans.get_by_id(plan_id)
-            if not plan or plan.user_id != user_id:
-                raise NotFoundError("Workout plan not found.")
+            workout = self.uow.workouts.get_by_id(workout_id)
+            if not workout or workout.user_id != user_id:
+                raise NotFoundError("Workout not found.")
 
             # Resolve exercises
             exercises_with_targets = []
-            for plan_ex in plan.plan_exercises:
+            for plan_ex in workout.exercises:
                 ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
                 if ex:
                     exercises_with_targets.append((plan_ex, ex))
 
-            last_sess = self.uow.workout_sessions.get_last_session_for_plan(user_id, plan_id)
+            last_sess = self.uow.workout_sessions.get_last_session_for_workout(user_id, workout_id)
             last_weights = {}
             if last_sess:
-                for entry in last_sess.logs:
+                for entry in last_sess.sets:
                     last_weights[entry.exercise_id] = max(
                         last_weights.get(entry.exercise_id, 0.0), entry.weight
                     )
 
-            if plan.autoreg_mode == "disabled":
+            if workout.autoreg_mode == "disabled":
                 # Return standard targets directly
                 targets = [
                     {
@@ -98,7 +98,7 @@ class WorkoutService:
                         "suggested_rpe": plan_ex.target_rpe or DEFAULT_RPE,
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
-                        "reason": "Autoregulation disabled for this plan.",
+                        "reason": "Autoregulation disabled for this workout.",
                     }
                     for plan_ex, ex in exercises_with_targets
                 ]
@@ -112,7 +112,7 @@ class WorkoutService:
             exercise_ids = [t["exercise_id"] for t in targets]
             prs = self.uow.workout_sessions.get_personal_records(user_id, exercise_ids)
 
-            # Map exercise ID to plan/exercise objects for rest duration resolution
+            # Map exercise ID to workout/exercise objects for rest duration resolution
             plan_ex_map = {pe.exercise_id: (pe, e) for pe, e in exercises_with_targets}
 
             for t in targets:
@@ -130,9 +130,9 @@ class WorkoutService:
 
             return targets
 
-    def get_exercise_history(self, user_id: str, exercise_id: str) -> list[WorkoutLogEntry]:
+    def get_exercise_history(self, user_id: str, exercise_id: str) -> list[WorkoutSet]:
         with self.uow:
-            return self.uow.workout_log_entries.find_exercise_history(
+            return self.uow.workout_sets.find_exercise_history(
                 user_id, exercise_id
             )
 
@@ -155,20 +155,20 @@ class WorkoutService:
                 "pr_est_1rm": pr_est_1rm
             }
 
-    def get_plan_history(self, user_id: str, plan_id: str) -> list[WorkoutSession]:
+    def get_workout_history(self, user_id: str, workout_id: str) -> list[WorkoutSession]:
         with self.uow:
-            return self.uow.workout_sessions.find_completed_by_plan(
-                user_id, plan_id
+            return self.uow.workout_sessions.find_completed_by_workout(
+                user_id, workout_id
             )
 
-    def get_plan_details(self, user_id: str, plan_id: str) -> dict:
+    def get_workout_details(self, user_id: str, workout_id: str) -> dict:
         with self.uow:
-            plan = self.uow.workout_plans.get_by_id(plan_id)
-            if not plan or plan.user_id != user_id:
-                raise NotFoundError("Workout plan not found.")
+            workout = self.uow.workouts.get_by_id(workout_id)
+            if not workout or workout.user_id != user_id:
+                raise NotFoundError("Workout not found.")
 
             exercises_with_details = []
-            for plan_ex in plan.plan_exercises:
+            for plan_ex in workout.exercises:
                 ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
                 if ex:
                     exercises_with_details.append({
@@ -176,10 +176,10 @@ class WorkoutService:
                         "exercise": ex
                     })
 
-            history = self.get_plan_history(user_id, plan_id)
+            history = self.get_workout_history(user_id, workout_id)
 
             return {
-                "plan": plan,
+                "workout": workout,
                 "exercises": exercises_with_details,
                 "history": history
             }

@@ -7,7 +7,7 @@ from datetime import datetime
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.models.measurement import Measurement
 from salus.models.goal import Goal
-from salus.models.workout import WorkoutPlan, WorkoutPlanExercise
+from salus.models.workout import Workout, WorkoutExercise
 
 
 class DataPortabilityService:
@@ -51,12 +51,12 @@ class DataPortabilityService:
             zip_file.writestr("measurements.csv", csv_buffer.getvalue())
 
             # 3. Workout Plans (JSON)
-            plans = self.uow.workout_plans.find_by_user(user_id)
+            plans = self.uow.workouts.find_by_user(user_id)
             plans_data = []
             for p in plans:
-                plan_exercises = []
-                for pe in p.plan_exercises:
-                    plan_exercises.append({
+                exercises = []
+                for pe in p.exercises:
+                    exercises.append({
                         "exercise_name": pe.exercise.name,
                         "sequence": pe.sequence,
                         "target_sets": pe.target_sets,
@@ -70,10 +70,10 @@ class DataPortabilityService:
                     "description": p.description,
                     "autoreg_mode": p.autoreg_mode,
                     "position": p.position,
-                    "exercises": plan_exercises,
+                    "exercises": exercises,
                 })
             zip_file.writestr(
-                "workout_plans.json",
+                "workouts.json",
                 json.dumps(plans_data, indent=2, ensure_ascii=False)
             )
 
@@ -87,8 +87,8 @@ class DataPortabilityService:
                 "exercise_name", "set_number", "weight", "reps", "rpe"
             ])
             for s in sessions:
-                plan_name = s.plan.name if s.plan else "Custom Workout"
-                for entry in s.logs:
+                plan_name = s.workout.name if s.workout else "Custom Workout"
+                for entry in s.sets:
                     history_writer.writerow([
                         s.id,
                         s.started_at.isoformat(),
@@ -188,32 +188,32 @@ class DataPortabilityService:
                         results["errors"].append(f"Failed to import measurements: {str(e)}")
 
                 # 3. Workout Plans Import
-                if "workout_plans.json" in zip_file.namelist():
+                if "workouts.json" in zip_file.namelist():
                     try:
-                        plans_data = json.loads(zip_file.read("workout_plans.json").decode("utf-8"))
+                        plans_data = json.loads(zip_file.read("workouts.json").decode("utf-8"))
                         
-                        existing_plans = self.uow.workout_plans.find_by_user(user_id)
+                        existing_plans = self.uow.workouts.find_by_user(user_id)
                         existing_plan_names = {p.name for p in existing_plans}
                         
                         for p_data in plans_data:
                             if p_data["name"] in existing_plan_names:
                                 continue
                                 
-                            plan = WorkoutPlan(
+                            workout = Workout(
                                 name=p_data["name"],
                                 description=p_data.get("description"),
                                 user_id=user_id,
                                 autoreg_mode=p_data.get("autoreg_mode", "advisory"),
                                 position=p_data.get("position", 0),
                             )
-                            self.uow.session.add(plan)
+                            self.uow.session.add(workout)
                             self.uow.session.flush()
                             
                             for ex_data in p_data.get("exercises", []):
                                 exercise = self.uow.exercises.find_by_name(ex_data["exercise_name"])
                                 if exercise:
-                                    pe = WorkoutPlanExercise(
-                                        plan_id=plan.id,  # type: ignore
+                                    pe = WorkoutExercise(
+                                        workout_id=workout.id,  # type: ignore
                                         exercise_id=exercise.id,  # type: ignore
                                         sequence=ex_data["sequence"],
                                         target_sets=ex_data["target_sets"],

@@ -2,9 +2,9 @@ from datetime import date, datetime, tzinfo
 from sqlmodel import select, or_, desc, col
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
-from salus.models.workout import Exercise, WorkoutPlan, WorkoutSession, WorkoutLogEntry
+from salus.models.workout import Exercise, Workout, WorkoutSession, WorkoutSet
 from salus.repositories.base import Repository
-from salus.repositories.protocols import IExerciseRepository, IWorkoutPlanRepository, IWorkoutSessionRepository
+from salus.repositories.protocols import IExerciseRepository, IWorkoutRepository, IWorkoutSessionRepository
 from salus.services.timezone import local_date
 
 
@@ -25,24 +25,24 @@ class ExerciseRepository(Repository[Exercise], IExerciseRepository):
         return self.session.exec(select(Exercise).where(Exercise.name == name)).first()
 
 
-class WorkoutPlanRepository(Repository[WorkoutPlan], IWorkoutPlanRepository):
-    model = WorkoutPlan
+class WorkoutRepository(Repository[Workout], IWorkoutRepository):
+    model = Workout
 
-    def find_by_user(self, user_id: str) -> list[WorkoutPlan]:
+    def find_by_user(self, user_id: str) -> list[Workout]:
         return list(
             self.session.exec(
-                select(WorkoutPlan)
-                .where(WorkoutPlan.user_id == user_id)
-                .order_by(WorkoutPlan.position, WorkoutPlan.created_at)  # pyright: ignore[reportArgumentType]
+                select(Workout)
+                .where(Workout.user_id == user_id)
+                .order_by(Workout.position, Workout.created_at)  # pyright: ignore[reportArgumentType]
             ).all()
         )
 
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None:
-        for pos, plan_id in enumerate(ordered_ids):
-            plan = self.get_by_id(plan_id)
-            if plan is not None and plan.user_id == user_id:
-                plan.position = pos
-                self.session.add(plan)
+        for pos, workout_id in enumerate(ordered_ids):
+            workout = self.get_by_id(workout_id)
+            if workout is not None and workout.user_id == user_id:
+                workout.position = pos
+                self.session.add(workout)
         self.session.commit()
 
 
@@ -110,14 +110,14 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
             ).all()
         )
 
-    def get_last_session_for_plan(
-        self, user_id: str, plan_id: str
+    def get_last_session_for_workout(
+        self, user_id: str, workout_id: str
     ) -> WorkoutSession | None:
         return self.session.exec(
             select(WorkoutSession)
             .where(
                 WorkoutSession.user_id == user_id,
-                WorkoutSession.plan_id == plan_id,
+                WorkoutSession.workout_id == workout_id,
                 WorkoutSession.completed_at != None,  # type: ignore # noqa: E711
             )
             .order_by(desc(WorkoutSession.completed_at))
@@ -133,7 +133,7 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
                 WorkoutSession.user_id == user_id,
                 WorkoutSession.completed_at.is_(None),  # type: ignore[union-attr]
             )
-            .options(selectinload(WorkoutSession.logs))  # type: ignore[arg-type]
+            .options(selectinload(WorkoutSession.sets))  # type: ignore[arg-type]
         ).first()
 
     def get_by_id_with_relations(
@@ -146,23 +146,23 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
                 WorkoutSession.user_id == user_id,
             )
             .options(
-                selectinload(WorkoutSession.logs),  # type: ignore[arg-type]
-                selectinload(WorkoutSession.plan),  # type: ignore[arg-type]
+                selectinload(WorkoutSession.sets),  # type: ignore[arg-type]
+                selectinload(WorkoutSession.workout),  # type: ignore[arg-type]
             )
         ).first()
 
-    def find_completed_by_plan(
-        self, user_id: str, plan_id: str
+    def find_completed_by_workout(
+        self, user_id: str, workout_id: str
     ) -> list[WorkoutSession]:
         return list(
             self.session.exec(
                 select(WorkoutSession)
                 .where(
                     WorkoutSession.user_id == user_id,
-                    WorkoutSession.plan_id == plan_id,
+                    WorkoutSession.workout_id == workout_id,
                     WorkoutSession.completed_at.is_not(None),  # type: ignore[union-attr]
                 )
-                .options(selectinload(WorkoutSession.logs))  # type: ignore[arg-type]
+                .options(selectinload(WorkoutSession.sets))  # type: ignore[arg-type]
                 .order_by(desc(WorkoutSession.completed_at))
             ).all()
         )
@@ -174,12 +174,12 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
             return {}
 
         stmt = (
-            select(WorkoutLogEntry)
+            select(WorkoutSet)
             .join(WorkoutSession)
             .where(
                 WorkoutSession.user_id == user_id,
                 WorkoutSession.completed_at != None,  # type: ignore # noqa: E711
-                col(WorkoutLogEntry.exercise_id).in_(exercise_ids),
+                col(WorkoutSet.exercise_id).in_(exercise_ids),
             )
         )
         entries = self.session.exec(stmt).all()

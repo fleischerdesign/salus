@@ -77,7 +77,7 @@ def test_exercise_catalog_and_creation(session: Session, workout_services):
 def test_plan_crud_and_autoregulated_targets(session: Session, workout_services):
     uow, autoreg_svc, workout_svc = workout_services
     user = _make_user(uow, "lifter")
-    from salus.services.commands.workout import CreatePlanHandler
+    from salus.services.commands.workout import CreateWorkoutHandler
 
     with uow:
         squat = Exercise(
@@ -99,7 +99,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
         squat_id = squat.id
         bench_id = bench.id
 
-    plan = CreatePlanHandler().execute(uow, user, {
+    workout = CreateWorkoutHandler().execute(uow, user, {
         "name": "Push & Legs Day",
         "description": "Heavy compounds",
         "autoreg_mode": "advisory",
@@ -108,13 +108,13 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
             {"exercise_id": bench_id, "sequence": 1, "target_sets": 3, "target_reps": 8, "target_rpe": 7.5, "is_autoreg_exempt": True},
         ],
     })
-    assert plan.status == "created"
-    plan_id = plan.id
+    assert workout.status == "created"
+    workout_id = workout.id
 
-    plan_obj = workout_svc.get_plan(user_id=user.id, plan_id=plan_id)
-    assert len(plan_obj.plan_exercises) == 2
+    plan_obj = workout_svc.get_workout(user_id=user.id, workout_id=workout_id)
+    assert len(plan_obj.exercises) == 2
 
-    targets = workout_svc.get_session_targets(user_id=user.id, plan_id=plan_id)
+    targets = workout_svc.get_session_targets(user_id=user.id, workout_id=workout_id)
     squat_target = next(t for t in targets if t["exercise_id"] == squat_id)
     bench_target = next(t for t in targets if t["exercise_id"] == bench_id)
 
@@ -153,7 +153,7 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
     score, sleep_score, _, _ = autoreg_svc.calculate_recovery_score(user.id)
     assert sleep_score < 50.0
 
-    targets_fatigued = workout_svc.get_session_targets(user_id=user.id, plan_id=plan_id)
+    targets_fatigued = workout_svc.get_session_targets(user_id=user.id, workout_id=workout_id)
     squat_fatigued = next(t for t in targets_fatigued if t["exercise_id"] == squat_id)
     bench_fatigued = next(t for t in targets_fatigued if t["exercise_id"] == bench_id)
 
@@ -199,7 +199,7 @@ def test_session_starting_and_logging(session: Session, workout_services):
     session_obj = workout_svc.get_session(user_id=user.id, session_id=session_id)
     assert session_obj.completed_at is not None
     assert session_obj.notes == "Felt a good pump."
-    assert len(session_obj.logs) == 2
+    assert len(session_obj.sets) == 2
 
 
 def test_personal_records_and_unlogging(session: Session, workout_services):
@@ -237,7 +237,7 @@ def test_personal_records_and_unlogging(session: Session, workout_services):
 
     with uow:
         sess2_obj = uow.workout_sessions.get_by_id(sess2.id)
-        assert len(sess2_obj.logs) == 1
+        assert len(sess2_obj.sets) == 1
 
     deleted = DeleteLogSetHandler().execute(uow, user, {
         "session_id": sess2.id, "exercise_id": ex_id, "set_number": 1,
@@ -247,7 +247,7 @@ def test_personal_records_and_unlogging(session: Session, workout_services):
     with uow:
         sess2_fresh = uow.workout_sessions.get_by_id(sess2.id)
         assert sess2_fresh is not None
-        assert all(log.deleted_at is not None for log in sess2_fresh.logs)
+        assert all(log.deleted_at is not None for log in sess2_fresh.sets)
 
 
 # ---------------------------------------------------------------------------
@@ -286,16 +286,16 @@ def test_active_session_returns_logged_sets(authenticated_client):
     body = active.json()
     assert body is not None
     assert body["id"] == session_id
-    assert len(body["logs"]) == 1
-    assert body["logs"][0]["exercise_id"] == ex_id
-    assert body["logs"][0]["weight"] == 15.0
-    assert body["logs"][0]["reps"] == 8
+    assert len(body["sets"]) == 1
+    assert body["sets"][0]["exercise_id"] == ex_id
+    assert body["sets"][0]["weight"] == 15.0
+    assert body["sets"][0]["reps"] == 8
 
 
 def test_recent_sessions_includes_completed(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
-    from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise
+    from salus.models.workout import Exercise, Workout, WorkoutExercise
 
     engine = authenticated_client.app.state.engine
     with Session(engine) as db:
@@ -307,16 +307,16 @@ def test_recent_sessions_includes_completed(authenticated_client):
         db.commit()
         ex_id = ex.id
 
-        plan = WorkoutPlan(name="Test Plan A", user_id=alice.id, autoreg_mode="disabled")
-        db.add(plan)
+        workout = Workout(name="Test Plan A", user_id=alice.id, autoreg_mode="disabled")
+        db.add(workout)
         db.commit()
-        plan_id = plan.id
+        workout_id = workout.id
 
-        plan_ex = WorkoutPlanExercise(plan_id=plan_id, exercise_id=ex_id, sequence=0, target_sets=3, target_reps=8, target_rpe=8.0)
+        plan_ex = WorkoutExercise(workout_id=workout_id, exercise_id=ex_id, sequence=0, target_sets=3, target_reps=8, target_rpe=8.0)
         db.add(plan_ex)
         db.commit()
 
-    start_resp = authenticated_client.post(f"/api/v1/workouts/sessions/start?plan_id={plan_id}")
+    start_resp = authenticated_client.post(f"/api/v1/workouts/sessions/start?workout_id={workout_id}")
     assert start_resp.status_code == 200
     session_id = start_resp.json()["id"]
 
@@ -338,10 +338,10 @@ def test_recent_sessions_includes_completed(authenticated_client):
     assert len(sessions) >= 1
     sess = next(s for s in sessions if s["id"] == session_id)
     assert sess["notes"] == "Felt great!"
-    assert len(sess["logs"]) == 1
-    assert sess["logs"][0]["exercise"]["name"] == "Curls"
-    assert sess["logs"][0]["weight"] == 12.5
-    assert sess["logs"][0]["reps"] == 10
+    assert len(sess["sets"]) == 1
+    assert sess["sets"][0]["exercise"]["name"] == "Curls"
+    assert sess["sets"][0]["weight"] == 12.5
+    assert sess["sets"][0]["reps"] == 10
 
 
 def test_list_exercises_includes_created(authenticated_client):
@@ -370,27 +370,27 @@ def test_list_exercises_includes_created(authenticated_client):
     assert "hamstrings" in deadlift["primary_muscles"]
 
 
-def test_get_plan_returns_plan(authenticated_client):
+def test_get_workout_returns_plan(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
-    from salus.models.workout import WorkoutPlan
+    from salus.models.workout import Workout
 
     engine = authenticated_client.app.state.engine
     with Session(engine) as db:
         alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
         assert alice is not None
 
-        plan = WorkoutPlan(
+        workout = Workout(
             name="Hypertrophy Phase 1",
             description="High volume muscle building.",
             autoreg_mode="recovery_based",
             user_id=alice.id,
         )
-        db.add(plan)
+        db.add(workout)
         db.commit()
-        plan_id = plan.id
+        workout_id = workout.id
 
-    response = authenticated_client.get(f"/api/v1/workouts/plans/{plan_id}")
+    response = authenticated_client.get(f"/api/v1/workouts/{workout_id}")
     assert response.status_code == 200
     body = response.json()
     assert body["name"] == "Hypertrophy Phase 1"
@@ -439,7 +439,7 @@ def test_delete_exercise_via_api(authenticated_client):
     assert not any(e["id"] == ex_id for e in check.json())
 
 
-def test_create_plan_via_api(authenticated_client):
+def test_create_workout_via_api(authenticated_client):
     from sqlmodel import Session
     from salus.models.workout import Exercise
 
@@ -458,35 +458,35 @@ def test_create_plan_via_api(authenticated_client):
             {"exercise_id": ex_id, "sequence": 0, "target_sets": 3, "target_reps": 5, "target_rpe": 8.5}
         ],
     }
-    resp = authenticated_client.post("/api/v1/workouts/plans", json=data)
+    resp = authenticated_client.post("/api/v1/workouts", json=data)
     assert resp.status_code == 201
     body = resp.json()
     assert body["id"] is not None
     assert body["name"] == "API Plan"
-    assert len(body["plan_exercises"]) == 1
-    assert body["plan_exercises"][0]["exercise_id"] == ex_id
+    assert len(body["exercises"]) == 1
+    assert body["exercises"][0]["exercise_id"] == ex_id
 
 
-def test_delete_plan_via_api(authenticated_client):
+def test_delete_workout_via_api(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
-    from salus.models.workout import WorkoutPlan
+    from salus.models.workout import Workout
 
     engine = authenticated_client.app.state.engine
     with Session(engine) as db:
         alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
         assert alice is not None
 
-        plan = WorkoutPlan(name="To Remove", user_id=alice.id, autoreg_mode="disabled")
-        db.add(plan)
+        workout = Workout(name="To Remove", user_id=alice.id, autoreg_mode="disabled")
+        db.add(workout)
         db.commit()
-        plan_id = plan.id
+        workout_id = workout.id
 
-    resp = authenticated_client.delete(f"/api/v1/workouts/plans/{plan_id}")
+    resp = authenticated_client.delete(f"/api/v1/workouts/{workout_id}")
     assert resp.status_code == 204
 
     with Session(engine) as db:
-        deleted = db.get(WorkoutPlan, plan_id)
+        deleted = db.get(Workout, workout_id)
         assert deleted is not None
         assert deleted.deleted_at is not None
 
@@ -530,36 +530,36 @@ def test_log_and_delete_set_via_api(authenticated_client):
     assert delete_resp.status_code == 204
 
     active = authenticated_client.get("/api/v1/workouts/sessions/active")
-    assert len(active.json()["logs"]) == 0
+    assert len(active.json()["sets"]) == 0
 
 
-def test_list_plans_via_api(authenticated_client):
+def test_list_workouts_via_api(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
-    from salus.models.workout import WorkoutPlan
+    from salus.models.workout import Workout
 
     engine = authenticated_client.app.state.engine
     with Session(engine) as db:
         alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
         assert alice is not None
 
-        plan = WorkoutPlan(name="List Test", user_id=alice.id, autoreg_mode="disabled")
-        db.add(plan)
+        workout = Workout(name="List Test", user_id=alice.id, autoreg_mode="disabled")
+        db.add(workout)
         db.commit()
-        plan_id = plan.id
+        workout_id = workout.id
 
-    resp = authenticated_client.get("/api/v1/workouts/plans")
+    resp = authenticated_client.get("/api/v1/workouts")
     assert resp.status_code == 200
     plans = resp.json()
-    assert any(p["id"] == plan_id for p in plans)
-    plan_data = next(p for p in plans if p["id"] == plan_id)
+    assert any(p["id"] == workout_id for p in plans)
+    plan_data = next(p for p in plans if p["id"] == workout_id)
     assert plan_data["name"] == "List Test"
 
 
-def test_get_plan_targets_returns_targets(authenticated_client):
+def test_get_workout_targets_returns_targets(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel
-    from salus.models.workout import Exercise, WorkoutPlan, WorkoutPlanExercise
+    from salus.models.workout import Exercise, Workout, WorkoutExercise
 
     engine = authenticated_client.app.state.engine
     with Session(engine) as db:
@@ -572,19 +572,19 @@ def test_get_plan_targets_returns_targets(authenticated_client):
         db.commit()
         ex_id = ex.id
 
-        plan = WorkoutPlan(name="Targets Plan", user_id=user_id, autoreg_mode="advisory")
-        db.add(plan)
+        workout = Workout(name="Targets Plan", user_id=user_id, autoreg_mode="advisory")
+        db.add(workout)
         db.commit()
-        plan_id = plan.id
+        workout_id = workout.id
 
-        plan_ex = WorkoutPlanExercise(
-            plan_id=plan_id, exercise_id=ex_id, sequence=0,
+        plan_ex = WorkoutExercise(
+            workout_id=workout_id, exercise_id=ex_id, sequence=0,
             target_sets=4, target_reps=10, target_rpe=8.0,
         )
         db.add(plan_ex)
         db.commit()
 
-    resp = authenticated_client.get(f"/api/v1/workouts/plans/{plan_id}/targets")
+    resp = authenticated_client.get(f"/api/v1/workouts/{workout_id}/targets")
     assert resp.status_code == 200
     targets = resp.json()
     assert isinstance(targets, list)

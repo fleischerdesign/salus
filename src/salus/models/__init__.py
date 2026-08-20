@@ -45,8 +45,8 @@ from salus.models.user_identity import UserIdentity  # noqa: F401, E402
 from salus.models.user_source_preference import UserSourcePreference  # noqa: F401, E402
 from salus.models.workout import (  # noqa: F401, E402
     Exercise,
-    WorkoutLogEntry,
-    WorkoutPlan,
-    WorkoutPlanExercise,
+    Workout,
+    WorkoutExercise,
     WorkoutSession,
+    WorkoutSet,
 )

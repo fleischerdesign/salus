@@ -59,13 +59,6 @@ class TestAutoCRUD:
         })
         assert resp.status_code == 201
 
-    def test_create_workout_plan(self, authenticated_client: TestClient):
-        resp = authenticated_client.post("/api/v1/workout-plans", json={
-            "name": "Push Day", "position": 0,
-        })
-        assert resp.status_code == 201
-        assert resp.json()["name"] == "Push Day"
-
     def test_unauthorized_access(self, client: TestClient):
         resp = client.get("/api/v1/exercises")
         assert resp.status_code == 401

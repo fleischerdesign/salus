@@ -305,7 +305,7 @@ class FederationDataResolver:
                             "type": "workout",
                             "friend_name": friend_user.username,
                             "time": sess.completed_at,
-                            "title": sess.plan.name if sess.plan else "Workout Session",
+                            "title": sess.workout.name if sess.workout else "Workout Session",
                             "notes": sess.notes,
                             "id": f"workout-{sess.id}",
                         }

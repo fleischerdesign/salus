@@ -1,23 +1,23 @@
 from sqlmodel import select
 
-from salus.models.workout import WorkoutPlanExercise
+from salus.models.workout import WorkoutExercise
 from salus.repositories.base import Repository
-from salus.repositories.protocols import IWorkoutPlanExerciseRepository
+from salus.repositories.protocols import IWorkoutExerciseRepository
 
 
-class WorkoutPlanExerciseRepository(Repository[WorkoutPlanExercise], IWorkoutPlanExerciseRepository):
-    model = WorkoutPlanExercise
+class WorkoutExerciseRepository(Repository[WorkoutExercise], IWorkoutExerciseRepository):
+    model = WorkoutExercise
 
-    def find_by_plan(self, plan_id: str) -> list[WorkoutPlanExercise]:
-        stmt = select(WorkoutPlanExercise).where(
-            WorkoutPlanExercise.plan_id == plan_id
+    def find_by_workout(self, workout_id: str) -> list[WorkoutExercise]:
+        stmt = select(WorkoutExercise).where(
+            WorkoutExercise.workout_id == workout_id
         )
         return list(self.session.exec(stmt).all())
 
-    def replace_exercises_for_plan(
-        self, plan_id: str, exercises: list[WorkoutPlanExercise]
+    def replace_exercises_for_workout(
+        self, workout_id: str, exercises: list[WorkoutExercise]
     ) -> None:
-        old = self.find_by_plan(plan_id)
+        old = self.find_by_workout(workout_id)
         for ex in old:
             self.session.delete(ex)
         self.session.flush()

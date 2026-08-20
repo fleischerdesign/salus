@@ -85,13 +85,13 @@ class TestSyncPush:
         session_client_id = str(uuid.uuid4())
         log_client_id = str(uuid.uuid4())
 
-        create_plan = {
+        create_workout = {
             "type": "create",
-            "entity": "workout_plan",
+            "entity": "workout",
             "data": {"name": "Temp Plan", "position": 0},
         }
-        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_plan]})
-        plan_id = resp.json()["results"][0]["id"]
+        resp = authenticated_client.post("/api/v1/sync/push", json={"operations": [create_workout]})
+        workout_id = resp.json()["results"][0]["id"]
 
         create_exercise = {
             "type": "create",
@@ -106,11 +106,11 @@ class TestSyncPush:
                 "type": "create",
                 "entity": "workout_session",
                 "client_id": session_client_id,
-                "data": {"plan_id": plan_id, "started_at": "2026-07-11T10:00:00Z"},
+                "data": {"workout_id": workout_id, "started_at": "2026-07-11T10:00:00Z"},
             },
             {
                 "type": "create",
-                "entity": "workout_log_entry",
+                "entity": "workout_set",
                 "client_id": log_client_id,
                 "data": {
                     "session_client_id": session_client_id,
@@ -656,22 +656,22 @@ class TestSyncPushPublishesEvent:
         fastapi_app.dependency_overrides[get_event_bus] = lambda: mock
 
         try:
-            # Create a plan first (needed for start_workout)
+            # Create a workout first (needed for start_workout)
             plan_resp = authenticated_client.post("/api/v1/sync/push", json={
                 "operations": [{
                     "type": "create",
-                    "entity": "workout_plan",
+                    "entity": "workout",
                     "data": {"name": "EventBus Plan", "position": 0},
                 }]
             })
-            plan_id = plan_resp.json()["results"][0]["id"]
+            workout_id = plan_resp.json()["results"][0]["id"]
             expected_min_publishes = len(published_user_ids) + 1
 
             resp = authenticated_client.post("/api/v1/sync/push", json={
                 "operations": [{
                     "type": "command",
                     "command": "start_workout",
-                    "payload": {"plan_id": plan_id},
+                    "payload": {"workout_id": workout_id},
                 }]
             })
             assert resp.status_code == 200

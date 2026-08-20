@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, TYPE_CHECKING
 
-from salus.models.workout import WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
+from salus.models.workout import WorkoutSet, Workout, WorkoutExercise, WorkoutSession
 from salus.utils import uuid7_str
 from salus.services._helpers import uid
 from salus.services.command_registry import CommandResult, register
@@ -20,11 +20,11 @@ def _new_uuid() -> str:
 
 
 _SESSION_FIELDS = (
-    "id", "user_id", "plan_id", "started_at", "completed_at",
+    "id", "user_id", "workout_id", "started_at", "completed_at",
     "autoreg_mode", "recovery_score", "notes", "created_at", "updated_at", "deleted_at",
 )
 
-_LOG_ENTRY_FIELDS = (
+_SET_FIELDS = (
     "id", "session_id", "exercise_id", "set_number", "weight", "reps",
     "rpe", "created_at", "updated_at", "deleted_at",
 )
@@ -34,14 +34,14 @@ def _serialize_session(session: WorkoutSession) -> dict[str, Any]:
     return serialize_record(session, list(_SESSION_FIELDS))
 
 
-def _serialize_log_entry(entry: WorkoutLogEntry) -> dict[str, Any]:
-    return serialize_record(entry, list(_LOG_ENTRY_FIELDS))
+def _serialize_set(entry: WorkoutSet) -> dict[str, Any]:
+    return serialize_record(entry, list(_SET_FIELDS))
 
 
 @register("start_workout")
 class StartWorkoutHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
-        plan_id = payload.get("plan_id")
+        workout_id = payload.get("workout_id")
         session_id = payload.get("id")
 
         active = uow.workout_sessions.find_active_by_user(user.id)  # pyright: ignore[reportArgumentType]
@@ -50,10 +50,10 @@ class StartWorkoutHandler:
 
         autoreg_mode = "advisory"
         recovery_score = None
-        if plan_id:
-            plan = uow.workout_plans.get_by_id(plan_id)
-            if plan and plan.user_id == user.id:  # pyright: ignore[reportAttributeAccessIssue]
-                autoreg_mode = plan.autoreg_mode
+        if workout_id:
+            workout = uow.workouts.get_by_id(workout_id)
+            if workout and workout.user_id == user.id:  # pyright: ignore[reportAttributeAccessIssue]
+                autoreg_mode = workout.autoreg_mode
                 if autoreg_mode != "disabled":
                     recovery_score = self._calculate_recovery(uow, user)
 
@@ -61,7 +61,7 @@ class StartWorkoutHandler:
         session = WorkoutSession(
             id=session_id,
             user_id=user.id,  # pyright: ignore[reportArgumentType]
-            plan_id=plan_id,
+            workout_id=workout_id,
             started_at=now,
             autoreg_mode=autoreg_mode,
             recovery_score=recovery_score,
@@ -153,7 +153,7 @@ class LogSetHandler:
             return CommandResult(status="forbidden", message="Not your workout session")
 
         now = datetime.now(timezone.utc)
-        entry = WorkoutLogEntry(
+        entry = WorkoutSet(
             id=entry_id,
             session_id=session.id,
             exercise_id=exercise_id,
@@ -164,10 +164,10 @@ class LogSetHandler:
             created_at=now,
             updated_at=now,
         )
-        uow.workout_log_entries.add(entry)
+        uow.workout_sets.add(entry)
         uow.commit()
         uow.session.refresh(entry)
-        return CommandResult(status="created", record=_serialize_log_entry(entry), id=entry.id)
+        return CommandResult(status="created", record=_serialize_set(entry), id=entry.id)
 
     @staticmethod
     def _resolve_session(uow: IUnitOfWork, user: User, session_id: str) -> Any:
@@ -186,7 +186,7 @@ class DeleteLogSetHandler:
             set_number = payload.get("set_number")
             if not (session_id and exercise_id and set_number is not None):
                 return CommandResult(status="error", message="id or (session_id, exercise_id, set_number) is required")
-            entry = uow.workout_log_entries.find_by_session_exercise_set(
+            entry = uow.workout_sets.find_by_session_exercise_set(
                 session_id, exercise_id, set_number
             )
             if entry is None:
@@ -195,7 +195,7 @@ class DeleteLogSetHandler:
 
         from sqlmodel import select
 
-        stmt = select(WorkoutLogEntry).where(WorkoutLogEntry.id == entry_id)
+        stmt = select(WorkoutSet).where(WorkoutSet.id == entry_id)
         entry = uow.session.exec(stmt).first()
         if not entry:
             return CommandResult(status="deleted", id=entry_id)
@@ -210,17 +210,17 @@ class DeleteLogSetHandler:
         return CommandResult(status="deleted", id=entry_id)
 
 
-@register("create_plan")
-class CreatePlanHandler:
+@register("create_workout")
+class CreateWorkoutHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         name = payload.get("name", "").strip()
         if not name:
             return CommandResult(status="error", message="name is required")
 
         now = datetime.now(timezone.utc)
-        plan_id = payload.get("id") or _new_uuid()
-        plan = WorkoutPlan(
-            id=plan_id,
+        workout_id = payload.get("id") or _new_uuid()
+        workout = Workout(
+            id=workout_id,
             name=name,
             description=payload.get("description"),
             user_id=user.id,  # pyright: ignore[reportArgumentType]
@@ -236,9 +236,9 @@ class CreatePlanHandler:
             ex = uow.exercises.get_by_id(exercise_id)  # pyright: ignore[reportArgumentType]
             if not ex:
                 return CommandResult(status="error", message=f"Exercise {exercise_id} not found")
-            plan_ex = WorkoutPlanExercise(
+            plan_ex = WorkoutExercise(
                 id=item.get("id"),
-                plan_id=plan_id,
+                workout_id=workout_id,
                 exercise_id=exercise_id,
                 sequence=item.get("sequence", 0),
                 target_sets=item.get("target_sets", DEFAULT_TARGET_SETS),
@@ -249,28 +249,28 @@ class CreatePlanHandler:
                 created_at=now,
                 updated_at=now,
             )
-            uow.workout_plan_exercises.add(plan_ex)
-        uow.workout_plans.add(plan)
+            uow.workout_exercises.add(plan_ex)
+        uow.workouts.add(workout)
         uow.commit()
 
-        record: dict[str, Any] = {"id": plan_id, "name": plan.name,
-            "description": plan.description, "autoreg_mode": plan.autoreg_mode}
-        return CommandResult(status="created", record=record, id=plan_id)
+        record: dict[str, Any] = {"id": workout_id, "name": workout.name,
+            "description": workout.description, "autoreg_mode": workout.autoreg_mode}
+        return CommandResult(status="created", record=record, id=workout_id)
 
 
-@register("delete_plan")
-class DeletePlanHandler:
+@register("delete_workout")
+class DeleteWorkoutHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
-        plan_id = payload.get("id")
-        if not plan_id:
+        workout_id = payload.get("id")
+        if not workout_id:
             return CommandResult(status="error", message="id is required")
-        plan = uow.workout_plans.get_by_id(plan_id)  # pyright: ignore[reportArgumentType]
-        if not plan:
-            return CommandResult(status="deleted", id=plan_id)
-        if plan.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
-            return CommandResult(status="forbidden", id=plan_id)
-        for plan_ex in uow.workout_plan_exercises.find_by_plan(plan_id):
-            uow.workout_plan_exercises.delete(plan_ex)
-        uow.workout_plans.delete(plan)
+        workout = uow.workouts.get_by_id(workout_id)  # pyright: ignore[reportArgumentType]
+        if not workout:
+            return CommandResult(status="deleted", id=workout_id)
+        if workout.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            return CommandResult(status="forbidden", id=workout_id)
+        for plan_ex in uow.workout_exercises.find_by_workout(workout_id):
+            uow.workout_exercises.delete(plan_ex)
+        uow.workouts.delete(workout)
         uow.commit()
-        return CommandResult(status="deleted", id=plan_id)
+        return CommandResult(status="deleted", id=workout_id)

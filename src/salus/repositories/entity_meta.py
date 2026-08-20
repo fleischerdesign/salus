@@ -16,7 +16,7 @@ from salus.models.metric_preference import UserMetricPreference
 from salus.models.notification import Notification
 from salus.models.sharing import FederatedAccessLog, LeaderboardGroup, LeaderboardMember, SharingRelationship
 from salus.models.user import User
-from salus.models.workout import Exercise, WorkoutLogEntry, WorkoutPlan, WorkoutPlanExercise, WorkoutSession
+from salus.models.workout import Exercise, WorkoutSet, Workout, WorkoutExercise, WorkoutSession
 from salus.models.habit import Habit, HabitLog
 from salus.models.mood import MoodTag, MoodEntry
 from salus.models.journal import JournalEntry
@@ -77,14 +77,14 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="goal", model=Goal, batch_size=500),
     EntityMeta(name="circadian_profile", model=CircadianProfile, batch_size=500),
     EntityMeta(name="exercise", model=Exercise, strategy="shared_nullable", batch_size=500),
-    EntityMeta(name="workout_plan", model=WorkoutPlan, batch_size=500),
+    EntityMeta(name="workout", model=Workout, batch_size=500),
     EntityMeta(
-        name="workout_plan_exercise", model=WorkoutPlanExercise, strategy="relational",
-        parent_field="plan_id", parent_model=WorkoutPlan, parent_owner_field="user_id", batch_size=500,
+        name="workout_exercise", model=WorkoutExercise, strategy="relational",
+        parent_field="workout_id", parent_model=Workout, parent_owner_field="user_id", batch_size=500,
     ),
     EntityMeta(name="workout_session", model=WorkoutSession, batch_size=500),
     EntityMeta(
-        name="workout_log_entry", model=WorkoutLogEntry, strategy="relational",
+        name="workout_set", model=WorkoutSet, strategy="relational",
         parent_field="session_id", parent_model=WorkoutSession, parent_owner_field="user_id", batch_size=500,
     ),
     EntityMeta(name="insight", model=Insight, batch_size=500),

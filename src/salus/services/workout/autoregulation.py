@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from salus.models.workout import Exercise, WorkoutPlanExercise
+from salus.models.workout import Exercise, WorkoutExercise
 from salus.services.analytics.activity import ActivityAnalysisService
 from salus.services.analytics.sleep import SleepAnalysisService
 from salus.services.analytics.stats import recovery_composite
@@ -113,7 +113,7 @@ class AutoregulationService:
     def get_autoregulated_targets(
         self,
         user_id: str,
-        exercises_with_targets: list[tuple[WorkoutPlanExercise, Exercise]],
+        exercises_with_targets: list[tuple[WorkoutExercise, Exercise]],
         date_str: Optional[str] = None,
     ) -> list[dict]:
         """
@@ -133,7 +133,7 @@ class AutoregulationService:
         }
 
         for plan_ex, ex in exercises_with_targets:
-            # If manually locked or plan has disabled autoreg
+            # If manually locked or workout has disabled autoreg
             if plan_ex.is_autoreg_exempt:
                 results.append(
                     {

@@ -53,7 +53,7 @@ def test_data_portability_export_import():
         namelist = zip_file.namelist()
         assert "profile.json" in namelist
         assert "measurements.csv" in namelist
-        assert "workout_plans.json" in namelist
+        assert "workouts.json" in namelist
         assert "workout_history.csv" in namelist
         assert "goals.json" in namelist
 

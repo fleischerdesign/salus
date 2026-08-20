@@ -40,10 +40,10 @@ class Exercise(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
 
-class WorkoutPlan(SQLModel, table=True):
-    """User-created training programs."""
+class Workout(SQLModel, table=True):
+    """A reusable training day (an ordered list of exercises with targets)."""
 
-    __tablename__ = "workout_plan"  # pyright: ignore[reportAssignmentType]
+    __tablename__ = "workout"  # pyright: ignore[reportAssignmentType]
 
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str
@@ -52,7 +52,7 @@ class WorkoutPlan(SQLModel, table=True):
 
     # Granular Autoregulation Policies
     autoreg_mode: str = Field(default="advisory")  # "guided", "advisory", "disabled"
-    position: int = Field(default=0)  # Reorder position in plans grid
+    position: int = Field(default=0)  # Reorder position in workouts grid
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(
@@ -62,19 +62,19 @@ class WorkoutPlan(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     # Relations
-    plan_exercises: list["WorkoutPlanExercise"] = Relationship(
-        back_populates="plan", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    exercises: list["WorkoutExercise"] = Relationship(
+        back_populates="workout", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
-    user: "User" = Relationship(back_populates="workout_plans")
+    user: "User" = Relationship(back_populates="workouts")
 
 
-class WorkoutPlanExercise(SQLModel, table=True):
-    """Bridge mapping exercises to plans with custom targets."""
+class WorkoutExercise(SQLModel, table=True):
+    """Bridge mapping exercises to workouts with custom targets."""
 
-    __tablename__ = "workout_plan_exercise"  # pyright: ignore[reportAssignmentType]
+    __tablename__ = "workout_exercise"  # pyright: ignore[reportAssignmentType]
 
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
-    plan_id: str = Field(foreign_key="workout_plan.id")
+    workout_id: str = Field(foreign_key="workout.id")
     exercise_id: str = Field(foreign_key="exercise.id")
     sequence: int = Field(default=0)  # Execution order
     target_sets: int = Field(default=3)
@@ -94,7 +94,7 @@ class WorkoutPlanExercise(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     # Relations
-    plan: "WorkoutPlan" = Relationship(back_populates="plan_exercises")
+    workout: "Workout" = Relationship(back_populates="exercises")
     exercise: "Exercise" = Relationship()
 
 
@@ -105,7 +105,7 @@ class WorkoutSession(SQLModel, table=True):
 
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
-    plan_id: Optional[str] = Field(default=None, foreign_key="workout_plan.id")
+    workout_id: Optional[str] = Field(default=None, foreign_key="workout.id")
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = Field(default=None)
 
@@ -121,21 +121,21 @@ class WorkoutSession(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     # Relations
-    logs: list["WorkoutLogEntry"] = Relationship(
+    sets: list["WorkoutSet"] = Relationship(
         back_populates="session",
         sa_relationship_kwargs={
             "cascade": "all, delete-orphan",
-            "primaryjoin": "and_(WorkoutLogEntry.session_id == WorkoutSession.id, WorkoutLogEntry.deleted_at.is_(None))",
+            "primaryjoin": "and_(WorkoutSet.session_id == WorkoutSession.id, WorkoutSet.deleted_at.is_(None))",
         },
     )
     user: "User" = Relationship(back_populates="workout_sessions")
-    plan: Optional[WorkoutPlan] = Relationship()
+    workout: Optional[Workout] = Relationship()
 
 
-class WorkoutLogEntry(SQLModel, table=True):
+class WorkoutSet(SQLModel, table=True):
     """Raw sets completed."""
 
-    __tablename__ = "workout_log_entry"  # pyright: ignore[reportAssignmentType]
+    __tablename__ = "workout_set"  # pyright: ignore[reportAssignmentType]
 
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     session_id: str = Field(foreign_key="workout_session.id")
@@ -152,5 +152,5 @@ class WorkoutLogEntry(SQLModel, table=True):
     deleted_at: datetime | None = Field(default=None)
 
     # Relations
-    session: "WorkoutSession" = Relationship(back_populates="logs")
+    session: "WorkoutSession" = Relationship(back_populates="sets")
     exercise: "Exercise" = Relationship()

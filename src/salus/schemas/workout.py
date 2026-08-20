@@ -21,7 +21,7 @@ class ExerciseResponse(ExerciseBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class WorkoutPlanExerciseCreate(BaseModel):
+class WorkoutExerciseCreate(BaseModel):
     exercise_id: str
     sequence: int = 0
     target_sets: int = 3
@@ -31,9 +31,9 @@ class WorkoutPlanExerciseCreate(BaseModel):
     rest_seconds: Optional[int] = None
 
 
-class WorkoutPlanExerciseResponse(BaseModel):
+class WorkoutExerciseResponse(BaseModel):
     id: str
-    plan_id: str
+    workout_id: str
     exercise_id: str
     sequence: int
     target_sets: int
@@ -46,27 +46,27 @@ class WorkoutPlanExerciseResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class WorkoutPlanCreate(BaseModel):
+class WorkoutCreate(BaseModel):
     name: str
     description: Optional[str] = None
     autoreg_mode: str = "advisory"  # "guided", "advisory", "disabled"
     position: int = 0
-    exercises: list[WorkoutPlanExerciseCreate] = Field(default_factory=list)
+    exercises: list[WorkoutExerciseCreate] = Field(default_factory=list)
 
 
-class WorkoutPlanResponse(BaseModel):
+class WorkoutResponse(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
     autoreg_mode: str
     position: int
     created_at: datetime
-    plan_exercises: list[WorkoutPlanExerciseResponse]
+    exercises: list[WorkoutExerciseResponse]
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class WorkoutLogEntryCreate(BaseModel):
+class WorkoutSetCreate(BaseModel):
     exercise_id: str
     set_number: int
     weight: float
@@ -74,7 +74,7 @@ class WorkoutLogEntryCreate(BaseModel):
     rpe: Optional[float] = None
 
 
-class WorkoutLogEntryResponse(BaseModel):
+class WorkoutSetResponse(BaseModel):
     id: str
     session_id: str
     exercise_id: str
@@ -90,13 +90,13 @@ class WorkoutLogEntryResponse(BaseModel):
 class WorkoutSessionResponse(BaseModel):
     id: str
     user_id: str
-    plan_id: Optional[str]
+    workout_id: Optional[str]
     started_at: datetime
     completed_at: Optional[datetime]
     autoreg_mode: str
     recovery_score: Optional[float]
     notes: Optional[str] = None
-    logs: list[WorkoutLogEntryResponse]
+    sets: list[WorkoutSetResponse]
 
     model_config = ConfigDict(from_attributes=True)
 
