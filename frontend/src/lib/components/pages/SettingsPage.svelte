@@ -196,7 +196,7 @@
   // ─── 7. BACKUP & EXPORT STATE ───
   const dexieTables = [
     { name: 'measurement', rows: 1840, size: '295 KB' },
-    { name: 'workout_log_entry', rows: 840, size: '120 KB' },
+    { name: 'workout_set', rows: 840, size: '120 KB' },
     { name: 'meal_item', rows: 680, size: '115 KB' },
     { name: 'lab_result', rows: 180, size: '32 KB' },
     { name: 'outbox (Unified Sync Queue)', rows: 0, size: '0 KB', status: 'Geleert' }

@@ -169,21 +169,20 @@ export interface Exercise {
   deleted_at: string | null;
 }
 
-export interface WorkoutPlan {
+export interface Workout {
   id: string;
   name: string;
   description: string | null;
   user_id: string;
-  autoreg_mode: string | null;
   position: number;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;
 }
 
-export interface WorkoutPlanExercise {
+export interface WorkoutExercise {
   id: string;
-  plan_id: string;
+  workout_id: string;
   exercise_id: string;
   sequence: number;
   target_sets: number | null;
@@ -196,13 +195,38 @@ export interface WorkoutPlanExercise {
   deleted_at: string | null;
 }
 
+export interface Program {
+  id: string;
+  name: string;
+  description: string | null;
+  user_id: string;
+  progression_scheme: string;
+  position: number;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface ProgramWorkout {
+  id: string;
+  program_id: string;
+  workout_id: string;
+  sequence: number;
+  day_of_week: number | null;
+  scheduled_date: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
 export interface WorkoutSession {
   id: string;
   user_id: string;
-  plan_id: string | null;
+  workout_id: string | null;
+  program_id: string | null;
   started_at: string;
   completed_at: string | null;
-  autoreg_mode: string | null;
+  progression_scheme: string | null;
   recovery_score: number | null;
   notes: string | null;
   created_at: string;
@@ -210,7 +234,7 @@ export interface WorkoutSession {
   deleted_at: string | null;
 }
 
-export interface WorkoutLogEntry {
+export interface WorkoutSet {
   id: string;
   session_id: string;
   exercise_id: string;

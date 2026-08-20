@@ -17,15 +17,15 @@
   const planId = $derived(page.params.id as string);
 
   const planQuery = useQuery(
-    () => db.workout_plan.get(planId!).then((p) => (p && !p.deleted_at ? p : null)),
+    () => db.workout.get(planId!).then((p) => (p && !p.deleted_at ? p : null)),
     () => planId
   );
   const plan = $derived(planQuery.value);
 
   const planExercisesQuery = useQuery(
     () =>
-      db.workout_plan_exercise
-        .where('plan_id')
+      db.workout_exercise
+        .where('workout_id')
         .equals(planId!)
         .toArray()
         .then((arr) => arr.filter((pe) => !pe.deleted_at).sort((a, b) => a.sequence - b.sequence)),
@@ -44,7 +44,7 @@
   const sessionsQuery = useQuery(
     () =>
       db.workout_session
-        .where('plan_id')
+        .where('workout_id')
         .equals(planId!)
         .toArray()
         .then((arr) =>
@@ -60,7 +60,7 @@
     async () => {
       const sessionIds = (sessions ?? []).slice(0, 10).map((s) => s.id);
       if (sessionIds.length === 0) return [];
-      return db.workout_log_entry
+      return db.workout_set
         .where('session_id')
         .anyOf(sessionIds)
         .filter((l) => !l.deleted_at)
@@ -74,7 +74,7 @@
 
   async function startSession() {
     starting = true;
-    await startWorkout(planId!, plan?.autoreg_mode || 'advisory');
+    await startWorkout(planId!);
     starting = false;
     await goto('/workouts/active');
   }
@@ -101,12 +101,6 @@
         <div class="flex h-full items-stretch divide-x divide-surface-200 select-none">
           <!-- Badges Segment -->
           <div class="flex items-center gap-1.5 px-6">
-            <Badge
-              variant={plan.autoreg_mode === 'disabled' ? 'default' : 'primary'}
-              class="capitalize"
-            >
-              {plan.autoreg_mode}
-            </Badge>
             <Badge variant="default">{planExercises.length} exercises</Badge>
           </div>
 

@@ -17,7 +17,7 @@
   const oneRmQuery = useQuery(async () => {
     const [exercises, logs, sessions] = await Promise.all([
       db.exercise.toArray(),
-      db.workout_log_entry.toArray(),
+      db.workout_set.toArray(),
       db.workout_session.toArray()
     ]);
 

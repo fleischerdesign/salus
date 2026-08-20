@@ -46,10 +46,10 @@
   // 1. Reactive Query for Plans, Active Session & Past Sessions
   const workoutsQuery = useQuery(async () => {
     const [plans, planExercises, sessions, logs, exercises] = await Promise.all([
-      db.workout_plan.toArray(),
-      db.workout_plan_exercise.toArray(),
+      db.workout.toArray(),
+      db.workout_exercise.toArray(),
       db.workout_session.toArray(),
-      db.workout_log_entry.toArray(),
+      db.workout_set.toArray(),
       db.exercise.toArray()
     ]);
 
@@ -62,7 +62,7 @@
     // Format plans
     const formattedPlans: WorkoutPlan[] = validPlans.map((p) => {
       const pExs = planExercises
-        .filter((pe) => pe.plan_id === p.id && !pe.deleted_at)
+        .filter((pe) => pe.workout_id === p.id && !pe.deleted_at)
         .sort((a, b) => a.sequence - b.sequence);
 
       return {
@@ -81,7 +81,7 @@
             muscle: (ex?.primary_muscles as unknown as 'Brust') || 'Brust',
             targetSets: pe.target_sets || 3,
             targetReps: `${pe.target_reps || 10} Wdh`,
-            targetRir: 2
+            targetRpe: 2
           };
         })
       };
@@ -91,11 +91,11 @@
     let activePlanName = 'Freies Training';
     let activeExercises: LiveWorkoutExercise[] = [];
     if (activeSession) {
-      const plan = validPlans.find((p) => p.id === activeSession.plan_id);
+      const plan = validPlans.find((p) => p.id === activeSession.workout_id);
       if (plan) {
         activePlanName = plan.name;
         const pExs = planExercises
-          .filter((pe) => pe.plan_id === plan.id && !pe.deleted_at)
+          .filter((pe) => pe.workout_id === plan.id && !pe.deleted_at)
           .sort((a, b) => a.sequence - b.sequence);
 
         activeExercises = pExs.map((pe) => {
@@ -124,7 +124,7 @@
 
     // Format past sessions
     const formattedSessions: WorkoutHistorySession[] = validSessions.map((s) => {
-      const plan = validPlans.find((p) => p.id === s.plan_id);
+      const plan = validPlans.find((p) => p.id === s.workout_id);
       const sessionLogs = logs.filter((l) => l.session_id === s.id && !l.deleted_at);
       const totalVolumeKg = sessionLogs.reduce((sum, l) => sum + l.weight * l.reps, 0);
       const durationMs = s.completed_at

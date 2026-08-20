@@ -403,7 +403,7 @@ export interface WorkoutPlan {
     muscle: MuscleGroup;
     targetSets: number;
     targetReps: string;
-    targetRir: number;
+    targetRpe: number;
   }[];
 }
 

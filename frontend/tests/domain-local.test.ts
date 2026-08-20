@@ -6,7 +6,7 @@ import { createLabPanel, deleteLabPanel } from '$lib/mutations/lab';
 import { startFastingSession, endFastingSession } from '$lib/mutations/fasting';
 import { createMeal, deleteMeal } from '$lib/mutations/meal';
 import { createRecipe, deleteRecipe } from '$lib/mutations/recipe';
-import { createPlan, deletePlan } from '$lib/mutations/plan';
+import { createWorkout, deleteWorkout } from '$lib/mutations/plan';
 import { toggleHabit } from '$lib/mutations/wellness';
 import { toggleMedicationLog } from '$lib/mutations/medication';
 import { SELF_USER_ID } from '$lib/constants';
@@ -235,29 +235,29 @@ describe('composed-domain optimistic writes (local-first)', () => {
     });
   });
 
-  describe('createPlan', () => {
+  describe('createWorkout', () => {
     it('persists the plan and its exercises locally', async () => {
-      await createPlan('Push Day', null, 'advisory', [
+      await createWorkout('Push Day', null, [
         { exercise_id: 'ex-1', target_sets: 3, target_reps: 8 },
         { exercise_id: 'ex-2', target_sets: 4, target_reps: 10 }
       ]);
 
-      expect(await db.workout_plan.count()).toBe(1);
-      const plan = (await db.workout_plan.toArray())[0];
-      const planExercises = await db.workout_plan_exercise.toArray();
+      expect(await db.workout.count()).toBe(1);
+      const plan = (await db.workout.toArray())[0];
+      const planExercises = await db.workout_exercise.toArray();
       expect(planExercises).toHaveLength(2);
-      expect(planExercises.every((pe) => pe.plan_id === plan!.id)).toBe(true);
+      expect(planExercises.every((pe) => pe.workout_id === plan!.id)).toBe(true);
     });
 
     it('removes plan exercises when the plan is deleted', async () => {
-      await createPlan('P', null, 'advisory', [{ exercise_id: 'ex-1' }]);
-      const plan = (await db.workout_plan.toArray())[0];
+      await createWorkout('P', null, [{ exercise_id: 'ex-1' }]);
+      const plan = (await db.workout.toArray())[0];
 
-      await deletePlan(plan!.id);
+      await deleteWorkout(plan!.id);
 
-      expect(await db.workout_plan.count()).toBe(1);
-      expect((await db.workout_plan.toArray())[0]?.deleted_at).not.toBeNull();
-      expect(await db.workout_plan_exercise.count()).toBe(0);
+      expect(await db.workout.count()).toBe(1);
+      expect((await db.workout.toArray())[0]?.deleted_at).not.toBeNull();
+      expect(await db.workout_exercise.count()).toBe(0);
     });
   });
 

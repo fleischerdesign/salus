@@ -27,21 +27,21 @@
       muscle: 'Brust',
       targetSets: 4,
       targetReps: '6–8 Wdh',
-      targetRir: 2
+      targetRpe: 2
     },
     {
       name: 'Schrägbankdrücken (Kurzhantel)',
       muscle: 'Brust',
       targetSets: 3,
       targetReps: '8–10 Wdh',
-      targetRir: 1
+      targetRpe: 1
     },
     {
       name: 'Dips mit Zusatzgewicht',
       muscle: 'Trizeps',
       targetSets: 3,
       targetReps: '8–10 Wdh',
-      targetRir: 1
+      targetRpe: 1
     }
   ]);
 
@@ -61,14 +61,14 @@
           muscle: 'Brust',
           targetSets: 4,
           targetReps: '6–8 Wdh',
-          targetRir: 2
+          targetRpe: 2
         },
         {
           name: 'Schrägbankdrücken (Kurzhantel)',
           muscle: 'Brust',
           targetSets: 3,
           targetReps: '8–10 Wdh',
-          targetRir: 1
+          targetRpe: 1
         }
       ];
     }
@@ -116,7 +116,7 @@
           muscle: item.muscle,
           targetSets: 3,
           targetReps: '10–12 Wdh',
-          targetRir: 2
+          targetRpe: 2
         }
       ];
     }

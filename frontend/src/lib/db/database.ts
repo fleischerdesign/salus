@@ -12,10 +12,12 @@ import type {
   Goal,
   CircadianProfile,
   Exercise,
-  WorkoutPlan,
-  WorkoutPlanExercise,
+  Workout,
+  WorkoutExercise,
+  Program,
+  ProgramWorkout,
   WorkoutSession,
-  WorkoutLogEntry,
+  WorkoutSet,
   Insight,
   Notification,
   DashboardWidget,
@@ -67,10 +69,12 @@ export class SalusDB extends Dexie {
   goal!: EntityTable<Goal, 'id'>;
   circadian_profile!: EntityTable<CircadianProfile, 'id'>;
   exercise!: EntityTable<Exercise, 'id'>;
-  workout_plan!: EntityTable<WorkoutPlan, 'id'>;
-  workout_plan_exercise!: EntityTable<WorkoutPlanExercise, 'id'>;
+  workout!: EntityTable<Workout, 'id'>;
+  workout_exercise!: EntityTable<WorkoutExercise, 'id'>;
+  program!: EntityTable<Program, 'id'>;
+  program_workout!: EntityTable<ProgramWorkout, 'id'>;
   workout_session!: EntityTable<WorkoutSession, 'id'>;
-  workout_log_entry!: EntityTable<WorkoutLogEntry, 'id'>;
+  workout_set!: EntityTable<WorkoutSet, 'id'>;
   insight!: EntityTable<Insight, 'id'>;
   notification!: EntityTable<Notification, 'id'>;
   dashboard_widget!: EntityTable<DashboardWidget, 'id'>;
@@ -315,6 +319,14 @@ export class SalusDB extends Dexie {
     });
     this.version(28).stores({
       metric_daily_stats: '[metric_code+day], metric_code, day'
+    });
+    this.version(29).stores({
+      workout: 'id, user_id',
+      workout_exercise: 'id, workout_id, exercise_id',
+      program: 'id, user_id',
+      program_workout: 'id, program_id, workout_id',
+      workout_set: 'id, session_id, exercise_id, set_number',
+      workout_session: 'id, user_id, workout_id, program_id, started_at'
     });
   }
 

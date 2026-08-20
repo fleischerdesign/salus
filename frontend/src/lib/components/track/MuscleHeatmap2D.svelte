@@ -60,10 +60,7 @@
   let selectedMuscleGroup = $state<MuscleGroup>('Brust');
 
   const volumeQuery = useQuery(async () => {
-    const [exercises, logs] = await Promise.all([
-      db.exercise.toArray(),
-      db.workout_log_entry.toArray()
-    ]);
+    const [exercises, logs] = await Promise.all([db.exercise.toArray(), db.workout_set.toArray()]);
 
     const validExercises = exercises.filter((e) => !e.deleted_at);
     const validLogs = logs.filter((l) => !l.deleted_at);

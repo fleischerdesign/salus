@@ -49,7 +49,7 @@
 
   // Query historical logs to provide ghosted targets & progressive overload detection
   const historicalLogsQuery = useQuery(async () => {
-    const logs = await db.workout_log_entry.toArray();
+    const logs = await db.workout_set.toArray();
     const validLogs = logs.filter(
       (l) => !l.deleted_at && (sessionId ? l.session_id !== sessionId : true)
     );

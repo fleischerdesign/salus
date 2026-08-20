@@ -11,11 +11,7 @@
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import AnatomicalBodyVector from '$components/track/AnatomicalBodyVector.svelte';
-  import {
-    DETAILED_MUSCLE_MAP,
-    parseMuscles,
-    type DetailedMuscleKey
-  } from '$lib/types/workouts';
+  import { DETAILED_MUSCLE_MAP, parseMuscles, type DetailedMuscleKey } from '$lib/types/workouts';
 
   const exerciseId = $derived(page.params.id as string);
 
@@ -27,7 +23,7 @@
 
   const logsQuery = useQuery(
     () =>
-      db.workout_log_entry
+      db.workout_set
         .toArray()
         .then((arr) => arr.filter((l) => l.exercise_id === exerciseId! && !l.deleted_at)),
     () => exerciseId
@@ -196,7 +192,7 @@
     <div>
       <a
         href="/workouts"
-        class="inline-flex items-center gap-1.5 text-xs font-bold text-text-muted hover:text-text-main transition-colors"
+        class="inline-flex items-center gap-1.5 text-xs font-bold text-text-muted transition-colors hover:text-text-main"
       >
         <Icon name="arrow_back" class="text-sm" />
         <span>Zurück zu Übungen</span>
@@ -289,7 +285,8 @@
         </span>
         <div class="mt-1 text-2xl font-extrabold text-text-main tabular-nums">
           {#if totalTonnage > 0}
-            {Math.round(totalTonnage).toLocaleString()} <span class="text-xs font-semibold text-text-soft">kg</span>
+            {Math.round(totalTonnage).toLocaleString()}
+            <span class="text-xs font-semibold text-text-soft">kg</span>
           {:else}
             <span class="text-base font-normal text-text-muted">—</span>
           {/if}
@@ -329,7 +326,9 @@
             <!-- Targeted Muscles Badges -->
             <div class="mt-3 w-full space-y-2 border-t border-border-subtle pt-3 text-xs">
               <div>
-                <span class="block text-[11px] font-bold text-primary">Primär (100% Satzvolumen):</span>
+                <span class="block text-[11px] font-bold text-primary"
+                  >Primär (100% Satzvolumen):</span
+                >
                 <div class="mt-1.5 flex flex-wrap gap-1.5">
                   {#each parseMuscles(exercise.primary_muscles) as pKey}
                     {@const pDef = DETAILED_MUSCLE_MAP[pKey as DetailedMuscleKey]}
@@ -345,7 +344,9 @@
 
               {#if parseMuscles(exercise.secondary_muscles).length > 0}
                 <div>
-                  <span class="block text-[11px] font-bold text-[#818cf8]">Synergisten (50% Satzvolumen):</span>
+                  <span class="block text-[11px] font-bold text-[#818cf8]"
+                    >Synergisten (50% Satzvolumen):</span
+                  >
                   <div class="mt-1.5 flex flex-wrap gap-1.5">
                     {#each parseMuscles(exercise.secondary_muscles) as sKey}
                       {@const sDef = DETAILED_MUSCLE_MAP[sKey as DetailedMuscleKey]}
@@ -374,7 +375,9 @@
             <ol class="space-y-3">
               {#each instructions as instr, idx}
                 <li class="flex items-start gap-3 text-xs leading-relaxed text-text-muted">
-                  <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-100 text-[10px] font-extrabold text-text-main">
+                  <span
+                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-100 text-[10px] font-extrabold text-text-main"
+                  >
                     {idx + 1}
                   </span>
                   <span class="pt-0.5">{instr}</span>
@@ -393,7 +396,9 @@
       <div class="space-y-6 lg:col-span-7">
         <!-- Performance Progression Chart -->
         <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle/60 pb-3">
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle/60 pb-3"
+          >
             <div class="flex items-center gap-2">
               <Icon name="monitoring" class="text-primary" />
               <h2 class="text-sm font-extrabold text-text-main">Leistungsverlauf</h2>
@@ -416,11 +421,14 @@
                 <LineChart labels={chartLabels} series={tonnageSeries} leftUnit="kg" />
               {/if}
             {:else}
-              <div class="flex h-[200px] flex-col items-center justify-center space-y-1.5 text-center text-xs text-text-muted">
+              <div
+                class="flex h-[200px] flex-col items-center justify-center space-y-1.5 text-center text-xs text-text-muted"
+              >
                 <Icon name="show_chart" class="text-xl text-text-soft opacity-60" />
                 <p class="font-semibold text-text-main">Noch nicht genügend Einheiten</p>
-                <p class="text-[11px] text-text-soft max-w-xs">
-                  Protokolliere diese Übung in mindestens 2 Trainingseinheiten, um den Verlauf zu visualisieren.
+                <p class="max-w-xs text-[11px] text-text-soft">
+                  Protokolliere diese Übung in mindestens 2 Trainingseinheiten, um den Verlauf zu
+                  visualisieren.
                 </p>
               </div>
             {/if}
@@ -432,17 +440,24 @@
           <div class="flex items-center justify-between border-b border-border-subtle/60 pb-3">
             <div class="flex items-center gap-2">
               <Icon name="history" class="text-primary" />
-              <h2 class="text-sm font-extrabold text-text-main">Historie aller protokollierten Sätze</h2>
+              <h2 class="text-sm font-extrabold text-text-main">
+                Historie aller protokollierten Sätze
+              </h2>
             </div>
             <span class="font-mono text-xs text-text-soft">
-              {historyRows.length} {historyRows.length === 1 ? 'Satz' : 'Sätze'}
+              {historyRows.length}
+              {historyRows.length === 1 ? 'Satz' : 'Sätze'}
             </span>
           </div>
 
           {#if historyRows.length > 0}
-            <div class="max-h-[400px] overflow-y-auto no-scrollbar rounded-xl border border-border-subtle">
+            <div
+              class="no-scrollbar max-h-[400px] overflow-y-auto rounded-xl border border-border-subtle"
+            >
               <table class="w-full text-left text-xs">
-                <thead class="sticky top-0 bg-surface-50 text-[10px] font-bold text-text-muted uppercase tracking-wider border-b border-border-subtle">
+                <thead
+                  class="sticky top-0 border-b border-border-subtle bg-surface-50 text-[10px] font-bold tracking-wider text-text-muted uppercase"
+                >
                   <tr>
                     <th class="px-3.5 py-2.5">Datum</th>
                     <th class="px-3 py-2.5">Satz</th>
@@ -453,12 +468,18 @@
                 </thead>
                 <tbody class="divide-y divide-border-subtle bg-surface-0">
                   {#each historyRows as row}
-                    <tr class="hover:bg-surface-50/60 transition-colors">
-                      <td class="px-3.5 py-2.5 font-mono text-[11px] text-text-muted">{row.date}</td>
-                      <td class="px-3 py-2.5 font-mono text-[11px] font-bold text-text-soft">{row.set}</td>
-                      <td class="px-3 py-2.5 font-bold text-text-main tabular-nums">{row.result}</td>
+                    <tr class="transition-colors hover:bg-surface-50/60">
+                      <td class="px-3.5 py-2.5 font-mono text-[11px] text-text-muted">{row.date}</td
+                      >
+                      <td class="px-3 py-2.5 font-mono text-[11px] font-bold text-text-soft"
+                        >{row.set}</td
+                      >
+                      <td class="px-3 py-2.5 font-bold text-text-main tabular-nums">{row.result}</td
+                      >
                       <td class="px-3 py-2.5 font-mono text-[11px] text-text-muted">{row.rpe}</td>
-                      <td class="px-3.5 py-2.5 font-mono text-[11px] font-bold text-primary text-right tabular-nums">
+                      <td
+                        class="px-3.5 py-2.5 text-right font-mono text-[11px] font-bold text-primary tabular-nums"
+                      >
                         {row.one_rm}
                       </td>
                     </tr>
@@ -467,7 +488,7 @@
               </table>
             </div>
           {:else}
-            <div class="py-10 text-center text-xs text-text-muted space-y-1">
+            <div class="space-y-1 py-10 text-center text-xs text-text-muted">
               <Icon name="event_note" class="mx-auto text-xl text-text-soft opacity-60" />
               <p class="font-semibold text-text-main">Noch keine protokollierten Sätze</p>
               <p class="text-[11px] text-text-soft">

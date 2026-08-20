@@ -20,7 +20,7 @@
 
   const logsQuery = useQuery(
     () =>
-      db.workout_log_entry
+      db.workout_set
         .toArray()
         .then((arr) => arr.filter((l) => l.session_id === sessionId! && !l.deleted_at)),
     () => sessionId

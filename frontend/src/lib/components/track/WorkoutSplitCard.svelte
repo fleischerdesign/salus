@@ -5,7 +5,7 @@
   import { useQuery } from '$lib/db/use-query.svelte';
 
   const splitQuery = useQuery(async () => {
-    const plans = await db.workout_plan.toArray();
+    const plans = await db.workout.toArray();
     return plans.filter((p) => !p.deleted_at);
   });
 

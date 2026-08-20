@@ -7,7 +7,7 @@ function now(): string {
   return new Date().toISOString();
 }
 
-interface PlanExercise {
+interface WorkoutExerciseInput {
   id: string;
   exercise_id: string;
   sequence: number;
@@ -18,7 +18,7 @@ interface PlanExercise {
   rest_seconds: number | null;
 }
 
-function toPlanExercises(exercises: Array<Record<string, unknown>>): PlanExercise[] {
+function toWorkoutExercises(exercises: Array<Record<string, unknown>>): WorkoutExerciseInput[] {
   return exercises.map((ex, index) => ({
     id: uuid7(),
     exercise_id: String(ex.exercise_id ?? ''),
@@ -31,32 +31,29 @@ function toPlanExercises(exercises: Array<Record<string, unknown>>): PlanExercis
   }));
 }
 
-export const createPlan = (
+export const createWorkout = (
   name: string,
   description: string | null,
-  autoregMode: string,
   exercises: Array<Record<string, unknown>>
 ) => {
-  const planId = uuid7();
-  const planExercises = toPlanExercises(exercises);
+  const workoutId = uuid7();
+  const workoutExercises = toWorkoutExercises(exercises);
   return mutate({
     kind: 'command',
-    command: 'create_plan',
+    command: 'create_workout',
     queueable: true,
     payload: {
-      id: planId,
+      id: workoutId,
       name,
       description,
-      autoreg_mode: autoregMode,
-      exercises: planExercises
+      exercises: workoutExercises
     },
-    optimisticTable: 'workout_plan',
+    optimisticTable: 'workout',
     optimisticData: {
-      id: planId,
+      id: workoutId,
       user_id: SELF_USER_ID,
       name,
       description,
-      autoreg_mode: autoregMode,
       position: 0,
       created_at: now(),
       updated_at: null,
@@ -64,33 +61,36 @@ export const createPlan = (
     },
     optimisticRows: [
       {
-        table: 'workout_plan_exercise',
-        rows: planExercises.map((ex) => ({
+        table: 'workout_exercise',
+        rows: workoutExercises.map((ex) => ({
           ...ex,
-          plan_id: planId,
+          workout_id: workoutId,
           created_at: now(),
           updated_at: null,
           deleted_at: null
         }))
       }
     ],
-    responseTable: 'workout_plan'
+    responseTable: 'workout'
   });
 };
 
-export const deletePlan = async (planId: string) => {
-  const planExercises = await db.workout_plan_exercise.where('plan_id').equals(planId).toArray();
+export const deleteWorkout = async (workoutId: string) => {
+  const workoutExercises = await db.workout_exercise
+    .where('workout_id')
+    .equals(workoutId)
+    .toArray();
 
   return mutate({
     kind: 'command',
-    command: 'delete_plan',
+    command: 'delete_workout',
     queueable: true,
-    payload: { id: planId },
-    optimisticTable: 'workout_plan',
-    optimisticData: { id: planId, deleted_at: now() },
+    payload: { id: workoutId },
+    optimisticTable: 'workout',
+    optimisticData: { id: workoutId, deleted_at: now() },
     optimisticDelete:
-      planExercises.length > 0
-        ? [{ table: 'workout_plan_exercise', ids: planExercises.map((pe) => pe.id) }]
+      workoutExercises.length > 0
+        ? [{ table: 'workout_exercise', ids: workoutExercises.map((we) => we.id) }]
         : undefined
   });
 };
