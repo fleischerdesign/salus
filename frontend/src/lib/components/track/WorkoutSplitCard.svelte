@@ -5,50 +5,60 @@
   import { useQuery } from '$lib/db/use-query.svelte';
 
   const splitQuery = useQuery(async () => {
-    const plans = await db.workout.toArray();
-    return plans.filter((p) => !p.deleted_at);
+    const [programs, slots, workouts] = await Promise.all([
+      db.program.toArray(),
+      db.program_workout.toArray(),
+      db.workout.toArray()
+    ]);
+    const workoutNames = new Map(workouts.map((w) => [w.id, w.name]));
+    const weekly = new Map<number, string>();
+    for (const slot of slots) {
+      if (!slot.deleted_at && slot.day_of_week !== null && slot.day_of_week !== undefined) {
+        weekly.set(slot.day_of_week, workoutNames.get(slot.workout_id) ?? 'Workout');
+      }
+    }
+    return {
+      programCount: programs.filter((p) => !p.deleted_at).length,
+      weekly
+    };
   });
 
-  const plans = $derived(splitQuery.value ?? []);
+  const data = $derived(splitQuery.value);
+  const weekly = $derived(data?.weekly ?? new Map<number, string>());
+  const hasSchedule = $derived((data?.weekly.size ?? 0) > 0);
   const daysOfWeek = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 </script>
 
 <div class="rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
   <div class="mb-3 flex items-center justify-between">
     <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
-      <Icon name="fitness_center" class="text-primary" />
-      <span>Wöchentliche Trainings-Periodisierung</span>
+      <Icon name="calendar-view-week" class="text-primary" />
+      <span>Wöchentliche Periodisierung</span>
     </div>
-    <Badge variant="activity">{plans.length} Pläne hinterlegt</Badge>
+    <Badge variant="activity">{data?.programCount ?? 0} Programme</Badge>
   </div>
 
-  {#if plans.length === 0}
+  {#if !hasSchedule}
     <div class="space-y-1 py-6 text-center text-xs text-text-muted">
-      <p class="font-semibold text-text-main">Noch kein Trainingssplit definiert</p>
+      <p class="font-semibold text-text-main">Noch kein Wochenplan definiert</p>
       <p class="text-[0.6875rem]">
-        Erstelle Trainingspläne, um deinen wöchentlichen Periodisierungs-Split zu strukturieren.
+        Lege in einem Programm Wochentage fest, um deinen Wochen-Split zu sehen.
       </p>
     </div>
   {:else}
     <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
       {#each daysOfWeek as day, idx}
-        {@const plan = plans[idx % plans.length]}
         <div
           class="flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3"
         >
-          <div class="mb-1 flex items-center justify-between">
-            <span
-              class="rounded bg-surface-0 px-1.5 py-0.5 font-mono text-xs font-bold text-text-main"
-            >
-              {day}
-            </span>
-          </div>
+          <span
+            class="mb-1 rounded bg-surface-0 px-1.5 py-0.5 font-mono text-xs font-bold text-text-main"
+          >
+            {day}
+          </span>
           <div class="mt-1 truncate text-xs font-bold text-text-main">
-            {plan?.name || 'Regeneration'}
+            {weekly.get(idx) ?? 'Ruhetag'}
           </div>
-          <p class="mt-0.5 truncate text-[0.6875rem] text-text-muted">
-            {plan?.description || 'Individuell'}
-          </p>
         </div>
       {/each}
     </div>

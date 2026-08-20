@@ -174,7 +174,7 @@
           ...p,
           slots: slots.map((s) => ({
             ...s,
-            workoutName: workoutMap.get(s.workout_id)?.name ?? 'Trainingstag'
+            workoutName: workoutMap.get(s.workout_id)?.name ?? 'Workout'
           }))
         };
       });
@@ -321,7 +321,7 @@
           onclick={openCreatePlan}
           class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:opacity-90"
         >
-          <span>+ Neuen Plan erstellen</span>
+          <span>+ Neues Workout erstellen</span>
         </button>
       {/if}
     </div>
@@ -339,7 +339,7 @@
         : 'text-text-muted hover:text-text-main'}"
     >
       <Icon name="show_chart" class="text-primary" />
-      <span>Trainingstage</span>
+      <span>Workouts</span>
       <Badge variant="default" class="text-[0.625rem]">{savedPlans.length}</Badge>
     </a>
 
@@ -432,13 +432,11 @@
         </button>
       </div>
 
-      <WorkoutSplitCard />
-
-      <!-- Saved Plan Templates List -->
+      <!-- Workout Templates List -->
       <div class="rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 class="text-base font-extrabold text-text-main">Deine Trainingsplan-Vorlagen</h2>
+            <h2 class="text-base font-extrabold text-text-main">Deine Workouts</h2>
             <p class="mt-0.5 text-xs text-text-muted">
               Strukturierte Pläne mit progressivem Belastungsziel
             </p>
@@ -448,16 +446,16 @@
             onclick={openCreatePlan}
             class="flex cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
           >
-            <span>+ Neuen Plan erstellen</span>
+            <span>+ Neues Workout erstellen</span>
           </button>
         </div>
 
         {#if savedPlans.length === 0}
           <div class="space-y-2 py-8 text-center text-xs text-text-muted">
             <Icon name="fitness_center" size="lg" class="mx-auto text-text-muted opacity-60" />
-            <p class="text-xs font-bold text-text-main">Keine Trainingspläne vorhanden</p>
+            <p class="text-xs font-bold text-text-main">Keine Workouts vorhanden</p>
             <p class="mx-auto max-w-sm text-[0.6875rem]">
-              Erstelle strukturierte Hypertrophie- und Kraftpläne mit individueller Satz- und
+              Erstelle strukturierte Hypertrophie- und Kraft-Workouts mit individueller Satz- und
               Wiederholungssteuerung.
             </p>
           </div>
@@ -500,7 +498,7 @@
                     onclick={() => handleStartPlan(plan.id)}
                     class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
                   >
-                    Plan starten &rarr;
+                    Workout starten &rarr;
                   </button>
                 </div>
               </div>
@@ -511,6 +509,8 @@
     </div>
   {:else if activeTab === 'programs'}
     <div class="space-y-6">
+      <WorkoutSplitCard />
+
       <div class="rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -533,7 +533,7 @@
             <Icon name="calendar-view-week" size="lg" class="mx-auto text-text-muted opacity-60" />
             <p class="text-xs font-bold text-text-main">Keine Programme vorhanden</p>
             <p class="mx-auto max-w-sm text-[0.6875rem]">
-              Kombiniere Trainingstage zu einem Programm und lege die Progression fest.
+              Kombiniere Workouts zu einem Programm und lege die Progression fest.
             </p>
           </div>
         {:else}
@@ -559,7 +559,7 @@
 
                   <div class="my-3 space-y-1.5">
                     <span class="block text-[0.6875rem] font-bold text-text-soft uppercase">
-                      Trainingstage ({program.slots.length}):
+                      Workouts ({program.slots.length}):
                     </span>
                     {#each program.slots as slot}
                       <div class="flex items-center justify-between text-xs text-text-main">

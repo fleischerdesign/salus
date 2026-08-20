@@ -108,7 +108,7 @@
 
 <Modal
   {open}
-  title="Neuen Trainingstag erstellen"
+  title="Neues Workout erstellen"
   subtitle="Wähle Übungen aus dem Katalog und lege Sätze, Wiederholungen und RPE fest"
   icon="fitness-center"
   size="lg"
@@ -240,7 +240,7 @@
     <div class="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
       <Btn variant="secondary" size="md" onclick={onclose}>Abbrechen</Btn>
       <Btn variant="primary" size="md" onclick={handleSave} disabled={!canSave}
-        >Trainingstag speichern</Btn
+        >Workout speichern</Btn
       >
     </div>
   </div>

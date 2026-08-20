@@ -116,7 +116,7 @@
 <Modal
   {open}
   title="Neues Programm erstellen"
-  subtitle="Kombiniere Trainingstage zu einem Programm und lege die Progression fest"
+  subtitle="Kombiniere Workouts zu einem Programm und lege die Progression fest"
   icon="calendar-view-week"
   size="lg"
   {onclose}
@@ -138,7 +138,7 @@
 
     <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-text-main">Trainingstage</span>
+        <span class="text-xs font-bold text-text-main">Workouts</span>
         <button
           type="button"
           onclick={addSlot}
@@ -151,7 +151,7 @@
 
       {#if slots.length === 0}
         <p class="rounded-xl border border-dashed border-border-subtle p-3 text-xs text-text-muted">
-          Noch keine Tage — füge mindestens einen Trainingstag hinzu.
+          Noch keine Workouts — füge mindestens ein Workout hinzu.
         </p>
       {/if}
 

@@ -2,6 +2,6 @@
   import WorkoutsPage from '$components/pages/WorkoutsPage.svelte';
 </script>
 
-<svelte:head><title>Salus — Trainingspläne</title></svelte:head>
+<svelte:head><title>Salus — Workouts</title></svelte:head>
 
 <WorkoutsPage initialTab="plans" />
