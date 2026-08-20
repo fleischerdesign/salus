@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -50,8 +50,6 @@ class Workout(SQLModel, table=True):
     description: Optional[str] = Field(default=None)
     user_id: str = Field(foreign_key="user.id")
 
-    # Granular Autoregulation Policies
-    autoreg_mode: str = Field(default="advisory")  # "guided", "advisory", "disabled"
     position: int = Field(default=0)  # Reorder position in workouts grid
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -106,11 +104,12 @@ class WorkoutSession(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     user_id: str = Field(foreign_key="user.id")
     workout_id: Optional[str] = Field(default=None, foreign_key="workout.id")
+    program_id: Optional[str] = Field(default=None, foreign_key="program.id")
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = Field(default=None)
 
-    # Snapshot of recovery state
-    autoreg_mode: str = Field(default="advisory")
+    # Snapshot of progression/recovery state
+    progression_scheme: str = Field(default="autoregulated")
     recovery_score: Optional[float] = Field(default=None)
     notes: Optional[str] = Field(default=None)
     created_at: datetime | None = Field(default=None)
@@ -130,6 +129,7 @@ class WorkoutSession(SQLModel, table=True):
     )
     user: "User" = Relationship(back_populates="workout_sessions")
     workout: Optional[Workout] = Relationship()
+    program: Optional["Program"] = Relationship()
 
 
 class WorkoutSet(SQLModel, table=True):
@@ -154,3 +154,55 @@ class WorkoutSet(SQLModel, table=True):
     # Relations
     session: "WorkoutSession" = Relationship(back_populates="sets")
     exercise: "Exercise" = Relationship()
+
+
+class Program(SQLModel, table=True):
+    """A multi-day training program: ordered workout slots + progression scheme."""
+
+    __tablename__ = "program"  # pyright: ignore[reportAssignmentType]
+
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    name: str
+    description: Optional[str] = Field(default=None)
+    user_id: str = Field(foreign_key="user.id")
+
+    # Progression scheme applied to this program's sessions
+    # ("linear" | "autoregulated" | "none")
+    progression_scheme: str = Field(default="autoregulated")
+    position: int = Field(default=0)
+
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
+
+    # Relations
+    slots: list["ProgramWorkout"] = Relationship(
+        back_populates="program", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    user: "User" = Relationship(back_populates="programs")
+
+
+class ProgramWorkout(SQLModel, table=True):
+    """Bridge mapping workouts to programs with a schedule slot."""
+
+    __tablename__ = "program_workout"  # pyright: ignore[reportAssignmentType]
+
+    id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
+    program_id: str = Field(foreign_key="program.id")
+    workout_id: str = Field(foreign_key="workout.id")
+    sequence: int = Field(default=0)
+    day_of_week: Optional[int] = Field(default=None)  # 0=Monday .. 6=Sunday (ISO)
+    scheduled_date: Optional[date] = Field(default=None)
+    created_at: datetime | None = Field(default=None)
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
+    )
+    deleted_at: datetime | None = Field(default=None)
+
+    # Relations
+    program: "Program" = Relationship(back_populates="slots")
+    workout: "Workout" = Relationship()

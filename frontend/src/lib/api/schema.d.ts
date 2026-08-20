@@ -2114,6 +2114,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Programs */
+        get: operations["list_programs_api_v1_programs_get"];
+        put?: never;
+        /** Create Program */
+        post: operations["create_program_api_v1_programs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/programs/{program_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Program */
+        get: operations["get_program_api_v1_programs__program_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Program */
+        delete: operations["delete_program_api_v1_programs__program_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recipes": {
         parameters: {
             query?: never;
@@ -4885,6 +4921,75 @@ export interface components {
              */
             weeks: number;
         };
+        /** ProgramCreate */
+        ProgramCreate: {
+            /** Description */
+            description?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /**
+             * Progression Scheme
+             * @default autoregulated
+             */
+            progression_scheme: string;
+            /** Slots */
+            slots?: components["schemas"]["ProgramWorkoutCreate"][];
+        };
+        /** ProgramResponse */
+        ProgramResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+            /** Progression Scheme */
+            progression_scheme: string;
+            /** Slots */
+            slots: components["schemas"]["ProgramWorkoutResponse"][];
+        };
+        /** ProgramWorkoutCreate */
+        ProgramWorkoutCreate: {
+            /** Day Of Week */
+            day_of_week?: number | null;
+            /** Scheduled Date */
+            scheduled_date?: string | null;
+            /**
+             * Sequence
+             * @default 0
+             */
+            sequence: number;
+            /** Workout Id */
+            workout_id: string;
+        };
+        /** ProgramWorkoutResponse */
+        ProgramWorkoutResponse: {
+            /** Day Of Week */
+            day_of_week: number | null;
+            /** Id */
+            id: string;
+            /** Program Id */
+            program_id: string;
+            /** Scheduled Date */
+            scheduled_date: string | null;
+            /** Sequence */
+            sequence: number;
+            workout: components["schemas"]["WorkoutResponse"];
+            /** Workout Id */
+            workout_id: string;
+        };
         /** RecipeCreate */
         RecipeCreate: {
             /** Cook Time Min */
@@ -5493,11 +5598,6 @@ export interface components {
         WidgetSize: "small" | "medium" | "large";
         /** WorkoutCreate */
         WorkoutCreate: {
-            /**
-             * Autoreg Mode
-             * @default advisory
-             */
-            autoreg_mode: string;
             /** Description */
             description?: string | null;
             /** Exercises */
@@ -5580,8 +5680,6 @@ export interface components {
         };
         /** WorkoutResponse */
         WorkoutResponse: {
-            /** Autoreg Mode */
-            autoreg_mode: string;
             /**
              * Created At
              * Format: date-time
@@ -5603,11 +5701,6 @@ export interface components {
          * @description An active or completed logging instance.
          */
         WorkoutSession: {
-            /**
-             * Autoreg Mode
-             * @default advisory
-             */
-            autoreg_mode: string;
             /** Completed At */
             completed_at?: string | null;
             /** Created At */
@@ -5618,6 +5711,13 @@ export interface components {
             id?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Program Id */
+            program_id?: string | null;
+            /**
+             * Progression Scheme
+             * @default autoregulated
+             */
+            progression_scheme: string;
             /** Recovery Score */
             recovery_score?: number | null;
             /**
@@ -5645,14 +5745,16 @@ export interface components {
         };
         /** WorkoutSessionResponse */
         WorkoutSessionResponse: {
-            /** Autoreg Mode */
-            autoreg_mode: string;
             /** Completed At */
             completed_at: string | null;
             /** Id */
             id: string;
             /** Notes */
             notes?: string | null;
+            /** Program Id */
+            program_id?: string | null;
+            /** Progression Scheme */
+            progression_scheme: string;
             /** Recovery Score */
             recovery_score: number | null;
             /** Sets */
@@ -11758,6 +11860,125 @@ export interface operations {
             };
         };
     };
+    list_programs_api_v1_programs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramResponse"][];
+                };
+            };
+        };
+    };
+    create_program_api_v1_programs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgramCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_program_api_v1_programs__program_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_program_api_v1_programs__program_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_recipes_api_v1_recipes_get: {
         parameters: {
             query?: never;
@@ -14355,6 +14576,7 @@ export interface operations {
         parameters: {
             query?: {
                 date_str?: string | null;
+                progression_scheme?: string;
             };
             header?: never;
             path: {
@@ -14596,6 +14818,7 @@ export interface operations {
     start_session_api_v1_workouts_sessions_start_post: {
         parameters: {
             query?: {
+                program_id?: string | null;
                 workout_id?: string | null;
             };
             header?: {

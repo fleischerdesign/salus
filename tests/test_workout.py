@@ -102,7 +102,6 @@ def test_plan_crud_and_autoregulated_targets(session: Session, workout_services)
     workout = CreateWorkoutHandler().execute(uow, user, {
         "name": "Push & Legs Day",
         "description": "Heavy compounds",
-        "autoreg_mode": "advisory",
         "exercises": [
             {"exercise_id": squat_id, "sequence": 0, "target_sets": 3, "target_reps": 8, "target_rpe": 8.0, "rest_seconds": 180},
             {"exercise_id": bench_id, "sequence": 1, "target_sets": 3, "target_reps": 8, "target_rpe": 7.5, "is_autoreg_exempt": True},
@@ -307,7 +306,7 @@ def test_recent_sessions_includes_completed(authenticated_client):
         db.commit()
         ex_id = ex.id
 
-        workout = Workout(name="Test Plan A", user_id=alice.id, autoreg_mode="disabled")
+        workout = Workout(name="Test Plan A", user_id=alice.id)
         db.add(workout)
         db.commit()
         workout_id = workout.id
@@ -383,7 +382,6 @@ def test_get_workout_returns_plan(authenticated_client):
         workout = Workout(
             name="Hypertrophy Phase 1",
             description="High volume muscle building.",
-            autoreg_mode="recovery_based",
             user_id=alice.id,
         )
         db.add(workout)
@@ -395,7 +393,6 @@ def test_get_workout_returns_plan(authenticated_client):
     body = response.json()
     assert body["name"] == "Hypertrophy Phase 1"
     assert body["description"] == "High volume muscle building."
-    assert body["autoreg_mode"] == "recovery_based"
 
 
 def test_create_exercise_via_api(authenticated_client):
@@ -453,7 +450,6 @@ def test_create_workout_via_api(authenticated_client):
     data = {
         "name": "API Plan",
         "description": "Created via JSON.",
-        "autoreg_mode": "advisory",
         "exercises": [
             {"exercise_id": ex_id, "sequence": 0, "target_sets": 3, "target_reps": 5, "target_rpe": 8.5}
         ],
@@ -477,7 +473,7 @@ def test_delete_workout_via_api(authenticated_client):
         alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
         assert alice is not None
 
-        workout = Workout(name="To Remove", user_id=alice.id, autoreg_mode="disabled")
+        workout = Workout(name="To Remove", user_id=alice.id)
         db.add(workout)
         db.commit()
         workout_id = workout.id
@@ -543,7 +539,7 @@ def test_list_workouts_via_api(authenticated_client):
         alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
         assert alice is not None
 
-        workout = Workout(name="List Test", user_id=alice.id, autoreg_mode="disabled")
+        workout = Workout(name="List Test", user_id=alice.id)
         db.add(workout)
         db.commit()
         workout_id = workout.id
@@ -572,7 +568,7 @@ def test_get_workout_targets_returns_targets(authenticated_client):
         db.commit()
         ex_id = ex.id
 
-        workout = Workout(name="Targets Plan", user_id=user_id, autoreg_mode="advisory")
+        workout = Workout(name="Targets Plan", user_id=user_id)
         db.add(workout)
         db.commit()
         workout_id = workout.id
@@ -591,3 +587,50 @@ def test_get_workout_targets_returns_targets(authenticated_client):
     assert any(t["exercise_id"] == ex_id for t in targets)
     target = next(t for t in targets if t["exercise_id"] == ex_id)
     assert target["suggested_sets"] == 5
+
+
+def test_create_program_with_slots_and_scheme(authenticated_client):
+    from sqlmodel import Session, select
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Exercise, Workout
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as db:
+        alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+
+        db.add(Exercise(name="Bench Press", equipment="barbell", primary_muscles="chest"))
+        db.commit()
+
+        workout_a = Workout(name="Push Day", user_id=alice.id)
+        workout_b = Workout(name="Pull Day", user_id=alice.id)
+        db.add(workout_a)
+        db.add(workout_b)
+        db.commit()
+        a_id = workout_a.id
+        b_id = workout_b.id
+
+    resp = authenticated_client.post("/api/v1/programs", json={
+        "name": "Push-Pull",
+        "progression_scheme": "linear",
+        "slots": [
+            {"workout_id": a_id, "sequence": 0, "day_of_week": 0},
+            {"workout_id": b_id, "sequence": 1, "day_of_week": 2},
+        ],
+    })
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["name"] == "Push-Pull"
+    assert body["progression_scheme"] == "linear"
+    assert [s["day_of_week"] for s in body["slots"]] == [0, 2]
+    program_id = body["id"]
+
+    listed = authenticated_client.get("/api/v1/programs").json()
+    assert any(p["id"] == program_id for p in listed)
+
+    start = authenticated_client.post(
+        f"/api/v1/workouts/sessions/start?workout_id={a_id}&program_id={program_id}"
+    )
+    assert start.status_code == 200
+    assert start.json()["progression_scheme"] == "linear"
+    assert start.json()["program_id"] == program_id

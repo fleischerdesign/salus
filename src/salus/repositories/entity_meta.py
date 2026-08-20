@@ -16,7 +16,7 @@ from salus.models.metric_preference import UserMetricPreference
 from salus.models.notification import Notification
 from salus.models.sharing import FederatedAccessLog, LeaderboardGroup, LeaderboardMember, SharingRelationship
 from salus.models.user import User
-from salus.models.workout import Exercise, WorkoutSet, Workout, WorkoutExercise, WorkoutSession
+from salus.models.workout import Exercise, Program, ProgramWorkout, WorkoutSet, Workout, WorkoutExercise, WorkoutSession
 from salus.models.habit import Habit, HabitLog
 from salus.models.mood import MoodTag, MoodEntry
 from salus.models.journal import JournalEntry
@@ -81,6 +81,11 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(
         name="workout_exercise", model=WorkoutExercise, strategy="relational",
         parent_field="workout_id", parent_model=Workout, parent_owner_field="user_id", batch_size=500,
+    ),
+    EntityMeta(name="program", model=Program, batch_size=500),
+    EntityMeta(
+        name="program_workout", model=ProgramWorkout, strategy="relational",
+        parent_field="program_id", parent_model=Program, parent_owner_field="user_id", batch_size=500,
     ),
     EntityMeta(name="workout_session", model=WorkoutSession, batch_size=500),
     EntityMeta(

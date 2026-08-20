@@ -21,7 +21,7 @@ from salus.models.sharing import (
     LeaderboardMember,
     SharingRelationship,
 )
-from salus.models.workout import Exercise, Workout, WorkoutSession, WorkoutExercise, WorkoutSet
+from salus.models.workout import Exercise, Program, ProgramWorkout, Workout, WorkoutSession, WorkoutExercise, WorkoutSet
 from salus.models.asymmetric_share import ShareRecipient, AsymmetricShare
 from salus.models.circadian import CircadianProfile
 from salus.models.notification import Notification
@@ -277,6 +277,22 @@ class IWorkoutRepository(IRepository[Workout], Protocol):
     def find_by_user(self, user_id: str) -> list[Workout]: ...
 
     def reorder(self, user_id: str, ordered_ids: list[str]) -> None: ...
+
+
+@runtime_checkable
+class IProgramRepository(IRepository[Program], Protocol):
+    def find_by_user(self, user_id: str) -> list[Program]: ...
+
+    def reorder(self, user_id: str, ordered_ids: list[str]) -> None: ...
+
+
+@runtime_checkable
+class IProgramWorkoutRepository(IRepository[ProgramWorkout], Protocol):
+    def find_by_program(self, program_id: str) -> list[ProgramWorkout]: ...
+
+    def replace_workouts_for_program(
+        self, program_id: str, slots: list[ProgramWorkout]
+    ) -> None: ...
 
 
 @runtime_checkable

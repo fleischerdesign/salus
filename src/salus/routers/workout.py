@@ -9,6 +9,8 @@ from salus.models.user import User
 from salus.schemas.sync import SyncOperation
 from salus.schemas.workout import (
     ExerciseResponse,
+    ProgramCreate,
+    ProgramResponse,
     WorkoutCreate,
     WorkoutResponse,
     WorkoutSetCreate,
@@ -111,6 +113,55 @@ async def delete_workout(
     raise_from_command_result(result.status, result.message)
 
 
+@router.get("/api/v1/programs", response_model=list[ProgramResponse])
+async def list_programs(
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    return service.list_programs(user_id=uid(current_user))
+
+
+@router.get("/api/v1/programs/{program_id}", response_model=ProgramResponse)
+async def get_program(
+    program_id: str,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    return service.get_program(user_id=uid(current_user), program_id=program_id)
+
+
+@router.post(
+    "/api/v1/programs",
+    response_model=ProgramResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_program(
+    data: ProgramCreate,
+    current_user: User = Depends(get_current_user),
+    pipeline: WritePipeline = Depends(get_write_pipeline),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    result = pipeline.process(
+        [SyncOperation(type="command", command="create_program", payload=data.model_dump(mode="json"))]
+    )[0]
+    raise_from_command_result(result.status, result.message)
+    return service.get_program(user_id=uid(current_user), program_id=result.id or "")
+
+
+@router.delete(
+    "/api/v1/programs/{program_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_program(
+    program_id: str,
+    current_user: User = Depends(get_current_user),
+    pipeline: WritePipeline = Depends(get_write_pipeline),
+):
+    result = pipeline.process(
+        [SyncOperation(type="command", command="delete_program", payload={"id": program_id})]
+    )[0]
+    raise_from_command_result(result.status, result.message)
+
+
 @router.get(
     "/api/v1/workouts/{workout_id}/targets",
     response_model=list[WorkoutTargetResponse],
@@ -118,23 +169,34 @@ async def delete_workout(
 async def get_workout_targets(
     workout_id: str,
     date_str: Optional[str] = Query(None),
+    progression_scheme: str = Query("autoregulated"),
     current_user: User = Depends(get_current_user),
     service: WorkoutService = Depends(get_workout_service),
 ):
     return service.get_session_targets(
-        user_id=uid(current_user), workout_id=workout_id, date_str=date_str
+        user_id=uid(current_user),
+        workout_id=workout_id,
+        date_str=date_str,
+        progression_scheme=progression_scheme,
     )
 
 
 @router.post("/api/v1/workouts/sessions/start", response_model=WorkoutSessionResponse)
 async def start_session(
     workout_id: Optional[str] = Query(None),
+    program_id: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     pipeline: WritePipeline = Depends(get_write_pipeline),
     service: WorkoutService = Depends(get_workout_service),
 ):
     result = pipeline.process(
-        [SyncOperation(type="command", command="start_workout", payload={"workout_id": workout_id})]
+        [
+            SyncOperation(
+                type="command",
+                command="start_workout",
+                payload={"workout_id": workout_id, "program_id": program_id},
+            )
+        ]
     )[0]
     raise_from_command_result(result.status, result.message)
     session = service.get_active_session(user_id=uid(current_user))

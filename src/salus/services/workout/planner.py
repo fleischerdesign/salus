@@ -2,7 +2,7 @@ from typing import Optional
 
 from salus.exceptions import NotFoundError
 from salus.services.constants import DEFAULT_REST_SECONDS, DEFAULT_RPE
-from salus.models.workout import Exercise, Workout, WorkoutSet, WorkoutSession
+from salus.models.workout import Exercise, Program, Workout, WorkoutSet, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.workout.autoregulation import AutoregulationService
 
@@ -45,6 +45,21 @@ class WorkoutService:
             return self.uow.workouts.find_by_user(user_id)
 
     # --------------------------------------------------------------------------
+    # Program reads
+    # --------------------------------------------------------------------------
+
+    def list_programs(self, user_id: str) -> list[Program]:
+        with self.uow:
+            return self.uow.programs.find_by_user(user_id)
+
+    def get_program(self, user_id: str, program_id: str) -> Program:
+        with self.uow:
+            program = self.uow.programs.get_by_id(program_id)
+            if not program or program.user_id != user_id:
+                raise NotFoundError("Program not found.")
+            return program
+
+    # --------------------------------------------------------------------------
     # Session reads
     # --------------------------------------------------------------------------
 
@@ -65,7 +80,11 @@ class WorkoutService:
             )
 
     def get_session_targets(
-        self, user_id: str, workout_id: str, date_str: Optional[str] = None
+        self,
+        user_id: str,
+        workout_id: str,
+        date_str: Optional[str] = None,
+        progression_scheme: str = "autoregulated",
     ) -> list[dict]:
         with self.uow:
             workout = self.uow.workouts.get_by_id(workout_id)
@@ -74,10 +93,10 @@ class WorkoutService:
 
             # Resolve exercises
             exercises_with_targets = []
-            for plan_ex in workout.exercises:
-                ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
+            for workout_ex in workout.exercises:
+                ex = self.uow.exercises.get_by_id(workout_ex.exercise_id)
                 if ex:
-                    exercises_with_targets.append((plan_ex, ex))
+                    exercises_with_targets.append((workout_ex, ex))
 
             last_sess = self.uow.workout_sessions.get_last_session_for_workout(user_id, workout_id)
             last_weights = {}
@@ -87,20 +106,20 @@ class WorkoutService:
                         last_weights.get(entry.exercise_id, 0.0), entry.weight
                     )
 
-            if workout.autoreg_mode == "disabled":
+            if progression_scheme == "none":
                 # Return standard targets directly
                 targets = [
                     {
                         "exercise_id": ex.id,
                         "name": ex.name,
-                        "suggested_sets": plan_ex.target_sets,
-                        "suggested_reps": plan_ex.target_reps,
-                        "suggested_rpe": plan_ex.target_rpe or DEFAULT_RPE,
+                        "suggested_sets": workout_ex.target_sets,
+                        "suggested_reps": workout_ex.target_reps,
+                        "suggested_rpe": workout_ex.target_rpe or DEFAULT_RPE,
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
-                        "reason": "Autoregulation disabled for this workout.",
+                        "reason": "Progression disabled for this program.",
                     }
-                    for plan_ex, ex in exercises_with_targets
+                    for workout_ex, ex in exercises_with_targets
                 ]
             else:
                 targets = self.autoreg_svc.get_autoregulated_targets(
@@ -113,7 +132,7 @@ class WorkoutService:
             prs = self.uow.workout_sessions.get_personal_records(user_id, exercise_ids)
 
             # Map exercise ID to workout/exercise objects for rest duration resolution
-            plan_ex_map = {pe.exercise_id: (pe, e) for pe, e in exercises_with_targets}
+            workout_ex_map = {pe.exercise_id: (pe, e) for pe, e in exercises_with_targets}
 
             for t in targets:
                 t["last_weight"] = last_weights.get(t["exercise_id"], None)
@@ -122,7 +141,7 @@ class WorkoutService:
                 t["pr_est_1rm"] = ex_pr.get("max_est_1rm", 0.0)
 
                 # Resolve rest duration override or default
-                pe, e = plan_ex_map.get(t["exercise_id"], (None, None))
+                pe, e = workout_ex_map.get(t["exercise_id"], (None, None))
                 rest_val = pe.rest_seconds if pe else None
                 if rest_val is None and e:
                     rest_val = e.suggested_rest_seconds
@@ -168,11 +187,11 @@ class WorkoutService:
                 raise NotFoundError("Workout not found.")
 
             exercises_with_details = []
-            for plan_ex in workout.exercises:
-                ex = self.uow.exercises.get_by_id(plan_ex.exercise_id)
+            for workout_ex in workout.exercises:
+                ex = self.uow.exercises.get_by_id(workout_ex.exercise_id)
                 if ex:
                     exercises_with_details.append({
-                        "plan_exercise": plan_ex,
+                        "workout_exercise": workout_ex,
                         "exercise": ex
                     })
 

@@ -60,9 +60,11 @@ _SKIP_AUTO_CRUD: set[str] = {
     # composed-aggregate: workout CRUD is owned by the dedicated typed router
     # (nested exercises via create_workout command; autoregulated targets)
     "workout",
+    "program",
     # relational children with dedicated domain workflows
     "workout_exercise",
     "workout_set",
+    "program_workout",
     # internal infrastructure tables
     "sync_push_log",
     "federated_access_log",

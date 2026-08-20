@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, TYPE_CHECKING
 
-from salus.models.workout import WorkoutSet, Workout, WorkoutExercise, WorkoutSession
+from salus.models.workout import Program, ProgramWorkout, WorkoutSet, Workout, WorkoutExercise, WorkoutSession
 from salus.utils import uuid7_str
 from salus.services._helpers import uid
 from salus.services.command_registry import CommandResult, register
@@ -20,8 +20,8 @@ def _new_uuid() -> str:
 
 
 _SESSION_FIELDS = (
-    "id", "user_id", "workout_id", "started_at", "completed_at",
-    "autoreg_mode", "recovery_score", "notes", "created_at", "updated_at", "deleted_at",
+    "id", "user_id", "workout_id", "program_id", "started_at", "completed_at",
+    "progression_scheme", "recovery_score", "notes", "created_at", "updated_at", "deleted_at",
 )
 
 _SET_FIELDS = (
@@ -42,19 +42,20 @@ def _serialize_set(entry: WorkoutSet) -> dict[str, Any]:
 class StartWorkoutHandler:
     def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
         workout_id = payload.get("workout_id")
+        program_id = payload.get("program_id")
         session_id = payload.get("id")
 
         active = uow.workout_sessions.find_active_by_user(user.id)  # pyright: ignore[reportArgumentType]
         if active:
             return CommandResult(status="created", record=_serialize_session(active), id=active.id)
 
-        autoreg_mode = "advisory"
+        progression_scheme = "autoregulated"
         recovery_score = None
-        if workout_id:
-            workout = uow.workouts.get_by_id(workout_id)
-            if workout and workout.user_id == user.id:  # pyright: ignore[reportAttributeAccessIssue]
-                autoreg_mode = workout.autoreg_mode
-                if autoreg_mode != "disabled":
+        if program_id:
+            program = uow.programs.get_by_id(program_id)
+            if program and program.user_id == user.id:  # pyright: ignore[reportAttributeAccessIssue]
+                progression_scheme = program.progression_scheme
+                if progression_scheme != "none":
                     recovery_score = self._calculate_recovery(uow, user)
 
         now = datetime.now(timezone.utc)
@@ -62,8 +63,9 @@ class StartWorkoutHandler:
             id=session_id,
             user_id=user.id,  # pyright: ignore[reportArgumentType]
             workout_id=workout_id,
+            program_id=program_id,
             started_at=now,
-            autoreg_mode=autoreg_mode,
+            progression_scheme=progression_scheme,
             recovery_score=recovery_score,
             created_at=now,
             updated_at=now,
@@ -224,7 +226,6 @@ class CreateWorkoutHandler:
             name=name,
             description=payload.get("description"),
             user_id=user.id,  # pyright: ignore[reportArgumentType]
-            autoreg_mode=payload.get("autoreg_mode", "advisory"),
             position=payload.get("position", 0),
             created_at=now,
             updated_at=now,
@@ -236,7 +237,7 @@ class CreateWorkoutHandler:
             ex = uow.exercises.get_by_id(exercise_id)  # pyright: ignore[reportArgumentType]
             if not ex:
                 return CommandResult(status="error", message=f"Exercise {exercise_id} not found")
-            plan_ex = WorkoutExercise(
+            workout_ex = WorkoutExercise(
                 id=item.get("id"),
                 workout_id=workout_id,
                 exercise_id=exercise_id,
@@ -249,12 +250,12 @@ class CreateWorkoutHandler:
                 created_at=now,
                 updated_at=now,
             )
-            uow.workout_exercises.add(plan_ex)
+            uow.workout_exercises.add(workout_ex)
         uow.workouts.add(workout)
         uow.commit()
 
         record: dict[str, Any] = {"id": workout_id, "name": workout.name,
-            "description": workout.description, "autoreg_mode": workout.autoreg_mode}
+            "description": workout.description}
         return CommandResult(status="created", record=record, id=workout_id)
 
 
@@ -269,8 +270,70 @@ class DeleteWorkoutHandler:
             return CommandResult(status="deleted", id=workout_id)
         if workout.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
             return CommandResult(status="forbidden", id=workout_id)
-        for plan_ex in uow.workout_exercises.find_by_workout(workout_id):
-            uow.workout_exercises.delete(plan_ex)
+        for workout_ex in uow.workout_exercises.find_by_workout(workout_id):
+            uow.workout_exercises.delete(workout_ex)
         uow.workouts.delete(workout)
         uow.commit()
         return CommandResult(status="deleted", id=workout_id)
+
+
+@register("create_program")
+class CreateProgramHandler:
+    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
+        name = payload.get("name", "").strip()
+        if not name:
+            return CommandResult(status="error", message="name is required")
+
+        now = datetime.now(timezone.utc)
+        program_id = payload.get("id") or _new_uuid()
+        program = Program(
+            id=program_id,
+            name=name,
+            description=payload.get("description"),
+            user_id=user.id,  # pyright: ignore[reportArgumentType]
+            progression_scheme=payload.get("progression_scheme", "autoregulated"),
+            position=payload.get("position", 0),
+            created_at=now,
+            updated_at=now,
+        )
+
+        for item in payload.get("slots", []):
+            slot_workout_id = item.get("workout_id")
+            if not uow.workouts.get_by_id(slot_workout_id):  # pyright: ignore[reportArgumentType]
+                return CommandResult(status="error", message=f"Workout {slot_workout_id} not found")
+            scheduled_date_raw = item.get("scheduled_date")
+            slot = ProgramWorkout(
+                id=item.get("id"),
+                program_id=program_id,
+                workout_id=slot_workout_id,
+                sequence=item.get("sequence", 0),
+                day_of_week=item.get("day_of_week"),
+                scheduled_date=date.fromisoformat(scheduled_date_raw) if scheduled_date_raw else None,
+                created_at=now,
+                updated_at=now,
+            )
+            uow.program_workouts.add(slot)
+        uow.programs.add(program)
+        uow.commit()
+
+        record: dict[str, Any] = {"id": program_id, "name": program.name,
+            "description": program.description, "progression_scheme": program.progression_scheme}
+        return CommandResult(status="created", record=record, id=program_id)
+
+
+@register("delete_program")
+class DeleteProgramHandler:
+    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
+        program_id = payload.get("id")
+        if not program_id:
+            return CommandResult(status="error", message="id is required")
+        program = uow.programs.get_by_id(program_id)  # pyright: ignore[reportArgumentType]
+        if not program:
+            return CommandResult(status="deleted", id=program_id)
+        if program.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            return CommandResult(status="forbidden", id=program_id)
+        for slot in uow.program_workouts.find_by_program(program_id):
+            uow.program_workouts.delete(slot)
+        uow.programs.delete(program)
+        uow.commit()
+        return CommandResult(status="deleted", id=program_id)

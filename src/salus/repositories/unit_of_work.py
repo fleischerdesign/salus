@@ -26,6 +26,8 @@ from salus.repositories.protocols import (
     IExerciseRepository,
     IWorkoutRepository,
     IWorkoutSessionRepository,
+    IProgramRepository,
+    IProgramWorkoutRepository,
     IShareRecipientRepository,
     IAsymmetricShareRepository,
     ICircadianProfileRepository,
@@ -86,6 +88,7 @@ from salus.repositories.federated_measurement_cache import FederatedMeasurementC
 from salus.repositories.federated_access_log import FederatedAccessLogRepository
 from salus.repositories.workout_exercise import WorkoutExerciseRepository
 from salus.repositories.workout_set import WorkoutSetRepository
+from salus.repositories.program import ProgramRepository, ProgramWorkoutRepository
 from salus.repositories.habit import HabitRepository, HabitLogRepository
 from salus.repositories.mood import MoodTagRepository, MoodEntryRepository
 from salus.repositories.journal import JournalEntryRepository
@@ -132,6 +135,8 @@ class IUnitOfWork(Protocol):
     exercises: IExerciseRepository
     workouts: IWorkoutRepository
     workout_sessions: IWorkoutSessionRepository
+    programs: IProgramRepository
+    program_workouts: IProgramWorkoutRepository
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
     circadian_profiles: ICircadianProfileRepository
@@ -195,6 +200,8 @@ class SqlUnitOfWork:
     exercises: IExerciseRepository
     workouts: IWorkoutRepository
     workout_sessions: IWorkoutSessionRepository
+    programs: IProgramRepository
+    program_workouts: IProgramWorkoutRepository
     share_recipients: IShareRecipientRepository
     asymmetric_shares: IAsymmetricShareRepository
     circadian_profiles: ICircadianProfileRepository
@@ -248,6 +255,8 @@ class SqlUnitOfWork:
         self.exercises = ExerciseRepository(session)
         self.workouts = WorkoutRepository(session)
         self.workout_sessions = WorkoutSessionRepository(session)
+        self.programs = ProgramRepository(session)
+        self.program_workouts = ProgramWorkoutRepository(session)
         self.share_recipients = ShareRecipientRepository(session)
         self.asymmetric_shares = AsymmetricShareRepository(session)
         self.circadian_profiles = CircadianProfileRepository(session)

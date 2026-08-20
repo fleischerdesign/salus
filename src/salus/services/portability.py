@@ -52,7 +52,7 @@ class DataPortabilityService:
 
             # 3. Workout Plans (JSON)
             plans = self.uow.workouts.find_by_user(user_id)
-            plans_data = []
+            workouts_data = []
             for p in plans:
                 exercises = []
                 for pe in p.exercises:
@@ -65,16 +65,15 @@ class DataPortabilityService:
                         "is_autoreg_exempt": pe.is_autoreg_exempt,
                         "rest_seconds": pe.rest_seconds,
                     })
-                plans_data.append({
+                workouts_data.append({
                     "name": p.name,
                     "description": p.description,
-                    "autoreg_mode": p.autoreg_mode,
                     "position": p.position,
                     "exercises": exercises,
                 })
             zip_file.writestr(
                 "workouts.json",
-                json.dumps(plans_data, indent=2, ensure_ascii=False)
+                json.dumps(workouts_data, indent=2, ensure_ascii=False)
             )
 
             # 4. Workout History (CSV)
@@ -83,17 +82,17 @@ class DataPortabilityService:
             history_buffer = io.StringIO()
             history_writer = csv.writer(history_buffer)
             history_writer.writerow([
-                "session_id", "started_at", "completed_at", "plan_name",
+                "session_id", "started_at", "completed_at", "workout_name",
                 "exercise_name", "set_number", "weight", "reps", "rpe"
             ])
             for s in sessions:
-                plan_name = s.workout.name if s.workout else "Custom Workout"
+                workout_name = s.workout.name if s.workout else "Custom Workout"
                 for entry in s.sets:
                     history_writer.writerow([
                         s.id,
                         s.started_at.isoformat(),
                         s.completed_at.isoformat() if s.completed_at else "",
-                        plan_name,
+                        workout_name,
                         entry.exercise.name,
                         entry.set_number,
                         entry.weight,
@@ -190,20 +189,19 @@ class DataPortabilityService:
                 # 3. Workout Plans Import
                 if "workouts.json" in zip_file.namelist():
                     try:
-                        plans_data = json.loads(zip_file.read("workouts.json").decode("utf-8"))
+                        workouts_data = json.loads(zip_file.read("workouts.json").decode("utf-8"))
                         
-                        existing_plans = self.uow.workouts.find_by_user(user_id)
-                        existing_plan_names = {p.name for p in existing_plans}
+                        existing_workouts = self.uow.workouts.find_by_user(user_id)
+                        existing_workout_names = {p.name for p in existing_workouts}
                         
-                        for p_data in plans_data:
-                            if p_data["name"] in existing_plan_names:
+                        for p_data in workouts_data:
+                            if p_data["name"] in existing_workout_names:
                                 continue
                                 
                             workout = Workout(
                                 name=p_data["name"],
                                 description=p_data.get("description"),
                                 user_id=user_id,
-                                autoreg_mode=p_data.get("autoreg_mode", "advisory"),
                                 position=p_data.get("position", 0),
                             )
                             self.uow.session.add(workout)

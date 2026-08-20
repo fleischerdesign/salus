@@ -132,16 +132,16 @@ class AutoregulationService:
             "soleus",
         }
 
-        for plan_ex, ex in exercises_with_targets:
+        for workout_ex, ex in exercises_with_targets:
             # If manually locked or workout has disabled autoreg
-            if plan_ex.is_autoreg_exempt:
+            if workout_ex.is_autoreg_exempt:
                 results.append(
                     {
                         "exercise_id": ex.id,
                         "name": ex.name,
-                        "suggested_sets": plan_ex.target_sets,
-                        "suggested_reps": plan_ex.target_reps,
-                        "suggested_rpe": plan_ex.target_rpe or 8.0,
+                        "suggested_sets": workout_ex.target_sets,
+                        "suggested_reps": workout_ex.target_reps,
+                        "suggested_rpe": workout_ex.target_rpe or 8.0,
                         "weight_multiplier": 1.0,
                         "is_autoreg_exempt": True,
                         "reason": "Manually locked (exemption policy enabled).",
@@ -201,15 +201,15 @@ class AutoregulationService:
                     sets_adjust = min(sets_adjust, -1)
                     reasons.append("Localized leg fatigue (high steps count) applied.")
 
-            final_sets = max(1, plan_ex.target_sets + sets_adjust)
-            final_rpe = max(5.0, min(10.0, (plan_ex.target_rpe or 8.0) + rpe_adjust))
+            final_sets = max(1, workout_ex.target_sets + sets_adjust)
+            final_rpe = max(5.0, min(10.0, (workout_ex.target_rpe or 8.0) + rpe_adjust))
 
             results.append(
                 {
                     "exercise_id": ex.id,
                     "name": ex.name,
                     "suggested_sets": final_sets,
-                    "suggested_reps": plan_ex.target_reps,
+                    "suggested_reps": workout_ex.target_reps,
                     "suggested_rpe": round(final_rpe, 1),
                     "weight_multiplier": round(weight_mult, 3),
                     "is_autoreg_exempt": False,

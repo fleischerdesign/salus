@@ -171,11 +171,10 @@ class TestDeleteLogSetHandler:
 class TestCreateWorkoutHandler:
     def test_create_workout(self, authenticated_client: TestClient):
         result = _push_cmd(authenticated_client, "create_workout", {
-            "name": "Push Day", "description": "Chest focus", "autoreg_mode": "advisory",
+            "name": "Push Day", "description": "Chest focus",
         })
         assert result["status"] == "created"
         assert result["record"]["name"] == "Push Day"
-        assert result["record"]["autoreg_mode"] == "advisory"
 
     def test_create_workout_with_exercises(self, authenticated_client: TestClient):
         ex_resp = authenticated_client.post("/api/v1/sync/push", json={

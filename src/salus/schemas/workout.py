@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -49,7 +49,6 @@ class WorkoutExerciseResponse(BaseModel):
 class WorkoutCreate(BaseModel):
     name: str
     description: Optional[str] = None
-    autoreg_mode: str = "advisory"  # "guided", "advisory", "disabled"
     position: int = 0
     exercises: list[WorkoutExerciseCreate] = Field(default_factory=list)
 
@@ -58,7 +57,6 @@ class WorkoutResponse(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
-    autoreg_mode: str
     position: int
     created_at: datetime
     exercises: list[WorkoutExerciseResponse]
@@ -91,9 +89,10 @@ class WorkoutSessionResponse(BaseModel):
     id: str
     user_id: str
     workout_id: Optional[str]
+    program_id: Optional[str] = None
     started_at: datetime
     completed_at: Optional[datetime]
-    autoreg_mode: str
+    progression_scheme: str
     recovery_score: Optional[float]
     notes: Optional[str] = None
     sets: list[WorkoutSetResponse]
@@ -108,6 +107,45 @@ class ExerciseHistoryEntry(BaseModel):
     reps: int
     rpe: Optional[float] = None
     est_one_rm: float
+
+
+class ProgramWorkoutCreate(BaseModel):
+    workout_id: str
+    sequence: int = 0
+    day_of_week: Optional[int] = None
+    scheduled_date: Optional[date] = None
+
+
+class ProgramCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    progression_scheme: str = "autoregulated"
+    position: int = 0
+    slots: list[ProgramWorkoutCreate] = Field(default_factory=list)
+
+
+class ProgramWorkoutResponse(BaseModel):
+    id: str
+    program_id: str
+    workout_id: str
+    sequence: int
+    day_of_week: Optional[int]
+    scheduled_date: Optional[date]
+    workout: WorkoutResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProgramResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    progression_scheme: str
+    position: int
+    created_at: datetime
+    slots: list[ProgramWorkoutResponse]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExerciseDetailResponse(BaseModel):
