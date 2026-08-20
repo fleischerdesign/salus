@@ -1,15 +1,17 @@
 from typing import Optional
 
 from salus.exceptions import NotFoundError
-from salus.services.constants import (
-    DEFAULT_LINEAR_INCREMENT,
-    DEFAULT_REST_SECONDS,
-    DEFAULT_RPE,
-)
+from salus.services.constants import DEFAULT_REST_SECONDS
 from salus.models.workout import Exercise, Program, Workout, WorkoutSet, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
 from salus.services.workout.autoregulation import AutoregulationService
-from salus.services.workout.progression import suggest_linear_weight
+from salus.services.workout.progression import (
+    AutoregulatedProgressionScheme,
+    LinearProgressionScheme,
+    NoneProgressionScheme,
+    ProgressionContext,
+    ProgressionScheme,
+)
 
 
 class WorkoutService:
@@ -18,6 +20,11 @@ class WorkoutService:
     def __init__(self, uow: IUnitOfWork, autoreg_svc: AutoregulationService) -> None:
         self.uow = uow
         self.autoreg_svc = autoreg_svc
+        self._schemes: dict[str, ProgressionScheme] = {
+            "none": NoneProgressionScheme(),
+            "linear": LinearProgressionScheme(),
+            "autoregulated": AutoregulatedProgressionScheme(autoreg_svc),
+        }
 
     # --------------------------------------------------------------------------
     # Exercise reads
@@ -114,49 +121,16 @@ class WorkoutService:
                         last_reps[entry.exercise_id] = entry.reps
                         last_rpes[entry.exercise_id] = entry.rpe
 
-            if progression_scheme == "none":
-                # Return standard targets directly
-                targets = [
-                    {
-                        "exercise_id": ex.id,
-                        "name": ex.name,
-                        "suggested_sets": workout_ex.target_sets,
-                        "suggested_reps": workout_ex.target_reps,
-                        "suggested_rpe": workout_ex.target_rpe or DEFAULT_RPE,
-                        "weight_multiplier": 1.0,
-                        "is_autoreg_exempt": True,
-                        "reason": "Progression disabled for this program.",
-                    }
-                    for workout_ex, ex in exercises_with_targets
-                ]
-            elif progression_scheme == "linear":
-                targets = [
-                    {
-                        "exercise_id": ex.id,
-                        "name": ex.name,
-                        "suggested_sets": workout_ex.target_sets,
-                        "suggested_reps": workout_ex.target_reps,
-                        "suggested_rpe": workout_ex.target_rpe or DEFAULT_RPE,
-                        "weight_multiplier": 1.0,
-                        "is_autoreg_exempt": workout_ex.is_autoreg_exempt,
-                        "suggested_weight": suggest_linear_weight(
-                            last_weight=last_weights.get(ex.id),
-                            target_reps=workout_ex.target_reps,
-                            target_rpe=workout_ex.target_rpe,
-                            last_reps=last_reps.get(ex.id),
-                            last_rpe=last_rpes.get(ex.id),
-                            increment=DEFAULT_LINEAR_INCREMENT,
-                        ),
-                        "reason": "Linear progression from last performance.",
-                    }
-                    for workout_ex, ex in exercises_with_targets
-                ]
-            else:
-                targets = self.autoreg_svc.get_autoregulated_targets(
-                    user_id=user_id,
-                    exercises_with_targets=exercises_with_targets,
-                    date_str=date_str,
-                )
+            ctx = ProgressionContext(
+                user_id=user_id,
+                date_str=date_str,
+                exercises=exercises_with_targets,
+                last_weights=last_weights,
+                last_reps=last_reps,
+                last_rpes=last_rpes,
+            )
+            scheme = self._schemes.get(progression_scheme, self._schemes["autoregulated"])
+            targets = scheme.compute_targets(ctx)
 
             exercise_ids = [t["exercise_id"] for t in targets]
             prs = self.uow.workout_sessions.get_personal_records(user_id, exercise_ids)
