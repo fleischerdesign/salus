@@ -1,6 +1,6 @@
 """Tests for mood tracking — entry CRUD, tags, stats."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 
 def _log_mood(client, payload: dict) -> dict:
@@ -46,8 +46,12 @@ class TestMoodRoutes:
         assert resp.json()["mood_score"] == 5
 
     def test_stats(self, authenticated_client):
+        # Log relative to the UTC day (matching the default UTC user timezone
+        # used by user_today) — not the server's local date, which can drift
+        # one day ahead of UTC and drop the "today" entry.
+        utc_today = datetime.now(timezone.utc).date()
         for i in range(5):
-            d = (date.today() - timedelta(days=i)).isoformat()
+            d = (utc_today - timedelta(days=i)).isoformat()
             _log_mood(authenticated_client, {
                 "mood_score": 6 + i,
                 "entry_date": d,
