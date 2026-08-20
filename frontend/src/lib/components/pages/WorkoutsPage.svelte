@@ -9,7 +9,9 @@
   import MuscleHeatmap2D from '../track/MuscleHeatmap2D.svelte';
   import Exercise1RMChart from '../track/Exercise1RMChart.svelte';
   import WorkoutSplitCard from '../track/WorkoutSplitCard.svelte';
-  import WorkoutPlanEditorModal from '../workouts/WorkoutPlanEditorModal.svelte';
+  import WorkoutPlanEditorModal, {
+    type WorkoutDraft
+  } from '../workouts/WorkoutPlanEditorModal.svelte';
   import ProgramEditorModal, { type ProgramDraft } from '../workouts/ProgramEditorModal.svelte';
   import CreateExerciseModal from '../workouts/CreateExerciseModal.svelte';
   import type {
@@ -28,6 +30,7 @@
   import { useQuery } from '$lib/db/use-query.svelte';
   import { startWorkout, completeWorkout } from '$lib/mutations/workout';
   import { createProgram, deleteProgram } from '$lib/mutations/program';
+  import { createWorkout } from '$lib/mutations/plan';
 
   export type WorkoutTab = 'active' | 'plans' | 'programs' | 'sessions' | 'exercises';
 
@@ -86,7 +89,7 @@
             muscle: (ex?.primary_muscles as unknown as 'Brust') || 'Brust',
             targetSets: pe.target_sets || 3,
             targetReps: `${pe.target_reps || 10} Wdh`,
-            targetRpe: 2
+            targetRpe: pe.target_rpe ?? 8
           };
         })
       };
@@ -196,24 +199,27 @@
   const activeExercises = $derived(workoutData?.activeExercises ?? []);
   const savedPrograms = $derived(workoutData?.programs ?? []);
 
-  // Plan Editor Modal State
+  // Workout Editor Modal State
   let isPlanEditorOpen = $state(false);
-  let planToEdit = $state<WorkoutPlan | null>(null);
 
   // Create Exercise Modal State
   let isCreateExerciseOpen = $state(false);
 
   function openCreatePlan() {
-    planToEdit = null;
     isPlanEditorOpen = true;
   }
 
-  function openEditPlan(plan: WorkoutPlan) {
-    planToEdit = plan;
-    isPlanEditorOpen = true;
-  }
-
-  function handleSavePlan(_saved: WorkoutPlan) {
+  function handleSavePlan(draft: WorkoutDraft) {
+    createWorkout(
+      draft.name,
+      draft.description,
+      draft.exercises.map((e) => ({
+        exercise_id: e.exercise_id,
+        target_sets: e.target_sets,
+        target_reps: e.target_reps,
+        target_rpe: e.target_rpe
+      }))
+    );
     isPlanEditorOpen = false;
   }
 
@@ -489,13 +495,6 @@
                 </div>
 
                 <div class="flex items-center justify-between border-t border-border-subtle pt-3">
-                  <button
-                    type="button"
-                    onclick={() => openEditPlan(plan)}
-                    class="cursor-pointer text-xs font-bold text-text-muted hover:text-primary"
-                  >
-                    Bearbeiten
-                  </button>
                   <button
                     type="button"
                     onclick={() => handleStartPlan(plan.id)}
@@ -816,7 +815,7 @@
   <!-- Workout Plan Editor Modal -->
   <WorkoutPlanEditorModal
     open={isPlanEditorOpen}
-    plan={planToEdit}
+    exercises={dbExercises}
     onsave={handleSavePlan}
     onclose={() => (isPlanEditorOpen = false)}
   />
