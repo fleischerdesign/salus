@@ -672,3 +672,132 @@ def test_linear_progression_targets(authenticated_client):
     assert resp.status_code == 200
     target = next(t for t in resp.json() if t["exercise_id"] == ex_id)
     assert target["suggested_weight"] == 62.5
+
+
+def _setup_program_user(uow, username: str) -> str:
+    from salus.models.user import User as UserModel
+
+    user = UserModel(id=f"u-{username}", username=username)
+    uow.users.add(user)
+    uow.commit()
+    return user.id or f"u-{username}"
+
+
+def test_resolve_today_weekly_and_rest(workout_services):
+    from salus.models.workout import Program, ProgramWorkout, Workout
+
+    uow, _, workout_svc = workout_services
+    with uow:
+        user_id = _setup_program_user(uow, "resolve-weekly")
+        uow.workouts.add(Workout(id="wa", name="Push", user_id=user_id))
+        uow.workouts.add(Workout(id="wb", name="Pull", user_id=user_id))
+        uow.commit()
+        uow.programs.add(Program(id="p1", name="Weekly", user_id=user_id))
+        uow.commit()
+        uow.program_workouts.add(
+            ProgramWorkout(id="s0", program_id="p1", workout_id="wa", sequence=0, day_of_week=0)
+        )
+        uow.program_workouts.add(
+            ProgramWorkout(id="s1", program_id="p1", workout_id="wb", sequence=1, day_of_week=2)
+        )
+        uow.commit()
+
+    monday = workout_svc.resolve_today(user_id, "p1", date_str="2026-08-17")
+    assert monday["workout_id"] == "wa"
+    assert monday["reason"] == "weekly"
+
+    wednesday = workout_svc.resolve_today(user_id, "p1", date_str="2026-08-19")
+    assert wednesday["workout_id"] == "wb"
+
+    tuesday = workout_svc.resolve_today(user_id, "p1", date_str="2026-08-18")
+    assert tuesday["workout_id"] is None
+    assert tuesday["reason"] == "rest"
+
+
+def test_resolve_today_rotation(workout_services):
+    from datetime import datetime, timezone
+
+    from salus.models.workout import Program, ProgramWorkout, Workout, WorkoutSession
+
+    uow, _, workout_svc = workout_services
+    with uow:
+        user_id = _setup_program_user(uow, "resolve-rotation")
+        for wid, name in [("wa", "A"), ("wb", "B"), ("wc", "C")]:
+            uow.workouts.add(Workout(id=wid, name=name, user_id=user_id))
+        uow.commit()
+        uow.programs.add(Program(id="p1", name="Rot", user_id=user_id))
+        uow.commit()
+        for i, wid in enumerate(["wa", "wb", "wc"]):
+            uow.program_workouts.add(
+                ProgramWorkout(id=f"s{i}", program_id="p1", workout_id=wid, sequence=i)
+            )
+        uow.commit()
+
+    first = workout_svc.resolve_today(user_id, "p1", date_str="2026-08-18")
+    assert first["workout_id"] == "wa"
+    assert first["reason"] == "rotation"
+
+    with uow:
+        uow.workout_sessions.add(
+            WorkoutSession(
+                id="sess1", user_id=user_id, workout_id="wa", program_id="p1",
+                completed_at=datetime.now(timezone.utc),
+            )
+        )
+        uow.commit()
+
+    second = workout_svc.resolve_today(user_id, "p1", date_str="2026-08-18")
+    assert second["workout_id"] == "wb"
+
+
+def test_resolve_today_dated(workout_services):
+    from datetime import date
+
+    from salus.models.workout import Program, ProgramWorkout, Workout
+
+    uow, _, workout_svc = workout_services
+    with uow:
+        user_id = _setup_program_user(uow, "resolve-dated")
+        uow.workouts.add(Workout(id="wa", name="Max-Test", user_id=user_id))
+        uow.commit()
+        uow.programs.add(Program(id="p1", name="Dated", user_id=user_id))
+        uow.commit()
+        uow.program_workouts.add(
+            ProgramWorkout(
+                id="s0", program_id="p1", workout_id="wa", sequence=0,
+                scheduled_date=date(2026, 4, 1),
+            )
+        )
+        uow.commit()
+
+    match = workout_svc.resolve_today(user_id, "p1", date_str="2026-04-01")
+    assert match["workout_id"] == "wa"
+    assert match["reason"] == "dated"
+
+    miss = workout_svc.resolve_today(user_id, "p1", date_str="2026-04-02")
+    assert miss["workout_id"] is None
+    assert miss["reason"] == "rest"
+
+
+def test_activate_deactivate_program(authenticated_client):
+    from sqlmodel import Session, select
+
+    from salus.models.user import User as UserModel
+    from salus.models.workout import Program
+
+    engine = authenticated_client.app.state.engine
+    with Session(engine) as db:
+        alice = db.exec(select(UserModel).where(UserModel.username == "alice")).first()
+        assert alice is not None
+        prog = Program(name="Toggle", user_id=alice.id)
+        db.add(prog)
+        db.commit()
+        program_id = prog.id
+
+    activate = authenticated_client.post(f"/api/v1/programs/{program_id}/activate")
+    assert activate.status_code == 200
+    assert activate.json()["is_active"] is True
+
+    deactivate = authenticated_client.post(f"/api/v1/programs/{program_id}/deactivate")
+    assert deactivate.status_code == 200
+    assert deactivate.json()["is_active"] is False

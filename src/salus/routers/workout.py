@@ -36,6 +36,12 @@ class WorkoutTargetResponse(BaseModel):
     reason: str
 
 
+class ProgramTodayResponse(BaseModel):
+    workout_id: Optional[str] = None
+    workout_name: Optional[str] = None
+    reason: str
+
+
 @router.get(
     "/api/v1/workouts/exercises", response_model=list[ExerciseResponse]
 )
@@ -161,6 +167,49 @@ async def delete_program(
         [SyncOperation(type="command", command="delete_program", payload={"id": program_id})]
     )[0]
     raise_from_command_result(result.status, result.message)
+
+
+@router.post("/api/v1/programs/{program_id}/activate", response_model=ProgramResponse)
+async def activate_program(
+    program_id: str,
+    current_user: User = Depends(get_current_user),
+    pipeline: WritePipeline = Depends(get_write_pipeline),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    result = pipeline.process(
+        [SyncOperation(type="command", command="activate_program", payload={"id": program_id})]
+    )[0]
+    raise_from_command_result(result.status, result.message)
+    return service.get_program(user_id=uid(current_user), program_id=program_id)
+
+
+@router.post("/api/v1/programs/{program_id}/deactivate", response_model=ProgramResponse)
+async def deactivate_program(
+    program_id: str,
+    current_user: User = Depends(get_current_user),
+    pipeline: WritePipeline = Depends(get_write_pipeline),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    result = pipeline.process(
+        [SyncOperation(type="command", command="deactivate_program", payload={"id": program_id})]
+    )[0]
+    raise_from_command_result(result.status, result.message)
+    return service.get_program(user_id=uid(current_user), program_id=program_id)
+
+
+@router.get("/api/v1/programs/{program_id}/today", response_model=ProgramTodayResponse)
+async def get_program_today(
+    program_id: str,
+    current_user: User = Depends(get_current_user),
+    service: WorkoutService = Depends(get_workout_service),
+):
+    resolved = service.resolve_today(user_id=uid(current_user), program_id=program_id)
+    workout = resolved["workout"]
+    return ProgramTodayResponse(
+        workout_id=resolved["workout_id"],
+        workout_name=workout.name if workout else None,
+        reason=resolved["reason"],
+    )
 
 
 @router.get(

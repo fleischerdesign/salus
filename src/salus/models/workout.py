@@ -170,6 +170,7 @@ class Program(SQLModel, table=True):
     # ("linear" | "autoregulated" | "none")
     progression_scheme: str = Field(default="autoregulated")
     position: int = Field(default=0)
+    is_active: bool = Field(default=False)
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(

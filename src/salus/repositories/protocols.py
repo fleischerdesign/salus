@@ -305,6 +305,10 @@ class IWorkoutSessionRepository(IRepository[WorkoutSession], Protocol):
         self, user_id: str, workout_id: str
     ) -> WorkoutSession | None: ...
 
+    def get_last_session_for_program(
+        self, user_id: str, program_id: str
+    ) -> WorkoutSession | None: ...
+
     def get_personal_records(
         self, user_id: str, exercise_ids: list[str]
     ) -> dict[str, dict]: ...

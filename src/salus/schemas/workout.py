@@ -142,6 +142,7 @@ class ProgramResponse(BaseModel):
     description: Optional[str] = None
     progression_scheme: str
     position: int
+    is_active: bool
     created_at: datetime
     slots: list[ProgramWorkoutResponse]
 

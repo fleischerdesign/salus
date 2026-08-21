@@ -29,7 +29,13 @@
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { startWorkout, completeWorkout } from '$lib/mutations/workout';
-  import { createProgram, deleteProgram } from '$lib/mutations/program';
+  import {
+    createProgram,
+    deleteProgram,
+    activateProgram,
+    deactivateProgram
+  } from '$lib/mutations/program';
+  import { resolveToday } from '$lib/utils/program-schedule';
   import { createWorkout } from '$lib/mutations/plan';
 
   export type WorkoutTab = 'active' | 'plans' | 'programs' | 'sessions' | 'exercises';
@@ -179,9 +185,32 @@
         };
       });
 
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const weekday = (now.getDay() + 6) % 7;
+    const todayResolutions = programs
+      .filter((p) => !p.deleted_at && p.is_active)
+      .map((p) => {
+        const pSlots = programSlots.filter((s) => s.program_id === p.id);
+        const lastSession = sessions
+          .filter((s) => s.program_id === p.id && s.completed_at && !s.deleted_at)
+          .sort((a, b) => (b.completed_at ?? '').localeCompare(a.completed_at ?? ''))[0];
+        const resolved = resolveToday(pSlots, lastSession?.workout_id ?? null, todayStr, weekday);
+        return {
+          programId: p.id,
+          programName: p.name,
+          workoutId: resolved.workoutId,
+          workoutName: resolved.workoutId
+            ? (workoutMap.get(resolved.workoutId)?.name ?? 'Workout')
+            : null,
+          reason: resolved.reason
+        };
+      });
+
     return {
       plans: formattedPlans,
       programs: formattedPrograms,
+      todayResolutions,
       sessions: formattedSessions,
       allExercises: validExercises,
       activeSession,
@@ -198,6 +227,14 @@
   const activePlanName = $derived(workoutData?.activePlanName ?? 'Freies Training');
   const activeExercises = $derived(workoutData?.activeExercises ?? []);
   const savedPrograms = $derived(workoutData?.programs ?? []);
+  const todayResolutions = $derived(workoutData?.todayResolutions ?? []);
+
+  const reasonLabels: Record<string, string> = {
+    dated: 'Datum',
+    weekly: 'Wochentag',
+    rotation: 'Rotation',
+    rest: 'Ruhetag'
+  };
 
   // Workout Editor Modal State
   let isPlanEditorOpen = $state(false);
@@ -258,6 +295,11 @@
     const program = savedPrograms.find((p) => p.id === programId);
     const firstSlot = program?.slots[0];
     await startWorkout(firstSlot?.workout_id ?? null, programId);
+    goto('/workouts/active');
+  }
+
+  async function handleStartResolved(workoutId: string, programId: string) {
+    await startWorkout(workoutId, programId);
     goto('/workouts/active');
   }
 
@@ -399,6 +441,40 @@
   <!-- ═══════════════════════════════════════════════════════════ -->
   {#if activeTab === 'plans'}
     <div class="space-y-6">
+      {#if todayResolutions.length > 0}
+        <div class="rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h2 class="mb-3 text-base font-extrabold text-text-main">Heute dran</h2>
+          <div class="space-y-2">
+            {#each todayResolutions as t}
+              <div
+                class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3"
+              >
+                <div class="flex items-center gap-2.5">
+                  <Icon name="play_arrow" size="sm" class="text-primary" />
+                  <div>
+                    <span class="block text-sm font-bold text-text-main">
+                      {t.workoutName ?? 'Ruhetag'}
+                    </span>
+                    <span class="text-xs text-text-muted">
+                      {t.programName} · {reasonLabels[t.reason] ?? t.reason}
+                    </span>
+                  </div>
+                </div>
+                {#if t.workoutId}
+                  <button
+                    type="button"
+                    onclick={() => handleStartResolved(t.workoutId!, t.programId)}
+                    class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+                  >
+                    Start &rarr;
+                  </button>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Free Workout Quick-Start Card -->
       <div
         class="flex flex-col items-start justify-between gap-4 rounded-3xl border-2 border-dashed border-primary/40 bg-surface-0 p-5 shadow-xs transition-all hover:border-primary sm:flex-row sm:items-center"
@@ -582,13 +658,27 @@
                 </div>
 
                 <div class="flex items-center justify-between border-t border-border-subtle pt-3">
-                  <button
-                    type="button"
-                    onclick={() => handleDeleteProgram(program.id)}
-                    class="hover:text-danger cursor-pointer text-xs font-bold text-text-muted"
-                  >
-                    Löschen
-                  </button>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onclick={() =>
+                        program.is_active
+                          ? deactivateProgram(program.id)
+                          : activateProgram(program.id)}
+                      class="cursor-pointer text-xs font-bold {program.is_active
+                        ? 'text-primary'
+                        : 'text-text-muted hover:text-primary'}"
+                    >
+                      {program.is_active ? 'Aktiv' : 'Aktivieren'}
+                    </button>
+                    <button
+                      type="button"
+                      onclick={() => handleDeleteProgram(program.id)}
+                      class="hover:text-danger cursor-pointer text-xs font-bold text-text-muted"
+                    >
+                      Löschen
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onclick={() => handleStartProgram(program.id)}

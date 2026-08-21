@@ -1,10 +1,13 @@
 from typing import Optional
+from datetime import date
 
 from salus.exceptions import NotFoundError
 from salus.services.constants import DEFAULT_REST_SECONDS
 from salus.models.workout import Exercise, Program, Workout, WorkoutSet, WorkoutSession
 from salus.repositories.unit_of_work import IUnitOfWork
+from salus.services.timezone import user_today
 from salus.services.workout.autoregulation import AutoregulationService
+from salus.services.workout.schedule import ScheduleSlot, for_date, for_weekday, next_in_rotation
 from salus.services.workout.progression import (
     AutoregulatedProgressionScheme,
     LinearProgressionScheme,
@@ -70,6 +73,68 @@ class WorkoutService:
             if not program or program.user_id != user_id:
                 raise NotFoundError("Program not found.")
             return program
+
+    def resolve_today(
+        self, user_id: str, program_id: str, date_str: Optional[str] = None
+    ) -> dict:
+        """Resolve the program's workout for today: dated → weekly → rotation → rest."""
+        with self.uow:
+            program = self.uow.programs.get_by_id(program_id)
+            if not program or program.user_id != user_id:
+                raise NotFoundError("Program not found.")
+
+            slots = [
+                s
+                for s in self.uow.program_workouts.find_by_program(program_id)
+                if not s.deleted_at
+            ]
+            if not slots:
+                return {"workout": None, "workout_id": None, "reason": "rest"}
+
+            schedule_slots = [
+                ScheduleSlot(
+                    workout_id=s.workout_id,
+                    sequence=s.sequence,
+                    day_of_week=s.day_of_week,
+                    scheduled_date=s.scheduled_date,
+                )
+                for s in slots
+            ]
+
+            today = date.fromisoformat(date_str) if date_str else user_today(self.uow.session, user_id)
+
+            slot = for_date(schedule_slots, today)
+            if slot:
+                return self._resolve_slot(slot, "dated")
+
+            slot = for_weekday(schedule_slots, today.weekday())
+            if slot:
+                return self._resolve_slot(slot, "weekly")
+
+            rotation_slots = [
+                s for s in schedule_slots if s.day_of_week is None and s.scheduled_date is None
+            ]
+            if rotation_slots:
+                last_session = self.uow.workout_sessions.get_last_session_for_program(
+                    user_id, program_id
+                )
+                after: Optional[int] = None
+                if last_session and last_session.workout_id:
+                    last_slot = next(
+                        (s for s in rotation_slots if s.workout_id == last_session.workout_id),
+                        None,
+                    )
+                    if last_slot:
+                        after = last_slot.sequence
+                slot = next_in_rotation(rotation_slots, after)
+                if slot:
+                    return self._resolve_slot(slot, "rotation")
+
+            return {"workout": None, "workout_id": None, "reason": "rest"}
+
+    def _resolve_slot(self, slot: ScheduleSlot, reason: str) -> dict:
+        workout = self.uow.workouts.get_by_id(slot.workout_id)
+        return {"workout": workout, "workout_id": slot.workout_id, "reason": reason}
 
     # --------------------------------------------------------------------------
     # Session reads

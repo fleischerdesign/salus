@@ -124,6 +124,20 @@ class WorkoutSessionRepository(Repository[WorkoutSession], IWorkoutSessionReposi
             .limit(1)
         ).first()
 
+    def get_last_session_for_program(
+        self, user_id: str, program_id: str
+    ) -> WorkoutSession | None:
+        return self.session.exec(
+            select(WorkoutSession)
+            .where(
+                WorkoutSession.user_id == user_id,
+                WorkoutSession.program_id == program_id,
+                WorkoutSession.completed_at != None,  # type: ignore # noqa: E711
+            )
+            .order_by(desc(WorkoutSession.completed_at))
+            .limit(1)
+        ).first()
+
     def find_active_by_user(
         self, user_id: str
     ) -> WorkoutSession | None:

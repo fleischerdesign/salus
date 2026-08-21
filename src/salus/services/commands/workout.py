@@ -337,3 +337,36 @@ class DeleteProgramHandler:
         uow.programs.delete(program)
         uow.commit()
         return CommandResult(status="deleted", id=program_id)
+
+@register("activate_program")
+class ActivateProgramHandler:
+    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
+        program_id = payload.get("id")
+        if not program_id:
+            return CommandResult(status="error", message="id is required")
+        program = uow.programs.get_by_id(program_id)  # pyright: ignore[reportArgumentType]
+        if not program:
+            return CommandResult(status="not_found", id=program_id)
+        if program.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            return CommandResult(status="forbidden", id=program_id)
+        program.is_active = True
+        uow.programs.update(program)
+        uow.commit()
+        return CommandResult(status="updated", record={"id": program_id, "is_active": True}, id=program_id)
+
+
+@register("deactivate_program")
+class DeactivateProgramHandler:
+    def execute(self, uow: IUnitOfWork, user: User, payload: dict[str, Any]) -> CommandResult:
+        program_id = payload.get("id")
+        if not program_id:
+            return CommandResult(status="error", message="id is required")
+        program = uow.programs.get_by_id(program_id)  # pyright: ignore[reportArgumentType]
+        if not program:
+            return CommandResult(status="not_found", id=program_id)
+        if program.user_id != user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            return CommandResult(status="forbidden", id=program_id)
+        program.is_active = False
+        uow.programs.update(program)
+        uow.commit()
+        return CommandResult(status="updated", record={"id": program_id, "is_active": False}, id=program_id)

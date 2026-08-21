@@ -77,3 +77,23 @@ export const deleteProgram = async (programId: string) => {
         : undefined
   });
 };
+
+export const activateProgram = (programId: string) =>
+  mutate({
+    kind: 'command',
+    command: 'activate_program',
+    queueable: true,
+    payload: { id: programId },
+    optimisticTable: 'program',
+    optimisticData: { id: programId, is_active: true }
+  });
+
+export const deactivateProgram = (programId: string) =>
+  mutate({
+    kind: 'command',
+    command: 'deactivate_program',
+    queueable: true,
+    payload: { id: programId },
+    optimisticTable: 'program',
+    optimisticData: { id: programId, is_active: false }
+  });

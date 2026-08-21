@@ -202,6 +202,7 @@ export interface Program {
   user_id: string;
   progression_scheme: string;
   position: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;
