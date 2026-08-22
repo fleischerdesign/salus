@@ -109,4 +109,12 @@ Also completed beyond the original scope: a free accent-hue slider (the accent
 ramp is hue-driven via `--accent-hue`, so any hue is customizable) and a named
 mood scale (`$lib/theme/scales.ts`) with a colorblind variant.
 
+4. **Tailwind v4 OkLCH Reactive Primary Ramp & Glass Surface Alignment (Phase 5)** —
+   Harmonize the theme controller with Tailwind v4 CSS-first token architecture:
+   - Dynamic primary ramp derived in `app.css` via OkLCH:
+     - Light mode: `--color-primary: oklch(0.55 0.22 var(--accent-hue))`, `--color-primary-soft: oklch(0.95 0.04 var(--accent-hue) / 0.8)`.
+     - Dark mode: `--color-primary: oklch(0.70 0.19 var(--accent-hue))`, `--color-primary-soft: oklch(0.30 0.08 var(--accent-hue) / 0.35)`.
+   - Resolve circular `@theme` surface tokens in `app.css` to link directly to `--bg-surface-*` variables.
+   - Wire `SettingsPage.svelte` Appearance tab directly to the reactive `$state` `theme` controller (mode, colorblind, accent hue ring & preset chips).
+
 

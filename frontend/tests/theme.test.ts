@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { theme } from '$stores/theme.svelte';
+import { theme, ACCENT_HUES } from '$stores/theme.svelte';
 
 describe('theme', () => {
   beforeEach(() => {
@@ -40,5 +40,23 @@ describe('theme', () => {
     theme.setAccentHue(160);
     expect(theme.accentHue).toBe(160);
     expect(localStorage.getItem('salus_accent_hue')).toBe('160');
+  });
+
+  it('previewAccentHue updates without persisting', () => {
+    localStorage.clear();
+    theme.previewAccentHue(45);
+    expect(theme.accentHue).toBe(45);
+    expect(localStorage.getItem('salus_accent_hue')).toBeNull();
+  });
+
+  it('exposes eight ACCENT_HUES presets with shape { name, hue, color }', () => {
+    expect(ACCENT_HUES).toHaveLength(8);
+    for (const preset of ACCENT_HUES) {
+      expect(typeof preset.name).toBe('string');
+      expect(Number.isInteger(preset.hue)).toBe(true);
+      expect(preset.hue).toBeGreaterThanOrEqual(0);
+      expect(preset.hue).toBeLessThan(360);
+      expect(preset.color).toMatch(/^#[0-9a-f]{6}$/i);
+    }
   });
 });

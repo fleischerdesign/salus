@@ -4,7 +4,9 @@
   import Input from '../ui/Input.svelte';
   import Select from '../ui/Select.svelte';
   import Toggle from '../ui/Toggle.svelte';
+  import HueRing from '../ui/HueRing.svelte';
   import IntegrationsView from '../settings/IntegrationsView.svelte';
+  import { theme, ACCENT_HUES } from '$stores/theme.svelte';
 
   export type SettingsTab =
     'account' | 'appearance' | 'sources' | 'privacy' | 'shares' | 'data-quality' | 'backup';
@@ -66,16 +68,7 @@
   ]);
 
   // ─── 2. APPEARANCE & APP STATE ───
-  let themeMode = $state<'light' | 'dark' | 'system'>('system');
-  let selectedColorblindMode = $state('none');
   let toastPosition = $state('bottom-right');
-
-  const colorblindOptions = [
-    { value: 'none', label: 'Standard (Dezenter wissenschaftlicher Kontrast)' },
-    { value: 'protanopia', label: 'Protanopie (Rotsehschwäche-Optimierung)' },
-    { value: 'deuteranopia', label: 'Deuteranopie (Grünsehschwäche-Optimierung)' },
-    { value: 'tritanopia', label: 'Tritanopie (Blausehschwäche-Optimierung)' }
-  ];
 
   const toastOptions = [
     { value: 'bottom-right', label: 'Unten Rechts (Standard)' },
@@ -378,8 +371,9 @@
               <div class="grid grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onclick={() => (themeMode = 'light')}
-                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
+                  onclick={() => theme.setMode('light')}
+                  aria-pressed={theme.mode === 'light'}
+                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {theme.mode ===
                   'light'
                     ? 'border-transparent bg-primary text-white'
                     : 'border-border-subtle bg-surface-50 text-text-muted'}"
@@ -388,8 +382,9 @@
                 </button>
                 <button
                   type="button"
-                  onclick={() => (themeMode = 'dark')}
-                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
+                  onclick={() => theme.setMode('dark')}
+                  aria-pressed={theme.mode === 'dark'}
+                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {theme.mode ===
                   'dark'
                     ? 'border-transparent bg-primary text-white'
                     : 'border-border-subtle bg-surface-50 text-text-muted'}"
@@ -398,8 +393,9 @@
                 </button>
                 <button
                   type="button"
-                  onclick={() => (themeMode = 'system')}
-                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {themeMode ===
+                  onclick={() => theme.setMode('system')}
+                  aria-pressed={theme.mode === 'system'}
+                  class="cursor-pointer rounded-2xl border py-2.5 text-xs font-bold transition-all {theme.mode ===
                   'system'
                     ? 'border-transparent bg-primary text-white'
                     : 'border-border-subtle bg-surface-50 text-text-muted'}"
@@ -409,10 +405,11 @@
               </div>
             </div>
 
-            <Select
-              label="Barrierefreiheit (Farbenblindheit)"
-              bind:value={selectedColorblindMode}
-              options={colorblindOptions}
+            <Toggle
+              label="Farbenblind-Modus"
+              description="Verschiebt Statusfarben auf ein farbenblind-sicheres Spektrum (Erfolg wird blau dargestellt)"
+              bind:checked={theme.colorblind}
+              onchange={(checked) => theme.setColorblind(checked)}
             />
 
             <Select
@@ -420,6 +417,54 @@
               bind:value={toastPosition}
               options={toastOptions}
             />
+          </div>
+
+          <!-- Akzentfarbe: Preset-Chips & HueRing -->
+          <div class="space-y-3 pt-1">
+            <span class="block text-sm font-extrabold text-text-main">Akzentfarbe</span>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <span class="mb-1.5 block font-bold text-text-muted">Farbverlauf</span>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each ACCENT_HUES as preset}
+                    <button
+                      type="button"
+                      aria-pressed={theme.accentHue === preset.hue}
+                      aria-label={`Akzentfarbe: ${preset.name}`}
+                      onclick={() => theme.setAccentHue(preset.hue)}
+                      class="group flex cursor-pointer flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 transition-all"
+                    >
+                      <span
+                        class="block h-7 w-7 rounded-full border border-border-subtle shadow-sm transition-all {theme.accentHue ===
+                        preset.hue
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-0'
+                          : 'group-hover:scale-110'}"
+                        style="background: {preset.color}"
+                      ></span>
+                      <span
+                        class="text-[0.625rem] font-bold {theme.accentHue === preset.hue
+                          ? 'text-primary'
+                          : 'text-text-muted'}"
+                      >
+                        {preset.name}
+                      </span>
+                    </button>
+                  {/each}
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center gap-1.5">
+                <HueRing
+                  value={theme.accentHue}
+                  onchange={(hue) => theme.previewAccentHue(hue)}
+                  oncommit={(hue) => theme.setAccentHue(hue)}
+                />
+                <span class="text-[0.625rem] font-bold text-text-muted tabular-nums"
+                  >{theme.accentHue}°</span
+                >
+              </div>
+            </div>
           </div>
         </div>
 

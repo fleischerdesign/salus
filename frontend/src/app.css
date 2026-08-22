@@ -2,7 +2,7 @@
 
 @theme {
   /* ─── DOMAIN & SEMANTIC ACCENTS ─── */
-  --color-primary: #2563eb;
+  --color-primary: oklch(0.55 0.22 var(--accent-hue));
   --color-vital: #dc2626;
   --color-activity: #ea580c;
   --color-hydrate: #0284c7;
@@ -17,13 +17,13 @@
   --color-surface-50: var(--bg-surface-50);
   --color-surface-100: var(--bg-surface-100);
   --color-surface-200: var(--bg-surface-200);
-  --color-surface-300: var(--color-surface-300);
-  --color-surface-400: var(--color-surface-400);
-  --color-surface-500: var(--color-surface-500);
-  --color-surface-600: var(--color-surface-600);
-  --color-surface-700: var(--color-surface-700);
-  --color-surface-800: var(--color-surface-800);
-  --color-surface-900: var(--color-surface-900);
+  --color-surface-300: var(--bg-surface-300);
+  --color-surface-400: var(--bg-surface-400);
+  --color-surface-500: var(--bg-surface-500);
+  --color-surface-600: var(--bg-surface-600);
+  --color-surface-700: var(--bg-surface-700);
+  --color-surface-800: var(--bg-surface-800);
+  --color-surface-900: var(--bg-surface-900);
 
   /* ─── SEMANTIC SHORTCUTS ─── */
   --color-border-subtle: var(--border-subtle);
@@ -31,7 +31,7 @@
   --color-text-main: var(--text-main);
   --color-text-muted: var(--text-muted);
   --color-text-soft: var(--text-soft);
-  --color-primary-soft: var(--color-primary-soft);
+  --color-primary-soft: oklch(0.95 0.04 var(--accent-hue) / 0.8);
   --color-vital-soft: var(--color-vital-soft);
   --color-activity-soft: var(--color-activity-soft);
   --color-hydrate-soft: var(--color-hydrate-soft);
@@ -76,11 +76,20 @@
 }
 
 :root {
+  --accent-hue: 290;
+
   --bg-canvas: #f8fafc;
   --bg-surface-0: #ffffff;
   --bg-surface-50: #f1f5f9;
   --bg-surface-100: #e2e8f0;
   --bg-surface-200: #cbd5e1;
+  --bg-surface-300: #cbd5e1;
+  --bg-surface-400: #94a3b8;
+  --bg-surface-500: #64748b;
+  --bg-surface-600: #475569;
+  --bg-surface-700: #334155;
+  --bg-surface-800: #1e293b;
+  --bg-surface-900: #0f172a;
   --border-subtle: rgba(226, 232, 240, 0.9);
   --border-strong: #cbd5e1;
   --glass-dock-bg: rgba(255, 255, 255, 0.88);
@@ -89,7 +98,8 @@
   --text-muted: #475569;
   --text-soft: #94a3b8;
 
-  --color-primary-soft: rgba(37, 99, 235, 0.08);
+  --color-primary: oklch(0.55 0.22 var(--accent-hue));
+  --color-primary-soft: oklch(0.95 0.04 var(--accent-hue) / 0.8);
   --color-vital-soft: rgba(220, 38, 38, 0.08);
   --color-activity-soft: rgba(234, 88, 12, 0.08);
   --color-hydrate-soft: rgba(2, 132, 199, 0.08);
@@ -97,19 +107,6 @@
   --color-circadian-soft: rgba(202, 138, 4, 0.08);
   --color-sleep-soft: rgba(99, 102, 241, 0.08);
   --color-success-soft: rgba(5, 150, 105, 0.08);
-
-  /* Retain surface tokens for backward CSS utility compatibility */
-  --color-surface-0: #ffffff;
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
 }
 
 html.dark,
@@ -121,6 +118,13 @@ html.dark,
   --bg-surface-50: #172033;
   --bg-surface-100: #1f2b44;
   --bg-surface-200: #2b3956;
+  --bg-surface-300: #334155;
+  --bg-surface-400: #475569;
+  --bg-surface-500: #64748b;
+  --bg-surface-600: #94a3b8;
+  --bg-surface-700: #cbd5e1;
+  --bg-surface-800: #e2e8f0;
+  --bg-surface-900: #f8fafc;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
   --glass-dock-bg: rgba(16, 22, 36, 0.88);
@@ -129,8 +133,8 @@ html.dark,
   --text-muted: #94a3b8;
   --text-soft: #64748b;
 
-  --color-primary: #3b82f6;
-  --color-primary-soft: rgba(59, 130, 246, 0.14);
+  --color-primary: oklch(0.7 0.19 var(--accent-hue));
+  --color-primary-soft: oklch(0.3 0.08 var(--accent-hue) / 0.35);
   --color-vital: #ef4444;
   --color-vital-soft: rgba(239, 68, 68, 0.14);
   --color-activity: #f97316;
@@ -145,18 +149,6 @@ html.dark,
   --color-sleep-soft: rgba(129, 140, 248, 0.14);
   --color-success: #10b981;
   --color-success-soft: rgba(16, 185, 129, 0.14);
-
-  --color-surface-0: #101624;
-  --color-surface-50: #172033;
-  --color-surface-100: #1f2b44;
-  --color-surface-200: #2b3956;
-  --color-surface-300: #334155;
-  --color-surface-400: #475569;
-  --color-surface-500: #64748b;
-  --color-surface-600: #94a3b8;
-  --color-surface-700: #cbd5e1;
-  --color-surface-800: #e2e8f0;
-  --color-surface-900: #f8fafc;
 }
 
 /* Colorblind mode */

@@ -17,6 +17,24 @@ vi.stubGlobal('localStorage', {
 
 vi.stubGlobal('navigator', { onLine: true });
 
+// jsdom does not implement matchMedia; the theme store's reactive
+// prefers-color-scheme MediaQuery depends on it (node env has no window).
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    }))
+  );
+}
+
 if (!globalThis.crypto?.randomUUID) {
   vi.stubGlobal('crypto', {
     ...globalThis.crypto,

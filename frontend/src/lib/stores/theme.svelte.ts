@@ -9,15 +9,15 @@ const COLORBLIND_KEY = 'salus_colorblind';
 const ACCENT_KEY = 'salus_accent_hue';
 const DEFAULT_ACCENT_HUE = 290;
 
-export const ACCENT_HUES: ReadonlyArray<{ hue: number; label: string; color: string }> = [
-  { hue: 290, label: 'Indigo', color: '#6366f1' },
-  { hue: 250, label: 'Blau', color: '#3b82f6' },
-  { hue: 190, label: 'Türkis', color: '#06b6d4' },
-  { hue: 160, label: 'Grün', color: '#10b981' },
-  { hue: 75, label: 'Amber', color: '#f59e0b' },
-  { hue: 45, label: 'Orange', color: '#f97316' },
-  { hue: 12, label: 'Rot', color: '#ef4444' },
-  { hue: 340, label: 'Pink', color: '#ec4899' }
+export const ACCENT_HUES: ReadonlyArray<{ name: string; hue: number; color: string }> = [
+  { name: 'Indigo', hue: 290, color: '#6366f1' },
+  { name: 'Blau', hue: 250, color: '#3b82f6' },
+  { name: 'Türkis', hue: 190, color: '#06b6d4' },
+  { name: 'Grün', hue: 160, color: '#10b981' },
+  { name: 'Amber', hue: 75, color: '#f59e0b' },
+  { name: 'Orange', hue: 45, color: '#f97316' },
+  { name: 'Rot', hue: 12, color: '#ef4444' },
+  { name: 'Pink', hue: 340, color: '#ec4899' }
 ];
 
 function readMode(): ThemeMode {
