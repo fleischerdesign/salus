@@ -8,6 +8,7 @@
   --color-hydrate: #0284c7;
   --color-fasting: #7c3aed;
   --color-circadian: #ca8a04;
+  --color-sleep: #6366f1;
   --color-success: #059669;
 
   /* ─── SURFACES & PALETTE (Tailwind v4 theme mappings) ─── */
@@ -36,6 +37,7 @@
   --color-hydrate-soft: var(--color-hydrate-soft);
   --color-fasting-soft: var(--color-fasting-soft);
   --color-circadian-soft: var(--color-circadian-soft);
+  --color-sleep-soft: var(--color-sleep-soft);
   --color-success-soft: var(--color-success-soft);
   --color-glass-dock: var(--glass-dock-bg);
 
@@ -93,6 +95,7 @@
   --color-hydrate-soft: rgba(2, 132, 199, 0.08);
   --color-fasting-soft: rgba(124, 58, 237, 0.08);
   --color-circadian-soft: rgba(202, 138, 4, 0.08);
+  --color-sleep-soft: rgba(99, 102, 241, 0.08);
   --color-success-soft: rgba(5, 150, 105, 0.08);
 
   /* Retain surface tokens for backward CSS utility compatibility */
@@ -138,6 +141,8 @@ html.dark,
   --color-fasting-soft: rgba(167, 139, 250, 0.14);
   --color-circadian: #facc15;
   --color-circadian-soft: rgba(250, 204, 21, 0.14);
+  --color-sleep: #818cf8;
+  --color-sleep-soft: rgba(129, 140, 248, 0.14);
   --color-success: #10b981;
   --color-success-soft: rgba(16, 185, 129, 0.14);
 

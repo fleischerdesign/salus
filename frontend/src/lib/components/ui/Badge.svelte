@@ -11,7 +11,8 @@
     | 'activity'
     | 'hydrate'
     | 'fasting'
-    | 'circadian';
+    | 'circadian'
+    | 'sleep';
 
   interface Props {
     variant?: BadgeVariant;
@@ -31,7 +32,8 @@
     activity: 'bg-activity-soft text-activity font-bold',
     hydrate: 'bg-hydrate-soft text-hydrate font-bold',
     fasting: 'bg-fasting-soft text-fasting font-bold',
-    circadian: 'bg-circadian-soft text-circadian font-bold'
+    circadian: 'bg-circadian-soft text-circadian font-bold',
+    sleep: 'bg-sleep-soft text-sleep font-bold'
   };
 </script>
 
