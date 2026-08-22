@@ -23,28 +23,25 @@
 
   function copyLink() {
     navigator.clipboard?.writeText(shareLink);
-    alert('Verschlüsselter Arzt-Freigabelink in die Zwischenablage kopiert!');
+    alert('Arzt-Freigabelink in die Zwischenablage kopiert!');
   }
 </script>
 
 <Modal
   {open}
-  title="Ende-zu-Ende Arzt-Freigabe"
-  subtitle="Kryptografisch gesicherter, zeitlich begrenzter Zugang für medizinisches Fachpersonal"
+  title="Arzt-Freigabe"
+  subtitle="Sicherer, zeitlich begrenzter Zugang für deinen Behandler"
   icon="labs"
   size="md"
   {onclose}
 >
   <div class="space-y-5 text-xs">
-    <!-- Zero-Knowledge Security Badge -->
+    <!-- Security hint -->
     <div
       class="flex items-center gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-500"
     >
       <Icon name="check" size={16} class="shrink-0" />
-      <span
-        >Zero-Knowledge: Der Schlüssel liegt im URL-Hash und wird niemals an den Salus-Server
-        übertragen.</span
-      >
+      <span>Deine Daten sind Ende-zu-Ende verschlüsselt – nur dein Behandler kann sie öffnen.</span>
     </div>
 
     <!-- Ephemeral QR Code Display -->
@@ -78,9 +75,9 @@
       </div>
 
       <div>
-        <span class="block text-xs font-bold text-text-main">Arzt-Scan QR-Code</span>
+        <span class="block text-xs font-bold text-text-main">QR-Code für deinen Behandler</span>
         <span class="text-[0.6875rem] text-text-muted"
-          >Der Arzt kann den Code mit jedem Tablet oder Smartphone scannen</span
+          >Dein Behandler kann den Code einfach mit Handy oder Tablet scannen</span
         >
       </div>
 

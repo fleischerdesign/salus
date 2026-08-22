@@ -61,19 +61,12 @@
 <div class="rounded-lg border border-border-subtle bg-surface-0 p-4 shadow-card">
   <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
     <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
-      <Icon name="labs" class="text-primary" />
-      <span>Klinische Biomarker-Verlaufsmatrix (Multi-Draw)</span>
+      <Icon name="biotech" class="text-primary" />
+      <span>Laborwert-Verlauf</span>
     </div>
     <div class="flex items-center gap-2">
       <Btn variant="secondary" size="sm" onclick={toggleUnits}>
         Einheit: <span class="font-mono font-bold">{unitMode}</span>
-      </Btn>
-      <Btn
-        variant="primary"
-        size="sm"
-        onclick={() => alert('PDF-Arztbericht wird nach ISO/DIN generiert...')}
-      >
-        Arztbericht exportieren
       </Btn>
     </div>
   </div>

@@ -67,7 +67,7 @@
         <div class="mb-3 flex items-center justify-between">
           <div>
             <div class="flex items-center gap-1.5 text-sm font-bold text-text-main">
-              <Icon name="labs" class="text-primary" />
+              <Icon name="biotech" class="text-primary" />
               <span>{panel.title}</span>
             </div>
             <p class="mt-0.5 text-xs text-text-muted">

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
   import Icon from '../ui/Icon.svelte';
-  import Badge from '../ui/Badge.svelte';
   import Btn from '../ui/Btn.svelte';
   import BiomarkerTable from '../labs/BiomarkerTable.svelte';
   import LabPanelCard from '../labs/LabPanelCard.svelte';
@@ -29,23 +28,20 @@
 </script>
 
 <div class="space-y-6">
-  <!-- Header with Fasting State & Actions -->
+  <!-- Header -->
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-extrabold tracking-tight">Klinische Labordiagnostik</h1>
-        <Badge variant="success">Nüchternblut (14h Fasten)</Badge>
-      </div>
+      <h1 class="text-2xl font-extrabold tracking-tight">Laborwerte</h1>
       <p class="mt-0.5 text-xs text-text-muted sm:text-sm">
-        Multi-Draw Zeitreihen, Organprofile nach ESC/EAS 2024 Leitlinien und ECDH-Arztfreigaben
+        Laborwert-Verlauf, Organprofile und Befund-Freigabe für Behandler
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
       <Btn variant="secondary" size="sm" onclick={() => (isDoctorModalOpen = true)}>
-        Arzt-Freigabe (E2EE QR)
+        Arzt-Freigabe
       </Btn>
-      <Btn variant="secondary" size="sm" onclick={onopenpdf}>PDF-Arztbericht anzeigen</Btn>
+      <Btn variant="secondary" size="sm" onclick={onopenpdf}>PDF-Arztbericht</Btn>
     </div>
   </div>
 
@@ -60,9 +56,8 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="show-chart" class="text-primary" />
-      <span>Verlaufsmatrix</span>
-      <Badge variant="success" class="text-[0.625rem]">Optimal</Badge>
+      <Icon name="show-chart" />
+      <span>Laborwert-Verlauf</span>
     </a>
 
     <a
@@ -72,9 +67,8 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="labs" class="text-vital" />
+      <Icon name="biotech" />
       <span>Organprofile</span>
-      <Badge variant="default" class="text-[0.625rem]">3 Panels</Badge>
     </a>
 
     <a
@@ -84,14 +78,13 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="insights" class="text-circadian" />
-      <span>Arztfreigabe</span>
-      <Badge variant="default" class="text-[0.625rem]">ECDH</Badge>
+      <Icon name="insights" />
+      <span>Arzt-Freigabe</span>
     </a>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- TAB 1: BIOMARKER-VERLAUFSMATRIX                            -->
+  <!-- TAB 1: LABORWERT-VERLAUF                                   -->
   <!-- ═══════════════════════════════════════════════════════════ -->
   {#if activeTab === 'matrix'}
     <BiomarkerTable />
@@ -105,7 +98,7 @@
   {/if}
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- TAB 3: E2EE ARZT-FREIGABE                                  -->
+  <!-- TAB 3: ARZT-FREIGABE                                       -->
   <!-- ═══════════════════════════════════════════════════════════ -->
   {#if activeTab === 'share'}
     <div class="mx-auto max-w-2xl">
@@ -114,5 +107,5 @@
   {/if}
 </div>
 
-<!-- Modal: Asymmetric E2EE Doctor Share (ECDH) -->
+<!-- Modal: Arzt-Freigabe -->
 <DoctorShareModal open={isDoctorModalOpen} onclose={() => (isDoctorModalOpen = false)} />

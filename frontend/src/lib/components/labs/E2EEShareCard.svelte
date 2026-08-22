@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from '../ui/Icon.svelte';
-  import Badge from '../ui/Badge.svelte';
   import Btn from '../ui/Btn.svelte';
   import Input from '../ui/Input.svelte';
 
@@ -18,7 +17,7 @@
   function copyLink() {
     if (shareLink) {
       navigator.clipboard?.writeText(shareLink);
-      alert('Kryptographischer Freigabelink in die Zwischenablage kopiert!');
+      alert('Arzt-Freigabelink in die Zwischenablage kopiert!');
     }
   }
 </script>
@@ -30,24 +29,21 @@
         <Icon name="key" size="sm" />
       </div>
       <div>
-        <h4 class="text-sm font-bold text-text-main">Arzt-Direktfreigabe (E2EE)</h4>
-        <span class="text-[0.6875rem] text-text-soft"
-          >Client-seitige ECDH End-to-End Verschlüsselung</span
+        <h4 class="text-sm font-bold text-text-main">Sichere Arztfreigabe</h4>
+        <span class="text-[0.6875rem] text-text-soft">Ende-zu-Ende verschlüsselter Zugangslink</span
         >
       </div>
     </div>
-    <Badge variant="default">AES-256 GCM Zero-Knowledge</Badge>
   </div>
 
   <p class="mb-4 text-xs text-text-muted">
-    Erzeuge einen kryptographisch gesicherten Einmallink für deinen behandelnden Arzt. Die
-    Entschlüsselung erfolgt rein clientseitig im Browser des Arztes – der Server sieht niemals
-    Klartextdaten.
+    Erstelle einen sicheren Zugangslink für deinen Behandler. Deine Daten werden Ende-zu-Ende
+    verschlüsselt – nur dein Behandler kann sie öffnen.
   </p>
 
   {#if !shareLink}
     <Btn variant="primary" class="w-full" onclick={generateLink}>
-      {isGenerating ? 'Schlüsselpaar wird generiert...' : '24h Arzt-Freigabelink erzeugen'}
+      {isGenerating ? 'Sicherer Link wird erstellt...' : 'Arzt-Freigabelink erstellen'}
     </Btn>
   {:else}
     <div class="space-y-2">
