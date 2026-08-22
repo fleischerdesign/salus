@@ -5,11 +5,12 @@
   import Select from '../ui/Select.svelte';
   import Toggle from '../ui/Toggle.svelte';
   import HueRing from '../ui/HueRing.svelte';
+  import Icon from '../ui/Icon.svelte';
   import IntegrationsView from '../settings/IntegrationsView.svelte';
   import { theme, ACCENT_HUES } from '$stores/theme.svelte';
 
   export type SettingsTab =
-    'account' | 'appearance' | 'sources' | 'privacy' | 'shares' | 'data-quality' | 'backup';
+    'account' | 'appearance' | 'security' | 'sources' | 'notifications' | 'shares' | 'data';
 
   let { initialTab = 'account' } = $props<{
     initialTab?: SettingsTab;
@@ -18,20 +19,21 @@
   let activeTab = $derived<SettingsTab>(
     page.url.pathname.includes('/settings/app')
       ? 'appearance'
-      : page.url.pathname.includes('/settings/sources')
-        ? 'sources'
-        : page.url.pathname.includes('/settings/privacy')
-          ? 'privacy'
-          : page.url.pathname.includes('/settings/shares')
-            ? 'shares'
-            : page.url.pathname.includes('/settings/data-quality')
-              ? 'data-quality'
-              : page.url.pathname.includes('/settings/backup')
-                ? 'backup'
+      : page.url.pathname.includes('/settings/security') ||
+          page.url.pathname.includes('/settings/privacy')
+        ? 'security'
+        : page.url.pathname.includes('/settings/sources')
+          ? 'sources'
+          : page.url.pathname.includes('/settings/notifications')
+            ? 'notifications'
+            : page.url.pathname.includes('/settings/shares')
+              ? 'shares'
+              : page.url.pathname.includes('/settings/data')
+                ? 'data'
                 : initialTab
   );
 
-  // ─── 1. ACCOUNT & PROFILE STATE ───
+  // ─── 1. ACCOUNT: Display Name, Biometrie, Zeitzone, Sprache ───
   let displayName = $state('Philipp Fleischer');
   let username = $state('philipp');
   let heightCm = $state(184);
@@ -52,9 +54,13 @@
     { value: 'UTC', label: 'UTC (Koordiniert)' }
   ];
 
+  // ─── 3. SECURITY: Passwort, App-Sperre, SSO ───
   let currentPassword = $state('');
   let newPassword = $state('');
   let confirmPassword = $state('');
+
+  let biometricLock = $state(true);
+  let sessionLock = $state(true);
 
   let oidcProviders = $state([
     {
@@ -67,7 +73,7 @@
     { id: 'oidc_corp', name: 'Klinik / OIDC Enterprise', connected: false, email: '' }
   ]);
 
-  // ─── 2. APPEARANCE & APP STATE ───
+  // ─── 5. NOTIFICATIONS: Toast- und Sync-Benachrichtigungen ───
   let toastPosition = $state('bottom-right');
 
   const toastOptions = [
@@ -76,35 +82,11 @@
     { value: 'bottom-center', label: 'Unten Mitte' }
   ];
 
-  let offDirectEnabled = $state(true);
-  let offApiKey = $state('salus_usr_off_9981');
-  let isCheckingUpdate = $state(false);
-  let updateStatus = $state<{ checked: boolean; version: string; isLatest: boolean }>({
-    checked: true,
-    version: 'v2.4.0 • Salus Core ist auf dem neuesten Stand',
-    isLatest: true
-  });
+  let healthSyncNotifications = $state(true);
+  let backgroundSyncNotifications = $state(true);
+  let systemStatusNotifications = $state(true);
 
-  function checkUpdates() {
-    isCheckingUpdate = true;
-    setTimeout(() => {
-      isCheckingUpdate = false;
-      updateStatus = {
-        checked: true,
-        version: 'v2.4.0 • Salus Core ist auf dem neuesten Stand',
-        isLatest: true
-      };
-    }, 800);
-  }
-
-  // ─── 4. PRIVACY & E2EE STATE ───
-  let e2eePublicKey = $state('04c3a89e1b2f778d91a24bc098e721a95e4d2a1b9c8e7f6a5b4c3d2e1f0a9b8c7');
-  let e2eeKeyFingerprint = $state('SHA256:7f8a9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a');
-  let federatedSearchable = $state(true);
-  let anonymousOpenScience = $state(true);
-  let auditLoggingEnabled = $state(true);
-
-  // ─── 5. SHARES & MEDICAL ACCESS STATE ───
+  // ─── 6. SHARES & MEDICAL ACCESS STATE ───
   interface ActiveShare {
     id: string;
     recipientName: string;
@@ -149,44 +131,7 @@
     activeShares = activeShares.filter((s) => s.id !== id);
   }
 
-  // ─── 6. DATA QUALITY & SWEEP STATE ───
-  let isSweeping = $state(false);
-  let lastSweepResult = $state({
-    sweptAt: 'Heute 06:00 Uhr',
-    checkedRecords: 3840,
-    anomaliesFound: 2,
-    duplicatesResolved: 5
-  });
-
-  const qualityRules = [
-    {
-      name: 'Physiologische Herzfrequenz-Grenzen',
-      range: '30 – 240 bpm',
-      action: 'Artefakt-Warnung'
-    },
-    {
-      name: 'Plausibler Blutdruckbereich',
-      range: '60/40 – 260/160 mmHg',
-      action: 'Plausibilitäts-Check'
-    },
-    { name: 'Kontinuierliche Glukose (CGM)', range: '40 – 400 mg/dL', action: 'Hypo/Hyper-Alarm' },
-    { name: 'Körpergewicht EMA Glättung', range: '±2.5 kg / 24h', action: 'Ausreißer-Dämpfung' }
-  ];
-
-  function runQualitySweep() {
-    isSweeping = true;
-    setTimeout(() => {
-      isSweeping = false;
-      lastSweepResult = {
-        sweptAt: 'Gerade eben',
-        checkedRecords: 3845,
-        anomaliesFound: 0,
-        duplicatesResolved: 0
-      };
-    }, 1000);
-  }
-
-  // ─── 7. BACKUP & EXPORT STATE ───
+  // ─── 7. DATA: Export, Import, lokaler IndexedDB Speicher ───
   const dexieTables = [
     { name: 'measurement', rows: 1840, size: '295 KB' },
     { name: 'workout_set', rows: 840, size: '120 KB' },
@@ -195,14 +140,25 @@
     { name: 'outbox (Unified Sync Queue)', rows: 0, size: '0 KB', status: 'Geleert' }
   ];
 
-  const navigationTabs: { id: SettingsTab; label: string; path: string; badge?: string }[] = [
-    { id: 'account', label: 'Konto und Profil', path: '/settings/account' },
-    { id: 'appearance', label: 'Erscheinungsbild', path: '/settings/app' },
-    { id: 'sources', label: 'Sensoren und Quellen', path: '/settings/sources', badge: '3' },
-    { id: 'privacy', label: 'Datenschutz und E2EE', path: '/settings/privacy' },
-    { id: 'shares', label: 'Arzt-Freigaben', path: '/settings/shares', badge: '2' },
-    { id: 'data-quality', label: 'Datenqualität', path: '/settings/data-quality' },
-    { id: 'backup', label: 'Datensicherung', path: '/settings/backup' }
+  const navigationTabs: {
+    id: SettingsTab;
+    label: string;
+    path: string;
+    icon: string;
+    badge?: string;
+  }[] = [
+    { id: 'account', label: 'Profil', path: '/settings/account', icon: 'person' },
+    { id: 'appearance', label: 'Erscheinungsbild', path: '/settings/app', icon: 'palette' },
+    { id: 'security', label: 'Sicherheit', path: '/settings/security', icon: 'lock' },
+    { id: 'sources', label: 'Quellen', path: '/settings/sources', icon: 'sensors', badge: '3' },
+    {
+      id: 'notifications',
+      label: 'Benachrichtigungen',
+      path: '/settings/notifications',
+      icon: 'notifications'
+    },
+    { id: 'shares', label: 'Freigaben', path: '/settings/shares', icon: 'share', badge: '2' },
+    { id: 'data', label: 'Daten', path: '/settings/data', icon: 'database' }
   ];
 </script>
 
@@ -212,7 +168,7 @@
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight">Benutzer- und Systemeinstellungen</h1>
       <p class="mt-0.5 text-sm text-text-muted">
-        Biometrisches Profil, Zero-Knowledge E2EE, Sensoren, Freigaben und Datensicherung
+        Profil, Erscheinungsbild, Sicherheit, Quellen, Benachrichtigungen, Freigaben und Daten
       </p>
     </div>
     <div class="flex items-center gap-2">
@@ -228,11 +184,13 @@
       {#each navigationTabs as tab}
         <a
           href={tab.path}
+          aria-current={activeTab === tab.id ? 'page' : undefined}
           class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap no-underline transition-all {activeTab ===
           tab.id
             ? 'bg-surface-0 text-primary shadow-sm'
             : 'text-text-muted hover:text-text-main'}"
         >
+          <Icon name={tab.icon} size="sm" />
           <span>{tab.label}</span>
           {#if tab.badge}
             <Badge variant="default" class="text-[0.5625rem] font-bold">{tab.badge}</Badge>
@@ -243,27 +201,29 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- TAB 1: KONTO & PROFIL                                       -->
+  <!-- TAB 1: PROFIL                                              -->
   <!-- ═══════════════════════════════════════════════════════════ -->
   {#if activeTab === 'account'}
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <!-- Stammdaten & Zeitzone -->
+        <!-- Anzeigename & Biometrie -->
         <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <h3 class="flex items-center gap-2 text-sm font-extrabold text-text-main">
-            <span>Biometrisches Profil und Zeitzone</span>
-          </h3>
+          <h3 class="text-sm font-extrabold text-text-main">Anzeigename und Biometrie</h3>
 
           <div class="space-y-3 text-xs">
             <Input label="Anzeigename" bind:value={displayName} />
 
-            <div class="grid grid-cols-2 gap-3">
-              <Input label="Benutzername" value={username} disabled={true} />
-              <Input label="Körpergröße" type="number" unit="cm" bind:value={heightCm} />
-            </div>
+            <Input label="Benutzername" value={username} disabled={true} />
 
-            <Select label="Sprache (Locale)" bind:value={selectedLocale} options={localeOptions} />
+            <Input label="Körpergröße" type="number" unit="cm" bind:value={heightCm} />
+          </div>
+        </div>
 
+        <!-- Zeitzone & Sprache -->
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Zeitzone und Sprache</h3>
+
+          <div class="space-y-3 text-xs">
             <div>
               <div class="mb-1 flex items-center justify-between">
                 <span class="font-bold text-text-muted">Zeitzone</span>
@@ -279,84 +239,24 @@
               <Select bind:value={selectedTimezone} options={timezoneOptions} />
             </div>
 
-            <div class="pt-1">
-              <button
-                type="button"
-                onclick={() => alert('Profil gespeichert')}
-                class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
-              >
-                Profil speichern
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Passwort & OIDC Identity Providers -->
-        <div class="space-y-5">
-          <!-- Passwort ändern -->
-          <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-            <h3 class="text-sm font-extrabold text-text-main">Passwort ändern</h3>
-            <div class="space-y-2.5 text-xs">
-              <Input
-                type="password"
-                bind:value={currentPassword}
-                placeholder="Aktuelles Passwort"
-              />
-              <Input
-                type="password"
-                bind:value={newPassword}
-                placeholder="Neues sicheres Passwort"
-              />
-              <Input
-                type="password"
-                bind:value={confirmPassword}
-                placeholder="Neues Passwort bestätigen"
-              />
-              <button
-                type="button"
-                onclick={() => alert('Passwort geändert')}
-                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-4 py-2 text-xs font-bold transition-all hover:bg-surface-100"
-              >
-                Passwort aktualisieren
-              </button>
-            </div>
+            <Select label="Sprache (Locale)" bind:value={selectedLocale} options={localeOptions} />
           </div>
 
-          <!-- OAuth / OIDC Identity Providers -->
-          <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-            <h3 class="text-sm font-extrabold text-text-main">
-              Verknüpfte Identitätsanbieter (SSO)
-            </h3>
-            <div class="space-y-2 text-xs">
-              {#each oidcProviders as p}
-                <div
-                  class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3"
-                >
-                  <div>
-                    <span class="block font-extrabold text-text-main">{p.name}</span>
-                    <span class="text-[0.625rem] text-text-soft"
-                      >{p.email || 'Nicht verknüpft'}</span
-                    >
-                  </div>
-                  <button
-                    type="button"
-                    onclick={() => (p.connected = !p.connected)}
-                    class="cursor-pointer text-xs font-bold {p.connected
-                      ? 'text-rose-500 hover:underline'
-                      : 'text-primary hover:underline'}"
-                  >
-                    {p.connected ? 'Trennen' : 'Verknüpfen'}
-                  </button>
-                </div>
-              {/each}
-            </div>
+          <div class="pt-1">
+            <button
+              type="button"
+              onclick={() => alert('Profil gespeichert')}
+              class="cursor-pointer rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
+            >
+              Profil speichern
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 2: APPEARANCE & APP PREFERENCES                         -->
+    <!-- TAB 2: ERSCHEINUNGSBILD                                     -->
     <!-- ═══════════════════════════════════════════════════════════ -->
   {:else if activeTab === 'appearance'}
     <div class="space-y-5">
@@ -411,12 +311,6 @@
               bind:checked={theme.colorblind}
               onchange={(checked) => theme.setColorblind(checked)}
             />
-
-            <Select
-              label="Toast-Meldungs-Position"
-              bind:value={toastPosition}
-              options={toastOptions}
-            />
           </div>
 
           <!-- Akzentfarbe: Preset-Chips & HueRing -->
@@ -467,39 +361,83 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- OpenFoodFacts & Updates -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: SICHERHEIT                                           -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+  {:else if activeTab === 'security'}
+    <div class="space-y-5">
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <!-- Passwort ändern -->
+        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
+          <h3 class="text-sm font-extrabold text-text-main">Passwort ändern</h3>
+          <div class="space-y-2.5 text-xs">
+            <Input type="password" bind:value={currentPassword} placeholder="Aktuelles Passwort" />
+            <Input type="password" bind:value={newPassword} placeholder="Neues sicheres Passwort" />
+            <Input
+              type="password"
+              bind:value={confirmPassword}
+              placeholder="Neues Passwort bestätigen"
+            />
+            <button
+              type="button"
+              onclick={() => alert('Passwort geändert')}
+              class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-4 py-2 text-xs font-bold transition-all hover:bg-surface-100"
+            >
+              Passwort aktualisieren
+            </button>
+          </div>
+        </div>
+
         <div class="space-y-5">
+          <!-- Biometrische App-Sperre / Session Lock -->
           <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-            <h3 class="text-sm font-extrabold text-text-main">
-              OpenFoodFacts Barcode-Schnittstelle
-            </h3>
-            <div class="space-y-3 text-xs">
+            <h3 class="text-sm font-extrabold text-text-main">App-Sperre und Sitzungen</h3>
+
+            <div class="space-y-4 text-xs">
               <Toggle
-                label="Direkte API-Abfrage"
-                description="Barcode-Scanner ruft Live-Nährwerte ab"
-                bind:checked={offDirectEnabled}
+                label="Biometrische App-Sperre"
+                description="Salus nur noch per Face ID, Touch ID oder Fingerabdruck entsperren"
+                bind:checked={biometricLock}
               />
 
-              <Input label="OpenFoodFacts API-Key (Optional)" bind:value={offApiKey} />
+              <Toggle
+                label="Session Lock"
+                description="App automatisch sperren, wenn das Gerät in den Ruhezustand wechselt"
+                bind:checked={sessionLock}
+              />
             </div>
           </div>
 
-          <!-- App Version & Update Checker -->
+          <!-- OAuth / OIDC Identity Providers -->
           <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 class="text-sm font-extrabold text-text-main">Salus Core Version</h3>
-                <span class="text-xs text-text-muted">{updateStatus.version}</span>
-              </div>
-              <button
-                type="button"
-                onclick={checkUpdates}
-                disabled={isCheckingUpdate}
-                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-1.5 text-xs font-bold transition-all hover:bg-surface-100"
-              >
-                {isCheckingUpdate ? 'Prüfe...' : 'Auf Updates prüfen'}
-              </button>
+            <h3 class="text-sm font-extrabold text-text-main">
+              Verknüpfte Identitätsanbieter (SSO)
+            </h3>
+            <div class="space-y-2 text-xs">
+              {#each oidcProviders as p}
+                <div
+                  class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-3"
+                >
+                  <div>
+                    <span class="block font-extrabold text-text-main">{p.name}</span>
+                    <span class="text-[0.625rem] text-text-soft"
+                      >{p.email || 'Nicht verknüpft'}</span
+                    >
+                  </div>
+                  <button
+                    type="button"
+                    onclick={() => (p.connected = !p.connected)}
+                    class="cursor-pointer text-xs font-bold {p.connected
+                      ? 'text-rose-500 hover:underline'
+                      : 'text-primary hover:underline'}"
+                  >
+                    {p.connected ? 'Trennen' : 'Verknüpfen'}
+                  </button>
+                </div>
+              {/each}
             </div>
           </div>
         </div>
@@ -507,80 +445,51 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 3: SENSORS & INTEGRATIONS                               -->
+    <!-- TAB 4: QUELLEN                                              -->
     <!-- ═══════════════════════════════════════════════════════════ -->
   {:else if activeTab === 'sources'}
     <IntegrationsView />
 
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 4: DATENSCHUTZ & E2EE                                   -->
+    <!-- TAB 5: BENACHRICHTIGUNGEN                                   -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-  {:else if activeTab === 'privacy'}
+  {:else if activeTab === 'notifications'}
     <div class="space-y-5">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <!-- E2EE Cryptographic Identity -->
+        <!-- Toast-Meldungen -->
         <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <h3 class="flex items-center gap-2 text-sm font-extrabold text-text-main">
-              <span>Asymmetrisches E2EE-Schlüsselpaar</span>
-            </h3>
-            <Badge variant="success">ECDH Curve25519</Badge>
-          </div>
-          <p class="text-xs text-text-muted">
-            Ende-zu-Ende-Verschlüsselung nach Zero-Knowledge-Standard. Dein privater Schlüssel
-            verlässt niemals dieses Gerät.
-          </p>
+          <h3 class="text-sm font-extrabold text-text-main">Toast-Meldungen</h3>
 
           <div class="space-y-3 text-xs">
-            <div>
-              <span class="mb-1 block font-bold text-text-muted"
-                >Öffentlicher Schlüssel (Public Key)</span
-              >
-              <div
-                class="rounded-2xl border border-border-subtle bg-surface-50 p-3 text-[0.6875rem] break-all text-text-soft tabular-nums"
-              >
-                {e2eePublicKey}
-              </div>
-            </div>
-
-            <div>
-              <span class="mb-1 block font-bold text-text-muted">Schlüssel-Fingerabdruck</span>
-              <span class="font-bold text-text-main tabular-nums">{e2eeKeyFingerprint}</span>
-            </div>
-
-            <div class="flex gap-2 pt-1">
-              <button
-                type="button"
-                onclick={() => alert('Neues Schlüsselpaar lokal im Browser generiert.')}
-                class="cursor-pointer rounded-2xl border border-border-subtle bg-surface-50 px-3.5 py-1.5 text-xs font-bold hover:bg-surface-100"
-              >
-                Schlüsselpaar erneuern
-              </button>
-            </div>
+            <Select
+              label="Toast-Meldungs-Position"
+              bind:value={toastPosition}
+              options={toastOptions}
+            />
           </div>
         </div>
 
-        <!-- Privacy & Federation Switches -->
+        <!-- Benachrichtigungen -->
         <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <h3 class="text-sm font-extrabold text-text-main">Föderation und Privatsphäre</h3>
+          <h3 class="text-sm font-extrabold text-text-main">Benachrichtigungen</h3>
 
           <div class="space-y-4 text-xs">
             <Toggle
-              label="WebFinger und Föderations-Sichtbarkeit"
-              description="Auffindbarkeit über philipp@salus.local im dezentralen Netzwerk"
-              bind:checked={federatedSearchable}
+              label="Health-Sync-Benachrichtigungen"
+              description="Melden, wenn neue Health-Daten von Sensoren synchronisiert wurden"
+              bind:checked={healthSyncNotifications}
             />
 
             <Toggle
-              label="Anonyme Open-Science Synthese"
-              description="K-Anonymisierte Kohorten-Forschung (k >= 5) zur medizinischen Prävention"
-              bind:checked={anonymousOpenScience}
+              label="Hintergrund-Sync-Benachrichtigungen"
+              description="Benachrichtigen über abgeschlossene Synchronisierungen im Hintergrund"
+              bind:checked={backgroundSyncNotifications}
             />
 
             <Toggle
-              label="Kryptografisches Audit-Log"
-              description="Unveränderliche Zugriffsprotokolle für alle Datenabfragen führen"
-              bind:checked={auditLoggingEnabled}
+              label="System-Status-Benachrichtigungen"
+              description="Hinweise zu Wartung, Updates und Verbindungsstatus des Salus-Systems"
+              bind:checked={systemStatusNotifications}
             />
           </div>
         </div>
@@ -588,7 +497,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 5: ARZT-FREIGABEN (SHARES)                              -->
+    <!-- TAB 6: FREIGABEN                                            -->
     <!-- ═══════════════════════════════════════════════════════════ -->
   {:else if activeTab === 'shares'}
     <div class="space-y-5">
@@ -596,7 +505,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 class="text-base font-extrabold text-text-main">
-              Aktive Arzt- und Forschungsfreigaben
+              Aktive Arzt- und Klinische Freigaben
             </h3>
             <p class="mt-0.5 text-xs text-text-muted">
               Asymmetrisch verschlüsselte Freigaben mit granularer Berechtigungssteuerung
@@ -650,85 +559,16 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 6: DATENQUALITÄT & SWEEP                                -->
+    <!-- TAB 7: DATEN                                                -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-  {:else if activeTab === 'data-quality'}
-    <div class="space-y-5">
-      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <!-- Data Quality Sweeper -->
-        <div class="space-y-4 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-extrabold text-text-main">
-                Automatischer Daten-Plausibilitäts-Sweep
-              </h3>
-              <p class="mt-0.5 text-xs text-text-muted">
-                Erkennt Messfehler, Sensor-Artefakte und unplausible Spikes
-              </p>
-            </div>
-            <button
-              type="button"
-              onclick={runQualitySweep}
-              disabled={isSweeping}
-              class="cursor-pointer rounded-2xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
-            >
-              {isSweeping ? 'Prüfe...' : 'Jetzt prüfen'}
-            </button>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 text-center text-xs">
-            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
-              <span class="block text-[0.625rem] text-text-muted">Geprüfte Werte</span>
-              <span class="text-sm font-extrabold text-text-main tabular-nums"
-                >{lastSweepResult.checkedRecords}</span
-              >
-            </div>
-            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
-              <span class="block text-[0.625rem] text-text-muted">Anomalien</span>
-              <span class="text-sm font-extrabold text-emerald-500 tabular-nums"
-                >{lastSweepResult.anomaliesFound}</span
-              >
-            </div>
-            <div class="rounded-2xl border border-border-subtle bg-surface-50 p-3">
-              <span class="block text-[0.625rem] text-text-muted">Bereinigte Duplikate</span>
-              <span class="text-sm font-extrabold text-primary tabular-nums"
-                >{lastSweepResult.duplicatesResolved}</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Validation Rules Matrix -->
-        <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <h3 class="text-sm font-extrabold text-text-main">Physiologische Validierungsregeln</h3>
-          <div class="space-y-2 text-xs">
-            {#each qualityRules as rule}
-              <div
-                class="flex items-center justify-between rounded-2xl border border-border-subtle bg-surface-50 p-2.5"
-              >
-                <div>
-                  <span class="block font-bold text-text-main">{rule.name}</span>
-                  <span class="text-[0.625rem] text-text-muted">Bereich: {rule.range}</span>
-                </div>
-                <Badge variant="default" class="text-[0.5625rem]">{rule.action}</Badge>
-              </div>
-            {/each}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- TAB 7: BACKUP & DATENSICHERUNG                              -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-  {:else if activeTab === 'backup'}
+  {:else if activeTab === 'data'}
     <div class="space-y-6">
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <h3 class="text-sm font-extrabold text-text-main">Vollständiger Datenbank-Export</h3>
+          <h3 class="text-sm font-extrabold text-text-main">Vollständiger Daten-Export</h3>
           <p class="text-xs text-text-muted">
             Exportiere alle deine biometrischen Daten, Workouts, Labore und Mahlzeiten als
-            verschlüsseltes JSON-Archiv oder tabellarische CSV.
+            JSON-Archiv oder tabellarische CSV.
           </p>
           <div class="flex flex-wrap gap-2 pt-2">
             <button
@@ -749,7 +589,7 @@
         </div>
 
         <div class="space-y-3 rounded-3xl border border-border-subtle bg-surface-0 p-5 shadow-xs">
-          <h3 class="text-sm font-extrabold text-text-main">Backup wiederherstellen</h3>
+          <h3 class="text-sm font-extrabold text-text-main">Daten-Import</h3>
           <p class="text-xs text-text-muted">
             Importiere ein zuvor exportiertes Salus JSON-Backup. Vorhandene Daten werden mit der
             Server-Datenbank zusammengeführt.
@@ -771,7 +611,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-sm font-extrabold text-text-main">
-              Lokaler Speicher- und Synchronisationsstatus
+              Lokaler Speicher (IndexedDB) und Synchronisationsstatus
             </h2>
             <p class="mt-0.5 text-xs text-text-muted">
               Vollständige verschlüsselte Offline-Verfügbarkeit aller deiner Gesundheitsdaten
