@@ -254,6 +254,79 @@ def test_personal_records_and_unlogging(session: Session, workout_services):
 # ---------------------------------------------------------------------------
 
 
+def test_start_session_from_system_default_workout(session: Session, workout_services):
+    from sqlmodel import select
+    from salus.models.workout import WorkoutExercise, Workout
+    from salus.reference_data.engine import ReferenceDataEngine
+    from salus.reference_data.registry import REFERENCE_SPECS
+    from salus.services.commands.workout import StartWorkoutHandler
+
+    uow, _, _ = workout_services
+    user = _make_user(uow, "athlete")
+
+    # Seed the default reference data so the system workout exists.
+    with uow:
+        ReferenceDataEngine(REFERENCE_SPECS).seed_all(uow.session)
+
+    # Starting a session directly from the system workout succeeds.
+    started = StartWorkoutHandler().execute(uow, user, {"workout_id": "wo-fb-a"})
+    assert started.status == "created"
+    session_id = started.id
+
+    with uow:
+        session_row = uow.workout_sessions.get_by_id(session_id)
+        assert session_row is not None
+        assert session_row.user_id == user.id
+        assert session_row.workout_id == "wo-fb-a"
+
+        params = uow.session.exec(
+            select(WorkoutExercise)
+            .where(WorkoutExercise.workout_id == "wo-fb-a")
+            .order_by(WorkoutExercise.sequence)
+        ).all()
+        expected_seq = list(range(len(params)))
+        assert [we.sequence for we in params] == expected_seq
+        exercise_ids = {we.exercise_id for we in params}
+        catalog = uow.exercises.find_all_catalog(user.id)
+        assert exercise_ids.issubset({e.id for e in catalog})
+
+
+def test_session_from_system_program_returns_scheme(session: Session, workout_services):
+    from salus.reference_data.engine import ReferenceDataEngine
+    from salus.reference_data.registry import REFERENCE_SPECS
+    from salus.services.commands.workout import StartWorkoutHandler
+
+    uow, _, _ = workout_services
+    user = _make_user(uow, "programmer")
+
+    with uow:
+        ReferenceDataEngine(REFERENCE_SPECS).seed_all(uow.session)
+
+    started = StartWorkoutHandler().execute(uow, user, {
+        "workout_id": "wo-upper-a",
+        "program_id": "prog-upper-lower-4d",
+    })
+    assert started.status == "created"
+    body = started.record
+    assert body["progression_scheme"] == "autoregulated"
+    assert body["program_id"] == "prog-upper-lower-4d"
+
+
+def test_full_sync_returns_system_workout_via_api(authenticated_client):
+    resp = authenticated_client.get("/api/v1/sync")
+    assert resp.status_code == 200
+    data = resp.json()
+    workout_ids = [w["id"] for w in data.get("workout", [])]
+    prog_ids = [p["id"] for p in data.get("program", [])]
+    assert "wo-fb-a" in workout_ids
+    assert "prog-upper-lower-4d" in prog_ids
+
+    we_workouts = {x["workout_id"] for x in data.get("workout_exercise", [])}
+    assert "wo-fb-a" in we_workouts
+    pw_workouts = {x["workout_id"] for x in data.get("program_workout", [])}
+    assert "wo-upper-a" in pw_workouts
+
+
 def test_active_session_returns_logged_sets(authenticated_client):
     from sqlmodel import Session, select
     from salus.models.user import User as UserModel

@@ -77,12 +77,12 @@ ENTITY_META: list[EntityMeta] = [
     EntityMeta(name="goal", model=Goal, batch_size=500),
     EntityMeta(name="circadian_profile", model=CircadianProfile, batch_size=500),
     EntityMeta(name="exercise", model=Exercise, strategy="shared_nullable", batch_size=500),
-    EntityMeta(name="workout", model=Workout, batch_size=500),
+    EntityMeta(name="workout", model=Workout, strategy="shared_nullable", batch_size=500),
     EntityMeta(
         name="workout_exercise", model=WorkoutExercise, strategy="relational",
         parent_field="workout_id", parent_model=Workout, parent_owner_field="user_id", batch_size=500,
     ),
-    EntityMeta(name="program", model=Program, batch_size=500),
+    EntityMeta(name="program", model=Program, strategy="shared_nullable", batch_size=500),
     EntityMeta(
         name="program_workout", model=ProgramWorkout, strategy="relational",
         parent_field="program_id", parent_model=Program, parent_owner_field="user_id", batch_size=500,

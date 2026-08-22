@@ -343,7 +343,7 @@ Every new entity needs a sync strategy. Available values:
 | Strategy | When to use | Example |
 |---|---|---|
 | `user_scoped` (default) | Data belongs to one user, synced only to their devices | `habit`, `meal`, `medication`, `lab_panel`, `lab_result`, `fasting_session` |
-| `shared_nullable` | System-seeded items (user_id=null) + user-created items (user_id set). All users see system items, only creator sees theirs. | `exercise`, `food_item` |
+| `shared_nullable` | System-seeded items (user_id=null) + user-created items (user_id set). All users see system items, only creator sees theirs. | `exercise`, `food_item`, `workout`, `program` |
 | `global` | Immutable reference data, same for all users, no user_id column | `metric_definition`, `achievement_definition`, `lab_marker` |
 | `relational` | Child entity whose owner is determined via parent FK chain | `workout_plan_exercise`, `workout_log_entry` |
 | `append_only` | Write-once, never updated or deleted | `api_token`, `federated_access_log`, `data_quality_flag` |

@@ -321,6 +321,22 @@ export function parseMuscles(str: string | null | undefined): string[] {
 }
 
 /**
+ * Formats a muscle identifier (e.g. snake_case database key) into Title Case.
+ * Safely returns empty string for null/undefined/empty input.
+ */
+export function formatMuscleName(str: string | null | undefined): string {
+  if (!str) return '';
+  const trimmed = str.trim();
+  if (!trimmed) return '';
+
+  return trimmed
+    .replace(/_/g, ' ')
+    .split(/\s+/)
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : ''))
+    .join(' ');
+}
+
+/**
  * Resolves any muscle key, German name, or old label to its parent high-level MuscleGroup.
  */
 export function resolveMuscleGroup(muscleKeyOrName: string): MuscleGroup {
@@ -391,6 +407,7 @@ export interface LiveWorkoutExercise {
 
 export interface WorkoutPlan {
   id: string;
+  user_id: string | null;
   name: string;
   split: string;
   subtitle: string;
@@ -400,7 +417,7 @@ export interface WorkoutPlan {
   exercisesCount: number;
   exercises: {
     name: string;
-    muscle: MuscleGroup;
+    muscle: string;
     targetSets: number;
     targetReps: string;
     targetRpe: number;

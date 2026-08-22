@@ -66,3 +66,6 @@ frontend/android/*.iml
 frontend/android/app/*.iml
 frontend/android/captures/
 .gradle/
+.pi/
+.vite/
+context.md

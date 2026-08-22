@@ -173,7 +173,7 @@ export interface Workout {
   id: string;
   name: string;
   description: string | null;
-  user_id: string;
+  user_id: string | null;
   position: number;
   created_at: string;
   updated_at: string | null;
@@ -199,7 +199,7 @@ export interface Program {
   id: string;
   name: string;
   description: string | null;
-  user_id: string;
+  user_id: string | null;
   progression_scheme: string;
   position: number;
   is_active: boolean;

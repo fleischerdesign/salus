@@ -11,7 +11,12 @@
   import SegmentedControl from '$components/ui/SegmentedControl.svelte';
   import LineChart from '$components/dashboard/LineChart.svelte';
   import AnatomicalBodyVector from '$components/track/AnatomicalBodyVector.svelte';
-  import { DETAILED_MUSCLE_MAP, parseMuscles, type DetailedMuscleKey } from '$lib/types/workouts';
+  import {
+    DETAILED_MUSCLE_MAP,
+    parseMuscles,
+    formatMuscleName,
+    type DetailedMuscleKey
+  } from '$lib/types/workouts';
 
   const exerciseId = $derived(page.params.id as string);
 
@@ -336,7 +341,7 @@
                       class="inline-flex items-center gap-1 rounded-md bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary"
                       title={pDef?.latin}
                     >
-                      {pDef?.name || pKey}
+                      {pDef?.name || formatMuscleName(pKey)}
                     </span>
                   {/each}
                 </div>
@@ -352,9 +357,9 @@
                       {@const sDef = DETAILED_MUSCLE_MAP[sKey as DetailedMuscleKey]}
                       <span
                         class="inline-flex items-center gap-1 rounded-md bg-[#818cf8]/15 px-2 py-0.5 text-[11px] font-medium text-[#818cf8]"
-                        title={`Synergist: ${sDef?.latin || sKey}`}
+                        title={`Synergist: ${sDef?.latin || formatMuscleName(sKey)}`}
                       >
-                        {sDef?.name || sKey}
+                        {sDef?.name || formatMuscleName(sKey)}
                       </span>
                     {/each}
                   </div>

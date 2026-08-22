@@ -40,7 +40,17 @@ def _parent_ids(sess, spec: EntityMeta, user_id: str) -> list[str]:
         return []
     owner = spec.parent_owner_field or "user_id"
     pk = _pk_column(parent)
-    stmt = select(pk).where(getattr(parent, owner) == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+    owner_col = getattr(parent, owner)
+    stmt = None
+    # System-seeded (shared_nullable) parents carry a nullable owner column and
+    # user_id = NULL. Include those parents so that relational children
+    # (workout_exercise, program_workout) of system templates sync to all users.
+    if getattr(owner_col, "nullable", False):
+        stmt = select(pk).where(
+            (owner_col == user_id) | (owner_col.is_(None))  # pyright: ignore[reportOperatorIssue]
+        )
+    else:
+        stmt = select(pk).where(owner_col == user_id)  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     if not spec.no_soft_delete and hasattr(parent, "deleted_at"):
         stmt = stmt.where(getattr(parent, "deleted_at").is_(None))  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
     rows = sess.exec(stmt).all()

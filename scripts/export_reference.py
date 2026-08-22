@@ -27,6 +27,14 @@ from salus.reference_data.definitions.metrics import (
     METRIC_GROUPS,
 )
 from salus.reference_data.definitions.mood_tags import DEFAULT_MOOD_TAGS
+from salus.reference_data.definitions.programs import (
+    DEFAULT_PROGRAM_WORKOUTS,
+    DEFAULT_PROGRAMS,
+)
+from salus.reference_data.definitions.workouts import (
+    DEFAULT_WORKOUT_EXERCISES,
+    DEFAULT_WORKOUTS,
+)
 
 DEFAULT_OUTPUT = (
     Path(__file__).resolve().parent.parent
@@ -172,6 +180,63 @@ def _metric_preference_defaults() -> list[dict]:
     ]
 
 
+def _common_workouts() -> list[dict]:
+    return [
+        {
+            "id": w["id"],
+            "name": w["name"],
+            "description": w.get("description"),
+            "position": w.get("position", 0),
+        }
+        for w in DEFAULT_WORKOUTS
+    ]
+
+
+def _common_workout_exercises() -> list[dict]:
+    return [
+        {
+            "id": we["id"],
+            "workout_id": we["workout_id"],
+            "exercise_id": we["exercise_id"],
+            "sequence": we.get("sequence", 0),
+            "target_sets": we.get("target_sets", 3),
+            "target_reps": we.get("target_reps", 8),
+            "target_rpe": we.get("target_rpe", 8.0),
+            "is_autoreg_exempt": we.get("is_autoreg_exempt", False),
+            "rest_seconds": we.get("rest_seconds"),
+        }
+        for we in DEFAULT_WORKOUT_EXERCISES
+    ]
+
+
+def _common_programs() -> list[dict]:
+    return [
+        {
+            "id": p["id"],
+            "name": p["name"],
+            "description": p.get("description"),
+            "progression_scheme": p.get("progression_scheme", "autoregulated"),
+            "position": p.get("position", 0),
+            "is_active": p.get("is_active", False),
+        }
+        for p in DEFAULT_PROGRAMS
+    ]
+
+
+def _common_program_workouts() -> list[dict]:
+    return [
+        {
+            "id": pw["id"],
+            "program_id": pw["program_id"],
+            "workout_id": pw["workout_id"],
+            "sequence": pw.get("sequence", 0),
+            "day_of_week": pw.get("day_of_week"),
+            "scheduled_date": pw.get("scheduled_date"),
+        }
+        for pw in DEFAULT_PROGRAM_WORKOUTS
+    ]
+
+
 def build_reference() -> dict:
     return {
         "version": 1,
@@ -182,6 +247,10 @@ def build_reference() -> dict:
         "lab_marker": _lab_markers(),
         "food_item": _common_foods(),
         "exercise": _common_exercises(),
+        "workout": _common_workouts(),
+        "workout_exercise": _common_workout_exercises(),
+        "program": _common_programs(),
+        "program_workout": _common_program_workouts(),
         "metric_preference_defaults": _metric_preference_defaults(),
     }
 

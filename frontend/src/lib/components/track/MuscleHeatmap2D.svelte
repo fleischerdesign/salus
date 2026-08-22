@@ -30,6 +30,25 @@
     color: string;
   }
 
+  interface Props {
+    title?: string;
+    subtitle?: string;
+    planExercises?: Array<{
+      exercise_id: string;
+      target_sets?: number | null;
+      target_reps?: number | null;
+      target_rpe?: number | null;
+    }>;
+  }
+
+  let { title, subtitle, planExercises }: Props = $props();
+
+  const isPlanMode = $derived(Boolean(planExercises && planExercises.length > 0));
+  const cardTitle = $derived(title ?? (isPlanMode ? 'Muskel-Aktivierung' : 'Muskel-Heatmap'));
+  const cardSubtitle = $derived(
+    subtitle ?? (isPlanMode ? 'Geplante Zielmuskulatur' : '7-Tage-Volumen')
+  );
+
   const muscleConfigs: Array<{
     name: MuscleGroup;
     category: 'push' | 'pull' | 'legs' | 'core';
@@ -59,180 +78,323 @@
   let selectedDetailedKey = $state<DetailedMuscleKey | null>('chest_clavicular');
   let selectedMuscleGroup = $state<MuscleGroup>('Brust');
 
-  const volumeQuery = useQuery(async () => {
-    const [exercises, logs] = await Promise.all([db.exercise.toArray(), db.workout_set.toArray()]);
+  const volumeQuery = useQuery(
+    async () => {
+      const [exercises, logs] = await Promise.all([
+        db.exercise.toArray(),
+        planExercises ? Promise.resolve([]) : db.workout_set.toArray()
+      ]);
 
-    const validExercises = exercises.filter((e) => !e.deleted_at);
-    const validLogs = logs.filter((l) => !l.deleted_at);
-    const exMap = new Map(validExercises.map((e) => [e.id, e]));
+      const validExercises = exercises.filter((e) => !e.deleted_at);
+      const exMap = new Map(validExercises.map((e) => [e.id, e]));
 
-    // High-level group volume map (12 groups)
-    const groupMap = new Map<MuscleGroup, { sets: number; volume: number; exNames: Set<string> }>();
-    for (const conf of muscleConfigs) {
-      groupMap.set(conf.name, { sets: 0, volume: 0, exNames: new Set() });
-    }
+      // High-level group volume map (12 groups)
+      const groupMap = new Map<
+        MuscleGroup,
+        { sets: number; volume: number; exNames: Set<string> }
+      >();
+      for (const conf of muscleConfigs) {
+        groupMap.set(conf.name, { sets: 0, volume: 0, exNames: new Set() });
+      }
 
-    // Granular detailed muscle volume map (28 detailed muscles)
-    const detailedMap = new Map<
-      DetailedMuscleKey,
-      { sets: number; volume: number; exNames: Set<string> }
-    >();
-    for (const m of DETAILED_MUSCLES) {
-      detailedMap.set(m.key, { sets: 0, volume: 0, exNames: new Set() });
-    }
+      // Granular detailed muscle volume map (28 detailed muscles)
+      const detailedMap = new Map<
+        DetailedMuscleKey,
+        { sets: number; volume: number; exNames: Set<string> }
+      >();
+      for (const m of DETAILED_MUSCLES) {
+        detailedMap.set(m.key, { sets: 0, volume: 0, exNames: new Set() });
+      }
 
-    for (const log of validLogs) {
-      const ex = exMap.get(log.exercise_id);
-      if (!ex) continue;
+      if (planExercises && planExercises.length > 0) {
+        for (const pe of planExercises) {
+          const ex = exMap.get(pe.exercise_id);
+          if (!ex) continue;
 
-      const logVol = (log.weight || 0) * (log.reps || 0);
+          const sets = pe.target_sets || 3;
+          const reps = pe.target_reps || 8;
+          const logVol = sets * reps;
 
-      // Primary muscles (1.0 volume credit)
-      const primaryTokens = parseMuscles(ex.primary_muscles);
-      for (const token of primaryTokens) {
-        const pGroup = resolveMuscleGroup(token);
-        const curGroup = groupMap.get(pGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
-        curGroup.sets += 1.0;
-        curGroup.volume += logVol;
-        curGroup.exNames.add(ex.name);
-        groupMap.set(pGroup, curGroup);
+          // Primary muscles (1.0 volume credit)
+          const primaryTokens = parseMuscles(ex.primary_muscles);
+          for (const token of primaryTokens) {
+            const pGroup = resolveMuscleGroup(token);
+            const curGroup = groupMap.get(pGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+            curGroup.sets += sets;
+            curGroup.volume += logVol;
+            curGroup.exNames.add(ex.name);
+            groupMap.set(pGroup, curGroup);
 
-        if (token in DETAILED_MUSCLE_MAP) {
-          const dKey = token as DetailedMuscleKey;
-          const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
-          curDet.sets += 1.0;
-          curDet.volume += logVol;
-          curDet.exNames.add(ex.name);
-          detailedMap.set(dKey, curDet);
-        } else {
-          // If a high level group was specified, credit all submuscles in that group evenly
-          for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === pGroup)) {
-            const curDet = detailedMap.get(m.key) ?? { sets: 0, volume: 0, exNames: new Set() };
-            curDet.sets += 1.0;
-            curDet.volume += logVol;
-            curDet.exNames.add(ex.name);
-            detailedMap.set(m.key, curDet);
+            if (token in DETAILED_MUSCLE_MAP) {
+              const dKey = token as DetailedMuscleKey;
+              const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
+              curDet.sets += sets;
+              curDet.volume += logVol;
+              curDet.exNames.add(ex.name);
+              detailedMap.set(dKey, curDet);
+            } else {
+              for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === pGroup)) {
+                const curDet = detailedMap.get(m.key) ?? {
+                  sets: 0,
+                  volume: 0,
+                  exNames: new Set()
+                };
+                curDet.sets += sets;
+                curDet.volume += logVol;
+                curDet.exNames.add(ex.name);
+                detailedMap.set(m.key, curDet);
+              }
+            }
+          }
+
+          // Secondary muscles (0.5 volume credit)
+          const secondaryTokens = parseMuscles(ex.secondary_muscles);
+          for (const token of secondaryTokens) {
+            const sGroup = resolveMuscleGroup(token);
+            const curGroup = groupMap.get(sGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+            curGroup.sets += sets * 0.5;
+            curGroup.volume += logVol * 0.5;
+            curGroup.exNames.add(ex.name);
+            groupMap.set(sGroup, curGroup);
+
+            if (token in DETAILED_MUSCLE_MAP) {
+              const dKey = token as DetailedMuscleKey;
+              const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
+              curDet.sets += sets * 0.5;
+              curDet.volume += logVol * 0.5;
+              curDet.exNames.add(ex.name);
+              detailedMap.set(dKey, curDet);
+            } else {
+              for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === sGroup)) {
+                const curDet = detailedMap.get(m.key) ?? {
+                  sets: 0,
+                  volume: 0,
+                  exNames: new Set()
+                };
+                curDet.sets += sets * 0.5;
+                curDet.volume += logVol * 0.5;
+                curDet.exNames.add(ex.name);
+                detailedMap.set(m.key, curDet);
+              }
+            }
+          }
+        }
+      } else {
+        const validLogs = logs.filter((l) => !l.deleted_at);
+        for (const log of validLogs) {
+          const ex = exMap.get(log.exercise_id);
+          if (!ex) continue;
+
+          const logVol = (log.weight || 0) * (log.reps || 0);
+
+          // Primary muscles (1.0 volume credit)
+          const primaryTokens = parseMuscles(ex.primary_muscles);
+          for (const token of primaryTokens) {
+            const pGroup = resolveMuscleGroup(token);
+            const curGroup = groupMap.get(pGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+            curGroup.sets += 1.0;
+            curGroup.volume += logVol;
+            curGroup.exNames.add(ex.name);
+            groupMap.set(pGroup, curGroup);
+
+            if (token in DETAILED_MUSCLE_MAP) {
+              const dKey = token as DetailedMuscleKey;
+              const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
+              curDet.sets += 1.0;
+              curDet.volume += logVol;
+              curDet.exNames.add(ex.name);
+              detailedMap.set(dKey, curDet);
+            } else {
+              for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === pGroup)) {
+                const curDet = detailedMap.get(m.key) ?? {
+                  sets: 0,
+                  volume: 0,
+                  exNames: new Set()
+                };
+                curDet.sets += 1.0;
+                curDet.volume += logVol;
+                curDet.exNames.add(ex.name);
+                detailedMap.set(m.key, curDet);
+              }
+            }
+          }
+
+          // Secondary muscles (0.5 volume credit)
+          const secondaryTokens = parseMuscles(ex.secondary_muscles);
+          for (const token of secondaryTokens) {
+            const sGroup = resolveMuscleGroup(token);
+            const curGroup = groupMap.get(sGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
+            curGroup.sets += 0.5;
+            curGroup.volume += logVol * 0.5;
+            curGroup.exNames.add(ex.name);
+            groupMap.set(sGroup, curGroup);
+
+            if (token in DETAILED_MUSCLE_MAP) {
+              const dKey = token as DetailedMuscleKey;
+              const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
+              curDet.sets += 0.5;
+              curDet.volume += logVol * 0.5;
+              curDet.exNames.add(ex.name);
+              detailedMap.set(dKey, curDet);
+            } else {
+              for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === sGroup)) {
+                const curDet = detailedMap.get(m.key) ?? {
+                  sets: 0,
+                  volume: 0,
+                  exNames: new Set()
+                };
+                curDet.sets += 0.5;
+                curDet.volume += logVol * 0.5;
+                curDet.exNames.add(ex.name);
+                detailedMap.set(m.key, curDet);
+              }
+            }
           }
         }
       }
 
-      // Secondary muscles (0.5 volume credit)
-      const secondaryTokens = parseMuscles(ex.secondary_muscles);
-      for (const token of secondaryTokens) {
-        const sGroup = resolveMuscleGroup(token);
-        const curGroup = groupMap.get(sGroup) ?? { sets: 0, volume: 0, exNames: new Set() };
-        curGroup.sets += 0.5;
-        curGroup.volume += logVol * 0.5;
-        curGroup.exNames.add(ex.name);
-        groupMap.set(sGroup, curGroup);
+      // Compute rolled-up Group stats
+      const groups: Partial<Record<MuscleGroup, MuscleVolumeData>> = {};
+      for (const conf of muscleConfigs) {
+        const data = groupMap.get(conf.name)!;
+        const s = data.sets;
+        const status: MuscleVolumeData['status'] = planExercises
+          ? s >= 6
+            ? 'optimal'
+            : s >= 3
+              ? 'optimal'
+              : s > 0
+                ? 'low'
+                : 'none'
+          : s >= 10 && s <= 18
+            ? 'optimal'
+            : s > 18
+              ? 'overreaching'
+              : s > 0
+                ? 'low'
+                : 'none';
 
-        if (token in DETAILED_MUSCLE_MAP) {
-          const dKey = token as DetailedMuscleKey;
-          const curDet = detailedMap.get(dKey) ?? { sets: 0, volume: 0, exNames: new Set() };
-          curDet.sets += 0.5;
-          curDet.volume += logVol * 0.5;
-          curDet.exNames.add(ex.name);
-          detailedMap.set(dKey, curDet);
-        } else {
-          for (const m of DETAILED_MUSCLES.filter((dm) => dm.group === sGroup)) {
-            const curDet = detailedMap.get(m.key) ?? { sets: 0, volume: 0, exNames: new Set() };
-            curDet.sets += 0.5;
-            curDet.volume += logVol * 0.5;
-            curDet.exNames.add(ex.name);
-            detailedMap.set(m.key, curDet);
-          }
+        const statusLabel = planExercises
+          ? s >= 6
+            ? 'Hoher Fokus'
+            : s >= 3
+              ? 'Primär'
+              : s > 0
+                ? 'Sekundär'
+                : 'Inaktiv'
+          : status === 'optimal'
+            ? 'Optimal'
+            : status === 'overreaching'
+              ? 'Hoch'
+              : status === 'low'
+                ? 'Erhalt'
+                : 'Keine Sätze';
+
+        const color = planExercises
+          ? s >= 3
+            ? 'var(--color-primary)'
+            : s > 0
+              ? '#818cf8'
+              : 'var(--bg-surface-200)'
+          : status === 'optimal'
+            ? '#10b981'
+            : status === 'overreaching'
+              ? '#f43f5e'
+              : status === 'low'
+                ? '#0ea5e9'
+                : 'var(--bg-surface-200)';
+
+        groups[conf.name] = {
+          name: conf.name,
+          group: conf.name,
+          category: conf.category,
+          setsWeekly: s,
+          volumeKg: data.volume,
+          recoveryHoursLeft: s > 0 ? (s > 14 ? 18 : 8) : 0,
+          status,
+          statusLabel,
+          exercises: Array.from(data.exNames),
+          color
+        };
+      }
+
+      // Compute Granular Detailed Muscle Stats & Path Colors
+      const detailed: Partial<Record<DetailedMuscleKey, MuscleVolumeData>> = {};
+      const pathColorMap: Record<string, string> = {};
+
+      for (const m of DETAILED_MUSCLES) {
+        const data = detailedMap.get(m.key)!;
+        const s = data.sets;
+        const status: MuscleVolumeData['status'] = planExercises
+          ? s >= 4
+            ? 'optimal'
+            : s >= 2
+              ? 'optimal'
+              : s > 0
+                ? 'low'
+                : 'none'
+          : s >= 6 && s <= 14
+            ? 'optimal'
+            : s > 14
+              ? 'overreaching'
+              : s > 0
+                ? 'low'
+                : 'none';
+
+        const statusLabel = planExercises
+          ? s >= 4
+            ? 'Hoher Fokus'
+            : s >= 2
+              ? 'Primär'
+              : s > 0
+                ? 'Sekundär'
+                : 'Inaktiv'
+          : status === 'optimal'
+            ? 'Optimal'
+            : status === 'overreaching'
+              ? 'Hoch'
+              : status === 'low'
+                ? 'Erhalt'
+                : 'Keine Sätze';
+
+        const color = planExercises
+          ? s >= 2
+            ? 'var(--color-primary)'
+            : s > 0
+              ? '#818cf8'
+              : 'var(--bg-surface-200)'
+          : status === 'optimal'
+            ? '#10b981'
+            : status === 'overreaching'
+              ? '#f43f5e'
+              : status === 'low'
+                ? '#0ea5e9'
+                : 'var(--bg-surface-200)';
+
+        detailed[m.key] = {
+          name: m.name,
+          latin: m.latin,
+          key: m.key,
+          group: m.group,
+          category: m.category,
+          setsWeekly: s,
+          volumeKg: data.volume,
+          recoveryHoursLeft: s > 0 ? (s > 10 ? 18 : 8) : 0,
+          status,
+          statusLabel,
+          exercises: Array.from(data.exNames),
+          color
+        };
+
+        for (const pid of m.svgPathIds) {
+          pathColorMap[pid] = color;
         }
       }
-    }
 
-    // Compute rolled-up Group stats
-    const groups: Partial<Record<MuscleGroup, MuscleVolumeData>> = {};
-    for (const conf of muscleConfigs) {
-      const data = groupMap.get(conf.name)!;
-      const s = data.sets;
-      const status: MuscleVolumeData['status'] =
-        s >= 10 && s <= 18 ? 'optimal' : s > 18 ? 'overreaching' : s > 0 ? 'low' : 'none';
-      const statusLabel =
-        status === 'optimal'
-          ? 'Optimal'
-          : status === 'overreaching'
-            ? 'Hoch'
-            : status === 'low'
-              ? 'Erhalt'
-              : 'Keine Sätze';
-
-      const color =
-        status === 'optimal'
-          ? '#10b981'
-          : status === 'overreaching'
-            ? '#f43f5e'
-            : status === 'low'
-              ? '#0ea5e9'
-              : 'var(--bg-surface-200)';
-
-      groups[conf.name] = {
-        name: conf.name,
-        group: conf.name,
-        category: conf.category,
-        setsWeekly: s,
-        volumeKg: data.volume,
-        recoveryHoursLeft: s > 0 ? (s > 14 ? 18 : 8) : 0,
-        status,
-        statusLabel,
-        exercises: Array.from(data.exNames),
-        color
-      };
-    }
-
-    // Compute Granular Detailed Muscle Stats & Path Colors
-    const detailed: Partial<Record<DetailedMuscleKey, MuscleVolumeData>> = {};
-    const pathColorMap: Record<string, string> = {};
-
-    for (const m of DETAILED_MUSCLES) {
-      const data = detailedMap.get(m.key)!;
-      const s = data.sets;
-      const status: MuscleVolumeData['status'] =
-        s >= 6 && s <= 14 ? 'optimal' : s > 14 ? 'overreaching' : s > 0 ? 'low' : 'none';
-      const statusLabel =
-        status === 'optimal'
-          ? 'Optimal'
-          : status === 'overreaching'
-            ? 'Hoch'
-            : status === 'low'
-              ? 'Erhalt'
-              : 'Keine Sätze';
-
-      const color =
-        status === 'optimal'
-          ? '#10b981'
-          : status === 'overreaching'
-            ? '#f43f5e'
-            : status === 'low'
-              ? '#0ea5e9'
-              : 'var(--bg-surface-200)';
-
-      detailed[m.key] = {
-        name: m.name,
-        latin: m.latin,
-        key: m.key,
-        group: m.group,
-        category: m.category,
-        setsWeekly: s,
-        volumeKg: data.volume,
-        recoveryHoursLeft: s > 0 ? (s > 10 ? 18 : 8) : 0,
-        status,
-        statusLabel,
-        exercises: Array.from(data.exNames),
-        color
-      };
-
-      for (const pid of m.svgPathIds) {
-        pathColorMap[pid] = color;
-      }
-    }
-
-    return { groups, detailed, pathColorMap };
-  });
+      return { groups, detailed, pathColorMap };
+    },
+    () => `${(planExercises ?? []).map((p) => `${p.exercise_id}:${p.target_sets}`).join(',')}`
+  );
 
   const groupsMap = $derived(volumeQuery.value?.groups ?? {});
   const detailedMap = $derived(volumeQuery.value?.detailed ?? {});
@@ -269,7 +431,7 @@
       volumeKg: 0,
       recoveryHoursLeft: 0,
       status: 'none',
-      statusLabel: 'Keine Sätze',
+      statusLabel: 'Inaktiv',
       exercises: [],
       color: 'var(--bg-surface-200)'
     };
@@ -315,8 +477,8 @@
         <Icon name="accessibility_new" class="text-sm" />
       </div>
       <div>
-        <h3 class="text-sm font-extrabold text-text-main">Muskel-Heatmap</h3>
-        <p class="text-[10px] text-text-muted">7-Tage-Volumen</p>
+        <h3 class="text-sm font-extrabold text-text-main">{cardTitle}</h3>
+        <p class="text-[10px] text-text-muted">{cardSubtitle}</p>
       </div>
     </div>
 
@@ -332,7 +494,7 @@
   </div>
 
   <!-- ═════════════════════════════════════════════════════════════ -->
-  <!-- 2. CONTEXT CONTROLS (Tightly spaced for 1/3 sidebar width)    -->
+  <!-- 2. CONTEXT CONTROLS (Tightly spaced for column width)         -->
   <!-- ═════════════════════════════════════════════════════════════ -->
   <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
     {#if activeDisplayMode === 'visual'}
@@ -374,13 +536,13 @@
   </div>
 
   <!-- ═════════════════════════════════════════════════════════════ -->
-  <!-- 3. MAIN CONTENT: VISUAL VIEW (Perfect for Column Width)      -->
+  <!-- 3. MAIN CONTENT: VISUAL VIEW                                 -->
   <!-- ═════════════════════════════════════════════════════════════ -->
   {#if activeDisplayMode === 'visual'}
     <div class="space-y-3">
       <!-- 2D Anatomical Vector Mannequin Display -->
       <div
-        class="flex h-[200px] w-full items-center justify-center rounded-2xl border border-border-subtle bg-gradient-to-b from-surface-50 to-surface-100 py-1.5 shadow-2xs"
+        class="flex h-[220px] w-full items-center justify-center rounded-2xl border border-border-subtle bg-gradient-to-b from-surface-50 to-surface-100 py-1.5 shadow-2xs"
       >
         <AnatomicalBodyVector
           view={bodySide as 'anterior' | 'posterior'}
@@ -435,30 +597,36 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
             <span class="text-[9px] font-semibold tracking-wider text-text-muted uppercase">
-              Volumen
+              {isPlanMode ? 'Geplante Sätze' : 'Volumen'}
             </span>
             <p class="mt-0.5 text-sm font-extrabold text-text-main">
               {selected.setsWeekly.toLocaleString('de-DE')}
               <span class="text-[10px] font-medium text-text-muted">Sätze</span>
             </p>
-            <p class="text-[9px] text-text-muted">
-              {selected.volumeKg.toLocaleString('de-DE')} kg
-            </p>
+            {#if !isPlanMode}
+              <p class="text-[9px] text-text-muted">
+                {selected.volumeKg.toLocaleString('de-DE')} kg
+              </p>
+            {/if}
           </div>
 
           <div class="rounded-xl border border-border-subtle bg-surface-0 p-2">
             <span class="text-[9px] font-semibold tracking-wider text-text-muted uppercase">
-              Erholung
+              {isPlanMode ? 'Aktivierungsgrad' : 'Erholung'}
             </span>
             <p
-              class="mt-0.5 text-xs font-bold {selected.recoveryHoursLeft > 0
-                ? 'text-amber-500'
-                : 'text-emerald-500'}"
+              class="mt-0.5 text-xs font-bold {selected.setsWeekly > 0
+                ? 'text-primary'
+                : 'text-text-muted'}"
             >
-              {selected.recoveryHoursLeft > 0 ? `~${selected.recoveryHoursLeft}h Rest` : '✓ Erholt'}
+              {selected.setsWeekly >= 4
+                ? 'Hauptfokus'
+                : selected.setsWeekly > 0
+                  ? 'Aktiviert'
+                  : 'Inaktiv'}
             </p>
             <p class="text-[9px] text-text-muted">
-              {selected.setsWeekly > 0 ? 'Hypertrophie' : 'Inaktiv'}
+              {selected.setsWeekly > 0 ? `${selected.group}-Gruppe` : 'Keine Übungen'}
             </p>
           </div>
         </div>
@@ -469,7 +637,7 @@
             <span class="mb-1 block text-[9px] font-bold tracking-wider text-text-muted uppercase">
               Beteiligte Übungen:
             </span>
-            <div class="flex max-h-[50px] flex-wrap gap-1 overflow-y-auto">
+            <div class="flex max-h-[60px] flex-wrap gap-1 overflow-y-auto">
               {#each selected.exercises as exName}
                 <span
                   class="rounded border border-border-subtle bg-surface-0 px-1.5 py-0.5 text-[10px] font-medium text-text-main shadow-2xs"
@@ -486,7 +654,7 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <!-- 4. MATRIX LIST VIEW                                           -->
     <!-- ═══════════════════════════════════════════════════════════ -->
-    <div class="grid max-h-[290px] grid-cols-1 gap-1.5 overflow-y-auto pr-1">
+    <div class="grid max-h-[300px] grid-cols-1 gap-1.5 overflow-y-auto pr-1">
       {#if granularity === 'detailed'}
         {#each filteredDetailedMuscles as m (m.key)}
           <button
@@ -545,9 +713,10 @@
               <div>
                 <p class="text-xs font-bold text-text-main">{m.name}</p>
                 <p class="text-[10px] text-text-muted">
-                  {m.setsWeekly.toLocaleString('de-DE')} Sätze &bull; {m.volumeKg.toLocaleString(
-                    'de-DE'
-                  )} kg
+                  {m.setsWeekly.toLocaleString('de-DE')} Sätze
+                  {#if !isPlanMode && m.volumeKg > 0}
+                    &bull; {m.volumeKg.toLocaleString('de-DE')} kg
+                  {/if}
                 </p>
               </div>
             </div>

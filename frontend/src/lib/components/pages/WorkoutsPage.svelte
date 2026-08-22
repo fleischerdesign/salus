@@ -24,17 +24,13 @@
     MUSCLE_GROUPS,
     DETAILED_MUSCLE_MAP,
     parseMuscles,
+    formatMuscleName,
     resolveMuscleGroup
   } from '../../types/workouts';
   import { db } from '$lib/db/database';
   import { useQuery } from '$lib/db/use-query.svelte';
   import { startWorkout, completeWorkout } from '$lib/mutations/workout';
-  import {
-    createProgram,
-    deleteProgram,
-    activateProgram,
-    deactivateProgram
-  } from '$lib/mutations/program';
+  import { createProgram } from '$lib/mutations/program';
   import { resolveToday } from '$lib/utils/program-schedule';
   import { createWorkout } from '$lib/mutations/plan';
 
@@ -81,6 +77,7 @@
 
       return {
         id: p.id,
+        user_id: p.user_id,
         name: p.name,
         split: 'Individueller Split',
         subtitle: p.description || 'Ganzkörper / Split',
@@ -92,7 +89,7 @@
           const ex = exMap.get(pe.exercise_id);
           return {
             name: ex?.name || 'Übung',
-            muscle: (ex?.primary_muscles as unknown as 'Brust') || 'Brust',
+            muscle: ex?.primary_muscles || 'Ganzkörper',
             targetSets: pe.target_sets || 3,
             targetReps: `${pe.target_reps || 10} Wdh`,
             targetRpe: pe.target_rpe ?? 8
@@ -117,7 +114,7 @@
           return {
             id: `ex_${pe.id}`,
             name: ex?.name || 'Übung',
-            muscleGroup: (ex?.primary_muscles as unknown as 'Brust') || 'Brust',
+            muscleGroup: resolveMuscleGroup(ex?.primary_muscles?.split(',')[0] || 'Brust'),
             category: 'Grundübung',
             equipment: (ex?.equipment as unknown as 'Langhantel') || 'Langhantel',
             e1RM: 100,
@@ -221,6 +218,22 @@
 
   const workoutData = $derived(workoutsQuery.value);
   const savedPlans = $derived(workoutData?.plans ?? []);
+  const muscleFocusByPlan = $derived.by<Map<string, string[]>>(() => {
+    const map = new Map<string, string[]>();
+    for (const plan of savedPlans) {
+      const focusSet = new Set<string>();
+      for (const ex of plan.exercises) {
+        for (const token of parseMuscles(ex.muscle)) {
+          const formatted = formatMuscleName(token);
+          if (formatted) {
+            focusSet.add(formatted);
+          }
+        }
+      }
+      map.set(plan.id, Array.from(focusSet));
+    }
+    return map;
+  });
   const pastSessions = $derived(workoutData?.sessions ?? []);
   const dbExercises = $derived(workoutData?.allExercises ?? []);
   const activeSession = $derived(workoutData?.activeSession ?? null);
@@ -285,17 +298,6 @@
       }))
     );
     isProgramEditorOpen = false;
-  }
-
-  async function handleDeleteProgram(id: string) {
-    await deleteProgram(id);
-  }
-
-  async function handleStartProgram(programId: string) {
-    const program = savedPrograms.find((p) => p.id === programId);
-    const firstSlot = program?.slots[0];
-    await startWorkout(firstSlot?.workout_id ?? null, programId);
-    goto('/workouts/active');
   }
 
   async function handleStartResolved(workoutId: string, programId: string) {
@@ -431,7 +433,7 @@
         : 'text-text-muted hover:text-text-main'}"
     >
       <Icon name="fitness_center" class="text-primary" />
-      <span>Übungskatalog &amp; 1RM</span>
+      <span>Übungen</span>
       <Badge variant="default" class="text-[0.625rem]">{dbExercises.length}</Badge>
     </a>
   </div>
@@ -487,10 +489,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h3 class="text-sm font-extrabold text-text-main sm:text-base">
-                Freies Training (ohne Vorlage)
-              </h3>
-              <Badge variant="primary" class="text-[0.625rem]">Spontan</Badge>
+              <h3 class="text-sm font-extrabold text-text-main sm:text-base">Freies Training</h3>
             </div>
             <p class="mt-0.5 text-xs text-text-muted">
               Starte eine leere Session und füge deine Übungen, Sätze und Gewichte flexibel während
@@ -504,7 +503,7 @@
           onclick={() => handleStartPlan()}
           class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-2xl bg-primary px-4 py-2.5 text-xs font-bold whitespace-nowrap text-white shadow-md transition-all hover:opacity-90"
         >
-          <span>+ Freies Training starten &rarr;</span>
+          <span>Training starten</span>
         </button>
       </div>
 
@@ -538,27 +537,61 @@
         {:else}
           <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
             {#each savedPlans as plan}
-              <div
-                class="flex flex-col justify-between space-y-4 rounded-2xl border border-border-subtle bg-surface-50 p-4 transition-all hover:border-primary"
+              {@const focus = muscleFocusByPlan.get(plan.id) ?? []}
+              <a
+                href="/workouts/plans/{plan.id}"
+                class="group flex flex-col rounded-2xl border border-border-subtle bg-surface-50 p-4 text-left transition-all hover:border-border-strong hover:shadow-sm"
               >
-                <div>
-                  <div class="mb-2 flex items-start justify-between">
-                    <div>
-                      <h3 class="text-sm font-extrabold text-text-main">{plan.name}</h3>
-                      <span class="text-xs text-text-muted">{plan.split}</span>
-                    </div>
-                    <Badge variant="activity">{plan.estimatedDuration}</Badge>
+                <div class="mb-2 flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h3
+                      class="text-sm font-extrabold text-text-main transition-colors group-hover:text-primary"
+                    >
+                      {plan.name}
+                    </h3>
+                    <span class="text-xs text-text-muted">{plan.split}</span>
                   </div>
-
-                  <div class="my-3 space-y-1.5">
-                    <span class="block text-[0.6875rem] font-bold text-text-soft uppercase">
-                      Enthaltene Übungen ({plan.exercisesCount}):
+                  <div class="flex shrink-0 items-center gap-1.5 self-start">
+                    <Badge variant={plan.user_id ? 'activity' : 'primary'} class="text-[0.625rem]">
+                      {plan.user_id ? 'Individuell' : 'Standard'}
+                    </Badge>
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-surface-100 px-2 py-0.5 text-[0.625rem] font-bold text-text-soft tabular-nums"
+                    >
+                      <Icon name="timer" class="text-xs" />
+                      <span>{plan.estimatedDuration}</span>
                     </span>
-                    {#each plan.exercises as ex}
+                  </div>
+                </div>
+
+                {#if focus.length > 0}
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    {#each focus.slice(0, 3) as muscle}
+                      <span
+                        class="inline-flex items-center gap-1 rounded-md bg-primary-soft px-1.5 py-0.5 text-[0.625rem] font-semibold text-primary"
+                      >
+                        <Icon name="fitness_center" class="text-xs" />
+                        {muscle}
+                      </span>
+                    {/each}
+                  </div>
+                {/if}
+
+                <div class="mt-2.5 space-y-1.5">
+                  <span class="block text-[0.6875rem] font-bold text-text-soft uppercase"
+                    >Enthaltene Übungen ({plan.exercisesCount})</span
+                  >
+                  <div
+                    class="space-y-1.5"
+                    style={plan.exercisesCount > 3
+                      ? 'mask-image: linear-gradient(to bottom, black 65%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);'
+                      : ''}
+                  >
+                    {#each plan.exercises.slice(0, 3) as ex}
                       <div class="flex items-center justify-between text-xs text-text-main">
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex min-w-0 items-center gap-1.5">
                           <span class="h-1.5 w-1.5 rounded-full bg-activity"></span>
-                          <span class="font-semibold">{ex.name}</span>
+                          <span class="truncate font-semibold">{ex.name}</span>
                         </div>
                         <span class="text-[0.6875rem] text-text-muted tabular-nums"
                           >{ex.targetSets} &times; {ex.targetReps}</span
@@ -567,17 +600,7 @@
                     {/each}
                   </div>
                 </div>
-
-                <div class="flex items-center justify-between border-t border-border-subtle pt-3">
-                  <button
-                    type="button"
-                    onclick={() => handleStartPlan(plan.id)}
-                    class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
-                  >
-                    Workout starten &rarr;
-                  </button>
-                </div>
-              </div>
+              </a>
             {/each}
           </div>
         {/if}
@@ -615,79 +638,69 @@
         {:else}
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             {#each savedPrograms as program}
-              <div
-                class="flex flex-col justify-between space-y-4 rounded-2xl border border-border-subtle bg-surface-50 p-4 transition-all hover:border-primary"
+              <a
+                href="/workouts/programs/{program.id}"
+                class="group flex flex-col rounded-2xl border border-border-subtle bg-surface-50 p-4 transition-all hover:border-border-strong hover:shadow-sm"
               >
-                <div>
-                  <div class="mb-2 flex items-start justify-between">
-                    <div>
-                      <h3 class="text-sm font-extrabold text-text-main">{program.name}</h3>
-                      <span class="text-xs text-text-muted"
-                        >{program.description || 'Kein Fokus definiert'}</span
-                      >
-                    </div>
-                    <Badge
-                      variant={program.progression_scheme === 'linear' ? 'primary' : 'default'}
+                <div class="mb-2 flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h3
+                      class="text-sm font-extrabold text-text-main transition-colors group-hover:text-primary"
                     >
-                      {program.progression_scheme}
-                    </Badge>
+                      {program.name}
+                    </h3>
+                    <span class="line-clamp-2 text-xs text-text-muted"
+                      >{program.description || 'Kein Fokus definiert'}</span
+                    >
                   </div>
-
-                  <div class="my-3 space-y-1.5">
-                    <span class="block text-[0.6875rem] font-bold text-text-soft uppercase">
-                      Workouts ({program.slots.length}):
+                  <div class="flex shrink-0 items-center gap-1.5 self-start">
+                    <Badge
+                      variant={program.is_active ? 'activity' : 'default'}
+                      class="text-[0.625rem]"
+                    >
+                      {program.is_active ? 'Aktiv' : 'Inaktiv'}
+                    </Badge>
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[0.625rem] font-bold text-primary"
+                    >
+                      {program.progression_scheme === 'linear' ? 'Linear' : 'Autoreguliert'}
                     </span>
-                    {#each program.slots as slot}
-                      <div class="flex items-center justify-between text-xs text-text-main">
-                        <div class="flex items-center gap-1.5">
-                          <span class="h-1.5 w-1.5 rounded-full bg-activity"></span>
-                          <span class="font-semibold">{slot.workoutName}</span>
-                        </div>
-                        <span class="text-[0.6875rem] text-text-muted">
+                  </div>
+                </div>
+
+                <div class="mt-2.5 space-y-1.5">
+                  <span class="block text-[0.6875rem] font-bold text-text-soft uppercase"
+                    >Wochenplan ({program.slots.length})</span
+                  >
+                  {#if program.slots.length > 0}
+                    <div class="flex flex-wrap gap-1.5">
+                      {#each program.slots as slot}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-md bg-surface-100 px-1.5 py-0.5 text-[0.625rem] font-semibold text-text-main"
+                        >
                           {#if slot.day_of_week !== null}
-                            {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][slot.day_of_week] ?? ''}
+                            <span class="font-mono font-bold text-text-muted"
+                              >{['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][slot.day_of_week] ??
+                                ''}</span
+                            >
+                            <span class="text-text-soft">· {slot.workoutName}</span>
                           {:else if slot.scheduled_date}
-                            {slot.scheduled_date}
+                            <span class="font-mono font-bold text-text-muted"
+                              >{slot.scheduled_date}</span
+                            >
+                            <span class="text-text-soft">· {slot.workoutName}</span>
                           {:else}
-                            Rotation
+                            <span class="font-bold text-primary">Rotation</span>
+                            <span class="text-text-soft">· {slot.workoutName}</span>
                           {/if}
                         </span>
-                      </div>
-                    {/each}
-                  </div>
+                      {/each}
+                    </div>
+                  {:else}
+                    <p class="text-xs text-text-muted">Keine Workouts festgelegt</p>
+                  {/if}
                 </div>
-
-                <div class="flex items-center justify-between border-t border-border-subtle pt-3">
-                  <div class="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onclick={() =>
-                        program.is_active
-                          ? deactivateProgram(program.id)
-                          : activateProgram(program.id)}
-                      class="cursor-pointer text-xs font-bold {program.is_active
-                        ? 'text-primary'
-                        : 'text-text-muted hover:text-primary'}"
-                    >
-                      {program.is_active ? 'Aktiv' : 'Aktivieren'}
-                    </button>
-                    <button
-                      type="button"
-                      onclick={() => handleDeleteProgram(program.id)}
-                      class="hover:text-danger cursor-pointer text-xs font-bold text-text-muted"
-                    >
-                      Löschen
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onclick={() => handleStartProgram(program.id)}
-                    class="cursor-pointer rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90"
-                  >
-                    Starten &rarr;
-                  </button>
-                </div>
-              </div>
+              </a>
             {/each}
           </div>
         {/if}
@@ -860,7 +873,7 @@
                           class="inline-flex items-center gap-1 rounded-md bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary"
                           title={pDef?.latin}
                         >
-                          {pDef?.name || pKey}
+                          {pDef?.name || formatMuscleName(pKey)}
                         </span>
                       {/each}
 
@@ -868,9 +881,9 @@
                         {@const sDef = DETAILED_MUSCLE_MAP[sKey as DetailedMuscleKey]}
                         <span
                           class="inline-flex items-center gap-1 rounded-md bg-[#818cf8]/10 px-2 py-0.5 text-[11px] font-medium text-[#818cf8]"
-                          title={`Synergist: ${sDef?.latin || sKey}`}
+                          title={`Synergist: ${sDef?.latin || formatMuscleName(sKey)}`}
                         >
-                          {sDef?.name || sKey}
+                          {sDef?.name || formatMuscleName(sKey)}
                         </span>
                       {/each}
                     </div>

@@ -75,6 +75,67 @@ export const createWorkout = (
   });
 };
 
+export const copyWorkout = async (sourceWorkoutId: string) => {
+  const source = await db.workout.get(sourceWorkoutId);
+  if (!source || source.deleted_at) return null;
+
+  const sourceExercises = await db.workout_exercise
+    .where('workout_id')
+    .equals(sourceWorkoutId)
+    .toArray();
+
+  const copyId = uuid7();
+  const copiedExercises = sourceExercises
+    .filter((we) => !we.deleted_at)
+    .sort((a, b) => a.sequence - b.sequence)
+    .map((we) => ({
+      id: uuid7(),
+      workout_id: copyId,
+      exercise_id: we.exercise_id,
+      sequence: we.sequence,
+      target_sets: we.target_sets,
+      target_reps: we.target_reps,
+      target_rpe: we.target_rpe,
+      is_autoreg_exempt: we.is_autoreg_exempt,
+      rest_seconds: we.rest_seconds,
+      created_at: now(),
+      updated_at: null,
+      deleted_at: null
+    }));
+
+  return mutate({
+    kind: 'command',
+    command: 'create_workout',
+    queueable: true,
+    payload: {
+      id: copyId,
+      name: source.name,
+      description: source.description,
+      exercises: copiedExercises.map(
+        ({ workout_id: _w, created_at: _c, updated_at: _u, deleted_at: _d, ...rest }) => rest
+      )
+    },
+    optimisticTable: 'workout',
+    optimisticData: {
+      id: copyId,
+      user_id: SELF_USER_ID,
+      name: source.name,
+      description: source.description,
+      position: 0,
+      created_at: now(),
+      updated_at: null,
+      deleted_at: null
+    },
+    optimisticRows: [
+      {
+        table: 'workout_exercise',
+        rows: copiedExercises
+      }
+    ],
+    responseTable: 'workout'
+  });
+};
+
 export const deleteWorkout = async (workoutId: string) => {
   const workoutExercises = await db.workout_exercise
     .where('workout_id')

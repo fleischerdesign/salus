@@ -93,7 +93,9 @@
 
   <div class="relative flex items-center">
     {#if icon}
-      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-text-muted">
+      <div
+        class="pointer-events-none absolute top-1/2 left-3.5 flex -translate-y-1/2 items-center text-text-muted"
+      >
         <Icon name={icon} size="sm" />
       </div>
     {/if}

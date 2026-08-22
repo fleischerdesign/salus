@@ -90,6 +90,43 @@ interface ReferenceExercise {
   suggested_rest_seconds: number;
 }
 
+interface ReferenceWorkout {
+  id: string;
+  name: string;
+  description: string | null;
+  position: number;
+}
+
+interface ReferenceWorkoutExercise {
+  id: string;
+  workout_id: string;
+  exercise_id: string;
+  sequence: number;
+  target_sets: number;
+  target_reps: number;
+  target_rpe: number;
+  is_autoreg_exempt: boolean;
+  rest_seconds: number | null;
+}
+
+interface ReferenceProgram {
+  id: string;
+  name: string;
+  description: string | null;
+  progression_scheme: string;
+  position: number;
+  is_active: boolean;
+}
+
+interface ReferenceProgramWorkout {
+  id: string;
+  program_id: string;
+  workout_id: string;
+  sequence: number;
+  day_of_week: number | null;
+  scheduled_date: string | null;
+}
+
 interface ReferenceData {
   version: number;
   metric_group: ReferenceMetricGroup[];
@@ -99,6 +136,10 @@ interface ReferenceData {
   lab_marker: ReferenceLabMarker[];
   food_item: ReferenceFoodItem[];
   exercise?: ReferenceExercise[];
+  workout?: ReferenceWorkout[];
+  workout_exercise?: ReferenceWorkoutExercise[];
+  program?: ReferenceProgram[];
+  program_workout?: ReferenceProgramWorkout[];
   metric_preference_defaults: ReferenceMetricPreferenceDefault[];
 }
 
@@ -151,6 +192,56 @@ export async function seedReferenceData(): Promise<void> {
         video_url: null,
         image_url: null,
         user_id: null,
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
+  }
+
+  if (data.workout && (await db.workout.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.workout.bulkPut(
+      data.workout.map((w) => ({
+        ...w,
+        user_id: null,
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
+  }
+
+  if (data.workout_exercise && (await db.workout_exercise.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.workout_exercise.bulkPut(
+      data.workout_exercise.map((we) => ({
+        ...we,
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
+  }
+
+  if (data.program && (await db.program.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.program.bulkPut(
+      data.program.map((p) => ({
+        ...p,
+        user_id: null,
+        created_at: now,
+        updated_at: null,
+        deleted_at: null
+      }))
+    );
+  }
+
+  if (data.program_workout && (await db.program_workout.count()) === 0) {
+    const now = new Date().toISOString();
+    await db.program_workout.bulkPut(
+      data.program_workout.map((pw) => ({
+        ...pw,
         created_at: now,
         updated_at: null,
         deleted_at: null

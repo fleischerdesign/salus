@@ -70,7 +70,9 @@
       : ''}"
   >
     {#if icon}
-      <div class="pointer-events-none flex shrink-0 items-center pl-3.5 text-text-muted">
+      <div
+        class="pointer-events-none absolute top-1/2 left-3.5 flex -translate-y-1/2 items-center text-text-muted"
+      >
         <Icon name={icon} size="sm" />
       </div>
     {/if}
@@ -84,9 +86,9 @@
       onchange={handleChange}
       onfocus={() => (isFocused = true)}
       onblur={() => (isFocused = false)}
-      class="h-10 w-full cursor-pointer appearance-none bg-transparent pr-10 pl-3.5 text-xs font-semibold text-text-main outline-none [-moz-appearance:none] [-webkit-appearance:none] {icon
+      class="h-10 w-full cursor-pointer appearance-none bg-transparent pr-10 {icon
         ? 'pl-10'
-        : ''}"
+        : 'pl-3.5'} text-xs font-semibold text-text-main outline-none [-moz-appearance:none] [-webkit-appearance:none]"
     >
       {#each options as opt}
         <option

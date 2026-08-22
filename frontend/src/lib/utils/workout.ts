@@ -1,5 +1,7 @@
 import type { WorkoutSet } from '$lib/db/types';
 
+export { formatMuscleName, parseMuscles } from '$lib/types/workouts';
+
 export function sessionVolume(logs: WorkoutSet[] | undefined, sessionId: string): number {
   return (logs ?? [])
     .filter((l) => l.session_id === sessionId)

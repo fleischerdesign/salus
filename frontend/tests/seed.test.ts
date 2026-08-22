@@ -17,6 +17,11 @@ describe('seedReferenceData', () => {
     expect(await db.mood_tag.count()).toBeGreaterThan(0);
     expect(await db.lab_marker.count()).toBeGreaterThan(0);
     expect(await db.food_item.count()).toBeGreaterThan(0);
+    expect(await db.exercise.count()).toBeGreaterThan(0);
+    expect(await db.workout.count()).toBeGreaterThan(0);
+    expect(await db.workout_exercise.count()).toBeGreaterThan(0);
+    expect(await db.program.count()).toBeGreaterThan(0);
+    expect(await db.program_workout.count()).toBeGreaterThan(0);
     expect(await db.user_metric_preference.count()).toBeGreaterThan(0);
 
     const steps = await db.metric_definition.get('steps');
@@ -32,6 +37,18 @@ describe('seedReferenceData', () => {
     const oats = await db.food_item.get('food-oatmeal');
     expect(oats?.is_verified).toBe(true);
     expect(oats?.user_id).toBeNull();
+
+    const bench = await db.exercise.get('ex-bench-press-barbell');
+    expect(bench?.name).toBe('Bankdrücken (Langhantel)');
+    expect(bench?.user_id).toBeNull();
+
+    const workout = await db.workout.get('wo-fb-a');
+    expect(workout?.name).toBe('Ganzkörper A (Kniebeuge & Druck)');
+    expect(workout?.user_id).toBeNull();
+
+    const program = await db.program.get('prog-full-body-3d');
+    expect(program?.name).toBe('Ganzkörper 3er-Split (Alternierend A/B)');
+    expect(program?.user_id).toBeNull();
   });
 
   it('backfills reference tables for existing installs', async () => {

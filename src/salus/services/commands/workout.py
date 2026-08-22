@@ -53,7 +53,8 @@ class StartWorkoutHandler:
         recovery_score = None
         if program_id:
             program = uow.programs.get_by_id(program_id)
-            if program and program.user_id == user.id:  # pyright: ignore[reportAttributeAccessIssue]
+            # System-seeded programs (user_id=None) are usable by all users.
+            if program and (program.user_id == user.id or program.user_id is None):  # pyright: ignore[reportAttributeAccessIssue]
                 progression_scheme = program.progression_scheme
                 if progression_scheme != "none":
                     recovery_score = self._calculate_recovery(uow, user)

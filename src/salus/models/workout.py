@@ -48,7 +48,7 @@ class Workout(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str
     description: Optional[str] = Field(default=None)
-    user_id: str = Field(foreign_key="user.id")
+    user_id: Optional[str] = Field(default=None, foreign_key="user.id")
 
     position: int = Field(default=0)  # Reorder position in workouts grid
 
@@ -164,7 +164,7 @@ class Program(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=uuid7_str, primary_key=True)
     name: str
     description: Optional[str] = Field(default=None)
-    user_id: str = Field(foreign_key="user.id")
+    user_id: Optional[str] = Field(default=None, foreign_key="user.id")
 
     # Progression scheme applied to this program's sessions
     # ("linear" | "autoregulated" | "none")
