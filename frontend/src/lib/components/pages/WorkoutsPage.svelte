@@ -382,7 +382,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="show_chart" class="text-primary" />
+      <Icon name="show_chart" />
       <span>Workouts</span>
       <Badge variant="default" class="text-[0.625rem]">{savedPlans.length}</Badge>
     </a>
@@ -394,7 +394,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="calendar-view-week" class="text-primary" />
+      <Icon name="calendar-view-week" />
       <span>Programme</span>
       <Badge variant="default" class="text-[0.625rem]">{savedPrograms.length}</Badge>
     </a>
@@ -420,7 +420,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="history" class="text-primary" />
+      <Icon name="history" />
       <span>Historie</span>
       <Badge variant="default" class="text-[0.625rem]">{pastSessions.length}</Badge>
     </a>
@@ -432,7 +432,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="fitness_center" class="text-primary" />
+      <Icon name="fitness_center" />
       <span>Übungen</span>
       <Badge variant="default" class="text-[0.625rem]">{dbExercises.length}</Badge>
     </a>

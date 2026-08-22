@@ -311,7 +311,7 @@
           ? 'bg-surface-0 text-primary shadow-sm'
           : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="wb-sunny" class="text-circadian" />
+        <Icon name="wb-sunny" />
         <span>Challenges &amp; Ranglisten</span>
       </a>
 
@@ -322,7 +322,7 @@
           ? 'bg-surface-0 text-primary shadow-sm'
           : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="groups" class="text-primary" />
+        <Icon name="groups" />
         <span>Freunde &amp; Verbindungen</span>
       </a>
 
@@ -333,7 +333,7 @@
           ? 'bg-surface-0 text-primary shadow-sm'
           : 'text-text-muted hover:text-text-main'}"
       >
-        <Icon name="insights" class="text-activity" />
+        <Icon name="insights" />
         <span>Aktivitätsfeed</span>
       </a>
     </div>

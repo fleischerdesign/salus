@@ -381,7 +381,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="restaurant" class="text-activity" />
+      <Icon name="restaurant" />
       <span>Tagebuch</span>
       <Badge variant="activity" class="text-[0.625rem] tabular-nums">{totalCalories} kcal</Badge>
     </button>
@@ -394,7 +394,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="wb_sunny" class="text-circadian" />
+      <Icon name="wb_sunny" />
       <span>Rezeptdatenbank</span>
       <Badge variant="default" class="text-[0.625rem]">{recipesList.length}</Badge>
     </button>
@@ -407,7 +407,7 @@
         ? 'bg-surface-0 text-primary shadow-sm'
         : 'text-text-muted hover:text-text-main'}"
     >
-      <Icon name="labs" class="text-primary" />
+      <Icon name="labs" />
       <span>Lebensmittelkatalog</span>
       <Badge variant="default" class="text-[0.625rem]">{foodCatalog.length}</Badge>
     </button>

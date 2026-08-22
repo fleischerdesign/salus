@@ -20,7 +20,7 @@
       <span
         class="flex items-center gap-1.5 text-xs font-bold text-text-main transition-colors group-hover:text-primary"
       >
-        <Icon name="science" class="text-vital" /> Labor &amp; Blutbild
+        <Icon name="science" class="text-vital" /> Labor
       </span>
       <span class="text-[0.6875rem] text-text-muted">Biomarker, Panels, Arzt-Freigabe</span>
     </button>
